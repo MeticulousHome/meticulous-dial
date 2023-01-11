@@ -11,12 +11,16 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
+    "prepare": "husky install",
     "lint": "eslint --ext .ts,.tsx ."
   },
   "config": {
     "commitizen": {
       "path": "@commitlint/cz-commitlint"
     }
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": "prettier --config .prettierrc \"src/**/*.{js,tsx,ts}\" --check --ignore-unknown"
   },
   "keywords": [],
   "author": {
@@ -47,6 +51,7 @@
     "fork-ts-checker-webpack-plugin": "^7.2.13",
     "husky": "^8.0.3",
     "inquirer": "^8.2.5",
+    "lint-staged": "^13.1.0",
     "node-loader": "^2.0.0",
     "prettier": "2.8.2",
     "style-loader": "^3.0.0",
