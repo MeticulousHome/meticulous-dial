@@ -6,11 +6,17 @@
   "main": ".webpack/main",
   "scripts": {
     "format": "prettier --config .prettierrc \"src/**/*.{js,tsx,ts}\" --write",
+    "commit": "git-cz",
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx ."
+  },
+  "config": {
+    "commitizen": {
+      "path": "@commitlint/cz-commitlint"
+    }
   },
   "keywords": [],
   "author": {
@@ -19,6 +25,9 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@commitlint/cli": "^17.4.1",
+    "@commitlint/config-conventional": "^17.4.0",
+    "@commitlint/cz-commitlint": "^17.4.1",
     "@electron-forge/cli": "^6.0.4",
     "@electron-forge/maker-deb": "^6.0.4",
     "@electron-forge/maker-rpm": "^6.0.4",
@@ -30,11 +39,14 @@
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "@vercel/webpack-asset-relocator-loader": "1.7.3",
+    "commitizen": "^4.2.6",
     "css-loader": "^6.0.0",
     "electron": "22.0.0",
     "eslint": "^8.0.1",
     "eslint-plugin-import": "^2.25.0",
     "fork-ts-checker-webpack-plugin": "^7.2.13",
+    "husky": "^8.0.3",
+    "inquirer": "^8.2.5",
     "node-loader": "^2.0.0",
     "prettier": "2.8.2",
     "style-loader": "^3.0.0",
