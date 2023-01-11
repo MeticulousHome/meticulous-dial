@@ -1,4 +1,8 @@
 import * as ReactDOM from 'react-dom/client';
 
+const App = (): JSX.Element => {
+  return <h1>Hello, Electron!</h1>;
+};
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<h1>Hello, world!</h1>);
+root.render(<App />);
