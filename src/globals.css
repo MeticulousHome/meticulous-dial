@@ -1,0 +1,24 @@
+/* Fonts */
+@font-face {
+    font-family: 'Open Sans';
+    src: url('/src/assets/fonts/open-sans-v29-latin-regular.ttf');
+}
+@font-face {
+    font-family: 'Lekton';
+    src: url('/src/assets/fonts/Lekton-Regular.ttf');
+}
+body {
+    font-family: 'Open Sans';
+    font-weight: 400;
+    color: white;
+    margin: 0;
+}
+.text-gray {
+    color: #5E5E5E;
+}
+.flex {
+    display: flex;
+}
+.flex-1 {
+    flex: 1;
+}

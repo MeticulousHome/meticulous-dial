@@ -26,7 +26,7 @@
  * ```
  */
 
-import './index.css';
+import './globals.css';
 import './App';
 
 console.log(
