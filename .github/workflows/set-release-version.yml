@@ -1,0 +1,44 @@
+name: Set release version
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  set-release-version:
+    name: Set release version
+    runs-on: ubuntu-18.04
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+      - name: Setup Node.js 16
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16'
+      - name: Disable "include administrators" branch protection
+        uses: benjefferies/branch-protection-bot@1.0.5
+        if: always()
+        with:
+          access-token: ${{ secrets.GH_TOKEN }}
+          branch: 'master'
+          enforce_admins: false
+      - name: Install dependencies
+        run: npm install
+      - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: npx semantic-release
+      - name: Enable "include administrators" branch protection
+        uses: benjefferies/branch-protection-bot@1.0.5
+        if: always() # Force to always run this step to ensure "include administrators" is always turned back on
+        with:
+          access-token: ${{ secrets.GH_TOKEN }}
+          branch: 'master'
+          enforce_admins: true
+      - name: Sync staging with master branch
+        if: always()
+        run: git push origin master:staging --force
