@@ -11,14 +11,33 @@ if (require('electron-squirrel-startup')) {
 }
 
 const createWindow = (): void => {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    height: 600,
-    width: 800,
+  let config: Electron.BrowserWindowConstructorOptions = {
+    height: 480,
+    width: 480,
+    minHeight: 480,
+    minWidth: 480,
+    title: 'Meticulous',
+    darkTheme: true,
+    backgroundColor: 'black',
+    center: true,
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY
     }
-  });
+  };
+
+  if (app.isPackaged) {
+    config = {
+      ...config,
+      autoHideMenuBar: true,
+      resizable: false,
+      movable: false,
+      kiosk: true,
+      alwaysOnTop: true,
+      closable: false
+    };
+  }
+  // Create the browser window.
+  const mainWindow = new BrowserWindow(config);
 
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
