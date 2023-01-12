@@ -1,20 +1,39 @@
 import './barometer.css';
 import { formatStatValue } from '../../utils';
 
+export interface IBarometerProps {
+  stats: IStats;
+  maxValue?: number;
+}
 export interface IStats {
   sensors: { p: string; t: string; w: string; f: string };
   time: string;
   name: string;
 }
 
-export function Barometer(stats: IStats): JSX.Element {
-  const clockHand = 114; // start position
+const getBarNeedlePosition = (pressure: string, maxValue: number) => {
+  const final = (313 * parseFloat(pressure)) / maxValue;
+  const barNeedleRotatePosition = final < 0 ? 0 : final;
+
+  return barNeedleRotatePosition > 313
+    ? 313 + 114
+    : barNeedleRotatePosition + 114; //start position
+};
+
+export function Barometer({
+  stats,
+  maxValue = 13
+}: IBarometerProps): JSX.Element {
+  const barNeedleRotatePosition = getBarNeedlePosition(
+    stats.sensors.p,
+    maxValue
+  );
 
   return (
     <div className="barometer-container">
       <div
         className="bar-needle bar-needle--transition-all"
-        style={{ transform: `rotate(${clockHand}deg)` }}
+        style={{ transform: `rotate(${barNeedleRotatePosition}deg)` }}
       ></div>
       <div className="bar-needle__content">
         <div className="pressure">PRESSURE</div>
