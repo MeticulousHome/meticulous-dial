@@ -1,0 +1,18 @@
+name: Build
+on:
+  push:
+    branches:
+      - release/V1.0.0
+
+jobs:
+  build_on_linux:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@master
+        with:
+          node-version: 18
+      - name: install dependencies
+        run: npm install
+      - name: build
+        run: npm run make -- --arch=arm64

@@ -1,0 +1,22 @@
+name: Release
+on:
+  push:
+    branches:
+      - release/V1.0.0
+    tags:
+      - v*
+
+jobs:
+  publish_on_linux:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@master
+        with:
+          node-version: 18
+      - name: install dependencies
+        run: npm install
+      - name: publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run publish

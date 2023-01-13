@@ -30,12 +30,24 @@ const config: ForgeConfig = {
             js: './src/renderer.ts',
             name: 'main_window',
             preload: {
-              js: './src/preload.ts'
-            }
-          }
-        ]
+              js: './src/preload.ts',
+            },
+          },
+        ],
+      },
+    }),
+  ],
+  publishers: [
+    {
+      name: '@electron-forge/publisher-github',
+      config: {
+        repository: {
+          owner: 'PrivSocial',
+          name: 'meticulous-ui'
+        },
+        // prerelease: true
       }
-    })
+    }
   ]
 };
 

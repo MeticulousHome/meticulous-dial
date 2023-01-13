@@ -10,8 +10,8 @@
     "commit": "git-cz",
     "start": "export SERVER_URL=http://localhost:8080 && electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make",
-    "publish": "electron-forge publish",
+    "make": "electron-forge make -- --arch=arm64",
+    "publish": "electron-forge publish -- --arch=arm64",
     "prepare": "husky install",
     "lint": "eslint --ext .ts,.tsx ."
   },
@@ -69,6 +69,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.9.1",
+    "@electron-forge/publisher-github": "^6.0.4",
     "electron-squirrel-startup": "^1.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
