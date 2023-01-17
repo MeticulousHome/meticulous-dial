@@ -2,6 +2,8 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 import { useEffect } from 'react';
 // import { io } from "socket.io-client";
 import { StageType, ActionType } from '../../types/index';
+import { useAppDispatch } from './hooks';
+import { setGesture } from './features/gestures/gestures-slice';
 
 export interface SensorDataInterface {
   name: StageType;
@@ -47,20 +49,19 @@ export const SocketProviderValue = (): SocketProviderValueInterface => {
 };
 
 export const SetSocketKeyboardListeners = () => {
+  const dispatch = useAppDispatch();
+
   useEffect(() => {
     window.addEventListener('keydown', (e) => {
       switch (e.code) {
         case 'ArrowLeft':
-          // dispatch Gesture
-          console.log('LEFT');
+          dispatch(setGesture('left'));
           break;
         case 'ArrowRight':
-          // dispatch Gesture
-          console.log('RIGHT');
+          dispatch(setGesture('right'));
           break;
         case 'Space':
-          // dispatch Gesture
-          console.log('SPACE');
+          dispatch(setGesture('click'));
           break;
         default:
           break;
