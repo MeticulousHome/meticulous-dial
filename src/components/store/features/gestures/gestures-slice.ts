@@ -1,4 +1,4 @@
-import { createSlice, Draft, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { GestureType } from '../../../../types/index';
 
@@ -14,7 +14,7 @@ const gestureSlice = createSlice({
   name: 'gesture',
   initialState,
   reducers: {
-    setGesture: (state: GesturesState, action: { payload: GestureType }) => {
+    setGesture: (state: GesturesState, action: PayloadAction<GestureType>) => {
       state.value = action.payload;
     }
   }
