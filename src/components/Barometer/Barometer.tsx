@@ -35,15 +35,57 @@ export function Barometer({
         className="bar-needle bar-needle--transition-all"
         style={{ transform: `rotate(${barNeedleRotatePosition}deg)` }}
       ></div>
+      <div className="preset-selected">Filter 2.1</div>
       <div className="bar-needle__content">
         <div className="pressure">PRESSURE</div>
         <div className="bar-needle__legend">
           <span className="bar-needle__value">
             {formatStatValue(stats.sensors.p, 1)}
           </span>
-          <span className="text-gray">bar</span>
+          <span className="bar-label">bar</span>
         </div>
-        <div className="bar-needle__column bar-needle__column--mb-16 flex">
+
+        <div className="columns-grid">
+          <div className="column-item">
+            <div>
+              <div className="column-label">TEMP</div>
+              <div className="column-value">
+                {formatStatValue(stats.sensors.t, 1)}
+              </div>
+            </div>
+            <div className="column-data">°C</div>
+          </div>
+          <div className="column-item">
+            <div>
+              <div className="column-label">WEIGHT</div>
+              <div className="column-value">
+                {formatStatValue(stats.sensors.w, 1)}
+              </div>
+            </div>
+            <div className="column-data">g</div>
+          </div>
+          <div className="column-item">
+            <div>
+              <div className="column-label">TIME</div>
+              <div className="column-value">
+                {formatStatValue(stats.time, 1)}
+              </div>
+            </div>
+            <div className="column-data">sec</div>
+          </div>
+          <div className="column-item">
+            <div>
+              <div className="column-label">FLOW</div>
+              <div className="column-value">
+                {formatStatValue(stats.sensors.f, 1)}
+              </div>
+            </div>
+            <div className="column-data">ml/s</div>
+          </div>
+        </div>
+
+        {/* 
+  <div className="bar-needle__column bar-needle__column--mb-16 flex">
           <div className="flex-1">
             <div className="bar-needle__column__label">TEMP</div>
             <span className="bar-needle__column__value">
@@ -75,21 +117,23 @@ export function Barometer({
             <span className="text-gray">ml/s</span>
           </div>
         </div>
-        <div
-          className="bar-needle__status"
-          style={{ textTransform: 'uppercase' }}
-        >
-          {stats.name}
-        </div>
+  */}
+        <div className="bar-needle__status">{stats.name}</div>
         <div className="bar-needle__logo">
-          <svg viewBox="0 0 618 623" fill="none">
+          <svg
+            width="36"
+            height="27"
+            viewBox="0 0 36 27"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <path
-              d="M615.295 0L341.097 351.495H265.291L78.967 131.473V609.33H0V0.218661L78.967 0.397582L304.755 266.424L506.606 0.218661L615.295 0Z"
+              d="M26.1291 0V26.1291H0V0L13.0646 13.0646L26.1291 0Z"
               fill="white"
             />
             <path
-              d="M533.127 622.611C580.001 622.611 617.999 584.613 617.999 537.739C617.999 490.866 580.001 452.868 533.127 452.868C486.254 452.868 448.256 490.866 448.256 537.739C448.256 584.613 486.254 622.611 533.127 622.611Z"
-              fill="#F74537"
+              d="M32.5938 26.4C33.9975 26.4 35.1427 25.2549 35.1427 23.8511C35.1427 22.4474 33.9975 21.3022 32.5938 21.3022C31.1901 21.3022 30.0449 22.4474 30.0449 23.8511C30.0449 25.2549 31.1901 26.4 32.5938 26.4Z"
+              fill="white"
             />
           </svg>
         </div>
