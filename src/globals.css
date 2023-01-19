@@ -30,6 +30,10 @@ body {
     height: 100%;
     width: 100%;
     position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 .main-layout-content {
@@ -39,19 +43,18 @@ body {
 
 .main-layout .title-main-1 {
     position: absolute;
-    top: 16px;
+    top: 22px;
     left: 0;
     right: 0;
     text-align: center;
     color: #5E5E5E;
-    font-size: 24px;
+    font-size: 22px;
     line-height: 1;
 }
 
 .main-layout .title-main-2 { 
     text-align: center;
     font-size: 36px;
-    font-weight: 600;
     line-height: 1;
 }
 
@@ -63,6 +66,10 @@ body {
 
 .bottom-status .flex {
     justify-content: center;
+} 
+
+.bottom-status .flex:last-of-type .status-data {
+    font-size: 18px;
 }
 
 .bottom-status .status-icon,
@@ -71,8 +78,7 @@ body {
     line-height: 1;
     height: 28px;
     display: flex;
-    align-items: end;
-    margin: 0 2px; 
+    align-items: end; 
 }
 
 .bottom-status .status-icon {
@@ -86,10 +92,10 @@ body {
 }
 
 .bottom-status .status-value {
-    width: 64px;
+    width: 68px;
     font-size: 24px;
     justify-content: end;
-    font-size: 24px; 
+    font-size: 24px;  
 }
 
 .bottom-status .status-data {
@@ -97,7 +103,9 @@ body {
     width: 22px;
     justify-content: center;
     font-weight: 600; 
+    font-family: sans-serif; 
     position: relative;
+    font-size: 15px;
 }
 
 .bottom-status .status-temp-icon::after {

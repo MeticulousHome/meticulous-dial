@@ -1,0 +1,43 @@
+.temperature-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 85%; 
+}
+.temp-content {
+    display: flex;
+    align-items: end;  
+    position: relative;
+    right: -21px;
+}
+
+.temp-content .temp-value,
+.temp-content .temp-data {
+    line-height: 1; 
+}
+
+.temp-content .temp-value {
+    font-size: 120px; 
+    width: 220px;
+    text-align: center;
+}
+
+.temp-content .temp-data { 
+    font-size: 36px; 
+    position: relative;
+    top: -10px;
+    width: 42px;
+}
+
+.circular-temp-scale {
+    width: 100%;
+    height: 100%;
+    background-color: #ffffff20;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 100%;
+}
