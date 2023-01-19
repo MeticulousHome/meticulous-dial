@@ -1,0 +1,42 @@
+.pressets-conainer {
+    display: flex;
+}
+
+/* Temp */
+.pressets-conainer {
+    width: 480px;
+    overflow-x: auto;
+}
+
+.pressets-conainer > div:first-child {
+    margin-left: 18%;
+}
+
+.pressets-conainer > div:last-child {
+    margin-right: 20%;
+}
+/**/
+
+.pressets-conainer .presset-item {
+    min-width: 300px;
+    max-width: 300px;
+    opacity: .5;
+}
+
+.pressets-conainer .presset-active {
+    opacity: 1;
+}
+
+.pressets-conainer .presset-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 24px; 
+}
+
+.pressets-conainer .presset-icon svg {
+    height: 200px;
+    width: 200px;
+    max-width: 100%;
+    max-height: 100%;
+}
