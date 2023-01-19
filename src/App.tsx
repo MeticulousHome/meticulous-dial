@@ -6,7 +6,7 @@ import { store } from './components/store/store';
 import { Barometer } from './components/Barometer/Barometer';
 import { SockerManager } from './components/store/SockerManager';
 import { useAppSelector } from './components/store/hooks';
-import { Scale } from './components/Scale/Scale';
+import { TemperatureScale } from './components/TemperatureScale/TemperatureScale';
 
 const App = (): JSX.Element => {
   //console.info(window.meticulous_envs.SERVER_URL());
@@ -17,7 +17,7 @@ const App = (): JSX.Element => {
 
   return (
     <SockerManager>
-      <Scale />
+      <TemperatureScale />
     </SockerManager>
   );
 };
