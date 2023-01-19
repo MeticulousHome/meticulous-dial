@@ -41,7 +41,7 @@ export function PressetSettings(): JSX.Element {
               />
             </svg>
           </div>
-          <div className="status-value">5.38</div>
+          <div className="status-value">53.8</div>
           <div className="status-data status-temp-icon">°C</div>
         </div>
         <div className="flex">
