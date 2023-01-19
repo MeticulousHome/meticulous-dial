@@ -35,7 +35,9 @@ export function Barometer({
         className="bar-needle bar-needle--transition-all"
         style={{ transform: `rotate(${barNeedleRotatePosition}deg)` }}
       ></div>
+
       <div className="main-title-selected">Filter 2.1</div>
+
       <div className="bar-needle__content">
         <div className="pressure">PRESSURE</div>
         <div className="bar-needle__legend">
@@ -84,41 +86,8 @@ export function Barometer({
           </div>
         </div>
 
-        {/* 
-  <div className="bar-needle__column bar-needle__column--mb-16 flex">
-          <div className="flex-1">
-            <div className="bar-needle__column__label">TEMP</div>
-            <span className="bar-needle__column__value">
-              {formatStatValue(stats.sensors.t, 1)}
-            </span>
-            <span className="text-gray">°C</span>
-          </div>
-          <div>
-            <div className="bar-needle__column__label">WEIGHT</div>
-            <span className="bar-needle__column__value">
-              {formatStatValue(stats.sensors.w, 1)}
-            </span>
-            <span className="text-gray">g</span>
-          </div>
-        </div>
-        <div className="bar-needle__column bar-needle__column--mb-16 flex">
-          <div className="flex-1">
-            <div className="bar-needle__column__label">TIME</div>
-            <span className="bar-needle__column__value">
-              {formatStatValue(stats.time, 1)}
-            </span>
-            <span className="text-gray">sec</span>
-          </div>
-          <div>
-            <div className="bar-needle__column__label">FLOW</div>
-            <span className="bar-needle__column__value">
-              {formatStatValue(stats.sensors.f, 1)}
-            </span>
-            <span className="text-gray">ml/s</span>
-          </div>
-        </div>
-  */}
         <div className="bar-needle__status">{stats.name}</div>
+
         <div className="bar-needle__logo">
           <svg
             width="36"
