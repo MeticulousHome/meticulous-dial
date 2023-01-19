@@ -6,10 +6,10 @@ import { store } from './components/store/store';
 import { Barometer } from './components/Barometer/Barometer';
 import { SockerManager } from './components/store/SockerManager';
 import { useAppSelector } from './components/store/hooks';
+import { Pressets } from './components/Pressets/Pressets';
 
 const App = (): JSX.Element => {
-  //@ts-ignore
-  console.info(window.meticulous_envs.SERVER_URL());
+  //console.info(window.meticulous_envs.SERVER_URL());
 
   const sensors = { p: '4', t: '0', w: '0', f: '0' };
   const time = '0';
@@ -17,7 +17,7 @@ const App = (): JSX.Element => {
 
   return (
     <SockerManager>
-      <Barometer stats={{ sensors, time, name }} />
+      <Pressets />
     </SockerManager>
   );
 };
