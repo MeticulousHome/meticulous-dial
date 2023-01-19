@@ -22,3 +22,93 @@ body {
 .flex-1 {
     flex: 1;
 }
+
+/*-----------------------------*/
+/* Layouts */
+
+.main-layout {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+}
+
+.main-layout-content {
+    margin-top: 52px;
+    height: calc(100% - 136px); 
+}
+
+.main-layout .title-main-1 {
+    position: absolute;
+    top: 16px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: #5E5E5E;
+    font-size: 24px;
+    line-height: 1;
+}
+
+.main-layout .title-main-2 { 
+    text-align: center;
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.bottom-status {
+    position: absolute;
+    bottom: 24px;
+    width: 100%;
+}
+
+.bottom-status .flex {
+    justify-content: center;
+}
+
+.bottom-status .status-icon,
+.bottom-status .status-value,
+.bottom-status .status-data {
+    line-height: 1;
+    height: 28px;
+    display: flex;
+    align-items: end;
+    margin: 0 2px; 
+}
+
+.bottom-status .status-icon {
+    width: 20px; 
+    align-items: center;
+    justify-content: center;
+}
+
+.bottom-status .status-icon svg {
+    margin-top: 3px;
+}
+
+.bottom-status .status-value {
+    width: 64px;
+    font-size: 24px;
+    justify-content: end;
+    font-size: 24px; 
+}
+
+.bottom-status .status-data {
+    color: #5E5E5E;
+    width: 22px;
+    justify-content: center;
+    font-weight: 600; 
+    position: relative;
+}
+
+.bottom-status .status-temp-icon::after {
+    content: '';
+    position: absolute;
+    right: -18px;
+    top: 16px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 8px solid red; 
+}
+
