@@ -6,7 +6,7 @@ import { store } from './components/store/store';
 import { Barometer } from './components/Barometer/Barometer';
 import { SockerManager } from './components/store/SockerManager';
 import { useAppSelector } from './components/store/hooks';
-import { Pressets } from './components/Pressets/Pressets';
+import { PressetSettings } from './components/PressetSettings/PressetSettings';
 
 const App = (): JSX.Element => {
   //console.info(window.meticulous_envs.SERVER_URL());
@@ -17,7 +17,7 @@ const App = (): JSX.Element => {
 
   return (
     <SockerManager>
-      <Pressets />
+      <PressetSettings />
     </SockerManager>
   );
 };
