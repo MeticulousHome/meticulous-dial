@@ -1,0 +1,21 @@
+.scale-weight {    
+    font-size: 120px;
+    display: flex;
+    align-items: end;
+    line-height: 1; 
+    width: 340px;
+    margin: 56px auto 0;
+}
+.scale-weight .weight span {
+    color: #ffffff40;    
+}
+
+.scale-weight .weight { 
+    text-align: center;
+    flex: 1;
+    margin-right: 3px;
+}
+
+.scale-weight .weight-data {
+    font-size: 36px; 
+}
