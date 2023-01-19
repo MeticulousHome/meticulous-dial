@@ -1,13 +1,15 @@
 .presset-options { 
-    height: 240px;
+    height: 260px;
+    margin-top: 10px;
     overflow-y: auto;
+    position: relative;
 }
 
 .presset-options .presset-option-item { 
     color: #5E5E5E;
     font-size: 36px;
     line-height: 1;
-    padding: 10px 50px;
+    padding: 8px 60px;
 }
 
 .presset-options .presset-option-item.item-active {
