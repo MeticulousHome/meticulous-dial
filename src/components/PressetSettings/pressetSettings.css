@@ -1,8 +1,28 @@
 .presset-options { 
-    height: 260px;
-    margin-top: 10px;
+    height: 370px;
     overflow-y: auto;
-    position: relative;
+    overflow-x: hidden;
+    border: 1px solid red;
+}
+
+.presset-options::before,
+.presset-options::after {
+    content: '';
+    position: fixed;
+    left: 0; 
+    width: 100%;
+}
+
+.presset-options::before { 
+    top: 0;
+    height: 24px;
+    background: linear-gradient(#000, rgba(0,0,0,0)); 
+}
+
+.presset-options::after { 
+    bottom: 0;  
+    height: 120px;
+    background: linear-gradient(rgba(0,0,0,0), #000);  
 }
 
 .presset-options .presset-option-item { 

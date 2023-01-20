@@ -14,6 +14,11 @@ export function PressetSettings(): JSX.Element {
             </div>
             <div className="presset-option-item">presset</div>
             <div className="presset-option-item">style</div>
+            <div className="presset-option-item">stop weight</div>
+            <div className="presset-option-item">flow</div>
+            <div className="presset-option-item">temperature: 86°c</div>
+            <div className="presset-option-item">presset</div>
+            <div className="presset-option-item">style</div>
             <div className="presset-option-item">save changes</div>
           </div>
         </div>
