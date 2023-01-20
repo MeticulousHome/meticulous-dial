@@ -8,11 +8,12 @@ export function TemperatureScale(): JSX.Element {
         <div className="title-main-2">temperature</div>
         <div className="temperature-container">
           <div className="temp-content">
-            <div className="temp-value">222</div>
+            <div className="temp-value">86</div>
             <div className="temp-data">°C</div>
           </div>
         </div>
-        <div className="circular-temp-scale"></div>
+
+        <div className="temp-arc"></div>
       </div>
 
       <div className="bottom-status">
