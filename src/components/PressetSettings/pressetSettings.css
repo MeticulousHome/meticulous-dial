@@ -1,8 +1,8 @@
 .presset-options { 
-    height: 370px;
+    height: 52px;
     overflow-y: auto;
     overflow-x: hidden;
-    border: 1px solid red;
+    padding: 110px 60px 240px;
 }
 
 .presset-options::before,
@@ -14,22 +14,21 @@
 }
 
 .presset-options::before { 
-    top: 0;
-    height: 24px;
-    background: linear-gradient(#000, rgba(0,0,0,0)); 
+    top: 88px;
+    height: 60px;
+    background: linear-gradient(#000, rgba(0,0,0,.2));
 }
 
 .presset-options::after { 
     bottom: 0;  
     height: 120px;
-    background: linear-gradient(rgba(0,0,0,0), #000);  
+    background: linear-gradient(rgba(0,0,0,0.2), #000);  
 }
 
 .presset-options .presset-option-item { 
     color: #5E5E5E;
     font-size: 36px;
-    line-height: 1;
-    padding: 8px 60px;
+    line-height: 52px;
 }
 
 .presset-options .presset-option-item.item-active {
