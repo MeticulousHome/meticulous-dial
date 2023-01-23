@@ -5,7 +5,6 @@ export function PressetSettings(): JSX.Element {
     <div className="main-layout">
       <div className="main-layout-content">
         <div className="pressets-options-conainer">
-          <div className="title-main-2">Filter 2.1</div>
           <div className="presset-options">
             <div className="presset-option-item">stop weight</div>
             <div className="presset-option-item">flow</div>

@@ -29,6 +29,7 @@ Barometer styles
 .bar-needle__content {
   width: 275px;
   margin: 85px auto 0;
+  padding-top: 35px;
 }
 .pressure,
 .bar-needle__column__label {

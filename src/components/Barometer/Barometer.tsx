@@ -1,5 +1,6 @@
 import './barometer.css';
 import { formatStatValue } from '../../utils';
+import withBubbleAnimation from '../../HOCs/withBubbleAnimation';
 
 export interface IBarometerProps {
   stats: IStats;
@@ -20,10 +21,7 @@ const getBarNeedlePosition = (pressure: string, maxValue: number) => {
     : barNeedleRotatePosition + 114; //start position
 };
 
-export function Barometer({
-  stats,
-  maxValue = 13
-}: IBarometerProps): JSX.Element {
+function Barometer({ stats, maxValue = 13 }: IBarometerProps): JSX.Element {
   const barNeedleRotatePosition = getBarNeedlePosition(
     stats.sensors.p,
     maxValue
@@ -35,8 +33,6 @@ export function Barometer({
         className="bar-needle bar-needle--transition-all"
         style={{ transform: `rotate(${barNeedleRotatePosition}deg)` }}
       ></div>
-
-      <div className="main-title-selected">Filter 2.1</div>
 
       <div className="bar-needle__content">
         <div className="pressure">PRESSURE</div>
@@ -110,3 +106,5 @@ export function Barometer({
     </div>
   );
 }
+
+export default withBubbleAnimation(Barometer);

@@ -8,13 +8,14 @@
     overflow-x: auto;
 }
 
-.pressets-conainer > div:first-child {
+.pressets-conainer>div:first-child {
     margin-left: 18%;
 }
 
-.pressets-conainer > div:last-child {
+.pressets-conainer>div:last-child {
     margin-right: 20%;
 }
+
 /**/
 
 .pressets-conainer .presset-item {
@@ -31,7 +32,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 24px; 
+    margin-top: 84px;
 }
 
 .pressets-conainer .presset-icon svg {

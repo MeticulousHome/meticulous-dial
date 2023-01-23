@@ -1,3 +1,5 @@
+export * from './screens';
+
 export type ActionType =
   | 'Home'
   | 'Scale'

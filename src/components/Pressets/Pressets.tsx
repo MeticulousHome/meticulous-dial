@@ -8,7 +8,6 @@ export function Pressets(): JSX.Element {
       <div className="main-layout-content">
         <div className="pressets-conainer">
           <div className="presset-item presset-active">
-            <div className="title-main-2">Filter 2.1</div>
             <div className="presset-icon">
               <svg
                 viewBox="0 0 206 204"
@@ -37,7 +36,6 @@ export function Pressets(): JSX.Element {
             </div>
           </div>
           <div className="presset-item">
-            <div className="title-main-2">Filter 3</div>
             <div className="presset-icon">
               <svg
                 viewBox="0 0 206 204"
@@ -66,7 +64,6 @@ export function Pressets(): JSX.Element {
             </div>
           </div>
           <div className="presset-item">
-            <div className="title-main-2">Filter 86</div>
             <div className="presset-icon">
               <svg
                 viewBox="0 0 206 204"

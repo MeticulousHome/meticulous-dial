@@ -4,7 +4,7 @@ export function TemperatureScale(): JSX.Element {
   return (
     <div className="main-layout">
       <div className="main-layout-content">
-        <div className="title-main-1">Filter 2.1</div>
+        {/* <div className="title-main-1">Filter 2.1</div> */}
         <div className="title-main-2">temperature</div>
         <div className="temperature-container">
           <div className="temp-content">
