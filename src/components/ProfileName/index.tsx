@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import React, { useEffect, useState } from 'react';
 import { ScreenName } from '../../types';
 import { useAppSelector } from '../store/hooks';
@@ -11,26 +10,20 @@ interface IProps {
 }
 
 const ProfileName: React.FC<IProps> = (props) => {
-  const [scale, setScale] = useState(1);
+  const [animationProps, setAnimationProps] = useState<any>({});
   const { name } = props;
 
   const { screenName } = useAppSelector((state) => state.screen);
-  const styling = getStyling(screenName);
 
   useEffect(() => {
-    if (screenName === ScreenName.INFO) {
-      setScale(1);
-    } else {
-      setScale(1.5);
-    }
+    const styling = getStyling(screenName);
+    setAnimationProps({ ...animationProps, ...styling });
   }, [screenName]);
 
   return (
-    <motion.div initial={{ scale: 1 }} animate={{ scale }}>
-      <ProfileNameWrapper {...styling}>
-        <div>{name}</div>
-      </ProfileNameWrapper>
-    </motion.div>
+    <ProfileNameWrapper initial={animationProps} animate={animationProps}>
+      <div>{name}</div>
+    </ProfileNameWrapper>
   );
 };
 

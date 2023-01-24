@@ -17,7 +17,7 @@ import { ScreenName } from './types';
 import { setScreen } from './components/store/features/screens/screenSlice';
 import { PressetSettings } from './components/PressetSettings/PressetSettings';
 import { setGesture } from './components/store/features/gestures/gestures-slice';
-import { Pressets } from './components/Pressets/Pressets';
+import Pressets from './components/Pressets/Pressets';
 
 const App = (): JSX.Element => {
   //console.info(window.meticulous_envs.SERVER_URL());

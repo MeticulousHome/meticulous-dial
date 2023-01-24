@@ -5,7 +5,7 @@ const withBubbleAnimation =
   (Component: any, isScaleIn = false) =>
   (props: any) => {
     const { ...rest } = props;
-    const initial = { opacity: 0, scale: 0.5 };
+    const initial = { opacity: 0, scale: 0.8 };
     if (isScaleIn) {
       initial.scale = 1.5;
     }
@@ -15,7 +15,7 @@ const withBubbleAnimation =
         animate={{ opacity: 1, scale: 1 }}
         transition={{
           default: {
-            duration: 0.3,
+            duration: 0.1,
             ease: [0, 0.71, 0.2, 1.01]
           },
           scale: {

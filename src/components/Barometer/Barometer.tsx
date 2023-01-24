@@ -1,6 +1,9 @@
-import './barometer.css';
 import { formatStatValue } from '../../utils';
 import withBubbleAnimation from '../../HOCs/withBubbleAnimation';
+import BarNeedle from './BarNeedle';
+import BarometerCircle from './BarometerCircle';
+
+import './barometer.css';
 
 export interface IBarometerProps {
   stats: IStats;
@@ -29,11 +32,7 @@ function Barometer({ stats, maxValue = 13 }: IBarometerProps): JSX.Element {
 
   return (
     <div className="barometer-container">
-      <div
-        className="bar-needle bar-needle--transition-all"
-        style={{ transform: `rotate(${barNeedleRotatePosition}deg)` }}
-      ></div>
-
+      <BarometerCircle />
       <div className="bar-needle__content">
         <div className="pressure">PRESSURE</div>
         <div className="bar-needle__legend">
@@ -42,6 +41,7 @@ function Barometer({ stats, maxValue = 13 }: IBarometerProps): JSX.Element {
           </span>
           <span className="bar-label">bar</span>
         </div>
+        <BarNeedle barNeedleRotatePosition={barNeedleRotatePosition} />
 
         <div className="columns-grid">
           <div className="column-item">

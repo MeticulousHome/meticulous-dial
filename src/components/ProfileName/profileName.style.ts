@@ -1,16 +1,15 @@
 import styled, { css } from 'styled-components';
+import { motion } from 'framer-motion';
 
-export const ProfileNameWrapper = styled.div<any>`
+export const ProfileNameWrapper = styled(motion.div)<any>`
   ${(props) => css`
     position: absolute;
     z-index: 9999;
     left: 0;
-    top: ${props.top};
 
     text-align: center;
     background: transparent;
-    width: 100%;
+    width: 480px;
     line-height: 20px;
-    font-size: 20px;
   `}
 `;
