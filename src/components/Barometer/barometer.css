@@ -1,17 +1,22 @@
 /*
 Barometer styles
 */
+body {
+  overflow: hidden;
+}
+
 .barometer-container {
   height: 100%;
   width: 100%;
   display: flex;
   justify-content: center;
+  position: fixed;
 }
 
 .bar-needle__content {
   width: 275px;
   margin: 85px auto 0;
-  padding-top: 35px;
+  /*padding-top: 35px;*/
 }
 
 .pressure,
