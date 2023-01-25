@@ -7,6 +7,12 @@
     font-family: 'Lekton';
     src: url('/src/assets/fonts/Lekton-Regular.ttf');
 }
+
+@font-face {
+    font-family: 'Maison';
+    src: url('./assets/fonts/Maison-Neue.ttf');
+}
+
 body {
     font-family: 'Open Sans';
     font-weight: 400;
