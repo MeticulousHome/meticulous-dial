@@ -1,0 +1,21 @@
+.circle-keyboard-container {
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.letter {
+  fill: rgba(255, 255, 255, 0.5);
+  font: normal 8px 'Maison';
+}
+
+.main-letter {
+  position: absolute;
+  top: 25px;
+  text-align: center;
+  font-size: 61px;
+  font-family: 'Maison';
+}
