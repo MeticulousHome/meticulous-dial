@@ -3,9 +3,18 @@ import withBubbleAnimation from '../../HOCs/withBubbleAnimation';
 
 import './pressets.css';
 
-const PresetIcon = () => {
+interface Props {
+  isActive: boolean;
+}
+
+const PresetIcon = (_props: Props) => {
   return (
-    <div className="presset-item presset-active">
+    <div
+      className="presset-item presset-active"
+      style={{
+        margin: 'auto'
+      }}
+    >
       <div className="presset-icon">
         <svg
           viewBox="0 0 206 204"
@@ -36,4 +45,8 @@ const PresetIcon = () => {
   );
 };
 
-export default withBubbleAnimation(PresetIcon, true);
+export default withBubbleAnimation({
+  Component: PresetIcon,
+  isScaleIn: true,
+  extraClass: 'bubble-container'
+});

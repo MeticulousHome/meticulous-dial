@@ -2,17 +2,29 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const withBubbleAnimation =
-  (Component: any, isScaleIn = false) =>
+  ({
+    Component,
+    extraClass,
+    isScaleIn
+  }: {
+    Component: any;
+    isScaleIn?: boolean;
+    extraClass?: string;
+  }) =>
   (props: any) => {
-    const { ...rest } = props;
-    const initial = { opacity: 0, scale: 0.8 };
+    const { isActive, ...rest } = props;
+    const initial = { opacity: 0, scale: 0 };
     if (isScaleIn) {
-      initial.scale = 1.5;
+      initial.scale = 2.5;
     }
     return (
       <motion.div
+        className={`${extraClass ? extraClass : ''}`}
         initial={initial}
-        animate={{ opacity: 1, scale: 1 }}
+        animate={{
+          opacity: isActive ? 1 : initial.opacity,
+          scale: isActive ? 1 : initial.scale
+        }}
         transition={{
           default: {
             duration: 0.1,

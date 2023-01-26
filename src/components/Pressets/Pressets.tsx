@@ -2,14 +2,24 @@ import PresetIcon from './PresetIcon';
 
 import './pressets.css';
 
-function Pressets(): JSX.Element {
+function Pressets({ isActive }: { isActive: boolean }): JSX.Element {
   return (
     <div className="main-layout">
       <div className="title-main-1">pressets</div>
 
-      <div className="main-layout-content">
-        <div className="pressets-conainer">
-          <PresetIcon />
+      <div
+        className="main-layout-content"
+        style={{
+          position: 'relative'
+        }}
+      >
+        <div
+          className="pressets-conainer"
+          style={{
+            overflow: 'hidden'
+          }}
+        >
+          <PresetIcon isActive={isActive} />
         </div>
       </div>
 

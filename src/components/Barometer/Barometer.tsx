@@ -8,6 +8,7 @@ import './barometer.css';
 export interface IBarometerProps {
   stats: IStats;
   maxValue?: number;
+  isActive: boolean;
 }
 export interface IStats {
   sensors: { p: string; t: string; w: string; f: string };
@@ -107,4 +108,7 @@ function Barometer({ stats, maxValue = 13 }: IBarometerProps): JSX.Element {
   );
 }
 
-export default withBubbleAnimation(Barometer);
+export default withBubbleAnimation({
+  Component: Barometer,
+  extraClass: 'bubble-container'
+});

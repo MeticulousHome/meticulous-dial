@@ -49,10 +49,11 @@ const App = (): JSX.Element => {
       {/* <TemperatureScale /> */}
       <AppContainer>
         <ProfileName name="Filter 2.1" />
-        {screenName === ScreenName.INFO && (
-          <Barometer stats={{ sensors, time, name }} />
-        )}
-        {screenName === ScreenName.PROFILE_SETTING && <Pressets />}
+        <Barometer
+          stats={{ sensors, time, name }}
+          isActive={screenName === ScreenName.INFO}
+        />
+        <Pressets isActive={screenName === ScreenName.PROFILE_SETTING} />
       </AppContainer>
     </SockerManager>
   );

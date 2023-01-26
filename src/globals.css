@@ -125,3 +125,11 @@ body {
     border-bottom: 8px solid red; 
 }
 
+.bubble-container {
+    z-index:  99;
+    position: absolute;
+    background-color: black;
+    top: 0;
+    left: 0;
+    width: 100%
+}
