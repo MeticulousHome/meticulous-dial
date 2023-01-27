@@ -4,12 +4,12 @@ export const getStyling = (screenName: ScreenName) => {
   switch (screenName) {
     case ScreenName.INFO:
       return {
-        top: '80px',
+        top: '60px',
         fontSize: '25px'
       };
     case ScreenName.PROFILE_SETTING:
       return {
-        top: '76px',
+        top: '70px',
         fontSize: '40px'
       };
     default:
