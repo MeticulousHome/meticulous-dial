@@ -7,8 +7,8 @@ const withBubbleAnimation =
     const { ...rest } = props;
     const initial = { opacity: 0.1, scale: 0.5 };
     if (isScaleIn) {
-      initial.scale = 1.6;
-      initial.opacity = 0.9;
+      initial.scale = 1.75;
+      initial.opacity = 1;
     }
     return (
       <motion.div
