@@ -11,7 +11,7 @@ const withBubbleAnimation =
     }
     return (
       <motion.div
-        initial={initial}
+        /*initial={initial}
         animate={{ opacity: 1, scale: 1 }}
         transition={{
           default: {
@@ -24,7 +24,10 @@ const withBubbleAnimation =
             stiffness: 80,
             restDelta: 0.001
           }
-        }}
+        }}*/
+        style={{ scale: 0.1, opacity: 0.1, width: 464, height: 464 }}
+        transition={{ duration: 0.6, scale: { type: 'spring', damping: 9 } }}
+        animate={{ scale: 1, opacity: 1 }}
       >
         <Component {...rest} />
       </motion.div>
