@@ -83,6 +83,11 @@ body {
   text-align: center;
 }
 
+.bar-needle__logo svg {
+  position: relative;
+  right: -5.1px;
+}
+
 .columns-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
