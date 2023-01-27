@@ -7,7 +7,7 @@ const withBubbleAnimation =
     const { ...rest } = props;
     const initial = { opacity: 0.1, scale: 0.5 };
     if (isScaleIn) {
-      initial.scale = 1.75;
+      initial.scale = 1.7;
       initial.opacity = 1;
     }
     return (
@@ -28,7 +28,10 @@ const withBubbleAnimation =
         }}*/
         initial={initial}
         style={{ width: 480, height: 480 }}
-        transition={{ duration: 0.1, scale: { type: 'spring', damping: 9 } }}
+        transition={{
+          duration: 0.1,
+          scale: { type: 'spring', damping: 9, stiffness: 150 }
+        }}
         animate={{ scale: 1, opacity: 1 }}
       >
         <Component {...rest} />
