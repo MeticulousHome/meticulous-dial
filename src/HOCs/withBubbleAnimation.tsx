@@ -15,11 +15,14 @@ const withBubbleAnimation =
         animate={{ opacity: 1, scale: 1 }}
         transition={{
           scale: {
-            duration: 3,
-            type: 'spring'
+            // duration: 2,
+            type: 'spring',
+            damping: 9,
+            stiffness: 80,
+            restDelta: 0.001
           }
         }}
-        exit={{ opacity: 0.2 }}
+        exit={{ opacity: 0.1 }}
       >
         <Component {...rest} />
       </motion.div>
