@@ -2,18 +2,14 @@ import PresetIcon from './PresetIcon';
 
 import './pressets.css';
 
-function Pressets(): JSX.Element {
+function Pressets({ children }: any): JSX.Element {
   return (
     <div className="main-layout">
       <div className="title-main-1">pressets</div>
 
-      <div className="main-layout-content">
-        <div className="pressets-conainer">
-          <PresetIcon />
-        </div>
-      </div>
+      {children}
 
-      <div className="bottom-status">
+      {/* <div className="bottom-status">
         <div className="flex">
           <div className="status-icon">
             <svg
@@ -64,7 +60,7 @@ function Pressets(): JSX.Element {
           <div className="status-value">256.2</div>
           <div className="status-data">g</div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
