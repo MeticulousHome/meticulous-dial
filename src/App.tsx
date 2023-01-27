@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider, useDispatch } from 'react-redux';
+import { AnimatePresence } from 'framer-motion';
 
 import Barometer from './components/Barometer/Barometer';
 import { store } from './components/store/store';
@@ -48,11 +49,15 @@ const App = (): JSX.Element => {
       {/* <Scale /> */}
       {/* <TemperatureScale /> */}
       <AppContainer>
-        <ProfileName name="Filter 2.1" />
-        {screenName === ScreenName.INFO && (
-          <Barometer stats={{ sensors, time, name }} />
-        )}
-        {screenName === ScreenName.PROFILE_SETTING && <Pressets />}
+        <AnimatePresence>
+          <ProfileName key="profileName" name="Filter 2.1" />
+          {screenName === ScreenName.INFO && (
+            <Barometer key={ScreenName.INFO} stats={{ sensors, time, name }} />
+          )}
+          {screenName === ScreenName.PROFILE_SETTING && (
+            <Pressets key={ScreenName.PROFILE_SETTING} />
+          )}
+        </AnimatePresence>
       </AppContainer>
     </SockerManager>
   );

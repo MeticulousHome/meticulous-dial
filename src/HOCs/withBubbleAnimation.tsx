@@ -5,26 +5,21 @@ const withBubbleAnimation =
   (Component: any, isScaleIn = false) =>
   (props: any) => {
     const { ...rest } = props;
-    const initial = { opacity: 0, scale: 0.8 };
+    const initial = { opacity: 0, scale: 0.4 };
     if (isScaleIn) {
-      initial.scale = 1.5;
+      initial.scale = 1.6;
     }
     return (
       <motion.div
         initial={initial}
         animate={{ opacity: 1, scale: 1 }}
         transition={{
-          default: {
-            duration: 0.1,
-            ease: [0, 0.71, 0.2, 1.01]
-          },
           scale: {
-            type: 'spring',
-            damping: 9,
-            stiffness: 80,
-            restDelta: 0.001
+            duration: 3,
+            type: 'spring'
           }
         }}
+        exit={{ opacity: 0.2 }}
       >
         <Component {...rest} />
       </motion.div>

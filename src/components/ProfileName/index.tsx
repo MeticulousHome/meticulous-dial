@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { ScreenName } from '../../types';
 import { useAppSelector } from '../store/hooks';
 import { ProfileNameWrapper } from './profileName.style';
 import { getStyling } from './utils';
