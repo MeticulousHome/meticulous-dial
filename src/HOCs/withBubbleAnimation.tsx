@@ -7,7 +7,8 @@ const withBubbleAnimation =
     const { ...rest } = props;
     const initial = { opacity: 0, scale: 0.8 };
     if (isScaleIn) {
-      initial.scale = 1.5;
+      initial.scale = 1.6;
+      initial.opacity = 0.9;
     }
     return (
       <motion.div
@@ -25,6 +26,7 @@ const withBubbleAnimation =
             restDelta: 0.001
           }
         }}*/
+        initial={initial}
         style={{ scale: 0.1, opacity: 0.1, width: 464, height: 464 }}
         transition={{ duration: 0.6, scale: { type: 'spring', damping: 9 } }}
         animate={{ scale: 1, opacity: 1 }}
