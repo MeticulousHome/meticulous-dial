@@ -27,7 +27,7 @@ const withBubbleAnimation =
           }
         }}*/
         initial={initial}
-        style={{ width: 464, height: 464 }}
+        style={{ width: 480, height: 480 }}
         transition={{ duration: 0.5, scale: { type: 'spring', damping: 9 } }}
         animate={{ scale: 1, opacity: 1 }}
       >
