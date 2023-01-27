@@ -15,7 +15,7 @@ body {
 
 .bar-needle__content {
   width: 275px;
-  margin: 85px auto 0;
+  margin: 90px auto 0;
   /*padding-top: 35px;*/
 }
 
@@ -96,7 +96,7 @@ body {
 .column-item {
   display: flex;
   justify-content: end;
-  margin-bottom: 16px;
+  margin-bottom: 22px;
 }
 
 .column-item:nth-child(odd) {
