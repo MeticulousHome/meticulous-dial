@@ -17,11 +17,13 @@ export const BarNeedleWrapper = styled.div<any>`
 `;
 
 export const BarometerCircleWrapper = styled.div`
-  position: relative;
+  position: absolute;
+  width: 100%;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
   > svg {
-    position: absolute;
-    top: 20px;
-    left: 20px;
   }
 `;

@@ -32,7 +32,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 84px;
+    /* margin-top: 84px; */
 }
 
 .pressets-conainer .presset-icon svg {

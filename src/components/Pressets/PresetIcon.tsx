@@ -48,5 +48,10 @@ const PresetIcon = (_props: Props) => {
 export default withBubbleAnimation({
   Component: PresetIcon,
   isScaleIn: true,
-  extraClass: 'bubble-container'
+  extraClass: 'bubble-container',
+  delay: 0.01,
+  activeOpacity: [0.0, 0.2, 0.4, 0.6, 1, 1],
+  inactiveOpacity: [1, 1, 1, 1, 0.5, 0.0],
+  activeTimes: [0.0, 0.2, 0.4, 0.6, 0.85, 1],
+  inactiveTimes: [0.0, 0.15, 0.4, 0.6, 0.8, 1]
 });

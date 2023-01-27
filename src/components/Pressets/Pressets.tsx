@@ -10,7 +10,8 @@ function Pressets({ isActive }: { isActive: boolean }): JSX.Element {
       <div
         className="main-layout-content"
         style={{
-          position: 'relative'
+          position: 'relative',
+          marginTop: '25%'
         }}
       >
         <div

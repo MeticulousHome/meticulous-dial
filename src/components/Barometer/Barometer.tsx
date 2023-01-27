@@ -110,5 +110,9 @@ function Barometer({ stats, maxValue = 13 }: IBarometerProps): JSX.Element {
 
 export default withBubbleAnimation({
   Component: Barometer,
-  extraClass: 'bubble-container'
+  extraClass: 'bubble-container',
+  activeOpacity: [0.0, 0.2, 0.4, 0.6, 1, 1],
+  inactiveOpacity: [1, 1, 1, 1, 0.5, 0.0],
+  activeTimes: [0.0, 0.2, 0.4, 0.6, 0.85, 1],
+  inactiveTimes: [0.0, 0.15, 0.4, 0.6, 0.8, 1]
 });
