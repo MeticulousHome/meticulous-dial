@@ -9,8 +9,8 @@ export function CircleKeyboard(): JSX.Element {
   const [rotate, setRotate] = useState<number>(208);
   const [alphabet, setAlphabet] = useState<string[]>(letters);
   const [mainLetter, setMainLetter] = useState<string>('U');
-  const [myIndex, setMyindex] = useState<number>(0);
   const gesture = useReduxSelector((state) => state.gesture);
+  // const [capsLockActive, setCapsLockActive] = useState<boolean>(false);
 
   const moveElements = (right: boolean) => {
     const newAlphabet = [...alphabet];
@@ -20,7 +20,6 @@ export function CircleKeyboard(): JSX.Element {
     const newLetter = alphabet[pm2];
     const p1 = i + 1;
     const m1 = i - 1;
-    // const [capsLockActive, setCapsLockActive] = useState<boolean>(false);
 
     if (!alphabet[pm2]) {
       return;
@@ -34,9 +33,10 @@ export function CircleKeyboard(): JSX.Element {
     newAlphabet[!right ? p1 : m1] = mainLetter;
     newAlphabet[!right ? m1 : p1] = newLetter;
 
-    setMainLetter(newLetter);
     setAlphabet(newAlphabet);
-    setMyindex(myIndex + 1);
+    setTimeout(() => {
+      setMainLetter(newLetter);
+    }, 5);
   };
 
   useEffect(() => {
