@@ -9,13 +9,30 @@
 
 .letter {
   fill: rgba(255, 255, 255, 0.5);
-  font: normal 8px 'Maison';
+  font: normal 5.3px 'Maison';
 }
 
 .main-letter {
   position: absolute;
-  top: 25px;
+  top: 15px;
   text-align: center;
   font-size: 61px;
   font-family: 'Maison';
+}
+
+.letter-space {
+  fill: rgba(255, 255, 255, 0.5);
+  font: normal 4px 'fontello';
+}
+
+.main-letter-space {
+  position: absolute;
+  top: 35px;
+  text-align: center;
+  font-size: 33px;
+  font-family: 'fontello';
+}
+
+.transition-all {
+  transition: all 600ms cubic-bezier(.47,1.63,.41,.8);
 }

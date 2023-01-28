@@ -1,4 +1,4 @@
-import { ThunkDispatch } from '@reduxjs/toolkit';
+// import { ThunkDispatch } from '@reduxjs/toolkit';
 import { useEffect } from 'react';
 // import { io } from "socket.io-client";
 import { StageType, ActionType } from '../../types/index';
@@ -21,8 +21,7 @@ interface SocketProviderValueInterface {
   sendPreset: (name: string) => void;
 }
 
-//@ts-ignore
-//const socket: Socket | null = io(window.meticulous_envs.SERVER_URL());
+// const socket: Socket | null = io(window.meticulous_envs.SERVER_URL());
 
 export const SocketProviderValue = (): SocketProviderValueInterface => {
   useEffect(() => {
@@ -37,15 +36,16 @@ export const SocketProviderValue = (): SocketProviderValueInterface => {
         }); */
   }, []);
 
-  const sendAction = (name: ActionType) => {
-    //socket.emit("action", name.toLowerCase());
-  };
+  // const sendAction = (name: ActionType) => {
+  //   socket.emit("action", name.toLowerCase());
+  // };
 
-  const sendPreset = (name: string) => {
-    //socket.emit("preset", name.toLowerCase());
-  };
+  // const sendPreset = (name: string) => {
+  //   socket.emit("preset", name.toLowerCase());
+  // };
 
-  return { sendAction, sendPreset };
+  // return { sendAction, sendPreset };
+  return;
 };
 
 export const SetSocketKeyboardListeners = () => {
