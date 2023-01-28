@@ -4,10 +4,12 @@ import { GestureType } from '../../../../types/index';
 
 interface GesturesState {
   value: GestureType;
+  key: number;
 }
 
 const initialState: GesturesState = {
-  value: ''
+  value: '',
+  key: 0
 };
 
 const gestureSlice = createSlice({
@@ -16,6 +18,7 @@ const gestureSlice = createSlice({
   reducers: {
     setGesture: (state: GesturesState, action: PayloadAction<GestureType>) => {
       state.value = action.payload;
+      state.key = (new Date()).getMilliseconds();
     }
   }
 });
