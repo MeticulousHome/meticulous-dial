@@ -1,4 +1,5 @@
 import styled, { css } from 'styled-components';
+import { motion } from 'framer-motion';
 
 export const BarNeedleWrapper = styled.div<any>`
   ${(props) => css`
@@ -25,3 +26,5 @@ export const BarometerCircleWrapper = styled.div`
     left: 20px;
   }
 `;
+
+export const LogoWrapper = styled(motion.div)``;

@@ -9,7 +9,7 @@ const BarNeedle: React.FC<IProps> = ({ barNeedleRotatePosition }) => {
   return (
     <BarNeedleWrapper transform={`rotate(${barNeedleRotatePosition}deg)`}>
       <svg
-        width="210"
+        width="230"
         height="18"
         viewBox="0 0 240 18"
         fill="none"
