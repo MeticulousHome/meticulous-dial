@@ -6,8 +6,8 @@ const BarometerCircle = () => {
     <BarometerCircleWrapper>
       <svg
         width="440"
-        height="411"
-        viewBox="0 0 440 411"
+        height="440"
+        /*viewBox="0 0 440 411"*/
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >

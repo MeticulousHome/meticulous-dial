@@ -1,17 +1,22 @@
 /*
 Barometer styles
 */
+body {
+  overflow: hidden;
+}
+
 .barometer-container {
   height: 100%;
   width: 100%;
   display: flex;
   justify-content: center;
+  position: fixed;
 }
 
 .bar-needle__content {
   width: 275px;
-  margin: 85px auto 0;
-  padding-top: 35px;
+  margin: 90px auto 0;
+  /*padding-top: 35px;*/
 }
 
 .pressure,
@@ -78,6 +83,11 @@ Barometer styles
   text-align: center;
 }
 
+.bar-needle__logo svg {
+  position: relative;
+  right: -5.1px;
+}
+
 .columns-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -86,7 +96,7 @@ Barometer styles
 .column-item {
   display: flex;
   justify-content: end;
-  margin-bottom: 16px;
+  margin-bottom: 22px;
 }
 
 .column-item:nth-child(odd) {
