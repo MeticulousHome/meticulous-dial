@@ -9,7 +9,7 @@
 
 .letter {
   fill: rgba(255, 255, 255, 0.5);
-  font: normal 5.3px 'Maison';
+  font: normal 0.4rem 'Maison';
 }
 
 .main-letter {
@@ -22,17 +22,32 @@
 
 .letter-space {
   fill: rgba(255, 255, 255, 0.5);
-  font: normal 4px 'fontello';
+  font: normal 0.3rem 'fontello';
 }
 
 .main-letter-space {
   position: absolute;
   top: 35px;
   text-align: center;
-  font-size: 33px;
+  font-size: 35px;
   font-family: 'fontello';
 }
 
 .transition-all {
   transition: all 250ms cubic-bezier(.47,1.63,.41,.8);
+}
+
+.circle-title {
+  text-align: center;
+  font-weight: 300;
+  font-size: 25px;
+  color: #FFFFFF;
+  opacity: 0.4;
+  text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.circle-caption {
+  font-weight: 700;
+  font-size: 40px;
+  color: #FFFFFF;
 }
