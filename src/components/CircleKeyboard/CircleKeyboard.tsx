@@ -72,7 +72,12 @@ export function CircleKeyboard(): JSX.Element {
         );
       case 'capslock':
         return (
-          <text key={index} y={-44} textAnchor="-120%" className="letter-space">
+          <text
+            key={index}
+            y={-44}
+            textAnchor="-120%"
+            className="letter-space caps-active"
+          >
             &#xe803;
           </text>
         );
@@ -94,15 +99,29 @@ export function CircleKeyboard(): JSX.Element {
   const getMainLetter = () => {
     switch (mainLetter) {
       case 'space':
-        return <div className="main-letter-space">&#xe800;</div>;
+        return (
+          <div className="main-letter-space icon-space-selected">&#xe800;</div>
+        );
       case 'ok':
-        return <div className="main-letter-space">&#xe801;</div>;
+        return (
+          <div className="main-letter-space icon-ok-selected">&#xe801;</div>
+        );
       case 'backspace':
-        return <div className="main-letter-space">&#xe802;</div>;
+        return (
+          <div className="main-letter-space icon-backspace-selected">
+            &#xe802;
+          </div>
+        );
       case 'capslock':
-        return <div className="main-letter-space">&#xe803;</div>;
+        return (
+          <div className="main-letter-space icon-capslock-selected">
+            &#xe803;
+          </div>
+        );
       case 'cancel':
-        return <div className="main-letter-space">&#xf02d;</div>;
+        return (
+          <div className="main-letter-space icon-cancel-selected">&#xf02d;</div>
+        );
       default:
         return <div className="main-letter">{mainLetter}</div>;
     }
@@ -111,7 +130,7 @@ export function CircleKeyboard(): JSX.Element {
   return (
     <div className="circle-keyboard-container">
       {getMainLetter()}
-      <div style={{ position: 'absolute' }}>
+      <div className="caption-content">
         <div className="circle-title">Profile Name</div>
         <div className="circle-caption">{caption}</div>
       </div>
