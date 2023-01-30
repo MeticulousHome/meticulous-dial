@@ -10,6 +10,8 @@ Barometer styles
   /*background: url('/src/assets/images/arc.svg') center center no-repeat;*/
   background: url('/src/assets/images/arc2.svg') center center no-repeat;
   /* position: relative; */
+  background-color: black;
+  z-index: 10;
 }
 .bar-needle {
   background: url('/src/assets/images/bar-needle.svg') 86% 0 no-repeat;
@@ -28,7 +30,7 @@ Barometer styles
 }
 .bar-needle__content {
   width: 275px;
-  margin: 85px auto 0;
+  margin: 110px auto 0;
 }
 .pressure,
 .bar-needle__column__label {
@@ -107,11 +109,19 @@ Barometer styles
 
 .main-title-selected { 
   position: absolute;
-  top: 48px;
+  top: 60px;
   font-size: 23px;
   width: 220px;
   line-height: 1;
   text-align: center;
+  /* new properties */
+  left: 50%;
+  transform: translateX(-50%);
+  line-height: 1;
+  /* properties to animate when transition */
+  /* top: 70px; */
+  /* font-size: 35px; */
+  /* properties to animate when transition */
 }
 
 .columns-grid {

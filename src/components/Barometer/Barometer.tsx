@@ -36,7 +36,7 @@ export function Barometer({
         style={{ transform: `rotate(${barNeedleRotatePosition}deg)` }}
       ></div>
 
-      <div className="main-title-selected">Filter 2.1</div>
+      {/* <div className="main-title-selected">Filter 2.1</div> */}
 
       <div className="bar-needle__content">
         <div className="pressure">PRESSURE</div>
