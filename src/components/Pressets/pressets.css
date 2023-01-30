@@ -5,15 +5,16 @@
 /* Temp */
 .pressets-conainer {
     width: 480px;
-    overflow-x: auto;
+    /* overflow-x: auto; */
 }
 
 .pressets-conainer > div:first-child {
-    margin-left: 18%;
+    /* margin-left: 18%; */
+    margin: 0 auto;
 }
 
 .pressets-conainer > div:last-child {
-    margin-right: 20%;
+    /* margin-right: 20%; */
 }
 /**/
 

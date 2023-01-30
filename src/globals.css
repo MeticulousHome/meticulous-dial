@@ -37,13 +37,17 @@ body {
 }
 
 .main-layout-content {
-    margin-top: 56px;
-    height: calc(100% - 136px); 
+    /* margin-top: 56px; */
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* height: calc(100% - 136px);  */
 }
 
 .main-layout .title-main-1 {
     position: absolute;
-    top: 32px;
+    top: 42px;
     left: 50%;
     right: 0;
     width: 170px;
