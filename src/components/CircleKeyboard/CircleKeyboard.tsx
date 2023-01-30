@@ -25,18 +25,15 @@ export function CircleKeyboard(): JSX.Element {
       return;
     }
 
-    setRotate(pmr);
-
     newAlphabet[i] = ' ';
     newAlphabet[pm2] = ' ';
 
     newAlphabet[!right ? p1 : m1] = mainLetter;
     newAlphabet[!right ? m1 : p1] = newLetter;
-
     setAlphabet(newAlphabet);
-    setTimeout(() => {
-      setMainLetter(newLetter);
-    }, 5);
+
+    setMainLetter(newLetter);
+    setRotate(pmr);
   };
 
   useEffect(() => {
