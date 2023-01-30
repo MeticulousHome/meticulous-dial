@@ -223,9 +223,9 @@ export const letters = [
   '8',
   '9',
   '0',
-  '&#xe800;',
-  '@',
-  '#',
-  '$',
-  '%'
+  'space',
+  'ok',
+  'backspace',
+  'capslock',
+  'cancel'
 ];

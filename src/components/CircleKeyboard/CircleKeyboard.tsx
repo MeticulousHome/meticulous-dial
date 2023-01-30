@@ -1,5 +1,5 @@
 import './circle-keyboard.css';
-import '../../assets/fonts/custom-space/css/fontello.css';
+import '../../assets/fonts/custom/css/fontello.css';
 import { useEffect, useState } from 'react';
 import { letters } from './Keys';
 import { useReduxSelector } from '../store/store';
@@ -10,6 +10,7 @@ export function CircleKeyboard(): JSX.Element {
   const [alphabet, setAlphabet] = useState<string[]>(letters);
   const [mainLetter, setMainLetter] = useState<string>('U');
   const gesture = useReduxSelector((state) => state.gesture);
+  const [caption, setCaption] = useState<string>('');
   // const [capsLockActive, setCapsLockActive] = useState<boolean>(false);
 
   const moveElements = (right: boolean) => {
@@ -43,15 +44,77 @@ export function CircleKeyboard(): JSX.Element {
     if (gesture.value === 'right') {
       moveElements(true);
     }
+
+    if (gesture.value === 'click') {
+      setCaption(caption.concat(mainLetter));
+    }
   }, [gesture]);
+
+  const parseCharacter = (letter: string, index: number) => {
+    switch (letter) {
+      case 'space':
+        return (
+          <text key={index} y={-44} textAnchor="-120%" className="letter-space">
+            &#xe800;
+          </text>
+        );
+      case 'ok':
+        return (
+          <text key={index} y={-44} textAnchor="-120%" className="letter-space">
+            &#xe801;
+          </text>
+        );
+      case 'backspace':
+        return (
+          <text key={index} y={-44} textAnchor="-120%" className="letter-space">
+            &#xe802;
+          </text>
+        );
+      case 'capslock':
+        return (
+          <text key={index} y={-44} textAnchor="-120%" className="letter-space">
+            &#xe803;
+          </text>
+        );
+      case 'cancel':
+        return (
+          <text key={index} y={-44} textAnchor="-120%" className="letter-space">
+            &#xf02d;
+          </text>
+        );
+      default:
+        return (
+          <text key={index} y={-44} className="letter" textAnchor="-120%">
+            {letter}
+          </text>
+        );
+    }
+  };
+
+  const getMainLetter = () => {
+    switch (mainLetter) {
+      case 'space':
+        return <div className="main-letter-space">&#xe800;</div>;
+      case 'ok':
+        return <div className="main-letter-space">&#xe801;</div>;
+      case 'backspace':
+        return <div className="main-letter-space">&#xe802;</div>;
+      case 'capslock':
+        return <div className="main-letter-space">&#xe803;</div>;
+      case 'cancel':
+        return <div className="main-letter-space">&#xf02d;</div>;
+      default:
+        return <div className="main-letter">{mainLetter}</div>;
+    }
+  };
 
   return (
     <div className="circle-keyboard-container">
-      {mainLetter === '&#xe800;' ? (
-        <div className="main-letter-space">&#xe800;</div>
-      ) : (
-        <div className="main-letter">{mainLetter}</div>
-      )}
+      {getMainLetter()}
+      <div style={{ position: 'absolute' }}>
+        <div className="circle-title">Profile Name</div>
+        <div className="circle-caption">{caption}</div>
+      </div>
       <svg height="390" width="390">
         <svg viewBox="0 0 100 100">
           <g
@@ -65,20 +128,9 @@ export function CircleKeyboard(): JSX.Element {
               if (letter === mainLetter) {
                 return;
               }
-              if (letter === '&#xe800;') {
-                return (
-                  <g transform={`rotate(${index * G_ROTATE})`} key={index}>
-                    <text y={-44} textAnchor="-120%" className="letter-space">
-                      &#xe800;
-                    </text>
-                  </g>
-                );
-              }
               return (
                 <g transform={`rotate(${index * G_ROTATE})`} key={index}>
-                  <text y={-44} className="letter" textAnchor="-120%">
-                    {letter}
-                  </text>
+                  {parseCharacter(letter, index)}
                 </g>
               );
             })}
