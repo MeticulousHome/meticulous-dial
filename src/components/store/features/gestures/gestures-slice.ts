@@ -18,7 +18,7 @@ const gestureSlice = createSlice({
   reducers: {
     setGesture: (state: GesturesState, action: PayloadAction<GestureType>) => {
       state.value = action.payload;
-      state.key = (new Date()).getMilliseconds();
+      state.key = new Date().getMilliseconds();
     }
   }
 });
