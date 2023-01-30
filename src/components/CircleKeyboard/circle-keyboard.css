@@ -34,5 +34,5 @@
 }
 
 .transition-all {
-  transition: all 600ms cubic-bezier(.47,1.63,.41,.8);
+  transition: all 250ms cubic-bezier(.47,1.63,.41,.8);
 }
