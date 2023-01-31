@@ -1,5 +1,6 @@
 import './barometer.css';
 import { formatStatValue } from '../../utils';
+import { useAppSelector } from '../store/hooks';
 
 export interface IBarometerProps {
   stats: IStats;
@@ -29,8 +30,14 @@ export function Barometer({
     maxValue
   );
 
+  const { gesture } = useAppSelector((state) => state);
+
   return (
-    <div className="barometer-container">
+    <div
+      className={`barometer-container ${
+        gesture.value === 'click' ? 'barometer__fadeIn' : 'barometer__fadeOut'
+      }`}
+    >
       <div
         className="bar-needle bar-needle--transition-all"
         style={{ transform: `rotate(${barNeedleRotatePosition}deg)` }}
