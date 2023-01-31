@@ -12,6 +12,7 @@ Barometer styles
   /* position: relative; */
   background-color: black;
   z-index: 10;
+  border-radius: 999px;
 }
 .bar-needle {
   background: url('/src/assets/images/bar-needle.svg') 86% 0 no-repeat;

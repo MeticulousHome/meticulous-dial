@@ -22,7 +22,7 @@ const App = (): JSX.Element => {
     <SockerManager>
       <div className="main-layout">
         <div className="title-main-1">pressets</div>
-        <div className="main-title-selected ">Filter 2.1</div>
+        <div className="main-title-selected">Filter 2.1</div>
         <Barometer stats={{ sensors, name, time }} />
         <Pressets />
         <div className="bottom-status">
