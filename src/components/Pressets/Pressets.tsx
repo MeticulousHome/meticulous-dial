@@ -1,6 +1,9 @@
+import { useAppSelector } from '../store/hooks';
 import './pressets.css';
 
 export function Pressets(): JSX.Element {
+  const { gesture } = useAppSelector((state) => state);
+
   return (
     // <div className="main-layout">
     //   <div className="title-main-1">pressets</div>
@@ -11,6 +14,16 @@ export function Pressets(): JSX.Element {
             {/* <div className="title-main-2">Filter 2.1</div> */}
             <div className="presset-icon">
               <svg
+                className={`${
+                  gesture.value === 'right'
+                    ? 'presset__fadeIn'
+                    : 'presset__fadeOut'
+                }`}
+                // style={{
+                //   opacity: gesture.value === 'click' ? 1 : 0,
+                //   transform:
+                //     gesture.value === 'click' ? 'scale(1)' : 'scale(2.3)'
+                // }}
                 viewBox="0 0 206 204"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
