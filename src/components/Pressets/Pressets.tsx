@@ -14,6 +14,9 @@ export function Pressets(): JSX.Element {
             {/* <div className="title-main-2">Filter 2.1</div> */}
             <div className="presset-icon">
               <svg
+                style={{
+                  opacity: 0
+                }}
                 className={`${
                   gesture.value === 'right'
                     ? 'presset__fadeIn'

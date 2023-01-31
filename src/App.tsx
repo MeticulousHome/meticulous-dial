@@ -8,6 +8,7 @@ import { SockerManager } from './components/store/SockerManager';
 /* import { useAppSelector } from './components/store/hooks'; */
 /* import { Scale } from './components/Scale/Scale'; */
 import { Pressets } from './components/Pressets/Pressets';
+import { useAppSelector } from './components/store/hooks';
 /* import { PressetSettings } from './components/PressetSettings/PressetSettings'; */
 /* import { TemperatureScale } from './components/TemperatureScale/TemperatureScale'; */
 
@@ -18,11 +19,19 @@ const App = (): JSX.Element => {
   const time = '0';
   const name = 'IDLE';
 
+  const { gesture } = useAppSelector((state) => state);
+
   return (
     <SockerManager>
       <div className="main-layout">
         <div className="title-main-1">pressets</div>
-        <div className="main-title-selected">Filter 2.1</div>
+        <div
+          className={`main-title-selected ${
+            gesture.value === 'right' ? 'title__Big' : 'title__small'
+          }`}
+        >
+          Filter 2.1
+        </div>
         <Barometer stats={{ sensors, name, time }} />
         <Pressets />
         <div className="bottom-status">
