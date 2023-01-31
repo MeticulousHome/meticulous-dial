@@ -35,7 +35,9 @@ export function Barometer({
   return (
     <div
       className={`barometer-container ${
-        gesture.value === 'click' ? 'barometer__fadeIn' : 'barometer__fadeOut'
+        gesture.value === 'click' || gesture.value === ''
+          ? 'barometer__fadeIn'
+          : 'barometer__fadeOut'
       }`}
     >
       <div
