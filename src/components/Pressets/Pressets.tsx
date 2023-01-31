@@ -15,7 +15,8 @@ export function Pressets(): JSX.Element {
             <div className="presset-icon">
               <svg
                 style={{
-                  opacity: 0
+                  opacity: 0,
+                  zIndex: 50
                 }}
                 className={`${
                   gesture.value === 'right'
