@@ -5,13 +5,18 @@ import { letters } from './Keys';
 import { useReduxSelector } from '../store/store';
 
 export function CircleKeyboard(): JSX.Element {
-  const G_ROTATE = 7.24;
   const [rotate, setRotate] = useState<number>(208);
   const [alphabet, setAlphabet] = useState<string[]>(letters);
   const [mainLetter, setMainLetter] = useState<string>('U');
   const gesture = useReduxSelector((state) => state.gesture);
-  const [caption, setCaption] = useState<string>('');
-  // const [capsLockActive, setCapsLockActive] = useState<boolean>(false);
+  const [caption, setCaption] = useState<string[]>([]);
+  const [capsLockActive, setCapsLockActive] = useState<{
+    active: boolean;
+    keep: boolean;
+  }>({
+    active: false,
+    keep: false
+  });
 
   const moveElements = (right: boolean) => {
     const newAlphabet = [...alphabet];
@@ -40,13 +45,65 @@ export function CircleKeyboard(): JSX.Element {
   useEffect(() => {
     if (gesture.value === 'left') {
       moveElements(false);
+      return;
     }
+
     if (gesture.value === 'right') {
       moveElements(true);
+      return;
+    }
+
+    if (gesture.value === 'doubleClick' && mainLetter === 'capslock') {
+      setCapsLockActive({
+        active: true,
+        keep: true
+      });
+      return;
+    }
+
+    if (mainLetter === 'capslock') {
+      setCapsLockActive({
+        active: !capsLockActive.active,
+        keep: capsLockActive.keep ? false : capsLockActive.keep
+      });
+      return;
     }
 
     if (gesture.value === 'click') {
-      setCaption(caption.concat(mainLetter));
+      if (caption.length === 8 && mainLetter !== 'backspace') {
+        return;
+      }
+
+      switch (mainLetter) {
+        case 'space':
+          setCaption(caption.concat('U+0020'));
+          return;
+        case 'ok':
+          return;
+        case 'backspace':
+          if (caption.length > 0) {
+            setCaption(caption.slice(0, -1));
+          }
+          return;
+        case 'cancel':
+          return;
+        default:
+          if (!/^[A-Za-z]$/.test(mainLetter) && capsLockActive.active) {
+            return;
+          }
+          setCaption(
+            caption.concat(
+              capsLockActive.active ? mainLetter : mainLetter.toLowerCase()
+            )
+          );
+          if (!capsLockActive.keep && capsLockActive.active) {
+            setCapsLockActive({
+              ...capsLockActive,
+              active: false
+            });
+          }
+          return;
+      }
     }
   }, [gesture]);
 
@@ -76,7 +133,9 @@ export function CircleKeyboard(): JSX.Element {
             key={index}
             y={-44}
             textAnchor="-120%"
-            className="letter-space caps-active"
+            className={`letter-space ${
+              capsLockActive.active ? 'caps-active' : 'caps-inactive'
+            }`}
           >
             &#xe803;
           </text>
@@ -114,7 +173,11 @@ export function CircleKeyboard(): JSX.Element {
         );
       case 'capslock':
         return (
-          <div className="main-letter-space icon-capslock-selected">
+          <div
+            className={`main-letter-space icon-capslock-selected ${
+              capsLockActive.active ? 'caps-active' : 'caps-inactive'
+            }`}
+          >
             &#xe803;
           </div>
         );
@@ -132,7 +195,17 @@ export function CircleKeyboard(): JSX.Element {
       {getMainLetter()}
       <div className="caption-content">
         <div className="circle-title">Profile Name</div>
-        <div className="circle-caption">{caption}</div>
+        <div className="circle-caption">
+          {caption.map((el) => {
+            if (el === 'U+0020') {
+              return <div className="transparent">_</div>;
+            }
+            return <div>{el}</div>;
+          })}
+          {caption.length >= 0 && caption.length < 8 && (
+            <div className="blink">_</div>
+          )}
+        </div>
       </div>
       <svg height="390" width="390">
         <svg viewBox="0 0 100 100">
@@ -148,7 +221,7 @@ export function CircleKeyboard(): JSX.Element {
                 return;
               }
               return (
-                <g transform={`rotate(${index * G_ROTATE})`} key={index}>
+                <g transform={`rotate(${index * 7.24})`} key={index}>
                   {parseCharacter(letter, index)}
                 </g>
               );
