@@ -1,0 +1,9 @@
+name: CI/CD Pipeline PR
+on:
+  pull_request:
+    branches:
+      - master
+      - staging
+jobs:
+  continuous-integration:
+    uses: ./.github/workflows/continuous-integration.yml

@@ -6,7 +6,7 @@
   "main": ".webpack/main",
   "private": true,
   "scripts": {
-    "format": "prettier --config .prettierrc \"src/**/*.{js,tsx,ts}\" --write",
+    "format": "prettier --config .prettierrc \"src/**/*.{tsx,ts}\" --write",
     "commit": "git-cz",
     "start": "export SERVER_URL=http://localhost:8080 && electron-forge start",
     "package": "electron-forge package",
