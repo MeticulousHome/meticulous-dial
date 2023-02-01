@@ -55,12 +55,9 @@
 .circle-caption {
   font-weight: 700;
   font-size: 40px;
-  color: #FFFFFF; 
-  width: 260px;
-  margin: 0 auto;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: #FFFFFF;
+  display: flex;
+  justify-content: center;
 }
 
 .icon-space-selected {
@@ -68,26 +65,49 @@
   font-size: 52px;
   top: 28px;
 }
+
 .icon-ok-selected {
   -webkit-text-stroke: 5px #000;
   font-size: 58px;
   top: 24px;
 }
+
 .icon-backspace-selected {
   -webkit-text-stroke: 2px #000;
   font-size: 62px;
   top: 24px;
 }
+
 .icon-capslock-selected {
   -webkit-text-stroke: 5px #000;
   font-size: 54px;
   top: 24px;
 }
+
 .icon-cancel-selected {
   -webkit-text-stroke: 3px #000;
   font-size: 50px;
   top: 30px;
 }
+ 
 .caps-active {
   fill: #fff;
-} 
+}
+
+.caps-inactive {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.blink {
+  animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+
+.transparent {
+  color: transparent;
+}

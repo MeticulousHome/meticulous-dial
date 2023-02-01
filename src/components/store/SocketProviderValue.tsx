@@ -51,8 +51,15 @@ export const SocketProviderValue = (): SocketProviderValueInterface => {
 export const SetSocketKeyboardListeners = () => {
   const dispatch = useAppDispatch();
 
+  let lastSpaceDownTime = 0;
+
   useEffect(() => {
     window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && e.timeStamp - lastSpaceDownTime < 300) {
+        dispatch(setGesture('doubleClick'));
+        return;
+      }
+
       switch (e.code) {
         case 'ArrowLeft':
           //dispatch(setGesture('left'));
@@ -61,6 +68,7 @@ export const SetSocketKeyboardListeners = () => {
           dispatch(setGesture('right'));
           break;
         case 'Space':
+          lastSpaceDownTime = e.timeStamp;
           dispatch(setGesture('click'));
           break;
         default:

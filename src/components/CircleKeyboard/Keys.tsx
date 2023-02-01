@@ -203,7 +203,7 @@ export const letters = [
   'P',
   'Q',
   'R',
-  'S ',
+  'S',
   'T',
   ' ',
   'U',
