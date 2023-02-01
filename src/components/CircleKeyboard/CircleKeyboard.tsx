@@ -88,14 +88,14 @@ export function CircleKeyboard(): JSX.Element {
         case 'cancel':
           return;
         default:
-          if (!/^[A-Za-z]$/.test(mainLetter) && capsLockActive.active) {
-            return;
-          }
           setCaption(
             caption.concat(
               capsLockActive.active ? mainLetter : mainLetter.toLowerCase()
             )
           );
+          if (!/^[A-Za-z]$/.test(mainLetter) && capsLockActive.active) {
+            return;
+          }
           if (!capsLockActive.keep && capsLockActive.active) {
             setCapsLockActive({
               ...capsLockActive,
