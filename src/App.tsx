@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useContext, useRef } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 
@@ -19,7 +19,7 @@ const App = (): JSX.Element => {
   const time = '0';
   const name = 'IDLE';
 
-  const { gesture } = useAppSelector((state) => state);
+  const { gesture, screen } = useAppSelector((state) => state);
 
   return (
     <SockerManager>
@@ -27,7 +27,9 @@ const App = (): JSX.Element => {
         <div className="title-main-1">pressets</div>
         <div
           className={`main-title-selected ${
-            gesture.value === 'right' ? 'title__Big' : 'title__small'
+            screen.value === 'pressets' /*Add every SCREEN that need it BIG :)*/
+              ? 'title__Big'
+              : 'title__small'
           }`}
         >
           Filter 2.1

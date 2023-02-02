@@ -1,8 +1,19 @@
+import { useContext, useEffect } from 'react';
+
+import { setScreen } from '../store/features/screens/screens-slice';
 import { useAppSelector } from '../store/hooks';
+import { SockerContext } from '../store/SockerManager';
 import './pressets.css';
 
 export function Pressets(): JSX.Element {
-  const { gesture } = useAppSelector((state) => state);
+  const { gesture, screen } = useAppSelector((state) => state);
+  const dispatch = useContext(SockerContext);
+
+  useEffect(() => {
+    if (gesture.value === 'click') {
+      dispatch(setScreen('barometer'));
+    }
+  });
 
   return (
     // <div className="main-layout">
@@ -19,7 +30,7 @@ export function Pressets(): JSX.Element {
                   zIndex: 50
                 }}
                 className={`${
-                  gesture.value === 'right'
+                  screen.value === 'pressets'
                     ? 'presset__fadeIn'
                     : 'presset__fadeOut'
                 }`}
