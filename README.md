@@ -57,4 +57,4 @@ Based on the [gesture](#gestures), we need to use them into each state in a spec
 > **Note:** _double click_ gesture comes from an extra hardware element.
 
 
-<img src="./public/Dial-State.png" width=500/>
+<img src="./public/Dial-State_V2.png" width=500/>
