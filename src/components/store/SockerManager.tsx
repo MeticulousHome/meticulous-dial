@@ -2,7 +2,7 @@ import React, { createContext, ReactNode, useContext } from 'react';
 import { SetSocketKeyboardListeners } from './SocketProviderValue';
 
 // socket context
-const SockerContext = createContext(null);
+export const SockerContext = createContext(null);
 
 // allow consuming socket context anywhere
 export const useSocket = () => {
@@ -14,6 +14,8 @@ export const SockerManager = ({
 }: {
   children: ReactNode;
 }): JSX.Element => {
-  SetSocketKeyboardListeners();
-  return <SockerContext.Provider value={{}}>{children}</SockerContext.Provider>;
+  const dispatch = SetSocketKeyboardListeners();
+  return (
+    <SockerContext.Provider value={dispatch}>{children}</SockerContext.Provider>
+  );
 };

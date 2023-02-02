@@ -76,4 +76,6 @@ export const SetSocketKeyboardListeners = () => {
       }
     });
   }, []);
+
+  return dispatch;
 };
