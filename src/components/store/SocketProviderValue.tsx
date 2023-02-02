@@ -55,7 +55,7 @@ export const SetSocketKeyboardListeners = () => {
     window.addEventListener('keydown', (e) => {
       switch (e.code) {
         case 'ArrowLeft':
-          //dispatch(setGesture('left'));
+          dispatch(setGesture('left'));
           break;
         case 'ArrowRight':
           dispatch(setGesture('right'));
@@ -68,4 +68,6 @@ export const SetSocketKeyboardListeners = () => {
       }
     });
   }, []);
+
+  return dispatch;
 };
