@@ -42,3 +42,19 @@ We use the follow [structure](https://commitlint.js.org/#/concepts-commit-conven
 ```
 type(scope): subject
 ```
+---
+## How Dial Works
+
+### Gestures
+Dial has only 3 actions that we can catch from it. `Turn Left`, `Turn Right` and `Click`.
+
+<img src="./public/clockwise-gesture.png" width=300/>
+
+
+### Behaviour
+Based on the [gesture](#gestures), we need to use them into each state in a specific way. For instance, when the state is `showing barometer`, we have the three gestures available. On the other hand, when state is `showing scale`, we just have available the gesture **double click**.
+
+> **Note:** _double click_ gesture comes from an extra hardware element.
+
+
+<img src="./public/Dial-State.png" width=500/>
