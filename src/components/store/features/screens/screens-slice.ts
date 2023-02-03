@@ -1,13 +1,15 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-type ScreenType = 'barometer' | 'pressets' | 'pressetSettings';
+export type ScreenType = 'barometer' | 'pressets' | 'pressetSettings';
 
 interface ScreenState {
   value: ScreenType;
+  prev: ScreenType;
 }
 
 const initialState: ScreenState = {
-  value: 'barometer'
+  value: 'barometer',
+  prev: null
 };
 
 const screenSlice = createSlice({
@@ -15,6 +17,7 @@ const screenSlice = createSlice({
   initialState,
   reducers: {
     setScreen: (state: ScreenState, action: PayloadAction<ScreenType>) => {
+      state.prev = state.value;
       state.value = action.payload;
     }
   }
