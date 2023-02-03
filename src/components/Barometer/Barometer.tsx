@@ -1,10 +1,6 @@
-import { useContext, useEffect } from 'react';
-
 import './barometer.css';
 import { formatStatValue } from '../../utils';
 import { useAppSelector } from '../store/hooks';
-import { SockerContext } from '../store/SockerManager';
-import { setScreen } from '../store/features/screens/screens-slice';
 
 export interface IBarometerProps {
   stats: IStats;
@@ -33,16 +29,7 @@ export function Barometer({
     stats.sensors.p,
     maxValue
   );
-  const { gesture, screen } = useAppSelector((state) => state);
-  const dispatch = useContext(SockerContext);
-
-  useEffect(() => {
-    if (gesture.value === 'right' || gesture.value === 'left') {
-      dispatch(setScreen('pressets'));
-    } else if (gesture.value === 'click') {
-      dispatch(setScreen('pressetSettings'));
-    }
-  }, [gesture]);
+  const { screen } = useAppSelector((state) => state);
 
   return (
     <div
