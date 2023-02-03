@@ -7,7 +7,7 @@ import { useReduxSelector } from '../store/store';
 export function CircleKeyboard(): JSX.Element {
   const [rotate, setRotate] = useState<number>(208);
   const [alphabet, setAlphabet] = useState<string[]>(letters);
-  const [mainLetter, setMainLetter] = useState<string>('U');
+  const [mainLetter, setMainLetter] = useState<string>('u');
   const gesture = useReduxSelector((state) => state.gesture);
   const [caption, setCaption] = useState<string[]>([]);
   const [capsLockActive, setCapsLockActive] = useState<{
@@ -20,7 +20,9 @@ export function CircleKeyboard(): JSX.Element {
 
   const moveElements = (right: boolean) => {
     const newAlphabet = [...alphabet];
-    const i = alphabet.indexOf(mainLetter);
+    const i = alphabet.findIndex((element) => {
+      return element.toLowerCase() === mainLetter.toLowerCase();
+    });
     const pm2 = i + (!right ? -2 : +2);
     const pmr = rotate + (right ? -7.25 : +7.25);
     const newLetter = alphabet[pm2];
@@ -88,11 +90,12 @@ export function CircleKeyboard(): JSX.Element {
         case 'cancel':
           return;
         default:
-          setCaption(
-            caption.concat(
-              capsLockActive.active ? mainLetter : mainLetter.toLowerCase()
-            )
-          );
+          // setCaption(
+          //   caption.concat(
+          //     capsLockActive.active ? mainLetter : mainLetter.toLowerCase()
+          //   )
+          // );
+          setCaption(caption.concat(mainLetter));
           if (!/^[A-Za-z]$/.test(mainLetter) && capsLockActive.active) {
             return;
           }
@@ -106,6 +109,17 @@ export function CircleKeyboard(): JSX.Element {
       }
     }
   }, [gesture]);
+
+  useEffect(() => {
+    let cpAlphabet = [...alphabet];
+    cpAlphabet = cpAlphabet.map((c) => {
+      if (c.length > 1) {
+        return c;
+      }
+      return capsLockActive.active ? c.toUpperCase() : c.toLowerCase();
+    });
+    setAlphabet(cpAlphabet);
+  }, [capsLockActive]);
 
   const parseCharacter = (letter: string, index: number) => {
     switch (letter) {
@@ -217,7 +231,7 @@ export function CircleKeyboard(): JSX.Element {
             className="transition-all"
           >
             {alphabet.map((letter: string, index: number) => {
-              if (letter === mainLetter) {
+              if (letter.toLowerCase() === mainLetter.toLowerCase()) {
                 return;
               }
               return (
