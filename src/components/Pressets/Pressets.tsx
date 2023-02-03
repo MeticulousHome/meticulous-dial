@@ -1,19 +1,8 @@
-import { useContext, useEffect } from 'react';
-
-import { setScreen } from '../store/features/screens/screens-slice';
 import { useAppSelector } from '../store/hooks';
-import { SockerContext } from '../store/SockerManager';
 import './pressets.css';
 
 export function Pressets(): JSX.Element {
-  const { gesture, screen } = useAppSelector((state) => state);
-  const dispatch = useContext(SockerContext);
-
-  useEffect(() => {
-    if (gesture.value === 'click') {
-      dispatch(setScreen('barometer'));
-    }
-  });
+  const { screen } = useAppSelector((state) => state);
 
   return (
     // <div className="main-layout">
