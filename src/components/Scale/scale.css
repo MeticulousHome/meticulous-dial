@@ -20,3 +20,7 @@
     font-size: 36px; 
     font-family: sans-serif;
 }
+
+.pressets-options-conainer {
+    transform: translateY(-50px);
+}
