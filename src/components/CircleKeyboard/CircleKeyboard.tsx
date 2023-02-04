@@ -3,12 +3,14 @@ import '../../assets/fonts/custom/css/fontello.css';
 import { useEffect, useState } from 'react';
 import { letters } from './Keys';
 import { useReduxSelector } from '../store/store';
+import { useAppSelector } from '../store/hooks';
 
-export function CircleKeyboard(): JSX.Element {
+export function CircleKeyboard({ callback }: any): JSX.Element {
   const [rotate, setRotate] = useState<number>(208);
   const [alphabet, setAlphabet] = useState<string[]>(letters);
   const [mainLetter, setMainLetter] = useState<string>('u');
-  const gesture = useReduxSelector((state) => state.gesture);
+  //const gesture = useReduxSelector((state) => state.gesture);
+  const { gesture, screen } = useAppSelector((state) => state);
   const [caption, setCaption] = useState<string[]>([]);
   const [capsLockActive, setCapsLockActive] = useState<{
     active: boolean;
@@ -45,6 +47,8 @@ export function CircleKeyboard(): JSX.Element {
   };
 
   useEffect(() => {
+    if (screen.value !== 'pressetSettings') return;
+
     if (gesture.value === 'left') {
       moveElements(false);
       return;
@@ -81,6 +85,7 @@ export function CircleKeyboard(): JSX.Element {
           setCaption(caption.concat('U+0020'));
           return;
         case 'ok':
+          callback();
           return;
         case 'backspace':
           if (caption.length > 0) {
@@ -88,6 +93,7 @@ export function CircleKeyboard(): JSX.Element {
           }
           return;
         case 'cancel':
+          callback();
           return;
         default:
           // setCaption(
@@ -108,7 +114,7 @@ export function CircleKeyboard(): JSX.Element {
           return;
       }
     }
-  }, [gesture]);
+  }, [callback, gesture]);
 
   useEffect(() => {
     let cpAlphabet = [...alphabet];
