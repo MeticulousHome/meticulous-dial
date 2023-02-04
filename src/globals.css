@@ -136,7 +136,7 @@ body {
 }
 
 @keyframes pressetFadeIn {
-    0%   { scale: 2.298998110006189; opacity: 0.05; }
+    0%   { scale: 2.298998110006189; opacity: 0.05; display: block;}
     1%   { scale: 2.2867003348842387 }
     2%   { scale: 2.249489977062011 }
     3%   { scale: 2.1923397278712575 }
@@ -236,11 +236,11 @@ body {
     97%   { scale: 1.0009918323513587 }
     98%   { scale: 1.001017995285628 }
     99%   { scale: 1.0010202891802702 }
-    100%   { scale: 1.0010018899938107; opacity: 1; }
+    100%   { scale: 1.0010018899938107; opacity: 1; display: block;}
   }
 
 @keyframes pressetFadeOut {
-    0%   { scale: 1.0010018899938107; opacity: 1; }
+    0%   { scale: 1.0010018899938107; opacity: 1; display: block;}
     1%   { scale: 1.013299665115761; opacity: 0.8;}
     2%   { scale: 1.0505100229379891 ; opacity: 0.8;}
     3%   { scale: 1.1076602721287423 ; opacity: 0.8;}
@@ -340,11 +340,11 @@ body {
     97%   { scale: 2.2990081676486414 }
     98%   { scale: 2.2989820047143716 }
     99%   { scale: 2.2989797108197294 }
-    100%   { scale: 2.298998110006189; opacity: 0;}
+    100%   { scale: 2.298998110006189; opacity: 0; display: none;}
 }
 
 @keyframes barometerFadeIn {
-    0%   { scale: 0; opacity: 0; }
+    0%   { scale: 0; opacity: 0; display: block;}
     1%   { scale: 0.2780329005284554 }
     2%   { scale: 0.2780329005284554 }
     3%   { scale: 0.3555361952367341}
@@ -444,12 +444,12 @@ body {
     97%   { scale: 0.9992370520374164 }
     98%   { scale: 0.999216926703363 }
     99%   { scale: 0.999215162169023 }
-    100%   { scale: 0.9992293153893764; opacity: 1;}
+    100%   { scale: 0.9992293153893764; opacity: 1; display: block;}
 }
 
 
 @keyframes barometerFadeOut {
-    0% { scale: 1; opacity: 1;}
+    0% { scale: 1; opacity: 1; display: block}
     1% { scale: 0.9899580697163936}
     2% { scale: 0.9616798541523991}
     3% { scale: 0.9179443271678198}
@@ -549,7 +549,7 @@ body {
     97% { scale: 0.0012433744775817157}
     98% { scale: 0.0014629720124451628}
     99% { scale: 0.0016270407451351998}
-    100% { scale: 0.0017391246484711465; opacity: 0;}
+    100% { scale: 0.0017391246484711465; opacity: 0; display: none;}
     /* 96% { scale: 0.0018033575787512746}
     97% { scale: 0.0018243101036031772}
     98% { scale: 0.0018068464174035848}

@@ -8,7 +8,10 @@ export function Pressets(): JSX.Element {
     // <div className="main-layout">
     //   <div className="title-main-1">pressets</div>
     <>
-      <div className="main-layout-content">
+      <div
+        className="main-layout-content"
+        style={{ display: screen.value === 'pressets' ? 'flex' : 'none' }}
+      >
         <div className="pressets-conainer">
           <div className="presset-item presset-active">
             {/* <div className="title-main-2">Filter 2.1</div> */}
