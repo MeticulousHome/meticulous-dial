@@ -1,5 +1,9 @@
-import React, { createContext, ReactNode, useContext } from 'react';
-import { SetSocketKeyboardListeners } from './SocketProviderValue';
+import { createContext, ReactNode, useContext } from 'react';
+
+import {
+  SetSocketKeyboardListeners,
+  SocketProviderValue
+} from './SocketProviderValue';
 
 // socket context
 export const SockerContext = createContext(null);
@@ -14,6 +18,7 @@ export const SockerManager = ({
 }: {
   children: ReactNode;
 }): JSX.Element => {
+  SocketProviderValue();
   const dispatch = SetSocketKeyboardListeners();
   return (
     <SockerContext.Provider value={dispatch}>{children}</SockerContext.Provider>

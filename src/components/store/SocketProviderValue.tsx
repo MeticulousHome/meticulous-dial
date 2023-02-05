@@ -1,9 +1,11 @@
 // import { ThunkDispatch } from '@reduxjs/toolkit';
 import { useEffect } from 'react';
-// import { io } from "socket.io-client";
+import { io, Socket } from 'socket.io-client';
+
 import { StageType, ActionType } from '../../types/index';
 import { useAppDispatch } from './hooks';
 import { setGesture } from './features/gestures/gestures-slice';
+import { setStats } from './features/stats/stats-slice';
 
 export interface SensorDataInterface {
   name: StageType;
@@ -21,9 +23,11 @@ interface SocketProviderValueInterface {
   sendPreset: (name: string) => void;
 }
 
-// const socket: Socket | null = io(window.meticulous_envs.SERVER_URL());
+const socket: Socket | null = io((window as any).meticulous_envs.SERVER_URL());
 
 export const SocketProviderValue = (): SocketProviderValueInterface => {
+  const dispatch = useAppDispatch();
+
   useEffect(() => {
     /* socket.on("connect", () => {
             //dispatch
@@ -31,9 +35,10 @@ export const SocketProviderValue = (): SocketProviderValueInterface => {
     /* socket.on("disconnect", () => {
             //
         }); */
-    /* socket.on("status", (data: SensorDataInterface) => {
-            //dispatch
-        }); */
+    socket.on('status', (data: SensorDataInterface) => {
+      console.log('Listening: status ');
+      dispatch(setStats(data));
+    });
   }, []);
 
   // const sendAction = (name: ActionType) => {
