@@ -25,13 +25,23 @@ const App = (): JSX.Element => {
   //console.info(window.meticulous_envs.SERVER_URL());
 
   const dispatch = useContext(SockerContext);
-  const sensors = { p: '4', t: '0', w: '0', f: '0' };
-  const time = '0';
-  const name = 'IDLE';
+  const initialBarometerState = {
+    sensors: { p: '4', t: '0', w: '0', f: '0' },
+    time: '0',
+    name: 'IDLE'
+  };
 
-  const { gesture, screen } = useAppSelector((state) => state);
+  const [stat, setStat] = useState(initialBarometerState);
+
+  const { gesture, screen, stats } = useAppSelector((state) => state);
   //const [option, setOption] = useState(false); // Emulate Save or Cancel option
   let option = false;
+
+  useEffect(() => {
+    stat.sensors = stats.sensors;
+    stat.time = stats.time;
+    stat.name = stats.name;
+  }, [stats]);
 
   useEffect(() => {
     console.log('Prev Gesture >> ', gesture.prev);
@@ -88,7 +98,9 @@ const App = (): JSX.Element => {
         Filter 2.1
       </div>
 
-      <Barometer stats={{ sensors, name, time }} />
+      <Barometer
+        stats={{ sensors: stat.sensors, name: stat.name, time: stat.time }}
+      />
       <Pressets />
       <div
         style={{
