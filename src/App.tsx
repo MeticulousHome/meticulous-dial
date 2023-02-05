@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 
@@ -12,13 +12,8 @@ import { useAppSelector } from './components/store/hooks';
 /* import { PressetSettings } from './components/PressetSettings/PressetSettings'; */
 /* import { TemperatureScale } from './components/TemperatureScale/TemperatureScale'; */
 import { SockerContext } from './components/store/SockerManager';
-import {
-  ScreenType,
-  setScreen
-} from './components/store/features/screens/screens-slice';
-import { GestureType } from './types';
+import { setScreen } from './components/store/features/screens/screens-slice';
 import { setGesture } from './components/store/features/gestures/gestures-slice';
-import { PressetSettings } from './components/PressetSettings/PressetSettings';
 import { CircleKeyboard } from './components/CircleKeyboard/CircleKeyboard';
 
 const App = (): JSX.Element => {
