@@ -9,6 +9,7 @@
     "format": "prettier --config .prettierrc \"src/**/*.{tsx,ts}\" --write",
     "commit": "git-cz",
     "start": "export SERVER_URL=http://localhost:8080 && electron-forge start",
+    "start-window": "set SERVER_URL=http://localhost:8080 && electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
@@ -73,6 +74,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "8.0.5",
-    "socket.io-client": "^4.5.4"
+    "socket.io-client": "^4.5.4",
+    "swiper": "^9.0.2"
   }
 }
