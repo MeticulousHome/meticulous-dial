@@ -3,11 +3,13 @@ import { useSelector, TypedUseSelectorHook } from 'react-redux';
 
 import gestureReducer from './features/gestures/gestures-slice';
 import screenReducer from './features/screens/screens-slice';
+import statsReducer from './features/stats/stats-slice';
 
 export const store = configureStore({
   reducer: {
     gesture: gestureReducer,
-    screen: screenReducer
+    screen: screenReducer,
+    stats: statsReducer
   }
 });
 
