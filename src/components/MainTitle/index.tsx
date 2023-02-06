@@ -16,6 +16,12 @@ const MainTitle = () => {
     }
   }, [presets.activePreset]);
 
+  useEffect(() => {
+    if (screen.value !== 'pressets') {
+      setAnimationStyle('');
+    }
+  }, [screen.value]);
+
   return (
     <Swiper
       slidesPerView={screen.value === 'pressets' ? 2 : 1}
