@@ -1,8 +1,8 @@
 name: Build
 on:
-  push:
-    branches:
-      - release/V1.0.0
+  workflow_call:
+    inputs:
+    secrets:
 
 jobs:
   build_on_linux:

@@ -7,7 +7,10 @@ on:
       - v*
 
 jobs:
+  build_on_linux:
+    uses: ./.github/workflows/build.yml
   publish_on_linux:
+    needs: [ build_on_linux ]
     runs-on: buildjet-2vcpu-ubuntu-2204-arm
     steps:
       - uses: actions/checkout@v2
