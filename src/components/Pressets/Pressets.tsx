@@ -23,6 +23,12 @@ export function Pressets(): JSX.Element {
     }
   }, [presets.activePreset]);
 
+  useEffect(() => {
+    if (screen.value !== 'pressets') {
+      setAnimationStyle('');
+    }
+  }, [screen.value]);
+
   return (
     // <div className="main-layout">
     //   <div className="title-main-1">pressets</div>
