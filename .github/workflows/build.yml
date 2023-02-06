@@ -15,4 +15,4 @@ jobs:
       - name: install dependencies
         run: npm install
       - name: build
-        run: npm run make -- --arch=arm64
+        run: npm run make
