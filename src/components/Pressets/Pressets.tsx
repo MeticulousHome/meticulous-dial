@@ -4,14 +4,12 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { useDispatch } from 'react-redux';
 
 import { useAppSelector } from '../store/hooks';
-import { nextPreset, prevPreset } from '../store/features/preset/preset-slice';
 
 import 'swiper/swiper-bundle.min.css';
 import './pressets.css';
 
 export function Pressets(): JSX.Element {
-  const dispatch = useDispatch();
-  const { gesture, presets, screen } = useAppSelector((state) => state);
+  const { presets, screen } = useAppSelector((state) => state);
 
   const [animationStyle, setAnimationStyle] = useState('');
 
@@ -24,45 +22,6 @@ export function Pressets(): JSX.Element {
       slideTo(presets.activePreset);
     }
   }, [presets.activePreset]);
-
-  const handleKeyboard = useCallback(
-    (e: KeyboardEvent) => {
-      if (screen.value !== 'pressets') return;
-      switch (e.code) {
-        case 'ArrowLeft':
-          //dispatch(setGesture('left'));
-          dispatch(prevPreset());
-          break;
-        case 'ArrowRight':
-          dispatch(nextPreset());
-          break;
-        case 'Space':
-          break;
-        default:
-          break;
-      }
-    },
-    [screen.value]
-  );
-
-  // useEffect(() => {
-  //   window.addEventListener('keydown', handleKeyboard);
-  //   return () => {
-  //     window.removeEventListener('keydown', handleKeyboard);
-  //   };
-  // }, []);
-
-  //register handleKeyboard and remove when gesture.value === 'right'
-  useEffect(() => {
-    if (screen.value === 'pressets') {
-      window.addEventListener('keydown', handleKeyboard);
-    } else {
-      window.removeEventListener('keydown', handleKeyboard);
-    }
-    return () => {
-      window.removeEventListener('keydown', handleKeyboard);
-    };
-  }, [screen.value]);
 
   return (
     // <div className="main-layout">
