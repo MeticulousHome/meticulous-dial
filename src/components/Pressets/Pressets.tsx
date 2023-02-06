@@ -1,40 +1,97 @@
 // Core modules imports are same as usual
+import { useCallback, useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/swiper-bundle.min.css';
+import { useDispatch } from 'react-redux';
 
 import { useAppSelector } from '../store/hooks';
+import { nextPreset, prevPreset } from '../store/features/preset/preset-slice';
+
+import 'swiper/swiper-bundle.min.css';
 import './pressets.css';
-import { useState } from 'react';
-const tmp = [0, 1, 2, 3, 4, 5];
 
 export function Pressets(): JSX.Element {
-  const { screen } = useAppSelector((state) => state);
+  const dispatch = useDispatch();
+  const { gesture, presets, screen } = useAppSelector((state) => state);
 
   const [animationStyle, setAnimationStyle] = useState('');
+
+  const [swiper, setSwiper] = useState(null);
+
+  const slideTo = (index: number) => swiper.slideTo(index);
+
+  useEffect(() => {
+    if (presets.activePreset > -1) {
+      slideTo(presets.activePreset);
+    }
+  }, [presets.activePreset]);
+
+  const handleKeyboard = useCallback(
+    (e: KeyboardEvent) => {
+      if (screen.value !== 'pressets') return;
+      switch (e.code) {
+        case 'ArrowLeft':
+          //dispatch(setGesture('left'));
+          dispatch(prevPreset());
+          break;
+        case 'ArrowRight':
+          dispatch(nextPreset());
+          break;
+        case 'Space':
+          break;
+        default:
+          break;
+      }
+    },
+    [screen.value]
+  );
+
+  // useEffect(() => {
+  //   window.addEventListener('keydown', handleKeyboard);
+  //   return () => {
+  //     window.removeEventListener('keydown', handleKeyboard);
+  //   };
+  // }, []);
+
+  //register handleKeyboard and remove when gesture.value === 'right'
+  useEffect(() => {
+    if (screen.value === 'pressets') {
+      window.addEventListener('keydown', handleKeyboard);
+    } else {
+      window.removeEventListener('keydown', handleKeyboard);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyboard);
+    };
+  }, [screen.value]);
 
   return (
     // <div className="main-layout">
     //   <div className="title-main-1">pressets</div>
     <div className="preset-wrapper">
-      <div className="blur blur-left"></div>
-      <div className="blur blur-right"></div>
+      {screen.value === 'pressets' && (
+        <>
+          <div className="blur blur-left"></div>
+          <div className="blur blur-right"></div>
+        </>
+      )}
       <Swiper
-        preventInteractionOnTransition={true}
         slidesPerView={2}
         spaceBetween={100}
         centeredSlides={true}
-        // onSlideChange={(e) =>
-        //   console.log('slide change ', e.activeIndex, e.previousIndex)
-        // }
-        onSlideNextTransitionEnd={(e) => {
-          setAnimationStyle('animation_bounce_right');
+        allowTouchMove={false}
+        initialSlide={0}
+        onSlideChangeTransitionStart={(e) => {
+          setAnimationStyle('animation-bounce-left');
         }}
-        onSlidePrevTransitionEnd={(e) => {
-          setAnimationStyle('animation_bounce_left');
+        onSlidePrevTransitionStart={(e) => {
+          setAnimationStyle('animation-bounce-right');
         }}
+        onSwiper={setSwiper}
+        // onDragStart={() => setAnimationStyle('')}
+        // onSlideChange={(e) => dispatch(setActivePreset(e.activeIndex))}
       >
-        {tmp.map((i) => (
-          <SwiperSlide key={`${i}-slide`}>
+        {presets.value.map((_i, index) => (
+          <SwiperSlide key={`${index}-slide`}>
             {({ isActive }) => (
               <div className={isActive ? animationStyle : ''}>
                 <div className="main-layout-content ">

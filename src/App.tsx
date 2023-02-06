@@ -4,14 +4,14 @@ import { Provider } from 'react-redux';
 
 import { store } from './components/store/store';
 import { Barometer } from './components/Barometer/Barometer';
-import { SockerManager } from './components/store/SockerManager';
+import { SockerManager, SockerContext } from './components/store/SockerManager';
 /* import { useAppSelector } from './components/store/hooks'; */
 /* import { Scale } from './components/Scale/Scale'; */
 import { Pressets } from './components/Pressets/Pressets';
+import MainTitle from './components/MainTitle';
 import { useAppSelector } from './components/store/hooks';
 /* import { PressetSettings } from './components/PressetSettings/PressetSettings'; */
 /* import { TemperatureScale } from './components/TemperatureScale/TemperatureScale'; */
-import { SockerContext } from './components/store/SockerManager';
 import { setScreen } from './components/store/features/screens/screens-slice';
 import { setGesture } from './components/store/features/gestures/gestures-slice';
 import { CircleKeyboard } from './components/CircleKeyboard/CircleKeyboard';
@@ -87,10 +87,11 @@ const App = (): JSX.Element => {
             screen.value !== 'barometer' && screen.value !== 'pressets'
               ? 'none'
               : ''
-          }`
+          }`,
+          width: '100%'
         }}
       >
-        Filter 2.1
+        <MainTitle />
       </div>
 
       <Barometer

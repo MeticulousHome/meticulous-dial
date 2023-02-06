@@ -24,3 +24,7 @@ export type GestureType =
   | 'doubleClick'
   | 'start'
   | '';
+
+export type MockPreset = {
+  name: string;
+};
