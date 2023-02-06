@@ -62,7 +62,7 @@ export const SetSocketKeyboardListeners = () => {
 
       switch (e.code) {
         case 'ArrowLeft':
-          //dispatch(setGesture('left'));
+          dispatch(setGesture('left'));
           break;
         case 'ArrowRight':
           dispatch(setGesture('right'));
