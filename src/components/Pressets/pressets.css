@@ -49,7 +49,7 @@
 
 .swiper-slide {
   text-align: center;
-  font-size: 18px;
+  font-size: inherit;
 
   /* Center slide text vertically */
   display: flex;
@@ -83,36 +83,44 @@
   bottom: 0;
 }
 
-/* animation bouncing to the right  */
-
-@keyframes bounce_right {
+/* animation scroll to the right spring and bounce back */
+@keyframes bounce-right {
   0% {
     transform: translateX(0);
   }
-  50% {
+  40% {
     transform: translateX(20px);
   }
+  70% {
+    transform: translateX(-6px);
+  }
+
   100% {
     transform: translateX(0);
   }
 }
 
-@keyframes bounce_left {
+/* animation scroll to the left spring and bounce back */
+@keyframes bounce-left {
   0% {
     transform: translateX(0);
   }
-  50% {
+  40% {
     transform: translateX(-20px);
   }
+  70% {
+    transform: translateX(6px);
+  }
+
   100% {
     transform: translateX(0);
   }
 }
 
-.animation_bounce_left {
-  animation: bounce_left 0.4s ease-in;
+.animation-bounce-right {
+  animation: bounce-right 500ms ease-out;
 }
 
-.animation_bounce_right {
-  animation: bounce_right 0.4s ease-in;
+.animation-bounce-left {
+  animation: bounce-left 500ms ease-out;
 }

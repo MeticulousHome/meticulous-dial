@@ -10,7 +10,6 @@ Barometer styles
   /*background: url('/src/assets/images/arc.svg') center center no-repeat;*/
   background: url('/src/assets/images/arc2.svg') center center no-repeat;
   /* position: relative; */
-  background-color: black;
   z-index: 10;
   border-radius: 999px;
 }
@@ -120,7 +119,7 @@ Barometer styles
   transform: translateX(-50%);
   line-height: 1;
   transition: all;
-  z-index: 999;
+  z-index: 4;
   /* properties to animate when transition */
   /* top: 70px; */
   /* font-size: 35px; */
