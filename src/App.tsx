@@ -15,6 +15,10 @@ import { useAppSelector } from './components/store/hooks';
 import { setScreen } from './components/store/features/screens/screens-slice';
 import { setGesture } from './components/store/features/gestures/gestures-slice';
 import { CircleKeyboard } from './components/CircleKeyboard/CircleKeyboard';
+import {
+  nextPreset,
+  prevPreset
+} from './components/store/features/preset/preset-slice';
 
 const App = (): JSX.Element => {
   //console.info(window.meticulous_envs.SERVER_URL());
@@ -55,6 +59,10 @@ const App = (): JSX.Element => {
       case 'pressets':
         if (gesture.value === 'click') {
           dispatch(setScreen('barometer'));
+        } else if (gesture.value === 'left') {
+          dispatch(prevPreset());
+        } else if (gesture.value === 'right') {
+          dispatch(nextPreset());
         }
         break;
       case 'pressetSettings':
@@ -97,7 +105,16 @@ const App = (): JSX.Element => {
       <Barometer
         stats={{ sensors: stat.sensors, name: stat.name, time: stat.time }}
       />
-      <Pressets />
+
+      <div
+        style={{
+          display: `${screen.value === 'pressets' ? 'block' : 'none'}`,
+          width: '100%',
+          height: '100%'
+        }}
+      >
+        <Pressets />
+      </div>
       <div
         style={{
           display: `${screen.value === 'pressetSettings' ? 'block' : 'none'}`

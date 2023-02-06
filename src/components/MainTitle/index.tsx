@@ -18,10 +18,10 @@ const MainTitle = () => {
 
   return (
     <Swiper
-      preventInteractionOnTransition={true}
       slidesPerView={screen.value === 'pressets' ? 2 : 1}
       centeredSlides={true}
       allowTouchMove={false}
+      initialSlide={0}
       onSwiper={setSwiper}
       onSlideChangeTransitionStart={() => {
         setAnimationStyle('animation-bounce-left');
