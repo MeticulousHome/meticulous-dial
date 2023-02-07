@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-export type ScreenType = 'barometer' | 'pressets' | 'pressetSettings';
+export type ScreenType = 'barometer' | 'pressets' | 'pressetSettings' | 'scale';
 
 interface ScreenState {
   value: ScreenType;
