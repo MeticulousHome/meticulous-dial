@@ -6,6 +6,13 @@ on:
 jobs:
   set-release-version:
     uses: ./.github/workflows/set-release-version.yml
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
   publish_on_linux:
     needs: [ set-release-version ]
     uses: ./.github/workflows/publish.yml
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: us-east-1
