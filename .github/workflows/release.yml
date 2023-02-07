@@ -1,0 +1,11 @@
+name: Release version
+on:
+  push:
+    branches:
+      - master
+jobs:
+  set-release-version:
+    uses: ./.github/workflows/set-release-version.yml
+  publish_on_linux:
+    needs: [ set-release-version ]
+    uses: ./.github/workflows/publish.yml
