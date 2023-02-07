@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
+import 'swiper/swiper-bundle.min.css';
 
 import { store } from './components/store/store';
 import { Barometer } from './components/Barometer/Barometer';
