@@ -7,7 +7,7 @@ import { store } from './components/store/store';
 import { Barometer } from './components/Barometer/Barometer';
 import { SockerManager, SockerContext } from './components/store/SockerManager';
 /* import { useAppSelector } from './components/store/hooks'; */
-/* import { Scale } from './components/Scale/Scale'; */
+import { Scale } from './components/Scale/Scale';
 import { Pressets } from './components/Pressets/Pressets';
 import MainTitle from './components/MainTitle';
 import { useAppSelector } from './components/store/hooks';
@@ -62,6 +62,8 @@ const App = (): JSX.Element => {
           dispatch(setScreen('pressets'));
         } else if (gesture.value === 'click') {
           dispatch(setScreen('pressetSettings'));
+        } else if (gesture.value === 'doubleClick') {
+          dispatch(setScreen('scale'));
         }
         break;
       case 'pressets':
@@ -82,6 +84,11 @@ const App = (): JSX.Element => {
           dispatch(setNextSettingOption());
         } else if (gesture.value === 'left') {
           dispatch(setPrevSettingOption());
+        }
+        break;
+      case 'scale':
+        if (gesture.value === 'doubleClick') {
+          dispatch(setScreen('barometer'));
         }
         break;
       default:
@@ -106,7 +113,8 @@ const App = (): JSX.Element => {
         }`}
         style={{
           display: `${
-            screen.value !== 'barometer' && screen.value !== 'pressets'
+            (screen.value !== 'barometer' && screen.value !== 'pressets') ||
+            screen.prev === 'scale'
               ? 'none'
               : ''
           }`,
@@ -115,10 +123,11 @@ const App = (): JSX.Element => {
       >
         <MainTitle />
       </div>
-
       <Barometer
         stats={{ sensors: stat.sensors, name: stat.name, time: stat.time }}
       />
+
+      <Scale />
 
       <div
         style={{

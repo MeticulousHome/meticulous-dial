@@ -1,8 +1,17 @@
+import { useAppSelector } from '../store/hooks';
 import './scale.css';
 
 export function Scale(): JSX.Element {
+  const { screen } = useAppSelector((state) => state);
   return (
-    <div className="main-layout">
+    <div
+      className={`main-layout ${
+        screen.value === 'scale' ? 'scale__fadeIn' : 'scale__fadeOut'
+      }`}
+      style={{
+        zIndex: 50
+      }}
+    >
       <div className="main-layout-content">
         <div className="pressets-options-conainer">
           <div className="title-main-2">scale</div>
