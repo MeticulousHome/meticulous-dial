@@ -1,9 +1,5 @@
-name: Set release version
-
 on:
-  push:
-    branches:
-      - master
+  workflow_call:
 
 jobs:
   set-release-version:
