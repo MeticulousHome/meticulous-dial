@@ -17,6 +17,19 @@ const config: ForgeConfig = {
     new MakerRpm({}),
     new MakerDeb({})
   ],
+  publishers: [
+    {
+      name: '@electron-forge/publisher-s3',
+      config: {
+        bucket: 'meticulous-distribution',
+        folder: 'dial-app',
+        public: false,
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        region: process.env.AWS_REGION
+      }
+    }
+  ],
   plugins: [
     new WebpackPlugin({
       devContentSecurityPolicy:
