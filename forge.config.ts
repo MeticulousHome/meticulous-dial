@@ -21,7 +21,7 @@ const config: ForgeConfig = {
     {
       name: '@electron-forge/publisher-s3',
       config: {
-        bucket: 'meticulous-distribution',
+        bucket: 'meticulous-dist',
         folder: 'dial-app',
         public: false,
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
