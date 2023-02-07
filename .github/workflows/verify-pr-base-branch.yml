@@ -7,7 +7,7 @@ on:
 jobs:
   verify-base-branch:
     name: Verify base branch is staging
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Check base branch
         if: github.head_ref != 'staging'
