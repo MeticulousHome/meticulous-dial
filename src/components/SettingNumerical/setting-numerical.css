@@ -1,0 +1,25 @@
+.gauge-container {
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.gauge-caption {
+  position: absolute;
+  font-weight: 400;
+  font-size: 145px;
+  text-align: center;
+  font-family: 'Lekton';
+}
+
+.gauge-unit {
+  position: absolute;
+  bottom: 183px;
+  right: 75px; 
+  font-weight: 400;
+  font-size: 40px;
+  font-family: 'Lekton';
+}

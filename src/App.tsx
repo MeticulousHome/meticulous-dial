@@ -11,6 +11,7 @@ import { Scale } from './components/Scale/Scale';
 import { Pressets } from './components/Pressets/Pressets';
 import MainTitle from './components/MainTitle';
 import { useAppSelector } from './components/store/hooks';
+import { SettingNumerical } from './components/SettingNumerical/SettingNumerical';
 /* import { PressetSettings } from './components/PressetSettings/PressetSettings'; */
 import { TemperatureScale } from './components/TemperatureScale/TemperatureScale';
 import { setScreen } from './components/store/features/screens/screens-slice';
@@ -85,6 +86,8 @@ const App = (): JSX.Element => {
 
     dispatch(setGesture('')); // we need to clean the state up to receive event notification
   }, [gesture, screen]);
+
+  return <SettingNumerical maxValue={200} unit="°c" />;
 
   return (
     <div className="main-layout">
