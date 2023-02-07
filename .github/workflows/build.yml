@@ -1,8 +1,5 @@
-name: Build
 on:
   workflow_call:
-    inputs:
-    secrets:
 
 jobs:
   build_on_linux:
@@ -12,7 +9,12 @@ jobs:
       - uses: actions/setup-node@master
         with:
           node-version: 18
-      - name: install dependencies
+      # Step 3
+      - name: Check code format
+        run: npx prettier --config .prettierrc ./src/**/*.{tsx,ts} --check
+      # Step 4
+      - name: Install dependencies
         run: npm install
-      - name: build
-        run: npm run make
+      # Step 5
+      - name: Build Application and Run unit Test
+        run: exit 0

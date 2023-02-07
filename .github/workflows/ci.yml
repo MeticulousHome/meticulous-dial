@@ -6,4 +6,4 @@ on:
       - staging
 jobs:
   continuous-integration:
-    uses: ./.github/workflows/continuous-integration.yml
+    uses: ./.github/workflows/build.yml

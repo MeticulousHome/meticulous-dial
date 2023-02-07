@@ -3,7 +3,7 @@ name: Set release version
 on:
   push:
     branches:
-      - master
+      - x
 
 jobs:
   set-release-version:
