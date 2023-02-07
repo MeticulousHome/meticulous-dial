@@ -1,4 +1,4 @@
-name: CI/CD Pipeline PR
+name: CI Pipeline PR
 on:
   pull_request:
     branches:
