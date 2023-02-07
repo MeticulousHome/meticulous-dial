@@ -36,6 +36,8 @@ export function Barometer({
       className={`barometer-container ${
         screen.value === 'barometer'
           ? 'barometer__fadeIn'
+          : screen.value === 'scale' && screen.prev === 'barometer'
+          ? 'barometerToScale__fadeOut'
           : 'barometer__fadeOut'
       }`}
     >
@@ -44,7 +46,9 @@ export function Barometer({
         style={{ transform: `rotate(${barNeedleRotatePosition}deg)` }}
       ></div>
 
-      {/* <div className="main-title-selected">Filter 2.1</div> */}
+      {(screen.prev === 'scale' || screen.value === 'scale') && (
+        <div className="main-title-selected">Filter 2.1</div>
+      )}
 
       <div className="bar-needle__content">
         <div className="pressure">PRESSURE</div>

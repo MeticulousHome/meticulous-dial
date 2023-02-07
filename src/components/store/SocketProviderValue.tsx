@@ -76,6 +76,9 @@ export const SetSocketKeyboardListeners = () => {
           lastSpaceDownTime = e.timeStamp;
           dispatch(setGesture('click'));
           break;
+        case 'Enter':
+          dispatch(setGesture('doubleClick'));
+          break;
         default:
           break;
       }
