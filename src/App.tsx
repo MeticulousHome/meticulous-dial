@@ -20,6 +20,13 @@ import {
   nextPreset,
   prevPreset
 } from './components/store/features/preset/preset-slice';
+import{
+  resetActiveSetting,
+  setActiveSetting,
+  setNextSettingOption,
+  setPrevSettingOption
+} from './components/store/features/presetSetting/presetSetting-slice';
+import { PressetSettings } from './components/PressetSettings/PressetSettings';
 
 const App = (): JSX.Element => {
   //console.info(window.meticulous_envs.SERVER_URL());
@@ -35,7 +42,7 @@ const App = (): JSX.Element => {
 
   const { gesture, screen, stats } = useAppSelector((state) => state);
   //const [option, setOption] = useState(false); // Emulate Save or Cancel option
-  let option = false;
+  let option = true;
 
   useEffect(() => {
     stat.sensors = stats.sensors;
@@ -70,6 +77,11 @@ const App = (): JSX.Element => {
         if (gesture.value === 'click' && option) {
           option = false;
           dispatch(setScreen('barometer'));
+          dispatch(resetActiveSetting());
+        } else if (gesture.value === 'right') {
+          dispatch(setNextSettingOption());
+        } else if (gesture.value === 'left') {
+          dispatch(setPrevSettingOption());
         }
         break;
       default:
@@ -118,10 +130,13 @@ const App = (): JSX.Element => {
       </div>
       <div
         style={{
-          display: `${screen.value === 'pressetSettings' ? 'block' : 'none'}`
+          display: `${screen.value === 'pressetSettings' ? 'block' : 'none'}`,
+          width: '100%',
+          height: '100%'
         }}
       >
-        <CircleKeyboard callback={() => (option = true)} />
+        {/* <CircleKeyboard callback={() => (option = true)} /> */}
+        <PressetSettings />
       </div>
 
       {screen.value === 'pressets' && (
