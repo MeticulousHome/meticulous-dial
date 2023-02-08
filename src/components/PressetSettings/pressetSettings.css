@@ -2,7 +2,7 @@
   color: #5e5e5e;
   font-size: 40px;
   line-height: 52px;
-  font-weight: lighter;
+  font-weight: 500;
   height: 52px !important;
   font-family: 'Maison', sans-serif;
 }
@@ -23,7 +23,7 @@
 @keyframes bounce-next {
   0%,
   100% {
-    transform: translateY(6px);
+    transform: translateY(-36px);
   }
   20% {
     transform: translateY(0);
@@ -41,7 +41,7 @@
 @keyframes bounce-prev {
   0%,
   100% {
-    transform: translateY(-8px);
+    transform: translateY(36px);
   }
   20% {
     transform: translateY(0);
@@ -56,11 +56,11 @@
 }
 
 .animation-next {
-  animation: bounce-next 3.5s ease;
+  animation: bounce-next 1800ms ease-in-out;
 }
 
 .animation-prev {
-  animation: bounce-prev 3.5s ease;
+  animation: bounce-prev 1800ms ease-in-out;
 }
 
 .blur {
@@ -87,6 +87,7 @@
 .presset-title {
   top: 0;
   padding-top: 72px;
+  font-weight: bold;
 }
 
 .presset-container {
