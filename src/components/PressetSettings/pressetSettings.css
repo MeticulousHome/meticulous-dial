@@ -1,9 +1,10 @@
 .presset-option-item {
   color: #5e5e5e;
-  font-size: 36px;
+  font-size: 40px;
   line-height: 52px;
   font-weight: lighter;
   height: 52px !important;
+  font-family: 'Maison', sans-serif;
 }
 
 .item-active {
@@ -16,7 +17,7 @@
   position: fixed;
   top: 0;
   left: 0;
-  padding-left: 60px;
+  padding-left: 72px;
 }
 
 @keyframes bounce-next {
@@ -62,22 +63,33 @@
   animation: bounce-prev 3.5s ease;
 }
 
+.blur {
+  background: black;
+  filter: blur(30px);
+  z-index: 1;
+  width: 100%;
+  height: 200px;
+  opacity: 0.9;
+}
+
 .blur-top {
   position: absolute;
-  top: 0;
+  top: -100px;
   left: 0;
-  width: 100%;
-  height: 80px;
-  background: linear-gradient(#000, rgba(0, 0, 0, 0.2));
-  z-index: 1;
 }
 
 .blur-bottom {
   position: absolute;
-  bottom: 0;
+  bottom: -100px;
   left: 0;
-  width: 100%;
-  height: 80px;
-  background: linear-gradient(rgba(0, 0, 0, 0.2), #000);
-  z-index: 1;
+}
+
+.presset-title {
+  top: 0;
+  padding-top: 72px;
+}
+
+.presset-container {
+  position: relative;
+  height: 100%;
 }
