@@ -10,7 +10,21 @@
 
 @font-face {
     font-family: 'Maison';
-    src: url('./assets/fonts/MaisonNeue-Medium.otf');
+    src: url('./assets/fonts/MaisonNeue-Light.otf') format('opentype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Maison';
+    src: url('./assets/fonts/MaisonNeue-Medium.otf') format('opentype');
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: 'Maison';
+    src: url('./assets/fonts/MaisonNeue-Bold.otf') format('opentype');
+    font-weight: bolder;
 }
 
 body {
