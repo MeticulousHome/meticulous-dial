@@ -76,23 +76,10 @@ export function PressetSettings(): JSX.Element {
   }, []);
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        height: '100%'
-      }}
-    >
-      <div
-        style={{
-          top: 0,
-          paddingTop: 60
-        }}
-        className="title-main-2"
-      >
-        Filter 2.1
-      </div>
-      <div className="blur-top"></div>
-      <div className="blur-bottom"></div>
+    <div className="presset-container">
+      <div className="presset-title title-main-2">Filter 2.1</div>
+      <div className="blur blur-top"></div>
+      <div className="blur blur-bottom"></div>
       <div className="presset-options">
         {/* <div className="presset-option-item">stop weight</div>
             <div className="presset-option-item">flow</div>
