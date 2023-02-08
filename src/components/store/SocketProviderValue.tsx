@@ -23,7 +23,7 @@ interface SocketProviderValueInterface {
   sendPreset: (name: string) => void;
 }
 
-const socket: Socket | null = io((window as any).meticulous_envs.SERVER_URL());
+const socket: Socket | null = io('http://localhost:8080');
 
 export const SocketProviderValue = (): SocketProviderValueInterface => {
   const dispatch = useAppDispatch();
