@@ -10,6 +10,7 @@ jobs:
     needs: [ continuous-integration ]
     uses: ./.github/workflows/publish.yml
     secrets:
+      DISTRIBUTION_FOLDER: ${{ secrets.DISTRIBUTION_FOLDER_STG }}
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
