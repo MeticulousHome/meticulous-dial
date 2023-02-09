@@ -76,10 +76,6 @@
     "react-dom": "^18.2.0",
     "react-redux": "8.0.5",
     "socket.io-client": "^4.5.4",
-<<<<<<< HEAD
     "swiper": "^9.0.2"
-=======
-    "swiper": "^9.0.3"
->>>>>>> 62dfd07 (feat(preset setting): add slider for preset setting)
   }
 }
