@@ -80,6 +80,7 @@ export function PressetSettings(): JSX.Element {
       <div className="presset-title title-main-2">Filter 2.1</div>
       <div className="blur blur-top"></div>
       <div className="blur blur-bottom"></div>
+      {/* <div className="test-mid-screen"></div> */}
       <div className="presset-options">
         {/* <div className="presset-option-item">stop weight</div>
             <div className="presset-option-item">flow</div>
