@@ -20,7 +20,7 @@ import {
   nextPreset,
   prevPreset
 } from './components/store/features/preset/preset-slice';
-import{
+import {
   resetActiveSetting,
   setActiveSetting,
   setNextSettingOption,
@@ -99,6 +99,7 @@ const App = (): JSX.Element => {
       >
         pressets
       </div>
+      {/* <div className="test-mid-screen"></div> */}
       <div
         className={`main-title-selected ${
           screen.value === 'pressets' ? 'title__Big' : 'title__small'
