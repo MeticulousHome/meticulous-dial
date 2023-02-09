@@ -14,7 +14,14 @@ export function Scale(): JSX.Element {
     >
       <div className="main-layout-content">
         <div className="pressets-options-conainer">
-          <div className="title-main-2">scale</div>
+          <div
+            className="title-main-2"
+            style={{
+              fontWeight: 'bold'
+            }}
+          >
+            scale
+          </div>
           <div className="scale-weight">
             <div className="weight">
               <span>00</span>
