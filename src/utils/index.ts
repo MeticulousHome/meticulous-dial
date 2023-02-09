@@ -5,13 +5,13 @@ export const roundPrecision = (value: number, precision: number) => {
   return Math.round(value * multiplier) / multiplier;
 };
 
-export const formatStatValue = (value: string, padEnd: number) => {
+export const formatStatValue = (value: string, padEnd: number): string => {
   let fValue = 0.0;
 
   try {
     fValue = parseFloat(value);
   } catch (e) {
-    return fValue;
+    return fValue.toString();
   }
 
   const finalNumber = roundPrecision(fValue, 1).toString();

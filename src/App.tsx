@@ -87,7 +87,9 @@ const App = (): JSX.Element => {
     dispatch(setGesture('')); // we need to clean the state up to receive event notification
   }, [gesture, screen]);
 
-  return <SettingNumerical maxValue={200} unit="°c" />;
+  return (
+    <SettingNumerical maxValue={200} unit="°c" decimals={1} interval={0.5} />
+  );
 
   return (
     <div className="main-layout">

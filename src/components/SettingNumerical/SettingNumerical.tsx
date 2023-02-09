@@ -1,6 +1,7 @@
 import './setting-numerical.css';
 import { useReduxSelector } from '../store/store';
 import { useEffect, useState } from 'react';
+import { formatStatValue } from '../../utils';
 
 const radius = 237;
 const strokeWidth = 6;
@@ -10,23 +11,34 @@ const transform = `rotate(116.5, ${radius}, ${radius})`;
 interface Props {
   maxValue: number;
   unit: string;
+  interval: number;
+  decimals: number;
 }
 
-export function SettingNumerical({ maxValue, unit }: Props): JSX.Element {
+export function SettingNumerical({
+  maxValue,
+  unit,
+  interval,
+  decimals
+}: Props): JSX.Element {
   const gesture = useReduxSelector((state) => state.gesture);
-  const [total, setTotal] = useState<number>(200);
+  const [total, setTotal] = useState<number>(0);
 
   useEffect(() => {
+    let mTotal: string | number = 0;
     switch (gesture.value) {
       case 'click':
         break;
       case 'doubleClick':
         break;
       case 'left':
-        setTotal(total === 0 ? 0 : total - 1);
-        break;
       case 'right':
-        setTotal(total === maxValue ? maxValue : total + 1);
+        mTotal = total + (gesture.value === 'left' ? -interval : +interval);
+        if (decimals > 0) {
+          mTotal = formatStatValue(mTotal.toString(), decimals);
+          console.log(mTotal, '<<<');
+        }
+        setTotal(Number(mTotal));
         break;
       default:
         break;
@@ -43,7 +55,7 @@ export function SettingNumerical({ maxValue, unit }: Props): JSX.Element {
 
   return (
     <div className="gauge-container">
-      <div className="gauge-caption">{total}</div>
+      <div className="gauge-caption">{total.toString()}</div>
       <div className="gauge-unit">{unit}</div>
       <svg width="480" height="480" viewBox="0 0 480 480">
         <circle
