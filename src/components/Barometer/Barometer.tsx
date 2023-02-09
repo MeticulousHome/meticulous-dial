@@ -1,6 +1,7 @@
 import './barometer.css';
 import { formatStatValue } from '../../utils';
 import { useAppSelector } from '../store/hooks';
+import { useCallback } from 'react';
 
 export interface IBarometerProps {
   stats: IStats;
@@ -31,16 +32,25 @@ export function Barometer({
   );
   const { screen } = useAppSelector((state) => state);
 
+  const getAnimation = useCallback(() => {
+    let animation = '';
+    if (screen.value === 'barometer') {
+      if (screen.prev === 'scale') {
+        animation = 'scaleToBarometer__fadeIn';
+      } else {
+        animation = 'barometer__fadeIn';
+      }
+    } else if (screen.value === 'scale' && screen.prev === 'barometer') {
+      animation = 'barometerToScale__fadeOut';
+    } else {
+      animation = 'barometer__fadeOut';
+    }
+
+    return animation;
+  }, [screen]);
+
   return (
-    <div
-      className={`barometer-container ${
-        screen.value === 'barometer'
-          ? 'barometer__fadeIn'
-          : screen.value === 'scale' && screen.prev === 'barometer'
-          ? 'barometerToScale__fadeOut'
-          : 'barometer__fadeOut'
-      }`}
-    >
+    <div className={`barometer-container ${getAnimation()}`}>
       <div
         className="bar-needle bar-needle--transition-all"
         style={{ transform: `rotate(${barNeedleRotatePosition}deg)` }}
