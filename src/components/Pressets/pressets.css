@@ -18,24 +18,24 @@
 }
 /**/
 
-.pressets-conainer .presset-item {
+.swiper-horizontal .presset-item {
   min-width: 300px;
   max-width: 300px;
   opacity: 0.5;
 }
 
-.pressets-conainer .presset-active {
+.swiper-horizontal .presset-active {
   opacity: 1;
 }
 
-.pressets-conainer .presset-icon {
+.swiper-horizontal .presset-icon {
   display: flex;
   justify-content: center;
   align-items: center;
   margin-top: 24px;
 }
 
-.pressets-conainer .presset-icon svg {
+.swiper-horizontal .presset-icon svg {
   height: 200px;
   width: 200px;
   max-width: 100%;
@@ -63,12 +63,12 @@
   position: relative;
 }
 
-.swiper-slide {
+.swiper-horizontal .swiper-slide {
   opacity: .15;
   transition: opacity 0.4s ease;
 }
 
-.swiper-slide.swiper-slide-active {
+.swiper-horizontal .swiper-slide.swiper-slide-active {
   opacity: 1;
 }
 
