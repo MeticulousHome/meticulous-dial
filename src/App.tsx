@@ -109,11 +109,17 @@ const App = (): JSX.Element => {
       {/* <div className="test-mid-screen"></div> */}
       <div
         className={`main-title-selected ${
-          screen.value === 'pressets' ? 'title__Big' : 'title__small'
+          screen.value === 'pressets'
+            ? 'title__Big'
+            : screen.value === 'pressetSettings'
+            ? 'title__BigTwo'
+            : 'title__small'
         }`}
         style={{
           display: `${
-            (screen.value !== 'barometer' && screen.value !== 'pressets') ||
+            (screen.value !== 'barometer' &&
+              screen.value !== 'pressets' &&
+              screen.value !== 'pressetSettings') ||
             screen.prev === 'scale'
               ? 'none'
               : ''
@@ -149,8 +155,12 @@ const App = (): JSX.Element => {
         <PressetSettings />
       </div>
 
-      {screen.value === 'pressets' && (
-        <div className="bottom-status">
+      {(screen.value === 'pressets' || screen.value === 'pressetSettings') && (
+        <div
+          className={`bottom-status ${
+            screen.value === 'pressetSettings' ? 'bottom__fadeIn' : ' '
+          }`}
+        >
           <div className="flex">
             <div className="status-icon">
               <svg
