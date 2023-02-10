@@ -37,11 +37,19 @@ export function Barometer({
     if (screen.value === 'barometer') {
       if (screen.prev === 'scale') {
         animation = 'scaleToBarometer__fadeIn';
+      }
+      if (screen.prev == 'pressetSettings') {
+        animation = 'pressetSettingsToBarometer__fadeIn';
       } else {
         animation = 'barometer__fadeIn';
       }
     } else if (screen.value === 'scale' && screen.prev === 'barometer') {
       animation = 'barometerToScale__fadeOut';
+    } else if (
+      screen.value === 'pressetSettings' &&
+      screen.prev === 'barometer'
+    ) {
+      animation = 'barometerToPressetSettings__fadeOut';
     } else {
       animation = 'barometer__fadeOut';
     }

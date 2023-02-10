@@ -57,6 +57,8 @@ export function PressetSettings(): JSX.Element {
   const [animationStyle, setAnimationStyle] = useState('');
   const [init, setInit] = useState(false);
 
+  const { screen } = useAppSelector((state) => state);
+
   // useEffect(() => {
   //   if (swiper) {
   //     swiper.slideTo(2);
@@ -76,8 +78,12 @@ export function PressetSettings(): JSX.Element {
   }, []);
 
   return (
-    <div className="presset-container">
-      <div className="presset-title title-main-2">Filter 2.1</div>
+    <div
+      className={`presset-container ${
+        screen.value === 'pressetSettings' ? 'pressetSettings__fadeIn' : ''
+      }`}
+    >
+      {/* <div className="presset-title title-main-2">Filter 2.1</div> */}
       <div className="blur blur-top"></div>
       <div className="blur blur-bottom"></div>
       {/* <div className="test-mid-screen"></div> */}
@@ -132,7 +138,7 @@ export function PressetSettings(): JSX.Element {
         </Swiper>
       </div>
 
-      <div className="bottom-status z2">
+      {/* <div className="bottom-status z2">
         <div className="flex">
           <div className="status-icon">
             <svg
@@ -183,7 +189,7 @@ export function PressetSettings(): JSX.Element {
           <div className="status-value">256.2</div>
           <div className="status-data">g</div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
