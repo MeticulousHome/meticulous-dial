@@ -113,6 +113,8 @@ const App = (): JSX.Element => {
             ? 'title__Big'
             : screen.value === 'pressetSettings'
             ? 'title__BigTwo'
+            : screen.value === 'barometer' && screen.prev === 'pressetSettings'
+            ? 'title__smallTwo'
             : 'title__small'
         }`}
         style={{
@@ -144,21 +146,29 @@ const App = (): JSX.Element => {
       >
         <Pressets />
       </div>
-      <div
+      {/* <div
         style={{
           display: `${screen.value === 'pressetSettings' ? 'block' : 'none'}`,
           width: '100%',
           height: '100%'
         }}
-      >
-        {/* <CircleKeyboard callback={() => (option = true)} /> */}
-        <PressetSettings />
-      </div>
+      > */}
+      {/* <CircleKeyboard callback={() => (option = true)} /> */}
+      <PressetSettings />
+      {/* </div> */}
 
-      {(screen.value === 'pressets' || screen.value === 'pressetSettings') && (
+      {(screen.value === 'pressets' ||
+        screen.value === 'pressetSettings' ||
+        (screen.value === 'barometer' &&
+          screen.prev === 'pressetSettings')) && (
         <div
           className={`bottom-status ${
-            screen.value === 'pressetSettings' ? 'bottom__fadeIn' : ' '
+            screen.value === 'pressetSettings'
+              ? 'bottom__fadeIn'
+              : screen.value === 'barometer' &&
+                screen.prev === 'pressetSettings'
+              ? 'bottom__fadeOut'
+              : ''
           }`}
         >
           <div className="flex">
