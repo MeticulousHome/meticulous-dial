@@ -21,7 +21,7 @@ const config: ForgeConfig = {
     {
       name: '@electron-forge/publisher-s3',
       config: {
-        bucket: 'meticulous-dist',
+        bucket: process.env.S3_BUCKET,
         folder: process.env.DISTRIBUTION_FOLDER,
         public: false,
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
