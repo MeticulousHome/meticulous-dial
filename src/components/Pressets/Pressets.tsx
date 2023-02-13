@@ -1,6 +1,7 @@
 // Core modules imports are same as usual
 import { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import BottomStatus from '../BottomStatus';
 
 import { useAppSelector } from '../store/hooks';
 import './pressets.css';
@@ -9,7 +10,6 @@ export function Pressets(): JSX.Element {
   const { presets, screen } = useAppSelector((state) => state);
 
   const [animationStyle, setAnimationStyle] = useState('');
-
   const [swiper, setSwiper] = useState(null);
 
   const slideTo = (index: number) => swiper.slideTo(index);
@@ -98,6 +98,7 @@ export function Pressets(): JSX.Element {
           </SwiperSlide>
         ))}
       </Swiper>
+      <BottomStatus />
     </div>
   );
 }

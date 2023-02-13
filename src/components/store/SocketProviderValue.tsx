@@ -2,21 +2,10 @@
 import { useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-import { StageType, ActionType } from '../../types/index';
+import { StageType, ActionType, ISensorData } from '../../types/index';
 import { useAppDispatch } from './hooks';
 import { setGesture } from './features/gestures/gestures-slice';
 import { setStats } from './features/stats/stats-slice';
-
-export interface SensorDataInterface {
-  name: StageType;
-  sensors: {
-    p: string; // Pressure - Bars
-    f: string; // Flow - ml/s
-    w: string; // Weight - grams
-    t: string; // Temperature - degrees celcius
-  };
-  time: string; // seconds
-}
 
 interface SocketProviderValueInterface {
   sendAction: (name: ActionType) => void;
@@ -35,7 +24,7 @@ export const SocketProviderValue = (): SocketProviderValueInterface => {
     /* socket.on("disconnect", () => {
             //
         }); */
-    socket.on('status', (data: SensorDataInterface) => {
+    socket.on('status', (data: ISensorData) => {
       console.log('Listening: status ');
       dispatch(setStats(data));
     });
