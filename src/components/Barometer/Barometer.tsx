@@ -2,15 +2,11 @@ import './barometer.css';
 import { formatStatValue } from '../../utils';
 import { useAppSelector } from '../store/hooks';
 import { useCallback } from 'react';
+import { ISensorData } from '../../types';
 
 export interface IBarometerProps {
-  stats: IStats;
+  stats: ISensorData;
   maxValue?: number;
-}
-export interface IStats {
-  sensors: { p: string; t: string; w: string; f: string };
-  time: string;
-  name: string;
 }
 
 const getBarNeedlePosition = (pressure: string, maxValue: number) => {
@@ -27,7 +23,7 @@ export function Barometer({
   maxValue = 13
 }: IBarometerProps): JSX.Element {
   const barNeedleRotatePosition = getBarNeedlePosition(
-    stats.sensors.p,
+    stats.sensors.pressure,
     maxValue
   );
   const { screen } = useAppSelector((state) => state);
@@ -72,7 +68,7 @@ export function Barometer({
         <div className="pressure">PRESSURE</div>
         <div className="bar-needle__legend">
           <span className="bar-needle__value">
-            {formatStatValue(stats.sensors.p, 1)}
+            {formatStatValue(stats.sensors.pressure, 1)}
           </span>
           <span className="bar-label">bar</span>
         </div>
@@ -82,7 +78,7 @@ export function Barometer({
             <div>
               <div className="column-label">TEMP</div>
               <div className="column-value">
-                {formatStatValue(stats.sensors.t, 1)}
+                {formatStatValue(stats.sensors.temp, 1)}
               </div>
             </div>
             <div className="column-data">°C</div>
@@ -91,7 +87,7 @@ export function Barometer({
             <div>
               <div className="column-label">WEIGHT</div>
               <div className="column-value">
-                {formatStatValue(stats.sensors.w, 1)}
+                {formatStatValue(stats.sensors.weight, 1)}
               </div>
             </div>
             <div className="column-data">g</div>
@@ -109,7 +105,7 @@ export function Barometer({
             <div>
               <div className="column-label">FLOW</div>
               <div className="column-value">
-                {formatStatValue(stats.sensors.f, 1)}
+                {formatStatValue(stats.sensors.flow, 1)}
               </div>
             </div>
             <div className="column-data">ml/s</div>
