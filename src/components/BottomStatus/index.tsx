@@ -3,10 +3,18 @@ import { formatStatValue } from '../../utils';
 import { useAppSelector } from '../store/hooks';
 
 const BottomStatus = () => {
-  const { stats } = useAppSelector((state) => state);
+  const { screen, stats } = useAppSelector((state) => state);
 
   return (
-    <div className="bottom-status z2">
+    <div
+      className={`bottom-status ${
+        screen.value === 'pressetSettings'
+          ? 'bottom__fadeIn'
+          : screen.value === 'barometer' && screen.prev === 'pressetSettings'
+          ? 'bottom__fadeOut'
+          : ''
+      }`}
+    >
       <div className="flex">
         <div className="status-icon">
           <svg
