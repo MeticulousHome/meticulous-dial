@@ -5,10 +5,10 @@ import { StageType } from '../../../../types';
 const initialState: ISensorData = {
   name: 'idle',
   sensors: {
-    pressure: '0',
-    flow: '0',
-    weight: '200',
-    temp: '53.8'
+    p: '0',
+    f: '0',
+    w: '200',
+    t: '53.8'
   },
   time: '0'
 };
