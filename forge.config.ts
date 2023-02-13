@@ -11,12 +11,7 @@ import { rendererConfig } from './webpack.renderer.config';
 const config: ForgeConfig = {
   packagerConfig: {},
   rebuildConfig: {},
-  makers: [
-    new MakerSquirrel({}),
-    new MakerZIP({}, ['darwin']),
-    new MakerRpm({}),
-    new MakerDeb({})
-  ],
+  makers: [new MakerDeb({})],
   publishers: [
     {
       name: '@electron-forge/publisher-s3',
