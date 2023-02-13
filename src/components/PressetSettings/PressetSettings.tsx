@@ -38,8 +38,12 @@ const presetSettingOptionsMock = [
     id: 6
   },
   {
-    name: 'Ok',
+    name: 'save',
     id: 7
+  },
+  {
+    name: 'discard',
+    id: 8
   },
   {
     name: '',
