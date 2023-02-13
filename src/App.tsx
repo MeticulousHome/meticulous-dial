@@ -126,15 +126,15 @@ const App = (): JSX.Element => {
 
       <Scale />
 
-      <div
+      {/* <div
         style={{
           display: `${screen.value === 'pressets' ? 'block' : 'none'}`,
           width: '100%',
           height: '100%'
         }}
-      >
-        <Pressets />
-      </div>
+      > */}
+      <Pressets />
+      {/* </div> */}
       {/* <div
         style={{
           display: `${screen.value === 'pressetSettings' ? 'block' : 'none'}`,
