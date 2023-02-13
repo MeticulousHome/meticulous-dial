@@ -8,7 +8,7 @@ export interface PresetSettingInterface {
 const initialState: PresetSettingInterface = {
   activeSetting: 2,
   startIndex: 2,
-  endIndex: 8
+  endIndex: 9
 };
 
 const presetSettingSlice = createSlice({
