@@ -11,7 +11,8 @@ on:
         required: true
       DISTRIBUTION_FOLDER:
         required: true
-
+      S3_BUCKET:
+        required: true
 jobs:
   publish_on_linux:
     runs-on: meticulous-runner
@@ -29,4 +30,5 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
           DISTRIBUTION_FOLDER: ${{ secrets.DISTRIBUTION_FOLDER }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
         run: npm run publish
