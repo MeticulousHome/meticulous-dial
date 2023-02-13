@@ -33,9 +33,9 @@ export interface ISensorData {
   time: string;
   name: StageType;
   sensors: {
-    pressure: string; // Pressure - Bars
-    temp: string; // Temperature - degrees celsius
-    weight: string; // Weight - grams
-    flow: string; // Flow - ml/s
+    p: string; // Pressure - Bars
+    t: string; // Temperature - degrees celsius
+    w: string; // Weight - grams
+    f: string; // Flow - ml/s
   };
 }

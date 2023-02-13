@@ -146,10 +146,7 @@ const App = (): JSX.Element => {
       <PressetSettings />
       {/* </div> */}
 
-      {(screen.value === 'pressets' ||
-        screen.value === 'pressetSettings' ||
-        (screen.value === 'barometer' &&
-          screen.prev === 'pressetSettings')) && <BottomStatus />}
+      <BottomStatus />
     </div>
   );
   {
