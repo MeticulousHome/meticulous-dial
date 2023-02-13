@@ -23,7 +23,7 @@ export function Barometer({
   maxValue = 13
 }: IBarometerProps): JSX.Element {
   const barNeedleRotatePosition = getBarNeedlePosition(
-    stats.sensors.pressure,
+    stats.sensors.p,
     maxValue
   );
   const { screen } = useAppSelector((state) => state);
@@ -68,7 +68,7 @@ export function Barometer({
         <div className="pressure">PRESSURE</div>
         <div className="bar-needle__legend">
           <span className="bar-needle__value">
-            {formatStatValue(stats.sensors.pressure, 1)}
+            {formatStatValue(stats.sensors.p, 1)}
           </span>
           <span className="bar-label">bar</span>
         </div>
@@ -78,7 +78,7 @@ export function Barometer({
             <div>
               <div className="column-label">TEMP</div>
               <div className="column-value">
-                {formatStatValue(stats.sensors.temp, 1)}
+                {formatStatValue(stats.sensors.t, 1)}
               </div>
             </div>
             <div className="column-data">°C</div>
@@ -87,7 +87,7 @@ export function Barometer({
             <div>
               <div className="column-label">WEIGHT</div>
               <div className="column-value">
-                {formatStatValue(stats.sensors.weight, 1)}
+                {formatStatValue(stats.sensors.w, 1)}
               </div>
             </div>
             <div className="column-data">g</div>
@@ -105,7 +105,7 @@ export function Barometer({
             <div>
               <div className="column-label">FLOW</div>
               <div className="column-value">
-                {formatStatValue(stats.sensors.flow, 1)}
+                {formatStatValue(stats.sensors.f, 1)}
               </div>
             </div>
             <div className="column-data">ml/s</div>
