@@ -79,7 +79,7 @@ const App = (): JSX.Element => {
         if (gesture.value === 'click' && option) {
           option = false;
           dispatch(setScreen('barometer'));
-          dispatch(resetActiveSetting());
+          //dispatch(resetActiveSetting());
         } else if (gesture.value === 'right') {
           dispatch(setNextSettingOption());
         } else if (gesture.value === 'left') {
