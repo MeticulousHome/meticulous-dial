@@ -8,7 +8,8 @@ const BottomStatus = () => {
   const shouldRender =
     screen.value === 'pressets' ||
     screen.value === 'pressetSettings' ||
-    (screen.value === 'barometer' && screen.prev === 'pressetSettings');
+    (screen.value === 'barometer' && screen.prev === 'pressetSettings') ||
+    (screen.value === 'barometer' && screen.prev === 'pressets');
 
   return (
     shouldRender && (
@@ -16,7 +17,8 @@ const BottomStatus = () => {
         className={`bottom-status ${
           screen.value === 'pressetSettings'
             ? 'bottom__fadeIn'
-            : screen.value === 'barometer' && screen.prev === 'pressetSettings'
+            : screen.value === 'barometer' &&
+              (screen.prev === 'pressetSettings' || screen.prev === 'pressets')
             ? 'bottom__fadeOut'
             : ''
         }`}
