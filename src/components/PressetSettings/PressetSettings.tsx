@@ -80,7 +80,9 @@ export function PressetSettings(): JSX.Element {
   return (
     <div
       className={`presset-container ${
-        screen.value === 'pressetSettings' ? 'pressetSettings__fadeIn' : ''
+        screen.value === 'pressetSettings'
+          ? 'pressetSettings__fadeIn'
+          : 'pressetSettings__fadeOut'
       }`}
     >
       {/* <div className="presset-title title-main-2">Filter 2.1</div> */}
