@@ -28,3 +28,14 @@ export type GestureType =
 export type MockPreset = {
   name: string;
 };
+
+export interface ISensorData {
+  time: string;
+  name: StageType;
+  sensors: {
+    pressure: string; // Pressure - Bars
+    temp: string; // Temperature - degrees celsius
+    weight: string; // Weight - grams
+    flow: string; // Flow - ml/s
+  };
+}

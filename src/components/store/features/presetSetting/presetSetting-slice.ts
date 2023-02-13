@@ -12,7 +12,7 @@ const initialState: PresetSettingInterface = {
 };
 
 const presetSettingSlice = createSlice({
-  name: 'stats',
+  name: 'presetSettings',
   initialState: initialState,
   reducers: {
     setActiveSetting: (
