@@ -14,6 +14,7 @@ interface Props {
 
 export function SettingNumerical({ type }: Props): JSX.Element {
   const gesture = useReduxSelector((state) => state.gesture);
+  const screen = useReduxSelector((state) => state.screen);
   const [total, setTotal] = useState<number>(0);
   const [interval, setInterval] = useState<number>(0);
   const [maxValue, setMaxValue] = useState<number>(0);
@@ -131,15 +132,37 @@ export function SettingNumerical({ type }: Props): JSX.Element {
 
   return (
     <div className="gauge-container">
-      <div className="scalesLayout">
+      <div
+        className={`scalesLayout ${
+          screen.value === 'settingNumerical'
+            ? 'settingNumericalContent__fadeIn'
+            : 'settingNumerical__fadeOut'
+        }`}
+      >
         {/* <div className="title-main-1">sub-title</div> */}
-        <div className="main-title-selected title__Big">{type}</div>
+        <div
+          className="main-title-selected title__Big"
+          style={{
+            fontWeight: 'bold'
+          }}
+        >
+          {type}
+        </div>
         <div className={`scale-content ${customClass}`}>
           <div className="scale-level">{getTotalString()}</div>
           <div className="scale-unit">{unit}</div>
         </div>
       </div>
-      <svg width="480" height="480" viewBox="0 0 480 480">
+      <svg
+        className={`${
+          screen.value === 'settingNumerical'
+            ? 'settingNumerical__fadeIn'
+            : 'settingNumerical__fadeOut'
+        }`}
+        width="480"
+        height="480"
+        viewBox="0 0 480 480"
+      >
         <circle
           fill="transparent"
           cx={radius}

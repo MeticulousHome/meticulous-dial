@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import 'swiper/swiper-bundle.min.css';
@@ -28,6 +28,7 @@ import {
 } from './components/store/features/presetSetting/presetSetting-slice';
 import { PressetSettings } from './components/PressetSettings/PressetSettings';
 import BottomStatus from './components/BottomStatus';
+import { SettingNumerical } from './components/SettingNumerical/SettingNumerical';
 
 const App = (): JSX.Element => {
   //console.info(window.meticulous_envs.SERVER_URL());
@@ -66,17 +67,24 @@ const App = (): JSX.Element => {
       case 'pressetSettings':
         if (gesture.value === 'click' && option) {
           option = false;
-          dispatch(setScreen('barometer'));
+          dispatch(setScreen('settingNumerical'));
           //dispatch(resetActiveSetting());
         } else if (gesture.value === 'right') {
           dispatch(setNextSettingOption());
         } else if (gesture.value === 'left') {
           dispatch(setPrevSettingOption());
+        } else if (gesture.value === 'doubleClick') {
+          dispatch(setScreen('barometer'));
         }
         break;
       case 'scale':
         if (gesture.value === 'doubleClick') {
           dispatch(setScreen('barometer'));
+        }
+        break;
+      case 'settingNumerical':
+        if (gesture.value === 'click') {
+          dispatch(setScreen('pressetSettings'));
         }
         break;
       default:
@@ -85,6 +93,30 @@ const App = (): JSX.Element => {
 
     dispatch(setGesture('')); // we need to clean the state up to receive event notification
   }, [gesture, screen]);
+
+  const getAnimation = useCallback(() => {
+    let animation = '';
+    if (screen.value === 'pressets') {
+      animation = 'title__Big';
+    } else if (screen.value === 'pressetSettings') {
+      if (screen.prev === 'settingNumerical') {
+        animation = 'titleBigSettingNumerical';
+      } else {
+        animation = 'title__BigTwo';
+      }
+    } else if (screen.value === 'settingNumerical') {
+      animation = 'titleSmallSettingNumerical';
+    } else if (
+      screen.value === 'barometer' &&
+      screen.prev === 'pressetSettings'
+    ) {
+      animation = 'title__smallTwo';
+    } else {
+      animation = 'title__small';
+    }
+
+    return animation;
+  }, [screen]);
 
   return (
     <div className="main-layout">
@@ -97,19 +129,12 @@ const App = (): JSX.Element => {
       {/* <div className="test-mid-screen"></div> */}
       {/* <TemperatureScale /> */}
       <div
-        className={`main-title-selected ${
-          screen.value === 'pressets'
-            ? 'title__Big'
-            : screen.value === 'pressetSettings'
-            ? 'title__BigTwo'
-            : screen.value === 'barometer' && screen.prev === 'pressetSettings'
-            ? 'title__smallTwo'
-            : 'title__small'
-        }`}
+        className={`main-title-selected ${getAnimation()}`}
         style={{
           display: `${
             (screen.value !== 'barometer' &&
               screen.value !== 'pressets' &&
+              screen.value !== 'settingNumerical' &&
               screen.value !== 'pressetSettings') ||
             screen.prev === 'scale'
               ? 'none'
@@ -125,6 +150,8 @@ const App = (): JSX.Element => {
       />
 
       <Scale />
+
+      <SettingNumerical type="temperature" />
 
       {/* <div
         style={{
