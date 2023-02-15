@@ -8,6 +8,7 @@ const BottomStatus = () => {
   const shouldRender =
     screen.value === 'pressets' ||
     screen.value === 'pressetSettings' ||
+    screen.value === 'settingNumerical' ||
     (screen.value === 'barometer' && screen.prev === 'pressetSettings') ||
     (screen.value === 'barometer' && screen.prev === 'pressets');
 
