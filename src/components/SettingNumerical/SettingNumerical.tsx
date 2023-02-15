@@ -51,22 +51,6 @@ export function SettingNumerical({ type }: Props): JSX.Element {
     return `${marc} ${circumference}`;
   };
 
-  /* 
-    Presión
-    de 0-13 bar, incremento de 0.1, -> 00.0
-    valor por defecto 8
-
-    Temperatura
-    de 20-99 c, incremento de 0.5, -> 00.0
-    valor por defecto 85
-
-    Peso límite de 0-150 g, incremento de 1, -> 000
-    valor por defecto 36
-
-    Flow de 0-8 ml/s, incremento de 0.1, -> 0.0
-    valor por defecto 4
-
-  */
   useEffect(() => {
     switch (type) {
       case 'pressure':
@@ -74,7 +58,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
         setTotal(8);
         setUnit('bar');
         setMaxValue(13);
-        setCustomClass('scale-presion');
+        setCustomClass('scale-pressure');
         break;
       case 'temperature':
         setInterval(0.5);
