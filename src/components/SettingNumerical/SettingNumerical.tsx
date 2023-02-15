@@ -1,7 +1,7 @@
 import './setting-numerical.css';
 import { useReduxSelector } from '../store/store';
 import { useEffect, useState } from 'react';
-import { formatStatValue } from '../../utils';
+import { roundPrecision } from '../../utils';
 
 const radius = 237;
 const strokeWidth = 6;
@@ -9,23 +9,19 @@ const circumference = radius * 2 * Math.PI;
 const transform = `rotate(116.5, ${radius}, ${radius})`;
 
 interface Props {
-  maxValue: number;
-  unit: string;
-  interval: number;
-  decimals: number;
+  type: 'pressure' | 'temperature' | 'flow' | 'weight';
 }
 
-export function SettingNumerical({
-  maxValue,
-  unit,
-  interval,
-  decimals
-}: Props): JSX.Element {
+export function SettingNumerical({ type }: Props): JSX.Element {
   const gesture = useReduxSelector((state) => state.gesture);
   const [total, setTotal] = useState<number>(0);
+  const [interval, setInterval] = useState<number>(0);
+  const [maxValue, setMaxValue] = useState<number>(0);
+  const [unit, setUnit] = useState<string>('0');
+  const [customClass, setCustomClass] = useState<string>('');
 
   useEffect(() => {
-    let mTotal: string | number = 0;
+    let mTotal;
     switch (gesture.value) {
       case 'click':
         break;
@@ -33,12 +29,14 @@ export function SettingNumerical({
         break;
       case 'left':
       case 'right':
-        mTotal = total + (gesture.value === 'left' ? -interval : +interval);
-        if (decimals > 0) {
-          mTotal = formatStatValue(mTotal.toString(), decimals);
-          console.log(mTotal, '<<<');
+        if (
+          (total === maxValue && gesture.value === 'right') ||
+          (total === 0 && gesture.value === 'left')
+        ) {
+          return;
         }
-        setTotal(Number(mTotal));
+        mTotal = total + (gesture.value === 'left' ? -interval : +interval);
+        setTotal(type === 'weight' ? mTotal : roundPrecision(mTotal, 1));
         break;
       default:
         break;
@@ -53,10 +51,110 @@ export function SettingNumerical({
     return `${marc} ${circumference}`;
   };
 
+  /* 
+    Presión
+    de 0-13 bar, incremento de 0.1, -> 00.0
+    valor por defecto 8
+
+    Temperatura
+    de 20-99 c, incremento de 0.5, -> 00.0
+    valor por defecto 85
+
+    Peso límite de 0-150 g, incremento de 1, -> 000
+    valor por defecto 36
+
+    Flow de 0-8 ml/s, incremento de 0.1, -> 0.0
+    valor por defecto 4
+
+  */
+  useEffect(() => {
+    switch (type) {
+      case 'pressure':
+        setInterval(0.1);
+        setTotal(8);
+        setUnit('bar');
+        setMaxValue(13);
+        setCustomClass('scale-presion');
+        break;
+      case 'temperature':
+        setInterval(0.5);
+        setTotal(20);
+        setUnit('°c');
+        setMaxValue(99);
+        setCustomClass('scale-temp');
+        break;
+      case 'weight':
+        setInterval(1);
+        setTotal(36);
+        setUnit('g');
+        setMaxValue(150);
+        setCustomClass('scale-weight');
+        break;
+      case 'flow':
+        setInterval(0.1);
+        setTotal(4);
+        setUnit('ml/s');
+        setMaxValue(8);
+        setCustomClass('scale-flow');
+        break;
+      default:
+        break;
+    }
+  }, [type]);
+
+  const getTotalString = () => {
+    let toLayout: string = '';
+    let withPads: string = '';
+    switch (type) {
+      case 'pressure':
+      case 'temperature':
+        toLayout = addRightComplement(roundPrecision(total, 1).toString());
+        withPads = toLayout.padStart(4, '0');
+        break;
+      case 'flow':
+        toLayout = addRightComplement(roundPrecision(total, 1).toString());
+        withPads = toLayout;
+        break;
+      case 'weight':
+        toLayout = total.toString();
+        withPads = toLayout.padStart(3, '0');
+        break;
+      default:
+        break;
+    }
+
+    if (/^0*$/.test(toLayout.replace('.', ''))) {
+      return <text className="opacity-20">{withPads}</text>;
+    }
+
+    let pads: JSX.Element[] = [];
+    withPads.split(toLayout).map((i: string) => {
+      for (let y = 1; y <= i.length; y++) {
+        pads.push(<span className="opacity-20">0</span>);
+      }
+    });
+
+    pads.push(<>{toLayout}</>);
+    return pads;
+  };
+
+  const addRightComplement = (value: string) => {
+    if (!value.includes('.')) {
+      value = value.concat('.0');
+    }
+    return value;
+  };
+
   return (
     <div className="gauge-container">
-      <div className="gauge-caption">{total.toString()}</div>
-      <div className="gauge-unit">{unit}</div>
+      <div className="scalesLayout">
+        {/* <div className="title-main-1">sub-title</div> */}
+        <div className="main-title-selected title__Big">{type}</div>
+        <div className={`scale-content ${customClass}`}>
+          <div className="scale-level">{getTotalString()}</div>
+          <div className="scale-unit">{unit}</div>
+        </div>
+      </div>
       <svg width="480" height="480" viewBox="0 0 480 480">
         <circle
           fill="transparent"
