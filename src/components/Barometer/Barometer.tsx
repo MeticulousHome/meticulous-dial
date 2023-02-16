@@ -26,7 +26,7 @@ export function Barometer({
     stats.sensors.p,
     maxValue
   );
-  const { screen } = useAppSelector((state) => state);
+  const { screen, presets } = useAppSelector((state) => state);
 
   const getAnimation = useCallback(() => {
     let animation = 'hidden';
@@ -62,8 +62,9 @@ export function Barometer({
         style={{ transform: `rotate(${barNeedleRotatePosition}deg)` }}
       ></div>
 
-      {(screen.prev === 'scale' || screen.value === 'scale') && (
-        <div className="main-title-selected">Filter 2.1</div>
+      {(screen.prev === 'scale' ||
+        (screen.value === 'scale' && presets.activePreset)) && (
+        <div className="main-title-selected">{presets.activePreset.name}</div>
       )}
 
       <div className="bar-needle__content">
