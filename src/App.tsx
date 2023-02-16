@@ -36,14 +36,15 @@ const App = (): JSX.Element => {
   const dispatch = useContext(SockerContext);
 
   const { gesture, screen, stats } = useAppSelector((state) => state);
+  const [presetSettingIndex, setPresetSettingIndex] = useState<number>(-1);
   //const [option, setOption] = useState(false); // Emulate Save or Cancel option
   let option = true;
 
   useEffect(() => {
-    console.log('Prev Gesture >> ', gesture.prev);
-    console.log('Current Gesture >> ', gesture.value);
-    console.log('Prev Screen >> ', screen.prev);
-    console.log('Current Screen >> ', screen.value);
+    // console.log('Prev Gesture >> ', gesture.prev);
+    // console.log('Current Gesture >> ', gesture.value);
+    // console.log('Prev Screen >> ', screen.prev);
+    // console.log('Current Screen >> ', screen.value);
 
     switch (screen.value) {
       case 'barometer':
@@ -66,9 +67,14 @@ const App = (): JSX.Element => {
         break;
       case 'pressetSettings':
         if (gesture.value === 'click' && option) {
-          option = false;
-          dispatch(setScreen('settingNumerical'));
           //dispatch(resetActiveSetting());
+          if (presetSettingIndex === 8 || presetSettingIndex == 9) {
+            option = false;
+            dispatch(setScreen('barometer'));
+          } else {
+            option = false;
+            dispatch(setScreen('settingNumerical'));
+          }
         } else if (gesture.value === 'right') {
           dispatch(setNextSettingOption());
         } else if (gesture.value === 'left') {
@@ -170,7 +176,9 @@ const App = (): JSX.Element => {
         }}
       > */}
       {/* <CircleKeyboard callback={() => (option = true)} /> */}
-      <PressetSettings />
+      <PressetSettings
+        optionSelected={(option: number) => setPresetSettingIndex(option)}
+      />
       {/* </div> */}
 
       <BottomStatus />
