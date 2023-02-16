@@ -136,7 +136,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
         className={`scalesLayout ${
           screen.value === 'settingNumerical'
             ? 'settingNumericalContent__fadeIn'
-            : 'settingNumerical__fadeOut'
+            : 'settingNumericalContent__fadeOut'
         }`}
       >
         {/* <div className="title-main-1">sub-title</div> */}
