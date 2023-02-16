@@ -63,7 +63,9 @@ export function Pressets(): JSX.Element {
                           className={`${
                             screen.value === 'pressets'
                               ? 'presset__fadeIn'
-                              : 'presset__fadeOut'
+                              : screen.prev === 'pressets'
+                              ? 'presset__fadeOut'
+                              : 'hidden'
                           }`}
                           viewBox="0 0 206 204"
                           fill="none"

@@ -6,7 +6,11 @@ export function Scale(): JSX.Element {
   return (
     <div
       className={`main-layout ${
-        screen.value === 'scale' ? 'scale__fadeIn' : 'scale__fadeOut'
+        screen.value === 'scale'
+          ? 'scale__fadeIn'
+          : screen.prev === 'scale'
+          ? 'scale__fadeOut'
+          : 'hidden'
       }`}
       style={{
         zIndex: 50
