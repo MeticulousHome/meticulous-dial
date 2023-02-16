@@ -1,4 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { MockPresets } from '../../../../utils/mock';
 
 import { IPreset, MockPreset } from '../../../../types/index';
 
@@ -14,6 +15,22 @@ const initialState: GesturesState = {
   activePreset: null
 };
 
+export const fetchPreset = createAsyncThunk(
+  'users/fetchByIdStatus',
+  async () => {
+    const response: any = await new Promise((resolve) =>
+      setTimeout(
+        () =>
+          resolve({
+            data: MockPresets
+          }),
+        300
+      )
+    );
+    return response.data;
+  }
+);
+
 const presetSlice = createSlice({
   name: 'presets',
   initialState,
@@ -22,11 +39,6 @@ const presetSlice = createSlice({
       state.activePresetIndex = action.payload;
     },
     nextPreset: (state: GesturesState) => {
-      // if (state.activePresetIndex === -1) {
-      //   state.activePresetIndex = 1;
-      //   state.activePreset = state.value[1];
-      //   return;
-      // }
       if (state.activePresetIndex < state.value.length - 1) {
         const newActivePresetIndex = state.activePresetIndex + 1;
         state.activePresetIndex = newActivePresetIndex;
@@ -46,6 +58,17 @@ const presetSlice = createSlice({
         state.activePreset = action.payload[0];
       }
     }
+  },
+  extraReducers: (builder) => {
+    builder.addCase(
+      fetchPreset.fulfilled,
+      (state: GesturesState, action: PayloadAction<IPreset[]>) => {
+        state.value = action.payload;
+        if (action.payload[0]) {
+          state.activePreset = action.payload[0];
+        }
+      }
+    );
   }
 });
 
