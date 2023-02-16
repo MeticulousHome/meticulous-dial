@@ -26,7 +26,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
     switch (gesture.value) {
       case 'click':
         break;
-      case 'doubleClick':
+      case 'doubleTare':
         break;
       case 'left':
       case 'right':
@@ -88,8 +88,8 @@ export function SettingNumerical({ type }: Props): JSX.Element {
   }, [type]);
 
   const getTotalString = () => {
-    let toLayout: string = '';
-    let withPads: string = '';
+    let toLayout = '';
+    let withPads = '';
     switch (type) {
       case 'pressure':
       case 'temperature':
@@ -112,7 +112,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
       return <text className="opacity-20">{withPads}</text>;
     }
 
-    let pads: JSX.Element[] = [];
+    const pads: JSX.Element[] = [];
     withPads.split(toLayout).map((i: string) => {
       for (let y = 1; y <= i.length; y++) {
         pads.push(<span className="opacity-20">0</span>);

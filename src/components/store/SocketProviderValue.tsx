@@ -47,6 +47,7 @@ export const SetSocketKeyboardListeners = () => {
 
   useEffect(() => {
     window.addEventListener('keydown', (e) => {
+      console.log(e.code);
       switch (e.code) {
         case 'ArrowLeft':
           dispatch(setGesture('left'));
@@ -58,7 +59,16 @@ export const SetSocketKeyboardListeners = () => {
           dispatch(setGesture('click'));
           break;
         case 'Enter':
-          dispatch(setGesture('doubleClick'));
+          dispatch(setGesture('start'));
+          break;
+        case 'KeyS':
+          dispatch(setGesture('longTare'));
+          break;
+        case 'KeyE':
+          dispatch(setGesture('longEncoder'));
+          break;
+        case 'KeyD':
+          dispatch(setGesture('doubleTare'));
           break;
         default:
           break;
