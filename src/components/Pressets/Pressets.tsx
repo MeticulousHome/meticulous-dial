@@ -14,10 +14,10 @@ export function Pressets(): JSX.Element {
   const slideTo = (index: number) => swiper.slideTo(index);
 
   useEffect(() => {
-    if (presets.activePresetIndex > -1 && presets.value.length > 0) {
+    if (presets.activePresetIndex > -1 && presets.value.length > 0 && swiper) {
       slideTo(presets.activePresetIndex);
     }
-  }, [presets]);
+  }, [presets, swiper]);
 
   useEffect(() => {
     if (screen.value !== 'pressets') {

@@ -8,7 +8,7 @@ export interface PresetSettingInterface {
 const initialState: PresetSettingInterface = {
   activeSetting: 2,
   startIndex: 2,
-  endIndex: 8
+  endIndex: 0
 };
 
 const presetSettingSlice = createSlice({
@@ -41,6 +41,14 @@ const presetSettingSlice = createSlice({
     resetActiveSetting: (state: Draft<typeof initialState>) => {
       state.activeSetting = 2;
       return state;
+    },
+    setEndIndex: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<number>
+    ) => {
+      state.activeSetting = 2;
+      state.endIndex = action.payload;
+      return state;
     }
   }
 });
@@ -49,7 +57,8 @@ export const {
   setActiveSetting,
   setNextSettingOption,
   setPrevSettingOption,
-  resetActiveSetting
+  resetActiveSetting,
+  setEndIndex
 } = presetSettingSlice.actions;
 
 export default presetSettingSlice.reducer;

@@ -4,8 +4,10 @@ import { Swiper, SwiperSlide, useSwiper } from 'swiper/react';
 import { PresetSettingOptionsMock } from '../../../src/constants';
 import { Keyboard } from 'swiper';
 import { IPreset } from '../../types';
+import { ListSettings } from '../../types';
 import { useAppSelector } from '../store/hooks';
 
+import { PresetSettingString } from '../../constant/Preset';
 import './pressetSettings.css';
 
 interface Props {
@@ -13,12 +15,15 @@ interface Props {
 }
 
 export function PressetSettings({ optionSelected }: Props): JSX.Element {
-  const { screen, presetSetting, stats, presets } = useAppSelector(
-    (state) => state
-  );
   const [animationStyle, setAnimationStyle] = useState('');
   const [init, setInit] = useState(false);
   const [swiper, setSwiper] = useState(null);
+
+  const { screen, presetSetting, presets } = useAppSelector((state) => state);
+  const { activePreset } = presets;
+  const listSettings: ListSettings[number][] = activePreset?.sensors
+    ? Object.keys(activePreset.sensors)
+    : [];
 
   useEffect(() => {
     if (swiper) {
@@ -28,11 +33,8 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
   }, [presetSetting.activeSetting]);
 
   useEffect(() => {
-    //keyboard event
-
     return () => {
       setAnimationStyle('');
-      // document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
@@ -90,55 +92,36 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
               key={`option-${index}-dummy-top`}
             ></SwiperSlide>
           ))}
-
           <SwiperSlide className="presset-option-item" key={`option-name`}>
             {({ isActive }) => (
               <div
                 className={`${animationStyle} ${isActive ? `item-active` : ''}`}
               >
-                name: {presets?.activePreset?.name}
+                Name: {presets?.activePreset?.name}
               </div>
             )}
           </SwiperSlide>
-          <SwiperSlide
-            className="presset-option-item"
-            key={`option-temparature`}
-          >
-            {({ isActive }) => (
-              <div
-                className={`${animationStyle} ${isActive ? `item-active` : ''}`}
-              >
-                temparature: {stats.sensors.t}
-              </div>
-            )}
-          </SwiperSlide>
-          <SwiperSlide className="presset-option-item" key={`option-flow`}>
-            {({ isActive }) => (
-              <div
-                className={`${animationStyle} ${isActive ? `item-active` : ''}`}
-              >
-                flow: {stats.sensors.f}
-              </div>
-            )}
-          </SwiperSlide>
-          <SwiperSlide className="presset-option-item" key={`option-weight`}>
-            {({ isActive }) => (
-              <div
-                className={`${animationStyle} ${isActive ? `item-active` : ''}`}
-              >
-                stop weight: {stats.sensors.w}
-              </div>
-            )}
-          </SwiperSlide>
-          <SwiperSlide className="presset-option-item" key={`option-pressure`}>
-            {({ isActive }) => (
-              <div
-                className={`${animationStyle} ${isActive ? `item-active` : ''}`}
-              >
-                pressure: {stats.sensors.p}
-              </div>
-            )}
-          </SwiperSlide>
+
+          {listSettings.map((setting: ListSettings, index: number) => (
+            <SwiperSlide
+              className="presset-option-item"
+              key={`option-${index}`}
+            >
+              {({ isActive }) => (
+                <div
+                  className={`${animationStyle} ${
+                    isActive ? `item-active` : ''
+                  }`}
+                >
+                  <>
+                    {PresetSettingString[setting] || setting}:{' '}
+                    {presets?.activePreset.sensors[setting]}
+                  </>
+                </div>
+              )}
+            </SwiperSlide>
+          ))}
+
           <SwiperSlide className="presset-option-item" key={`option-discard`}>
             {({ isActive }) => (
               <div
