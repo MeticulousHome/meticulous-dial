@@ -1,4 +1,7 @@
 type EnforceKeys<Key extends string, T extends Record<Key, unknown>> = {
+  [K in keyof T as K extends Key ? K : never]: T[K];
+};
+type EnforceKeysOptional<Key extends string, T extends Record<Key, unknown>> = {
   [K in keyof T as K extends Key ? K : never]?: T[K];
 };
 
@@ -30,6 +33,7 @@ export type GestureType =
   | '';
 
 export type ISensor = EnforceKeys<ListSettings, PressetSettingStructure>;
+export type IPresetSettings = string[];
 
 export type ISensorData = {
   name: StageType; //stage name
@@ -43,10 +47,11 @@ export interface IPreset {
   stage: StageType;
   time: string;
   sensors: ISensor;
+  settings: IPresetSettings;
 }
 
-export const settingKeys = ['p', 't', 'w', 'f'] as const;
-export type ListSettings = (typeof settingKeys)[number];
+export const sensorKeys = ['p', 't', 'w', 'f'] as const;
+export type ListSettings = (typeof sensorKeys)[number];
 
 export type PressetSettingStructure = {
   t: string;
