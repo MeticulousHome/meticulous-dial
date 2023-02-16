@@ -1,10 +1,3 @@
-type EnforceKeys<Key extends string, T extends Record<Key, unknown>> = {
-  [K in keyof T as K extends Key ? K : never]: T[K];
-};
-type EnforceKeysOptional<Key extends string, T extends Record<Key, unknown>> = {
-  [K in keyof T as K extends Key ? K : never]?: T[K];
-};
-
 export type ActionType =
   | 'Home'
   | 'Scale'
@@ -32,34 +25,31 @@ export type GestureType =
   | 'start'
   | '';
 
-export type ISensor = EnforceKeys<ListSettings, PressetSettingStructure>;
 export type IPresetSettings = string[];
 
-export type ISensorData = {
-  name: StageType; //stage name
+export interface ISensorData {
   time: string;
-  sensors: ISensor;
-};
+  name: StageType;
+  sensors: {
+    p: string; // Pressure - Bars
+    t: string; // Temperature - degrees celsius
+    w: string; // Weight - grams
+    f: string; // Flow - ml/s
+  };
+}
 
 export interface IPreset {
-  name: string; // preset name
   id: number;
-  stage: StageType;
-  time: string;
-  sensors: ISensor;
+  name: string;
+  sensors: {
+    p: string; // Pressure - Bars
+    t: string; // Temperature - degrees celsius
+    w: string; // Weight - grams
+    f: string; // Flow - ml/s
+  };
 }
 
 export interface IPresetSetting {
   name: string;
   id: number;
 }
-
-export const sensorKeys = ['p', 't', 'w', 'f'] as const;
-export type ListSettings = (typeof sensorKeys)[number];
-
-export type PressetSettingStructure = {
-  t: string;
-  p: string;
-  w: string;
-  f: string;
-};
