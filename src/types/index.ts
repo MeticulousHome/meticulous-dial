@@ -45,6 +45,8 @@ export interface ISensorData {
 export interface IPreset {
   name: string;
   id: number;
+  stage: StageType;
+  time: string;
   sensors: ISensor & {
     time: number;
   };
