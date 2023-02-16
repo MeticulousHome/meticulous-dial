@@ -20,10 +20,10 @@ export function useHandleGesture({ presetSettingIndex }: { presetSettingIndex: n
   let option = true;
 
   useEffect(() => {
-    console.log('Prev Gesture >> ', gesture.prev);
-    console.log('Current Gesture >> ', gesture.value);
-    console.log('Prev Screen >> ', screen.prev);
-    console.log('Current Screen >> ', screen.value);
+    // console.log('Prev Gesture >> ', gesture.prev);
+    // console.log('Current Gesture >> ', gesture.value);
+    // console.log('Prev Screen >> ', screen.prev);
+    // console.log('Current Screen >> ', screen.value);
 
     switch (screen.value) {
       case 'barometer':
