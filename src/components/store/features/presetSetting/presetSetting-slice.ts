@@ -8,7 +8,7 @@ export interface PresetSettingInterface {
 const initialState: PresetSettingInterface = {
   activeSetting: 2,
   startIndex: 2,
-  endIndex: 9
+  endIndex: 8
 };
 
 const presetSettingSlice = createSlice({
@@ -24,7 +24,6 @@ const presetSettingSlice = createSlice({
     },
     setNextSettingOption: (state: Draft<typeof initialState>) => {
       const nextActiveSetting = state.activeSetting + 1;
-      console.log(nextActiveSetting, state.endIndex);
       if (nextActiveSetting > state.endIndex) {
         return;
       }

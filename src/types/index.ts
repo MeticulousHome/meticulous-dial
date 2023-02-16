@@ -29,13 +29,23 @@ export type MockPreset = {
   name: string;
 };
 
+export interface ISensor {
+  p: string; // Pressure - Bars
+  t: string; // Temperature - degrees celsius
+  w: string; // Weight - grams
+  f: string; // Flow - ml/s
+}
+
 export interface ISensorData {
   time: string;
   name: StageType;
-  sensors: {
-    p: string; // Pressure - Bars
-    t: string; // Temperature - degrees celsius
-    w: string; // Weight - grams
-    f: string; // Flow - ml/s
+  sensors: ISensor;
+}
+
+export interface IPreset {
+  name: string;
+  id: number;
+  sensors: ISensor & {
+    time: number;
   };
 }
