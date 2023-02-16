@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useAppSelector } from '../store/hooks';
 
@@ -73,14 +73,28 @@ export function PressetSettings(): JSX.Element {
     };
   }, []);
 
+  const getAnimation = useCallback(() => {
+    let animation = '';
+    if (screen.value === 'pressetSettings') {
+      if (screen.prev === 'settingNumerical') {
+        animation = 'settingNumericalToPressetSettings__fadeIn';
+      } else {
+        animation = 'pressetSettings__fadeIn';
+      }
+    } else if (
+      screen.value === 'settingNumerical' &&
+      screen.prev === 'pressetSettings'
+    ) {
+      animation = 'pressetSettingsToSettingNumerical__fadeOut';
+    } else {
+      animation = 'pressetSettings__fadeOut';
+    }
+
+    return animation;
+  }, [screen]);
+
   return (
-    <div
-      className={`presset-container ${
-        screen.value === 'pressetSettings'
-          ? 'pressetSettings__fadeIn'
-          : 'pressetSettings__fadeOut'
-      }`}
-    >
+    <div className={`presset-container ${getAnimation()}`}>
       {/* <div className="presset-title title-main-2">Filter 2.1</div> */}
       <div className="blur blur-top"></div>
       <div className="blur blur-bottom"></div>
