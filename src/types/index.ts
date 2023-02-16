@@ -21,9 +21,11 @@ export type GestureType =
   | 'right'
   | 'left'
   | 'click'
-  | 'doubleClick'
+  | 'doubleTare'
   | 'start'
-  | '';
+  | ''
+  | 'longTare'
+  | 'longEncoder';
 
 export type IPresetSettings = string[];
 

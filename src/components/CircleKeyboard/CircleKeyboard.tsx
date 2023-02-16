@@ -59,7 +59,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
       return;
     }
 
-    if (gesture.value === 'doubleClick' && mainLetter === 'capslock') {
+    if (gesture.value === 'doubleTare' && mainLetter === 'capslock') {
       setCapsLockActive({
         active: true,
         keep: true
