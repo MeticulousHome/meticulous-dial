@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import 'swiper/swiper-bundle.min.css';
@@ -6,103 +6,26 @@ import 'swiper/swiper-bundle.min.css';
 import { store } from './components/store/store';
 import { Barometer } from './components/Barometer/Barometer';
 import { SockerManager, SockerContext } from './components/store/SockerManager';
-/* import { useAppSelector } from './components/store/hooks'; */
 import { Scale } from './components/Scale/Scale';
 import { Pressets } from './components/Pressets/Pressets';
 import MainTitle from './components/MainTitle';
 import { useAppSelector } from './components/store/hooks';
 /* import { PressetSettings } from './components/PressetSettings/PressetSettings'; */
-import { TemperatureScale } from './components/TemperatureScale/TemperatureScale';
-import { setScreen } from './components/store/features/screens/screens-slice';
-import { setGesture } from './components/store/features/gestures/gestures-slice';
-import { CircleKeyboard } from './components/CircleKeyboard/CircleKeyboard';
-import {
-  nextPreset,
-  prevPreset,
-  setPresets
-} from './components/store/features/preset/preset-slice';
-import {
-  resetActiveSetting,
-  setActiveSetting,
-  setNextSettingOption,
-  setPrevSettingOption
-} from './components/store/features/presetSetting/presetSetting-slice';
+// import { TemperatureScale } from './components/TemperatureScale/TemperatureScale';
+// import { CircleKeyboard } from './components/CircleKeyboard/CircleKeyboard';
+
 import { PressetSettings } from './components/PressetSettings/PressetSettings';
 import BottomStatus from './components/BottomStatus';
+import { useFetchData } from './hooks/useFetchData';
+import { useHandleGesture } from './hooks/useHandleGestures';
 import { SettingNumerical } from './components/SettingNumerical/SettingNumerical';
-import { MockPresets } from './utils/mock';
-import { setStats } from './components/store/features/stats/stats-slice';
 
 const App = (): JSX.Element => {
   //console.info(window.meticulous_envs.SERVER_URL());
-
-  const dispatch = useContext(SockerContext);
-
-  const { gesture, screen, presets, stats } = useAppSelector((state) => state);
+  const { screen, stats } = useAppSelector((state) => state);
   const [presetSettingIndex, setPresetSettingIndex] = useState<number>(-1);
   //const [option, setOption] = useState(false); // Emulate Save or Cancel option
-  let option = true;
-
-  useEffect(() => {
-    // console.log('Prev Gesture >> ', gesture.prev);
-    // console.log('Current Gesture >> ', gesture.value);
-    // console.log('Prev Screen >> ', screen.prev);
-    // console.log('Current Screen >> ', screen.value);
-
-    switch (screen.value) {
-      case 'barometer':
-        if (gesture.value === 'right' || gesture.value === 'left') {
-          dispatch(setScreen('pressets'));
-        } else if (gesture.value === 'click') {
-          dispatch(setScreen('pressetSettings'));
-        } else if (gesture.value === 'doubleClick') {
-          dispatch(setScreen('scale'));
-        }
-        break;
-      case 'pressets':
-        if (gesture.value === 'click') {
-          dispatch(setScreen('barometer'));
-        } else if (gesture.value === 'left') {
-          dispatch(prevPreset());
-        } else if (gesture.value === 'right') {
-          dispatch(nextPreset());
-        }
-        break;
-      case 'pressetSettings':
-        if (gesture.value === 'click' && option) {
-          //dispatch(resetActiveSetting());
-          if (presetSettingIndex === 8 || presetSettingIndex == 9) {
-            option = false;
-            dispatch(setScreen('barometer'));
-          } else {
-            option = false;
-            dispatch(setScreen('settingNumerical'));
-          }
-        } else if (gesture.value === 'right') {
-          dispatch(setNextSettingOption());
-        } else if (gesture.value === 'left') {
-          dispatch(setPrevSettingOption());
-        } else if (gesture.value === 'doubleClick') {
-          dispatch(setScreen('barometer'));
-        }
-        break;
-      case 'scale':
-        if (gesture.value === 'doubleClick') {
-          dispatch(setScreen('barometer'));
-        }
-        break;
-      case 'settingNumerical':
-        if (gesture.value === 'click') {
-          dispatch(setScreen('pressetSettings'));
-        }
-        break;
-      default:
-        break;
-    }
-
-    dispatch(setGesture('')); // we need to clean the state up to receive event notification
-  }, [gesture, screen]);
-
+  
   const getAnimation = useCallback(() => {
     let animation = '';
     if (screen.value === 'pressets') {
@@ -126,22 +49,8 @@ const App = (): JSX.Element => {
 
     return animation;
   }, [screen]);
-
-  useEffect(() => {
-    dispatch(setPresets(MockPresets));
-  }, []);
-
-  useEffect(() => {
-    if (presets.activePreset) {
-      dispatch(
-        setStats({
-          name: 'home',
-          time: '00:00',
-          sensors: presets.activePreset.sensors
-        })
-      );
-    }
-  }, [presets.activePreset]);
+  useFetchData();
+  useHandleGesture({ presetSettingIndex });
 
   return (
     <div className="main-layout">
@@ -151,20 +60,17 @@ const App = (): JSX.Element => {
       >
         pressets
       </div>
-      {/* <div className="test-mid-screen"></div> */}
-      {/* <TemperatureScale /> */}
       <div
         className={`main-title-selected ${getAnimation()}`}
         style={{
-          display: `${
-            (screen.value !== 'barometer' &&
+          display: `${(screen.value !== 'barometer' &&
               screen.value !== 'pressets' &&
               screen.value !== 'settingNumerical' &&
               screen.value !== 'pressetSettings') ||
-            screen.prev === 'scale'
+              screen.prev === 'scale'
               ? 'none'
               : ''
-          }`,
+            }`,
           width: '100%'
         }}
       >

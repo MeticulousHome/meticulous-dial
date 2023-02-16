@@ -65,7 +65,6 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
       {/* <div className="presset-title title-main-2">Filter 2.1</div> */}
       <div className="blur blur-top"></div>
       <div className="blur blur-bottom"></div>
-      {/* <div className="test-mid-screen"></div> */}
       <div className="presset-options">
         <Swiper
           onSwiper={setSwiper}
@@ -75,11 +74,6 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
           direction="vertical"
           autoHeight={false}
           centeredSlides={true}
-          // onSlideChange={(swiper) => {
-          //   console.log('slide change', swiper.activeIndex);
-          //   swiper.slideTo(swiper.activeIndex);
-          // }}
-
           onSlideNextTransitionStart={() => {
             if (!init) {
               setInit(true);
