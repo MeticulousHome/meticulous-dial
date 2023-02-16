@@ -29,11 +29,13 @@ export function Barometer({
   const { screen } = useAppSelector((state) => state);
 
   const getAnimation = useCallback(() => {
-    let animation = '';
+    let animation = 'hidden';
+
     if (screen.value === 'barometer') {
       if (screen.prev === 'scale') {
         animation = 'scaleToBarometer__fadeIn';
       }
+
       if (screen.prev == 'pressetSettings') {
         animation = 'pressetSettingsToBarometer__fadeIn';
       } else {
@@ -46,7 +48,7 @@ export function Barometer({
       screen.prev === 'barometer'
     ) {
       animation = 'barometerToPressetSettings__fadeOut';
-    } else {
+    } else if (screen.value === 'pressets' && screen.prev === 'barometer') {
       animation = 'barometer__fadeOut';
     }
 
