@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 import { useAppSelector } from '../store/hooks';
@@ -22,21 +22,38 @@ const MainTitle = () => {
     }
   }, [screen.value]);
 
+  const getAnimation = useCallback(() => {
+    let animation = '';
+    if (screen.value === 'pressets') {
+      animation = 'title__Big';
+    } else if (screen.value === 'pressetSettings') {
+      if (screen.prev === 'settingNumerical') {
+        animation = 'titleBigSettingNumerical';
+      } else {
+        animation = 'title__BigTwo';
+      }
+    } else if (screen.value === 'settingNumerical') {
+      animation = 'titleSmallSettingNumerical';
+    } else if (
+      screen.value === 'barometer' &&
+      screen.prev === 'pressetSettings'
+    ) {
+      animation = 'title__smallTwo';
+    } else {
+      animation = 'title__small';
+    }
+
+    return animation;
+  }, [screen]);
+
   return (
     <div
-      className={`main-title-selected ${
-        screen.value === 'pressets'
-          ? 'title__Big'
-          : screen.value === 'pressetSettings'
-          ? 'title__BigTwo'
-          : screen.value === 'barometer' && screen.prev === 'pressetSettings'
-          ? 'title__smallTwo'
-          : 'title__small'
-      }`}
+      className={`main-title-selected ${getAnimation()}`}
       style={{
         display: `${
           (screen.value !== 'barometer' &&
             screen.value !== 'pressets' &&
+            screen.value !== 'settingNumerical' &&
             screen.value !== 'pressetSettings') ||
           screen.prev === 'scale'
             ? 'none'
