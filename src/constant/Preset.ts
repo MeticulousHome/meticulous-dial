@@ -1,14 +1,13 @@
-import { ISensor, ListSettings } from '../types';
-
 //enum preset settings
-export const PresetSettingString: Record<ListSettings, string> = {
+export const PresetSettingString: Record<string, string> = {
   p: 'pressure',
   t: 'temperature',
   w: 'weight',
-  f: 'flow'
+  f: 'flow',
+  pre_fusion: 'pre-fusion'
 };
 
-export const PresetSettingInit: { id: number; name: ListSettings | '' }[] = [
+export const PresetSettingInit: { id: number; name: string | '' }[] = [
   {
     id: -1,
     name: ''
