@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState } from 'react';
+import { useContext, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import 'swiper/swiper-bundle.min.css';
@@ -19,36 +19,14 @@ import BottomStatus from './components/BottomStatus';
 import { useFetchData } from './hooks/useFetchData';
 import { useHandleGesture } from './hooks/useHandleGestures';
 import { SettingNumerical } from './components/SettingNumerical/SettingNumerical';
+import { PressetTitle } from './components/Pressets/PressetsTitle';
 
 const App = (): JSX.Element => {
   //console.info(window.meticulous_envs.SERVER_URL());
-  const { screen, stats } = useAppSelector((state) => state);
+  const { stats } = useAppSelector((state) => state);
   const [presetSettingIndex, setPresetSettingIndex] = useState<number>(-1);
   //const [option, setOption] = useState(false); // Emulate Save or Cancel option
 
-  const getAnimation = useCallback(() => {
-    let animation = '';
-    if (screen.value === 'pressets') {
-      animation = 'title__Big';
-    } else if (screen.value === 'pressetSettings') {
-      if (screen.prev === 'settingNumerical') {
-        animation = 'titleBigSettingNumerical';
-      } else {
-        animation = 'title__BigTwo';
-      }
-    } else if (screen.value === 'settingNumerical') {
-      animation = 'titleSmallSettingNumerical';
-    } else if (
-      screen.value === 'barometer' &&
-      screen.prev === 'pressetSettings'
-    ) {
-      animation = 'title__smallTwo';
-    } else {
-      animation = 'title__small';
-    }
-
-    return animation;
-  }, [screen]);
   useFetchData();
   useHandleGesture({ presetSettingIndex });
 
@@ -61,6 +39,7 @@ const App = (): JSX.Element => {
 
   return (
     <div className="main-layout">
+      <PressetTitle />
       <MainTitle />
       <Barometer
         stats={{
