@@ -25,7 +25,7 @@ const App = (): JSX.Element => {
   const { screen, stats } = useAppSelector((state) => state);
   const [presetSettingIndex, setPresetSettingIndex] = useState<number>(-1);
   //const [option, setOption] = useState(false); // Emulate Save or Cancel option
-  
+
   const getAnimation = useCallback(() => {
     let animation = '';
     if (screen.value === 'pressets') {
