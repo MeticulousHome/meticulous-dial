@@ -52,30 +52,16 @@ const App = (): JSX.Element => {
   useFetchData();
   useHandleGesture({ presetSettingIndex });
 
+  // if (error) {
+  //   return <div className="main-layout">Error</div>;
+  // }
+  // if (pending) {
+  //   return <div className="main-layout">Loading</div>;
+  // }
+
   return (
     <div className="main-layout">
-      <div
-        className="title-main-1"
-        style={{ display: `${screen.value === 'pressets' ? 'block' : 'none'}` }}
-      >
-        pressets
-      </div>
-      <div
-        className={`main-title-selected ${getAnimation()}`}
-        style={{
-          display: `${(screen.value !== 'barometer' &&
-              screen.value !== 'pressets' &&
-              screen.value !== 'settingNumerical' &&
-              screen.value !== 'pressetSettings') ||
-              screen.prev === 'scale'
-              ? 'none'
-              : ''
-            }`,
-          width: '100%'
-        }}
-      >
-        <MainTitle />
-      </div>
+      <MainTitle />
       <Barometer
         stats={{
           sensors: stats.sensors,
@@ -89,21 +75,21 @@ const App = (): JSX.Element => {
       <SettingNumerical type="temperature" />
 
       {/* <div
-        style={{
-          display: `${screen.value === 'pressets' ? 'block' : 'none'}`,
-          width: '100%',
-          height: '100%'
-        }}
-      > */}
+          style={{
+            display: `${screen.value === 'pressets' ? 'block' : 'none'}`,
+            width: '100%',
+            height: '100%'
+          }}
+        > */}
       <Pressets />
       {/* </div> */}
       {/* <div
-        style={{
-          display: `${screen.value === 'pressetSettings' ? 'block' : 'none'}`,
-          width: '100%',
-          height: '100%'
-        }}
-      > */}
+          style={{
+            display: `${screen.value === 'pressetSettings' ? 'block' : 'none'}`,
+            width: '100%',
+            height: '100%'
+          }}
+        > */}
       {/* <CircleKeyboard callback={() => (option = true)} /> */}
       <PressetSettings
         optionSelected={(option: number) => setPresetSettingIndex(option)}
@@ -113,22 +99,23 @@ const App = (): JSX.Element => {
       <BottomStatus />
     </div>
   );
-  {
-    /* <Barometer stats={{ sensors, name, time }} /> */
-  }
-  {
-    /* <Pressets /> */
-  }
-  {
-    /* <PressetSettings /> */
-  }
-  {
-    /* <Scale /> */
-  }
-  {
-    /* <TemperatureScale /> */
-  }
 };
+{
+  /* <Barometer stats={{ sensors, name, time }} /> */
+}
+{
+  /* <Pressets /> */
+}
+{
+  /* <PressetSettings /> */
+}
+{
+  /* <Scale /> */
+}
+{
+  /* <TemperatureScale /> */
+}
+// };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

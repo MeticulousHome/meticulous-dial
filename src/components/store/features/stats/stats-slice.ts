@@ -1,14 +1,13 @@
 import { ISensorData } from './../../../../types/index';
 import { createSlice, PayloadAction, Draft } from '@reduxjs/toolkit';
-import { StageType } from '../../../../types';
 
 const initialState: ISensorData = {
   name: 'idle',
   sensors: {
     p: '0',
     f: '0',
-    w: '200',
-    t: '53.8'
+    w: '0',
+    t: '0'
   },
   time: '0'
 };
