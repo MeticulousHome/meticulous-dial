@@ -120,6 +120,7 @@ Barometer styles
   line-height: 1;
   transition: all;
   z-index: 4;
+  font-weight: bold;
   /* properties to animate when transition */
   /* top: 70px; */
   /* font-size: 35px; */
