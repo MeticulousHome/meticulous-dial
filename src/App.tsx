@@ -18,7 +18,8 @@ import { setGesture } from './components/store/features/gestures/gestures-slice'
 import { CircleKeyboard } from './components/CircleKeyboard/CircleKeyboard';
 import {
   nextPreset,
-  prevPreset
+  prevPreset,
+  setPresets
 } from './components/store/features/preset/preset-slice';
 import {
   resetActiveSetting,
@@ -29,13 +30,15 @@ import {
 import { PressetSettings } from './components/PressetSettings/PressetSettings';
 import BottomStatus from './components/BottomStatus';
 import { SettingNumerical } from './components/SettingNumerical/SettingNumerical';
+import { MockPresets } from './utils/mock';
+import { setStats } from './components/store/features/stats/stats-slice';
 
 const App = (): JSX.Element => {
   //console.info(window.meticulous_envs.SERVER_URL());
 
   const dispatch = useContext(SockerContext);
 
-  const { gesture, screen, stats } = useAppSelector((state) => state);
+  const { gesture, screen, presets, stats } = useAppSelector((state) => state);
   const [presetSettingIndex, setPresetSettingIndex] = useState<number>(-1);
   //const [option, setOption] = useState(false); // Emulate Save or Cancel option
   let option = true;
@@ -124,6 +127,22 @@ const App = (): JSX.Element => {
     return animation;
   }, [screen]);
 
+  useEffect(() => {
+    dispatch(setPresets(MockPresets));
+  }, []);
+
+  useEffect(() => {
+    if (presets.activePreset) {
+      dispatch(
+        setStats({
+          name: 'home',
+          time: '00:00',
+          sensors: presets.activePreset.sensors
+        })
+      );
+    }
+  }, [presets.activePreset]);
+
   return (
     <div className="main-layout">
       <div
@@ -152,7 +171,11 @@ const App = (): JSX.Element => {
         <MainTitle />
       </div>
       <Barometer
-        stats={{ sensors: stats.sensors, name: stats.name, time: stats.time }}
+        stats={{
+          sensors: stats.sensors,
+          name: stats.name,
+          time: stats.time
+        }}
       />
 
       <Scale />

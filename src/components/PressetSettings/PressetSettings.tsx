@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Swiper, SwiperSlide, useSwiper } from 'swiper/react';
+
 import { PresetSettingOptionsMock } from '../../../src/constants';
-import { Swiper, SwiperSlide } from 'swiper/react';
+import { Keyboard } from 'swiper';
+import { IPreset } from '../../types';
 import { useAppSelector } from '../store/hooks';
 
 import './pressetSettings.css';
@@ -10,10 +13,12 @@ interface Props {
 }
 
 export function PressetSettings({ optionSelected }: Props): JSX.Element {
-  const [swiper, setSwiper] = useState(null);
-  const { presetSetting, screen } = useAppSelector((state) => state);
+  const { screen, presetSetting, stats, presets } = useAppSelector(
+    (state) => state
+  );
   const [animationStyle, setAnimationStyle] = useState('');
   const [init, setInit] = useState(false);
+  const [swiper, setSwiper] = useState(null);
 
   useEffect(() => {
     if (swiper) {
@@ -23,8 +28,11 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
   }, [presetSetting.activeSetting]);
 
   useEffect(() => {
+    //keyboard event
+
     return () => {
       setAnimationStyle('');
+      // document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
@@ -60,13 +68,18 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
       {/* <div className="test-mid-screen"></div> */}
       <div className="presset-options">
         <Swiper
-          initialSlide={2}
-          slidesPerView={8}
           onSwiper={setSwiper}
+          initialSlide={2}
+          slidesPerView={9}
           allowTouchMove={false}
           direction="vertical"
           autoHeight={false}
           centeredSlides={true}
+          // onSlideChange={(swiper) => {
+          //   console.log('slide change', swiper.activeIndex);
+          //   swiper.slideTo(swiper.activeIndex);
+          // }}
+
           onSlideNextTransitionStart={() => {
             if (!init) {
               setInit(true);
@@ -80,19 +93,76 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
           {PresetSettingOptionsMock.map((option, index) => (
             <SwiperSlide
               className="presset-option-item"
-              key={`option-${index}`}
-            >
-              {({ isActive }) => (
-                <div
-                  className={`${animationStyle} ${
-                    isActive ? `item-active` : ''
-                  }`}
-                >
-                  {option.name}
-                </div>
-              )}
-            </SwiperSlide>
+              key={`option-${index}-dummy-top`}
+            ></SwiperSlide>
           ))}
+
+          <SwiperSlide className="presset-option-item" key={`option-name`}>
+            {({ isActive }) => (
+              <div
+                className={`${animationStyle} ${isActive ? `item-active` : ''}`}
+              >
+                name: {presets?.activePreset?.name}
+              </div>
+            )}
+          </SwiperSlide>
+          <SwiperSlide
+            className="presset-option-item"
+            key={`option-temparature`}
+          >
+            {({ isActive }) => (
+              <div
+                className={`${animationStyle} ${isActive ? `item-active` : ''}`}
+              >
+                temparature: {stats.sensors.t}
+              </div>
+            )}
+          </SwiperSlide>
+          <SwiperSlide className="presset-option-item" key={`option-flow`}>
+            {({ isActive }) => (
+              <div
+                className={`${animationStyle} ${isActive ? `item-active` : ''}`}
+              >
+                flow: {stats.sensors.f}
+              </div>
+            )}
+          </SwiperSlide>
+          <SwiperSlide className="presset-option-item" key={`option-weight`}>
+            {({ isActive }) => (
+              <div
+                className={`${animationStyle} ${isActive ? `item-active` : ''}`}
+              >
+                stop weight: {stats.sensors.w}
+              </div>
+            )}
+          </SwiperSlide>
+          <SwiperSlide className="presset-option-item" key={`option-pressure`}>
+            {({ isActive }) => (
+              <div
+                className={`${animationStyle} ${isActive ? `item-active` : ''}`}
+              >
+                pressure: {stats.sensors.p}
+              </div>
+            )}
+          </SwiperSlide>
+          <SwiperSlide className="presset-option-item" key={`option-discard`}>
+            {({ isActive }) => (
+              <div
+                className={`${animationStyle} ${isActive ? `item-active` : ''}`}
+              >
+                discard
+              </div>
+            )}
+          </SwiperSlide>
+          <SwiperSlide className="presset-option-item" key={`option-ok`}>
+            {({ isActive }) => (
+              <div
+                className={`${animationStyle} ${isActive ? `item-active` : ''}`}
+              >
+                ok
+              </div>
+            )}
+          </SwiperSlide>
         </Swiper>
       </div>
     </div>

@@ -11,10 +11,10 @@ const MainTitle = () => {
   const slideTo = (index: number) => swiper.slideTo(index);
 
   useEffect(() => {
-    if (presets.activePreset > -1) {
-      slideTo(presets.activePreset);
+    if (presets.activePresetIndex > -1 && presets.value.length > 0) {
+      slideTo(presets.activePresetIndex);
     }
-  }, [presets.activePreset]);
+  }, [presets]);
 
   useEffect(() => {
     if (screen.value !== 'pressets') {
@@ -39,7 +39,14 @@ const MainTitle = () => {
       {presets.value.map((preset, index) => (
         <SwiperSlide key={`${index}-slide`}>
           {({ isActive }) => (
-            <span className={isActive ? animationStyle : ''}>
+            <span
+              style={{
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden'
+              }}
+              className={isActive ? animationStyle : ''}
+            >
               {preset.name}
             </span>
           )}
