@@ -112,12 +112,12 @@ Barometer styles
   top: 60px;
   font-size: 23px;
   width: 220px;
-  line-height: 1;
+  /*line-height: 1;*/
   text-align: center;
   /* new properties */
   left: 50%;
   transform: translateX(-50%);
-  line-height: 1;
+  /*line-height: 1;*/
   transition: all;
   z-index: 4;
   font-weight: bold;
