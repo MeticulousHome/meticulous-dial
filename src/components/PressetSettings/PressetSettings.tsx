@@ -74,7 +74,8 @@ export function PressetSettings(): JSX.Element {
   }, []);
 
   const getAnimation = useCallback(() => {
-    let animation = '';
+    let animation = 'hidden';
+
     if (screen.value === 'pressetSettings') {
       if (screen.prev === 'settingNumerical') {
         animation = 'settingNumericalToPressetSettings__fadeIn';
@@ -86,7 +87,10 @@ export function PressetSettings(): JSX.Element {
       screen.prev === 'pressetSettings'
     ) {
       animation = 'pressetSettingsToSettingNumerical__fadeOut';
-    } else {
+    } else if (
+      screen.prev === 'pressetSettings' &&
+      screen.value === 'barometer'
+    ) {
       animation = 'pressetSettings__fadeOut';
     }
 

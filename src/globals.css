@@ -5326,3 +5326,8 @@ font-size: 20px */
     animation-fill-mode: forwards;
     animation-duration: 1s;
 }
+
+.hidden {
+    opacity: 0;
+    scale: 0;
+}
