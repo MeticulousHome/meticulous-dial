@@ -3,8 +3,8 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { useAppSelector } from '../store/hooks';
 
 import { PresetSettingString } from '../../constant/Preset';
-import './pressetSettings.css';
 import { dummyOptions } from '../../utils/mock';
+import './pressetSettings.css';
 
 interface Props {
   optionSelected: (option: number) => void;
@@ -89,10 +89,7 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
                     isActive ? `item-active` : ''
                   }`}
                 >
-                  <>
-                    {PresetSettingString[setting.name] || setting.name}
-                    {/* {presets?.activePreset?.sensors[setting.name] || '0'} */}
-                  </>
+                  {PresetSettingString[setting.name] || setting.name}
                 </div>
               )}
             </SwiperSlide>
