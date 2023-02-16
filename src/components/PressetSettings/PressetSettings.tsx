@@ -1,61 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
+import { PresetSettingOptionsMock } from '../../../src/constants';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useAppSelector } from '../store/hooks';
 
 import './pressetSettings.css';
 
-const presetSettingOptionsMock = [
-  {
-    name: '',
-    id: -1
-  },
-  {
-    name: '',
-    id: -1
-  },
-  {
-    name: 'name: Filter 2.1',
-    id: 1
-  },
-  {
-    name: 'pressure',
-    id: 2
-  },
-  {
-    name: 'temperature: 86°c',
-    id: 3
-  },
-  {
-    name: 'stop weight',
-    id: 4
-  },
-  {
-    name: 'flow',
-    id: 5
-  },
-  {
-    name: 'pre-infusion',
-    id: 6
-  },
-  {
-    name: 'save',
-    id: 7
-  },
-  {
-    name: 'discard',
-    id: 8
-  },
-  {
-    name: '',
-    id: -1
-  },
-  {
-    name: '',
-    id: -1
-  }
-];
+interface Props {
+  optionSelected: (option: number) => void;
+}
 
-export function PressetSettings(): JSX.Element {
+export function PressetSettings({ optionSelected }: Props): JSX.Element {
   const [swiper, setSwiper] = useState(null);
   const { presetSetting, screen } = useAppSelector((state) => state);
   const [animationStyle, setAnimationStyle] = useState('');
@@ -64,6 +18,7 @@ export function PressetSettings(): JSX.Element {
   useEffect(() => {
     if (swiper) {
       swiper.slideTo(presetSetting.activeSetting);
+      optionSelected(presetSetting.activeSetting);
     }
   }, [presetSetting.activeSetting]);
 
@@ -104,19 +59,6 @@ export function PressetSettings(): JSX.Element {
       <div className="blur blur-bottom"></div>
       {/* <div className="test-mid-screen"></div> */}
       <div className="presset-options">
-        {/* <div className="presset-option-item">stop weight</div>
-            <div className="presset-option-item">flow</div>
-            <div className="presset-option-item item-active">
-              temperature: 86°c
-            </div>
-            <div className="presset-option-item">presset</div>
-            <div className="presset-option-item">style</div>
-            <div className="presset-option-item">stop weight</div>
-            <div className="presset-option-item">flow</div>
-            <div className="presset-option-item">temperature: 86°c</div>
-            <div className="presset-option-item">presset</div>
-            <div className="presset-option-item">style</div>
-            <div className="presset-option-item">save changes</div> */}
         <Swiper
           initialSlide={2}
           slidesPerView={8}
@@ -135,7 +77,7 @@ export function PressetSettings(): JSX.Element {
           onSlidePrevTransitionStart={() => setAnimationStyle('animation-prev')}
           onSlideChangeTransitionEnd={() => setAnimationStyle('')}
         >
-          {presetSettingOptionsMock.map((option, index) => (
+          {PresetSettingOptionsMock.map((option, index) => (
             <SwiperSlide
               className="presset-option-item"
               key={`option-${index}`}
