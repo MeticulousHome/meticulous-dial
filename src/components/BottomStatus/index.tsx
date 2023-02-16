@@ -16,7 +16,8 @@ const BottomStatus = () => {
     shouldRender && (
       <div
         className={`bottom-status ${
-          screen.value === 'pressetSettings'
+          screen.value === 'pressetSettings' &&
+          screen.prev !== 'settingNumerical'
             ? 'bottom__fadeIn'
             : screen.value === 'barometer' &&
               (screen.prev === 'pressetSettings' || screen.prev === 'pressets')
