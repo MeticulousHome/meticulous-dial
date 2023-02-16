@@ -14,10 +14,10 @@ export function Pressets(): JSX.Element {
   const slideTo = (index: number) => swiper.slideTo(index);
 
   useEffect(() => {
-    if (presets.activePreset > -1) {
-      slideTo(presets.activePreset);
+    if (presets.activePresetIndex > -1 && presets.value.length > 0) {
+      slideTo(presets.activePresetIndex);
     }
-  }, [presets.activePreset]);
+  }, [presets]);
 
   useEffect(() => {
     if (screen.value !== 'pressets') {
@@ -38,7 +38,6 @@ export function Pressets(): JSX.Element {
         spaceBetween={100}
         centeredSlides={true}
         allowTouchMove={false}
-        initialSlide={0}
         onSlideChangeTransitionStart={(e) => {
           setAnimationStyle('animation-bounce-left');
         }}
