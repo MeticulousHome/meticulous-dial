@@ -47,7 +47,11 @@ export interface IPreset {
   stage: StageType;
   time: string;
   sensors: ISensor;
-  settings: IPresetSettings;
+}
+
+export interface IPresetSetting {
+  name: string;
+  id: number;
 }
 
 export const sensorKeys = ['p', 't', 'w', 'f'] as const;

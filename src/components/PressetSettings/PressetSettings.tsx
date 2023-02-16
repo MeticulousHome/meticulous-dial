@@ -1,14 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Swiper, SwiperSlide, useSwiper } from 'swiper/react';
-
-import { PresetSettingOptionsMock } from '../../../src/constants';
-import { Keyboard } from 'swiper';
-import { IPreset } from '../../types';
-import { ListSettings } from '../../types';
+import { Swiper, SwiperSlide } from 'swiper/react';
 import { useAppSelector } from '../store/hooks';
 
 import { PresetSettingString } from '../../constant/Preset';
 import './pressetSettings.css';
+import { dummyOptions } from '../../utils/mock';
 
 interface Props {
   optionSelected: (option: number) => void;
@@ -19,11 +15,8 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
   const [init, setInit] = useState(false);
   const [swiper, setSwiper] = useState(null);
 
-  const { screen, presetSetting, presets } = useAppSelector((state) => state);
-  const { activePreset } = presets;
-  const listSettings: ListSettings[number][] = activePreset?.settings
-    ? activePreset.settings
-    : [];
+  const { screen, presetSetting } = useAppSelector((state) => state);
+  const listSettings = [...dummyOptions, ...presetSetting.settings];
 
   useEffect(() => {
     if (swiper) {
@@ -70,7 +63,6 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
       <div className="presset-options">
         <Swiper
           onSwiper={setSwiper}
-          initialSlide={2}
           slidesPerView={9}
           allowTouchMove={false}
           direction="vertical"
@@ -86,23 +78,7 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
           onSlidePrevTransitionStart={() => setAnimationStyle('animation-prev')}
           onSlideChangeTransitionEnd={() => setAnimationStyle('')}
         >
-          {PresetSettingOptionsMock.map((option, index) => (
-            <SwiperSlide
-              className="presset-option-item"
-              key={`option-${index}-dummy-top`}
-            ></SwiperSlide>
-          ))}
-          <SwiperSlide className="presset-option-item" key={`option-name`}>
-            {({ isActive }) => (
-              <div
-                className={`${animationStyle} ${isActive ? `item-active` : ''}`}
-              >
-                name: {presets?.activePreset?.name}
-              </div>
-            )}
-          </SwiperSlide>
-
-          {listSettings.map((setting: ListSettings, index: number) => (
+          {listSettings.map((setting, index: number) => (
             <SwiperSlide
               className="presset-option-item"
               key={`option-${index}`}
@@ -114,32 +90,13 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
                   }`}
                 >
                   <>
-                    {PresetSettingString[setting] || setting}:{' '}
-                    {presets?.activePreset?.sensors[setting] || '0'}
+                    {PresetSettingString[setting.name] || setting.name}
+                    {/* {presets?.activePreset?.sensors[setting.name] || '0'} */}
                   </>
                 </div>
               )}
             </SwiperSlide>
           ))}
-
-          <SwiperSlide className="presset-option-item" key={`option-discard`}>
-            {({ isActive }) => (
-              <div
-                className={`${animationStyle} ${isActive ? `item-active` : ''}`}
-              >
-                discard
-              </div>
-            )}
-          </SwiperSlide>
-          <SwiperSlide className="presset-option-item" key={`option-ok`}>
-            {({ isActive }) => (
-              <div
-                className={`${animationStyle} ${isActive ? `item-active` : ''}`}
-              >
-                ok
-              </div>
-            )}
-          </SwiperSlide>
         </Swiper>
       </div>
     </div>
