@@ -30,8 +30,8 @@ export function useFetchData() {
     if (activePreset?.sensors) {
       dispatch(
         setEndIndex(
-          Object.keys(activePreset.sensors).length > 0
-            ? Object.keys(activePreset.sensors).length + 4 //presset setting: 2 dummy items in setting, 1 for ok button, 1 for discard button
+          activePreset.settings.length > 0
+            ? activePreset.settings.length + 4 //presset setting: 2 dummy items in setting, 1 for ok button, 1 for discard button
             : 0
         )
       );

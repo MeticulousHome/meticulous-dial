@@ -21,8 +21,8 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
 
   const { screen, presetSetting, presets } = useAppSelector((state) => state);
   const { activePreset } = presets;
-  const listSettings: ListSettings[number][] = activePreset?.sensors
-    ? Object.keys(activePreset.sensors)
+  const listSettings: ListSettings[number][] = activePreset?.settings
+    ? activePreset.settings
     : [];
 
   useEffect(() => {
@@ -97,7 +97,7 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
               <div
                 className={`${animationStyle} ${isActive ? `item-active` : ''}`}
               >
-                Name: {presets?.activePreset?.name}
+                name: {presets?.activePreset?.name}
               </div>
             )}
           </SwiperSlide>
@@ -115,7 +115,7 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
                 >
                   <>
                     {PresetSettingString[setting] || setting}:{' '}
-                    {presets?.activePreset.sensors[setting]}
+                    {presets?.activePreset?.sensors[setting] || '0'}
                   </>
                 </div>
               )}
