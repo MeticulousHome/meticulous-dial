@@ -35,7 +35,7 @@ export function useHandleGesture({
           dispatch(setScreen('pressets'));
         } else if (gesture.value === 'click') {
           dispatch(setScreen('pressetSettings'));
-        } else if (gesture.value === 'doubleClick') {
+        } else if (gesture.value === 'doubleTare') {
           dispatch(setScreen('scale'));
         }
         break;
@@ -64,7 +64,7 @@ export function useHandleGesture({
         }
         break;
       case 'scale':
-        if (gesture.value === 'doubleClick') {
+        if (gesture.value === 'doubleTare') {
           dispatch(setScreen('barometer'));
         }
         break;
