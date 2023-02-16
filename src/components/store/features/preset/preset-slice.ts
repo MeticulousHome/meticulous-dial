@@ -19,22 +19,18 @@ const initialState: GesturesState = {
   error: false
 };
 
-export const fetchPreset = createAsyncThunk(
-  'users/fetchByIdStatus',
-  async () => {
-    // throw new Error('Error');
-    const response: any = await new Promise((resolve) => {
-      setTimeout(
-        () =>
-          resolve({
-            data: MockPresets
-          }),
-        300
-      );
-    });
-    return response.data;
-  }
-);
+export const fetchPreset = createAsyncThunk('presets/fetchPreset', async () => {
+  const response: any = await new Promise((resolve) =>
+    setTimeout(
+      () =>
+        resolve({
+          data: MockPresets
+        }),
+      300
+    )
+  );
+  return response.data;
+});
 
 const presetSlice = createSlice({
   name: 'presets',
