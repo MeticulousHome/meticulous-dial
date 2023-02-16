@@ -9,8 +9,10 @@ export const MockPresets: IPreset[] = [
     sensors: {
       t: '53',
       p: '0',
-      w: '300'
-    }
+      w: '300',
+      f: '0'
+    },
+    settings: ['p', 't', 'w', 'f', 'pre_fusion']
   },
   {
     id: 2,
@@ -22,7 +24,8 @@ export const MockPresets: IPreset[] = [
       p: '0',
       w: '310',
       f: '0'
-    }
+    },
+    settings: ['p', 't', 'w', 'pre_fusion']
   },
   {
     id: 3,
@@ -34,6 +37,7 @@ export const MockPresets: IPreset[] = [
       p: '0',
       w: '320',
       f: '0'
-    }
+    },
+    settings: ['p', 't', 'w', 'f', 'pre_fusion']
   }
 ];
