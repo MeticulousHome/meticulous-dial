@@ -13,7 +13,11 @@ import {
 } from '../components/store/features/presetSetting/presetSetting-slice';
 import { setGesture } from '../components/store/features/gestures/gestures-slice';
 
-export function useHandleGesture({ presetSettingIndex }: { presetSettingIndex: number }) {
+export function useHandleGesture({
+  presetSettingIndex
+}: {
+  presetSettingIndex: number;
+}) {
   const dispatch = useContext(SockerContext);
   const { gesture, screen } = useAppSelector((state) => state);
 
