@@ -136,7 +136,9 @@ export function SettingNumerical({ type }: Props): JSX.Element {
         className={`scalesLayout ${
           screen.value === 'settingNumerical'
             ? 'settingNumericalContent__fadeIn'
-            : 'settingNumericalContent__fadeOut'
+            : screen.prev === 'settingNumerical'
+            ? 'settingNumericalContent__fadeOut'
+            : 'hidden'
         }`}
       >
         {/* <div className="title-main-1">sub-title</div> */}
@@ -157,7 +159,9 @@ export function SettingNumerical({ type }: Props): JSX.Element {
         className={`${
           screen.value === 'settingNumerical'
             ? 'settingNumerical__fadeIn'
-            : 'settingNumerical__fadeOut'
+            : screen.prev === 'settingNumerical'
+            ? 'settingNumerical__fadeOut'
+            : 'hidden'
         }`}
         width="480"
         height="480"
