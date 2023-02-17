@@ -73,7 +73,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
         setTotal(36);
         setUnit('g');
         setMaxValue(150);
-        setCustomClass('scale-weight');
+        setCustomClass('scale-weight-limit');
         break;
       case 'flow':
         setInterval(0.1);
