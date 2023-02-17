@@ -64,7 +64,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
       case 'temperature':
         setInterval(0.5);
         setTotal(20);
-        setUnit('°c');
+        setUnit('°C');
         setMaxValue(99);
         setCustomClass('scale-temp');
         break;

@@ -41,32 +41,35 @@
   height: 104px;
 }
 
-.scale-content .scale-level {
-  margin-right: 9px;
+.scale-content .scale-level { 
   font-size: 140px;
-  line-height: 96px;     
+  line-height: 96px; 
+  width: 282px;
+  text-align: right;
+  margin: 0;
 }
 
 .scale-content .scale-unit {
   flex: 1;
   font-size: 24px;
-  line-height: 186px;    
+  line-height: 186px;     
+} 
+
+.scale-pressure .scale-level {
+  margin-left: 100px;
 }
 
-.scale-pressure .scale-level,
 .scale-temp .scale-level {
-  margin-left: 84px;
-  width: 280px;
+  margin-left: 100px;
 }
 
 .scale-weight .scale-level {
-  margin-left: 100px;
-  width: 245px;
+  margin-left: 88px; 
 }
 
 .scale-flow .scale-level {
-  margin-left: 140px;
-  width: 203px;
+  margin-left: 70px;
+  margin-right: 4px; 
 }
 
 .opacity-20 {
