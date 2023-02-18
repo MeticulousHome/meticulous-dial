@@ -18,7 +18,8 @@ Barometer styles
   background-size: contain;
   position: absolute;
   left: 0;
-  top: calc(54% - 10px);
+  /*top: calc(54% - 10px);*/
+  top: calc(50% - 9px);
   right: 0;
   bottom: 0;
   width: 100%;
