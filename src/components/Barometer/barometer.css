@@ -14,7 +14,8 @@ Barometer styles
   border-radius: 999px;
 }
 .bar-needle {
-  background: url('/src/assets/images/bar-needle.svg') 86% 0 no-repeat;
+  /*background: url('/src/assets/images/bar-needle.svg') 86% 0 no-repeat;*/
+  background: url('/src/assets/images/bar-needle.svg') 82% 0 no-repeat;
   background-size: contain;
   position: absolute;
   left: 0;
@@ -23,7 +24,8 @@ Barometer styles
   right: 0;
   bottom: 0;
   width: 100%;
-  height: 17px;
+  /*height: 17px;*/
+  height: 18px;
   z-index: 2;
 }
 .bar-needle--transition-all {
