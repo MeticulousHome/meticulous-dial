@@ -8,7 +8,7 @@ Barometer styles
   display: flex;
   justify-content: center;
   /*background: url('/src/assets/images/arc.svg') center center no-repeat;*/
-  background: url('/src/assets/images/arc2.svg') center center no-repeat;
+  background: url('/src/assets/images/arc3.svg') center center no-repeat;
   /* position: relative; */
   z-index: 10;
   border-radius: 999px;
