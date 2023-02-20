@@ -29,6 +29,9 @@ const MainTitle = () => {
     } else if (screen.value === 'pressetSettings') {
       if (screen.prev === 'settingNumerical') {
         animation = 'titleBigSettingNumerical';
+      }
+      if (screen.prev === 'circleKeyboard') {
+        animation = 'titleSmallCircleKeyboard__fadeIn';
       } else {
         animation = 'title__BigTwo';
       }
@@ -39,6 +42,8 @@ const MainTitle = () => {
       screen.prev === 'pressetSettings'
     ) {
       animation = 'title__smallTwo';
+    } else if (screen.value === 'circleKeyboard') {
+      animation = 'titleBigCircleKeyboard__fadeOut';
     } else {
       animation = 'title__small';
     }
@@ -54,6 +59,7 @@ const MainTitle = () => {
           (screen.value !== 'barometer' &&
             screen.value !== 'pressets' &&
             screen.value !== 'settingNumerical' &&
+            screen.value !== 'circleKeyboard' &&
             screen.value !== 'pressetSettings') ||
           screen.prev === 'scale'
             ? 'none'

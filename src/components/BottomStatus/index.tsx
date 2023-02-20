@@ -9,6 +9,7 @@ const BottomStatus = () => {
     screen.value === 'pressets' ||
     screen.value === 'pressetSettings' ||
     screen.value === 'settingNumerical' ||
+    screen.value === 'circleKeyboard' ||
     (screen.value === 'barometer' && screen.prev === 'pressetSettings') ||
     (screen.value === 'barometer' && screen.prev === 'pressets');
 
@@ -19,8 +20,10 @@ const BottomStatus = () => {
           screen.value === 'pressetSettings' &&
           screen.prev !== 'settingNumerical'
             ? 'bottom__fadeIn'
-            : screen.value === 'barometer' &&
-              (screen.prev === 'pressetSettings' || screen.prev === 'pressets')
+            : (screen.value === 'barometer' &&
+                (screen.prev === 'pressetSettings' ||
+                  screen.prev === 'pressets')) ||
+              screen.value === 'circleKeyboard'
             ? 'bottom__fadeOut'
             : ''
         }`}
