@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useRef, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import 'swiper/swiper-bundle.min.css';
@@ -12,7 +12,7 @@ import MainTitle from './components/MainTitle';
 import { useAppSelector } from './components/store/hooks';
 /* import { PressetSettings } from './components/PressetSettings/PressetSettings'; */
 // import { TemperatureScale } from './components/TemperatureScale/TemperatureScale';
-// import { CircleKeyboard } from './components/CircleKeyboard/CircleKeyboard';
+import { CircleKeyboard } from './components/CircleKeyboard/CircleKeyboard';
 
 import { PressetSettings } from './components/PressetSettings/PressetSettings';
 import BottomStatus from './components/BottomStatus';
@@ -25,10 +25,11 @@ const App = (): JSX.Element => {
   //console.info(window.meticulous_envs.SERVER_URL());
   const { stats } = useAppSelector((state) => state);
   const [presetSettingIndex, setPresetSettingIndex] = useState<number>(-1);
+  const keyboardReady = useRef(false);
   //const [option, setOption] = useState(false); // Emulate Save or Cancel option
 
   useFetchData();
-  useHandleGesture({ presetSettingIndex });
+  useHandleGesture({ presetSettingIndex, keyboardReady });
 
   // if (error) {
   //   return <div className="main-layout">Error</div>;
@@ -69,7 +70,11 @@ const App = (): JSX.Element => {
             height: '100%'
           }}
         > */}
-      {/* <CircleKeyboard callback={() => (option = true)} /> */}
+      <CircleKeyboard
+        callback={() => {
+          keyboardReady.current = true;
+        }}
+      />
       <PressetSettings
         optionSelected={(option: number) => setPresetSettingIndex(option)}
       />

@@ -5,7 +5,8 @@ export type ScreenType =
   | 'pressets'
   | 'pressetSettings'
   | 'scale'
-  | 'settingNumerical';
+  | 'settingNumerical'
+  | 'circleKeyboard';
 
 interface ScreenState {
   value: ScreenType;
