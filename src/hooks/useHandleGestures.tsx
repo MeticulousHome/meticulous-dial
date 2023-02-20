@@ -14,14 +14,14 @@ import {
 import { setGesture } from '../components/store/features/gestures/gestures-slice';
 
 export function useHandleGesture({
-  presetSettingIndex
+  presetSettingIndex,
+  keyboardReady
 }: {
   presetSettingIndex: number;
+  keyboardReady: React.MutableRefObject<boolean>;
 }) {
   const dispatch = useContext(SockerContext);
   const { gesture, screen } = useAppSelector((state) => state);
-
-  let option = true;
 
   useEffect(() => {
     // console.log('Prev Gesture >> ', gesture.prev);
@@ -49,12 +49,12 @@ export function useHandleGesture({
         }
         break;
       case 'pressetSettings':
-        if (gesture.value === 'click' && option) {
+        if (gesture.value === 'click') {
           if (presetSettingIndex === 8 || presetSettingIndex == 9) {
-            option = false;
             dispatch(setScreen('barometer'));
+          } else if (presetSettingIndex === 2) {
+            dispatch(setScreen('circleKeyboard'));
           } else {
-            option = false;
             dispatch(setScreen('settingNumerical'));
           }
         } else if (gesture.value === 'right') {
@@ -71,6 +71,12 @@ export function useHandleGesture({
       case 'settingNumerical':
         if (gesture.value === 'click') {
           dispatch(setScreen('pressetSettings'));
+        }
+        break;
+      case 'circleKeyboard':
+        if (gesture.value === 'click' && keyboardReady.current) {
+          dispatch(setScreen('pressetSettings'));
+          keyboardReady.current = false;
         }
         break;
       default:

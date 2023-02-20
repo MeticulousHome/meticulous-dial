@@ -37,6 +37,8 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
     if (screen.value === 'pressetSettings') {
       if (screen.prev === 'settingNumerical') {
         animation = 'settingNumericalToPressetSettings__fadeIn';
+      } else if (screen.prev === 'circleKeyboard') {
+        animation = 'keyboardToPressetSettings__fadeIn';
       } else {
         animation = 'pressetSettings__fadeIn';
       }
@@ -50,6 +52,12 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
       screen.value === 'barometer'
     ) {
       animation = 'pressetSettings__fadeOut';
+    }
+    if (
+      screen.value === 'circleKeyboard' &&
+      screen.prev === 'pressetSettings'
+    ) {
+      animation = 'pressetSettingsToKeyboard__fadeOut';
     }
 
     return animation;
