@@ -22,6 +22,9 @@ export function SettingNumerical({ type }: Props): JSX.Element {
   const [customClass, setCustomClass] = useState<string>('');
 
   useEffect(() => {
+    if (screen.value !== 'settingNumerical') {
+      return;
+    }
     let mTotal;
     switch (gesture.value) {
       case 'click':
