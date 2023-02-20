@@ -47,7 +47,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
   };
 
   useEffect(() => {
-    if (screen.value !== 'pressetSettings') return;
+    if (screen.value !== 'circleKeyboard') return;
 
     if (gesture.value === 'left') {
       moveElements(false);
@@ -211,7 +211,16 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
   };
 
   return (
-    <div className="circle-keyboard-container">
+    <div
+      className={`circle-keyboard-container ${
+        screen.value === 'circleKeyboard'
+          ? 'circleKeyboard__fadeIn'
+          : screen.value === 'pressetSettings' &&
+            screen.prev === 'circleKeyboard'
+          ? 'circleKeyboard__fadeOut'
+          : 'hidden'
+      }`}
+    >
       {getMainLetter()}
       <div className="caption-content">
         <div className="circle-title">Profile Name</div>
