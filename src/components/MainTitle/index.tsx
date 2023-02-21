@@ -27,11 +27,10 @@ const MainTitle = () => {
     if (screen.value === 'pressets') {
       animation = 'title__Big';
     } else if (screen.value === 'pressetSettings') {
-      if (screen.prev === 'settingNumerical') {
-        animation = 'titleBigSettingNumerical';
-      }
       if (screen.prev === 'circleKeyboard') {
         animation = 'titleSmallCircleKeyboard__fadeIn';
+      } else if (screen.prev === 'settingNumerical') {
+        animation = 'titleBigSettingNumerical';
       } else {
         animation = 'title__BigTwo';
       }
