@@ -5,10 +5,7 @@ import {
   createAsyncThunk
 } from '@reduxjs/toolkit';
 import { IPresetSetting } from '../../../..//types';
-import {
-  generateMockSetting,
-  presetSettingOptionsMock
-} from '../../../../utils/mock';
+import { generateMockSetting } from '../../../../utils/mock';
 
 export interface PresetSettingInterface {
   activeSetting: number;

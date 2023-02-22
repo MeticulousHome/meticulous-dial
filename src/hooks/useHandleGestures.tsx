@@ -17,7 +17,7 @@ export function useHandleGesture({
   presetSettingIndex,
   keyboardReady
 }: {
-  presetSettingIndex: number;
+  presetSettingIndex: string;
   keyboardReady: React.MutableRefObject<boolean>;
 }) {
   const dispatch = useContext(SockerContext);
@@ -50,9 +50,12 @@ export function useHandleGesture({
         break;
       case 'pressetSettings':
         if (gesture.value === 'click') {
-          if (presetSettingIndex === 8 || presetSettingIndex == 9) {
+          if (
+            presetSettingIndex === 'save' ||
+            presetSettingIndex == 'discard'
+          ) {
             dispatch(setScreen('barometer'));
-          } else if (presetSettingIndex === 2) {
+          } else if (presetSettingIndex === 'name ') {
             dispatch(setScreen('circleKeyboard'));
           } else {
             dispatch(setScreen('settingNumerical'));
