@@ -38,6 +38,7 @@ export interface ISensorData {
     w: string; // Weight - grams
     f: string; // Flow - ml/s
   };
+  profile: string;
 }
 
 export interface IPreset {

@@ -47,7 +47,8 @@ const App = (): JSX.Element => {
         stats={{
           sensors: stats.sensors,
           name: stats.name,
-          time: stats.time
+          time: stats.time,
+          profile: stats.profile
         }}
       />
 
