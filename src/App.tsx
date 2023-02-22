@@ -20,11 +20,12 @@ import { useFetchData } from './hooks/useFetchData';
 import { useHandleGesture } from './hooks/useHandleGestures';
 import { SettingNumerical } from './components/SettingNumerical/SettingNumerical';
 import { PressetTitle } from './components/Pressets/PressetsTitle';
+import { IPresetType } from './types';
 
 const App = (): JSX.Element => {
   //console.info(window.meticulous_envs.SERVER_URL());
   const { stats } = useAppSelector((state) => state);
-  const [presetSettingIndex, setPresetSettingIndex] = useState<string>('');
+  const [presetSettingIndex, setPresetSettingIndex] = useState<IPresetType>('');
   const keyboardReady = useRef(false);
   //const [option, setOption] = useState(false); // Emulate Save or Cancel option
 
@@ -76,7 +77,9 @@ const App = (): JSX.Element => {
         }}
       />
       <PressetSettings
-        optionSelected={(option: string) => setPresetSettingIndex(option)}
+        optionSelected={(option: string) =>
+          setPresetSettingIndex(option as IPresetType)
+        }
       />
       {/* </div> */}
 

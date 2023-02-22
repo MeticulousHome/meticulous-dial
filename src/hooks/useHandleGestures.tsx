@@ -12,12 +12,13 @@ import {
   setPrevSettingOption
 } from '../components/store/features/presetSetting/presetSetting-slice';
 import { setGesture } from '../components/store/features/gestures/gestures-slice';
+import { IPresetType } from '../../src/types';
 
 export function useHandleGesture({
   presetSettingIndex,
   keyboardReady
 }: {
-  presetSettingIndex: string;
+  presetSettingIndex: IPresetType;
   keyboardReady: React.MutableRefObject<boolean>;
 }) {
   const dispatch = useContext(SockerContext);
@@ -55,7 +56,7 @@ export function useHandleGesture({
             presetSettingIndex == 'discard'
           ) {
             dispatch(setScreen('barometer'));
-          } else if (presetSettingIndex === 'name ') {
+          } else if (presetSettingIndex === 'name') {
             dispatch(setScreen('circleKeyboard'));
           } else {
             dispatch(setScreen('settingNumerical'));
