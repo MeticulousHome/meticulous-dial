@@ -33,85 +33,65 @@ export const MockPresets: IPreset[] = [
   }
 ];
 
-export const presetSettingOptionsMock: IPresetSetting[] = [
-  {
-    name: 'name: Filter 2.1',
-    id: 1
-  },
-  {
-    name: 'pressure',
-    id: 2
-  },
-  {
-    name: 'temperature: 86°c',
-    id: 3
-  },
-  {
-    name: 'stop weight',
-    id: 4
-  },
-  {
-    name: 'flow',
-    id: 5
-  },
-  {
-    name: 'pre-infusion',
-    id: 6
-  },
-  {
-    name: 'save',
-    id: 7
-  },
-  {
-    name: 'discard',
-    id: 8
-  }
-];
-
 export const dummyOptions = [
   {
     name: '',
-    id: -2
+    id: -2,
+    key: ''
   },
   {
     name: '',
-    id: -1
+    id: -1,
+    key: ''
   }
 ];
 
-export const generateMockSetting = (name: string) => {
+export const generateMockSetting = (name: string): IPresetSetting[] => {
   return [
     {
       name: `name: ${name}`,
-      id: 1
+      id: 1,
+      key: 'name'
     },
     {
-      name: 'pressure',
-      id: 2
+      name: 'pressure: 9 bar',
+      id: 2,
+      key: 'pressure'
     },
     {
       name: 'temperature: 86°c',
-      id: 3
+      id: 3,
+      key: 'temperature'
     },
     {
-      name: 'stop weight',
-      id: 4
+      name: 'pre-infusion: yes',
+      id: 4,
+      key: 'pre-infusion'
     },
     {
-      name: 'flow',
-      id: 5
+      name: 'ratio: 2:1',
+      id: 5,
+      key: 'ratio'
     },
     {
-      name: 'pre-infusion',
-      id: 6
+      name: 'dose: 18g',
+      id: 6,
+      key: 'dose'
+    },
+    {
+      name: 'purge: automatic',
+      id: 6,
+      key: 'purge'
     },
     {
       name: 'save',
-      id: 7
+      id: 7,
+      key: 'save'
     },
     {
       name: 'discard',
-      id: 8
+      id: 8,
+      key: 'discard'
     }
   ];
 };
