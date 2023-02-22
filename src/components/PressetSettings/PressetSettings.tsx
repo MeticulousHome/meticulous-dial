@@ -7,7 +7,7 @@ import { dummyOptions } from '../../utils/mock';
 import './pressetSettings.css';
 
 interface Props {
-  optionSelected: (option: number) => void;
+  optionSelected: (option: string) => void;
 }
 
 export function PressetSettings({ optionSelected }: Props): JSX.Element {
@@ -21,7 +21,7 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
   useEffect(() => {
     if (swiper) {
       swiper.slideTo(presetSetting.activeSetting);
-      optionSelected(presetSetting.activeSetting);
+      optionSelected(listSettings[presetSetting.activeSetting].key);
     }
   }, [presetSetting.activeSetting]);
 

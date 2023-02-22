@@ -54,4 +54,5 @@ export interface IPreset {
 export interface IPresetSetting {
   name: string;
   id: number;
+  key: string;
 }

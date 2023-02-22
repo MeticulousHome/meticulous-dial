@@ -1,11 +1,11 @@
-import { useContext, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import 'swiper/swiper-bundle.min.css';
 
 import { store } from './components/store/store';
 import { Barometer } from './components/Barometer/Barometer';
-import { SockerManager, SockerContext } from './components/store/SockerManager';
+import { SockerManager } from './components/store/SockerManager';
 import { Scale } from './components/Scale/Scale';
 import { Pressets } from './components/Pressets/Pressets';
 import MainTitle from './components/MainTitle';
@@ -24,7 +24,7 @@ import { PressetTitle } from './components/Pressets/PressetsTitle';
 const App = (): JSX.Element => {
   //console.info(window.meticulous_envs.SERVER_URL());
   const { stats } = useAppSelector((state) => state);
-  const [presetSettingIndex, setPresetSettingIndex] = useState<number>(-1);
+  const [presetSettingIndex, setPresetSettingIndex] = useState<string>('');
   const keyboardReady = useRef(false);
   //const [option, setOption] = useState(false); // Emulate Save or Cancel option
 
@@ -76,7 +76,7 @@ const App = (): JSX.Element => {
         }}
       />
       <PressetSettings
-        optionSelected={(option: number) => setPresetSettingIndex(option)}
+        optionSelected={(option: string) => setPresetSettingIndex(option)}
       />
       {/* </div> */}
 
