@@ -51,7 +51,8 @@ export interface IPreset {
   };
 }
 
-export type IPresetType = 'name'
+export type IPresetType =
+  | 'name'
   | 'pressure'
   | 'temperature'
   | 'pre-infusion'
