@@ -15,8 +15,9 @@ Barometer styles
 }
 .bar-needle {
   /*background: url('/src/assets/images/bar-needle.svg') 86% 0 no-repeat;*/
-  background: url('/src/assets/images/bar-needle.svg') 82% 0 no-repeat;
-  background-size: contain;
+  /*background: red url('/src/assets/images/bar-needle.svg') 82% 0 no-repeat;*/
+  background: url('/src/assets/images/bar-needle.svg') 81.2% 0 no-repeat;
+  /*background-size: contain;*/
   position: absolute;
   left: 0;
   /*top: calc(54% - 10px);*/
