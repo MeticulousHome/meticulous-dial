@@ -92,5 +92,5 @@ export function useHandleGesture({
     }
 
     dispatch(setGesture('')); // we need to clean the state up to receive event notification
-  }, [gesture, screen, stats]);
+  }, [gesture, screen, stats.name]);
 }
