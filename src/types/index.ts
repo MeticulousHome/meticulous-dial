@@ -8,7 +8,15 @@ export type ActionType =
   | 'Stop'
   | '';
 
-export type StageType = 'idle' | 'infusion' | 'initialize' | 'preinfusion';
+export type StageType =
+  | 'idle'
+  | 'initialize'
+  | 'preinfusion'
+  | 'infusion'
+  | 'purge'
+  | 'tare'
+  | 'home'
+  | 'heating';
 
 export type GestureType =
   | 'right'
