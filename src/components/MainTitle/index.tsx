@@ -4,7 +4,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { useAppSelector } from '../store/hooks';
 
 const MainTitle = () => {
-  const { presets, screen } = useAppSelector((state) => state);
+  const { presets, screen, stats } = useAppSelector((state) => state);
   const [animationStyle, setAnimationStyle] = useState('');
   const [swiper, setSwiper] = useState(null);
 
@@ -67,36 +67,40 @@ const MainTitle = () => {
         width: '100%'
       }}
     >
-      <Swiper
-        slidesPerView={screen.value === 'pressets' ? 2 : 1}
-        centeredSlides={true}
-        allowTouchMove={false}
-        initialSlide={0}
-        onSwiper={setSwiper}
-        onSlideChangeTransitionStart={() => {
-          setAnimationStyle('animation-bounce-left');
-        }}
-        onSlidePrevTransitionStart={() => {
-          setAnimationStyle('animation-bounce-right');
-        }}
-      >
-        {presets.value.map((preset, index) => (
-          <SwiperSlide key={`${index}-slide`}>
-            {({ isActive }) => (
-              <span
-                style={{
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden'
-                }}
-                className={isActive ? animationStyle : ''}
-              >
-                {preset.name}
-              </span>
-            )}
-          </SwiperSlide>
-        ))}
-      </Swiper>
+      {stats.name !== 'idle' ? (
+        <div>{stats.profile}</div>
+      ) : (
+        <Swiper
+          slidesPerView={screen.value === 'pressets' ? 2 : 1}
+          centeredSlides={true}
+          allowTouchMove={false}
+          initialSlide={0}
+          onSwiper={setSwiper}
+          onSlideChangeTransitionStart={() => {
+            setAnimationStyle('animation-bounce-left');
+          }}
+          onSlidePrevTransitionStart={() => {
+            setAnimationStyle('animation-bounce-right');
+          }}
+        >
+          {presets.value.map((preset, index) => (
+            <SwiperSlide key={`${index}-slide`}>
+              {({ isActive }) => (
+                <span
+                  style={{
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden'
+                  }}
+                  className={isActive ? animationStyle : ''}
+                >
+                  {preset.name}
+                </span>
+              )}
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      )}
     </div>
   );
 };

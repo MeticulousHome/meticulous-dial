@@ -24,7 +24,7 @@ import { IPresetType } from './types';
 
 const App = (): JSX.Element => {
   //console.info(window.meticulous_envs.SERVER_URL());
-  const { stats } = useAppSelector((state) => state);
+  const { stats, presets } = useAppSelector((state) => state);
   const [presetSettingIndex, setPresetSettingIndex] = useState<IPresetType>('');
   const keyboardReady = useRef(false);
   //const [option, setOption] = useState(false); // Emulate Save or Cancel option
@@ -45,9 +45,14 @@ const App = (): JSX.Element => {
       <MainTitle />
       <Barometer
         stats={{
-          sensors: stats.sensors,
+          sensors:
+            stats.name === 'idle'
+              ? presets.activePreset.sensors
+              : stats.sensors,
           name: stats.name,
-          time: stats.time
+          time: stats.name === 'idle' ? presets.activePreset.time : stats.time,
+          profile:
+            stats.name === 'idle' ? presets.activePreset.name : stats.profile
         }}
       />
 
