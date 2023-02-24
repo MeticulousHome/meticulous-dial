@@ -26,7 +26,7 @@ export function Barometer({
     stats.sensors.p,
     maxValue
   );
-  const { screen, presets } = useAppSelector((state) => state);
+  const { screen } = useAppSelector((state) => state);
 
   const getAnimation = useCallback(() => {
     let animation = 'hidden';
@@ -63,8 +63,8 @@ export function Barometer({
       ></div>
 
       {(screen.prev === 'scale' ||
-        (screen.value === 'scale' && presets.activePreset)) && (
-        <div className="main-title-selected">{presets.activePreset.name}</div>
+        (screen.value === 'scale' && stats.name)) && (
+        <div className="main-title-selected">{stats.name}</div>
       )}
 
       <div className="bar-needle__content">
