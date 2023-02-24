@@ -6,30 +6,33 @@ export const MockPresets: IPreset[] = [
     name: 'Filter 2.1',
     sensors: {
       t: '53',
-      p: '0',
+      p: '40',
       w: '300',
       f: '0'
-    }
+    },
+    time: '10'
   },
   {
     id: 2,
     name: 'Espresso',
     sensors: {
       t: '53',
-      p: '0',
+      p: '40',
       w: '310',
       f: '0'
-    }
+    },
+    time: '20'
   },
   {
     id: 3,
     name: 'Mariage Frères',
     sensors: {
       t: '53',
-      p: '0',
+      p: '50',
       w: '320',
       f: '0'
-    }
+    },
+    time: '5'
   }
 ];
 

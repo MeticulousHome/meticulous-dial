@@ -14,7 +14,17 @@ interface GesturesState {
 const initialState: GesturesState = {
   value: [],
   activePresetIndex: -1,
-  activePreset: null,
+  activePreset: {
+    id: -1,
+    name: '',
+    sensors: {
+      t: '0',
+      p: '0',
+      w: '0',
+      f: '0'
+    },
+    time: ''
+  },
   pending: false,
   error: false
 };
