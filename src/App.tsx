@@ -45,12 +45,9 @@ const App = (): JSX.Element => {
       <MainTitle />
       <Barometer
         stats={{
-          sensors:
-            stats.name === 'idle'
-              ? presets.activePreset.sensors
-              : stats.sensors,
+          sensors: stats.sensors,
           name: stats.name,
-          time: stats.name === 'idle' ? presets.activePreset.time : stats.time,
+          time: stats.time,
           profile:
             stats.name === 'idle' ? presets.activePreset.name : stats.profile
         }}
