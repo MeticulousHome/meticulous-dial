@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-import { StageType, ActionType, ISensorData } from '../../types/index';
+import { ActionType, ISensorData } from '../../types/index';
 import { useAppDispatch } from './hooks';
 import { setGesture } from './features/gestures/gestures-slice';
 import { setStats } from './features/stats/stats-slice';
