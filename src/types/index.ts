@@ -8,14 +8,7 @@ export type ActionType =
   | 'Stop'
   | '';
 
-export type StageType =
-  | 'idle'
-  | 'preinfusion'
-  | 'infusion'
-  | 'purge'
-  | 'tare'
-  | 'home'
-  | 'heating';
+export type StageType = 'idle' | 'infusion' | 'initialize' | 'preinfusion';
 
 export type GestureType =
   | 'right'
@@ -50,6 +43,7 @@ export interface IPreset {
     w: string; // Weight - grams
     f: string; // Flow - ml/s
   };
+  time: string;
 }
 
 export type IPresetType =

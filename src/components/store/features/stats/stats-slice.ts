@@ -10,7 +10,7 @@ const initialState: ISensorData = {
     t: '0'
   },
   time: '0',
-  profile: 'Filter 2.1'
+  profile: 'Filter Stats'
 };
 
 const statsSlice = createSlice({
