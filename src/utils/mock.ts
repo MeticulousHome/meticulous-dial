@@ -38,63 +38,84 @@ export const MockPresets: IPreset[] = [
 
 export const dummyOptions = [
   {
-    name: '',
+    label: '',
     id: -2,
-    key: ''
+    key: '',
+    type: ''
   },
   {
-    name: '',
+    label: '',
     id: -1,
-    key: ''
+    key: '',
+    type: ''
   }
 ];
 
 export const generateMockSetting = (name: string): IPresetSetting[] => {
   return [
     {
-      name: `name: ${name}`,
       id: 1,
-      key: 'name'
+      type: 'text',
+      key: 'name',
+      label: `name: ${name}`,
+      value: name
     },
     {
-      name: 'pressure: 9 bar',
       id: 2,
-      key: 'pressure'
+      type: 'numerical',
+      key: 'pressure',
+      label: 'pressure: 9 bar',
+      value: 9,
+      unit: 'bar'
     },
     {
-      name: 'temperature: 86°c',
       id: 3,
-      key: 'temperature'
+      type: 'numerical',
+      key: 'temperature',
+      label: 'temperature: 86°c',
+      value: 86,
+      unit: '°c'
     },
     {
-      name: 'pre-infusion: yes',
       id: 4,
-      key: 'pre-infusion'
+      type: 'on-off',
+      key: 'pre-infusion',
+      label: 'pre-infusion: yes',
+      value: 'yes'
     },
     {
-      name: 'ratio: 2:1',
       id: 5,
-      key: 'ratio'
+      type: 'multiple-option',
+      key: 'ratio',
+      label: 'ratio: 2:1',
+      value: '2:1'
     },
     {
-      name: 'dose: 18g',
       id: 6,
-      key: 'dose'
+      type: 'numerical',
+      key: 'dose',
+      label: 'dose: 18g',
+      value: 18,
+      unit: 'g'
     },
     {
-      name: 'purge: automatic',
-      id: 6,
-      key: 'purge'
-    },
-    {
-      name: 'save',
       id: 7,
-      key: 'save'
+      type: 'multiple-option',
+      key: 'purge',
+      label: 'purge: automatic',
+      value: 'automatic'
     },
     {
-      name: 'discard',
       id: 8,
-      key: 'discard'
+      type: 'action',
+      key: 'save',
+      label: 'save'
+    },
+    {
+      id: 9,
+      type: 'action',
+      key: 'discard',
+      label: 'discard'
     }
   ];
 };
