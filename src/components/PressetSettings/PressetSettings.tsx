@@ -97,7 +97,7 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
                     isActive ? `item-active` : ''
                   }`}
                 >
-                  {PresetSettingString[setting.name] || setting.name}
+                  {PresetSettingString[setting.key] || setting.label}
                 </div>
               )}
             </SwiperSlide>
