@@ -54,82 +54,106 @@ export interface IPreset {
   time: string;
 }
 
-export type IPressetSettingTextKey = 'name';
-
-export type IPresetSettingOnOffKey = 'pre-infusion';
-
-export type IPressetSettingMultipleOptionKey = 'ratio' | 'purge';
-
-export type IPressetSettingActionKey = 'save' | 'discard';
-
-export type IPresetSettingsNumericalTemperatureKey = 'temperature';
-
-export type IPresetSettingsNumericalPressureKey = 'pressure';
-
-export type IPresetSettingsNumericalDoseKey = 'dose';
-
-export interface IBasicPressetSetting {
+export interface IBasePresset {
   id: number;
   label: string;
-  value?: number | string;
 }
+export type NameKey = 'name';
 
-export interface IPressetSettingNumerical extends IBasicPressetSetting {
+export type PressureKey = 'pressure';
+
+export type TemperatureKey = 'temperature';
+
+export type DoseKey = 'dose';
+
+export type RatioKey = 'ratio';
+
+export type PurgeKey = 'purge';
+
+export type PreInfusionKey = 'pre-infusion';
+
+export type ActionKey = 'save' | 'discard';
+
+export type IPresetText = {
+  type: 'text';
+  value: string;
+};
+export type PresetName = IPresetText & { key: NameKey };
+export interface IPresetName extends IBasePresset, PresetName {}
+
+export type IPresetBaseNumerical = {
   type: 'numerical';
-}
-
-export interface IPresetSettingsNumericalTemperature
-  extends IPressetSettingNumerical {
-  key: IPresetSettingsNumericalTemperatureKey;
-  unit: '°c';
-}
-
-export interface IPresetSettingsNumericalPressure
-  extends IPressetSettingNumerical {
-  key: IPresetSettingsNumericalPressureKey;
+  value: number;
+};
+export interface IPresetNumericalPressure
+  extends IBasePresset,
+    IPresetBaseNumerical {
+  key: PressureKey;
   unit: 'bar';
 }
-
-export interface IPresetSettingsNumericalDose extends IPressetSettingNumerical {
-  key: IPresetSettingsNumericalDoseKey;
+export interface IPresetNumericalTemperature
+  extends IBasePresset,
+    IPresetBaseNumerical {
+  key: TemperatureKey;
+  unit: '°c';
+}
+export interface IPresetNumericalDose
+  extends IBasePresset,
+    IPresetBaseNumerical {
+  key: DoseKey;
   unit: 'g';
 }
-
-export interface IPressetSettingText extends IBasicPressetSetting {
-  type: 'text';
-  key: IPressetSettingTextKey;
-}
-
-export interface IPresetSettingOnOff extends IBasicPressetSetting {
-  type: 'on-off';
-  key: IPresetSettingOnOffKey;
-}
-
-export interface IPressetSettingMultipleOption extends IBasicPressetSetting {
+export type IPresetMultipleOption = {
   type: 'multiple-option';
-  key: IPressetSettingMultipleOptionKey;
-}
+  value: string;
+};
+export type PresetMultipleOptionRatio = IPresetMultipleOption & {
+  key: RatioKey;
+};
+export interface IPresetMultipleOptionRatio
+  extends IBasePresset,
+    PresetMultipleOptionRatio {}
 
-export interface IPressetSettingAction extends IBasicPressetSetting {
+export type PresetMultipleOptionPurge = IPresetMultipleOption & {
+  key: PurgeKey;
+};
+export interface IPresetMultipleOptionPurge
+  extends IBasePresset,
+    PresetMultipleOptionPurge {}
+
+export type PresetOnOff = {
+  type: 'on-off';
+  value: string;
+};
+
+export type PresetOnOffPreinfusion = PresetOnOff & { key: PreInfusionKey };
+export interface IPresetOnOffPreinfusion
+  extends IBasePresset,
+    PresetOnOffPreinfusion {}
+
+export type PresetAction = {
   type: 'action';
-  key: IPressetSettingActionKey;
-}
+  key: ActionKey;
+};
+export interface IPresetAction extends IBasePresset, PresetAction {}
 
 export type IPresetSetting =
-  | IPressetSettingText
-  | IPresetSettingsNumericalTemperature
-  | IPresetSettingsNumericalPressure
-  | IPresetSettingsNumericalDose
-  | IPresetSettingOnOff
-  | IPressetSettingMultipleOption
-  | IPressetSettingAction;
+  | IPresetName
+  | IPresetNumericalPressure
+  | IPresetNumericalTemperature
+  | IPresetNumericalDose
+  | IPresetMultipleOptionRatio
+  | IPresetMultipleOptionPurge
+  | IPresetOnOffPreinfusion
+  | IPresetAction;
 
 export type IPresetType =
-  | IPressetSettingTextKey
-  | IPresetSettingOnOffKey
-  | IPressetSettingMultipleOptionKey
-  | IPressetSettingActionKey
-  | IPresetSettingsNumericalTemperatureKey
-  | IPresetSettingsNumericalPressureKey
-  | IPresetSettingsNumericalDoseKey
+  | NameKey
+  | PressureKey
+  | TemperatureKey
+  | DoseKey
+  | RatioKey
+  | PurgeKey
+  | PreInfusionKey
+  | ActionKey
   | '';
