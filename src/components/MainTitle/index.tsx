@@ -82,17 +82,18 @@ const MainTitle = () => {
           onSlidePrevTransitionStart={() => {
             setAnimationStyle('animation-bounce-right');
           }}
+          onTransitionEnd={() => setAnimationStyle('')}
         >
           {presets.value.map((preset, index) => (
             <SwiperSlide key={`${index}-slide`}>
-              {({ isActive }) => (
+              {() => (
                 <span
                   style={{
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden'
                   }}
-                  className={isActive ? animationStyle : ''}
+                  className={animationStyle}
                 >
                   {preset.name}
                 </span>
