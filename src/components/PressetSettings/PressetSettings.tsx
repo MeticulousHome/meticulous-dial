@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useAppSelector } from '../store/hooks';
 
-import { PresetSettingString } from '../../constant/Preset';
 import { dummyOptions } from '../../utils/mock';
 import './pressetSettings.css';
 
@@ -97,7 +96,7 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
                     isActive ? `item-active` : ''
                   }`}
                 >
-                  {PresetSettingString[setting.key] || setting.label}
+                  {isActive ? setting.label : setting.key}
                 </div>
               )}
             </SwiperSlide>
