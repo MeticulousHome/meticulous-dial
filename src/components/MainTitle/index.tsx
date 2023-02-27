@@ -76,13 +76,19 @@ const MainTitle = () => {
           allowTouchMove={false}
           initialSlide={0}
           onSwiper={setSwiper}
+          onSlideChange={() => {
+            setAnimationStyle('');
+          }}
           onSlideChangeTransitionStart={() => {
-            setAnimationStyle('animation-bounce-left');
+            setTimeout(() => {
+              setAnimationStyle('animation-bounce-left');
+            }, 10);
           }}
-          onSlidePrevTransitionStart={() => {
-            setAnimationStyle('animation-bounce-right');
+          onSlidePrevTransitionStart={(e) => {
+            setTimeout(() => {
+              setAnimationStyle('animation-bounce-right');
+            }, 10);
           }}
-          onTransitionEnd={() => setAnimationStyle('')}
         >
           {presets.value.map((preset, index) => (
             <SwiperSlide key={`${index}-slide`}>
