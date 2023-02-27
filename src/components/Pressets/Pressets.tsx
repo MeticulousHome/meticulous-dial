@@ -38,13 +38,19 @@ export function Pressets(): JSX.Element {
         spaceBetween={100}
         centeredSlides={true}
         allowTouchMove={false}
-        onSlideChangeTransitionStart={(e) => {
-          setAnimationStyle('animation-bounce-left');
+        onSlideChange={() => {
+          setAnimationStyle('');
         }}
-        onSlidePrevTransitionStart={(e) => {
-          setAnimationStyle('animation-bounce-right');
+        onSlideChangeTransitionStart={() => {
+          setTimeout(() => {
+            setAnimationStyle('animation-bounce-left');
+          }, 10);
         }}
-        onTransitionEnd={() => setAnimationStyle('')}
+        onSlidePrevTransitionStart={() => {
+          setTimeout(() => {
+            setAnimationStyle('animation-bounce-right');
+          }, 10);
+        }}
         onSwiper={setSwiper}
       >
         {presets.value.map((_i, index) => (
