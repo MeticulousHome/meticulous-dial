@@ -44,12 +44,13 @@ export function Pressets(): JSX.Element {
         onSlidePrevTransitionStart={(e) => {
           setAnimationStyle('animation-bounce-right');
         }}
+        onTransitionEnd={() => setAnimationStyle('')}
         onSwiper={setSwiper}
       >
         {presets.value.map((_i, index) => (
           <SwiperSlide key={`${index}-slide`}>
-            {({ isActive }) => (
-              <div className={isActive ? animationStyle : ''}>
+            {() => (
+              <div className={animationStyle}>
                 <div className="main-layout-content ">
                   <div className="pressets-conainer">
                     <div className="presset-item presset-active">
