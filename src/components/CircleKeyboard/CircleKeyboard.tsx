@@ -1,6 +1,6 @@
 import './circle-keyboard.css';
 import '../../assets/fonts/custom/css/fontello.css';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { letters } from './Keys';
 import { useAppSelector } from '../store/hooks';
 
@@ -229,17 +229,28 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     }
   };
 
+  const getAnimation = useCallback(() => {
+    let animation = 'hidden';
+
+    if (
+      (screen.value === 'scale' && screen.prev === 'circleKeyboard') ||
+      (screen.value === 'circleKeyboard' && screen.prev === 'scale')
+    ) {
+      animation = '';
+    } else if (screen.value === 'circleKeyboard') {
+      animation = 'circleKeyboard__fadeIn';
+    } else if (
+      screen.value === 'pressetSettings' &&
+      screen.prev === 'circleKeyboard'
+    ) {
+      animation = 'circleKeyboard__fadeOut';
+    }
+
+    return animation;
+  }, [screen]);
+
   return (
-    <div
-      className={`circle-keyboard-container ${
-        screen.value === 'circleKeyboard'
-          ? 'circleKeyboard__fadeIn'
-          : screen.value === 'pressetSettings' &&
-            screen.prev === 'circleKeyboard'
-          ? 'circleKeyboard__fadeOut'
-          : 'hidden'
-      }`}
-    >
+    <div className={`circle-keyboard-container ${getAnimation()}`}>
       {getMainLetter()}
       <div className="caption-content">
         <div className="circle-title">Profile Name</div>

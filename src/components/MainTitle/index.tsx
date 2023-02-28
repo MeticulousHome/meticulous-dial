@@ -28,27 +28,47 @@ const MainTitle = () => {
   }, [screen.value]);
 
   const getAnimation = useCallback(() => {
-    let animation = '';
-    if (screen.value === 'pressets') {
+    let animation = 'hidden';
+
+    if (
+      screen.value === 'pressets' ||
+      (screen.value === 'scale' && screen.prev === 'pressets')
+    ) {
       animation = 'title__Big';
-    } else if (screen.value === 'pressetSettings') {
-      if (screen.prev === 'circleKeyboard') {
-        animation = 'titleSmallCircleKeyboard__fadeIn';
-      } else if (screen.prev === 'settingNumerical') {
-        animation = 'titleBigSettingNumerical';
-      } else {
-        animation = 'title__BigTwo';
-      }
-    } else if (screen.value === 'settingNumerical') {
+    } else if (
+      screen.value === 'pressetSettings' &&
+      screen.prev === 'circleKeyboard'
+    ) {
+      animation = 'titleSmallCircleKeyboard__fadeIn';
+    } else if (
+      screen.value === 'pressetSettings' &&
+      screen.prev === 'settingNumerical'
+    ) {
+      animation = 'titleBigSettingNumerical';
+    } else if (
+      screen.value === 'pressetSettings' ||
+      (screen.prev === 'pressetSettings' && screen.value === 'scale')
+    ) {
+      animation = 'title__BigTwo';
+    } else if (
+      screen.value === 'settingNumerical' ||
+      (screen.prev === 'settingNumerical' && screen.value === 'scale')
+    ) {
       animation = 'titleSmallSettingNumerical';
     } else if (
       screen.value === 'barometer' &&
       screen.prev === 'pressetSettings'
     ) {
       animation = 'title__smallTwo';
-    } else if (screen.value === 'circleKeyboard') {
+    } else if (
+      screen.value === 'circleKeyboard' ||
+      (screen.value === 'scale' && screen.prev === 'circleKeyboard')
+    ) {
       animation = 'titleBigCircleKeyboard__fadeOut';
-    } else {
+    } else if (
+      screen.value === 'barometer' ||
+      (screen.value === 'scale' && screen.prev === 'barometer')
+    ) {
       animation = 'title__small';
     }
 
@@ -59,16 +79,6 @@ const MainTitle = () => {
     <div
       className={`main-title-selected ${getAnimation()}`}
       style={{
-        display: `${
-          (screen.value !== 'barometer' &&
-            screen.value !== 'pressets' &&
-            screen.value !== 'settingNumerical' &&
-            screen.value !== 'circleKeyboard' &&
-            screen.value !== 'pressetSettings') ||
-          screen.prev === 'scale'
-            ? 'none'
-            : ''
-        }`,
         width: '100%'
       }}
     >

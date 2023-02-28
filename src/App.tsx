@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import 'swiper/swiper-bundle.min.css';
@@ -27,6 +27,7 @@ const App = (): JSX.Element => {
   const { stats, presets } = useAppSelector((state) => state);
   const [presetSettingIndex, setPresetSettingIndex] = useState<IPresetType>('');
   const keyboardReady = useRef(false);
+  const { screen } = useAppSelector((state) => state);
   //const [option, setOption] = useState(false); // Emulate Save or Cancel option
 
   useFetchData();
@@ -39,53 +40,64 @@ const App = (): JSX.Element => {
   //   return <div className="main-layout">Loading</div>;
   // }
 
+  const getAnimation = useCallback(() => {
+    let animation = 'barometer__fadeIn';
+
+    if (screen.value === 'scale') {
+      animation = 'barometerToScale__fadeOut';
+    }
+
+    return animation;
+  }, [screen]);
+
   return (
     <div className="main-layout">
-      <PressetTitle />
-      <MainTitle />
-      <Barometer
-        stats={{
-          sensors: stats.sensors,
-          name: stats.name,
-          time: stats.time,
-          profile:
-            stats.name === 'idle' ? presets.activePreset.name : stats.profile
-        }}
-      />
-
       <Scale />
+      <div className={`main-layout ${getAnimation()}`}>
+        <PressetTitle />
+        <MainTitle />
+        <Barometer
+          stats={{
+            sensors: stats.sensors,
+            name: stats.name,
+            time: stats.time,
+            profile:
+              stats.name === 'idle' ? presets.activePreset.name : stats.profile
+          }}
+        />
 
-      <SettingNumerical type="temperature" />
+        <SettingNumerical type="temperature" />
 
-      {/* <div
+        {/* <div
           style={{
             display: `${screen.value === 'pressets' ? 'block' : 'none'}`,
             width: '100%',
             height: '100%'
           }}
         > */}
-      <Pressets />
-      {/* </div> */}
-      {/* <div
+        <Pressets />
+        {/* </div> */}
+        {/* <div
           style={{
             display: `${screen.value === 'pressetSettings' ? 'block' : 'none'}`,
             width: '100%',
             height: '100%'
           }}
         > */}
-      <CircleKeyboard
-        callback={() => {
-          keyboardReady.current = true;
-        }}
-      />
-      <PressetSettings
-        optionSelected={(option: string) =>
-          setPresetSettingIndex(option as IPresetType)
-        }
-      />
-      {/* </div> */}
+        <CircleKeyboard
+          callback={() => {
+            keyboardReady.current = true;
+          }}
+        />
+        <PressetSettings
+          optionSelected={(option: string) =>
+            setPresetSettingIndex(option as IPresetType)
+          }
+        />
+        {/* </div> */}
 
-      <BottomStatus />
+        <BottomStatus />
+      </div>
     </div>
   );
 };
