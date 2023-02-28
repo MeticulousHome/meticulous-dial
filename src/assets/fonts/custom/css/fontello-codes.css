@@ -1,6 +1,6 @@
 
 .icon-myspace:before { content: '\e800'; } /* '' */
 .icon-ok:before { content: '\e801'; } /* '' */
-.icon-level-up:before { content: '\e802'; } /* '' */
+.icon-logout:before { content: '\e802'; } /* '' */
 .icon-up-bold:before { content: '\e803'; } /* '' */
-.icon-logout-1:before { content: '\f02d'; } /* '' */
+.icon-left:before { content: '\f177'; } /* '' */
