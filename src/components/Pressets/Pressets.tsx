@@ -41,7 +41,7 @@ export function Pressets(): JSX.Element {
         onSlideChange={() => {
           setAnimationStyle('');
         }}
-        onSlideChangeTransitionStart={() => {
+        onSlideNextTransitionStart={() => {
           setTimeout(() => {
             setAnimationStyle('animation-bounce-left');
           }, 10);
