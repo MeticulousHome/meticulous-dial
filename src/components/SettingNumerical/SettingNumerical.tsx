@@ -1,6 +1,6 @@
 import './setting-numerical.css';
 import { useReduxSelector } from '../store/store';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { roundPrecision } from '../../utils';
 
 const radius = 237;
@@ -133,17 +133,26 @@ export function SettingNumerical({ type }: Props): JSX.Element {
     return value;
   };
 
+  const getAnimation = useCallback(() => {
+    let animation = 'hidden';
+
+    if (
+      (screen.value === 'scale' && screen.prev === 'settingNumerical') ||
+      (screen.value === 'settingNumerical' && screen.prev === 'scale')
+    ) {
+      animation = '';
+    } else if (screen.value === 'settingNumerical') {
+      animation = 'settingNumericalContent__fadeIn';
+    } else if (screen.prev === 'settingNumerical') {
+      animation = 'settingNumericalContent__fadeOut';
+    }
+
+    return animation;
+  }, [screen]);
+
   return (
     <div className="gauge-container">
-      <div
-        className={`scalesLayout ${
-          screen.value === 'settingNumerical'
-            ? 'settingNumericalContent__fadeIn'
-            : screen.prev === 'settingNumerical'
-            ? 'settingNumericalContent__fadeOut'
-            : 'hidden'
-        }`}
-      >
+      <div className={`scalesLayout ${getAnimation()}`}>
         {/* <div className="title-main-1">sub-title</div> */}
         <div
           className="main-title-selected title__Big"
