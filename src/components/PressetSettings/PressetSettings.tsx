@@ -33,7 +33,12 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
   const getAnimation = useCallback(() => {
     let animation = 'hidden';
 
-    if (screen.value === 'pressetSettings') {
+    if (
+      (screen.value === 'scale' && screen.prev === 'pressetSettings') ||
+      (screen.value === 'pressetSettings' && screen.prev === 'scale')
+    ) {
+      animation = '';
+    } else if (screen.value === 'pressetSettings') {
       if (screen.prev === 'settingNumerical') {
         animation = 'settingNumericalToPressetSettings__fadeIn';
       } else if (screen.prev === 'circleKeyboard') {
