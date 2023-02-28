@@ -30,19 +30,21 @@ export function Barometer({
 
   const getAnimation = useCallback(() => {
     let animation = 'hidden';
-
-    if (screen.value === 'barometer') {
-      if (screen.prev === 'scale') {
-        animation = 'scaleToBarometer__fadeIn';
-      }
-
-      if (screen.prev == 'pressetSettings') {
-        animation = 'pressetSettingsToBarometer__fadeIn';
-      } else {
-        animation = 'barometer__fadeIn';
-      }
-    } else if (screen.value === 'scale' && screen.prev === 'barometer') {
-      animation = 'barometerToScale__fadeOut';
+    if (
+      (screen.value === 'scale' && screen.prev === 'barometer') ||
+      (screen.value === 'barometer' && screen.prev === 'scale')
+    ) {
+      animation = '';
+    } else if (
+      screen.value === 'barometer' &&
+      (screen.prev === 'pressets' || !screen.prev)
+    ) {
+      animation = 'barometer__fadeIn';
+    } else if (
+      screen.value === 'barometer' &&
+      screen.prev == 'pressetSettings'
+    ) {
+      animation = 'pressetSettingsToBarometer__fadeIn';
     } else if (
       screen.value === 'pressetSettings' &&
       screen.prev === 'barometer'
@@ -62,10 +64,10 @@ export function Barometer({
         style={{ transform: `rotate(${barNeedleRotatePosition}deg)` }}
       ></div>
 
-      {(screen.prev === 'scale' ||
+      {/* {(screen.prev === 'scale' ||
         (screen.value === 'scale' && stats.name)) && (
         <div className="main-title-selected">{stats.name}</div>
-      )}
+      )} */}
 
       <div className="bar-needle__content">
         <div className="pressure">PRESSURE</div>

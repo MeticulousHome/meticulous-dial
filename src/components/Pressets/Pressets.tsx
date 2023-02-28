@@ -1,5 +1,5 @@
 // Core modules imports are same as usual
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import {
   handleAddPresetAnimation,
@@ -29,6 +29,22 @@ export function Pressets(): JSX.Element {
       }
     }
   }, [screen.value]);
+
+  const getAnimation = useCallback(() => {
+    let animation = 'hidden';
+    if (
+      (screen.value === 'scale' && screen.prev === 'pressets') ||
+      (screen.value === 'pressets' && screen.prev === 'scale')
+    ) {
+      animation = '';
+    } else if (screen.value === 'pressets') {
+      animation = 'presset__fadeIn';
+    } else if (screen.prev === 'pressets') {
+      animation = 'presset__fadeOut';
+    }
+
+    return animation;
+  }, [screen]);
 
   return (
     <div className="preset-wrapper">
@@ -61,16 +77,9 @@ export function Pressets(): JSX.Element {
                     <div className="presset-icon">
                       <svg
                         style={{
-                          opacity: 0,
                           zIndex: 50
                         }}
-                        className={`${
-                          screen.value === 'pressets'
-                            ? 'presset__fadeIn'
-                            : screen.prev === 'pressets'
-                            ? 'presset__fadeOut'
-                            : 'hidden'
-                        }`}
+                        className={`${getAnimation()}`}
                         viewBox="0 0 206 204"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
