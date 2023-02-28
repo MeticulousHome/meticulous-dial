@@ -147,7 +147,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
       case 'backspace':
         return (
           <text key={index} y={-44} textAnchor="-120%" className="letter-space">
-            &#xe802;
+            &#xf177;
           </text>
         );
       case 'capslock':
@@ -166,7 +166,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
       case 'cancel':
         return (
           <text key={index} y={-44} textAnchor="-120%" className="letter-space">
-            &#xf02d;
+            &#xe802;
           </text>
         );
       default:
@@ -191,7 +191,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
       case 'backspace':
         return (
           <div className="main-letter-space icon-backspace-selected">
-            &#xe802;
+            &#xf177;
           </div>
         );
       case 'capslock':
@@ -206,7 +206,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
         );
       case 'cancel':
         return (
-          <div className="main-letter-space icon-cancel-selected">&#xf02d;</div>
+          <div className="main-letter-space icon-cancel-selected">&#xe802;</div>
         );
       default:
         return <div className="main-letter">{mainLetter}</div>;
