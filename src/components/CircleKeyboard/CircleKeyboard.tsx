@@ -2,14 +2,12 @@ import './circle-keyboard.css';
 import '../../assets/fonts/custom/css/fontello.css';
 import { useEffect, useState } from 'react';
 import { letters } from './Keys';
-import { useReduxSelector } from '../store/store';
 import { useAppSelector } from '../store/hooks';
 
 export function CircleKeyboard({ callback }: any): JSX.Element {
   const [rotate, setRotate] = useState<number>(208);
   const [alphabet, setAlphabet] = useState<string[]>(letters);
   const [mainLetter, setMainLetter] = useState<string>('u');
-  //const gesture = useReduxSelector((state) => state.gesture);
   const { gesture, screen } = useAppSelector((state) => state);
   const [caption, setCaption] = useState<string[]>([]);
   const [capsLockActive, setCapsLockActive] = useState<{
@@ -67,16 +65,20 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
       return;
     }
 
-    if (mainLetter === 'capslock') {
+    const goToMainScreen = () => {
       setCapsLockActive({
-        active: !capsLockActive.active,
-        keep: capsLockActive.keep ? false : capsLockActive.keep
+        active: false,
+        keep: false
       });
-      return;
-    }
+      setCaption([]);
+      callback();
+    };
 
     if (gesture.value === 'click') {
       if (caption.length === 8 && mainLetter !== 'backspace') {
+        if (mainLetter === 'ok' || mainLetter === 'cancel') {
+          goToMainScreen();
+        }
         return;
       }
 
@@ -85,7 +87,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
           setCaption(caption.concat('U+0020'));
           return;
         case 'ok':
-          callback();
+          goToMainScreen();
           return;
         case 'backspace':
           if (caption.length > 0) {
@@ -93,14 +95,15 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
           }
           return;
         case 'cancel':
-          callback();
+          goToMainScreen();
+          return;
+        case 'capslock':
+          setCapsLockActive({
+            active: !capsLockActive.active,
+            keep: capsLockActive.keep ? false : capsLockActive.keep
+          });
           return;
         default:
-          // setCaption(
-          //   caption.concat(
-          //     capsLockActive.active ? mainLetter : mainLetter.toLowerCase()
-          //   )
-          // );
           setCaption(caption.concat(mainLetter));
           if (!/^[A-Za-z]$/.test(mainLetter) && capsLockActive.active) {
             return;
