@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import {
+  handleAddPresetAnimation,
+  handleRemovePresetsAnimation
+} from '../../utils/preset';
 
 import { useAppSelector } from '../store/hooks';
 
 const MainTitle = () => {
   const { presets, screen, stats } = useAppSelector((state) => state);
-  const [animationStyle, setAnimationStyle] = useState('');
   const [swiper, setSwiper] = useState(null);
 
   const slideTo = (index: number) => swiper.slideTo(index);
@@ -18,7 +21,9 @@ const MainTitle = () => {
 
   useEffect(() => {
     if (screen.value !== 'pressets') {
-      setAnimationStyle('');
+      if (swiper) {
+        handleRemovePresetsAnimation(swiper);
+      }
     }
   }, [screen.value]);
 
@@ -76,33 +81,26 @@ const MainTitle = () => {
           allowTouchMove={false}
           initialSlide={0}
           onSwiper={setSwiper}
-          onSlideChange={() => {
-            setAnimationStyle('');
-          }}
-          onSlideNextTransitionStart={() => {
+          onSlideChange={(e) => {
+            handleRemovePresetsAnimation(e);
+
             setTimeout(() => {
-              setAnimationStyle('animation-bounce-left');
-            }, 10);
-          }}
-          onSlidePrevTransitionStart={() => {
-            setTimeout(() => {
-              setAnimationStyle('animation-bounce-right');
-            }, 10);
+              handleAddPresetAnimation(e);
+            }, 20);
           }}
         >
           {presets.value.map((preset, index) => (
             <SwiperSlide key={`${index}-slide`}>
               {() => (
-                <span
+                <div
                   style={{
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden'
                   }}
-                  className={animationStyle}
                 >
                   {preset.name}
-                </span>
+                </div>
               )}
             </SwiperSlide>
           ))}
