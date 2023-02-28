@@ -79,12 +79,12 @@ const MainTitle = () => {
           onSlideChange={() => {
             setAnimationStyle('');
           }}
-          onSlideChangeTransitionStart={() => {
+          onSlideNextTransitionStart={() => {
             setTimeout(() => {
               setAnimationStyle('animation-bounce-left');
             }, 10);
           }}
-          onSlidePrevTransitionStart={(e) => {
+          onSlidePrevTransitionStart={() => {
             setTimeout(() => {
               setAnimationStyle('animation-bounce-right');
             }, 10);
