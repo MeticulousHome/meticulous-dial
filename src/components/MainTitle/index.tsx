@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import {
   handleAddPresetAnimation,
@@ -10,6 +10,7 @@ import { useAppSelector } from '../store/hooks';
 const MainTitle = () => {
   const { presets, screen, stats } = useAppSelector((state) => state);
   const [swiper, setSwiper] = useState(null);
+  const currentAnimation = useRef('');
 
   const slideTo = (index: number) => swiper.slideTo(index);
 
@@ -30,47 +31,31 @@ const MainTitle = () => {
   const getAnimation = useCallback(() => {
     let animation = 'hidden';
 
-    if (
-      screen.value === 'pressets' ||
-      (screen.value === 'scale' && screen.prev === 'pressets')
-    ) {
+    if (screen.value === 'scale' || screen.prev === 'scale') {
+      animation = currentAnimation.current;
+    } else if (screen.value === 'barometer') {
+      if (screen.prev === 'pressetSettings') {
+        animation = 'title__smallTwo';
+      } else {
+        animation = 'title__small';
+      }
+    } else if (screen.value === 'pressetSettings') {
+      if (screen.prev === 'barometer') {
+        animation = 'title__BigTwo';
+      } else if (screen.prev === 'settingNumerical') {
+        animation = 'titleBigSettingNumerical';
+      } else if (screen.prev === 'circleKeyboard') {
+        animation = 'titleSmallCircleKeyboard__fadeIn';
+      }
+    } else if (screen.value === 'pressets') {
       animation = 'title__Big';
-    } else if (
-      screen.value === 'pressetSettings' &&
-      screen.prev === 'circleKeyboard'
-    ) {
-      animation = 'titleSmallCircleKeyboard__fadeIn';
-    } else if (
-      screen.value === 'pressetSettings' &&
-      screen.prev === 'settingNumerical'
-    ) {
-      animation = 'titleBigSettingNumerical';
-    } else if (
-      screen.value === 'pressetSettings' ||
-      (screen.prev === 'pressetSettings' && screen.value === 'scale')
-    ) {
-      animation = 'title__BigTwo';
-    } else if (
-      screen.value === 'settingNumerical' ||
-      (screen.prev === 'settingNumerical' && screen.value === 'scale')
-    ) {
+    } else if (screen.value === 'settingNumerical') {
       animation = 'titleSmallSettingNumerical';
-    } else if (
-      screen.value === 'barometer' &&
-      screen.prev === 'pressetSettings'
-    ) {
-      animation = 'title__smallTwo';
-    } else if (
-      screen.value === 'circleKeyboard' ||
-      (screen.value === 'scale' && screen.prev === 'circleKeyboard')
-    ) {
+    } else if (screen.value === 'circleKeyboard') {
       animation = 'titleBigCircleKeyboard__fadeOut';
-    } else if (
-      screen.value === 'barometer' ||
-      (screen.value === 'scale' && screen.prev === 'barometer')
-    ) {
-      animation = 'title__small';
     }
+
+    currentAnimation.current = animation;
 
     return animation;
   }, [screen]);
