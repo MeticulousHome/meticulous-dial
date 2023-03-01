@@ -16,7 +16,8 @@ Barometer styles
 .bar-needle {
   /*background: url('/src/assets/images/bar-needle.svg') 86% 0 no-repeat;*/
   /*background: red url('/src/assets/images/bar-needle.svg') 82% 0 no-repeat;*/
-  background: url('/src/assets/images/bar-needle.svg') 81.2% 0 no-repeat;
+  
+  /*background: url('/src/assets/images/bar-needle.svg') 81.2% 0 no-repeat;*/
   /*background-size: contain;*/
   position: absolute;
   left: 0;
@@ -28,6 +29,11 @@ Barometer styles
   /*height: 17px;*/
   height: 18px;
   z-index: 2;
+
+  /* update mar 1, 2023 */
+  background-image: url('/src/assets/images/bar-needle.svg');
+  background-position: 88% 0;
+  background-repeat: no-repeat;
 }
 .bar-needle--transition-all {
   transition: all .3s ease-in;
