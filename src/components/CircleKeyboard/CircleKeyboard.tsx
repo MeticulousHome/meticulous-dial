@@ -38,9 +38,9 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
 
     newAlphabet[!right ? p1 : m1] = mainLetter;
     newAlphabet[!right ? m1 : p1] = newLetter;
-    setAlphabet(newAlphabet);
 
-    setMainLetter(newLetter);
+    setAlphabet(toUpperOrLowerCase(newAlphabet) as string[]);
+    setMainLetter(toUpperOrLowerCase(newLetter) as string);
     setRotate(pmr);
   };
 
@@ -119,15 +119,31 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     }
   }, [callback, gesture]);
 
+  const toUpperOrLowerCase = (
+    cpAlphabet: string[] | string
+  ): string[] | string => {
+    if (Array.isArray(cpAlphabet)) {
+      cpAlphabet = cpAlphabet.map((c) => {
+        if (c.length > 1) {
+          return c;
+        }
+        return capsLockActive.active ? c.toUpperCase() : c.toLowerCase();
+      });
+    } else {
+      cpAlphabet =
+        cpAlphabet.length > 1
+          ? cpAlphabet
+          : capsLockActive.active
+          ? cpAlphabet.toUpperCase()
+          : cpAlphabet.toLowerCase();
+    }
+
+    return cpAlphabet;
+  };
+
   useEffect(() => {
-    let cpAlphabet = [...alphabet];
-    cpAlphabet = cpAlphabet.map((c) => {
-      if (c.length > 1) {
-        return c;
-      }
-      return capsLockActive.active ? c.toUpperCase() : c.toLowerCase();
-    });
-    setAlphabet(cpAlphabet);
+    setAlphabet(toUpperOrLowerCase([...alphabet]) as string[]);
+    setMainLetter(toUpperOrLowerCase(mainLetter) as string);
   }, [capsLockActive]);
 
   const parseCharacter = (letter: string, index: number) => {
