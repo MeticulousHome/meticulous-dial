@@ -1,13 +1,14 @@
 import './circle-keyboard.css';
 import '../../assets/fonts/custom/css/fontello.css';
 import { useCallback, useEffect, useState } from 'react';
-import { letters } from './Keys';
+
+import { DEFAULT_ALPHABET, DEFAULT_POSITION, FIRST_KEY } from './Keys';
 import { useAppSelector } from '../store/hooks';
 
 export function CircleKeyboard({ callback }: any): JSX.Element {
-  const [rotate, setRotate] = useState<number>(208);
-  const [alphabet, setAlphabet] = useState<string[]>(letters);
-  const [mainLetter, setMainLetter] = useState<string>('u');
+  const [rotate, setRotate] = useState<number>(DEFAULT_POSITION);
+  const [alphabet, setAlphabet] = useState<string[]>(DEFAULT_ALPHABET);
+  const [mainLetter, setMainLetter] = useState<string>(FIRST_KEY);
   const { gesture, screen } = useAppSelector((state) => state);
   const [caption, setCaption] = useState<string[]>([]);
   const [capsLockActive, setCapsLockActive] = useState<{
@@ -71,6 +72,9 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
         keep: false
       });
       setCaption([]);
+      setAlphabet(DEFAULT_ALPHABET);
+      setRotate(DEFAULT_POSITION);
+      setMainLetter(FIRST_KEY);
       callback();
     };
 
