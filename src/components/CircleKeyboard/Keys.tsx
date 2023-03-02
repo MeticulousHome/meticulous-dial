@@ -1,5 +1,11 @@
-export const letters = [
+export const DEFAULT_POSITION = 353;
+export const FIRST_KEY = 'a';
+export const LAST_KEY = 'cancel';
+
+export const DEFAULT_ALPHABET = [
+  ' ',
   'a',
+  ' ',
   'b',
   'c',
   'd',
@@ -19,9 +25,7 @@ export const letters = [
   'r',
   's',
   't',
-  ' ',
   'u',
-  ' ',
   'v',
   'w',
   'x',
