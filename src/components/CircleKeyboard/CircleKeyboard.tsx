@@ -11,13 +11,14 @@ import {
   JUMP_ROTATE
 } from './Keys';
 import { useAppSelector } from '../store/hooks';
+import { useDispatch } from 'react-redux';
+import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
+import { IPresetName, IPresetSetting } from '../../types';
 
 export function CircleKeyboard({ callback }: any): JSX.Element {
   const [rotate, setRotate] = useState<number>(FIRST_POSITION);
   const [alphabet, setAlphabet] = useState<string[]>(DEFAULT_ALPHABET);
   const [mainLetter, setMainLetter] = useState<string>(FIRST_KEY);
-  const { gesture, screen } = useAppSelector((state) => state);
-  const [caption, setCaption] = useState<string[]>([]);
   const [capsLockActive, setCapsLockActive] = useState<{
     active: boolean;
     keep: boolean;
@@ -25,6 +26,14 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     active: false,
     keep: false
   });
+  const { gesture, screen, presetSetting } = useAppSelector((state) => state);
+  const setting = presetSetting.updatingSettings[
+    presetSetting.activeSetting
+  ] as IPresetName;
+  const [caption, setCaption] = useState(() =>
+    setting ? setting.value.split('') : []
+  );
+  const dispatch = useDispatch();
 
   const moveElements = (right: boolean) => {
     const newAlphabet = [...alphabet];
@@ -75,6 +84,20 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     setRotate(pmr);
   };
 
+  const updateSetting = (updatedText: string) => {
+    const updatedSetting = {
+      ...setting,
+      value: updatedText
+    } as IPresetSetting;
+    dispatch(updatePresetSetting(updatedSetting));
+  };
+
+  useEffect(() => {
+    if (setting.type === 'text') {
+      setCaption(setting.value.split(''));
+    }
+  }, [setting.key, screen]);
+
   useEffect(() => {
     if (screen.value !== 'circleKeyboard') return;
 
@@ -101,7 +124,6 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
         active: false,
         keep: false
       });
-      setCaption([]);
       setAlphabet(DEFAULT_ALPHABET);
       setRotate(FIRST_POSITION);
       setMainLetter(FIRST_KEY);
@@ -110,9 +132,13 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
 
     if (gesture.value === 'click') {
       if (caption.length === 8 && mainLetter !== 'backspace') {
-        if (mainLetter === 'ok' || mainLetter === 'cancel') {
-          goToMainScreen();
+        if (mainLetter === 'ok') {
+          updateSetting(caption.join(''));
         }
+        if (mainLetter === 'cancel') {
+          setCaption(setting ? setting.value.split('') : []);
+        }
+        goToMainScreen();
         return;
       }
 
@@ -121,6 +147,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
           setCaption(caption.concat('U+0020'));
           return;
         case 'ok':
+          updateSetting(caption.join(''));
           goToMainScreen();
           return;
         case 'backspace':
@@ -148,7 +175,6 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
               active: false
             });
           }
-          return;
       }
     }
   }, [callback, gesture]);
@@ -287,7 +313,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     <div className={`circle-keyboard-container ${getAnimation()}`}>
       {getMainLetter()}
       <div className="caption-content">
-        <div className="circle-title">Name</div>
+        <div className="circle-title">{setting.label}</div>
         <div className="circle-caption">
           {caption.map((el) => {
             if (el === 'U+0020') {
