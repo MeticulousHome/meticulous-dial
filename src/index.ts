@@ -23,9 +23,7 @@ const createWindow = (): void => {
     backgroundColor: 'black',
     center: true,
     webPreferences: {
-      // preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-      contextIsolation: true,
-      nodeIntegration: true
+      preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY
     }
   };
 
@@ -52,8 +50,12 @@ const createWindow = (): void => {
   }
 };
 
-const saveFile = async (_event: IpcMainEvent, filename: string) => {
-  return await fs.writeFile(filename, 'write file using Electron');
+const saveFile = async (
+  _event: IpcMainEvent,
+  filename: string,
+  content: string
+) => {
+  return await fs.writeFile(filename, content);
 };
 
 // This method will be called when Electron has finished
