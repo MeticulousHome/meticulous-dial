@@ -52,13 +52,6 @@ const App = (): JSX.Element => {
     return animation;
   }, [screen]);
 
-  const onClick = async () => {
-    const response = await window.meticulousAPI.saveFile('test.txt');
-
-    if (response) console.log('Oops, there was an error.');
-    else console.log('The file has been saved!');
-  };
-
   return (
     <div className="main-layout">
       <Scale />
@@ -74,28 +67,8 @@ const App = (): JSX.Element => {
               stats.name === 'idle' ? presets.activePreset.name : stats.profile
           }}
         />
-        <button id="btnSave" onClick={onClick}>
-          save
-        </button>
-
         <SettingNumerical type="temperature" />
-
-        {/* <div
-          style={{
-            display: `${screen.value === 'pressets' ? 'block' : 'none'}`,
-            width: '100%',
-            height: '100%'
-          }}
-        > */}
         <Pressets />
-        {/* </div> */}
-        {/* <div
-          style={{
-            display: `${screen.value === 'pressetSettings' ? 'block' : 'none'}`,
-            width: '100%',
-            height: '100%'
-          }}
-        > */}
         <CircleKeyboard
           callback={() => {
             keyboardReady.current = true;
@@ -115,22 +88,6 @@ const App = (): JSX.Element => {
     </div>
   );
 };
-{
-  /* <Barometer stats={{ sensors, name, time }} /> */
-}
-{
-  /* <Pressets /> */
-}
-{
-  /* <PressetSettings /> */
-}
-{
-  /* <Scale /> */
-}
-{
-  /* <TemperatureScale /> */
-}
-// };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

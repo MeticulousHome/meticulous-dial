@@ -10,6 +10,7 @@ import {
 } from '../components/store/features/preset/preset-slice';
 import {
   setDefaultSettingsNewPreset,
+  savePresetSetting,
   setNextSettingOption,
   setPrevSettingOption
 } from '../components/store/features/presetSetting/presetSetting-slice';
@@ -67,10 +68,10 @@ export function useHandleGesture({
             break;
           case 'pressetSettings':
             if (gesture.value === 'click') {
-              if (
-                presetSettingIndex === 'save' ||
-                presetSettingIndex == 'discard'
-              ) {
+              if (presetSettingIndex === 'save') {
+                dispatch(savePresetSetting);
+                dispatch(setScreen('barometer'));
+              } else if (presetSettingIndex == 'discard') {
                 dispatch(setScreen('barometer'));
               } else if (presetSettingIndex === 'name') {
                 dispatch(setScreen('circleKeyboard'));
