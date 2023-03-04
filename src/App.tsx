@@ -52,6 +52,10 @@ const App = (): JSX.Element => {
     return animation;
   }, [screen]);
 
+  const onClick = () => {
+    window.meticulousAPI.saveFile('test.txt');
+  };
+
   return (
     <div className="main-layout">
       <Scale />
@@ -67,6 +71,9 @@ const App = (): JSX.Element => {
               stats.name === 'idle' ? presets.activePreset.name : stats.profile
           }}
         />
+        <button id="btnSave" onClick={onClick}>
+          save
+        </button>
 
         <SettingNumerical type="temperature" />
 

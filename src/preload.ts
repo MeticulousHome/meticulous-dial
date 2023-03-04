@@ -1,8 +1,8 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
-import { contextBridge } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
 
-contextBridge.exposeInMainWorld('meticulous_envs', {
-  SERVER_URL: () => process.env.SERVER_URL
+contextBridge.exposeInMainWorld('meticulousAPI', {
+  saveFile: (filename: string) => ipcRenderer.send('saveFile', filename)
   // we can also expose variables, not just functions
 });
