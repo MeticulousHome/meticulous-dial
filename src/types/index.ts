@@ -52,6 +52,7 @@ export interface IPreset {
     f: string; // Flow - ml/s
   };
   time: string;
+  isDefault?: boolean;
 }
 
 export interface IBasePresset {
