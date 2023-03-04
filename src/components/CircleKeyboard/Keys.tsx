@@ -1,4 +1,5 @@
-export const DEFAULT_POSITION = 353;
+export const FISRT_POSITION = 353;
+export const LAST_POSITION = 63;
 export const FIRST_KEY = 'a';
 export const LAST_KEY = 'cancel';
 
