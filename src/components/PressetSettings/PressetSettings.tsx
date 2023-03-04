@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
+import { IPresetSetting } from '../../types';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useAppSelector } from '../store/hooks';
 
-import { dummyOptions } from '../../utils/mock';
 import './pressetSettings.css';
 
 interface Props {
@@ -15,14 +15,13 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
   const [swiper, setSwiper] = useState(null);
 
   const { screen, presetSetting } = useAppSelector((state) => state);
-  const listSettings = [...dummyOptions, ...presetSetting.settings];
 
   useEffect(() => {
     if (swiper) {
       swiper.slideTo(presetSetting.activeSetting);
-      optionSelected(listSettings[presetSetting.activeSetting].key);
+      optionSelected(presetSetting.settings[presetSetting.activeSetting].key);
     }
-  }, [presetSetting.activeSetting]);
+  }, [presetSetting.activeSetting, swiper]);
 
   useEffect(() => {
     return () => {
@@ -73,6 +72,13 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
     return animation;
   }, [screen]);
 
+  const displaySetting = (setting: IPresetSetting, isActive: boolean) => {
+    if (isActive && setting.value) {
+      return `${setting.key}: ${setting.value}`;
+    }
+    return setting.key;
+  };
+
   return (
     <div className={`presset-container ${getAnimation()}`}>
       {/* <div className="presset-title title-main-2">Filter 2.1</div> */}
@@ -96,7 +102,7 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
           onSlidePrevTransitionStart={() => setAnimationStyle('animation-prev')}
           onSlideChangeTransitionEnd={() => setAnimationStyle('')}
         >
-          {listSettings.map((setting, index: number) => (
+          {presetSetting.updatingSettings.map((setting, index: number) => (
             <SwiperSlide
               className="presset-option-item"
               key={`option-${index}`}
@@ -107,7 +113,7 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
                     isActive ? `item-active` : ''
                   }`}
                 >
-                  {isActive ? setting.label : setting.key}
+                  {displaySetting(setting, isActive)}
                 </div>
               )}
             </SwiperSlide>

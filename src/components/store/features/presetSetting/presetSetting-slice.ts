@@ -6,9 +6,13 @@ import {
 } from '@reduxjs/toolkit';
 import { IPresetSetting } from '../../../..//types';
 import {
-  generateMockSetting,
   settingsDefaultNewPreset
 } from '../../../../utils/mock';
+import {
+  getPresetSettingsData,
+  setPresetSettingsData
+} from './../../../../data/presetSettings';
+import { dummyOptions } from '../../../../utils/mock';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -17,29 +21,23 @@ export interface PresetSettingInterface {
   pending: boolean;
   error: boolean;
   settings: IPresetSetting[];
+  updatingSettings: IPresetSetting[];
 }
 const initialState: PresetSettingInterface = {
-  activeSetting: 0,
+  activeSetting: 2,
   startIndex: 2,
-  endIndex: 0,
+  endIndex: getPresetSettingsData.length + 1,
   pending: false,
   error: false,
-  settings: []
+  settings: [...dummyOptions, ...getPresetSettingsData],
+  updatingSettings: [...dummyOptions, ...getPresetSettingsData]
 };
 
-export const fetchPresetSetting = createAsyncThunk(
-  'presetSetting/fetchSetting',
-  async (name?: string) => {
-    const response: any = await new Promise((resolve) =>
-      setTimeout(
-        () =>
-          resolve({
-            data: generateMockSetting(name || '')
-          }),
-        300
-      )
-    );
-    return response.data;
+export const savePresetSetting = createAsyncThunk(
+  'presetSetting/saveSetting',
+  async (presetSettings: IPresetSetting[]) => {
+    await setPresetSettingsData(presetSettings);
+    return presetSettings;
   }
 );
 
@@ -47,6 +45,14 @@ const presetSettingSlice = createSlice({
   name: 'presetSettings',
   initialState: initialState,
   reducers: {
+    updatePresetSetting: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<IPresetSetting>
+    ) => {
+      state.updatingSettings = state.updatingSettings.map((setting) =>
+        setting.id === action.payload.id ? action.payload : setting
+      );
+    },
     setActiveSetting: (
       state: Draft<typeof initialState>,
       action: PayloadAction<number>
@@ -90,14 +96,12 @@ const presetSettingSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchPresetSetting.pending, (state: PresetSettingInterface) => {
+      .addCase(savePresetSetting.pending, (state: PresetSettingInterface) => {
         state.pending = true;
         state.error = false;
-        state.settings = [];
-        state.activeSetting = 0;
       })
       .addCase(
-        fetchPresetSetting.fulfilled,
+        savePresetSetting.fulfilled,
         (
           state: PresetSettingInterface,
           action: PayloadAction<IPresetSetting[]>
@@ -109,7 +113,7 @@ const presetSettingSlice = createSlice({
           state.activeSetting = 2;
         }
       )
-      .addCase(fetchPresetSetting.rejected, (state: PresetSettingInterface) => {
+      .addCase(savePresetSetting.rejected, (state: PresetSettingInterface) => {
         state.pending = false;
         state.error = true;
         state.endIndex = 0;
@@ -119,6 +123,7 @@ const presetSettingSlice = createSlice({
 });
 
 export const {
+  updatePresetSetting,
   setActiveSetting,
   setNextSettingOption,
   setPrevSettingOption,
