@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
 import { IPreset } from '../../../../types/index';
-import presetsData from '../../../../data/presets.json';
+import { getPresetsData } from '../../../../data/presets';
 
-interface GesturesState {
+interface PresetsState {
   value: IPreset[];
   activePresetIndex: number;
   activePreset: IPreset;
@@ -11,8 +11,8 @@ interface GesturesState {
   error: boolean;
 }
 
-const initialState: GesturesState = {
-  value: presetsData,
+const initialState: PresetsState = {
+  value: getPresetsData,
   activePresetIndex: -1,
   activePreset: {
     id: -1,
@@ -33,11 +33,11 @@ const presetSlice = createSlice({
   name: 'presets',
   initialState,
   reducers: {
-    setActivePreset: (state: GesturesState, action: PayloadAction<number>) => {
+    setActivePreset: (state: PresetsState, action: PayloadAction<number>) => {
       state.activePresetIndex = action.payload;
     },
-    nextPreset: (state: GesturesState) => {
-      if (state.activePresetIndex < state.value.length) {
+    nextPreset: (state: PresetsState) => {
+      if (state.activePresetIndex < state.value.length - 1) {
         const newActivePresetIndex = state.activePresetIndex + 1;
         state.activePresetIndex = newActivePresetIndex;
         if (newActivePresetIndex < state.value.length) {
@@ -45,14 +45,14 @@ const presetSlice = createSlice({
         }
       }
     },
-    prevPreset: (state: GesturesState) => {
+    prevPreset: (state: PresetsState) => {
       if (state.activePresetIndex > 0) {
         const newActivePresetIndex = state.activePresetIndex - 1;
         state.activePresetIndex = newActivePresetIndex;
         state.activePreset = state.value[newActivePresetIndex];
       }
     },
-    setPresets: (state: GesturesState, action: PayloadAction<IPreset[]>) => {
+    setPresets: (state: PresetsState, action: PayloadAction<IPreset[]>) => {
       state.value = action.payload;
       if (action.payload[0]) {
         state.activePreset = action.payload[0];
