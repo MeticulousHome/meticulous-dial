@@ -2,11 +2,17 @@ import './circle-keyboard.css';
 import '../../assets/fonts/custom/css/fontello.css';
 import { useCallback, useEffect, useState } from 'react';
 
-import { DEFAULT_ALPHABET, DEFAULT_POSITION, FIRST_KEY } from './Keys';
+import {
+  DEFAULT_ALPHABET,
+  FISRT_POSITION,
+  FIRST_KEY,
+  LAST_POSITION,
+  LAST_KEY
+} from './Keys';
 import { useAppSelector } from '../store/hooks';
 
 export function CircleKeyboard({ callback }: any): JSX.Element {
-  const [rotate, setRotate] = useState<number>(DEFAULT_POSITION);
+  const [rotate, setRotate] = useState<number>(FISRT_POSITION);
   const [alphabet, setAlphabet] = useState<string[]>(DEFAULT_ALPHABET);
   const [mainLetter, setMainLetter] = useState<string>(FIRST_KEY);
   const { gesture, screen } = useAppSelector((state) => state);
@@ -31,6 +37,25 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     const m1 = i - 1;
 
     if (!alphabet[pm2]) {
+      newAlphabet.splice(0, 1);
+      newAlphabet.splice(-1);
+      newAlphabet.splice(!right ? 1 : -2, 1);
+
+      if (!right) {
+        newAlphabet.push(' ');
+        newAlphabet.push(LAST_KEY);
+        newAlphabet.push(' ');
+      } else {
+        newAlphabet.unshift(' ');
+        newAlphabet.unshift(FIRST_KEY);
+        newAlphabet.unshift(' ');
+      }
+
+      setAlphabet(toUpperOrLowerCase(newAlphabet) as string[]);
+      setMainLetter(
+        toUpperOrLowerCase(!right ? LAST_KEY : FIRST_KEY) as string
+      );
+      setRotate(!right ? LAST_POSITION : FISRT_POSITION);
       return;
     }
 
@@ -73,7 +98,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
       });
       setCaption([]);
       setAlphabet(DEFAULT_ALPHABET);
-      setRotate(DEFAULT_POSITION);
+      setRotate(FISRT_POSITION);
       setMainLetter(FIRST_KEY);
       callback();
     };
