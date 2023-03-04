@@ -52,8 +52,11 @@ const App = (): JSX.Element => {
     return animation;
   }, [screen]);
 
-  const onClick = () => {
-    window.meticulousAPI.saveFile('test.txt');
+  const onClick = async () => {
+    const response = await window.meticulousAPI.saveFile('test.txt');
+
+    if (response) console.log('Oops, there was an error.');
+    else console.log('The file has been saved!');
   };
 
   return (
