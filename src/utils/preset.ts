@@ -13,7 +13,7 @@ export const handleAddPresetAnimation = (swiper: Swiper) => {
   const { previousIndex, activeIndex, slides } = swiper;
 
   const animation = activeIndex > previousIndex ? 'left' : 'right';
-
+  console.log('active', activeIndex);
   swiper.slides[activeIndex]
     .querySelector('div')
     .classList.add(`animation-bounce-${animation}`);
