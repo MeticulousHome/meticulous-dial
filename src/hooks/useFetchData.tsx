@@ -1,7 +1,9 @@
 import { useContext, useEffect } from 'react';
-import { SockerContext } from '../components/store/SockerManager';
-import { useAppSelector } from '../components/store/hooks';
 import { setActivePreset } from '../components/store/features/preset/preset-slice';
+import { setSettings } from '../components/store/features/presetSetting/presetSetting-slice';
+import { useAppSelector } from '../components/store/hooks';
+import { SockerContext } from '../components/store/SockerManager';
+import { getPresetSettingsData } from '../data/presetSettings';
 
 export function useFetchData() {
   const dispatch = useContext(SockerContext);
@@ -20,4 +22,15 @@ export function useFetchData() {
       setActivePreset(defaultPresetIndex);
     }
   }, [presets]);
+
+  useEffect(() => {
+    if (presets.activePresetIndex > -1) {
+      const listSettings = getPresetSettingsData;
+      const settings = listSettings.find(
+        (presetSetting) =>
+          parseInt(presetSetting.presetId) === presets.activePreset.id
+      );
+      dispatch(setSettings(settings));
+    }
+  }, [presets.activePresetIndex]);
 }
