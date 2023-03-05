@@ -5,7 +5,9 @@ export const dummyOptions = [
     label: '',
     id: -2,
     key: '',
-    type: ''
+    type: '',
+    value: '',
+    dummyOptions: true
   },
   {
     label: '',

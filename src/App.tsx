@@ -3,23 +3,23 @@ import * as ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import 'swiper/swiper-bundle.min.css';
 
-import { store } from './components/store/store';
 import { Barometer } from './components/Barometer/Barometer';
-import { SockerManager } from './components/store/SockerManager';
-import { Scale } from './components/Scale/Scale';
-import { Pressets } from './components/Pressets/Pressets';
 import MainTitle from './components/MainTitle';
+import { Pressets } from './components/Pressets/Pressets';
+import { Scale } from './components/Scale/Scale';
 import { useAppSelector } from './components/store/hooks';
+import { SockerManager } from './components/store/SockerManager';
+import { store } from './components/store/store';
 /* import { PressetSettings } from './components/PressetSettings/PressetSettings'; */
 // import { TemperatureScale } from './components/TemperatureScale/TemperatureScale';
 import { CircleKeyboard } from './components/CircleKeyboard/CircleKeyboard';
 
-import { PressetSettings } from './components/PressetSettings/PressetSettings';
 import BottomStatus from './components/BottomStatus';
+import { PressetTitle } from './components/Pressets/PressetsTitle';
+import { PressetSettings } from './components/PressetSettings/PressetSettings';
+import { SettingNumerical } from './components/SettingNumerical/SettingNumerical';
 import { useFetchData } from './hooks/useFetchData';
 import { useHandleGesture } from './hooks/useHandleGestures';
-import { SettingNumerical } from './components/SettingNumerical/SettingNumerical';
-import { PressetTitle } from './components/Pressets/PressetsTitle';
 import { IPresetType } from './types';
 import { OnOff } from './components/OnOff/OnOff';
 import { Purge } from './components/Purge/Purge';

@@ -1,7 +1,10 @@
-import './circle-keyboard.css';
-import '../../assets/fonts/custom/css/fontello.css';
 import { useCallback, useEffect, useState } from 'react';
+import '../../assets/fonts/custom/css/fontello.css';
+import './circle-keyboard.css';
 
+import { useDispatch } from 'react-redux';
+import { IPresetName, IPresetSetting } from '../../types';
+import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
 import {
   DEFAULT_ALPHABET,
   FIRST_POSITION,
@@ -11,9 +14,7 @@ import {
   JUMP_ROTATE
 } from './Keys';
 import { useAppSelector } from '../store/hooks';
-import { useDispatch } from 'react-redux';
-import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
-import { IPresetName, IPresetSetting } from '../../types';
+
 
 export function CircleKeyboard({ callback }: any): JSX.Element {
   const [rotate, setRotate] = useState<number>(FIRST_POSITION);
@@ -27,11 +28,11 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     keep: false
   });
   const { gesture, screen, presetSetting } = useAppSelector((state) => state);
-  const setting = presetSetting.updatingSettings[
+  const setting = presetSetting?.updatingSettings.settings[
     presetSetting.activeSetting
   ] as IPresetName;
   const [caption, setCaption] = useState(() =>
-    setting ? setting.value.split('') : []
+    setting && setting.value ? setting.value.split('') : []
   );
   const dispatch = useDispatch();
 
@@ -85,6 +86,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
   };
 
   const updateSetting = (updatedText: string) => {
+    console.log('updatedText: ', updatedText);
     const updatedSetting = {
       ...setting,
       value: updatedText
@@ -93,10 +95,10 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
   };
 
   useEffect(() => {
-    if (setting.type === 'text') {
+    if (setting?.type === 'text') {
       setCaption(setting.value.split(''));
     }
-  }, [setting.key, screen]);
+  }, [setting, screen]);
 
   useEffect(() => {
     if (screen.value !== 'circleKeyboard') return;
@@ -313,7 +315,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     <div className={`circle-keyboard-container ${getAnimation()}`}>
       {getMainLetter()}
       <div className="caption-content">
-        <div className="circle-title">{setting.label}</div>
+        <div className="circle-title">{setting?.label}</div>
         <div className="circle-caption">
           {caption.map((el) => {
             if (el === 'U+0020') {
