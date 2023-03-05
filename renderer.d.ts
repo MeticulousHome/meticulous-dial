@@ -1,5 +1,5 @@
 export interface MeticulousAPI {
-  saveFile: (filename: string) => Promise<any>;
+  saveFile: (filename: string, data: string) => Promise<any>;
 }
 
 declare global {

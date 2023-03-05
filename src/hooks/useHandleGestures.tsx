@@ -1,21 +1,22 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect } from 'react';
 
-import { useAppSelector } from '../components/store/hooks';
-import { SockerContext } from '../components/store/SockerManager';
-import { setScreen } from '../components/store/features/screens/screens-slice';
+import { IPresetType } from '../../src/types';
+import { setGesture } from '../components/store/features/gestures/gestures-slice';
 import {
   addNewPreset,
   nextPreset,
   prevPreset
 } from '../components/store/features/preset/preset-slice';
 import {
+  discardSettings,
   savePresetSetting,
   setDefaultSettingsNewPreset,
   setNextSettingOption,
   setPrevSettingOption
 } from '../components/store/features/presetSetting/presetSetting-slice';
-import { setGesture } from '../components/store/features/gestures/gestures-slice';
-import { IPresetType } from '../../src/types';
+import { setScreen } from '../components/store/features/screens/screens-slice';
+import { useAppSelector } from '../components/store/hooks';
+import { SockerContext } from '../components/store/SockerManager';
 
 export function useHandleGesture({
   presetSettingIndex,
@@ -25,7 +26,9 @@ export function useHandleGesture({
   keyboardReady: React.MutableRefObject<boolean>;
 }) {
   const dispatch = useContext(SockerContext);
-  const { gesture, screen, stats, presets } = useAppSelector((state) => state);
+  const { gesture, screen, stats, presetSetting } = useAppSelector(
+    (state) => state
+  );
 
   useEffect(() => {
     // console.log('Prev Gesture >> ', gesture.prev);
@@ -69,9 +72,11 @@ export function useHandleGesture({
           case 'pressetSettings':
             if (gesture.value === 'click') {
               if (presetSettingIndex === 'save') {
-                dispatch(savePresetSetting);
+                console.log('run');
+                dispatch(savePresetSetting(presetSetting.updatingSettings));
                 dispatch(setScreen('barometer'));
               } else if (presetSettingIndex == 'discard') {
+                dispatch(discardSettings());
                 dispatch(setScreen('barometer'));
               } else if (presetSettingIndex === 'name') {
                 dispatch(setScreen('circleKeyboard'));
