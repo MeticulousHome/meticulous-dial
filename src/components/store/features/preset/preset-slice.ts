@@ -1,7 +1,7 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { IPreset } from '../../../../types/index';
 import { getPresetsData } from '../../../../data/presets';
+import { IPreset } from '../../../../types/index';
 
 interface PresetsState {
   value: IPreset[];
@@ -13,18 +13,9 @@ interface PresetsState {
 
 const initialState: PresetsState = {
   value: getPresetsData,
-  activePresetIndex: 0,
-  activePreset: {
-    id: -1,
-    name: '',
-    sensors: {
-      t: '0',
-      p: '0',
-      w: '0',
-      f: '0'
-    },
-    time: ''
-  },
+  activePresetIndex: getPresetsData.findIndex((preset) => preset.isDefault),
+  activePreset:
+    getPresetsData.find((preset) => preset.isDefault) || getPresetsData[0],
   pending: false,
   error: false
 };

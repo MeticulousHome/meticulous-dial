@@ -6,7 +6,7 @@ export const getPresetsData = presetsData;
 export const setPresetsData = async (presets: IPreset[]) => {
   const json = JSON.stringify(presets);
   const response = await window.meticulousAPI.saveFile(
-    './data/presets.json',
+    './src/data/presets.json',
     json
   );
 

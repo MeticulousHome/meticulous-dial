@@ -1,7 +1,11 @@
-import './setting-numerical.css';
-import { useReduxSelector } from '../store/store';
 import { useCallback, useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+
+import { IPresetName } from '../../types';
 import { addRightComplement, roundPrecision } from '../../utils';
+import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
+import { useReduxSelector } from '../store/store';
+import './setting-numerical.css';
 
 const radius = 237;
 const strokeWidth = 6;
@@ -15,11 +19,18 @@ interface Props {
 export function SettingNumerical({ type }: Props): JSX.Element {
   const gesture = useReduxSelector((state) => state.gesture);
   const screen = useReduxSelector((state) => state.screen);
+  const presetSetting = useReduxSelector((state) => state.presetSetting);
   const [total, setTotal] = useState<number>(0);
   const [interval, setInterval] = useState<number>(0);
   const [maxValue, setMaxValue] = useState<number>(0);
   const [unit, setUnit] = useState<string>('0');
   const [customClass, setCustomClass] = useState<string>('');
+
+  const settingTemperature = presetSetting.updatingSettings.settings.find(
+    (setting) => setting.key === 'temperature'
+  ) as IPresetName;
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (screen.value !== 'settingNumerical') {
@@ -47,6 +58,22 @@ export function SettingNumerical({ type }: Props): JSX.Element {
     }
   }, [gesture]);
 
+  useEffect(() => {
+    switch (type) {
+      case 'temperature':
+        dispatch(
+          updatePresetSetting({
+            ...settingTemperature,
+            value: total.toString()
+          })
+        );
+        break;
+
+      default:
+        break;
+    }
+  }, [type, total]);
+
   const getDashArray = (value: number) => {
     const mI = (307.2 / maxValue) * (value / 100);
     const fA = mI * 100;
@@ -66,7 +93,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
         break;
       case 'temperature':
         setInterval(0.5);
-        setTotal(20);
+        setTotal(Number(settingTemperature?.value));
         setUnit('°C');
         setMaxValue(99);
         setCustomClass('scale-temp');
@@ -88,7 +115,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
       default:
         break;
     }
-  }, [type]);
+  }, [type, presetSetting]);
 
   const getTotalString = () => {
     let toLayout = '';

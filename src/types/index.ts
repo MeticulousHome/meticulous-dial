@@ -148,6 +148,11 @@ export type IPresetSetting =
   | IPresetOnOffPreinfusion
   | IPresetAction;
 
+export interface IPresetsSettingData {
+  presetId: string;
+  settings: IPresetSetting[];
+}
+
 export type IPresetType =
   | NameKey
   | PressureKey

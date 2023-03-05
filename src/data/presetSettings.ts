@@ -1,15 +1,16 @@
-import { IPresetSetting } from './../types/index';
+import { IPresetsSettingData } from './../types/index';
 import presetSettingsData from './presetSettings.json';
 
-export const getPresetSettingsData = presetSettingsData as IPresetSetting[];
+export const getPresetSettingsData =
+  presetSettingsData as IPresetsSettingData[];
 
-export const setPresetSettingsData = async (presets: IPresetSetting[]) => {
+export const setPresetSettingsData = async (presets: IPresetsSettingData[]) => {
   const json = JSON.stringify(presets);
+
   const response = await window.meticulousAPI.saveFile(
-    './data/presetSettings.json',
+    './src/data/presetSettings.json',
     json
   );
-
   if (response) console.log('Oops, there was an error.');
   else console.log('The file has been saved!');
 };
