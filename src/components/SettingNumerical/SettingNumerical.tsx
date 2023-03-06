@@ -1,7 +1,7 @@
 import './setting-numerical.css';
 import { useReduxSelector } from '../store/store';
 import { useCallback, useEffect, useState } from 'react';
-import { roundPrecision } from '../../utils';
+import { addRightComplement, roundPrecision } from '../../utils';
 
 const radius = 237;
 const strokeWidth = 6;
@@ -124,13 +124,6 @@ export function SettingNumerical({ type }: Props): JSX.Element {
 
     pads.push(<>{toLayout}</>);
     return pads;
-  };
-
-  const addRightComplement = (value: string) => {
-    if (!value.includes('.')) {
-      value = value.concat('.0');
-    }
-    return value;
   };
 
   const getAnimation = useCallback(() => {
