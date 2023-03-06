@@ -136,11 +136,12 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
       if (caption.length === 8 && mainLetter !== 'backspace') {
         if (mainLetter === 'ok') {
           updateSetting(caption.join(''));
+          goToMainScreen();
         }
         if (mainLetter === 'cancel') {
           setCaption(setting ? setting.value.split('') : []);
+          goToMainScreen();
         }
-        goToMainScreen();
         return;
       }
 
