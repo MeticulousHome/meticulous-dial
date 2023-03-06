@@ -27,7 +27,7 @@ export interface PresetSettingInterface {
 const initialState: PresetSettingInterface = {
   activeSetting: 2,
   startIndex: 2,
-  endIndex: getPresetSettingsData.length + 1,
+  endIndex: 0,
   pending: false,
   error: false,
   settings: {
@@ -136,7 +136,7 @@ const presetSettingSlice = createSlice({
       const settings = [...dummyOptions, ...action.payload.settings];
       state.settings = { ...action.payload, settings };
       state.updatingSettings = { ...action.payload, settings };
-      state.endIndex = settings.length + 1;
+      state.endIndex = settings.length - 1;
       // reset active setting
       state.activeSetting = 2;
       return state;
