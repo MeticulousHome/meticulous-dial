@@ -5,6 +5,13 @@ export const roundPrecision = (value: number, precision: number) => {
   return Math.round(value * multiplier) / multiplier;
 };
 
+export const addRightComplement = (value: string) => {
+  if (!value.includes('.')) {
+    value = value.concat('.0');
+  }
+  return value;
+};
+
 export const formatStatValue = (value: string, padEnd: number) => {
   let fValue = 0.0;
 
