@@ -1,1 +1,36 @@
-[{"id":1,"name":"78U+002088","sensors":{"t":"53","p":"40","w":"300","f":"0"},"time":"10","isDefault":true},{"id":2,"name":"Espresso","sensors":{"t":"53","p":"40","w":"310","f":"0"},"time":"20"},{"id":3,"name":"Mariage Frères","sensors":{"t":"53","p":"50","w":"320","f":"0"},"time":"5"}]
+[
+    {
+        "id": 1,
+        "name": "78U+002a",
+        "sensors": {
+            "t": "53",
+            "p": "40",
+            "w": "300",
+            "f": "0"
+        },
+        "time": "10",
+        "isDefault": true
+    },
+    {
+        "id": 2,
+        "name": "Espresso",
+        "sensors": {
+            "t": "53",
+            "p": "40",
+            "w": "310",
+            "f": "0"
+        },
+        "time": "20"
+    },
+    {
+        "id": 3,
+        "name": "Mariage Frères",
+        "sensors": {
+            "t": "53",
+            "p": "50",
+            "w": "320",
+            "f": "0"
+        },
+        "time": "5"
+    }
+]
