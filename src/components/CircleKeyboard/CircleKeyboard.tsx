@@ -6,8 +6,9 @@ import {
   DEFAULT_ALPHABET,
   FISRT_POSITION,
   FIRST_KEY,
-  LAST_POSITION,
-  LAST_KEY
+  LAST_KEY,
+  ROTATE_VALUE,
+  JUMP_ROTATE
 } from './Keys';
 import { useAppSelector } from '../store/hooks';
 
@@ -31,7 +32,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
       return element.toLowerCase() === mainLetter.toLowerCase();
     });
     const pm2 = i + (!right ? -2 : +2);
-    const pmr = rotate + (right ? -7.25 : +7.25);
+    const pmr = rotate + (right ? -ROTATE_VALUE : +ROTATE_VALUE);
     const newLetter = alphabet[pm2];
     const p1 = i + 1;
     const m1 = i - 1;
@@ -55,7 +56,11 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
       setMainLetter(
         toUpperOrLowerCase(!right ? LAST_KEY : FIRST_KEY) as string
       );
-      setRotate(!right ? LAST_POSITION : FISRT_POSITION);
+      setRotate(
+        !right
+          ? rotate + ROTATE_VALUE * JUMP_ROTATE
+          : rotate - ROTATE_VALUE * JUMP_ROTATE
+      );
       return;
     }
 
