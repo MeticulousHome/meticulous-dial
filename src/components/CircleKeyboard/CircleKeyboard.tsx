@@ -287,7 +287,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     <div className={`circle-keyboard-container ${getAnimation()}`}>
       {getMainLetter()}
       <div className="caption-content">
-        <div className="circle-title">Profile Name</div>
+        <div className="circle-title">Name</div>
         <div className="circle-caption">
           {caption.map((el) => {
             if (el === 'U+0020') {
