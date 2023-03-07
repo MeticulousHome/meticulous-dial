@@ -15,7 +15,7 @@ export const dummyOptions = [
     key: '',
     type: ''
   }
-] as IPresetSetting[];
+] as unknown as IPresetSetting[];
 
 export const generateMockSetting = (name: string): IPresetSetting[] => {
   return [
