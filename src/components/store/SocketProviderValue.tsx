@@ -1,18 +1,18 @@
 // import { ThunkDispatch } from '@reduxjs/toolkit';
 import { useEffect } from 'react';
-// import { io, Socket } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 
-import { ActionType } from '../../types/index';
+import { ActionType, ISensorData } from '../../types/index';
 import { setGesture } from './features/gestures/gestures-slice';
 import { useAppDispatch } from './hooks';
-// import { setStats } from './features/stats/stats-slice';
+import { setStats } from './features/stats/stats-slice';
 
 interface SocketProviderValueInterface {
   sendAction: (name: ActionType) => void;
   sendPreset: (name: string) => void;
 }
 
-// const socket: Socket | null = io('http://localhost:8080');
+const socket: Socket | null = io('http://localhost:8080');
 
 export const SocketProviderValue = (): SocketProviderValueInterface => {
   const dispatch = useAppDispatch();
@@ -24,10 +24,10 @@ export const SocketProviderValue = (): SocketProviderValueInterface => {
     /* socket.on("disconnect", () => {
             //
         }); */
-    // socket.on('status', (data: ISensorData) => {
-    //   console.log('Listening: status ');
-    //   dispatch(setStats(data));
-    // });
+    socket.on('status', (data: ISensorData) => {
+      console.log('Listening: status ');
+      dispatch(setStats(data));
+    });
   }, []);
 
   // const sendAction = (name: ActionType) => {
