@@ -6,14 +6,14 @@ export const dummyOptions = [
     id: -2,
     key: '',
     type: '',
-    value: '',
-    dummyOptions: true
+    value: ''
   },
   {
     label: '',
     id: -1,
     key: '',
-    type: ''
+    type: '',
+    value: ''
   }
 ] as unknown as IPresetSetting[];
 
