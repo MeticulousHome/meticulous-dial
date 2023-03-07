@@ -1,4 +1,4 @@
-export const FISRT_POSITION = 353;
+export const FIRST_POSITION = 353;
 export const FIRST_KEY = 'a';
 export const LAST_KEY = 'cancel';
 export const ROTATE_VALUE = 7.25;

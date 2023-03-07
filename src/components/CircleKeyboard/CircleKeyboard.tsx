@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import {
   DEFAULT_ALPHABET,
-  FISRT_POSITION,
+  FIRST_POSITION,
   FIRST_KEY,
   LAST_KEY,
   ROTATE_VALUE,
@@ -13,7 +13,7 @@ import {
 import { useAppSelector } from '../store/hooks';
 
 export function CircleKeyboard({ callback }: any): JSX.Element {
-  const [rotate, setRotate] = useState<number>(FISRT_POSITION);
+  const [rotate, setRotate] = useState<number>(FIRST_POSITION);
   const [alphabet, setAlphabet] = useState<string[]>(DEFAULT_ALPHABET);
   const [mainLetter, setMainLetter] = useState<string>(FIRST_KEY);
   const { gesture, screen } = useAppSelector((state) => state);
@@ -103,7 +103,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
       });
       setCaption([]);
       setAlphabet(DEFAULT_ALPHABET);
-      setRotate(FISRT_POSITION);
+      setRotate(FIRST_POSITION);
       setMainLetter(FIRST_KEY);
       callback();
     };
