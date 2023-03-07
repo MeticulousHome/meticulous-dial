@@ -1,7 +1,8 @@
 export const FISRT_POSITION = 353;
-export const LAST_POSITION = 63;
 export const FIRST_KEY = 'a';
 export const LAST_KEY = 'cancel';
+export const ROTATE_VALUE = 7.25;
+export const JUMP_ROTATE = 9.7;
 
 export const DEFAULT_ALPHABET = [
   ' ',
