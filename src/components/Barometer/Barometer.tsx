@@ -29,7 +29,10 @@ export function Barometer({
   const { screen } = useAppSelector((state) => state);
 
   const getAnimation = useCallback(() => {
-    let animation = 'hidden';
+    let animation = '';
+
+    if (stats.name === 'idle') animation = 'hidden';
+
     if (
       (screen.value === 'scale' && screen.prev === 'barometer') ||
       (screen.value === 'barometer' && screen.prev === 'scale')
