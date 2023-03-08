@@ -79,12 +79,12 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     if (screen.value !== 'circleKeyboard') return;
 
     if (gesture.value === 'left') {
-      moveElements(false);
+      moveElements(true);
       return;
     }
 
     if (gesture.value === 'right') {
-      moveElements(true);
+      moveElements(false);
       return;
     }
 
