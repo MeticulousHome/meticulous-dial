@@ -1,11 +1,12 @@
 import Swiper from 'swiper';
 
 export const handleRemovePresetsAnimation = (swiper: Swiper) => {
-  swiper.slides.forEach((slide) => {
-    slide
-      .querySelector('div')
-      .classList.remove('animation-bounce-left', 'animation-bounce-right');
-  });
+  if (swiper && swiper.slides)
+    swiper.slides.forEach((slide) => {
+      slide
+        .querySelector('div')
+        .classList.remove('animation-bounce-left', 'animation-bounce-right');
+    });
 };
 
 export const handleAddPresetAnimation = (swiper: Swiper) => {
