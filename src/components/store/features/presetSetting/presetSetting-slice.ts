@@ -6,15 +6,11 @@ import {
 } from '@reduxjs/toolkit';
 
 import { IPresetSetting, IPresetsSettingData } from '../../../../types';
-import { getPresetsData, setPresetsData } from '../../../../data/presets';
-import { dummyOptions } from '../../../../utils/mock';
 import {
-  settingsDefaultNewPreset
+  settingsDefaultNewPreset,
+  dummyOptions
 } from '../../../../utils/mock';
-import {
-  getPresetSettingsData,
-  setPresetSettingsData
-} from './../../../../data/presetSettings';
+import { getPresetSettingsData } from '../../../../data/presetSettings';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -41,39 +37,39 @@ const initialState: PresetSettingInterface = {
   }
 };
 
+export const getPresetSettings = createAsyncThunk(
+  'presetSetting/getSettings',
+  async (presetId: string) => {
+    const presetSettingsData = await getPresetSettingsData();
+    //find preset
+    const presetSettings = JSON.parse(presetSettingsData).find(
+      (presetSetting: IPresetsSettingData) =>
+        presetSetting.presetId === presetId
+    );
+    return presetSettings;
+  }
+);
+
 export const savePresetSetting = createAsyncThunk(
   'presetSetting/saveSetting',
-  async (presetSettings: IPresetsSettingData) => {
-    const data = [...getPresetSettingsData];
-    const index = data.findIndex(
-      (preset) => preset.presetId === presetSettings.presetId
-    );
-    if (index > -1) {
-      data[index] = {
-        ...presetSettings,
-        settings: presetSettings.settings.filter((setting) => setting.id > -1)
-      };
-    }
+  async (presetSettings, { getState }) => {
+    const state = getState();
+    console.log(state);
+    // const index = origin.findIndex(
+    //   (preset) => preset.presetId === presetSettings.presetId
+    // );
+    // if (index > -1) {
+    //   data[index] = {
+    //     ...presetSettings,
+    //     settings: presetSettings.settings.filter((setting) => setting.id > -1)
+    //   };
+    // }
 
-    const presetsData = [...getPresetsData];
+    // await setPresetSettingsData(data);
+    // // await setPresetsData(presetsData);
 
-    const targetIndex = presetsData.findIndex(
-      (preset) => preset.id === parseInt(presetSettings.presetId)
-    );
-
-    if (targetIndex > -1) {
-      const newName =
-        presetSettings.settings.find((setting) => setting.key === 'name')
-          ?.value || data[targetIndex].name;
-      presetsData[targetIndex] = {
-        ...presetsData[targetIndex],
-        name: newName
-      };
-    }
-    await setPresetSettingsData(data);
-    await setPresetsData(presetsData);
-
-    return data;
+    // return data;
+    return [];
   }
 );
 
@@ -171,7 +167,37 @@ const presetSettingSlice = createSlice({
         state.error = true;
         state.endIndex = 0;
         state.activeSetting = 0;
-      });
+      })
+      .addCase(getPresetSettings.pending, (state: PresetSettingInterface) => {
+        state.pending = true;
+        state.error = false;
+      })
+      .addCase(
+        getPresetSettings.fulfilled,
+        (
+          state: PresetSettingInterface,
+          action: PayloadAction<IPresetsSettingData>
+        ) => {
+          state.pending = false;
+          state.error = false;
+          const settings = [...dummyOptions, ...action.payload.settings];
+          state.settings = { ...action.payload, settings };
+          state.updatingSettings = { ...action.payload, settings };
+          state.endIndex = settings.length - 1;
+          // reset active setting
+          state.activeSetting = 2;
+        }
+      )
+      .addCase(
+        getPresetSettings.rejected,
+        (state: PresetSettingInterface, action: any) => {
+          console.log('getPresetSettings.rejected', action);
+          state.pending = false;
+          state.error = true;
+          state.endIndex = 0;
+          state.activeSetting = 0;
+        }
+      );
   }
 });
 
