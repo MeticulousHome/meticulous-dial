@@ -72,8 +72,7 @@ export function useHandleGesture({
           case 'pressetSettings':
             if (gesture.value === 'click') {
               if (presetSettingIndex === 'save') {
-                console.log('run');
-                dispatch(savePresetSetting(presetSetting.updatingSettings));
+                dispatch(savePresetSetting());
                 dispatch(setScreen('barometer'));
               } else if (presetSettingIndex == 'discard') {
                 dispatch(discardSettings());
