@@ -4,6 +4,8 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('meticulousAPI', {
   saveFile: (filename: string, data: any) =>
-    ipcRenderer.invoke('saveFile', filename, data)
+    ipcRenderer.invoke('saveFile', filename, data),
+  getPresetData: () => ipcRenderer.invoke('getPresetData'),
+  getPresetSettingData: () => ipcRenderer.invoke('getPresetSettingData')
   // we can also expose variables, not just functions
 });

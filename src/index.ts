@@ -56,7 +56,39 @@ const saveFile = async (
   filename: string,
   content: string
 ) => {
-  return await fs.writeFile(filename, content);
+  const documentPath = app.getPath('documents');
+  const saveTo = `${documentPath}/${filename}`;
+  return await fs.writeFile(saveTo, content);
+};
+
+const getPresetData = async () => {
+  const documentPath = app.getPath('documents');
+  const presetPath = `${documentPath}/presets.json`;
+
+  //get file
+  const presetData = await fs.readFile(presetPath, 'utf-8');
+  if (presetData) return presetData;
+  else {
+    //if file doesn't exist, create it
+    const defaultData = JSON.stringify([]);
+    await fs.writeFile(presetPath, defaultData);
+    return defaultData;
+  }
+};
+
+const getPresetSettingData = async () => {
+  const documentPath = app.getPath('documents');
+  const presetPath = `${documentPath}/presetSettings.json`;
+
+  //get file
+  const presetData = await fs.readFile(presetPath, 'utf-8');
+  if (presetData) return presetData;
+  else {
+    //if file doesn't exist, create it
+    const defaultData = JSON.stringify([]);
+    await fs.writeFile(presetPath, defaultData);
+    return defaultData;
+  }
 };
 
 // This method will be called when Electron has finished
@@ -64,6 +96,8 @@ const saveFile = async (
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
   ipcMain.handle('saveFile', saveFile);
+  ipcMain.handle('getPresetData', getPresetData);
+  ipcMain.handle('getPresetSettingData', getPresetSettingData);
 
   createWindow();
 });
@@ -86,7 +120,7 @@ app.on('activate', () => {
 });
 
 app.whenReady().then(() => {
-  installExtension(REDUX_DEVTOOLS)
+  installExtension(REDUX_DEVTOOLS.id)
     .then((name) => console.log(`Added Extension:  ${name}`))
     .catch((err) => console.log('An error occurred: ', err));
 });

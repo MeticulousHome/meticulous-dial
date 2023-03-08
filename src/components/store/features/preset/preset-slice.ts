@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getPresetsData } from '../../../../data/presets';
+
 import { IPreset } from '../../../../types/index';
 
 interface PresetsState {
@@ -11,11 +11,26 @@ interface PresetsState {
   error: boolean;
 }
 
+export const getPresets = createAsyncThunk('presetData/getData', async () => {
+  const presetsData = await getPresetsData();
+
+  return JSON.parse(presetsData);
+});
+
 const initialState: PresetsState = {
-  value: getPresetsData,
-  activePresetIndex: getPresetsData.findIndex((preset) => preset.isDefault),
-  activePreset:
-    getPresetsData.find((preset) => preset.isDefault) || getPresetsData[0],
+  value: [],
+  activePresetIndex: -1,
+  activePreset: {
+    name: '',
+    sensors: {
+      f: '',
+      p: '',
+      t: '',
+      w: ''
+    },
+    id: -1,
+    time: '0'
+  },
   pending: false,
   error: false
 };
@@ -64,6 +79,28 @@ const presetSlice = createSlice({
       state.activePresetIndex = state.value.length - 1;
       state.activePreset = state.value[state.activePresetIndex];
     }
+    // setPresets: (state: PresetsState, action: PayloadAction<IPreset[]>) => {
+    //   state.value = action.payload;
+    //   if (action.payload[0]) {
+    //     state.activePreset = action.payload[0];
+    //   }
+    // }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(getPresets.pending, (state) => {
+        state.pending = true;
+      })
+      .addCase(getPresets.fulfilled, (state, action) => {
+        state.pending = false;
+        state.value = action.payload;
+        state.activePreset = action.payload[0];
+        state.activePresetIndex = 0;
+      })
+      .addCase(getPresets.rejected, (state) => {
+        state.pending = false;
+        state.error = true;
+      });
   }
 });
 
