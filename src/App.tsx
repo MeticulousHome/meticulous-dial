@@ -31,7 +31,6 @@ const App = (): JSX.Element => {
   const keyboardReady = useRef(false);
   const { screen } = useAppSelector((state) => state);
   //const [option, setOption] = useState(false); // Emulate Save or Cancel option
-
   useFetchData();
   useHandleGesture({ presetSettingIndex, keyboardReady });
 

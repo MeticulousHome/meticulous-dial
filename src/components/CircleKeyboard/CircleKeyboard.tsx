@@ -15,7 +15,6 @@ import {
 } from './Keys';
 import { useAppSelector } from '../store/hooks';
 
-
 export function CircleKeyboard({ callback }: any): JSX.Element {
   const [rotate, setRotate] = useState<number>(FIRST_POSITION);
   const [alphabet, setAlphabet] = useState<string[]>(DEFAULT_ALPHABET);

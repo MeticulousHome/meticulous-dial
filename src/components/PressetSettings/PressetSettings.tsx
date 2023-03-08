@@ -13,17 +13,30 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
   const [animationStyle, setAnimationStyle] = useState('');
   const [init, setInit] = useState(false);
   const [swiper, setSwiper] = useState(null);
-
   const { screen, presetSetting } = useAppSelector((state) => state);
 
   useEffect(() => {
     if (swiper) {
       swiper.slideTo(presetSetting.activeSetting);
+      if (
+        presetSetting.settings &&
+        presetSetting.settings?.settings.length > 0
+      ) {
+        optionSelected(
+          presetSetting.settings.settings[presetSetting.activeSetting].key
+        );
+      }
+    }
+  }, [presetSetting.activeSetting, swiper]);
+
+  useEffect(() => {
+    if (presetSetting.settings && presetSetting.settings.settings.length > 0) {
+      console.log('abc', presetSetting.settings.settings[0].key);
       optionSelected(
         presetSetting.settings.settings[presetSetting.activeSetting].key
       );
     }
-  }, [presetSetting.activeSetting, swiper]);
+  }, [presetSetting.settings]);
 
   useEffect(() => {
     return () => {
