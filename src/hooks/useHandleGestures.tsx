@@ -69,6 +69,8 @@ export function useHandleGesture({
                 dispatch(setScreen('circleKeyboard'));
               } else if (presetSettingIndex === 'pre-infusion') {
                 dispatch(setScreen('onOff'));
+              } else if (presetSettingIndex === 'purge') {
+                dispatch(setScreen('purge'));
               } else {
                 dispatch(setScreen('settingNumerical'));
               }
@@ -95,6 +97,11 @@ export function useHandleGesture({
             }
             break;
           case 'onOff':
+            if (gesture.value === 'click') {
+              dispatch(setScreen('pressetSettings'));
+            }
+            break;
+          case 'purge':
             if (gesture.value === 'click') {
               dispatch(setScreen('pressetSettings'));
             }

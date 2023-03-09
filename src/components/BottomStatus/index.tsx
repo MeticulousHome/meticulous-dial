@@ -24,7 +24,8 @@ const BottomStatus = () => {
     } else if (
       (screen.prev === 'barometer' ||
         screen.prev === 'circleKeyboard' ||
-        screen.prev === 'onOff') &&
+        screen.prev === 'onOff' ||
+        screen.prev === 'purge') &&
       (screen.value === 'pressetSettings' || screen.value === 'pressets')
     ) {
       animation = 'bottom__fadeIn';
@@ -32,7 +33,8 @@ const BottomStatus = () => {
       (screen.value === 'barometer' &&
         (screen.prev === 'pressetSettings' || screen.prev === 'pressets')) ||
       screen.value === 'circleKeyboard' ||
-      screen.value === 'onOff'
+      screen.value === 'onOff' ||
+      screen.value === 'purge'
     ) {
       animation = 'bottom__fadeOut';
     }
