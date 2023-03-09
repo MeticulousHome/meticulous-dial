@@ -44,7 +44,8 @@ const MainTitle = () => {
         animation = 'title__BigTwo';
       } else if (
         screen.prev === 'settingNumerical' ||
-        screen.prev === 'onOff'
+        screen.prev === 'onOff' ||
+        screen.prev === 'purge'
       ) {
         animation = 'titleBigSettingNumerical';
       } else if (screen.prev === 'circleKeyboard') {
@@ -54,7 +55,8 @@ const MainTitle = () => {
       animation = 'title__Big';
     } else if (
       screen.value === 'settingNumerical' ||
-      screen.value === 'onOff'
+      screen.value === 'onOff' ||
+      screen.value === 'purge'
     ) {
       animation = 'titleSmallSettingNumerical';
     } else if (screen.value === 'circleKeyboard') {

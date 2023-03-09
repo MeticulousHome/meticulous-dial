@@ -13,13 +13,17 @@ interface Props {
   activeIndex: number;
   contentAnimation: 'FadeOut' | 'FadeIn' | 'None';
   title: string;
+  extraClass?: string;
+  spaceBetween?: string | number;
 }
 
 export function MultipleOptionSlider({
   activeIndex,
   options,
   contentAnimation,
-  title
+  title,
+  extraClass,
+  spaceBetween
 }: Props): JSX.Element {
   const [swiper, setSwiper] = useState(null);
 
@@ -59,10 +63,10 @@ export function MultipleOptionSlider({
       >
         {title}
       </div>
-      <div className="options-container">
+      <div className={`options-container ${extraClass ? extraClass : ''}`}>
         <Swiper
           slidesPerView={2}
-          spaceBetween={-40}
+          spaceBetween={spaceBetween}
           centeredSlides={true}
           allowTouchMove={false}
           initialSlide={0}
