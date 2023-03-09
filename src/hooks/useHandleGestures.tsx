@@ -67,6 +67,8 @@ export function useHandleGesture({
                 dispatch(setScreen('barometer'));
               } else if (presetSettingIndex === 'name') {
                 dispatch(setScreen('circleKeyboard'));
+              } else if (presetSettingIndex === 'pre-infusion') {
+                dispatch(setScreen('onOff'));
               } else {
                 dispatch(setScreen('settingNumerical'));
               }
@@ -90,6 +92,11 @@ export function useHandleGesture({
             if (gesture.value === 'click' && keyboardReady.current) {
               dispatch(setScreen('pressetSettings'));
               keyboardReady.current = false;
+            }
+            break;
+          case 'onOff':
+            if (gesture.value === 'click') {
+              dispatch(setScreen('pressetSettings'));
             }
             break;
           default:
