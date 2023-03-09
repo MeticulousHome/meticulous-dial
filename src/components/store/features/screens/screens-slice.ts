@@ -7,7 +7,8 @@ export type ScreenType =
   | 'scale'
   | 'settingNumerical'
   | 'circleKeyboard'
-  | 'onOff';
+  | 'onOff'
+  | 'purge';
 
 interface ScreenState {
   value: ScreenType;
