@@ -1,0 +1,22 @@
+.on-off-wrapper {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.options-container{
+    font-size: 65px;
+    width: 100%;
+    text-align: center;
+    transition: all;
+    font-weight: 400;
+}
+.swiper-horizontal .swiper-slide {
+    opacity: .15;
+    transition: opacity 0.4s ease;
+}
+.swiper-horizontal .swiper-slide.swiper-slide-active {
+    opacity: 1;
+}
