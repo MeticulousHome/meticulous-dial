@@ -1,25 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  handleAddPresetAnimation,
-  handleRemovePresetsAnimation
-} from '../../utils/preset';
 
-import { Swiper, SwiperSlide } from 'swiper/react';
-
-import './onOff.css';
 import { useAppSelector } from '../store/hooks';
+import { MultipleOptionSlider } from '../shared/MultipleOptionSlider';
 
 export function OnOff(): JSX.Element {
-  const [swiper, setSwiper] = useState(null);
   const [options] = useState(['Yes', 'No']);
   const [activeIndex, setActiveIndex] = useState(0);
   const { screen, gesture } = useAppSelector((state) => state);
-
-  useEffect(() => {
-    if (swiper) {
-      swiper.slideTo(activeIndex);
-    }
-  }, [activeIndex, swiper]);
 
   useEffect(() => {
     if (screen.value === 'onOff') {
@@ -41,67 +28,26 @@ export function OnOff(): JSX.Element {
   }, [screen, gesture]);
 
   const getAnimation = useCallback(() => {
-    let animation = 'hidden';
-
     if (
       (screen.value === 'scale' && screen.prev === 'onOff') ||
       (screen.value === 'onOff' && screen.prev === 'scale')
     ) {
-      animation = '';
+      return 'None';
     } else if (screen.value === 'onOff') {
-      animation = 'onOff__fadeIn';
+      return 'FadeIn';
     } else if (screen.prev === 'onOff') {
-      animation = 'onOff__fadeOut';
+      return 'FadeOut';
     }
-
-    return animation;
   }, [screen]);
 
   return (
-    <div className={`on-off-wrapper ${getAnimation()}`}>
-      <div
-        className="main-title-selected"
-        style={{
-          fontWeight: 'bold',
-          fontSize: '35px',
-          top: 60
-        }}
-      >
-        pre-infusion
-      </div>
-      <div className="options-container">
-        <Swiper
-          slidesPerView={2}
-          spaceBetween={-40}
-          centeredSlides={true}
-          allowTouchMove={false}
-          initialSlide={0}
-          onSwiper={setSwiper}
-          onSlideChange={(e) => {
-            handleRemovePresetsAnimation(e);
-
-            setTimeout(() => {
-              handleAddPresetAnimation(e);
-            }, 20);
-          }}
-        >
-          {options.map((option, index) => (
-            <SwiperSlide key={`${index}-slide`}>
-              {() => (
-                <div
-                  style={{
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden'
-                  }}
-                >
-                  {option}
-                </div>
-              )}
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </div>
-    </div>
+    <MultipleOptionSlider
+      {...{
+        activeIndex,
+        contentAnimation: getAnimation(),
+        options,
+        title: 'pre-infusion'
+      }}
+    />
   );
 }
