@@ -11,7 +11,9 @@ import {
 } from '../../../../utils/mock';
 import {
   getPresetSettingsData,
-} from './../../../../data/presetSettings';
+  setPresetSettingsData
+} from '../../../../data/presetSettings';
+import { RootState } from '../../store';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -21,6 +23,7 @@ export interface PresetSettingInterface {
   error: boolean;
   settings: IPresetsSettingData;
   updatingSettings: IPresetsSettingData;
+  allSettings: IPresetsSettingData[];
 }
 const initialState: PresetSettingInterface = {
   activeSetting: 2,
@@ -35,42 +38,43 @@ const initialState: PresetSettingInterface = {
   updatingSettings: {
     presetId: '-1',
     settings: []
-  }
+  },
+  allSettings: []
 };
 
 export const getPresetSettings = createAsyncThunk(
   'presetSetting/getSettings',
-  async (presetId: string) => {
+  async () => {
     const presetSettingsData = await getPresetSettingsData();
     //find preset
-    const presetSettings = JSON.parse(presetSettingsData).find(
-      (presetSetting: IPresetsSettingData) =>
-        presetSetting.presetId === presetId
-    );
-    return presetSettings;
+    console.log('presetSettingsData', JSON.parse(presetSettingsData));
+    return JSON.parse(presetSettingsData);
   }
 );
 
 export const savePresetSetting = createAsyncThunk(
   'presetSetting/saveSetting',
-  async (presetSettings, { getState }) => {
-    const state = getState();
-    console.log(state);
-    // const index = origin.findIndex(
-    //   (preset) => preset.presetId === presetSettings.presetId
-    // );
-    // if (index > -1) {
-    //   data[index] = {
-    //     ...presetSettings,
-    //     settings: presetSettings.settings.filter((setting) => setting.id > -1)
-    //   };
-    // }
+  async (presetSettings: IPresetsSettingData, { getState }) => {
+    const state = getState() as RootState;
+    const presetSetting = state.presetSetting;
 
-    // await setPresetSettingsData(data);
-    // // await setPresetsData(presetsData);
+    const allSettings = [...presetSetting.allSettings];
+    const index2 = allSettings.findIndex(
+      (setting) => setting.presetId === presetSettings.presetId
+    );
+
+    if (index2 > -1) {
+      allSettings[index2] = {
+        ...presetSettings,
+        settings: presetSettings.settings.filter(
+          (setting) => setting.id !== -1 || setting.value !== '-2'
+        )
+      };
+      await setPresetSettingsData(allSettings);
+    }
 
     // return data;
-    return [];
+    return presetSettings;
   }
 );
 
@@ -129,11 +133,14 @@ const presetSettingSlice = createSlice({
     },
     setSettings(
       state: Draft<typeof initialState>,
-      action: PayloadAction<IPresetsSettingData>
+      action: PayloadAction<number>
     ) {
-      const settings = [...dummyOptions, ...action.payload.settings];
-      state.settings = { ...action.payload, settings };
-      state.updatingSettings = { ...action.payload, settings };
+      const targetSetting = state.allSettings.find(
+        (setting) => setting.presetId === action.payload.toString()
+      );
+      const settings = [...dummyOptions, ...targetSetting.settings];
+      state.settings = { ...targetSetting, settings };
+      state.updatingSettings = { ...targetSetting, settings };
       state.endIndex = settings.length - 1;
       // reset active setting
       state.activeSetting = 2;
@@ -154,21 +161,26 @@ const presetSettingSlice = createSlice({
         savePresetSetting.fulfilled,
         (
           state: PresetSettingInterface,
-          _action: PayloadAction<IPresetsSettingData[]>
+          action: PayloadAction<IPresetsSettingData>
         ) => {
           state.pending = false;
           state.error = false;
           // state.settings = action.payload;
           // state.endIndex = action.payload.length + 1;
+          state.settings = action.payload;
           state.activeSetting = 2;
         }
       )
-      .addCase(savePresetSetting.rejected, (state: PresetSettingInterface) => {
-        state.pending = false;
-        state.error = true;
-        state.endIndex = 0;
-        state.activeSetting = 0;
-      })
+      .addCase(
+        savePresetSetting.rejected,
+        (state: PresetSettingInterface, action: any) => {
+          state.pending = false;
+          state.error = true;
+          state.endIndex = 0;
+          state.activeSetting = 0;
+          console.log('savePresetSetting.rejected', action);
+        }
+      )
       .addCase(getPresetSettings.pending, (state: PresetSettingInterface) => {
         state.pending = true;
         state.error = false;
@@ -177,14 +189,11 @@ const presetSettingSlice = createSlice({
         getPresetSettings.fulfilled,
         (
           state: PresetSettingInterface,
-          action: PayloadAction<IPresetsSettingData>
+          action: PayloadAction<IPresetsSettingData[]>
         ) => {
           state.pending = false;
           state.error = false;
-          const settings = [...dummyOptions, ...action.payload.settings];
-          state.settings = { ...action.payload, settings };
-          state.updatingSettings = { ...action.payload, settings };
-          state.endIndex = settings.length - 1;
+          state.allSettings = action.payload;
           // reset active setting
           state.activeSetting = 2;
         }
