@@ -1,7 +1,8 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { getPresetsData } from '../../../../data/presets';
+import { getPresetsData, setPresetsData } from '../../../../data/presets';
 
-import { IPreset } from '../../../../types/index';
+import { IPreset, IPresetsSettingData } from '../../../../types/index';
+import { RootState } from '../../store';
 
 interface PresetsState {
   value: IPreset[];
@@ -16,6 +17,32 @@ export const getPresets = createAsyncThunk('presetData/getData', async () => {
 
   return JSON.parse(presetsData);
 });
+
+export const savePresets = createAsyncThunk(
+  'presetData/saveData',
+  async (presetSetting: IPresetsSettingData, { getState }) => {
+    const state = getState() as RootState;
+
+    const presetState = state.presets;
+    const index = presetState.value.findIndex(
+      (preset) => preset.id === Number(presetSetting.presetId)
+    );
+    const presetList = [...presetState.value];
+
+    if (
+      presetSetting.settings[2].value &&
+      typeof presetSetting.settings[2].value === 'string'
+    ) {
+      presetList[index] = {
+        ...presetList[index],
+        name: presetSetting.settings[2].value
+      };
+    }
+    await setPresetsData(presetList);
+
+    return presetList;
+  }
+);
 
 const initialState: PresetsState = {
   value: [],
@@ -100,6 +127,21 @@ const presetSlice = createSlice({
       .addCase(getPresets.rejected, (state) => {
         state.pending = false;
         state.error = true;
+      })
+      .addCase(savePresets.pending, (state) => {
+        state.pending = true;
+      })
+      .addCase(
+        savePresets.fulfilled,
+        (state, action: PayloadAction<IPreset[]>) => {
+          state.pending = false;
+          state.value = action.payload;
+        }
+      )
+      .addCase(savePresets.rejected, (state, action) => {
+        state.pending = false;
+        state.error = true;
+        console.log(action.error);
       });
   }
 });
