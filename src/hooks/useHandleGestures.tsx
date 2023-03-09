@@ -5,7 +5,8 @@ import { setGesture } from '../components/store/features/gestures/gestures-slice
 import {
   addNewPreset,
   nextPreset,
-  prevPreset
+  prevPreset,
+  savePresets
 } from '../components/store/features/preset/preset-slice';
 import {
   setDefaultSettingsNewPreset,
@@ -72,7 +73,8 @@ export function useHandleGesture({
           case 'pressetSettings':
             if (gesture.value === 'click') {
               if (presetSettingIndex === 'save') {
-                dispatch(savePresetSetting());
+                dispatch(savePresetSetting(presetSetting.updatingSettings));
+                dispatch(savePresets(presetSetting.updatingSettings));
                 dispatch(setScreen('barometer'));
               } else if (presetSettingIndex == 'discard') {
                 dispatch(discardSettings());
