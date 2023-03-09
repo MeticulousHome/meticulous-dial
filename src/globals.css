@@ -6607,7 +6607,7 @@ font-size: 20px */
     animation-duration: 1s
 }
 
-@keyframes onOffFadeIn {
+@keyframes multipleOptionContentFadeIn {
     0% { scale: 0.87; opacity: 0;}
     1% { scale: 0.8713054509368688}
     2% { scale: 0.8749816189601881}
@@ -6711,7 +6711,7 @@ font-size: 20px */
     100% { scale: 0.999782013442857; opacity: 1;}
 }
 
-@keyframes onOffFadeOut {
+@keyframes multipleOptionContentFadeOut {
     0% {
         scale: 1;
         opacity: 1;
@@ -7021,15 +7021,15 @@ font-size: 20px */
     }
 }
 
-.onOff__fadeIn {
-    animation-name: onOffFadeIn;
+.multipleOptionContent__fadeIn {
+    animation-name: multipleOptionContentFadeIn;
     animation-timing-function: linear;
     animation-fill-mode: forwards;
     animation-duration: 1s;
 }
 
-.onOff__fadeOut {
-    animation-name: onOffFadeOut;
+.multipleOptionContent__fadeOut {
+    animation-name: multipleOptionContentFadeOut;
     animation-timing-function: linear;
     animation-fill-mode: forwards;
     animation-duration: 1s;
