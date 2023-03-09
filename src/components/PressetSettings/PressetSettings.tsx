@@ -39,7 +39,7 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
     ) {
       animation = '';
     } else if (screen.value === 'pressetSettings') {
-      if (screen.prev === 'settingNumerical') {
+      if (screen.prev === 'settingNumerical' || screen.prev === 'onOff') {
         animation = 'settingNumericalToPressetSettings__fadeIn';
       } else if (screen.prev === 'circleKeyboard') {
         animation = 'keyboardToPressetSettings__fadeIn';
@@ -47,7 +47,7 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
         animation = 'pressetSettings__fadeIn';
       }
     } else if (
-      screen.value === 'settingNumerical' &&
+      (screen.value === 'settingNumerical' || screen.value === 'onOff') &&
       screen.prev === 'pressetSettings'
     ) {
       animation = 'pressetSettingsToSettingNumerical__fadeOut';
