@@ -136,7 +136,9 @@ export type PresetAction = {
   type: 'action';
   key: ActionKey;
 };
-export interface IPresetAction extends IBasePresset, PresetAction {}
+export interface IPresetAction extends IBasePresset, PresetAction {
+  value?: string;
+}
 
 export type IPresetSetting =
   | IPresetName
