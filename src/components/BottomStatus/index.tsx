@@ -22,14 +22,17 @@ const BottomStatus = () => {
     ) {
       animation = '';
     } else if (
-      (screen.prev === 'barometer' || screen.prev === 'circleKeyboard') &&
+      (screen.prev === 'barometer' ||
+        screen.prev === 'circleKeyboard' ||
+        screen.prev === 'onOff') &&
       (screen.value === 'pressetSettings' || screen.value === 'pressets')
     ) {
       animation = 'bottom__fadeIn';
     } else if (
       (screen.value === 'barometer' &&
         (screen.prev === 'pressetSettings' || screen.prev === 'pressets')) ||
-      screen.value === 'circleKeyboard'
+      screen.value === 'circleKeyboard' ||
+      screen.value === 'onOff'
     ) {
       animation = 'bottom__fadeOut';
     }

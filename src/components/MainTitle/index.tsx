@@ -42,14 +42,20 @@ const MainTitle = () => {
     } else if (screen.value === 'pressetSettings') {
       if (screen.prev === 'barometer') {
         animation = 'title__BigTwo';
-      } else if (screen.prev === 'settingNumerical') {
+      } else if (
+        screen.prev === 'settingNumerical' ||
+        screen.prev === 'onOff'
+      ) {
         animation = 'titleBigSettingNumerical';
       } else if (screen.prev === 'circleKeyboard') {
         animation = 'titleSmallCircleKeyboard__fadeIn';
       }
     } else if (screen.value === 'pressets') {
       animation = 'title__Big';
-    } else if (screen.value === 'settingNumerical') {
+    } else if (
+      screen.value === 'settingNumerical' ||
+      screen.value === 'onOff'
+    ) {
       animation = 'titleSmallSettingNumerical';
     } else if (screen.value === 'circleKeyboard') {
       animation = 'titleBigCircleKeyboard__fadeOut';
