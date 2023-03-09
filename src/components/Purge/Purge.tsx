@@ -3,13 +3,15 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAppSelector } from '../store/hooks';
 import { MultipleOptionSlider } from '../shared/MultipleOptionSlider';
 
-export function OnOff(): JSX.Element {
-  const [options] = useState(['Yes', 'No']);
+import './purge.css';
+
+export function Purge(): JSX.Element {
+  const [options] = useState(['Automatic', 'Manual']);
   const [activeIndex, setActiveIndex] = useState(0);
   const { screen, gesture } = useAppSelector((state) => state);
 
   useEffect(() => {
-    if (screen.value === 'onOff') {
+    if (screen.value === 'purge') {
       switch (gesture.value) {
         case 'right':
           if (activeIndex < options.length - 1) {
@@ -29,13 +31,13 @@ export function OnOff(): JSX.Element {
 
   const getAnimation = useCallback(() => {
     if (
-      (screen.value === 'scale' && screen.prev === 'onOff') ||
-      (screen.value === 'onOff' && screen.prev === 'scale')
+      (screen.value === 'scale' && screen.prev === 'purge') ||
+      (screen.value === 'purge' && screen.prev === 'scale')
     ) {
       return 'None';
-    } else if (screen.value === 'onOff') {
+    } else if (screen.value === 'purge') {
       return 'FadeIn';
-    } else if (screen.prev === 'onOff') {
+    } else if (screen.prev === 'purge') {
       return 'FadeOut';
     }
   }, [screen]);
@@ -46,8 +48,8 @@ export function OnOff(): JSX.Element {
         activeIndex,
         contentAnimation: getAnimation(),
         options,
-        title: 'pre-infusion',
-        spaceBetween: -40
+        title: 'purge',
+        extraClass: 'options--font-50'
       }}
     />
   );

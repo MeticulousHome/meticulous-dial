@@ -22,6 +22,7 @@ import { SettingNumerical } from './components/SettingNumerical/SettingNumerical
 import { PressetTitle } from './components/Pressets/PressetsTitle';
 import { IPresetType } from './types';
 import { OnOff } from './components/OnOff/OnOff';
+import { Purge } from './components/Purge/Purge';
 
 const App = (): JSX.Element => {
   //console.info(window.meticulous_envs.SERVER_URL());
@@ -97,6 +98,7 @@ const App = (): JSX.Element => {
         />
         {/* </div> */}
         <OnOff />
+        <Purge />
 
         <BottomStatus />
       </div>
