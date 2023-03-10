@@ -17,7 +17,8 @@ export function Pressets(): JSX.Element {
   const slideTo = (index: number) => swiper.slideTo(index);
 
   useEffect(() => {
-    if (presets.activePresetIndex > -1 && swiper) {
+    console.log('Preset >> ', presets);
+    if (presets.activePresetIndex > -1 && presets.value.length > 0 && swiper) {
       slideTo(presets.activePresetIndex);
     }
   }, [presets, swiper]);
