@@ -58,14 +58,16 @@ const saveFile = async (
   filename: string,
   content: string
 ) => {
-  const documentPath = app.getPath('documents');
-  const saveTo = `${documentPath}/${filename}`;
-  return await fs.writeFile(saveTo, content);
+  // const path = app.getPath('userData');
+  const path = './';
+  const presetPath = `${path}/${filename}`;
+  return await fs.writeFile(presetPath, content);
 };
 
 const getPresetData = async () => {
-  const documentPath = app.getPath('documents');
-  const presetPath = `${documentPath}/presets.json`;
+  // const path = app.getPath ("userData");
+  const path = './';
+  const presetPath = `${path}/presets.json`;
 
   //get file
   try {
@@ -79,8 +81,8 @@ const getPresetData = async () => {
 };
 
 const getPresetSettingData = async () => {
-  const documentPath = app.getPath('documents');
-  const presetPath = `${documentPath}/presetSettings.json`;
+  const path = './';
+  const presetPath = `${path}/presetSettings.json`;
 
   try {
     //get file
