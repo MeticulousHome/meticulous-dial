@@ -66,10 +66,10 @@ const getPresetData = async () => {
   const presetPath = `${documentPath}/presets.json`;
 
   //get file
-  const presetData = await fs.readFile(presetPath, 'utf-8');
-  if (presetData) return presetData;
-  else {
-    //if file doesn't exist, create it
+  try {
+    const presetData = await fs.readFile(presetPath, 'utf-8');
+    if (presetData) return presetData;
+  } catch (error) {
     const defaultData = JSON.stringify([]);
     await fs.writeFile(presetPath, defaultData);
     return defaultData;
@@ -80,11 +80,14 @@ const getPresetSettingData = async () => {
   const documentPath = app.getPath('documents');
   const presetPath = `${documentPath}/presetSettings.json`;
 
-  //get file
-  const presetData = await fs.readFile(presetPath, 'utf-8');
-  if (presetData) return presetData;
-  else {
-    //if file doesn't exist, create it
+  try {
+    //get file
+    const presetData = await fs.readFile(presetPath, 'utf-8');
+    if (presetData) return presetData;
+    else {
+      //if file doesn't exist, create it
+    }
+  } catch (error) {
     const defaultData = JSON.stringify([]);
     await fs.writeFile(presetPath, defaultData);
     return defaultData;
