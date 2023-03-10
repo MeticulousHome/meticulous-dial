@@ -44,6 +44,62 @@ export const savePresets = createAsyncThunk(
   }
 );
 
+export const setNextPreset = createAsyncThunk(
+  'presetData/setNextPreset',
+  async (_, { getState }) => {
+    const state = getState() as RootState;
+    const presetState = { ...state.presets } as PresetsState;
+    const index = presetState.activePresetIndex;
+    if (index < presetState.value.length - 1) {
+      const newActivePresetIndex = index + 1;
+
+      const presetList = [...presetState.value].map((i) => {
+        return {
+          ...i,
+          isDefault: false
+        };
+      });
+
+      presetList[newActivePresetIndex] = {
+        ...presetList[newActivePresetIndex],
+        isDefault: true
+      };
+      presetState.activePresetIndex = newActivePresetIndex;
+      presetState.activePreset = presetList[newActivePresetIndex];
+      await setPresetsData(presetList);
+    }
+    return presetState;
+  }
+);
+
+export const setPrevPreset = createAsyncThunk(
+  'presetData/setPrevPreset',
+  async (_, { getState }) => {
+    const state = getState() as RootState;
+    const presetState = { ...state.presets } as PresetsState;
+    const index = presetState.activePresetIndex;
+    if (index > 0) {
+      const newActivePresetIndex = index - 1;
+
+      const presetList = [...presetState.value].map((i) => {
+        return {
+          ...i,
+          isDefault: false
+        };
+      });
+
+      presetList[newActivePresetIndex] = {
+        ...presetList[newActivePresetIndex],
+        isDefault: true
+      };
+      presetState.activePresetIndex = newActivePresetIndex;
+      presetState.activePreset = presetList[newActivePresetIndex];
+      await setPresetsData(presetList);
+    }
+    return presetState;
+  }
+);
+
 const initialState: PresetsState = {
   value: [],
   activePresetIndex: -1,
@@ -69,22 +125,6 @@ const presetSlice = createSlice({
     setActivePreset: (state: PresetsState, action: PayloadAction<number>) => {
       state.activePresetIndex = action.payload;
     },
-    nextPreset: (state: PresetsState) => {
-      if (state.activePresetIndex < state.value.length - 1) {
-        const newActivePresetIndex = state.activePresetIndex + 1;
-        state.activePresetIndex = newActivePresetIndex;
-        if (newActivePresetIndex < state.value.length) {
-          state.activePreset = state.value[newActivePresetIndex];
-        }
-      }
-    },
-    prevPreset: (state: PresetsState) => {
-      if (state.activePresetIndex > 0) {
-        const newActivePresetIndex = state.activePresetIndex - 1;
-        state.activePresetIndex = newActivePresetIndex;
-        state.activePreset = state.value[newActivePresetIndex];
-      }
-    },
     setPresets: (state: PresetsState, action: PayloadAction<IPreset[]>) => {
       state.value = action.payload;
       if (action.payload[0]) {
@@ -106,6 +146,7 @@ const presetSlice = createSlice({
       state.activePresetIndex = state.value.length - 1;
       state.activePreset = state.value[state.activePresetIndex];
     }
+
     // setPresets: (state: PresetsState, action: PayloadAction<IPreset[]>) => {
     //   state.value = action.payload;
     //   if (action.payload[0]) {
@@ -151,15 +192,41 @@ const presetSlice = createSlice({
         state.pending = false;
         state.error = true;
         console.log(action.error);
+      })
+      .addCase(setNextPreset.pending, (state) => {
+        state.pending = true;
+      })
+      .addCase(
+        setNextPreset.fulfilled,
+        (state, action: PayloadAction<PresetsState>) => {
+          state.pending = false;
+          state.activePreset = action.payload.activePreset;
+          state.activePresetIndex = action.payload.activePresetIndex;
+        }
+      )
+      .addCase(setNextPreset.rejected, (state, action) => {
+        state.pending = false;
+        state.error = true;
+        console.log(action.error);
+      })
+      .addCase(setPrevPreset.pending, (state) => {
+        state.pending = true;
+      })
+      .addCase(
+        setPrevPreset.fulfilled,
+        (state, action: PayloadAction<PresetsState>) => {
+          state.pending = false;
+          state.activePreset = action.payload.activePreset;
+          state.activePresetIndex = action.payload.activePresetIndex;
+        }
+      )
+      .addCase(setPrevPreset.rejected, (state, action) => {
+        state.pending = false;
+        state.error = true;
+        console.log(action.error);
       });
   }
 });
 
-export const {
-  setActivePreset,
-  nextPreset,
-  prevPreset,
-  setPresets,
-  addNewPreset
-} = presetSlice.actions;
+export const { setActivePreset, addNewPreset } = presetSlice.actions;
 export default presetSlice.reducer;

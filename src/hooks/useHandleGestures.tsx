@@ -4,9 +4,9 @@ import { IPresetType } from '../../src/types';
 import { setGesture } from '../components/store/features/gestures/gestures-slice';
 import {
   addNewPreset,
-  nextPreset,
-  prevPreset,
-  savePresets
+  savePresets,
+  setNextPreset,
+  setPrevPreset
 } from '../components/store/features/preset/preset-slice';
 import {
   setDefaultSettingsNewPreset,
@@ -65,9 +65,9 @@ export function useHandleGesture({
                 dispatch(setScreen('barometer'));
               }
             } else if (gesture.value === 'left') {
-              dispatch(prevPreset());
+              dispatch(setPrevPreset());
             } else if (gesture.value === 'right') {
-              dispatch(nextPreset());
+              dispatch(setNextPreset());
             }
             break;
           case 'pressetSettings':
