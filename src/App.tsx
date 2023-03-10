@@ -63,7 +63,9 @@ const App = (): JSX.Element => {
             name: stats.name,
             time: stats.time,
             profile:
-              stats.name === 'idle' ? presets.activePreset.name : stats.profile
+              stats.name === 'idle'
+                ? presets?.activePreset?.name
+                : stats?.profile
           }}
         />
         <SettingNumerical type="temperature" />
