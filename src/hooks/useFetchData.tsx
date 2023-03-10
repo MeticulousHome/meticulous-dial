@@ -1,8 +1,5 @@
 import { useContext, useEffect } from 'react';
-import {
-  getPresets,
-  setActivePreset
-} from '../components/store/features/preset/preset-slice';
+import { getPresets } from '../components/store/features/preset/preset-slice';
 import {
   getPresetSettings,
   setSettings
@@ -31,11 +28,11 @@ export function useFetchData() {
       presets.value.length &&
       presets.activePreset.id === -1
     ) {
-      let defaultPresetIndex = presets.value.findIndex(
+      const defaultPresetIndex = presets.value.findIndex(
         (preset) => preset.isDefault === true
       );
-      defaultPresetIndex = defaultPresetIndex === -1 ? 0 : defaultPresetIndex;
-      setActivePreset(defaultPresetIndex);
+      // defaultPresetIndex = defaultPresetIndex === -1 ? 0 : defaultPresetIndex;
+      // setActivePreset(defaultPresetIndex);
     }
   }, [presets]);
 
