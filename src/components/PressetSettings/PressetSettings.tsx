@@ -14,7 +14,7 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
   const [init, setInit] = useState(false);
   const [swiper, setSwiper] = useState(null);
   const { screen, presetSetting } = useAppSelector((state) => state);
-  console.log('presetSetting', presetSetting);
+
   useEffect(() => {
     if (swiper) {
       swiper.slideTo(presetSetting.activeSetting);
