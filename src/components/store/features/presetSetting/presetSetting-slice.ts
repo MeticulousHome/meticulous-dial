@@ -68,7 +68,7 @@ export const savePresetSetting = createAsyncThunk(
       allSettings[index2] = {
         ...presetSettings,
         settings: presetSettings.settings.filter(
-          (setting) => setting.id !== -1 || setting.value !== '-2'
+          (setting) => setting.id !== -1 && setting.id !== -2
         )
       };
       await setPresetSettingsData(allSettings);
