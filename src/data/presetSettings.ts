@@ -7,7 +7,7 @@ export const setPresetSettingsData = async (presets: IPresetsSettingData[]) => {
   const json = JSON.stringify(presets);
 
   const response = await window.meticulousAPI.saveFile(
-    'presetSettings.json',
+    './src/data/presetSettings.json',
     json
   );
   if (response) console.log('Oops, there was an error.');
