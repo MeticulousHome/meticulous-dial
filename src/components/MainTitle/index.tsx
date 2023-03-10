@@ -82,7 +82,6 @@ const MainTitle = () => {
           slidesPerView={screen.value === 'pressets' ? 2 : 1}
           centeredSlides={true}
           allowTouchMove={false}
-          initialSlide={0}
           onSwiper={setSwiper}
           onSlideChange={(e) => {
             handleRemovePresetsAnimation(e);

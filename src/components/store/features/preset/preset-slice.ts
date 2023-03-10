@@ -15,7 +15,7 @@ interface PresetsState {
 export const getPresets = createAsyncThunk('presetData/getData', async () => {
   const presetsData = await getPresetsData();
 
-  return JSON.parse(presetsData);
+  return JSON.parse(presetsData) as IPreset[];
 });
 
 export const savePresets = createAsyncThunk(
@@ -121,8 +121,17 @@ const presetSlice = createSlice({
       .addCase(getPresets.fulfilled, (state, action) => {
         state.pending = false;
         state.value = action.payload;
-        state.activePreset = action.payload[0];
-        state.activePresetIndex = 0;
+        if (action.payload.length) {
+          const defaultIndex = action.payload.findIndex(
+            (preset) => preset.isDefault
+          );
+          if (defaultIndex !== -1) {
+            state.activePresetIndex = defaultIndex;
+            state.activePreset = action.payload[defaultIndex];
+            state.activePresetIndex = defaultIndex;
+            console.log('default preset', state.activePresetIndex);
+          }
+        }
       })
       .addCase(getPresets.rejected, (state) => {
         state.pending = false;
