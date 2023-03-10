@@ -3,10 +3,9 @@ import { useContext, useEffect } from 'react';
 import { IPresetType } from '../../src/types';
 import { setGesture } from '../components/store/features/gestures/gestures-slice';
 import {
-  addNewPreset,
-  nextPreset,
-  prevPreset,
-  savePresets
+  savePresets,
+  setNextPreset,
+  setPrevPreset
 } from '../components/store/features/preset/preset-slice';
 import {
   discardSettings,
@@ -27,7 +26,7 @@ export function useHandleGesture({
   keyboardReady: React.MutableRefObject<boolean>;
 }) {
   const dispatch = useContext(SockerContext);
-  const { gesture, screen, stats, presetSetting } = useAppSelector(
+  const { gesture, screen, stats, presets, presetSetting } = useAppSelector(
     (state) => state
   );
 
@@ -65,9 +64,9 @@ export function useHandleGesture({
                 dispatch(setScreen('barometer'));
               }
             } else if (gesture.value === 'left') {
-              dispatch(prevPreset());
+              dispatch(setPrevPreset());
             } else if (gesture.value === 'right') {
-              dispatch(nextPreset());
+              dispatch(setNextPreset());
             }
             break;
           case 'pressetSettings':
@@ -131,3 +130,7 @@ export function useHandleGesture({
     dispatch(setGesture('')); // we need to clean the state up to receive event notification
   }, [gesture, screen, stats.name]);
 }
+function addNewPreset(): any {
+  throw new Error('Function not implemented.');
+}
+
