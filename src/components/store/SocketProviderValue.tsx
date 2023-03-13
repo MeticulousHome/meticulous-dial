@@ -78,34 +78,27 @@ const presset = {
     },
     {
       id: 5,
-      type: 'multiple-option',
-      key: 'ratio',
-      label: 'ratio',
-      value: '2:1'
-    },
-    {
-      id: 6,
       type: 'numerical',
-      key: 'dose',
-      label: 'dose',
-      value: 18,
+      key: 'output',
+      label: 'output',
+      value: '36',
       unit: 'g'
     },
     {
-      id: 7,
+      id: 6,
       type: 'multiple-option',
       key: 'purge',
       label: 'purge',
       value: 'automatic'
     },
     {
-      id: 8,
+      id: 7,
       type: 'action',
       key: 'save',
       label: 'save'
     },
     {
-      id: 9,
+      id: 8,
       type: 'action',
       key: 'discard',
       label: 'discard'
@@ -131,7 +124,7 @@ export const SetSocketKeyboardListeners = () => {
           break;
         case 'Enter': {
           const payload = generatePayload({ presset: presset as any });
-          console.log({ payload });
+          console.log(JSON.stringify(payload, null, 2));
 
           socket.emit('parameters', payload);
           socket.emit('action', 'start');
