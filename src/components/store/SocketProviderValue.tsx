@@ -6,6 +6,7 @@ import { ActionType, ISensorData } from '../../types/index';
 import { setGesture } from './features/gestures/gestures-slice';
 import { useAppDispatch } from './hooks';
 import { setStats } from './features/stats/stats-slice';
+import { generatePayload } from '../../utils/preheat';
 
 interface SocketProviderValueInterface {
   sendAction: (name: ActionType) => void;
@@ -42,6 +43,76 @@ export const SocketProviderValue = (): SocketProviderValueInterface => {
   return;
 };
 
+const presset = {
+  name: 'prueba',
+  settings: [
+    {
+      id: 1,
+      type: 'text',
+      key: 'name',
+      label: 'name',
+      value: '78U+002a'
+    },
+    {
+      id: 2,
+      type: 'numerical',
+      key: 'pressure',
+      label: 'pressure',
+      value: 9,
+      unit: 'bar'
+    },
+    {
+      id: 3,
+      type: 'numerical',
+      key: 'temperature',
+      label: 'temperature',
+      value: '85',
+      unit: '°c'
+    },
+    {
+      id: 4,
+      type: 'on-off',
+      key: 'pre-infusion',
+      label: 'pre-infusion',
+      value: 'yes'
+    },
+    {
+      id: 5,
+      type: 'multiple-option',
+      key: 'ratio',
+      label: 'ratio',
+      value: '2:1'
+    },
+    {
+      id: 6,
+      type: 'numerical',
+      key: 'dose',
+      label: 'dose',
+      value: 18,
+      unit: 'g'
+    },
+    {
+      id: 7,
+      type: 'multiple-option',
+      key: 'purge',
+      label: 'purge',
+      value: 'automatic'
+    },
+    {
+      id: 8,
+      type: 'action',
+      key: 'save',
+      label: 'save'
+    },
+    {
+      id: 9,
+      type: 'action',
+      key: 'discard',
+      label: 'discard'
+    }
+  ]
+};
+
 export const SetSocketKeyboardListeners = () => {
   const dispatch = useAppDispatch();
 
@@ -58,9 +129,15 @@ export const SetSocketKeyboardListeners = () => {
         case 'Space':
           dispatch(setGesture('click'));
           break;
-        case 'Enter':
+        case 'Enter': {
+          const payload = generatePayload({ presset: presset as any });
+          console.log({ payload });
+
+          socket.emit('parameters', payload);
+          socket.emit('action', 'start');
           dispatch(setGesture('start'));
           break;
+        }
         case 'KeyS':
           dispatch(setGesture('longTare'));
           break;
