@@ -74,7 +74,7 @@ const presetSlice = createSlice({
     addNewPreset: (state: GesturesState) => {
       state.value.push({
         id: state.value.length + 1,
-        name: 'New',
+        name: 'New Preset',
         sensors: {
           t: '0',
           p: '0',

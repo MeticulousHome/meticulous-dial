@@ -125,7 +125,7 @@ export const settingsDefaultNewPreset: IPresetSetting[] = [
     id: 1,
     type: 'text',
     key: 'name',
-    label: `name: New`,
+    label: `name: New Preset`,
     value: 'New'
   },
   {
