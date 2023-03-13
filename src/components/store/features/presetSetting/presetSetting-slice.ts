@@ -5,7 +5,10 @@ import {
   createAsyncThunk
 } from '@reduxjs/toolkit';
 import { IPresetSetting } from '../../../..//types';
-import { generateMockSetting } from '../../../../utils/mock';
+import {
+  generateMockSetting,
+  settingsDefaultNewPreset
+} from '../../../../utils/mock';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -78,6 +81,11 @@ const presetSettingSlice = createSlice({
       state.activeSetting = 2;
       state.endIndex = action.payload;
       return state;
+    },
+    setDefaultSettingsNewPreset: (state: Draft<typeof initialState>) => {
+      state.activeSetting = 2;
+      state.endIndex = settingsDefaultNewPreset.length + 1;
+      state.settings = settingsDefaultNewPreset;
     }
   },
   extraReducers: (builder) => {
@@ -115,7 +123,8 @@ export const {
   setNextSettingOption,
   setPrevSettingOption,
   resetActiveSetting,
-  setEndIndex
+  setEndIndex,
+  setDefaultSettingsNewPreset
 } = presetSettingSlice.actions;
 
 export default presetSettingSlice.reducer;
