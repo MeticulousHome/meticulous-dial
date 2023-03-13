@@ -13,7 +13,7 @@ interface GesturesState {
 
 const initialState: GesturesState = {
   value: [],
-  activePresetIndex: -1,
+  activePresetIndex: 0,
   activePreset: {
     id: -1,
     name: '',
@@ -50,10 +50,12 @@ const presetSlice = createSlice({
       state.activePresetIndex = action.payload;
     },
     nextPreset: (state: GesturesState) => {
-      if (state.activePresetIndex < state.value.length - 1) {
+      if (state.activePresetIndex < state.value.length) {
         const newActivePresetIndex = state.activePresetIndex + 1;
         state.activePresetIndex = newActivePresetIndex;
-        state.activePreset = state.value[newActivePresetIndex];
+        if (newActivePresetIndex < state.value.length) {
+          state.activePreset = state.value[newActivePresetIndex];
+        }
       }
     },
     prevPreset: (state: GesturesState) => {
@@ -68,6 +70,21 @@ const presetSlice = createSlice({
       if (action.payload[0]) {
         state.activePreset = action.payload[0];
       }
+    },
+    addNewPreset: (state: GesturesState) => {
+      state.value.push({
+        id: state.value.length + 1,
+        name: 'New',
+        sensors: {
+          t: '0',
+          p: '0',
+          w: '0',
+          f: '0'
+        },
+        time: ''
+      });
+      state.activePresetIndex = state.value.length - 1;
+      state.activePreset = state.value[state.activePresetIndex];
     }
   },
   extraReducers: (builder) => {
@@ -96,6 +113,11 @@ const presetSlice = createSlice({
   }
 });
 
-export const { setActivePreset, nextPreset, prevPreset, setPresets } =
-  presetSlice.actions;
+export const {
+  setActivePreset,
+  nextPreset,
+  prevPreset,
+  setPresets,
+  addNewPreset
+} = presetSlice.actions;
 export default presetSlice.reducer;

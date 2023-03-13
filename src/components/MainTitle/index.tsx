@@ -15,7 +15,7 @@ const MainTitle = () => {
   const slideTo = (index: number) => swiper.slideTo(index);
 
   useEffect(() => {
-    if (presets.activePresetIndex > -1 && presets.value.length > 0 && swiper) {
+    if (presets.activePresetIndex > -1 && swiper) {
       slideTo(presets.activePresetIndex);
     }
   }, [presets, swiper]);
@@ -107,6 +107,21 @@ const MainTitle = () => {
               )}
             </SwiperSlide>
           ))}
+          {screen.value === 'pressets' && (
+            <SwiperSlide key={`${presets.value.length + 1}-slide`}>
+              {() => (
+                <div
+                  style={{
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden'
+                  }}
+                >
+                  New
+                </div>
+              )}
+            </SwiperSlide>
+          )}
         </Swiper>
       )}
     </div>

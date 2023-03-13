@@ -4,10 +4,12 @@ import { useAppSelector } from '../components/store/hooks';
 import { SockerContext } from '../components/store/SockerManager';
 import { setScreen } from '../components/store/features/screens/screens-slice';
 import {
+  addNewPreset,
   nextPreset,
   prevPreset
 } from '../components/store/features/preset/preset-slice';
 import {
+  setDefaultSettingsNewPreset,
   setNextSettingOption,
   setPrevSettingOption
 } from '../components/store/features/presetSetting/presetSetting-slice';
@@ -22,7 +24,7 @@ export function useHandleGesture({
   keyboardReady: React.MutableRefObject<boolean>;
 }) {
   const dispatch = useContext(SockerContext);
-  const { gesture, screen, stats } = useAppSelector((state) => state);
+  const { gesture, screen, stats, presets } = useAppSelector((state) => state);
 
   useEffect(() => {
     // console.log('Prev Gesture >> ', gesture.prev);
@@ -51,7 +53,12 @@ export function useHandleGesture({
             break;
           case 'pressets':
             if (gesture.value === 'click') {
-              dispatch(setScreen('barometer'));
+              if (presets.activePresetIndex === presets.value.length - 1 + 1) {
+                dispatch(addNewPreset());
+                dispatch(setDefaultSettingsNewPreset());
+              } else {
+                dispatch(setScreen('barometer'));
+              }
             } else if (gesture.value === 'left') {
               dispatch(prevPreset());
             } else if (gesture.value === 'right') {

@@ -17,7 +17,7 @@ export function Pressets(): JSX.Element {
   const slideTo = (index: number) => swiper.slideTo(index);
 
   useEffect(() => {
-    if (presets.activePresetIndex > -1 && presets.value.length > 0 && swiper) {
+    if (presets.activePresetIndex > -1 && swiper) {
       slideTo(presets.activePresetIndex);
     }
   }, [presets, swiper]);
@@ -110,6 +110,33 @@ export function Pressets(): JSX.Element {
             )}
           </SwiperSlide>
         ))}
+        <SwiperSlide key={`${presets.value.length + 1}-slide`}>
+          {() => (
+            <div className="main-layout-content">
+              <div className="pressets-conainer">
+                <div className="presset-item presset-active">
+                  <div className="presset-icon">
+                    <svg
+                      width="140"
+                      height="140"
+                      className={`${getAnimation()}`}
+                      viewBox="0 0 140 140"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        clip-rule="evenodd"
+                        d="M72.7453 67.2547V0H67.2551V67.2547H0V72.7449H67.2551V140H72.7453V72.7449H140V67.2547H72.7453Z"
+                        fill="white"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </SwiperSlide>
       </Swiper>
     </div>
   );
