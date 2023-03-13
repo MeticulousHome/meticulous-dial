@@ -157,3 +157,9 @@ export type IPresetType =
   | PreInfusionKey
   | ActionKey
   | '';
+
+type SettingsKeys = 'key' | 'value';
+export interface PressetSettings {
+  name: string;
+  settings: Record<SettingsKeys, string>[];
+}
