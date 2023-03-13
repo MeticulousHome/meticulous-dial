@@ -13,6 +13,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
   const preinfusion = getKeyPresset(presset, 'pre-infusion');
   const pressure = getKeyPresset(presset, 'pressure');
   const purgeS = getKeyPresset(presset, 'purge');
+  const outpuS = getKeyPresset(presset, 'output');
 
   const isPurgeAutomatic = purgeS.value === 'automatic';
   const isPressureActivated = preinfusion.value === 'yes';
