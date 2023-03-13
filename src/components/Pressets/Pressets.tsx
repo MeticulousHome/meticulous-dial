@@ -117,17 +117,18 @@ export function Pressets(): JSX.Element {
                 <div className="presset-item presset-active">
                   <div className="presset-icon">
                     <svg
-                      width="140"
-                      height="140"
+                      width="204"
+                      height="204"
                       className={`${getAnimation()}`}
-                      viewBox="0 0 140 140"
+                      viewBox="0 0 204 204"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                     >
+                      <rect width="204" height="204" fill="black" />
                       <path
                         fill-rule="evenodd"
                         clip-rule="evenodd"
-                        d="M72.7453 67.2547V0H67.2551V67.2547H0V72.7449H67.2551V140H72.7453V72.7449H140V67.2547H72.7453Z"
+                        d="M104.745 99.2547V32H99.2551V99.2547H32V104.745H99.2551V172H104.745V104.745H172V99.2547H104.745Z"
                         fill="white"
                       />
                     </svg>
