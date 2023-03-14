@@ -45,13 +45,6 @@ export interface ISensorData {
 export interface IPreset {
   id: number;
   name: string;
-  sensors: {
-    p: string; // Pressure - Bars
-    t: string; // Temperature - degrees celsius
-    w: string; // Weight - grams
-    f: string; // Flow - ml/s
-  };
-  time: string;
   isDefault?: boolean;
 }
 

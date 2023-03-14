@@ -57,9 +57,9 @@ export const savePresetSetting = createAsyncThunk(
   'presetSetting/saveSetting',
   async (presetSettings: IPresetsSettingData, { getState }) => {
     const state = getState() as RootState;
-    const presetSetting = state.presetSetting;
+    const presetSettingState = state.presetSetting;
 
-    const allSettings = [...presetSetting.allSettings];
+    const allSettings = [...presetSettingState.allSettings];
     const index2 = allSettings.findIndex(
       (setting) => setting.presetId === presetSettings.presetId
     );
@@ -71,11 +71,12 @@ export const savePresetSetting = createAsyncThunk(
           (setting) => setting.id !== -1 && setting.id !== -2
         )
       };
+      console.log('allSettings', allSettings);
       await setPresetSettingsData(allSettings);
     }
 
     // return data;
-    return presetSettings;
+    return { allSettings, presetSettings };
   }
 );
 
@@ -144,11 +145,12 @@ const presetSettingSlice = createSlice({
       state.updatingSettings = { ...targetSetting, settings };
       state.endIndex = settings.length - 1;
       // reset active setting
-      state.activeSetting = 2;
+      // state.activeSetting = 2;
       return state;
     },
     discardSettings(state: Draft<typeof initialState>) {
       state.updatingSettings = state.settings;
+      state.activeSetting = 2;
       return state;
     }
   },
@@ -162,13 +164,18 @@ const presetSettingSlice = createSlice({
         savePresetSetting.fulfilled,
         (
           state: PresetSettingInterface,
-          action: PayloadAction<IPresetsSettingData>
+          action: PayloadAction<{
+            allSettings: IPresetsSettingData[];
+            presetSettings: IPresetsSettingData;
+          }>
         ) => {
           state.pending = false;
           state.error = false;
           // state.settings = action.payload;
           // state.endIndex = action.payload.length + 1;
-          state.settings = action.payload;
+          state.allSettings = action.payload.allSettings;
+          state.settings = action.payload.presetSettings;
+          state.updatingSettings = action.payload.presetSettings;
           state.activeSetting = 2;
         }
       )
@@ -196,7 +203,7 @@ const presetSettingSlice = createSlice({
           state.error = false;
           state.allSettings = action.payload;
           // reset active setting
-          state.activeSetting = 2;
+          // state.activeSetting = 2;
         }
       )
       .addCase(
