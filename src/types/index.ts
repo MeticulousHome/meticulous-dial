@@ -161,5 +161,5 @@ export type IPresetType =
 type SettingsKeys = 'key' | 'value';
 export interface PressetSettings {
   name: string;
-  settings: Record<SettingsKeys, string>[];
+  settings: Record<SettingsKeys, string | number>[];
 }
