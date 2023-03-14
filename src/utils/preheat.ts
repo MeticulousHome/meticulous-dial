@@ -165,7 +165,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             kind: 'temperature_value_trigger',
             source: 'Tube Temperature',
             operator: '>=',
-            value: temperature.value,
+            value: Number(temperature.value),
             next_node_id: 8
           },
           {
@@ -472,7 +472,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             source: 'Weight Raw',
             weight_reference_id: 1,
             operator: '>=',
-            value: outpuS.value,
+            value: Number(outpuS.value),
             next_node_id: 14
           },
           {
@@ -521,7 +521,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             source: 'Weight Raw',
             weight_reference_id: 1,
             operator: '>=',
-            value: outpuS.value,
+            value: Number(outpuS.value),
             next_node_id: 14
           },
           {
