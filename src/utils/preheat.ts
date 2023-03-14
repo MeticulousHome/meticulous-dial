@@ -15,8 +15,8 @@ export const generatePayload = ({ presset }: PayloadProps) => {
   const purgeS = getKeyPresset(presset, 'purge');
   const outpuS = getKeyPresset(presset, 'output');
 
-  const isPurgeAutomatic = purgeS.value === 'automatic';
-  const isPressureActivated = preinfusion.value === 'yes';
+  const isPurgeAutomatic = purgeS.value === 'manual';
+  const isPressureActivated = preinfusion.value === 'no';
 
   const initialize = {
     name: 'heating',
@@ -339,7 +339,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             kind: 'pressure_value_trigger',
             source: 'Pressure Predictive',
             operator: '>=',
-            value: pressure.value,
+            value: 8,
             next_node_id: 11
           },
           {
@@ -447,10 +447,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             curve: {
               id: 7,
               interpolation_kind: 'catmull_interpolation',
-              points: [
-                [0, 8],
-                [10, 6]
-              ],
+              points: pressure.value,
               time_reference_id: 4
             }
           },
@@ -689,7 +686,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             kind: 'pressure_controller',
             algorithm: 'Pressure PID v1.0',
             curve: {
-              id: 1,
+              id: 20,
               interpolation_kind: 'linear_interpolation',
               points: [[0, 6]],
               time_reference_id: 1
