@@ -15,8 +15,8 @@ export const generatePayload = ({ presset }: PayloadProps) => {
   const purgeS = getKeyPresset(presset, 'purge');
   const outpuS = getKeyPresset(presset, 'output');
 
-  const isPurgeAutomatic = purgeS.value === 'automatic';
-  const isPressureActivated = preinfusion.value === 'yes';
+  const isPurgeAutomatic = purgeS.value === 'manual';
+  const isPressureActivated = preinfusion.value === 'no';
 
   const initialize = {
     name: 'heating',
@@ -354,7 +354,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             kind: 'button_trigger',
             source: 'Encoder Button',
             gesture: 'Single Tap',
-            next_node_id: 10
+            next_node_id: 12
           }
         ]
       },
@@ -403,7 +403,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             kind: 'button_trigger',
             source: 'Encoder Button',
             gesture: 'Single Tap',
-            next_node_id: 10
+            next_node_id: 12
           }
         ]
       }
@@ -472,7 +472,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             source: 'Weight Raw',
             weight_reference_id: 1,
             operator: '>=',
-            value: 36,
+            value: outpuS.value,
             next_node_id: 14
           },
           {
@@ -486,7 +486,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             kind: 'button_trigger',
             source: 'Encoder Button',
             gesture: 'Single Tap',
-            next_node_id: 10
+            next_node_id: 14
           }
         ]
       },
@@ -521,7 +521,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             source: 'Weight Raw',
             weight_reference_id: 1,
             operator: '>=',
-            value: 36,
+            value: outpuS.value,
             next_node_id: 14
           },
           {
@@ -535,7 +535,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             kind: 'button_trigger',
             source: 'Encoder Button',
             gesture: 'Single Tap',
-            next_node_id: 10
+            next_node_id: 14
           }
         ]
       }
@@ -603,6 +603,53 @@ export const generatePayload = ({ presset }: PayloadProps) => {
   const purge = {
     name: 'purge',
     nodes: [
+      {
+        id: 18,
+        controllers: [
+          {
+            kind: 'weight_reference',
+            id: 2
+          }
+        ],
+        triggers: [
+          {
+            kind: 'exit',
+            next_node_id: 19
+          }
+        ]
+      },
+      {
+        id: 19,
+        controllers: [
+          {
+            kind: 'time_reference',
+            id: 5
+          }
+        ],
+        triggers: [
+          {
+            kind: 'weight_value_trigger',
+            source: 'Weight Raw',
+            weight_reference_id: 2,
+            operator: '<=',
+            value: -5,
+            next_node_id: 30
+          }
+        ]
+      },
+      {
+        id: 30,
+        controllers: [],
+        triggers: [
+          {
+            kind: 'timer_trigger',
+            timer_reference_id: 5,
+            operator: '>=',
+            value: 2,
+            next_node_id: 16
+          }
+        ]
+      },
       {
         id: 16,
         controllers: [
