@@ -70,6 +70,9 @@ export const SetSocketKeyboardListeners = () => {
         case 'KeyD':
           dispatch(setGesture('doubleTare'));
           break;
+        case 'KeyX':
+          dispatch(setGesture('doubleClick'));
+          break;
         default:
           break;
       }
