@@ -13,7 +13,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
   const preinfusion = getKeyPresset(presset, 'pre-infusion');
   const pressure = getKeyPresset(presset, 'pressure');
   const purgeS = getKeyPresset(presset, 'purge');
-  const outpuS = getKeyPresset(presset, 'output');
+  const outputS = getKeyPresset(presset, 'output');
 
   const isPurgeAutomatic = purgeS.value === 'automatic';
   const isPreinfusionActivated = preinfusion.value === 'yes';
@@ -471,7 +471,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             source: 'Weight Raw',
             weight_reference_id: 1,
             operator: '>=',
-            value: Number(outpuS.value),
+            value: Number(outputS.value),
             next_node_id: 14
           },
           {
@@ -520,7 +520,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             source: 'Weight Raw',
             weight_reference_id: 1,
             operator: '>=',
-            value: Number(outpuS.value),
+            value: Number(outputS.value),
             next_node_id: 14
           },
           {
