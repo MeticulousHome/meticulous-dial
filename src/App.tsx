@@ -20,7 +20,7 @@ import { PressetSettings } from './components/PressetSettings/PressetSettings';
 import { SettingNumerical } from './components/SettingNumerical/SettingNumerical';
 import { useFetchData } from './hooks/useFetchData';
 import { useHandleGesture } from './hooks/useHandleGestures';
-import { IPresetType } from './types';
+import { IPresetType, ISettingType } from './types';
 import { OnOff } from './components/OnOff/OnOff';
 import { Purge } from './components/Purge/Purge';
 
@@ -68,7 +68,7 @@ const App = (): JSX.Element => {
                 : stats?.profile
           }}
         />
-        <SettingNumerical type="temperature" />
+        <SettingNumerical type={presetSettingIndex as ISettingType} />
         <Pressets />
         <CircleKeyboard
           callback={() => {

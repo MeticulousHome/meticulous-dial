@@ -50,17 +50,10 @@ export const generateMockSetting = (name: string): IPresetSetting[] => {
       value: 'yes'
     },
     {
-      id: 5,
-      type: 'multiple-option',
-      key: 'ratio',
-      label: 'ratio: 2:1',
-      value: '2:1'
-    },
-    {
       id: 6,
       type: 'numerical',
-      key: 'dose',
-      label: 'dose: 18g',
+      key: 'output',
+      label: 'output: 18g',
       value: 18,
       unit: 'g'
     },
