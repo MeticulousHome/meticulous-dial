@@ -6,9 +6,7 @@ import {
 } from '@reduxjs/toolkit';
 import { IPresetSetting, IPresetsSettingData } from '../../../..//types';
 import { dummyOptions } from '../../../../utils/mock';
-import {
-  settingsDefaultNewPreset
-} from '../../../../utils/mock';
+import { settingsDefaultNewPreset } from '../../../../utils/mock';
 import {
   getPresetSettingsData,
   setPresetSettingsData
@@ -91,6 +89,7 @@ const presetSettingSlice = createSlice({
         (setting) =>
           setting.id === action.payload.id ? action.payload : setting
       );
+      state.activeSetting = 2;
     },
     setActiveSetting: (
       state: Draft<typeof initialState>,
@@ -149,7 +148,7 @@ const presetSettingSlice = createSlice({
     },
     discardSettings(state: Draft<typeof initialState>) {
       state.updatingSettings = state.settings;
-      state.activeSetting = 2;
+      // state.activeSetting = 2;
       return state;
     }
   },
@@ -175,7 +174,7 @@ const presetSettingSlice = createSlice({
           state.allSettings = action.payload.allSettings;
           state.settings = action.payload.presetSettings;
           state.updatingSettings = action.payload.presetSettings;
-          state.activeSetting = 2;
+          //state.activeSetting = 2;
         }
       )
       .addCase(

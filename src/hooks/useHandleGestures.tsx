@@ -133,4 +133,3 @@ export function useHandleGesture({
 function addNewPreset(): any {
   throw new Error('Function not implemented.');
 }
-
