@@ -23,6 +23,7 @@ export type GestureType =
   | 'left'
   | 'click'
   | 'doubleTare'
+  | 'doubleClick'
   | 'start'
   | ''
   | 'longTare'
@@ -64,6 +65,8 @@ export type RatioKey = 'ratio';
 
 export type PurgeKey = 'purge';
 
+export type OutputKey = 'output';
+
 export type PreInfusionKey = 'pre-infusion';
 
 export type ActionKey = 'save' | 'discard';
@@ -73,7 +76,7 @@ export type IPresetText = {
   value: string;
 };
 export type PresetName = IPresetText & { key: NameKey };
-export interface IPresetName extends IBasePresset, PresetName {}
+export interface IPresetName extends IBasePresset, PresetName { }
 
 export type IPresetBaseNumerical = {
   type: 'numerical';
@@ -81,22 +84,30 @@ export type IPresetBaseNumerical = {
 };
 export interface IPresetNumericalPressure
   extends IBasePresset,
-    IPresetBaseNumerical {
+  IPresetBaseNumerical {
   key: PressureKey;
   unit: 'bar';
 }
 export interface IPresetNumericalTemperature
   extends IBasePresset,
-    IPresetBaseNumerical {
+  IPresetBaseNumerical {
   key: TemperatureKey;
   unit: '°c';
 }
 export interface IPresetNumericalDose
   extends IBasePresset,
-    IPresetBaseNumerical {
+  IPresetBaseNumerical {
   key: DoseKey;
   unit: 'g';
 }
+
+export interface IPresetNumericalOutput
+  extends IBasePresset,
+  IPresetBaseNumerical {
+  key: OutputKey;
+  unit: 'g';
+}
+
 export type IPresetMultipleOption = {
   type: 'multiple-option';
   value: string;
@@ -106,14 +117,14 @@ export type PresetMultipleOptionRatio = IPresetMultipleOption & {
 };
 export interface IPresetMultipleOptionRatio
   extends IBasePresset,
-    PresetMultipleOptionRatio {}
+  PresetMultipleOptionRatio { }
 
 export type PresetMultipleOptionPurge = IPresetMultipleOption & {
   key: PurgeKey;
 };
 export interface IPresetMultipleOptionPurge
   extends IBasePresset,
-    PresetMultipleOptionPurge {}
+  PresetMultipleOptionPurge { }
 
 export type PresetOnOff = {
   type: 'on-off';
@@ -123,7 +134,7 @@ export type PresetOnOff = {
 export type PresetOnOffPreinfusion = PresetOnOff & { key: PreInfusionKey };
 export interface IPresetOnOffPreinfusion
   extends IBasePresset,
-    PresetOnOffPreinfusion {}
+  PresetOnOffPreinfusion { }
 
 export type PresetAction = {
   type: 'action';
@@ -138,6 +149,7 @@ export type IPresetSetting =
   | IPresetNumericalPressure
   | IPresetNumericalTemperature
   | IPresetNumericalDose
+  | IPresetNumericalOutput
   | IPresetMultipleOptionRatio
   | IPresetMultipleOptionPurge
   | IPresetOnOffPreinfusion
@@ -152,9 +164,11 @@ export type IPresetType =
   | NameKey
   | PressureKey
   | TemperatureKey
-  | DoseKey
+  | OutputKey
   | RatioKey
   | PurgeKey
   | PreInfusionKey
   | ActionKey
   | '';
+
+export type ISettingType = PressureKey | TemperatureKey | OutputKey;
