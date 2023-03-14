@@ -17,8 +17,9 @@ const MainTitle = () => {
   useEffect(() => {
     if (presets.activePresetIndex > -1 && swiper) {
       slideTo(presets.activePresetIndex);
+      handlSlideChange();
     }
-  }, [presets, swiper]);
+  }, [presets.activePresetIndex, swiper]);
 
   useEffect(() => {
     if (screen.value !== 'pressets') {
@@ -68,6 +69,16 @@ const MainTitle = () => {
     return animation;
   }, [screen]);
 
+  const handlSlideChange = () => {
+    if (swiper) {
+      handleRemovePresetsAnimation(swiper);
+
+      setTimeout(() => {
+        handleAddPresetAnimation(swiper);
+      }, 20);
+    }
+  };
+
   return (
     <div
       className={`main-title-selected ${getAnimation()}`}
@@ -78,50 +89,31 @@ const MainTitle = () => {
       {stats.name !== 'idle' ? (
         <div>{stats.profile}</div>
       ) : (
-        <Swiper
-          slidesPerView={screen.value === 'pressets' ? 2 : 1}
-          centeredSlides={true}
-          allowTouchMove={false}
-          onSwiper={setSwiper}
-          onSlideChange={(e) => {
-            handleRemovePresetsAnimation(e);
-
-            setTimeout(() => {
-              handleAddPresetAnimation(e);
-            }, 20);
-          }}
-        >
-          {presets.value.map((preset, index) => (
-            <SwiperSlide key={`${index}-slide`}>
-              {() => (
-                <div
-                  style={{
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden'
-                  }}
-                >
-                  {preset.name}
-                </div>
-              )}
-            </SwiperSlide>
-          ))}
-          {screen.value === 'pressets' && (
-            <SwiperSlide key={`${presets.value.length + 1}-slide`}>
-              {() => (
-                <div
-                  style={{
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden'
-                  }}
-                >
-                  New
-                </div>
-              )}
-            </SwiperSlide>
-          )}
-        </Swiper>
+        presets.defaultPresetIndex > -1 && (
+          <Swiper
+            slidesPerView={screen.value === 'pressets' ? 2 : 1}
+            centeredSlides={true}
+            initialSlide={presets.defaultPresetIndex}
+            allowTouchMove={false}
+            onSwiper={setSwiper}
+          >
+            {presets.value.map((preset, index) => (
+              <SwiperSlide key={`${index}-slide`}>
+                {() => (
+                  <div
+                    style={{
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {preset.name}
+                  </div>
+                )}
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        )
       )}
     </div>
   );
