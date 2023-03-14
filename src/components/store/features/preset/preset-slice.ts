@@ -7,6 +7,7 @@ import { RootState } from '../../store';
 interface PresetsState {
   value: IPreset[];
   activePresetIndex: number;
+  defaultPresetIndex: number;
   activePreset: IPreset;
   pending: boolean;
   error: boolean;
@@ -29,13 +30,14 @@ export const savePresets = createAsyncThunk(
     );
     const presetList = [...presetState.value];
 
-    if (
-      presetSetting.settings[2].value &&
-      typeof presetSetting.settings[2].value === 'string'
-    ) {
+    const nameSetting = presetSetting.settings.find(
+      (setting) => setting.key === 'name'
+    );
+
+    if (nameSetting) {
       presetList[index] = {
         ...presetList[index],
-        name: presetSetting.settings[2].value
+        name: nameSetting.value as string
       };
     }
     await setPresetsData(presetList);
@@ -49,7 +51,12 @@ export const setNextPreset = createAsyncThunk(
   async (_, { getState }) => {
     const state = getState() as RootState;
     const presetState = { ...state.presets } as PresetsState;
-    const index = presetState.activePresetIndex;
+    const index =
+      presetState.activePresetIndex > -1
+        ? presetState.activePresetIndex
+        : presetState.defaultPresetIndex;
+    if (index === presetState.value.length - 1) return presetState;
+
     if (index < presetState.value.length - 1) {
       const newActivePresetIndex = index + 1;
 
@@ -75,9 +82,14 @@ export const setNextPreset = createAsyncThunk(
 export const setPrevPreset = createAsyncThunk(
   'presetData/setPrevPreset',
   async (_, { getState }) => {
+    console.log('setPrevPreset');
     const state = getState() as RootState;
     const presetState = { ...state.presets } as PresetsState;
-    const index = presetState.activePresetIndex;
+    const index =
+      presetState.activePresetIndex > -1
+        ? presetState.activePresetIndex
+        : presetState.defaultPresetIndex;
+
     if (index > 0) {
       const newActivePresetIndex = index - 1;
 
@@ -95,6 +107,8 @@ export const setPrevPreset = createAsyncThunk(
       presetState.activePresetIndex = newActivePresetIndex;
       presetState.activePreset = presetList[newActivePresetIndex];
       await setPresetsData(presetList);
+    } else {
+      throw new Error('No more presets');
     }
     return presetState;
   }
@@ -103,16 +117,10 @@ export const setPrevPreset = createAsyncThunk(
 const initialState: PresetsState = {
   value: [],
   activePresetIndex: -1,
+  defaultPresetIndex: -1,
   activePreset: {
     name: '',
-    sensors: {
-      f: '',
-      p: '',
-      t: '',
-      w: ''
-    },
-    id: -1,
-    time: '0'
+    id: -1
   },
   pending: false,
   error: false
@@ -167,10 +175,9 @@ const presetSlice = createSlice({
             (preset) => preset.isDefault
           );
           if (defaultIndex !== -1) {
-            state.activePresetIndex = defaultIndex;
+            state.defaultPresetIndex = defaultIndex;
             state.activePreset = action.payload[defaultIndex];
-            state.activePresetIndex = defaultIndex;
-            console.log('default preset', state.activePresetIndex);
+            // state.activePresetIndex = defaultIndex;
           }
         }
       })
