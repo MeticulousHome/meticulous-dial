@@ -6,6 +6,7 @@ import { addRightComplement, roundPrecision } from '../../utils';
 import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
 import { useReduxSelector } from '../store/store';
 import './setting-numerical.css';
+import { ISettingType } from '../../../src/types';
 
 const radius = 237;
 const strokeWidth = 6;
@@ -13,7 +14,7 @@ const circumference = radius * 2 * Math.PI;
 const transform = `rotate(116.5, ${radius}, ${radius})`;
 
 interface Props {
-  type: 'pressure' | 'temperature' | 'flow' | 'weight';
+  type: ISettingType;
 }
 
 export function SettingNumerical({ type }: Props): JSX.Element {
@@ -51,7 +52,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
           return;
         }
         mTotal = total + (gesture.value === 'left' ? -interval : +interval);
-        setTotal(type === 'weight' ? mTotal : roundPrecision(mTotal, 1));
+        setTotal(type === 'output' ? mTotal : roundPrecision(mTotal, 1));
         break;
       default:
         break;
@@ -98,19 +99,12 @@ export function SettingNumerical({ type }: Props): JSX.Element {
         setMaxValue(99);
         setCustomClass('scale-temp');
         break;
-      case 'weight':
+      case 'output':
         setInterval(1);
         setTotal(36);
         setUnit('g');
-        setMaxValue(150);
+        setMaxValue(100);
         setCustomClass('scale-weight-limit');
-        break;
-      case 'flow':
-        setInterval(0.1);
-        setTotal(4);
-        setUnit('ml/s');
-        setMaxValue(8);
-        setCustomClass('scale-flow');
         break;
       default:
         break;
@@ -126,11 +120,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
         toLayout = addRightComplement(roundPrecision(total, 1).toString());
         withPads = toLayout.padStart(4, '0');
         break;
-      case 'flow':
-        toLayout = addRightComplement(roundPrecision(total, 1).toString());
-        withPads = toLayout;
-        break;
-      case 'weight':
+      case 'output':
         toLayout = total.toString();
         withPads = toLayout.padStart(3, '0');
         break;
