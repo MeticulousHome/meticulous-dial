@@ -15,8 +15,10 @@ export const generatePayload = ({ presset }: PayloadProps) => {
   const purgeS = getKeyPresset(presset, 'purge');
   const outpuS = getKeyPresset(presset, 'output');
 
-  const isPurgeAutomatic = purgeS.value === 'manual';
-  const isPressureActivated = preinfusion.value === 'no';
+  const isPurgeAutomatic = purgeS.value === 'automatic';
+  const isPreinfusionActivated = preinfusion.value === 'yes';
+
+  const pointsPressure:number[][] = [[0, Number(pressure.value)]];
 
   const initialize = {
     name: 'heating',
@@ -289,7 +291,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             source: 'Pressure Raw',
             operator: '>=',
             value: 0.2,
-            next_node_id: isPressureActivated ? 10 : 12
+            next_node_id: isPreinfusionActivated ? 10 : 12
           }
         ]
       }
@@ -447,7 +449,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             curve: {
               id: 7,
               interpolation_kind: 'catmull_interpolation',
-              points: pressure.value,
+              points: pointsPressure,
               time_reference_id: 4
             }
           },
@@ -709,7 +711,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
 
   const stages = [initialize, init];
 
-  if (isPressureActivated) {
+  if (isPreinfusionActivated) {
     stages.push(preInfusion);
   }
 
