@@ -31,7 +31,6 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
 
   useEffect(() => {
     if (presetSetting.settings && presetSetting.settings.settings.length > 0) {
-      console.log('abc', presetSetting.settings.settings[0].key);
       optionSelected(
         presetSetting.settings.settings[presetSetting.activeSetting].key
       );
