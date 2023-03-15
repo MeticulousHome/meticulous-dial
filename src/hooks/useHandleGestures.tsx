@@ -59,8 +59,8 @@ export function useHandleGesture({
           case 'pressets':
             if (gesture.value === 'click') {
               if (presets.activeIndexSwiper === presets.value.length - 1 + 1) {
-                dispatch(addNewPreset());
                 dispatch(setDefaultSettingsNewPreset());
+                dispatch(addNewPreset());
               } else {
                 dispatch(setScreen('barometer'));
               }
