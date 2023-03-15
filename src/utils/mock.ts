@@ -84,14 +84,14 @@ export const settingsDefaultNewPreset: IPresetSetting[] = [
     id: 1,
     type: 'text',
     key: 'name',
-    label: `name: New Preset`,
-    value: 'New'
+    label: `name`,
+    value: 'New Preset'
   },
   {
     id: 2,
     type: 'numerical',
     key: 'pressure',
-    label: 'pressure: 8 bar',
+    label: 'pressure',
     value: 8,
     unit: 'bar'
   },
@@ -99,7 +99,7 @@ export const settingsDefaultNewPreset: IPresetSetting[] = [
     id: 3,
     type: 'numerical',
     key: 'temperature',
-    label: 'temperature: 85°c',
+    label: 'temperature',
     value: 85,
     unit: '°c'
   },
@@ -107,7 +107,7 @@ export const settingsDefaultNewPreset: IPresetSetting[] = [
     id: 4,
     type: 'on-off',
     key: 'pre-infusion',
-    label: 'pre-infusion: yes',
+    label: 'pre-infusion',
     value: 'yes'
   },
   {
@@ -122,7 +122,7 @@ export const settingsDefaultNewPreset: IPresetSetting[] = [
     id: 6,
     type: 'multiple-option',
     key: 'purge',
-    label: 'purge: automatic',
+    label: 'purge',
     value: 'automatic'
   },
   {
