@@ -17,11 +17,11 @@ export function Pressets(): JSX.Element {
   const slideTo = (index: number) => swiper.slideTo(index);
 
   useEffect(() => {
-    if (presets.activePresetIndex > -1 && presets.value.length > 0 && swiper) {
-      slideTo(presets.activePresetIndex);
+    if (swiper) {
+      slideTo(presets.activeIndexSwiper);
       handlSlideChange();
     }
-  }, [presets.activePresetIndex, swiper]);
+  }, [presets.activeIndexSwiper, swiper]);
 
   useEffect(() => {
     if (screen.value !== 'pressets') {
@@ -69,7 +69,7 @@ export function Pressets(): JSX.Element {
         <Swiper
           slidesPerView={2}
           spaceBetween={100}
-          initialSlide={presets.defaultPresetIndex}
+          initialSlide={presets.activeIndexSwiper}
           centeredSlides={true}
           allowTouchMove={false}
           onSwiper={setSwiper}
