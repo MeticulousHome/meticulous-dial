@@ -58,8 +58,7 @@ export const setNextPreset = createAsyncThunk(
         : presetState.defaultPresetIndex;
 
     if (presetState.activeIndexSwiper < presetState.value.length) {
-      const indexSwiper = presetState.activeIndexSwiper;
-      presetState.activeIndexSwiper = indexSwiper + 1;
+      presetState.activeIndexSwiper += 1;
     }
 
     if (index === presetState.value.length - 1) return presetState;
@@ -96,10 +95,11 @@ export const setPrevPreset = createAsyncThunk(
         ? presetState.activePresetIndex
         : presetState.defaultPresetIndex;
 
-    if (index > 0) {
-      const indexSwiper = presetState.activeIndexSwiper;
-      presetState.activeIndexSwiper = indexSwiper - 1;
+    if (presetState.activeIndexSwiper > 0) {
+      presetState.activeIndexSwiper += -1;
+    }
 
+    if (index > 0) {
       const newActivePresetIndex = index - 1;
 
       const presetList = [...presetState.value].map((i) => {
@@ -117,7 +117,7 @@ export const setPrevPreset = createAsyncThunk(
       presetState.activePreset = presetList[newActivePresetIndex];
       await setPresetsData(presetList);
     } else {
-      throw new Error('No more presets');
+      // throw new Error('No more presets');
     }
     return presetState;
   }
