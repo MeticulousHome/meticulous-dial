@@ -90,6 +90,7 @@ export const setPrevPreset = createAsyncThunk(
   async (_, { getState }) => {
     const state = getState() as RootState;
     const presetState = { ...state.presets } as PresetsState;
+
     const index =
       presetState.activePresetIndex > -1
         ? presetState.activePresetIndex
@@ -98,6 +99,9 @@ export const setPrevPreset = createAsyncThunk(
     if (presetState.activeIndexSwiper > 0) {
       presetState.activeIndexSwiper += -1;
     }
+
+    if (presetState.activeIndexSwiper === presetState.value.length - 1)
+      return presetState;
 
     if (index > 0) {
       const newActivePresetIndex = index - 1;
