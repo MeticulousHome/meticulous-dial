@@ -53,7 +53,7 @@ export const generateMockSetting = (name: string): IPresetSetting[] => {
       id: 6,
       type: 'numerical',
       key: 'output',
-      label: 'output: 18g',
+      label: 'output',
       value: 18,
       unit: 'g'
     },
@@ -112,34 +112,27 @@ export const settingsDefaultNewPreset: IPresetSetting[] = [
   },
   {
     id: 5,
-    type: 'multiple-option',
-    key: 'ratio',
-    label: 'ratio: 2:1',
-    value: '2:1'
-  },
-  {
-    id: 6,
     type: 'numerical',
-    key: 'dose',
-    label: 'dose: 18g',
+    key: 'output',
+    label: 'output',
     value: 18,
     unit: 'g'
   },
   {
-    id: 7,
+    id: 6,
     type: 'multiple-option',
     key: 'purge',
     label: 'purge: automatic',
     value: 'automatic'
   },
   {
-    id: 8,
+    id: 7,
     type: 'action',
     key: 'save',
     label: 'save'
   },
   {
-    id: 9,
+    id: 8,
     type: 'action',
     key: 'discard',
     label: 'discard'
