@@ -15,11 +15,11 @@ const MainTitle = () => {
   const slideTo = (index: number) => swiper.slideTo(index);
 
   useEffect(() => {
-    if (presets.activePresetIndex > -1 && swiper) {
-      slideTo(presets.activePresetIndex);
+    if (swiper) {
+      slideTo(presets.activeIndexSwiper);
       handlSlideChange();
     }
-  }, [presets.activePresetIndex, swiper]);
+  }, [presets.activeIndexSwiper, swiper]);
 
   useEffect(() => {
     if (screen.value !== 'pressets') {
@@ -93,7 +93,7 @@ const MainTitle = () => {
           <Swiper
             slidesPerView={screen.value === 'pressets' ? 2 : 1}
             centeredSlides={true}
-            initialSlide={presets.defaultPresetIndex}
+            initialSlide={presets.activeIndexSwiper}
             allowTouchMove={false}
             onSwiper={setSwiper}
           >
