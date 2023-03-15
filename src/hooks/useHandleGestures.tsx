@@ -58,7 +58,7 @@ export function useHandleGesture({
             break;
           case 'pressets':
             if (gesture.value === 'click') {
-              if (presets.activeIndexSwiper === presets.value.length - 1 + 1) {
+              if (presets.activeIndexSwiper === presets.value.length) {
                 dispatch(setDefaultSettingsNewPreset());
                 dispatch(addNewPreset());
               } else {
