@@ -20,8 +20,8 @@ export const generatePayload = ({ presset }: PayloadProps) => {
 
   const pointsPressure:number[][] = [[0, Number(pressure.value)]];
 
-  const initialize = {
-    name: 'heating',
+  const prePurge = {
+    name: 'purge',
     nodes: [
       {
         id: -1,
@@ -33,7 +33,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             operator: '>=',
             value: 60,
             next_node_id: 5,
-            source: 'Piston Position Raw'
+            source: 'Piston Position Raw',
           },
           {
             kind: 'piston_position_trigger',
@@ -41,9 +41,15 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             operator: '<',
             value: 60,
             next_node_id: 2,
-            source: 'Piston Position Raw'
+            source: 'Piston Position Raw',
+          },
+          {
+            kind: 'button_trigger',
+            source: 'Encoder Button',
+            gesture: 'Single Tap',
+            next_node_id: 5,
           }
-        ]
+        ],
       },
       {
         id: 2,
@@ -52,20 +58,20 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             kind: 'move_piston_controller',
             algorithm: 'Piston Ease-In',
             direction: 'DOWN',
-            speed: 6
+            speed: 6.0,
           },
           {
             kind: 'time_reference',
-            id: 30
-          }
+            id: 30,
+          },
         ],
         triggers: [
           {
             kind: 'pressure_value_trigger',
             source: 'Pressure Raw',
             operator: '>=',
-            value: 6,
-            next_node_id: 3
+            value: 6.0,
+            next_node_id: 3,
           },
           {
             kind: 'piston_position_trigger',
@@ -73,9 +79,15 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             source: 'Piston Position Raw',
             operator: '>=',
             value: 60,
-            next_node_id: 5
+            next_node_id: 5,
+          },
+          {
+            kind: 'button_trigger',
+            source: 'Encoder Button',
+            gesture: 'Single Tap',
+            next_node_id: 5,
           }
-        ]
+        ],
       },
       {
         id: 3,
@@ -87,7 +99,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
               id: 13,
               interpolation_kind: 'linear_interpolation',
               points: [[0, 6]],
-              time_reference_id: 30
+              time_reference_id: 30,
             }
           }
         ],
@@ -98,56 +110,58 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             source: 'Piston Position Raw',
             operator: '>=',
             value: 60,
-            next_node_id: 5
+            next_node_id: 5,
+          },
+          {
+            kind: 'button_trigger',
+            source: 'Encoder Button',
+            gesture: 'Single Tap',
+            next_node_id: 5,
           }
-        ]
+        ],
       },
       {
         id: 5,
-        controllers: [
-          {
-            kind: 'time_reference',
-            id: 2
-          }
-        ],
+        controllers: [{ kind: 'time_reference', id: 2 }],
         triggers: [
           {
             kind: 'water_detection_trigger',
             value: true,
-            next_node_id: 7
+            next_node_id: 7,
           },
           {
             kind: 'water_detection_trigger',
             value: false,
-            next_node_id: 6
+            next_node_id: 6,
           }
-        ]
+        ],
       },
       {
         id: 6,
-        controllers: [
-          {
-            kind: 'log_controller',
-            message: 'No Water'
-          }
-        ],
+        controllers: [{ kind: 'log_controller', message: 'No Water' }],
         triggers: [
           {
             kind: 'timer_trigger',
             timer_reference_id: 2,
             operator: '>=',
             value: 2,
-            next_node_id: 5
+            next_node_id: 5,
           },
           {
             kind: 'timer_trigger',
             timer_reference_id: 1,
             operator: '>=',
             value: 100,
-            next_node_id: -2
+            next_node_id: -2,
           }
-        ]
+        ],
       },
+    ],
+  };
+
+  const heating = {
+    name: 'heating',
+    nodes: [
       {
         id: 7,
         controllers: [
@@ -176,6 +190,12 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             operator: '>=',
             value: 900,
             next_node_id: -2
+          },
+          {
+            kind: 'button_trigger',
+            source: 'Encoder Button',
+            gesture: 'Single Tap',
+            next_node_id: 8,
           }
         ]
       },
@@ -709,7 +729,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
     ]
   };
 
-  const stages = [initialize, init];
+  const stages = [prePurge,heating, init];
 
   if (isPreinfusionActivated) {
     stages.push(preInfusion);
