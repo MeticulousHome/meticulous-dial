@@ -18,7 +18,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
   const isPurgeAutomatic = purgeS.value === 'automatic';
   const isPreinfusionActivated = preinfusion.value === 'yes';
 
-  const pointsPressure:number[][] = [[0, Number(pressure.value)]];
+  const pointsPressure: number[][] = [[0, Number(pressure.value)]];
 
   const initialize = {
     name: 'heating',
@@ -592,7 +592,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             operator: '<=',
             value: -15,
             source: 'Piston Position Raw',
-            next_node_id: isPurgeAutomatic ? 18 : -2,
+            next_node_id: isPurgeAutomatic ? 18 : -2
           }
         ]
       }
