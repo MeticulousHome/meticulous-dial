@@ -127,8 +127,19 @@ const presetSettingSlice = createSlice({
     },
     setDefaultSettingsNewPreset: (state: Draft<typeof initialState>) => {
       state.activeSetting = 2;
-      state.endIndex = settingsDefaultNewPreset.length + 1;
-      state.settings = settingsDefaultNewPreset;
+      const presetId = (state.allSettings.length + 1).toString();
+      const settings = settingsDefaultNewPreset;
+
+      state.settings = {
+        presetId,
+        settings
+      };
+      state.updatingSettings = {
+        presetId,
+        settings
+      };
+      state.endIndex = settings.length - 1;
+      state.allSettings = state.allSettings.concat(state.settings);
     },
     setSettings(
       state: Draft<typeof initialState>,
