@@ -6,10 +6,7 @@ import {
 } from '@reduxjs/toolkit';
 
 import { IPresetSetting, IPresetsSettingData } from '../../../../types';
-import {
-  settingsDefaultNewPreset,
-  dummyOptions
-} from '../../../../utils/mock';
+import { settingsDefaultNewPreset, dummyOptions } from '../../../../utils/mock';
 import {
   getPresetSettingsData,
   setPresetSettingsData
