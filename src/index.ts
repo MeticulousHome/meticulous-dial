@@ -1,5 +1,4 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
-import installExtension, { REDUX_DEVTOOLS } from 'electron-devtools-installer';
 import { IpcMainEvent } from 'electron/main';
 import { promises as fs } from 'fs';
 import mockPreset from './data/mock_presets.json';
@@ -58,15 +57,15 @@ const saveFile = async (
   filename: string,
   content: string
 ) => {
-  // const path = app.getPath('userData');
+  const path = app.getPath('temp');
   // const path = './';
-  // const presetPath = `${path}/${filename}`;
-  return await fs.writeFile(filename, content);
+  const filePath = `${path}/${filename}`;
+  return await fs.writeFile(filePath, content);
 };
 
 const getPresetData = async () => {
-  // const path = app.getPath ("userData");
-  const path = './src/data';
+  // const path = './src/data';
+  const path = app.getPath('temp');
   const presetPath = `${path}/presets.json`;
 
   //get file
@@ -81,7 +80,8 @@ const getPresetData = async () => {
 };
 
 const getPresetSettingData = async () => {
-  const path = './src/data';
+  // const path = './src/data';
+  const path = app.getPath('temp');
   const presetPath = `${path}/presetSettings.json`;
 
   try {
