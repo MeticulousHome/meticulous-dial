@@ -18,7 +18,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
   const isPurgeAutomatic = purgeS.value === 'automatic';
   const isPreinfusionActivated = preinfusion.value === 'yes';
 
-  const pointsPressure:number[][] = [[0, Number(pressure.value)]];
+  const pointsPressure: number[][] = [[0, Number(pressure.value)]];
 
   const prePurge = {
     name: 'purge',
@@ -601,7 +601,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             kind: 'end_profile'
           }
         ],
-        triggers: []
+        triggers: <any>[]
       },
       {
         id: 14,
@@ -694,7 +694,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
       },
       {
         id: 30,
-        controllers: [],
+        controllers: <any>[],
         triggers: [
           {
             kind: 'timer_trigger',
