@@ -551,7 +551,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             kind: 'end_profile'
           }
         ],
-        triggers: []
+        triggers: <any>[]
       },
       {
         id: 14,
@@ -638,7 +638,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
       },
       {
         id: 30,
-        controllers: [],
+        controllers: <any>[],
         triggers: [
           {
             kind: 'timer_trigger',
