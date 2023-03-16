@@ -112,7 +112,8 @@ const MainTitle = () => {
                 )}
               </SwiperSlide>
             ))}
-            {screen.value === 'pressets' && (
+            {(screen.value === 'pressets' ||
+              (screen.value === 'scale' && screen.prev === 'pressets')) && (
               <SwiperSlide key={`${presets.value.length + 1}-slide`}>
                 {() => (
                   <div
