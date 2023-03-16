@@ -30,6 +30,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
   const setting = presetSetting?.updatingSettings.settings[
     presetSetting.activeSetting
   ] as IPresetName;
+
   const [caption, setCaption] = useState(() =>
     setting && setting.value ? setting.value.split('') : []
   );

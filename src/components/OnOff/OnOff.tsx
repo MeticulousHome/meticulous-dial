@@ -1,12 +1,25 @@
 import { useCallback, useEffect, useState } from 'react';
-
+import { useDispatch } from 'react-redux';
 import { useAppSelector } from '../store/hooks';
 import { MultipleOptionSlider } from '../shared/MultipleOptionSlider';
+import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
+import { IPresetOnOffPreinfusion, IPresetSetting } from '../../../src/types';
 
 export function OnOff(): JSX.Element {
   const [options] = useState(['Yes', 'No']);
   const [activeIndex, setActiveIndex] = useState(0);
-  const { screen, gesture } = useAppSelector((state) => state);
+  const { screen, gesture, presetSetting } = useAppSelector((state) => state);
+  const dispatch = useDispatch();
+
+  const setting = presetSetting?.updatingSettings.settings[
+    presetSetting.activeSetting
+  ] as IPresetOnOffPreinfusion;
+
+  useEffect(() => {
+    if (setting?.type === 'on-off') {
+      setActiveIndex(setting.value === 'Yes' ? 0 : 1);
+    }
+  }, [setting, screen]);
 
   useEffect(() => {
     if (screen.value === 'onOff') {
@@ -20,6 +33,14 @@ export function OnOff(): JSX.Element {
           if (activeIndex > 0) {
             setActiveIndex(activeIndex - 1);
           }
+          break;
+        case 'click':
+          dispatch(
+            updatePresetSetting({
+              ...setting,
+              value: options[activeIndex]
+            } as IPresetSetting)
+          );
           break;
         default:
           break;
