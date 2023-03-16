@@ -20,7 +20,7 @@ export function Purge(): JSX.Element {
 
   useEffect(() => {
     if (setting?.type === 'multiple-option') {
-      setActiveIndex(setting.value === 'Automatic' ? 0 : 1);
+      setActiveIndex(setting.value === 'automatic' ? 0 : 1);
     }
   }, [setting, screen]);
 
@@ -41,7 +41,7 @@ export function Purge(): JSX.Element {
           dispatch(
             updatePresetSetting({
               ...setting,
-              value: options[activeIndex]
+              value: options[activeIndex].toLowerCase()
             } as IPresetSetting)
           );
           break;
