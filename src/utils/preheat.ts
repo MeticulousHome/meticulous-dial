@@ -122,7 +122,14 @@ export const generatePayload = ({ presset }: PayloadProps) => {
       },
       {
         id: 5,
-        controllers: [{ kind: 'time_reference', id: 2 }],
+        controllers: [{ kind: 'time_reference', id: 2 },
+        {
+          kind: 'move_piston_controller',
+          algorithm: 'Piston Ease-In',
+          direction: 'DOWN',
+          speed: 0.0,
+        },
+      ],
         triggers: [
           {
             kind: 'water_detection_trigger',
@@ -174,7 +181,11 @@ export const generatePayload = ({ presset }: PayloadProps) => {
               points: [[0, 180]],
               time_reference_id: 2
             }
-          }
+          },
+          {
+            kind: 'position_reference',
+            id: 5
+          },
         ],
         triggers: [
           {
@@ -222,9 +233,9 @@ export const generatePayload = ({ presset }: PayloadProps) => {
         triggers: [
           {
             kind: 'piston_position_trigger',
-            position_reference_id: 0,
+            position_reference_id: 5,
             operator: '<=',
-            value: 55,
+            value: -2,
             next_node_id: 9,
             source: 'Piston Position Raw'
           }
@@ -589,8 +600,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             position_reference_id: 1,
             operator: '<=',
             value: -4,
-            // TODO: change 18 to 16
-            next_node_id: isPurgeAutomatic ? 18 : -2,
+            next_node_id: 15,
             source: 'Piston Position Raw'
           }
         ]
