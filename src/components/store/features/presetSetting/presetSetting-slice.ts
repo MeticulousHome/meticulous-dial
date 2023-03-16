@@ -125,10 +125,20 @@ const presetSettingSlice = createSlice({
       state.endIndex = action.payload;
       return state;
     },
-    setDefaultSettingsNewPreset: (state: Draft<typeof initialState>) => {
+    setDefaultSettingsNewPreset: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<{
+        presetId: string | null;
+        settingsDefault: IPresetSetting[] | null;
+      }>
+    ) => {
       state.activeSetting = 2;
-      const presetId = (state.allSettings.length + 1).toString();
-      const settings = settingsDefaultNewPreset;
+      const presetId = action.payload.presetId
+        ? action.payload.presetId
+        : (state.allSettings.length + 1).toString();
+      const settings = action.payload.settingsDefault
+        ? action.payload.settingsDefault
+        : settingsDefaultNewPreset;
 
       state.settings = {
         presetId,
