@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
-import { IPresetName } from '../../types';
+import {
+  IPresetNumericalTemperature,
+  IPresetNumericalPressure,
+  IPresetNumericalOutput,
+  ISettingType
+} from '../../types';
 import { addRightComplement, roundPrecision } from '../../utils';
 import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
 import { useReduxSelector } from '../store/store';
 import './setting-numerical.css';
-import { ISettingType } from '../../../src/types';
 
 const radius = 237;
 const strokeWidth = 6;
@@ -29,7 +33,15 @@ export function SettingNumerical({ type }: Props): JSX.Element {
 
   const settingTemperature = presetSetting.updatingSettings.settings.find(
     (setting) => setting.key === 'temperature'
-  ) as IPresetName;
+  ) as IPresetNumericalTemperature;
+
+  const settingPressure = presetSetting.updatingSettings.settings.find(
+    (setting) => setting.key === 'pressure'
+  ) as IPresetNumericalPressure;
+
+  const settingOutput = presetSetting.updatingSettings.settings.find(
+    (setting) => setting.key === 'output'
+  ) as IPresetNumericalOutput;
 
   const dispatch = useDispatch();
 
@@ -60,16 +72,34 @@ export function SettingNumerical({ type }: Props): JSX.Element {
   }, [gesture]);
 
   useEffect(() => {
+    if (screen.value !== 'settingNumerical') {
+      return;
+    }
     switch (type) {
       case 'temperature':
         dispatch(
           updatePresetSetting({
             ...settingTemperature,
             value: total.toString()
-          })
+          } as unknown as IPresetNumericalTemperature)
         );
         break;
-
+      case 'pressure':
+        dispatch(
+          updatePresetSetting({
+            ...settingPressure,
+            value: total.toString()
+          } as unknown as IPresetNumericalTemperature)
+        );
+        break;
+      case 'output':
+        dispatch(
+          updatePresetSetting({
+            ...settingOutput,
+            value: total.toString()
+          } as unknown as IPresetNumericalTemperature)
+        );
+        break;
       default:
         break;
     }
@@ -87,7 +117,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
     switch (type) {
       case 'pressure':
         setInterval(0.1);
-        setTotal(8);
+        setTotal(Number(settingPressure?.value));
         setUnit('bar');
         setMaxValue(13);
         setCustomClass('scale-pressure');
@@ -101,7 +131,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
         break;
       case 'output':
         setInterval(1);
-        setTotal(36);
+        setTotal(Number(settingOutput?.value));
         setUnit('g');
         setMaxValue(100);
         setCustomClass('scale-weight-limit');
