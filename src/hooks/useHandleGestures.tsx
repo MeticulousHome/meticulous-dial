@@ -3,13 +3,12 @@ import { useContext, useEffect } from 'react';
 import { IPresetType } from '../../src/types';
 import { setGesture } from '../components/store/features/gestures/gestures-slice';
 import {
-  addNewPreset,
+  addPresetNewOne,
   savePresets,
   setNextPreset,
   setPrevPreset
 } from '../components/store/features/preset/preset-slice';
 import {
-  setDefaultSettingsNewPreset,
   discardSettings,
   savePresetSetting,
   setNextSettingOption,
@@ -59,8 +58,7 @@ export function useHandleGesture({
           case 'pressets':
             if (gesture.value === 'click') {
               if (presets.activeIndexSwiper === presets.value.length) {
-                dispatch(setDefaultSettingsNewPreset());
-                dispatch(addNewPreset());
+                dispatch(addPresetNewOne());
               } else {
                 dispatch(setScreen('barometer'));
               }
