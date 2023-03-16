@@ -1,14 +1,28 @@
 import { useCallback, useEffect, useState } from 'react';
-
+import { useDispatch } from 'react-redux';
 import { useAppSelector } from '../store/hooks';
 import { MultipleOptionSlider } from '../shared/MultipleOptionSlider';
+import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
+import { IPresetMultipleOptionPurge, IPresetSetting } from '../../../src/types';
 
 import './purge.css';
 
 export function Purge(): JSX.Element {
   const [options] = useState(['Automatic', 'Manual']);
   const [activeIndex, setActiveIndex] = useState(0);
-  const { screen, gesture } = useAppSelector((state) => state);
+  const { screen, gesture, presetSetting } = useAppSelector((state) => state);
+
+  const dispatch = useDispatch();
+
+  const setting = presetSetting?.updatingSettings.settings[
+    presetSetting.activeSetting
+  ] as IPresetMultipleOptionPurge;
+
+  useEffect(() => {
+    if (setting?.type === 'multiple-option') {
+      setActiveIndex(setting.value === 'Automatic' ? 0 : 1);
+    }
+  }, [setting, screen]);
 
   useEffect(() => {
     if (screen.value === 'purge') {
@@ -22,6 +36,14 @@ export function Purge(): JSX.Element {
           if (activeIndex > 0) {
             setActiveIndex(activeIndex - 1);
           }
+          break;
+        case 'click':
+          dispatch(
+            updatePresetSetting({
+              ...setting,
+              value: options[activeIndex]
+            } as IPresetSetting)
+          );
           break;
         default:
           break;
