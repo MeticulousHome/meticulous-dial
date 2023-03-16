@@ -17,7 +17,7 @@ export function OnOff(): JSX.Element {
 
   useEffect(() => {
     if (setting?.type === 'on-off') {
-      setActiveIndex(setting.value === 'Yes' ? 0 : 1);
+      setActiveIndex(setting.value === 'yes' ? 0 : 1);
     }
   }, [setting, screen]);
 
@@ -38,7 +38,7 @@ export function OnOff(): JSX.Element {
           dispatch(
             updatePresetSetting({
               ...setting,
-              value: options[activeIndex]
+              value: options[activeIndex].toLowerCase()
             } as IPresetSetting)
           );
           break;
