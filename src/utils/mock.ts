@@ -115,7 +115,7 @@ export const settingsDefaultNewPreset: IPresetSetting[] = [
     type: 'numerical',
     key: 'output',
     label: 'output',
-    value: 18,
+    value: 36,
     unit: 'g'
   },
   {
