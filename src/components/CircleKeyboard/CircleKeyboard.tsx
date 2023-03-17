@@ -86,7 +86,6 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
   };
 
   const updateSetting = (updatedText: string) => {
-    console.log('updatedText: ', updatedText);
     const updatedSetting = {
       ...setting,
       value: updatedText
@@ -147,7 +146,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
 
       switch (mainLetter) {
         case 'space':
-          setCaption(caption.concat('U+0020'));
+          setCaption(caption.concat(' '));
           return;
         case 'ok':
           updateSetting(caption.join(''));
@@ -319,7 +318,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
         <div className="circle-title">{setting?.label}</div>
         <div className="circle-caption">
           {caption.map((el) => {
-            if (el === 'U+0020') {
+            if (el === ' ') {
               return <div className="transparent">_</div>;
             }
             return <div>{el}</div>;

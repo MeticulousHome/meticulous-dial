@@ -51,7 +51,7 @@ const presset = {
       type: 'text',
       key: 'name',
       label: 'name',
-      value: '78U+002a'
+      value: '78 a'
     },
     {
       id: 2,
