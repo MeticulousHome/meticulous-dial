@@ -4,13 +4,15 @@ import {
   handleAddPresetAnimation,
   handleRemovePresetsAnimation
 } from '../../utils/preset';
+import { setActiveIndexSwiper } from '../store/features/preset/preset-slice';
 
-import { useAppSelector } from '../store/hooks';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
 
 const MainTitle = () => {
   const { presets, screen, stats } = useAppSelector((state) => state);
   const [swiper, setSwiper] = useState(null);
   const currentAnimation = useRef('');
+  const dispatch = useAppDispatch();
 
   const slideTo = (index: number) => swiper.slideTo(index);
 
@@ -28,6 +30,17 @@ const MainTitle = () => {
       }
     }
   }, [screen.value]);
+
+  useEffect(() => {
+    if (
+      stats.name === 'idle' &&
+      screen.value !== 'pressets' &&
+      screen.value !== 'scale' &&
+      presets.activeIndexSwiper === presets.value.length
+    ) {
+      dispatch(setActiveIndexSwiper(presets.activeIndexSwiper - 1));
+    }
+  }, [stats.name, screen.value, presets.activeIndexSwiper, presets.value]);
 
   const getAnimation = useCallback(() => {
     let animation = 'hidden';
