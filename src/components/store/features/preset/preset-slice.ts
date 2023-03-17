@@ -205,6 +205,14 @@ const presetSlice = createSlice({
       if (action.payload[0]) {
         state.activePreset = action.payload[0];
       }
+    },
+    setActiveIndexSwiper: (
+      state: PresetsState,
+      action: PayloadAction<number>
+    ) => {
+      if (action.payload > 0 && action.payload <= state.value.length) {
+        state.activeIndexSwiper = action.payload;
+      }
     }
 
     // setPresets: (state: PresetsState, action: PayloadAction<IPreset[]>) => {
@@ -307,5 +315,5 @@ const presetSlice = createSlice({
   }
 });
 
-export const { setActivePreset } = presetSlice.actions;
+export const { setActivePreset, setActiveIndexSwiper } = presetSlice.actions;
 export default presetSlice.reducer;
