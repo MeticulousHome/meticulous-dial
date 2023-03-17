@@ -80,7 +80,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
         dispatch(
           updatePresetSetting({
             ...settingTemperature,
-            value: total.toString()
+            value: total
           } as unknown as IPresetNumericalTemperature)
         );
         break;
@@ -88,7 +88,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
         dispatch(
           updatePresetSetting({
             ...settingPressure,
-            value: total.toString()
+            value: total
           } as unknown as IPresetNumericalTemperature)
         );
         break;
@@ -96,7 +96,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
         dispatch(
           updatePresetSetting({
             ...settingOutput,
-            value: total.toString()
+            value: total
           } as unknown as IPresetNumericalTemperature)
         );
         break;
