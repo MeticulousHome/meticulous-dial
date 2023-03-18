@@ -4,7 +4,7 @@ import { io, Socket } from 'socket.io-client';
 
 import { ActionType, ISensorData } from '../../types/index';
 import { setGesture } from './features/gestures/gestures-slice';
-import { useAppDispatch } from './hooks';
+import { useAppDispatch, useAppSelector } from './hooks';
 import { setStats } from './features/stats/stats-slice';
 import { generatePayload } from '../../utils/preheat';
 
@@ -108,9 +108,10 @@ const presset = {
 
 export const SetSocketKeyboardListeners = () => {
   const dispatch = useAppDispatch();
+  const { presets, presetSetting } = useAppSelector((state) => state);
 
   useEffect(() => {
-    window.addEventListener('keydown', (e) => {
+    const lister = (e: KeyboardEvent) => {
       console.log(e.code);
       switch (e.code) {
         case 'ArrowLeft':
@@ -123,7 +124,14 @@ export const SetSocketKeyboardListeners = () => {
           dispatch(setGesture('click'));
           break;
         case 'Enter': {
-          const payload = generatePayload({ presset: presset as any });
+          const preset = {
+            name: presets.activePreset.name,
+            settings: presetSetting.settings.settings.filter(
+              (item) => item.id !== -1 && item.id !== -2
+            )
+          };
+
+          const payload = generatePayload({ presset: preset as any });
           console.log(JSON.stringify(payload, null, 2));
 
           socket.emit('parameters', payload);
@@ -146,8 +154,14 @@ export const SetSocketKeyboardListeners = () => {
         default:
           break;
       }
-    });
-  }, []);
+    };
+
+    window.addEventListener('keydown', lister);
+
+    return () => {
+      window.removeEventListener('keydown', lister);
+    };
+  }, [presets, presetSetting]);
 
   return dispatch;
 };
