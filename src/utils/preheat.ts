@@ -664,7 +664,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             kind: 'piston_speed_trigger',
             operator: '==',
             value: 0,
-            next_node_id: 19
+            next_node_id: isPurgeAutomatic ? 19 : -2
           }
         ]
       }
