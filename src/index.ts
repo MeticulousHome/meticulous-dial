@@ -9,6 +9,8 @@ import mockPresetSetting from './data/mock_presetSettings.json';
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
+const DEFAULT_USER_PATHNAME = 'userData';
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
   app.quit();
@@ -57,7 +59,7 @@ const saveFile = async (
   filename: string,
   content: string
 ) => {
-  const path = app.getPath('temp');
+  const path = app.getPath(DEFAULT_USER_PATHNAME);
   // const path = './';
   const filePath = `${path}/${filename}`;
   return await fs.writeFile(filePath, content);
@@ -65,7 +67,7 @@ const saveFile = async (
 
 const getPresetData = async () => {
   // const path = './src/data';
-  const path = app.getPath('temp');
+  const path = app.getPath(DEFAULT_USER_PATHNAME);
   const presetPath = `${path}/presets.json`;
 
   //get file
@@ -81,7 +83,7 @@ const getPresetData = async () => {
 
 const getPresetSettingData = async () => {
   // const path = './src/data';
-  const path = app.getPath('temp');
+  const path = app.getPath(DEFAULT_USER_PATHNAME);
   const presetPath = `${path}/presetSettings.json`;
 
   try {
