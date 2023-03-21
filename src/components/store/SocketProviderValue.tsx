@@ -108,7 +108,7 @@ const presset = {
 
 export const SetSocketKeyboardListeners = () => {
   const dispatch = useAppDispatch();
-  const { presets, presetSetting } = useAppSelector((state) => state);
+  const { presets, presetSetting, screen } = useAppSelector((state) => state);
 
   useEffect(() => {
     const lister = (e: KeyboardEvent) => {
@@ -124,6 +124,8 @@ export const SetSocketKeyboardListeners = () => {
           dispatch(setGesture('click'));
           break;
         case 'Enter': {
+          if (screen.value !== 'barometer') return;
+
           const preset = {
             name: presets.activePreset.name,
             settings: presetSetting.settings.settings.filter(
@@ -161,7 +163,7 @@ export const SetSocketKeyboardListeners = () => {
     return () => {
       window.removeEventListener('keydown', lister);
     };
-  }, [presets, presetSetting]);
+  }, [presets, presetSetting, screen]);
 
   return dispatch;
 };
