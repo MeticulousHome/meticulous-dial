@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import '../../assets/fonts/custom/css/fontello.css';
 import './circle-keyboard.css';
 
@@ -31,6 +31,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     presetSetting.activeSetting
   ] as IPresetName;
 
+  const captionRef = useRef<HTMLDivElement>(null);
   const [caption, setCaption] = useState(() =>
     setting && setting.value ? setting.value.split('') : []
   );
@@ -143,12 +144,26 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
         }
         return;
       }
-
+      if (captionRef.current) {
+        //remove class to trigger animation if caption is empty next time
+        captionRef.current.classList.remove('caption_shake');
+      }
       switch (mainLetter) {
         case 'space':
           setCaption(caption.concat(' '));
           return;
         case 'ok':
+          if (caption.length === 0 || caption.join('').trim().length === 0) {
+            if (captionRef.current) {
+              //add class to trigger animation
+              captionRef.current.classList.add('caption_shake');
+              setTimeout(() => {
+                //remove class after finishing animation
+                captionRef.current.classList.remove('caption_shake');
+              }, 400);
+            }
+            return;
+          }
           updateSetting(caption.join(''));
           goToMainScreen();
           return;
@@ -316,7 +331,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
       {getMainLetter()}
       <div className="caption-content">
         <div className="circle-title">{setting?.label}</div>
-        <div className="circle-caption">
+        <div ref={captionRef} className="circle-caption caption_shake">
           {caption.map((el) => {
             if (el === ' ') {
               return <div className="transparent">_</div>;
