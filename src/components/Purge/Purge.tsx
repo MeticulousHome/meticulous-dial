@@ -19,7 +19,11 @@ export function Purge(): JSX.Element {
   ] as IPresetMultipleOptionPurge;
 
   useEffect(() => {
-    if (setting?.type === 'multiple-option') {
+    if (
+      setting?.type === 'multiple-option' &&
+      screen.value !== 'scale' &&
+      screen.prev !== 'scale'
+    ) {
       setActiveIndex(setting.value === 'automatic' ? 0 : 1);
     }
   }, [setting, screen]);
