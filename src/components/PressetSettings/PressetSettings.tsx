@@ -145,7 +145,9 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
                 {({ isActive }) => (
                   <div
                     className={`${animationStyle} ${
-                      isActive ? `item-active` : ''
+                      isActive && screen.value === 'pressetSettings'
+                        ? `item-active`
+                        : ''
                     }`}
                   >
                     {displaySetting(setting, isActive)}
