@@ -254,6 +254,11 @@ const presetSlice = createSlice({
         (state, action: PayloadAction<IPreset[]>) => {
           state.pending = false;
           state.value = action.payload;
+          const index =
+            state.activePresetIndex > -1
+              ? state.activePresetIndex
+              : state.defaultPresetIndex;
+          state.activePreset = state.value[index];
         }
       )
       .addCase(savePresets.rejected, (state, action) => {
