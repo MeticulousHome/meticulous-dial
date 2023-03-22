@@ -16,7 +16,11 @@ export function OnOff(): JSX.Element {
   ] as IPresetOnOffPreinfusion;
 
   useEffect(() => {
-    if (setting?.type === 'on-off') {
+    if (
+      setting?.type === 'on-off' &&
+      screen.value !== 'scale' &&
+      screen.prev !== 'scale'
+    ) {
       setActiveIndex(setting.value === 'yes' ? 0 : 1);
     }
   }, [setting, screen]);
