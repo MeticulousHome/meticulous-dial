@@ -168,7 +168,7 @@ const presetSettingSlice = createSlice({
     },
     discardSettings(state: Draft<typeof initialState>) {
       state.updatingSettings = state.settings;
-      state.activeSetting = 2;
+      // state.activeSetting = 2;
       return state;
     }
   },
@@ -194,7 +194,7 @@ const presetSettingSlice = createSlice({
           state.allSettings = action.payload.allSettings;
           state.settings = action.payload.presetSettings;
           state.updatingSettings = action.payload.presetSettings;
-          state.activeSetting = 2;
+          // state.activeSetting = 2;
         }
       )
       .addCase(

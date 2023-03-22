@@ -17,11 +17,29 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
 
   useEffect(() => {
     if (swiper) {
-      swiper.slideTo(presetSetting.activeSetting);
+      const settingsExist =
+        presetSetting.settings && presetSetting.settings.settings.length > 0;
+
+      let settingBeforeChange;
+
       if (
-        presetSetting.settings &&
-        presetSetting.settings?.settings.length > 0
+        settingsExist &&
+        presetSetting.settings.settings[swiper['activeIndex']]
       ) {
+        settingBeforeChange =
+          presetSetting.settings.settings[swiper['activeIndex']].key;
+      }
+
+      if (
+        (settingBeforeChange === 'save' || settingBeforeChange === 'discard') &&
+        presetSetting.activeSetting === 2
+      ) {
+        swiper.slideTo(presetSetting.activeSetting, 0, false);
+      } else {
+        swiper.slideTo(presetSetting.activeSetting);
+      }
+
+      if (settingsExist) {
         optionSelected(
           presetSetting.settings.settings[presetSetting.activeSetting].key
         );
