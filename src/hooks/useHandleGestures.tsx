@@ -10,6 +10,7 @@ import {
 } from '../components/store/features/preset/preset-slice';
 import {
   discardSettings,
+  resetActiveSetting,
   savePresetSetting,
   setNextSettingOption,
   setPrevSettingOption
@@ -49,6 +50,7 @@ export function useHandleGesture({
             if (gesture.value === 'right' || gesture.value === 'left') {
               dispatch(setScreen('pressets'));
             } else if (gesture.value === 'click') {
+              dispatch(resetActiveSetting());
               dispatch(setScreen('pressetSettings'));
             }
             // else if (gesture.value === 'doubleTare') {
