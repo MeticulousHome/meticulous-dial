@@ -5,12 +5,12 @@ import {
   PayloadAction
 } from '@reduxjs/toolkit';
 
-import { IPresetSetting, IPresetsSettingData } from '../../../../types';
-import { settingsDefaultNewPreset, dummyOptions } from '../../../../utils/mock';
 import {
   getPresetSettingsData,
   setPresetSettingsData
 } from '../../../../data/presetSettings';
+import { IPresetSetting, IPresetsSettingData } from '../../../../types';
+import { dummyOptions, settingsDefaultNewPreset } from '../../../../utils/mock';
 import { RootState } from '../../store';
 
 export interface PresetSettingInterface {
@@ -68,12 +68,26 @@ export const savePresetSetting = createAsyncThunk(
           (setting) => setting.id !== -1 && setting.id !== -2
         )
       };
-      console.log('allSettings', allSettings);
       await setPresetSettingsData(allSettings);
     }
 
     // return data;
     return { allSettings, presetSettings };
+  }
+);
+
+export const deletePresetSettings = createAsyncThunk(
+  'presetSetting/deletePresetSetting',
+  async (presetId: number, { getState }) => {
+    const state = getState() as RootState;
+    const presetSettings = [...state.presetSetting.allSettings];
+    const newListPresetSettings = presetSettings.filter(
+      (presetSetting) => Number(presetSetting.presetId) !== presetId
+    );
+
+    console.log('newListPresetSettings', newListPresetSettings);
+    await setPresetSettingsData(newListPresetSettings);
+    return { newListPresetSettings };
   }
 );
 
@@ -232,6 +246,43 @@ const presetSettingSlice = createSlice({
           state.error = true;
           state.endIndex = 0;
           state.activeSetting = 0;
+        }
+      )
+      .addCase(
+        deletePresetSettings.pending,
+        (state: PresetSettingInterface) => {
+          state.pending = true;
+          state.error = false;
+        }
+      )
+      .addCase(
+        deletePresetSettings.rejected,
+        (state: PresetSettingInterface, action: any) => {
+          console.log('deletePresetSettings.rejected', action);
+          state.pending = false;
+          state.error = true;
+          state.endIndex = 0;
+          state.activeSetting = 0;
+        }
+      )
+      .addCase(
+        deletePresetSettings.fulfilled,
+        (
+          state: PresetSettingInterface,
+          _action: PayloadAction<{
+            newListPresetSettings: IPresetsSettingData[];
+          }>
+        ) => {
+          state.pending = false;
+          state.error = false;
+
+          // state.allSettings = action.payload.newListPresetSettings;
+          // state.settings = action.payload.newListPresetSettings[0];
+          // state.updatingSettings = action.payload.newListPresetSettings[0];
+          // state.endIndex =
+          //   action.payload.newListPresetSettings[0].settings.length - 1;
+          // // reset active setting
+          // state.activeSetting = 2;
         }
       );
   }

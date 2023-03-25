@@ -136,5 +136,11 @@ export const settingsDefaultNewPreset: IPresetSetting[] = [
     type: 'action',
     key: 'discard',
     label: 'discard'
+  },
+  {
+    id: 9,
+    type: 'action',
+    key: 'delete',
+    label: 'delete profile'
   }
 ];
