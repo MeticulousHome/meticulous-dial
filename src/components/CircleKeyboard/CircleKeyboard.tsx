@@ -346,11 +346,15 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
       <div className="caption-content">
         <div className="circle-title">{setting?.label}</div>
         <div ref={captionRef} className="circle-caption caption_shake">
-          {caption.map((el) => {
+          {caption.map((el, index) => {
             if (el === ' ') {
-              return <div className="transparent">_</div>;
+              return (
+                <div key={index} className="transparent">
+                  _
+                </div>
+              );
             }
-            return <div>{el}</div>;
+            return <div key={index}>{el}</div>;
           })}
           {caption.length >= 0 && caption.length < 8 && (
             <div className="blink">_</div>

@@ -159,13 +159,17 @@ export function SettingNumerical({ type }: Props): JSX.Element {
     }
 
     if (/^0*$/.test(toLayout.replace('.', ''))) {
-      return <text className="opacity-20">{withPads}</text>;
+      return <span className="opacity-20">{withPads}</span>;
     }
 
     const pads: JSX.Element[] = [];
     withPads.split(toLayout).map((i: string) => {
       for (let y = 1; y <= i.length; y++) {
-        pads.push(<span className="opacity-20">0</span>);
+        pads.push(
+          <span key={y} className="opacity-20">
+            0
+          </span>
+        );
       }
     });
 
