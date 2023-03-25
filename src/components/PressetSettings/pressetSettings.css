@@ -11,6 +11,15 @@
   color: #fff;
 }
 
+.delete-option-item {
+  color: #E74D4D;
+  opacity: 0.5;
+}
+
+.item-active.delete-option-item {
+  opacity: 1;
+}
+
 .presset-options {
   width: 100vw;
   height: 100vh;

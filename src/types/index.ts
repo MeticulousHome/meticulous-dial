@@ -69,7 +69,7 @@ export type OutputKey = 'output';
 
 export type PreInfusionKey = 'pre-infusion';
 
-export type ActionKey = 'save' | 'discard';
+export type ActionKey = 'save' | 'discard' | 'delete';
 
 export type IPresetText = {
   type: 'text';
