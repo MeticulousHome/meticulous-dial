@@ -69,7 +69,7 @@ export const deletePreset = createAsyncThunk(
       newActiveIndex = currentActive - 2;
     } else if (currentActive > 0 && currentActive < presets.length - 1) {
       newSwiperIndex = currentActive;
-      newActiveIndex = currentActive - 1;
+      newActiveIndex = currentActive + 1;
     }
 
     const newDefaultPreset = presets[newActiveIndex]?.id

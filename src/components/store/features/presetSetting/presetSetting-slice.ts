@@ -44,8 +44,6 @@ export const getPresetSettings = createAsyncThunk(
   'presetSetting/getSettings',
   async () => {
     const presetSettingsData = await getPresetSettingsData();
-    //find preset
-    console.log('presetSettingsData', JSON.parse(presetSettingsData));
     return JSON.parse(presetSettingsData);
   }
 );
@@ -85,7 +83,6 @@ export const deletePresetSettings = createAsyncThunk(
       (presetSetting) => Number(presetSetting.presetId) !== presetId
     );
 
-    console.log('newListPresetSettings', newListPresetSettings);
     await setPresetSettingsData(newListPresetSettings);
     return { newListPresetSettings };
   }
