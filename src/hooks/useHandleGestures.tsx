@@ -4,11 +4,13 @@ import { IPresetType } from '../../src/types';
 import { setGesture } from '../components/store/features/gestures/gestures-slice';
 import {
   addPresetNewOne,
+  deletePreset,
   savePresets,
   setNextPreset,
   setPrevPreset
 } from '../components/store/features/preset/preset-slice';
 import {
+  deletePresetSettings,
   discardSettings,
   resetActiveSetting,
   savePresetSetting,
@@ -79,6 +81,10 @@ export function useHandleGesture({
               } else if (presetSettingIndex == 'discard') {
                 dispatch(discardSettings());
                 dispatch(setScreen('barometer'));
+              } else if (presetSettingIndex === 'delete') {
+                dispatch(deletePreset(presets.activePreset.id));
+                dispatch(deletePresetSettings(presets.activePreset.id));
+                dispatch(setScreen('pressets'));
               } else if (presetSettingIndex === 'name') {
                 dispatch(setScreen('circleKeyboard'));
               } else if (presetSettingIndex === 'pre-infusion') {
