@@ -48,7 +48,11 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
   }, [presetSetting.activeSetting, swiper]);
 
   useEffect(() => {
-    if (presetSetting.settings && presetSetting.settings.settings.length > 0) {
+    if (
+      presetSetting.settings &&
+      presetSetting.settings.settings.length > 0 &&
+      presetSetting.settings.settings[presetSetting.activeSetting]
+    ) {
       optionSelected(
         presetSetting.settings.settings[presetSetting.activeSetting].key
       );
