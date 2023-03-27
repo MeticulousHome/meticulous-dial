@@ -21,29 +21,4 @@ export function useFetchData() {
       dispatch(setSettings(presets.activePreset.id));
     }
   }, [presets.activePreset, presetSetting.allSettings]);
-
-  useEffect(() => {
-    if (
-      Array.isArray(presets.value) &&
-      presets.value.length &&
-      presets.activePreset.id === -1
-    ) {
-      const defaultPresetIndex = presets.value.findIndex(
-        (preset) => preset.isDefault === true
-      );
-      // defaultPresetIndex = defaultPresetIndex === -1 ? 0 : defaultPresetIndex;
-      // setActivePreset(defaultPresetIndex);
-    }
-  }, [presets]);
-
-  useEffect(() => {
-    if (presets.activePresetIndex > -1) {
-      // const listSettings = getPresetSettingsData;
-      // const settings = listSettings.find(
-      //   (presetSetting) =>
-      //     parseInt(presetSetting.presetId) === presets.activePreset.id
-      // );
-      // dispatch(setSettings(settings));
-    }
-  }, [presets.activePresetIndex]);
 }
