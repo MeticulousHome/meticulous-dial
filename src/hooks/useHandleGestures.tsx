@@ -40,7 +40,7 @@ export function useHandleGesture({
     // console.log('Current Screen >> ', screen.value);
 
     if (stats.name === 'idle') {
-      if (gesture.value === 'doubleTare') {
+      if (gesture.value === 'doubleTare' && presets.value.length > 0) {
         if (screen.value === 'scale') {
           dispatch(setScreen(screen.prev));
         } else {
@@ -51,7 +51,7 @@ export function useHandleGesture({
           case 'barometer':
             if (gesture.value === 'right' || gesture.value === 'left') {
               dispatch(setScreen('pressets'));
-            } else if (gesture.value === 'click') {
+            } else if (gesture.value === 'click' && presets.value.length > 0) {
               dispatch(resetActiveSetting());
               dispatch(setScreen('pressetSettings'));
             }
