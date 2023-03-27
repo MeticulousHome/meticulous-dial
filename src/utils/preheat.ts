@@ -734,7 +734,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             source: 'Piston Position Raw',
             operator: '>=',
             value: 60,
-            next_node_id: -2
+            next_node_id: 33
           },
           {
             kind: 'button_trigger',
@@ -765,12 +765,86 @@ export const generatePayload = ({ presset }: PayloadProps) => {
             source: 'Piston Position Raw',
             operator: '>=',
             value: 60,
-            next_node_id: -2
+            next_node_id: 33
           },
           {
             kind: 'button_trigger',
             source: 'Encoder Button',
             gesture: 'Single Tap',
+            next_node_id: -2
+          }
+        ]
+      },
+      {
+        id: 33,
+        controllers: [
+          {
+            kind: "position_reference",
+            id: 2
+          },
+          {
+            kind: "time_reference",
+            id: 20
+          }
+        ],
+        triggers: [
+          {
+            kind: "exit",
+            next_node_id: 34
+          }
+        ]
+      },
+      {
+        id: 34,
+        controllers: [
+          {
+            kind: "move_piston_controller",
+            algorithm: "Piston Fast",
+            direction: "UP",
+            speed: 4
+          }
+        ],
+        triggers: [
+          {
+            kind: "piston_position_trigger",
+            position_reference_id: 5,
+            operator: "<=",
+            value: -20,
+            next_node_id: 35,
+            source: "Piston Position Raw"
+          },
+          {
+            kind: "timer_trigger",
+            timer_reference_id: 20,
+            operator: ">=",
+            value: 10,
+            next_node_id: 35
+          }
+        ]
+      },
+      {
+        id: 35,
+        controllers: [
+          {
+            kind: "move_piston_controller",
+            algorithm: "Piston Ease-In",
+            direction: "DOWN",
+            speed: 6
+          }
+        ],
+        triggers: [
+          {
+            kind: "piston_position_trigger",
+            position_reference_id: 0,
+            source: "Piston Position Raw",
+            operator: ">=",
+            value: 60,
+            next_node_id: -2
+          },
+          {
+            kind: "button_trigger",
+            source: "Encoder Button",
+            gesture: "Single Tap",
             next_node_id: -2
           }
         ]
