@@ -12,7 +12,6 @@ import {
 
 interface PresetsState {
   value: IPreset[];
-  activePresetIndex: number;
   defaultPresetIndex: number;
   activeIndexSwiper: number;
   activePreset: IPreset;
@@ -66,7 +65,7 @@ export const deletePreset = createAsyncThunk(
       newActiveIndex = 1;
     } else if (currentActive === presets.length - 1) {
       newSwiperIndex = currentActive - 1;
-      newActiveIndex = currentActive - 2;
+      newActiveIndex = currentActive - 1;
     } else if (currentActive > 0 && currentActive < presets.length - 1) {
       newSwiperIndex = currentActive;
       newActiveIndex = currentActive + 1;
@@ -103,8 +102,8 @@ export const setNextPreset = createAsyncThunk(
     const state = getState() as RootState;
     const presetState = { ...state.presets } as PresetsState;
     const index =
-      presetState.activePresetIndex > -1
-        ? presetState.activePresetIndex
+      presetState.activeIndexSwiper > -1
+        ? presetState.activeIndexSwiper
         : presetState.defaultPresetIndex;
 
     if (presetState.activeIndexSwiper < presetState.value.length) {
@@ -127,7 +126,6 @@ export const setNextPreset = createAsyncThunk(
         ...presetList[newActivePresetIndex],
         isDefault: true
       };
-      presetState.activePresetIndex = newActivePresetIndex;
       presetState.activePreset = presetList[newActivePresetIndex];
       await setPresetsData(presetList);
     }
@@ -142,8 +140,8 @@ export const setPrevPreset = createAsyncThunk(
     const presetState = { ...state.presets } as PresetsState;
 
     const index =
-      presetState.activePresetIndex > -1
-        ? presetState.activePresetIndex
+      presetState.activeIndexSwiper > -1
+        ? presetState.activeIndexSwiper
         : presetState.defaultPresetIndex;
 
     if (presetState.activeIndexSwiper > 0) {
@@ -167,7 +165,6 @@ export const setPrevPreset = createAsyncThunk(
         ...presetList[newActivePresetIndex],
         isDefault: true
       };
-      presetState.activePresetIndex = newActivePresetIndex;
       presetState.activePreset = presetList[newActivePresetIndex];
       await setPresetsData(presetList);
     } else {
@@ -189,7 +186,7 @@ export const addPresetNewOne = createAsyncThunk(
       isDefault: false
     }));
 
-    const presetId = presetState.value.length + 1;
+    const presetId = new Date().getTime();
 
     presetList.push({
       id: presetId,
@@ -197,9 +194,8 @@ export const addPresetNewOne = createAsyncThunk(
       isDefault: true
     });
     presetState.value = presetList;
-    presetState.activePresetIndex = presetState.value.length - 1;
     presetState.activeIndexSwiper = presetState.value.length - 1;
-    presetState.activePreset = presetState.value[presetState.activePresetIndex];
+    presetState.activePreset = presetState.value[presetState.activeIndexSwiper];
 
     await setPresetsData(presetList);
 
@@ -226,7 +222,6 @@ export const addPresetNewOne = createAsyncThunk(
 
 const initialState: PresetsState = {
   value: [],
-  activePresetIndex: -1,
   defaultPresetIndex: -1,
   activeIndexSwiper: 0,
   activePreset: {
@@ -242,7 +237,7 @@ const presetSlice = createSlice({
   initialState,
   reducers: {
     setActivePreset: (state: PresetsState, action: PayloadAction<number>) => {
-      state.activePresetIndex = action.payload;
+      // state.activePresetIndex = action.payload;
     },
     setPresets: (state: PresetsState, action: PayloadAction<IPreset[]>) => {
       state.value = action.payload;
@@ -302,8 +297,8 @@ const presetSlice = createSlice({
           state.pending = false;
           state.value = action.payload;
           const index =
-            state.activePresetIndex > -1
-              ? state.activePresetIndex
+            state.activeIndexSwiper > -1
+              ? state.activeIndexSwiper
               : state.defaultPresetIndex;
           state.activePreset = state.value[index];
         }
@@ -321,7 +316,6 @@ const presetSlice = createSlice({
         (state, action: PayloadAction<PresetsState>) => {
           state.pending = false;
           state.activePreset = action.payload.activePreset;
-          state.activePresetIndex = action.payload.activePresetIndex;
           state.activeIndexSwiper = action.payload.activeIndexSwiper;
         }
       )
@@ -338,7 +332,6 @@ const presetSlice = createSlice({
         (state, action: PayloadAction<PresetsState>) => {
           state.pending = false;
           state.activePreset = action.payload.activePreset;
-          state.activePresetIndex = action.payload.activePresetIndex;
           state.activeIndexSwiper = action.payload.activeIndexSwiper;
         }
       )
@@ -359,7 +352,6 @@ const presetSlice = createSlice({
         addPresetNewOne.fulfilled,
         (state, action: PayloadAction<PresetsState>) => {
           state.value = action.payload.value;
-          state.activePresetIndex = action.payload.activePresetIndex;
           state.activeIndexSwiper = action.payload.activeIndexSwiper;
           state.activePreset = action.payload.activePreset;
         }
