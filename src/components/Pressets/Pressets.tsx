@@ -33,11 +33,11 @@ export function Pressets(): JSX.Element {
     }
   }, [screen.value]);
 
-  useEffect(() => {
-    if (presets.value.length === 0) {
-      dispatch(setScreen('pressets'));
-    }
-  }, [presets.value]);
+  // useEffect(() => {
+  //   if (presets.value.length === 0) {
+  //     dispatch(setScreen('pressets'));
+  //   }
+  // }, [presets.value]);
 
   const getAnimation = useCallback(() => {
     let animation = 'hidden';
