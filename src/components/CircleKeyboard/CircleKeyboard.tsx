@@ -94,6 +94,17 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     dispatch(updatePresetSetting(updatedSetting));
   };
 
+  const addAnimation = () => {
+    if (captionRef.current) {
+      //add class to trigger animation
+      captionRef.current.classList.add('caption_shake');
+      setTimeout(() => {
+        //remove class after finishing animation
+        captionRef.current.classList.remove('caption_shake');
+      }, 400);
+    }
+  };
+
   useEffect(() => {
     if (setting?.type === 'text') {
       setCaption(setting.value.split(''));
@@ -152,40 +163,19 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
       switch (mainLetter) {
         case 'space':
           if (caption.length >= 7) {
-            if (captionRef.current) {
-              //add class to trigger animation
-              captionRef.current.classList.add('caption_shake');
-              setTimeout(() => {
-                //remove class after finishing animation
-                captionRef.current.classList.remove('caption_shake');
-              }, 400);
-            }
+            addAnimation();
             return;
           }
 
           if (caption.length < 8 && caption.join('').trim().length === 0) {
-            if (captionRef.current) {
-              //add class to trigger animation
-              captionRef.current.classList.add('caption_shake');
-              setTimeout(() => {
-                //remove class after finishing animation
-                captionRef.current.classList.remove('caption_shake');
-              }, 400);
-            }
+            addAnimation();
             return;
           }
           setCaption(caption.concat(' '));
           return;
         case 'ok':
           if (caption.length === 0 || caption.join('').trim().length === 0) {
-            if (captionRef.current) {
-              //add class to trigger animation
-              captionRef.current.classList.add('caption_shake');
-              setTimeout(() => {
-                //remove class after finishing animation
-                captionRef.current.classList.remove('caption_shake');
-              }, 400);
-            }
+            addAnimation();
             return;
           }
           updateSetting(caption.join('').trim());
