@@ -133,9 +133,10 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     };
 
     if (gesture.value === 'click') {
-      if (caption.length === 8 && mainLetter !== 'backspace') {
+      if (caption.length > 7 && mainLetter !== 'backspace') {
         if (mainLetter === 'ok') {
-          updateSetting(caption.join(''));
+          //if (mainLetter === 'ok' && caption.join('').trim().length > 0) {
+          updateSetting(caption.join('').trim());
           goToMainScreen();
         }
         if (mainLetter === 'cancel') {
@@ -150,6 +151,29 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
       }
       switch (mainLetter) {
         case 'space':
+          if (caption.length >= 7) {
+            if (captionRef.current) {
+              //add class to trigger animation
+              captionRef.current.classList.add('caption_shake');
+              setTimeout(() => {
+                //remove class after finishing animation
+                captionRef.current.classList.remove('caption_shake');
+              }, 400);
+            }
+            return;
+          }
+
+          if (caption.length < 8 && caption.join('').trim().length === 0) {
+            if (captionRef.current) {
+              //add class to trigger animation
+              captionRef.current.classList.add('caption_shake');
+              setTimeout(() => {
+                //remove class after finishing animation
+                captionRef.current.classList.remove('caption_shake');
+              }, 400);
+            }
+            return;
+          }
           setCaption(caption.concat(' '));
           return;
         case 'ok':
@@ -164,7 +188,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
             }
             return;
           }
-          updateSetting(caption.join(''));
+          updateSetting(caption.join('').trim());
           goToMainScreen();
           return;
         case 'backspace':
