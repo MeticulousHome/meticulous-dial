@@ -779,17 +779,17 @@ export const generatePayload = ({ presset }: PayloadProps) => {
         id: 33,
         controllers: [
           {
-            kind: "position_reference",
+            kind: 'position_reference',
             id: 2
           },
           {
-            kind: "time_reference",
+            kind: 'time_reference',
             id: 20
           }
         ],
         triggers: [
           {
-            kind: "exit",
+            kind: 'exit',
             next_node_id: 34
           }
         ]
@@ -798,26 +798,55 @@ export const generatePayload = ({ presset }: PayloadProps) => {
         id: 34,
         controllers: [
           {
-            kind: "move_piston_controller",
-            algorithm: "Piston Fast",
-            direction: "UP",
+            kind: 'move_piston_controller',
+            algorithm: 'Piston Fast',
+            direction: 'UP',
             speed: 4
           }
         ],
         triggers: [
           {
-            kind: "piston_position_trigger",
+            kind: 'piston_position_trigger',
             position_reference_id: 5,
-            operator: "<=",
+            operator: '<=',
             value: -20,
-            next_node_id: 35,
-            source: "Piston Position Raw"
+            next_node_id: 36,
+            source: 'Piston Position Raw'
           },
           {
-            kind: "timer_trigger",
+            kind: 'timer_trigger',
             timer_reference_id: 20,
-            operator: ">=",
+            operator: '>=',
             value: 10,
+            next_node_id: 36
+          }
+        ]
+      },
+      {
+        id: 36,
+        controllers: [
+          {
+            kind: "time_reference",
+            id: 3
+          }
+        ],
+        triggers: [
+           {
+            kind: "exit",
+            next_node_id: 37
+          }
+        ]
+
+      },
+      {
+        id: 37,
+        controllers:[],
+        triggers: [
+          {
+            kind: "timer_trigger",
+            timer_reference_id: 3,
+            operator: ">=",
+            value: 0.5,
             next_node_id: 35
           }
         ]
@@ -826,25 +855,25 @@ export const generatePayload = ({ presset }: PayloadProps) => {
         id: 35,
         controllers: [
           {
-            kind: "move_piston_controller",
-            algorithm: "Piston Ease-In",
-            direction: "DOWN",
+            kind: 'move_piston_controller',
+            algorithm: 'Piston Ease-In',
+            direction: 'DOWN',
             speed: 6
           }
         ],
         triggers: [
           {
-            kind: "piston_position_trigger",
+            kind: 'piston_position_trigger',
             position_reference_id: 0,
-            source: "Piston Position Raw",
-            operator: ">=",
+            source: 'Piston Position Raw',
+            operator: '>=',
             value: 60,
             next_node_id: -2
           },
           {
-            kind: "button_trigger",
-            source: "Encoder Button",
-            gesture: "Single Tap",
+            kind: 'button_trigger',
+            source: 'Encoder Button',
+            gesture: 'Single Tap',
             next_node_id: -2
           }
         ]
