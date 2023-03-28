@@ -826,26 +826,25 @@ export const generatePayload = ({ presset }: PayloadProps) => {
         id: 36,
         controllers: [
           {
-            kind: "time_reference",
+            kind: 'time_reference',
             id: 3
           }
         ],
         triggers: [
-           {
-            kind: "exit",
+          {
+            kind: 'exit',
             next_node_id: 37
           }
         ]
-
       },
       {
         id: 37,
-        controllers:[],
+        controllers: [],
         triggers: [
           {
-            kind: "timer_trigger",
+            kind: 'timer_trigger',
             timer_reference_id: 3,
-            operator: ">=",
+            operator: '>=',
             value: 0.5,
             next_node_id: 35
           }
