@@ -174,7 +174,10 @@ export function SettingNumerical({ type }: Props): JSX.Element {
     });
 
     pads.push(<>{toLayout}</>);
-    return pads;
+    return pads.map((i, idx) => {
+      if (i.key) return i;
+      return <span key={`pads-${idx}`}>{i}</span>;
+    });
   };
 
   const getAnimation = useCallback(() => {
