@@ -4,7 +4,7 @@ export const handleRemovePresetsAnimation = (swiper: Swiper) => {
   if (swiper && swiper.slides)
     swiper.slides.forEach((slide) => {
       slide
-        .querySelector('div')
+        ?.querySelector('div')
         .classList.remove('animation-bounce-left', 'animation-bounce-right');
     });
 };
@@ -13,24 +13,24 @@ export const handleAddPresetAnimation = (swiper: Swiper) => {
   const { previousIndex, activeIndex, slides } = swiper;
 
   const animation = activeIndex > previousIndex ? 'left' : 'right';
-  console.log('active', activeIndex);
+
   if (swiper.slides[activeIndex]) {
     swiper.slides[activeIndex]
-      .querySelector('div')
+      ?.querySelector('div')
       .classList.add(`animation-bounce-${animation}`);
 
     if (slides.length < 2) return;
     if (activeIndex === 0 || activeIndex === slides.length - 1) {
       slides[previousIndex]
-        .querySelector('div')
+        ?.querySelector('div')
         .classList.add(`animation-bounce-${animation}`);
     } else {
       slides[previousIndex]
-        .querySelector('div')
+        ?.querySelector('div')
         .classList.add(`animation-bounce-${animation}`);
 
       slides[activeIndex > previousIndex ? activeIndex + 1 : activeIndex - 1]
-        .querySelector('div')
+        ?.querySelector('div')
         .classList.add(`animation-bounce-${animation}`);
     }
   }
