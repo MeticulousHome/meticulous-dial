@@ -531,7 +531,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
               id: 9,
               interpolation_kind: 'catmull_interpolation',
               points: [[0, 8]],
-              time_reference_id: 3
+              time_reference_id: 4
             }
           },
           {
