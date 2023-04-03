@@ -57,41 +57,27 @@ export const deletePreset = createAsyncThunk(
   async (presetId: number, { getState }) => {
     const state = getState() as RootState;
     const presets = [...state.presets.value];
-    const currentActive = state.presets.activeIndexSwiper;
-    let newSwiperIndex = 0;
-    let newActiveIndex = 0;
-    if (currentActive === 0) {
-      newSwiperIndex = 0;
-      newActiveIndex = 1;
-    } else if (currentActive === presets.length - 1) {
-      newSwiperIndex = currentActive - 1;
-      newActiveIndex = currentActive - 1;
-    } else if (currentActive > 0 && currentActive < presets.length - 1) {
-      newSwiperIndex = currentActive;
-      newActiveIndex = currentActive + 1;
-    }
+    let newSwiperIndex = state.presets.activeIndexSwiper;
+    let newDefaultPreset = { ...state.presets.activePreset };
 
-    const newDefaultPreset = presets[newActiveIndex]?.id
-      ? presets[newActiveIndex]
-      : {
-          id: -1,
-          name: 'Default'
-        };
-    const newListPresets: IPreset[] = presets
-      .filter((preset) => preset.id !== presetId)
-      .map((preset) => ({
+    let newListPresets: IPreset[] = presets.filter(
+      (preset) => preset.id !== presetId
+    );
+
+    if (newListPresets.length < presets.length) {
+      newDefaultPreset =
+        newListPresets.length > 0
+          ? newListPresets[0]
+          : { id: -1, name: 'Default', isDefault: false };
+      newSwiperIndex = 0;
+      newListPresets = newListPresets.map((preset) => ({
         ...preset,
         isDefault: preset.id === newDefaultPreset.id
       }));
 
-    await setPresetsData(newListPresets);
-    // console.log('data', {
-    //   newListPresets,
-    //   newSwiperIndex,
-    //   newDefaultPreset,
-    //   newActiveIndex,
-    //   currentActive
-    // });
+      await setPresetsData(newListPresets);
+    }
+
     return { newListPresets, newSwiperIndex, newDefaultPreset };
   }
 );
