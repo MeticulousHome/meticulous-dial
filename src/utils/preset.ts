@@ -1,3 +1,5 @@
+import { IPresetAction, IPresetSetting, IPresetsSettingData } from '../types';
+import { DEFAULT_SETTING } from '../constants/Setting';
 import Swiper from 'swiper';
 
 export const handleRemovePresetsAnimation = (swiper: Swiper) => {
@@ -34,4 +36,25 @@ export const handleAddPresetAnimation = (swiper: Swiper) => {
         .classList.add(`animation-bounce-${animation}`);
     }
   }
+};
+
+export const generateDefaultAction = (length: number) => {
+  const actions = DEFAULT_SETTING.map((action) => ({
+    ...action,
+    id: length + 1
+  }));
+
+  return actions;
+};
+
+export const addSettingActions = (data: IPresetsSettingData[]) => {
+  const newData = data.map((item) => ({
+    ...item,
+    settings: [
+      ...item.settings,
+      ...generateDefaultAction(item.settings.length).flat()
+    ]
+  }));
+
+  return newData;
 };

@@ -3,12 +3,17 @@ import { getPresetsData, setPresetsData } from '../../../../data/presets';
 import { setPresetSettingsData } from '../../../../data/presetSettings';
 import { settingsDefaultNewPreset } from '../../../../utils/mock';
 
-import { IPreset, IPresetsSettingData } from '../../../../types/index';
+import {
+  IPreset,
+  IPresetSetting,
+  IPresetsSettingData
+} from '../../../../types/index';
 import { RootState } from '../../store';
 import {
   PresetSettingInterface,
   setDefaultSettingsNewPreset
 } from '../presetSetting/presetSetting-slice';
+import { generateDefaultAction } from '../../../../utils/preset';
 
 interface PresetsState {
   value: IPreset[];
@@ -198,7 +203,9 @@ export const addPresetNewOne = createAsyncThunk(
     presetState.activePreset = presetState.value[presetState.activeIndexSwiper];
 
     await setPresetsData(presetList);
-
+    const newPresetActions = generateDefaultAction(
+      settingsDefaultNewPreset.length
+    );
     const allSettings: IPresetsSettingData[] = [
       ...settingsState.allSettings,
       {
@@ -212,7 +219,10 @@ export const addPresetNewOne = createAsyncThunk(
     dispatch(
       setDefaultSettingsNewPreset({
         presetId: presetId.toString(),
-        settingsDefault: settingsDefaultNewPreset
+        settingsDefault: [
+          ...settingsDefaultNewPreset,
+          ...newPresetActions.flat()
+        ] as IPresetSetting[]
       })
     );
 
