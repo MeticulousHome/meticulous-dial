@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { IPresetSetting } from '../../types';
 import { useAppSelector } from '../store/hooks';
 
 import './pressetSettings.css';
+import { generateDefaultAction } from '../../utils/preset';
 
 interface Props {
   optionSelected: (option: string) => void;
@@ -14,6 +15,15 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
   const [init, setInit] = useState(false);
   const [swiper, setSwiper] = useState(null);
   const { screen, presetSetting } = useAppSelector((state) => state);
+  const settings = useMemo(
+    () => [
+      ...presetSetting.updatingSettings.settings,
+      ...(generateDefaultAction(
+        presetSetting.updatingSettings.settings.length
+      ).flat() as IPresetSetting[])
+    ],
+    [presetSetting.updatingSettings.settings]
+  );
 
   useEffect(() => {
     if (swiper) {
@@ -40,9 +50,7 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
       }
 
       if (settingsExist) {
-        optionSelected(
-          presetSetting.settings.settings[presetSetting.activeSetting].key
-        );
+        optionSelected(settings[presetSetting.activeSetting].key);
       }
     }
   }, [presetSetting.activeSetting, swiper]);
@@ -53,9 +61,7 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
       presetSetting.settings.settings.length > 0 &&
       presetSetting.settings.settings[presetSetting.activeSetting]
     ) {
-      optionSelected(
-        presetSetting.settings.settings[presetSetting.activeSetting].key
-      );
+      optionSelected(settings[presetSetting.activeSetting].key);
     }
   }, [presetSetting.settings]);
 
@@ -140,24 +146,22 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
           onSlidePrevTransitionStart={() => setAnimationStyle('animation-prev')}
           onSlideChangeTransitionEnd={() => setAnimationStyle('')}
         >
-          {presetSetting.updatingSettings.settings.map(
-            (setting, index: number) => (
-              <SwiperSlide
-                className="presset-option-item"
-                key={`option-${index}`}
-              >
-                {({ isActive }) => (
-                  <div
-                    className={`${animationStyle} ${
-                      isActive ? `item-active` : ''
-                    } ${setting.key === 'delete' ? 'delete-option-item' : ''}`}
-                  >
-                    {displaySetting(setting, isActive)}
-                  </div>
-                )}
-              </SwiperSlide>
-            )
-          )}
+          {settings.map((setting, index: number) => (
+            <SwiperSlide
+              className="presset-option-item"
+              key={`option-${index}`}
+            >
+              {({ isActive }) => (
+                <div
+                  className={`${animationStyle} ${
+                    isActive ? `item-active` : ''
+                  } ${setting.key === 'delete' ? 'delete-option-item' : ''}`}
+                >
+                  {displaySetting(setting, isActive)}
+                </div>
+              )}
+            </SwiperSlide>
+          ))}
         </Swiper>
       </div>
     </div>

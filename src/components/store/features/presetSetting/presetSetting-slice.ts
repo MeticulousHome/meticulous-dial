@@ -12,6 +12,7 @@ import {
 import { IPresetSetting, IPresetsSettingData } from '../../../../types';
 import { dummyOptions, settingsDefaultNewPreset } from '../../../../utils/mock';
 import { RootState } from '../../store';
+import { DEFAULT_SETTING } from '../../../../constants/setting';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -159,7 +160,7 @@ const presetSettingSlice = createSlice({
         presetId,
         settings
       };
-      state.endIndex = settings.length - 1;
+      state.endIndex = settings.length + DEFAULT_SETTING.length - 1;
       state.allSettings = state.allSettings.concat(state.settings);
     },
     setSettings(
@@ -172,7 +173,7 @@ const presetSettingSlice = createSlice({
       const settings = [...dummyOptions, ...targetSetting.settings];
       state.settings = { ...targetSetting, settings };
       state.updatingSettings = { ...targetSetting, settings };
-      state.endIndex = settings.length - 1;
+      state.endIndex = settings.length + DEFAULT_SETTING.length - 1;
       // reset active setting
       // state.activeSetting = 2;
       return state;

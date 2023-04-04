@@ -124,23 +124,5 @@ export const settingsDefaultNewPreset: IPresetSetting[] = [
     key: 'purge',
     label: 'purge',
     value: 'automatic'
-  },
-  {
-    id: 7,
-    type: 'action',
-    key: 'save',
-    label: 'save'
-  },
-  {
-    id: 8,
-    type: 'action',
-    key: 'discard',
-    label: 'discard'
-  },
-  {
-    id: 9,
-    type: 'action',
-    key: 'delete',
-    label: 'delete profile'
   }
 ];
