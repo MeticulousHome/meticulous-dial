@@ -1,3 +1,4 @@
+import { DEFAULT_SETTING } from '../constants/setting';
 import Swiper from 'swiper';
 
 export const handleRemovePresetsAnimation = (swiper: Swiper) => {
@@ -34,4 +35,13 @@ export const handleAddPresetAnimation = (swiper: Swiper) => {
         .classList.add(`animation-bounce-${animation}`);
     }
   }
+};
+
+export const generateDefaultAction = (length: number) => {
+  const actions = DEFAULT_SETTING.map((action) => ({
+    ...action,
+    id: length + 1
+  }));
+
+  return actions;
 };
