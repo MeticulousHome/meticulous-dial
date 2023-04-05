@@ -13,6 +13,7 @@ import { IPresetSetting, IPresetsSettingData } from '../../../../types';
 import { dummyOptions, settingsDefaultNewPreset } from '../../../../utils/mock';
 import { RootState } from '../../store';
 import { DEFAULT_SETTING } from '../../../../constants/setting';
+import { filterSettingAction } from '../../../../utils/preset';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -231,7 +232,10 @@ const presetSettingSlice = createSlice({
         ) => {
           state.pending = false;
           state.error = false;
-          state.allSettings = action.payload;
+          state.allSettings = action.payload.map((presetSetting) => ({
+            ...presetSetting,
+            settings: filterSettingAction(presetSetting.settings)
+          }));
           // reset active setting
           // state.activeSetting = 2;
         }
