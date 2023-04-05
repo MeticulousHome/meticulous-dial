@@ -1,3 +1,4 @@
+import { IPresetSetting, IPresetsSettingData } from '../types';
 import { DEFAULT_SETTING } from '../constants/setting';
 import Swiper from 'swiper';
 
@@ -44,4 +45,13 @@ export const generateDefaultAction = (length: number) => {
   }));
 
   return actions;
+};
+
+export const filterSettingAction = (data: IPresetSetting[] = []) => {
+  const listActions = DEFAULT_SETTING.map((action) => action.key);
+  const newData = data.filter((setting) => {
+    return !listActions.includes(setting.key);
+  });
+
+  return newData;
 };
