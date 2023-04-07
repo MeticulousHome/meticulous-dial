@@ -52,9 +52,15 @@ Dial has only 3 actions that we can catch from it. `Turn Left`, `Turn Right` and
 
 
 ### Behaviour
-Based on the [gesture](#gestures), we need to use them into each state in a specific way. For instance, when the state is `showing barometer`, we have the three gestures available. On the other hand, when state is `showing scale`, we just have available the gesture **double click**.
+Based on the [gesture](#gestures), we need to use them into each state in a specific way. For instance, when the state is `showing barometer`, we have the three gestures available. On the other hand, when state is `showing scale`, we just have available the gesture **double tare**.
 
-> **Note:** _double click_ gesture comes from an extra hardware element.
+> **Note:** _double tare_ gesture comes from an extra hardware element.
 
 
 <img src="./public/Dial-State_V2.png" width=500/>
+
+---
+
+## Events
+
+We react to different keyboard events coming from controller. We have mapped every keyboard event triggered. You can check out it in the following [file](https://github.com/FFFuego/backend_for_esp32/blob/main/back.py#L122)
