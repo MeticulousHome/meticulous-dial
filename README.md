@@ -83,12 +83,12 @@ Following, we have the JSON structure we define to allow app to process the pres
         "settings": [
             {
                 "id": "number",
-                "type": "enum", // "text" | "numerical" | "on-off" | "multiple-option",
-                "key": "string", // it acts as a unique identifier
+                "type": "enum", /* "text" | "numerical" | "on-off" | "multiple-option" */
+                "key": "string", /* it acts as a unique identifier */
                 "label": "string",
                 "value": "number" | "string",
-                "unit": "enum", // "c°" | "g" | "bar"
-                "hidden": "boolean" // if it is true, it must not be displayed. Default: false
+                "unit": "enum", /* "c°" | "g" | "bar" */
+                "hidden": "boolean" /* if it is true, it must not be displayed. Default: false */
             },
             .
             .
