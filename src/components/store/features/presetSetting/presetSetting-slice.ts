@@ -172,9 +172,13 @@ const presetSettingSlice = createSlice({
         (setting) => setting.presetId === action.payload.toString()
       );
       const settings = [...dummyOptions, ...targetSetting.settings];
+      const hiddenSettings = targetSetting.settings.filter(
+        (setting) => setting.hidden
+      );
       state.settings = { ...targetSetting, settings };
       state.updatingSettings = { ...targetSetting, settings };
-      state.endIndex = settings.length + DEFAULT_SETTING.length - 1;
+      state.endIndex =
+        settings.length + DEFAULT_SETTING.length - 1 - hiddenSettings.length;
       // reset active setting
       // state.activeSetting = 2;
       return state;
