@@ -61,7 +61,8 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
     if (
       presetSetting.settings &&
       presetSetting.settings.settings.length > 0 &&
-      presetSetting.settings.settings[presetSetting.activeSetting]
+      presetSetting.settings.settings[presetSetting.activeSetting] &&
+      settings[presetSetting.activeSetting]?.key
     ) {
       optionSelected(settings[presetSetting.activeSetting].key);
     }
