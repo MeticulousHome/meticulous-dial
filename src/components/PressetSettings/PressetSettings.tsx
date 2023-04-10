@@ -17,7 +17,9 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
   const { screen, presetSetting } = useAppSelector((state) => state);
   const settings = useMemo(
     () => [
-      ...presetSetting.updatingSettings.settings,
+      ...presetSetting.updatingSettings.settings.filter(
+        (setting) => !setting.hidden
+      ),
       ...(generateDefaultAction(
         presetSetting.updatingSettings.settings.length
       ).flat() as IPresetSetting[])

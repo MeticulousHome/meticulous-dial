@@ -52,6 +52,7 @@ export interface IPreset {
 export interface IBasePresset {
   id: number;
   label: string;
+  hidden?: boolean;
 }
 export type NameKey = 'name';
 
