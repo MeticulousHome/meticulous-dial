@@ -324,8 +324,10 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     let animation = 'hidden';
 
     if (
-      (screen.value === 'scale' && screen.prev === 'circleKeyboard') ||
-      (screen.value === 'circleKeyboard' && screen.prev === 'scale')
+      ((screen.value === 'scale' || screen.value === 'settings') &&
+        screen.prev === 'circleKeyboard') ||
+      (screen.value === 'circleKeyboard' &&
+        (screen.prev === 'scale' || screen.prev === 'settings'))
     ) {
       animation = '';
     } else if (screen.value === 'circleKeyboard') {

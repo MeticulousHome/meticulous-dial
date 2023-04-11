@@ -184,8 +184,10 @@ export function SettingNumerical({ type }: Props): JSX.Element {
     let animation = 'hidden';
 
     if (
-      (screen.value === 'scale' && screen.prev === 'settingNumerical') ||
-      (screen.value === 'settingNumerical' && screen.prev === 'scale')
+      ((screen.value === 'scale' || screen.value === 'settings') &&
+        screen.prev === 'settingNumerical') ||
+      (screen.value === 'settingNumerical' &&
+        (screen.prev === 'scale' || screen.prev === 'settings'))
     ) {
       animation = '';
     } else if (screen.value === 'settingNumerical') {
