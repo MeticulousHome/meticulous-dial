@@ -42,8 +42,10 @@ export function Pressets(): JSX.Element {
   const getAnimation = useCallback(() => {
     let animation = 'hidden';
     if (
-      (screen.value === 'scale' && screen.prev === 'pressets') ||
-      (screen.value === 'pressets' && screen.prev === 'scale')
+      ((screen.value === 'scale' || screen.value === 'settings') &&
+        screen.prev === 'pressets') ||
+      (screen.value === 'pressets' &&
+        (screen.prev === 'scale' || screen.prev === 'settings'))
     ) {
       animation = '';
     } else if (screen.value === 'pressets') {

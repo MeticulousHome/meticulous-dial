@@ -78,8 +78,10 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
     let animation = 'hidden';
 
     if (
-      (screen.value === 'scale' && screen.prev === 'pressetSettings') ||
-      (screen.value === 'pressetSettings' && screen.prev === 'scale')
+      ((screen.value === 'scale' || screen.value === 'settings') &&
+        screen.prev === 'pressetSettings') ||
+      (screen.value === 'pressetSettings' &&
+        (screen.prev === 'scale' || screen.prev === 'settings'))
     ) {
       animation = '';
     } else if (screen.value === 'pressetSettings') {
