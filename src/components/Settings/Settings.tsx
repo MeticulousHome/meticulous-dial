@@ -24,7 +24,15 @@ export function Settings(): JSX.Element {
   }, []);
 
   return (
-    <div className={`main-layout`}>
+    <div
+      className={`main-layout ${
+        screen.value === 'settings'
+          ? 'scale__fadeIn'
+          : screen.prev === 'settings'
+          ? 'scale__fadeOut'
+          : 'hidden'
+      }`}
+    >
       <div className="title">Settings</div>
       <div className="settings-options">
         <Swiper

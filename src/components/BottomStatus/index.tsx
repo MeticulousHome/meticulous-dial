@@ -9,11 +9,11 @@ const BottomStatus = () => {
     let animation = 'hidden';
 
     if (
-      (screen.value === 'scale' &&
+      ((screen.value === 'scale' || screen.value === 'settings') &&
         (screen.prev === 'pressets' ||
           screen.prev === 'pressetSettings' ||
           screen.prev === 'settingNumerical')) ||
-      (screen.prev === 'scale' &&
+      ((screen.prev === 'scale' || screen.prev === 'settings') &&
         (screen.value === 'pressets' ||
           screen.value === 'pressetSettings' ||
           screen.value === 'settingNumerical')) ||

@@ -34,8 +34,10 @@ export function Barometer({
     if (stats.name === 'idle') animation = 'hidden';
 
     if (
-      (screen.value === 'scale' && screen.prev === 'barometer') ||
-      (screen.value === 'barometer' && screen.prev === 'scale')
+      ((screen.value === 'scale' || screen.value === 'settings') &&
+        screen.prev === 'barometer') ||
+      (screen.value === 'barometer' &&
+        (screen.prev === 'scale' || screen.prev === 'settings'))
     ) {
       animation = '';
     } else if (

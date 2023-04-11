@@ -45,7 +45,7 @@ const App = (): JSX.Element => {
   const getAnimation = useCallback(() => {
     let animation = 'barometer__fadeIn';
 
-    if (screen.value === 'scale') {
+    if (screen.value === 'scale' || screen.value === 'settings') {
       animation = 'barometerToScale__fadeOut';
     }
 
@@ -55,7 +55,7 @@ const App = (): JSX.Element => {
   return (
     <div className="main-layout">
       <Scale />
-      {/* <Settings /> */}
+      <Settings />
       <div className={`main-layout ${getAnimation()}`}>
         <PressetTitle />
         <MainTitle />

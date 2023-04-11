@@ -22,7 +22,9 @@ export function Purge(): JSX.Element {
     if (
       setting?.type === 'multiple-option' &&
       screen.value !== 'scale' &&
-      screen.prev !== 'scale'
+      screen.value !== 'settings' &&
+      screen.prev !== 'scale' &&
+      screen.prev !== 'settings'
     ) {
       setActiveIndex(setting.value === 'automatic' ? 0 : 1);
     }
@@ -57,8 +59,10 @@ export function Purge(): JSX.Element {
 
   const getAnimation = useCallback(() => {
     if (
-      (screen.value === 'scale' && screen.prev === 'purge') ||
-      (screen.value === 'purge' && screen.prev === 'scale')
+      ((screen.value === 'scale' || screen.value === 'settings') &&
+        screen.prev === 'purge') ||
+      (screen.value === 'purge' &&
+        (screen.prev === 'scale' || screen.prev === 'settings'))
     ) {
       return 'None';
     } else if (screen.value === 'purge') {
