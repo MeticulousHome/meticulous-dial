@@ -179,13 +179,11 @@ const presetSettingSlice = createSlice({
       state.updatingSettings = { ...targetSetting, settings };
       state.endIndex =
         settings.length + DEFAULT_SETTING.length - 1 - hiddenSettings.length;
-      // reset active setting
-      // state.activeSetting = 2;
+
       return state;
     },
     discardSettings(state: Draft<typeof initialState>) {
       state.updatingSettings = state.settings;
-      // state.activeSetting = 2;
       return state;
     }
   },
