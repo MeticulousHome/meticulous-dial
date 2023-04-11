@@ -65,7 +65,7 @@ const settingSlice = createSlice({
   name: 'settings',
   initialState: initialState,
   reducers: {
-    setNextSettingOption: (state: Draft<typeof initialState>) => {
+    setNextGeneralSettingOption: (state: Draft<typeof initialState>) => {
       const nextActiveIndex = state.activeIndexSetting + 1;
 
       if (nextActiveIndex <= state.settings.length - 1) {
@@ -74,13 +74,13 @@ const settingSlice = createSlice({
 
       return state;
     },
-    setPrevSettingOption: (state: Draft<typeof initialState>) => {
+    setPrevGeneralSettingOption: (state: Draft<typeof initialState>) => {
       state.activeIndexSetting = Math.max(state.activeIndexSetting - 1, 0);
     }
   }
 });
 
-export const { setNextSettingOption, setPrevSettingOption } =
+export const { setNextGeneralSettingOption, setPrevGeneralSettingOption } =
   settingSlice.actions;
 
 export default settingSlice.reducer;
