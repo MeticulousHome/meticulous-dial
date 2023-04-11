@@ -52,7 +52,9 @@ export function useHandleGesture({
           dispatch(setScreen('scale'));
         }
       } else if (gesture.value === 'longTare') {
-        dispatch(setScreen('settings'));
+        if (screen.value !== 'settings') {
+          dispatch(setScreen('settings'));
+        }
       } else {
         switch (screen.value) {
           case 'barometer':

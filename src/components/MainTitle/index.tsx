@@ -49,8 +49,8 @@ const MainTitle = () => {
     if (
       screen.value === 'scale' ||
       screen.value === 'settings' ||
-      screen.prev === 'scale' ||
-      screen.prev === 'settings'
+      ((screen.prev === 'scale' || screen.prev === 'settings') &&
+        screen.value !== 'barometer')
     ) {
       animation = currentAnimation.current;
     } else if (screen.value === 'barometer') {
