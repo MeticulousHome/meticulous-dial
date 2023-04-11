@@ -108,7 +108,9 @@ const presset = {
 
 export const SetSocketKeyboardListeners = () => {
   const dispatch = useAppDispatch();
-  const { presets, presetSetting, screen } = useAppSelector((state) => state);
+  const { presets, presetSetting, screen, settings } = useAppSelector(
+    (state) => state
+  );
 
   useEffect(() => {
     const lister = (e: KeyboardEvent) => {
@@ -121,6 +123,24 @@ export const SetSocketKeyboardListeners = () => {
           dispatch(setGesture('right'));
           break;
         case 'Space':
+          if (
+            screen.value === 'settings' &&
+            settings.settings[settings.activeIndexSetting]
+          ) {
+            switch (settings.settings[settings.activeIndexSetting].key) {
+              case 'home':
+                socket.emit('action', 'home');
+                break;
+              case 'purge':
+                socket.emit('action', 'purge');
+                break;
+              case 'calibrate':
+                socket.emit('calibrate');
+                break;
+              default:
+                break;
+            }
+          }
           dispatch(setGesture('click'));
           break;
         case 'Enter': {
@@ -163,7 +183,7 @@ export const SetSocketKeyboardListeners = () => {
     return () => {
       window.removeEventListener('keydown', lister);
     };
-  }, [presets, presetSetting, screen]);
+  }, [presets, presetSetting, screen, settings]);
 
   return dispatch;
 };
