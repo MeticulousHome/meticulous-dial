@@ -20,6 +20,10 @@ import {
 import { setScreen } from '../components/store/features/screens/screens-slice';
 import { useAppSelector } from '../components/store/hooks';
 import { SockerContext } from '../components/store/SockerManager';
+import {
+  setNextGeneralSettingOption,
+  setPrevGeneralSettingOption
+} from '../components/store/features/settings/settings-slice';
 
 export function useHandleGesture({
   presetSettingIndex,
@@ -130,6 +134,13 @@ export function useHandleGesture({
           case 'purge':
             if (gesture.value === 'click') {
               dispatch(setScreen('pressetSettings'));
+            }
+            break;
+          case 'settings':
+            if (gesture.value === 'right') {
+              dispatch(setNextGeneralSettingOption());
+            } else if (gesture.value === 'left') {
+              dispatch(setPrevGeneralSettingOption());
             }
             break;
           default:
