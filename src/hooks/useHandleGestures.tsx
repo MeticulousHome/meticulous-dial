@@ -33,9 +33,8 @@ export function useHandleGesture({
   keyboardReady: React.MutableRefObject<boolean>;
 }) {
   const dispatch = useContext(SockerContext);
-  const { gesture, screen, stats, presets, presetSetting } = useAppSelector(
-    (state) => state
-  );
+  const { gesture, screen, stats, presets, presetSetting, settings } =
+    useAppSelector((state) => state);
 
   useEffect(() => {
     // console.log('Prev Gesture >> ', gesture.prev);
@@ -46,16 +45,14 @@ export function useHandleGesture({
     if (stats.name === 'idle') {
       if (gesture.value === 'doubleTare' && presets.value.length > 0) {
         if (screen.value === 'scale') {
-          dispatch(setScreen(screen.prev));
+          dispatch(
+            setScreen(screen.prev === 'settings' ? 'barometer' : screen.prev)
+          );
         } else {
           dispatch(setScreen('scale'));
         }
       } else if (gesture.value === 'longTare') {
-        if (screen.value === 'settings') {
-          dispatch(setScreen(screen.prev));
-        } else {
-          dispatch(setScreen('settings'));
-        }
+        dispatch(setScreen('settings'));
       } else {
         switch (screen.value) {
           case 'barometer':
@@ -137,7 +134,24 @@ export function useHandleGesture({
             }
             break;
           case 'settings':
-            if (gesture.value === 'right') {
+            if (gesture.value === 'click') {
+              if (settings.settings[settings.activeIndexSetting]) {
+                switch (settings.settings[settings.activeIndexSetting].key) {
+                  case 'home':
+                    dispatch(setScreen('barometer'));
+                    break;
+                  case 'exit':
+                    dispatch(
+                      setScreen(
+                        screen.prev === 'scale' ? 'barometer' : screen.prev
+                      )
+                    );
+                    break;
+                  default:
+                    break;
+                }
+              }
+            } else if (gesture.value === 'right') {
               dispatch(setNextGeneralSettingOption());
             } else if (gesture.value === 'left') {
               dispatch(setPrevGeneralSettingOption());
@@ -152,5 +166,5 @@ export function useHandleGesture({
     }
 
     dispatch(setGesture('')); // we need to clean the state up to receive event notification
-  }, [gesture, screen, stats.name]);
+  }, [gesture, screen, stats.name, settings]);
 }
