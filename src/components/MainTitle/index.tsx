@@ -36,6 +36,7 @@ const MainTitle = () => {
       stats.name === 'idle' &&
       screen.value !== 'pressets' &&
       screen.value !== 'scale' &&
+      screen.value !== 'settings' &&
       presets.activeIndexSwiper === presets.value.length
     ) {
       dispatch(setActiveIndexSwiper(presets.activeIndexSwiper - 1));
@@ -45,7 +46,12 @@ const MainTitle = () => {
   const getAnimation = useCallback(() => {
     let animation = 'hidden';
 
-    if (screen.value === 'scale' || screen.prev === 'scale') {
+    if (
+      screen.value === 'scale' ||
+      screen.value === 'settings' ||
+      screen.prev === 'scale' ||
+      screen.prev === 'settings'
+    ) {
       animation = currentAnimation.current;
     } else if (screen.value === 'barometer') {
       if (screen.prev === 'pressetSettings') {
@@ -126,7 +132,8 @@ const MainTitle = () => {
               </SwiperSlide>
             ))}
             {(screen.value === 'pressets' ||
-              (screen.value === 'scale' && screen.prev === 'pressets')) && (
+              ((screen.value === 'scale' || screen.value === 'settings') &&
+                screen.prev === 'pressets')) && (
               <SwiperSlide key={`${presets.value.length + 1}-slide`}>
                 {() => (
                   <div

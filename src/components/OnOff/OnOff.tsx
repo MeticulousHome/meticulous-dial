@@ -19,7 +19,9 @@ export function OnOff(): JSX.Element {
     if (
       setting?.type === 'on-off' &&
       screen.value !== 'scale' &&
-      screen.prev !== 'scale'
+      screen.value !== 'settings' &&
+      screen.prev !== 'scale' &&
+      screen.prev !== 'settings'
     ) {
       setActiveIndex(setting.value === 'yes' ? 0 : 1);
     }
@@ -54,8 +56,10 @@ export function OnOff(): JSX.Element {
 
   const getAnimation = useCallback(() => {
     if (
-      (screen.value === 'scale' && screen.prev === 'onOff') ||
-      (screen.value === 'onOff' && screen.prev === 'scale')
+      ((screen.value === 'scale' || screen.value === 'settings') &&
+        screen.prev === 'onOff') ||
+      (screen.value === 'onOff' &&
+        (screen.prev === 'scale' || screen.prev === 'settings'))
     ) {
       return 'None';
     } else if (screen.value === 'onOff') {
