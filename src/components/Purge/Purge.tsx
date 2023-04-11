@@ -14,9 +14,9 @@ export function Purge(): JSX.Element {
 
   const dispatch = useDispatch();
 
-  const setting = presetSetting?.updatingSettings.settings[
-    presetSetting.activeSetting
-  ] as IPresetMultipleOptionPurge;
+  const setting = presetSetting?.updatingSettings.settings.find(
+    (setting) => setting.key === 'purge'
+  );
 
   useEffect(() => {
     if (
