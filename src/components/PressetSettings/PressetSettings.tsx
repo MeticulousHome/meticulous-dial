@@ -119,9 +119,16 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
 
   const displaySetting = (setting: IPresetSetting, isActive: boolean) => {
     if (isActive) {
-      return `${setting.label}${setting?.value ? ': ' + setting.value : ''} ${
-        (setting as any)?.unit || ''
-      }`;
+      let mValue = '';
+
+      if (
+        typeof setting.value === 'number' ||
+        typeof setting.value === 'string'
+      ) {
+        mValue = `: ${setting.value}`;
+      }
+
+      return `${setting.label}${mValue} ${(setting as any)?.unit || ''}`;
     }
     return setting.label;
   };
