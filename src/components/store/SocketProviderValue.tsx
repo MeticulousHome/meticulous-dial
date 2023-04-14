@@ -114,6 +114,14 @@ export const SetSocketKeyboardListeners = () => {
 
   useEffect(() => {
     const lister = (e: KeyboardEvent) => {
+      const preset = {
+        name: presets.activePreset.name,
+        settings: presetSetting.settings.settings.filter(
+          (item) => item.id !== -1 && item.id !== -2
+        )
+      };
+
+      const payload = generatePayload({ presset: preset as any });
       console.log(e.code);
       switch (e.code) {
         case 'ArrowLeft':
@@ -129,12 +137,15 @@ export const SetSocketKeyboardListeners = () => {
           ) {
             switch (settings.settings[settings.activeIndexSetting].key) {
               case 'home':
+                socket.emit('parameters', payload);
                 socket.emit('action', 'home');
                 break;
               case 'purge':
+                socket.emit('parameters', payload);
                 socket.emit('action', 'purge');
                 break;
               case 'calibrate':
+                socket.emit('parameters', payload);
                 socket.emit('calibrate');
                 break;
               default:
@@ -146,14 +157,6 @@ export const SetSocketKeyboardListeners = () => {
         case 'Enter': {
           if (screen.value !== 'barometer') return;
 
-          const preset = {
-            name: presets.activePreset.name,
-            settings: presetSetting.settings.settings.filter(
-              (item) => item.id !== -1 && item.id !== -2
-            )
-          };
-
-          const payload = generatePayload({ presset: preset as any });
           console.log(JSON.stringify(payload, null, 2));
 
           socket.emit('parameters', payload);
