@@ -34,6 +34,8 @@ export function Settings(): JSX.Element {
       }`}
     >
       <div className="title">Settings</div>
+      <div className="blur blur-top"></div>
+      <div className="blur blur-bottom"></div>
       <div className="settings-options">
         <Swiper
           onSwiper={setSwiper}
