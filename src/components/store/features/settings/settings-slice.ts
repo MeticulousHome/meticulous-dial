@@ -73,11 +73,19 @@ const settingSlice = createSlice({
     },
     setPrevGeneralSettingOption: (state: Draft<typeof initialState>) => {
       state.activeIndexSetting = Math.max(state.activeIndexSetting - 1, 0);
+    },
+    resetActiveIndexGeneralSettingOption: (
+      state: Draft<typeof initialState>
+    ) => {
+      state.activeIndexSetting = 0;
     }
   }
 });
 
-export const { setNextGeneralSettingOption, setPrevGeneralSettingOption } =
-  settingSlice.actions;
+export const {
+  setNextGeneralSettingOption,
+  setPrevGeneralSettingOption,
+  resetActiveIndexGeneralSettingOption
+} = settingSlice.actions;
 
 export default settingSlice.reducer;
