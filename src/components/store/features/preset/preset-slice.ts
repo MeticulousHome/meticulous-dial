@@ -9,6 +9,7 @@ import {
   PresetSettingInterface,
   setDefaultSettingsNewPreset
 } from '../presetSetting/presetSetting-slice';
+import { getSettingsFromDashboardPayload } from '../../../../utils/preheat';
 
 interface PresetsState {
   value: IPreset[];
@@ -156,6 +157,55 @@ export const setPrevPreset = createAsyncThunk(
     } else {
       // throw new Error('No more presets');
     }
+    return presetState;
+  }
+);
+
+export const addPresetFromDashboard = createAsyncThunk(
+  'presetData/addPresetFromDashboard',
+  async (payload: any, { getState, dispatch }) => {
+    const state = getState() as RootState;
+    const presetState = { ...state.presets } as PresetsState;
+    const settingsState = { ...state.presetSetting } as PresetSettingInterface;
+
+    const presetList = presetState.value.map((preset) => ({
+      ...preset,
+      isDefault: false
+    }));
+
+    const presetId = new Date().getTime();
+
+    presetList.push({
+      id: presetId,
+      name: payload.name,
+      isDefault: true
+    });
+
+    presetState.value = presetList;
+    presetState.activeIndexSwiper = presetState.value.length - 1;
+    presetState.activePreset = presetState.value[presetState.activeIndexSwiper];
+
+    await setPresetsData(presetList);
+
+    const settings = getSettingsFromDashboardPayload(payload);
+
+    const allSettings: IPresetsSettingData[] = [
+      ...settingsState.allSettings,
+      {
+        presetId: presetId.toString(),
+        settings
+      }
+    ];
+
+    await setPresetSettingsData(allSettings);
+
+    dispatch(
+      setDefaultSettingsNewPreset({
+        presetId: presetId.toString(),
+        settingsDefault: settings
+      })
+    );
+
     return presetState;
   }
 );
@@ -363,6 +413,21 @@ const presetSlice = createSlice({
           state.value = action.payload.newListPresets;
           state.activeIndexSwiper = action.payload.newSwiperIndex;
           state.activePreset = action.payload.newDefaultPreset;
+        }
+      )
+      .addCase(addPresetFromDashboard.pending, (state) => {
+        state.pending = true;
+      })
+      .addCase(addPresetFromDashboard.rejected, (state) => {
+        state.pending = false;
+        state.error = true;
+      })
+      .addCase(
+        addPresetFromDashboard.fulfilled,
+        (state, action: PayloadAction<PresetsState>) => {
+          state.value = action.payload.value;
+          state.activeIndexSwiper = action.payload.activeIndexSwiper;
+          state.activePreset = action.payload.activePreset;
         }
       );
   }
