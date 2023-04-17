@@ -2,7 +2,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 
 import './settings.css';
 import '../PressetSettings/pressetSettings.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAppSelector } from '../store/hooks';
 
 export function Settings(): JSX.Element {
@@ -10,12 +10,21 @@ export function Settings(): JSX.Element {
   const [swiper, setSwiper] = useState(null);
   const [init, setInit] = useState(false);
   const { settings, screen } = useAppSelector((state) => state);
+  const reset = useRef<boolean>(false);
 
   useEffect(() => {
     if (swiper) {
-      swiper.slideTo(settings.activeIndexSetting);
+      if (reset.current) {
+        swiper.slideTo(settings.activeIndexSetting, 0, false);
+      } else {
+        swiper.slideTo(settings.activeIndexSetting);
+      }
     }
   }, [swiper, settings.activeIndexSetting]);
+
+  useEffect(() => {
+    reset.current = screen.value !== 'settings';
+  }, [screen.value]);
 
   useEffect(() => {
     return () => {
