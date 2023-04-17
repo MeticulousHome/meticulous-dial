@@ -21,6 +21,7 @@ import { setScreen } from '../components/store/features/screens/screens-slice';
 import { useAppSelector } from '../components/store/hooks';
 import { SockerContext } from '../components/store/SockerManager';
 import {
+  resetActiveIndexGeneralSettingOption,
   setNextGeneralSettingOption,
   setPrevGeneralSettingOption
 } from '../components/store/features/settings/settings-slice';
@@ -53,6 +54,7 @@ export function useHandleGesture({
         }
       } else if (gesture.value === 'longTare') {
         if (screen.value !== 'settings') {
+          dispatch(resetActiveIndexGeneralSettingOption());
           dispatch(setScreen('settings'));
         }
       } else {
