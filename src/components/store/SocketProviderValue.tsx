@@ -7,6 +7,7 @@ import { setGesture } from './features/gestures/gestures-slice';
 import { useAppDispatch, useAppSelector } from './hooks';
 import { setStats } from './features/stats/stats-slice';
 import { generatePayload } from '../../utils/preheat';
+import { addPresetFromDashboard } from './features/preset/preset-slice';
 
 interface SocketProviderValueInterface {
   sendAction: (name: ActionType) => void;
@@ -28,6 +29,10 @@ export const SocketProviderValue = (): SocketProviderValueInterface => {
     socket.on('status', (data: ISensorData) => {
       console.log('Listening: status ');
       dispatch(setStats(data));
+    });
+
+    socket.on('save_profile', (data: any) => {
+      dispatch(addPresetFromDashboard(data));
     });
   }, []);
 
