@@ -1,4 +1,4 @@
-import { PressetSettings } from '../types/index';
+import { IPresetSetting, PressetSettings } from '../types/index';
 
 interface PayloadProps {
   presset: PressetSettings;
@@ -794,4 +794,177 @@ export const generatePayload = ({ presset }: PayloadProps) => {
     name: presset.name,
     stages
   };
+};
+
+export const getSettingsFromDashboardPayload = (
+  payload: any
+): IPresetSetting[] => {
+  // points
+  const infusionStages = payload.stages.filter(
+    (item: any) => item.name === 'infusion'
+  );
+
+  let infusionNode;
+
+  for (let index = 0; index < infusionStages.length; index++) {
+    const infusionStage = infusionStages[index];
+
+    infusionNode =
+      infusionStage && infusionStage.nodes
+        ? infusionStage.nodes.find((item: any) => item.id === 13)
+        : undefined;
+
+    if (infusionNode) break;
+  }
+
+  const infusionController =
+    infusionNode && infusionNode.controllers
+      ? infusionNode.controllers.find(
+          (item: any) => item.kind === 'pressure_controller'
+        )
+      : undefined;
+
+  const pointsPressure: number[][] =
+    infusionController &&
+    infusionController.curve &&
+    infusionController.curve.points
+      ? infusionController.curve.points
+      : [[0, 0]];
+  // points
+
+  // temperature
+  const heatingStages = payload.stages.filter(
+    (item: any) => item.name === 'heating'
+  );
+
+  let heatingNode;
+
+  for (let index = 0; index < heatingStages.length; index++) {
+    const heatingStage = heatingStages[index];
+
+    heatingNode =
+      heatingStage && heatingStage.nodes
+        ? heatingStage.nodes.find((item: any) => item.id === 7)
+        : undefined;
+
+    if (heatingNode) break;
+  }
+
+  const heatingTrigger =
+    heatingNode && heatingNode.triggers
+      ? heatingNode.triggers.find(
+          (item: any) => item.kind === 'temperature_value_trigger'
+        )
+      : undefined;
+
+  const temperature = heatingTrigger ? heatingTrigger.value : 0;
+  // temperature
+
+  // preinfusio
+  const preInfusion = payload.stages.find(
+    (item: any) => item.name === 'preinfusion'
+  );
+  // preinfusio
+
+  // output
+  let infusionNodeOutput;
+  if (infusionNode) {
+    infusionNodeOutput = infusionNode;
+  } else {
+    for (let index = 0; index < infusionStages.length; index++) {
+      const infusionStage = infusionStages[index];
+
+      infusionNodeOutput =
+        infusionStage && infusionStage.nodes
+          ? infusionStage.nodes.find((item: any) => item.id === 20)
+          : undefined;
+    }
+  }
+
+  const infusionTrigger =
+    infusionNodeOutput && infusionNodeOutput.triggers
+      ? infusionNodeOutput.triggers.find(
+          (item: any) => item.kind === 'weight_value_trigger'
+        )
+      : undefined;
+
+  const output = infusionTrigger ? infusionTrigger.value : 0;
+  // output
+
+  // purge
+  let infusionNodeRetract;
+  for (let index = 0; index < infusionStages.length; index++) {
+    const infusionStage = infusionStages[index];
+
+    infusionNodeRetract =
+      infusionStage && infusionStage.nodes
+        ? infusionStage.nodes.find((item: any) => item.id === 32)
+        : undefined;
+
+    if (infusionNodeRetract) break;
+  }
+
+  const infusionNodeRetractTrigger =
+    infusionNodeRetract && infusionNodeRetract.triggers
+      ? infusionNodeRetract.triggers.find(
+          (item: any) => item.kind === 'piston_speed_trigger'
+        )
+      : undefined;
+  // purge
+
+  return [
+    {
+      id: 1,
+      type: 'text',
+      key: 'name',
+      label: `name`,
+      value: payload.name
+    },
+    {
+      id: 2,
+      type: 'numerical',
+      key: 'pressure',
+      label: 'pressure',
+      value:
+        pointsPressure.length > 0 &&
+        pointsPressure[pointsPressure.length - 1].length > 0
+          ? pointsPressure[pointsPressure.length - 1][1]
+          : 0,
+      unit: 'bar'
+    },
+    {
+      id: 3,
+      type: 'numerical',
+      key: 'temperature',
+      label: 'temperature',
+      value: temperature,
+      unit: '°c'
+    },
+    {
+      id: 4,
+      type: 'on-off',
+      key: 'pre-infusion',
+      label: 'pre-infusion',
+      value: preInfusion ? 'yes' : 'no'
+    },
+    {
+      id: 5,
+      type: 'numerical',
+      key: 'output',
+      label: 'output',
+      value: output,
+      unit: 'g'
+    },
+    {
+      id: 6,
+      type: 'multiple-option',
+      key: 'purge',
+      label: 'purge',
+      value:
+        infusionNodeRetractTrigger &&
+        infusionNodeRetractTrigger['next_node_id'] === 19
+          ? 'automatic'
+          : 'manual'
+    }
+  ];
 };
