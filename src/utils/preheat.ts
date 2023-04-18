@@ -792,7 +792,8 @@ export const generatePayload = ({ presset }: PayloadProps) => {
 
   return {
     name: presset.name,
-    stages
+    stages,
+    source: 'LCD'
   };
 };
 
