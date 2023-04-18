@@ -930,7 +930,8 @@ export const getSettingsFromDashboardPayload = (
         pointsPressure[pointsPressure.length - 1].length > 0
           ? pointsPressure[pointsPressure.length - 1][1]
           : 0,
-      unit: 'bar'
+      unit: 'bar',
+      hidden: true
     },
     {
       id: 3,
@@ -938,14 +939,16 @@ export const getSettingsFromDashboardPayload = (
       key: 'temperature',
       label: 'temperature',
       value: temperature,
-      unit: '°c'
+      unit: '°c',
+      hidden: true
     },
     {
       id: 4,
       type: 'on-off',
       key: 'pre-infusion',
       label: 'pre-infusion',
-      value: preInfusion ? 'yes' : 'no'
+      value: preInfusion ? 'yes' : 'no',
+      hidden: true
     },
     {
       id: 5,
@@ -953,7 +956,8 @@ export const getSettingsFromDashboardPayload = (
       key: 'output',
       label: 'output',
       value: output,
-      unit: 'g'
+      unit: 'g',
+      hidden: true
     },
     {
       id: 6,
@@ -964,7 +968,8 @@ export const getSettingsFromDashboardPayload = (
         infusionNodeRetractTrigger &&
         infusionNodeRetractTrigger['next_node_id'] === 19
           ? 'automatic'
-          : 'manual'
+          : 'manual',
+      hidden: true
     }
   ];
 };
