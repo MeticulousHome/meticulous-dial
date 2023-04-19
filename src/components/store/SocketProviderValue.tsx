@@ -32,7 +32,7 @@ export const SocketProviderValue = (): SocketProviderValueInterface => {
     });
 
     socket.on('save_profile', (data: any) => {
-      dispatch(addPresetFromDashboard(data));
+      dispatch(addPresetFromDashboard(JSON.parse(data)));
     });
   }, []);
 
