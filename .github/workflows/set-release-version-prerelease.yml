@@ -3,10 +3,12 @@ on:
     secrets:
       GH_TOKEN:
         required: true
+      PUBLISH_BRANCH:
+        required: true
 
 jobs:
   set-release-version:
-    name: Set release version Alpha
+    name: Set release version
     runs-on: ubuntu-20.04
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
@@ -23,7 +25,7 @@ jobs:
         if: always()
         with:
           access-token: ${{ secrets.GH_TOKEN }}
-          branch: 'alpha'
+          branch: ${{ secrets.PUBLISH_BRANCH }}
           enforce_admins: false
       - name: Install dependencies
         run: npm install
