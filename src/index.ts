@@ -65,6 +65,8 @@ const saveFile = async (
 };
 
 const getPresetData = async () => {
+  const defaultData = JSON.stringify(mockPreset);
+
   // const path = './src/data';
   const path = app.getPath(DEFAULT_USER_PATHNAME);
   const presetPath = `${path}/presets.json`;
@@ -72,15 +74,19 @@ const getPresetData = async () => {
   //get file
   try {
     const presetData = await fs.readFile(presetPath, 'utf-8');
-    if (presetData) return presetData;
+    if (presetData.trim()) {
+      return presetData;
+    } else {
+      return defaultData;
+    }
   } catch (error) {
-    const defaultData = JSON.stringify(mockPreset);
     await fs.writeFile(presetPath, defaultData);
     return defaultData;
   }
 };
 
 const getPresetSettingData = async () => {
+  const defaultData = JSON.stringify(mockPresetSetting);
   // const path = './src/data';
   const path = app.getPath(DEFAULT_USER_PATHNAME);
   const presetPath = `${path}/presetSettings.json`;
@@ -89,12 +95,12 @@ const getPresetSettingData = async () => {
     //get file
 
     const presetData = await fs.readFile(presetPath, 'utf-8');
-    if (presetData) return presetData;
-    else {
-      //if file doesn't exist, create it
+    if (presetData.trim()) {
+      return presetData;
+    } else {
+      return defaultData;
     }
   } catch (error) {
-    const defaultData = JSON.stringify(mockPresetSetting);
     await fs.writeFile(presetPath, defaultData);
     return defaultData;
   }
