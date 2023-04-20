@@ -3,11 +3,17 @@ on:
   push:
     branches:
       - development
+      - alpha
 jobs:
   continuous-integration:
     uses: ./.github/workflows/continuous-integration.yml
+  set-release-version:
+    needs: continuous-integration
+    uses: ./.github/workflows/set-release-version-alpha.yml
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
   publish_on_linux:
-    needs: [ continuous-integration ]
+    needs: [ continuous-integration, set-release-version ]
     uses: ./.github/workflows/publish.yml
     secrets:
       DISTRIBUTION_FOLDER: ${{ secrets.DISTRIBUTION_FOLDER_DEV }}

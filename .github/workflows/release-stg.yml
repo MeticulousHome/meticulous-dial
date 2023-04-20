@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - staging
+      - beta
 jobs:
   continuous-integration:
     uses: ./.github/workflows/continuous-integration.yml
