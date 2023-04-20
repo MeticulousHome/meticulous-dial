@@ -31,13 +31,13 @@ export function OnOff(): JSX.Element {
     if (screen.value === 'onOff') {
       switch (gesture.value) {
         case 'right':
-          if (activeIndex < options.length - 1) {
-            setActiveIndex(activeIndex + 1);
+          if (activeIndex > 0) {
+            setActiveIndex(activeIndex - 1);
           }
           break;
         case 'left':
-          if (activeIndex > 0) {
-            setActiveIndex(activeIndex - 1);
+          if (activeIndex < options.length - 1) {
+            setActiveIndex(activeIndex + 1);
           }
           break;
         case 'click':
