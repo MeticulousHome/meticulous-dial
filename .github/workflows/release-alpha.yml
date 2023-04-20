@@ -1,8 +1,7 @@
-name: Release Dev version
+name: Release Alpha version
 on:
   push:
     branches:
-      - development
       - alpha
 jobs:
   continuous-integration:
@@ -22,3 +21,4 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      PUBLISH_BRANCH: alpha
