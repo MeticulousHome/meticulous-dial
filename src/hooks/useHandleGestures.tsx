@@ -78,9 +78,9 @@ export function useHandleGesture({
                 dispatch(setScreen('barometer'));
               }
             } else if (gesture.value === 'left') {
-              dispatch(setPrevPreset());
-            } else if (gesture.value === 'right') {
               dispatch(setNextPreset());
+            } else if (gesture.value === 'right') {
+              dispatch(setPrevPreset());
             }
             break;
           case 'pressetSettings':
