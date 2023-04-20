@@ -13,11 +13,16 @@ on:
         required: true
       S3_BUCKET:
         required: true
+      PUBLISH_BRANCH:
+        required: true
 jobs:
   publish_on_linux:
     runs-on: meticulous-runner
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ secrets.PUBLISH_BRANCH }}
       - uses: actions/setup-node@master
         with:
           node-version: 18
