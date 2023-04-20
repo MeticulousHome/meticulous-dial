@@ -8,9 +8,10 @@ jobs:
     uses: ./.github/workflows/continuous-integration.yml
   set-release-version:
     needs: continuous-integration
-    uses: ./.github/workflows/set-release-version-alpha.yml
+    uses: ./.github/workflows/set-release-version-prerelease.yml
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      PUBLISH_BRANCH: 'alpha'
   publish_on_linux:
     needs: [ continuous-integration, set-release-version ]
     uses: ./.github/workflows/publish.yml
@@ -21,4 +22,4 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       S3_BUCKET: ${{ secrets.S3_BUCKET }}
-      PUBLISH_BRANCH: alpha
+      PUBLISH_BRANCH: 'alpha'
