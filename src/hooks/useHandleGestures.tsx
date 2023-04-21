@@ -144,6 +144,9 @@ export function useHandleGesture({
                   case 'home':
                     dispatch(setScreen('barometer'));
                     break;
+                  case 'purge':
+                    dispatch(setScreen('barometer'));
+                    break;
                   case 'exit':
                     dispatch(
                       setScreen(
