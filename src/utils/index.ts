@@ -27,3 +27,12 @@ export const formatStatValue = (value: string, padEnd: number) => {
   }
   return finalNumber;
 };
+
+export const isValidJson = (json: string) => {
+  try {
+    JSON.parse(json);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
