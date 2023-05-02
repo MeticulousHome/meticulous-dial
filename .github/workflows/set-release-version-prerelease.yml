@@ -21,10 +21,10 @@ jobs:
         with:
           node-version: '18'
       - name: Disable "include administrators" branch protection
-        uses: benjefferies/branch-protection-bot@1.0.5
+        uses: benjefferies/branch-protection-bot@1.0.8
         if: always()
         with:
-          access-token: ${{ secrets.GH_TOKEN }}
+          access_token: ${{ secrets.GH_TOKEN }}
           branch: ${{ secrets.PUBLISH_BRANCH }}
           enforce_admins: false
       - name: Install dependencies
