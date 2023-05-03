@@ -11,7 +11,7 @@ jobs:
     uses: ./.github/workflows/set-release-version.yml
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
-publish_on_linux:
+  publish_on_linux:
     needs: [ continuous-integration, set-release-version ]
     uses: ./.github/workflows/publish.yml
     secrets:
