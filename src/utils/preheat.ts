@@ -18,7 +18,10 @@ export const generatePayload = ({ presset }: PayloadProps) => {
   const isPurgeAutomatic = purgeS.value === 'automatic';
   const isPreinfusionActivated = preinfusion.value === 'yes';
 
-  const pointsPressure: number[][] = [[0, Number(pressure.value)]];
+  const pointsPressure: number[][] =
+    typeof pressure.value === 'object'
+      ? pressure.value
+      : [[0, Number(pressure.value)]];
 
   const prePurge = {
     name: 'purge',
@@ -926,11 +929,7 @@ export const getSettingsFromDashboardPayload = (
       type: 'numerical',
       key: 'pressure',
       label: 'pressure',
-      value:
-        pointsPressure.length > 0 &&
-        pointsPressure[pointsPressure.length - 1].length > 0
-          ? pointsPressure[pointsPressure.length - 1][1]
-          : 0,
+      value: pointsPressure,
       unit: 'bar',
       hidden: true
     },

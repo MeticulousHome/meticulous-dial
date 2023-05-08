@@ -81,7 +81,7 @@ export interface IPresetName extends IBasePresset, PresetName {}
 
 export type IPresetBaseNumerical = {
   type: 'numerical';
-  value: number;
+  value: number | number[][];
 };
 export interface IPresetNumericalPressure
   extends IBasePresset,
