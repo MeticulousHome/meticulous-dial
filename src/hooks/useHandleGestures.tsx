@@ -102,6 +102,8 @@ export function useHandleGesture({
                 dispatch(setScreen('onOff'));
               } else if (presetSettingIndex === 'purge') {
                 dispatch(setScreen('purge'));
+              } else if (presetSettingIndex === 'pre-heat') {
+                dispatch(setScreen('onOff'));
               } else {
                 dispatch(setScreen('settingNumerical'));
               }

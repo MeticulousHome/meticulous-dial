@@ -70,6 +70,8 @@ export type OutputKey = 'output';
 
 export type PreInfusionKey = 'pre-infusion';
 
+export type PreHeatKey = 'pre-heat';
+
 export type ActionKey = 'save' | 'discard' | 'delete';
 
 export type IPresetText = {
@@ -133,9 +135,14 @@ export type PresetOnOff = {
 };
 
 export type PresetOnOffPreinfusion = PresetOnOff & { key: PreInfusionKey };
+
+export type PresetOnOffPreHeat = PresetOnOff & { key: PreHeatKey };
+
 export interface IPresetOnOffPreinfusion
   extends IBasePresset,
     PresetOnOffPreinfusion {}
+
+export interface IPresetOnOffPreheat extends IBasePresset, PresetOnOffPreHeat {}
 
 export type PresetAction = {
   type: 'action';
@@ -154,6 +161,7 @@ export type IPresetSetting =
   | IPresetMultipleOptionRatio
   | IPresetMultipleOptionPurge
   | IPresetOnOffPreinfusion
+  | IPresetOnOffPreheat
   | IPresetAction;
 
 export interface IPresetsSettingData {
@@ -169,6 +177,7 @@ export type IPresetType =
   | RatioKey
   | PurgeKey
   | PreInfusionKey
+  | PreHeatKey
   | ActionKey
   | '';
 
