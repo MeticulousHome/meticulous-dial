@@ -11,12 +11,14 @@ const getKeyPresset = (presset: PressetSettings, key: string) => {
 export const generatePayload = ({ presset }: PayloadProps) => {
   const temperature = getKeyPresset(presset, 'temperature');
   const preinfusion = getKeyPresset(presset, 'pre-infusion');
+  // const preheat = getKeyPresset(presset, 'pre-heat');
   const pressure = getKeyPresset(presset, 'pressure');
   const purgeS = getKeyPresset(presset, 'purge');
   const outputS = getKeyPresset(presset, 'output');
 
   const isPurgeAutomatic = purgeS.value === 'automatic';
   const isPreinfusionActivated = preinfusion.value === 'yes';
+  // const isPreheatActivated = preheat.value === 'yes'; // Todo Ángel 2.0
 
   const pointsPressure: number[][] =
     typeof pressure.value === 'object'
