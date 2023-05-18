@@ -181,7 +181,12 @@ export type IPresetType =
   | ActionKey
   | '';
 
-export type ISettingType = PressureKey | TemperatureKey | OutputKey;
+export type ISettingType =
+  | PressureKey
+  | TemperatureKey
+  | OutputKey
+  | PreHeatKey
+  | PreInfusionKey;
 
 type SettingsKeys = 'key' | 'value';
 export interface PressetSettings {
