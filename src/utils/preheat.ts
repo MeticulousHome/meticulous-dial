@@ -17,9 +17,9 @@ export const generatePayload = ({ presset }: PayloadProps) => {
   const outputS = getKeyPresset(presset, 'output');
   const TEMPERATURE = Number(temperature.value);
   const WATER_TEMPERATURE = TEMPERATURE - 5;
-  const isPurgeAutomatic = purgeS.value === 'automatic';
-  const isPreinfusionActivated = preinfusion.value === 'yes';
-  const isPreheatActivated = preheat.value === 'yes'; // Todo Ángel 2.0
+  const isPurgeAutomatic = purgeS?.value === 'automatic';
+  const isPreinfusionActivated = preinfusion?.value === 'yes';
+  const isPreheatActivated = preheat?.value === 'yes'; // Todo Ángel 2.0
 
   const pointsPressure: number[][] =
     typeof pressure.value === 'object'
