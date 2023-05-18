@@ -83,7 +83,7 @@ const App = (): JSX.Element => {
           }
         />
         {/* </div> */}
-        <OnOff />
+        <OnOff type={presetSettingIndex as ISettingType} />
         <Purge />
 
         <BottomStatus />
