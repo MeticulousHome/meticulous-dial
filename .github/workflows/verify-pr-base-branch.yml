@@ -6,9 +6,9 @@ on:
       - master
 jobs:
   verify-base-branch:
-    name: Verify base branch is staging
+    name: Verify base branch is beta
     runs-on: ubuntu-20.04
     steps:
       - name: Check base branch
-        if: github.head_ref != 'staging'
+        if: github.head_ref != 'beta'
         run: exit 1

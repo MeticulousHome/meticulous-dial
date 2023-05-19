@@ -19,11 +19,12 @@ jobs:
         with:
           node-version: '18'
       - name: Disable "include administrators" branch protection
-        uses: benjefferies/branch-protection-bot@1.0.5
+        id: disable_include_admins
+        uses: benjefferies/branch-protection-bot@1.0.8
         if: always()
         with:
-          access-token: ${{ secrets.GH_TOKEN }}
-          branch: 'master'
+          access_token: ${{ secrets.GH_TOKEN }}
+          branch: ${{ github.ref_name }}
           enforce_admins: false
       - name: Install dependencies
         run: npm install
@@ -32,12 +33,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: npx semantic-release
       - name: Enable "include administrators" branch protection
-        uses: benjefferies/branch-protection-bot@1.0.5
-        if: always() # Force to always run this step to ensure "include administrators" is always turned back on
-        with:
-          access-token: ${{ secrets.GH_TOKEN }}
-          branch: 'master'
-          enforce_admins: true
-      - name: Sync staging with master branch
+        uses: benjefferies/branch-protection-bot@1.0.8
         if: always()
-        run: git push origin master:staging --force
+        with:
+          access_token: ${{ secrets.GH_TOKEN }}
+          branch: ${{ github.ref_name }}
+          enforce_admins: ${{ steps.disable_include_admins.outputs.initial_status }}
+      - name: Sync beta with master branch
+        if: github.ref_name == 'master'
+        run: git push origin master:beta --force

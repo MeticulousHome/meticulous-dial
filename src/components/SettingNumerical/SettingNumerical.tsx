@@ -159,26 +159,35 @@ export function SettingNumerical({ type }: Props): JSX.Element {
     }
 
     if (/^0*$/.test(toLayout.replace('.', ''))) {
-      return <text className="opacity-20">{withPads}</text>;
+      return <span className="opacity-20">{withPads}</span>;
     }
 
     const pads: JSX.Element[] = [];
     withPads.split(toLayout).map((i: string) => {
       for (let y = 1; y <= i.length; y++) {
-        pads.push(<span className="opacity-20">0</span>);
+        pads.push(
+          <span key={y} className="opacity-20">
+            0
+          </span>
+        );
       }
     });
 
     pads.push(<>{toLayout}</>);
-    return pads;
+    return pads.map((i, idx) => {
+      if (i.key) return i;
+      return <span key={`pads-${idx}`}>{i}</span>;
+    });
   };
 
   const getAnimation = useCallback(() => {
     let animation = 'hidden';
 
     if (
-      (screen.value === 'scale' && screen.prev === 'settingNumerical') ||
-      (screen.value === 'settingNumerical' && screen.prev === 'scale')
+      ((screen.value === 'scale' || screen.value === 'settings') &&
+        screen.prev === 'settingNumerical') ||
+      (screen.value === 'settingNumerical' &&
+        (screen.prev === 'scale' || screen.prev === 'settings'))
     ) {
       animation = '';
     } else if (screen.value === 'settingNumerical') {

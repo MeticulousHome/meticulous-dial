@@ -52,6 +52,7 @@ export interface IPreset {
 export interface IBasePresset {
   id: number;
   label: string;
+  hidden?: boolean;
 }
 export type NameKey = 'name';
 
@@ -80,7 +81,7 @@ export interface IPresetName extends IBasePresset, PresetName {}
 
 export type IPresetBaseNumerical = {
   type: 'numerical';
-  value: number;
+  value: number | number[][];
 };
 export interface IPresetNumericalPressure
   extends IBasePresset,

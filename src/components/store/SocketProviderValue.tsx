@@ -7,6 +7,7 @@ import { setGesture } from './features/gestures/gestures-slice';
 import { useAppDispatch, useAppSelector } from './hooks';
 import { setStats } from './features/stats/stats-slice';
 import { generatePayload } from '../../utils/preheat';
+import { addPresetFromDashboard } from './features/preset/preset-slice';
 
 interface SocketProviderValueInterface {
   sendAction: (name: ActionType) => void;
@@ -28,6 +29,10 @@ export const SocketProviderValue = (): SocketProviderValueInterface => {
     socket.on('status', (data: ISensorData) => {
       console.log('Listening: status ');
       dispatch(setStats(data));
+    });
+
+    socket.on('save_profile', (data: any) => {
+      dispatch(addPresetFromDashboard(JSON.parse(data)));
     });
   }, []);
 
@@ -108,10 +113,20 @@ const presset = {
 
 export const SetSocketKeyboardListeners = () => {
   const dispatch = useAppDispatch();
-  const { presets, presetSetting, screen } = useAppSelector((state) => state);
+  const { presets, presetSetting, screen, settings } = useAppSelector(
+    (state) => state
+  );
 
   useEffect(() => {
     const lister = (e: KeyboardEvent) => {
+      const preset = {
+        name: presets.activePreset.name,
+        settings: presetSetting.settings.settings.filter(
+          (item) => item.id !== -1 && item.id !== -2
+        )
+      };
+
+      const payload = generatePayload({ presset: preset as any });
       console.log(e.code);
       switch (e.code) {
         case 'ArrowLeft':
@@ -121,19 +136,32 @@ export const SetSocketKeyboardListeners = () => {
           dispatch(setGesture('right'));
           break;
         case 'Space':
+          if (
+            screen.value === 'settings' &&
+            settings.settings[settings.activeIndexSetting]
+          ) {
+            switch (settings.settings[settings.activeIndexSetting].key) {
+              case 'home':
+                socket.emit('parameters', payload);
+                socket.emit('action', 'home');
+                break;
+              case 'purge':
+                socket.emit('parameters', payload);
+                socket.emit('action', 'purge');
+                break;
+              case 'calibrate':
+                socket.emit('parameters', payload);
+                socket.emit('calibrate');
+                break;
+              default:
+                break;
+            }
+          }
           dispatch(setGesture('click'));
           break;
         case 'Enter': {
           if (screen.value !== 'barometer') return;
 
-          const preset = {
-            name: presets.activePreset.name,
-            settings: presetSetting.settings.settings.filter(
-              (item) => item.id !== -1 && item.id !== -2
-            )
-          };
-
-          const payload = generatePayload({ presset: preset as any });
           console.log(JSON.stringify(payload, null, 2));
 
           socket.emit('parameters', payload);
@@ -163,7 +191,7 @@ export const SetSocketKeyboardListeners = () => {
     return () => {
       window.removeEventListener('keydown', lister);
     };
-  }, [presets, presetSetting, screen]);
+  }, [presets, presetSetting, screen, settings]);
 
   return dispatch;
 };

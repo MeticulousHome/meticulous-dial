@@ -324,8 +324,10 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     let animation = 'hidden';
 
     if (
-      (screen.value === 'scale' && screen.prev === 'circleKeyboard') ||
-      (screen.value === 'circleKeyboard' && screen.prev === 'scale')
+      ((screen.value === 'scale' || screen.value === 'settings') &&
+        screen.prev === 'circleKeyboard') ||
+      (screen.value === 'circleKeyboard' &&
+        (screen.prev === 'scale' || screen.prev === 'settings'))
     ) {
       animation = '';
     } else if (screen.value === 'circleKeyboard') {
@@ -346,11 +348,15 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
       <div className="caption-content">
         <div className="circle-title">{setting?.label}</div>
         <div ref={captionRef} className="circle-caption caption_shake">
-          {caption.map((el) => {
+          {caption.map((el, index) => {
             if (el === ' ') {
-              return <div className="transparent">_</div>;
+              return (
+                <div key={index} className="transparent">
+                  _
+                </div>
+              );
             }
-            return <div>{el}</div>;
+            return <div key={index}>{el}</div>;
           })}
           {caption.length >= 0 && caption.length < 8 && (
             <div className="blink">_</div>

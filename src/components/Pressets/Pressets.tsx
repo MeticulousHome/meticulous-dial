@@ -42,8 +42,10 @@ export function Pressets(): JSX.Element {
   const getAnimation = useCallback(() => {
     let animation = 'hidden';
     if (
-      (screen.value === 'scale' && screen.prev === 'pressets') ||
-      (screen.value === 'pressets' && screen.prev === 'scale')
+      ((screen.value === 'scale' || screen.value === 'settings') &&
+        screen.prev === 'pressets') ||
+      (screen.value === 'pressets' &&
+        (screen.prev === 'scale' || screen.prev === 'settings'))
     ) {
       animation = '';
     } else if (screen.value === 'pressets') {
@@ -141,8 +143,8 @@ export function Pressets(): JSX.Element {
                       >
                         <rect width="204" height="204" fill="black" />
                         <path
-                          fill-rule="evenodd"
-                          clip-rule="evenodd"
+                          fillRule="evenodd"
+                          clipRule="evenodd"
                           d="M104.745 99.2547V32H99.2551V99.2547H32V104.745H99.2551V172H104.745V104.745H172V99.2547H104.745Z"
                           fill="white"
                         />

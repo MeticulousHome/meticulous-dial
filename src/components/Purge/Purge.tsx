@@ -14,15 +14,17 @@ export function Purge(): JSX.Element {
 
   const dispatch = useDispatch();
 
-  const setting = presetSetting?.updatingSettings.settings[
-    presetSetting.activeSetting
-  ] as IPresetMultipleOptionPurge;
+  const setting = presetSetting?.updatingSettings.settings.find(
+    (setting) => setting.key === 'purge'
+  );
 
   useEffect(() => {
     if (
       setting?.type === 'multiple-option' &&
       screen.value !== 'scale' &&
-      screen.prev !== 'scale'
+      screen.value !== 'settings' &&
+      screen.prev !== 'scale' &&
+      screen.prev !== 'settings'
     ) {
       setActiveIndex(setting.value === 'automatic' ? 0 : 1);
     }
@@ -32,13 +34,13 @@ export function Purge(): JSX.Element {
     if (screen.value === 'purge') {
       switch (gesture.value) {
         case 'right':
-          if (activeIndex < options.length - 1) {
-            setActiveIndex(activeIndex + 1);
+          if (activeIndex > 0) {
+            setActiveIndex(activeIndex - 1);
           }
           break;
         case 'left':
-          if (activeIndex > 0) {
-            setActiveIndex(activeIndex - 1);
+          if (activeIndex < options.length - 1) {
+            setActiveIndex(activeIndex + 1);
           }
           break;
         case 'click':
@@ -57,8 +59,10 @@ export function Purge(): JSX.Element {
 
   const getAnimation = useCallback(() => {
     if (
-      (screen.value === 'scale' && screen.prev === 'purge') ||
-      (screen.value === 'purge' && screen.prev === 'scale')
+      ((screen.value === 'scale' || screen.value === 'settings') &&
+        screen.prev === 'purge') ||
+      (screen.value === 'purge' &&
+        (screen.prev === 'scale' || screen.prev === 'settings'))
     ) {
       return 'None';
     } else if (screen.value === 'purge') {

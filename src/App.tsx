@@ -23,6 +23,7 @@ import { useHandleGesture } from './hooks/useHandleGestures';
 import { IPresetType, ISettingType } from './types';
 import { OnOff } from './components/OnOff/OnOff';
 import { Purge } from './components/Purge/Purge';
+import { Settings } from './components/Settings/Settings';
 
 const App = (): JSX.Element => {
   //console.info(window.meticulous_envs.SERVER_URL());
@@ -44,7 +45,7 @@ const App = (): JSX.Element => {
   const getAnimation = useCallback(() => {
     let animation = 'barometer__fadeIn';
 
-    if (screen.value === 'scale') {
+    if (screen.value === 'scale' || screen.value === 'settings') {
       animation = 'barometerToScale__fadeOut';
     }
 
@@ -54,6 +55,7 @@ const App = (): JSX.Element => {
   return (
     <div className="main-layout">
       <Scale />
+      <Settings />
       <div className={`main-layout ${getAnimation()}`}>
         <PressetTitle />
         <MainTitle />

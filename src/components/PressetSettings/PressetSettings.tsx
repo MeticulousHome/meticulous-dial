@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { IPresetSetting } from '../../types';
 import { useAppSelector } from '../store/hooks';
 
 import './pressetSettings.css';
+import { generateDefaultAction } from '../../utils/preset';
 
 interface Props {
   optionSelected: (option: string) => void;
@@ -14,6 +15,17 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
   const [init, setInit] = useState(false);
   const [swiper, setSwiper] = useState(null);
   const { screen, presetSetting } = useAppSelector((state) => state);
+  const settings = useMemo(
+    () => [
+      ...presetSetting.updatingSettings.settings.filter(
+        (setting) => !setting.hidden
+      ),
+      ...(generateDefaultAction(
+        presetSetting.updatingSettings.settings.length
+      ).flat() as IPresetSetting[])
+    ],
+    [presetSetting.updatingSettings.settings]
+  );
 
   useEffect(() => {
     if (swiper) {
@@ -40,9 +52,7 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
       }
 
       if (settingsExist) {
-        optionSelected(
-          presetSetting.settings.settings[presetSetting.activeSetting].key
-        );
+        optionSelected(settings[presetSetting.activeSetting].key);
       }
     }
   }, [presetSetting.activeSetting, swiper]);
@@ -51,11 +61,10 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
     if (
       presetSetting.settings &&
       presetSetting.settings.settings.length > 0 &&
-      presetSetting.settings.settings[presetSetting.activeSetting]
+      presetSetting.settings.settings[presetSetting.activeSetting] &&
+      settings[presetSetting.activeSetting]?.key
     ) {
-      optionSelected(
-        presetSetting.settings.settings[presetSetting.activeSetting].key
-      );
+      optionSelected(settings[presetSetting.activeSetting].key);
     }
   }, [presetSetting.settings]);
 
@@ -69,8 +78,10 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
     let animation = 'hidden';
 
     if (
-      (screen.value === 'scale' && screen.prev === 'pressetSettings') ||
-      (screen.value === 'pressetSettings' && screen.prev === 'scale')
+      ((screen.value === 'scale' || screen.value === 'settings') &&
+        screen.prev === 'pressetSettings') ||
+      (screen.value === 'pressetSettings' &&
+        (screen.prev === 'scale' || screen.prev === 'settings'))
     ) {
       animation = '';
     } else if (screen.value === 'pressetSettings') {
@@ -110,9 +121,16 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
 
   const displaySetting = (setting: IPresetSetting, isActive: boolean) => {
     if (isActive) {
-      return `${setting.label}${setting?.value ? ': ' + setting.value : ''} ${
-        (setting as any)?.unit || ''
-      }`;
+      let mValue = '';
+
+      if (
+        typeof setting.value === 'number' ||
+        typeof setting.value === 'string'
+      ) {
+        mValue = `: ${setting.value}`;
+      }
+
+      return `${setting.label}${mValue} ${(setting as any)?.unit || ''}`;
     }
     return setting.label;
   };
@@ -140,24 +158,22 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
           onSlidePrevTransitionStart={() => setAnimationStyle('animation-prev')}
           onSlideChangeTransitionEnd={() => setAnimationStyle('')}
         >
-          {presetSetting.updatingSettings.settings.map(
-            (setting, index: number) => (
-              <SwiperSlide
-                className="presset-option-item"
-                key={`option-${index}`}
-              >
-                {({ isActive }) => (
-                  <div
-                    className={`${animationStyle} ${
-                      isActive ? `item-active` : ''
-                    } ${setting.key === 'delete' ? 'delete-option-item' : ''}`}
-                  >
-                    {displaySetting(setting, isActive)}
-                  </div>
-                )}
-              </SwiperSlide>
-            )
-          )}
+          {settings.map((setting, index: number) => (
+            <SwiperSlide
+              className="presset-option-item"
+              key={`option-${index}`}
+            >
+              {({ isActive }) => (
+                <div
+                  className={`${animationStyle} ${
+                    isActive ? `item-active` : ''
+                  } ${setting.key === 'delete' ? 'delete-option-item' : ''}`}
+                >
+                  {displaySetting(setting, isActive)}
+                </div>
+              )}
+            </SwiperSlide>
+          ))}
         </Swiper>
       </div>
     </div>

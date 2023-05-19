@@ -9,6 +9,7 @@ import {
   PresetSettingInterface,
   setDefaultSettingsNewPreset
 } from '../presetSetting/presetSetting-slice';
+import { getSettingsFromDashboardPayload } from '../../../../utils/preheat';
 
 interface PresetsState {
   value: IPreset[];
@@ -57,41 +58,27 @@ export const deletePreset = createAsyncThunk(
   async (presetId: number, { getState }) => {
     const state = getState() as RootState;
     const presets = [...state.presets.value];
-    const currentActive = state.presets.activeIndexSwiper;
-    let newSwiperIndex = 0;
-    let newActiveIndex = 0;
-    if (currentActive === 0) {
-      newSwiperIndex = 0;
-      newActiveIndex = 1;
-    } else if (currentActive === presets.length - 1) {
-      newSwiperIndex = currentActive - 1;
-      newActiveIndex = currentActive - 1;
-    } else if (currentActive > 0 && currentActive < presets.length - 1) {
-      newSwiperIndex = currentActive;
-      newActiveIndex = currentActive + 1;
-    }
+    let newSwiperIndex = state.presets.activeIndexSwiper;
+    let newDefaultPreset = { ...state.presets.activePreset };
 
-    const newDefaultPreset = presets[newActiveIndex]?.id
-      ? presets[newActiveIndex]
-      : {
-          id: -1,
-          name: 'Default'
-        };
-    const newListPresets: IPreset[] = presets
-      .filter((preset) => preset.id !== presetId)
-      .map((preset) => ({
+    let newListPresets: IPreset[] = presets.filter(
+      (preset) => preset.id !== presetId
+    );
+
+    if (newListPresets.length < presets.length) {
+      newDefaultPreset =
+        newListPresets.length > 0
+          ? newListPresets[0]
+          : { id: -1, name: 'Default', isDefault: false };
+      newSwiperIndex = 0;
+      newListPresets = newListPresets.map((preset) => ({
         ...preset,
         isDefault: preset.id === newDefaultPreset.id
       }));
 
-    await setPresetsData(newListPresets);
-    // console.log('data', {
-    //   newListPresets,
-    //   newSwiperIndex,
-    //   newDefaultPreset,
-    //   newActiveIndex,
-    //   currentActive
-    // });
+      await setPresetsData(newListPresets);
+    }
+
     return { newListPresets, newSwiperIndex, newDefaultPreset };
   }
 );
@@ -170,6 +157,55 @@ export const setPrevPreset = createAsyncThunk(
     } else {
       // throw new Error('No more presets');
     }
+    return presetState;
+  }
+);
+
+export const addPresetFromDashboard = createAsyncThunk(
+  'presetData/addPresetFromDashboard',
+  async (payload: any, { getState, dispatch }) => {
+    const state = getState() as RootState;
+    const presetState = { ...state.presets } as PresetsState;
+    const settingsState = { ...state.presetSetting } as PresetSettingInterface;
+
+    const presetList = presetState.value.map((preset) => ({
+      ...preset,
+      isDefault: false
+    }));
+
+    const presetId = new Date().getTime();
+
+    presetList.push({
+      id: presetId,
+      name: payload.name,
+      isDefault: true
+    });
+
+    presetState.value = presetList;
+    presetState.activeIndexSwiper = presetState.value.length - 1;
+    presetState.activePreset = presetState.value[presetState.activeIndexSwiper];
+
+    await setPresetsData(presetList);
+
+    const settings = getSettingsFromDashboardPayload(payload);
+
+    const allSettings: IPresetsSettingData[] = [
+      ...settingsState.allSettings,
+      {
+        presetId: presetId.toString(),
+        settings
+      }
+    ];
+
+    await setPresetSettingsData(allSettings);
+
+    dispatch(
+      setDefaultSettingsNewPreset({
+        presetId: presetId.toString(),
+        settingsDefault: settings
+      })
+    );
+
     return presetState;
   }
 );
@@ -377,6 +413,21 @@ const presetSlice = createSlice({
           state.value = action.payload.newListPresets;
           state.activeIndexSwiper = action.payload.newSwiperIndex;
           state.activePreset = action.payload.newDefaultPreset;
+        }
+      )
+      .addCase(addPresetFromDashboard.pending, (state) => {
+        state.pending = true;
+      })
+      .addCase(addPresetFromDashboard.rejected, (state) => {
+        state.pending = false;
+        state.error = true;
+      })
+      .addCase(
+        addPresetFromDashboard.fulfilled,
+        (state, action: PayloadAction<PresetsState>) => {
+          state.value = action.payload.value;
+          state.activeIndexSwiper = action.payload.activeIndexSwiper;
+          state.activePreset = action.payload.activePreset;
         }
       );
   }

@@ -1,6 +1,6 @@
 # Meticulous UI
 
-## Start up
+## 1. Start up
 
 ### Install Dependencies
 
@@ -16,11 +16,12 @@ npm run start
 
 Note: you will need to have installed NodeJS v16.15.1 or major
 
-## Code conventions
+
+## 2. Code conventions
 
 We are using [Commitizen](http://commitizen.github.io/cz-cli/) and [Commitlint](https://commitlint.js.org/#/) to provide commits meanfuls
 
-## Formatter
+### Formatter
 
 We are using [Prettier](https://prettier.io/) to keep code in a standard way.
 
@@ -29,7 +30,7 @@ We are using [Prettier](https://prettier.io/) to keep code in a standard way.
 $ npm run format
 ```
 
-## Make a commit
+### Make a commit
 
 When you are ready to commit, run
 
@@ -42,19 +43,77 @@ We use the follow [structure](https://commitlint.js.org/#/concepts-commit-conven
 ```
 type(scope): subject
 ```
----
-## How Dial Works
+
+## 3. How Dial Works
 
 ### Gestures
 Dial has only 3 actions that we can catch from it. `Turn Left`, `Turn Right` and `Click`.
 
 <img src="./public/clockwise-gesture.png" width=300/>
 
+### Conventions
+_Horizontal screens_
+
+<img src="./public/horizontal-screens.png" width=800/>
+
+_Vertical screens_
+
+<img src="./public/vertical-screens.png" width=800/>
+
+_Circular screens_
+
+<img src="./public/circular-screens.png" width=800/>
+
+_Keyboard screen_
+
+<img src="./public/keyboard-screen.png" width=800/>
 
 ### Behaviour
-Based on the [gesture](#gestures), we need to use them into each state in a specific way. For instance, when the state is `showing barometer`, we have the three gestures available. On the other hand, when state is `showing scale`, we just have available the gesture **double click**.
+Based on the [gesture](#gestures), we need to use them into each state in a specific way. For instance, when the state is `showing barometer`, we have the three gestures available. On the other hand, when state is `showing scale`, we just have available the gesture **double tare**.
 
-> **Note:** _double click_ gesture comes from an extra hardware element.
+> **Note:** _double tare_ gesture comes from an extra hardware element.
 
 
-<img src="./public/Dial-State_V2.png" width=500/>
+<img src="./public/Dial-State_V2.png" width=800/>
+
+
+## 4. Events
+
+We react to different keyboard events coming from controller. We have mapped every keyboard event triggered. You can check out it in the following [file](https://github.com/FFFuego/backend_for_esp32/blob/main/back.py#L122)
+
+<img src="./public/keyboard-events.png" width=300/>
+
+
+## 5. Preset File
+
+Each preset is store in a JSON file under per-user application data directory. See the documentation [here](https://github.com/electron/electron/blob/main/docs/api/app.md#appgetpathname).
+
+Following, we have the JSON structure we define to allow app to process the preset values.
+
+### JSON schema
+```json
+[
+    {
+        "presetId": "string",
+        "settings": [
+            {
+                "id": "number",
+                "type": "enum", /* "text" | "numerical" | "on-off" | "multiple-option" */
+                "key": "string", /* it acts as a unique identifier */
+                "label": "string",
+                "value": "number" | "string",
+                "unit": "enum", /* "c°" | "g" | "bar" */
+                "hidden": "boolean" /* if it is true, it must not be displayed. Default: false */
+            },
+            .
+            .
+            .
+        ]
+    },
+    .
+    .
+    .
+]
+```
+
+For more information about it, see the following [file](https://github.com/PrivSocial/meticulous-ui/blob/master/src/types/index.ts).

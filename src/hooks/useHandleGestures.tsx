@@ -20,6 +20,11 @@ import {
 import { setScreen } from '../components/store/features/screens/screens-slice';
 import { useAppSelector } from '../components/store/hooks';
 import { SockerContext } from '../components/store/SockerManager';
+import {
+  resetActiveIndexGeneralSettingOption,
+  setNextGeneralSettingOption,
+  setPrevGeneralSettingOption
+} from '../components/store/features/settings/settings-slice';
 
 export function useHandleGesture({
   presetSettingIndex,
@@ -29,9 +34,8 @@ export function useHandleGesture({
   keyboardReady: React.MutableRefObject<boolean>;
 }) {
   const dispatch = useContext(SockerContext);
-  const { gesture, screen, stats, presets, presetSetting } = useAppSelector(
-    (state) => state
-  );
+  const { gesture, screen, stats, presets, presetSetting, settings } =
+    useAppSelector((state) => state);
 
   useEffect(() => {
     // console.log('Prev Gesture >> ', gesture.prev);
@@ -42,9 +46,16 @@ export function useHandleGesture({
     if (stats.name === 'idle') {
       if (gesture.value === 'doubleTare' && presets.value.length > 0) {
         if (screen.value === 'scale') {
-          dispatch(setScreen(screen.prev));
+          dispatch(
+            setScreen(screen.prev === 'settings' ? 'barometer' : screen.prev)
+          );
         } else {
           dispatch(setScreen('scale'));
+        }
+      } else if (gesture.value === 'longTare') {
+        if (screen.value !== 'settings') {
+          dispatch(resetActiveIndexGeneralSettingOption());
+          dispatch(setScreen('settings'));
         }
       } else {
         switch (screen.value) {
@@ -67,9 +78,9 @@ export function useHandleGesture({
                 dispatch(setScreen('barometer'));
               }
             } else if (gesture.value === 'left') {
-              dispatch(setPrevPreset());
-            } else if (gesture.value === 'right') {
               dispatch(setNextPreset());
+            } else if (gesture.value === 'right') {
+              dispatch(setPrevPreset());
             }
             break;
           case 'pressetSettings':
@@ -126,6 +137,33 @@ export function useHandleGesture({
               dispatch(setScreen('pressetSettings'));
             }
             break;
+          case 'settings':
+            if (gesture.value === 'click') {
+              if (settings.settings[settings.activeIndexSetting]) {
+                switch (settings.settings[settings.activeIndexSetting].key) {
+                  case 'home':
+                    dispatch(setScreen('barometer'));
+                    break;
+                  case 'purge':
+                    dispatch(setScreen('barometer'));
+                    break;
+                  case 'exit':
+                    dispatch(
+                      setScreen(
+                        screen.prev === 'scale' ? 'barometer' : screen.prev
+                      )
+                    );
+                    break;
+                  default:
+                    break;
+                }
+              }
+            } else if (gesture.value === 'right') {
+              dispatch(setNextGeneralSettingOption());
+            } else if (gesture.value === 'left') {
+              dispatch(setPrevGeneralSettingOption());
+            }
+            break;
           default:
             break;
         }
@@ -135,5 +173,5 @@ export function useHandleGesture({
     }
 
     dispatch(setGesture('')); // we need to clean the state up to receive event notification
-  }, [gesture, screen, stats.name]);
+  }, [gesture, screen, stats.name, settings]);
 }

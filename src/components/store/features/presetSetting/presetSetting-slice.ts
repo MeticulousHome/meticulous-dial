@@ -12,6 +12,8 @@ import {
 import { IPresetSetting, IPresetsSettingData } from '../../../../types';
 import { dummyOptions, settingsDefaultNewPreset } from '../../../../utils/mock';
 import { RootState } from '../../store';
+import { DEFAULT_SETTING } from '../../../../constants/setting';
+import { filterSettingAction } from '../../../../utils/preset';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -159,7 +161,7 @@ const presetSettingSlice = createSlice({
         presetId,
         settings
       };
-      state.endIndex = settings.length - 1;
+      state.endIndex = settings.length + DEFAULT_SETTING.length - 1;
       state.allSettings = state.allSettings.concat(state.settings);
     },
     setSettings(
@@ -170,16 +172,18 @@ const presetSettingSlice = createSlice({
         (setting) => setting.presetId === action.payload.toString()
       );
       const settings = [...dummyOptions, ...targetSetting.settings];
+      const hiddenSettings = targetSetting.settings.filter(
+        (setting) => setting.hidden
+      );
       state.settings = { ...targetSetting, settings };
       state.updatingSettings = { ...targetSetting, settings };
-      state.endIndex = settings.length - 1;
-      // reset active setting
-      // state.activeSetting = 2;
+      state.endIndex =
+        settings.length + DEFAULT_SETTING.length - 1 - hiddenSettings.length;
+
       return state;
     },
     discardSettings(state: Draft<typeof initialState>) {
       state.updatingSettings = state.settings;
-      // state.activeSetting = 2;
       return state;
     }
   },
@@ -230,7 +234,10 @@ const presetSettingSlice = createSlice({
         ) => {
           state.pending = false;
           state.error = false;
-          state.allSettings = action.payload;
+          state.allSettings = action.payload.map((presetSetting) => ({
+            ...presetSetting,
+            settings: filterSettingAction(presetSetting.settings)
+          }));
           // reset active setting
           // state.activeSetting = 2;
         }

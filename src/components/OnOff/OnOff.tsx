@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { useAppSelector } from '../store/hooks';
 import { MultipleOptionSlider } from '../shared/MultipleOptionSlider';
 import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
-import { IPresetOnOffPreinfusion, IPresetSetting } from '../../../src/types';
+import { IPresetSetting } from '../../../src/types';
 
 export function OnOff(): JSX.Element {
   const [options] = useState(['Yes', 'No']);
@@ -11,15 +11,17 @@ export function OnOff(): JSX.Element {
   const { screen, gesture, presetSetting } = useAppSelector((state) => state);
   const dispatch = useDispatch();
 
-  const setting = presetSetting?.updatingSettings.settings[
-    presetSetting.activeSetting
-  ] as IPresetOnOffPreinfusion;
+  const setting = presetSetting?.updatingSettings.settings.find(
+    (setting) => setting.key === 'pre-infusion'
+  );
 
   useEffect(() => {
     if (
       setting?.type === 'on-off' &&
       screen.value !== 'scale' &&
-      screen.prev !== 'scale'
+      screen.value !== 'settings' &&
+      screen.prev !== 'scale' &&
+      screen.prev !== 'settings'
     ) {
       setActiveIndex(setting.value === 'yes' ? 0 : 1);
     }
@@ -29,13 +31,13 @@ export function OnOff(): JSX.Element {
     if (screen.value === 'onOff') {
       switch (gesture.value) {
         case 'right':
-          if (activeIndex < options.length - 1) {
-            setActiveIndex(activeIndex + 1);
+          if (activeIndex > 0) {
+            setActiveIndex(activeIndex - 1);
           }
           break;
         case 'left':
-          if (activeIndex > 0) {
-            setActiveIndex(activeIndex - 1);
+          if (activeIndex < options.length - 1) {
+            setActiveIndex(activeIndex + 1);
           }
           break;
         case 'click':
@@ -54,8 +56,10 @@ export function OnOff(): JSX.Element {
 
   const getAnimation = useCallback(() => {
     if (
-      (screen.value === 'scale' && screen.prev === 'onOff') ||
-      (screen.value === 'onOff' && screen.prev === 'scale')
+      ((screen.value === 'scale' || screen.value === 'settings') &&
+        screen.prev === 'onOff') ||
+      (screen.value === 'onOff' &&
+        (screen.prev === 'scale' || screen.prev === 'settings'))
     ) {
       return 'None';
     } else if (screen.value === 'onOff') {

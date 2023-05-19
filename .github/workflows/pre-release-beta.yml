@@ -1,13 +1,18 @@
-name: Release Stg version
+name: Pre-release Beta version
 on:
   push:
     branches:
-      - staging
+      - beta
 jobs:
   continuous-integration:
     uses: ./.github/workflows/continuous-integration.yml
+  set-release-version:
+    needs: continuous-integration
+    uses: ./.github/workflows/set-release-version.yml
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
   publish_on_linux:
-    needs: [ continuous-integration ]
+    needs: [ continuous-integration, set-release-version ]
     uses: ./.github/workflows/publish.yml
     secrets:
       DISTRIBUTION_FOLDER: ${{ secrets.DISTRIBUTION_FOLDER_STG }}
@@ -16,3 +21,4 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      PUBLISH_BRANCH: ${{ github.ref_name }}
