@@ -36,7 +36,9 @@ export function OnOff({ type }: Props): JSX.Element {
       screen.prev !== 'settings'
     ) {
       const mValue =
-        type === 'pre-infusion' ? setting.value : preheatSetting.value;
+        type === 'pre-infusion'
+          ? setting?.value || 'yes'
+          : preheatSetting?.value || 'yes';
 
       setActiveIndex(mValue === 'yes' ? 0 : 1);
     }
