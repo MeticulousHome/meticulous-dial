@@ -115,7 +115,7 @@ export const settingsDefaultNewPreset: IPresetSetting[] = [
     type: 'on-off',
     key: 'pre-heat',
     label: 'pre-heat',
-    value: 'on '
+    value: 'yes'
   },
   {
     id: 6,
