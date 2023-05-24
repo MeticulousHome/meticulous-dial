@@ -29,15 +29,18 @@ export function OnOff({ type }: Props): JSX.Element {
 
   useEffect(() => {
     if (
-      setting?.type === 'on-off' &&
+      (setting?.type === 'on-off' || preheatSetting?.type === 'on-off') &&
       screen.value !== 'scale' &&
       screen.value !== 'settings' &&
       screen.prev !== 'scale' &&
       screen.prev !== 'settings'
     ) {
-      setActiveIndex(setting.value === 'yes' ? 0 : 1);
+      const mValue =
+        type === 'pre-infusion' ? setting.value : preheatSetting.value;
+
+      setActiveIndex(mValue === 'yes' ? 0 : 1);
     }
-  }, [setting, screen]);
+  }, [setting, preheatSetting, screen]);
 
   useEffect(() => {
     if (screen.value === 'onOff') {
