@@ -142,15 +142,12 @@ export const SetSocketKeyboardListeners = () => {
           ) {
             switch (settings.settings[settings.activeIndexSetting].key) {
               case 'home':
-                socket.emit('parameters', payload);
                 socket.emit('action', 'home');
                 break;
               case 'purge':
-                socket.emit('parameters', payload);
                 socket.emit('action', 'purge');
                 break;
               case 'calibrate':
-                socket.emit('parameters', payload);
                 socket.emit('calibrate');
                 break;
               default:
