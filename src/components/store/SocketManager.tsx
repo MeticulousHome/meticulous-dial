@@ -6,14 +6,14 @@ import {
 } from './SocketProviderValue';
 
 // socket context
-export const SockerContext = createContext(null);
+export const SocketContext = createContext(null);
 
 // allow consuming socket context anywhere
 export const useSocket = () => {
-  return useContext(SockerContext);
+  return useContext(SocketContext);
 };
 
-export const SockerManager = ({
+export const SocketManager = ({
   children
 }: {
   children: ReactNode;
@@ -21,6 +21,6 @@ export const SockerManager = ({
   SocketProviderValue();
   const dispatch = SetSocketKeyboardListeners();
   return (
-    <SockerContext.Provider value={dispatch}>{children}</SockerContext.Provider>
+    <SocketContext.Provider value={dispatch}>{children}</SocketContext.Provider>
   );
 };

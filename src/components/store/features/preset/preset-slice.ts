@@ -168,6 +168,8 @@ export const addPresetFromDashboard = createAsyncThunk(
     const presetState = { ...state.presets } as PresetsState;
     const settingsState = { ...state.presetSetting } as PresetSettingInterface;
 
+    if (state.screen.value === 'circleKeyboard') return;
+
     const presetList = presetState.value.map((preset) => ({
       ...preset,
       isDefault: false
