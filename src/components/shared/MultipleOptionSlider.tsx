@@ -29,7 +29,11 @@ export function MultipleOptionSlider({
 
   useEffect(() => {
     if (swiper) {
-      swiper.slideTo(activeIndex);
+      try {
+        swiper.slideTo(activeIndex);
+      } catch (error) {
+        console.log({ error, location: 'MultipleOptionSlider' });
+      }
     }
   }, [activeIndex, swiper]);
 

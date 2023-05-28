@@ -20,12 +20,6 @@ export const SocketProviderValue = (): SocketProviderValueInterface => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    /* socket.on("connect", () => {
-            //dispatch
-        }); */
-    /* socket.on("disconnect", () => {
-            //
-        }); */
     socket.on('status', (data: ISensorData) => {
       console.log('Listening: status ');
       dispatch(setStats(data));
