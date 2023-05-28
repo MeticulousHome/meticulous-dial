@@ -42,13 +42,18 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
           presetSetting.settings.settings[swiper['activeIndex']].key;
       }
 
-      if (
-        (settingBeforeChange === 'save' || settingBeforeChange === 'discard') &&
-        presetSetting.activeSetting === 2
-      ) {
-        swiper.slideTo(presetSetting.activeSetting, 0, false);
-      } else {
-        swiper.slideTo(presetSetting.activeSetting);
+      try {
+        if (
+          (settingBeforeChange === 'save' ||
+            settingBeforeChange === 'discard') &&
+          presetSetting.activeSetting === 2
+        ) {
+          swiper.slideTo(presetSetting.activeSetting, 0, false);
+        } else {
+          swiper.slideTo(presetSetting.activeSetting);
+        }
+      } catch (error) {
+        console.log({ error, location: 'PressetSettings' });
       }
 
       if (settingsExist) {

@@ -14,10 +14,14 @@ export function Settings(): JSX.Element {
 
   useEffect(() => {
     if (swiper) {
-      if (reset.current) {
-        swiper.slideTo(settings.activeIndexSetting, 0, false);
-      } else {
-        swiper.slideTo(settings.activeIndexSetting);
+      try {
+        if (reset.current) {
+          swiper.slideTo(settings.activeIndexSetting, 0, false);
+        } else {
+          swiper.slideTo(settings.activeIndexSetting);
+        }
+      } catch (error) {
+        console.log({ error, location: 'Settings' });
       }
     }
   }, [swiper, settings.activeIndexSetting]);

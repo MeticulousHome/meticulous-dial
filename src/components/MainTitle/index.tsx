@@ -14,7 +14,13 @@ const MainTitle = () => {
   const currentAnimation = useRef('');
   const dispatch = useAppDispatch();
 
-  const slideTo = (index: number) => swiper.slideTo(index);
+  const slideTo = (index: number) => {
+    try {
+      swiper.slideTo(index);
+    } catch (error) {
+      console.log({ error, location: 'index' });
+    }
+  };
 
   useEffect(() => {
     if (swiper) {

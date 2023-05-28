@@ -8,7 +8,7 @@ import MainTitle from './components/MainTitle';
 import { Pressets } from './components/Pressets/Pressets';
 import { Scale } from './components/Scale/Scale';
 import { useAppSelector } from './components/store/hooks';
-import { SockerManager } from './components/store/SockerManager';
+import { SocketManager } from './components/store/SocketManager';
 import { store } from './components/store/store';
 /* import { PressetSettings } from './components/PressetSettings/PressetSettings'; */
 // import { TemperatureScale } from './components/TemperatureScale/TemperatureScale';
@@ -95,8 +95,8 @@ const App = (): JSX.Element => {
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <Provider store={store}>
-    <SockerManager>
+    <SocketManager>
       <App />
-    </SockerManager>
+    </SocketManager>
   </Provider>
 );

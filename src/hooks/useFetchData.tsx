@@ -5,10 +5,10 @@ import {
   setSettings
 } from '../components/store/features/presetSetting/presetSetting-slice';
 import { useAppSelector } from '../components/store/hooks';
-import { SockerContext } from '../components/store/SockerManager';
+import { SocketContext } from '../components/store/SocketManager';
 
 export function useFetchData() {
-  const dispatch = useContext(SockerContext);
+  const dispatch = useContext(SocketContext);
   const { presets, presetSetting } = useAppSelector((state) => state);
 
   useEffect(() => {

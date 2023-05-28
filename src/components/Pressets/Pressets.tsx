@@ -6,17 +6,21 @@ import {
   handleAddPresetAnimation,
   handleRemovePresetsAnimation
 } from '../../utils/preset';
-import { setScreen } from '../store/features/screens/screens-slice';
-import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { useAppSelector } from '../store/hooks';
 import './pressets.css';
 
 export function Pressets(): JSX.Element {
   const { presets, screen } = useAppSelector((state) => state);
-  const dispatch = useAppDispatch();
 
   const [swiper, setSwiper] = useState(null);
 
-  const slideTo = (index: number) => swiper.slideTo(index);
+  const slideTo = (index: number) => {
+    try {
+      swiper.slideTo(index);
+    } catch (error) {
+      console.log({ error, location: 'Pressets' });
+    }
+  };
 
   useEffect(() => {
     if (swiper) {
