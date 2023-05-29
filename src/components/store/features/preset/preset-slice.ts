@@ -167,6 +167,7 @@ export const addPresetFromDashboard = createAsyncThunk(
     const state = getState() as RootState;
     const presetState = { ...state.presets } as PresetsState;
     const settingsState = { ...state.presetSetting } as PresetSettingInterface;
+    const { profile, shouldSetActiveScreen } = payload;
 
     if (state.screen.value === 'circleKeyboard') return;
 
@@ -179,7 +180,7 @@ export const addPresetFromDashboard = createAsyncThunk(
 
     presetList.push({
       id: presetId,
-      name: payload.name,
+      name: profile.name,
       isDefault: true
     });
 
@@ -189,7 +190,7 @@ export const addPresetFromDashboard = createAsyncThunk(
 
     await setPresetsData(presetList);
 
-    const settings = getSettingsFromDashboardPayload(payload);
+    const settings = getSettingsFromDashboardPayload(profile);
 
     const allSettings: IPresetsSettingData[] = [
       ...settingsState.allSettings,
@@ -201,12 +202,14 @@ export const addPresetFromDashboard = createAsyncThunk(
 
     await setPresetSettingsData(allSettings);
 
-    dispatch(
-      setDefaultSettingsNewPreset({
-        presetId: presetId.toString(),
-        settingsDefault: settings
-      })
-    );
+    if (shouldSetActiveScreen) {
+      dispatch(
+        setDefaultSettingsNewPreset({
+          presetId: presetId.toString(),
+          settingsDefault: settings
+        })
+      );
+    }
 
     return presetState;
   }

@@ -18,7 +18,7 @@ const MainTitle = () => {
     try {
       swiper.slideTo(index);
     } catch (error) {
-      console.log({ error, location: 'index' });
+      console.log({ error, location: 'MainTitle' });
     }
   };
 
