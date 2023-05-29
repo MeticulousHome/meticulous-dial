@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from './hooks';
 import { setStats } from './features/stats/stats-slice';
 import { generatePayload } from '../../utils/preheat';
 import { addPresetFromDashboard } from './features/preset/preset-slice';
+import { ScreenType } from './features/screens/screens-slice';
 
 interface SocketProviderValueInterface {
   sendAction: (name: ActionType) => void;
@@ -16,17 +17,29 @@ interface SocketProviderValueInterface {
 
 const socket: Socket | null = io('http://localhost:8080');
 
+const NON_EDITING_SCREENS: ScreenType[] = ['barometer', 'pressets'];
+
 export const SocketProviderValue = (): SocketProviderValueInterface => {
   const dispatch = useAppDispatch();
+  const { stats, screen } = useAppSelector((state) => state);
 
   useEffect(() => {
     socket.on('status', (data: ISensorData) => {
-      console.log('Listening: status ');
+      console.log('Listening: status', data.name);
       dispatch(setStats(data));
     });
 
     socket.on('save_profile', (data: any) => {
-      dispatch(addPresetFromDashboard(JSON.parse(data)));
+      console.log('Receive: save_profile');
+
+      const shouldSetActiveScreen =
+        NON_EDITING_SCREENS.includes(screen.value) && stats.name === 'idle';
+      dispatch(
+        addPresetFromDashboard({
+          profile: JSON.parse(data),
+          shouldSetActiveScreen
+        })
+      );
     });
   }, []);
 
@@ -40,69 +53,6 @@ export const SocketProviderValue = (): SocketProviderValueInterface => {
 
   // return { sendAction, sendPreset };
   return;
-};
-
-const presset = {
-  name: 'prueba',
-  settings: [
-    {
-      id: 1,
-      type: 'text',
-      key: 'name',
-      label: 'name',
-      value: '78 a'
-    },
-    {
-      id: 2,
-      type: 'numerical',
-      key: 'pressure',
-      label: 'pressure',
-      value: 9,
-      unit: 'bar'
-    },
-    {
-      id: 3,
-      type: 'numerical',
-      key: 'temperature',
-      label: 'temperature',
-      value: '85',
-      unit: '°c'
-    },
-    {
-      id: 4,
-      type: 'on-off',
-      key: 'pre-infusion',
-      label: 'pre-infusion',
-      value: 'yes'
-    },
-    {
-      id: 5,
-      type: 'numerical',
-      key: 'output',
-      label: 'output',
-      value: '36',
-      unit: 'g'
-    },
-    {
-      id: 6,
-      type: 'multiple-option',
-      key: 'purge',
-      label: 'purge',
-      value: 'automatic'
-    },
-    {
-      id: 7,
-      type: 'action',
-      key: 'save',
-      label: 'save'
-    },
-    {
-      id: 8,
-      type: 'action',
-      key: 'discard',
-      label: 'discard'
-    }
-  ]
 };
 
 export const SetSocketKeyboardListeners = () => {
