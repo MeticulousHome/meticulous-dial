@@ -1,6 +1,6 @@
-import { IPresetSetting, IPresetsSettingData } from '../types';
+import { IPresetSetting } from '../types';
 import { DEFAULT_SETTING } from '../constants/setting';
-import Swiper from 'swiper';
+import type { Swiper } from 'swiper';
 
 export const handleRemovePresetsAnimation = (swiper: Swiper) => {
   if (swiper && swiper.slides)

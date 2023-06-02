@@ -3,9 +3,17 @@ import { useDispatch } from 'react-redux';
 import { useAppSelector } from '../store/hooks';
 import { MultipleOptionSlider } from '../shared/MultipleOptionSlider';
 import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
-import { IPresetSetting } from '../../../src/types';
+import {
+  IPresetOnOffPreheat,
+  IPresetOnOffPreinfusion,
+  ISettingType
+} from '../../../src/types';
 
-export function OnOff(): JSX.Element {
+interface Props {
+  type: ISettingType;
+}
+
+export function OnOff({ type }: Props): JSX.Element {
   const [options] = useState(['Yes', 'No']);
   const [activeIndex, setActiveIndex] = useState(0);
   const { screen, gesture, presetSetting } = useAppSelector((state) => state);
@@ -15,17 +23,26 @@ export function OnOff(): JSX.Element {
     (setting) => setting.key === 'pre-infusion'
   );
 
+  const preheatSetting = presetSetting?.updatingSettings.settings.find(
+    (setting) => setting.key === 'pre-heat'
+  );
+
   useEffect(() => {
     if (
-      setting?.type === 'on-off' &&
+      (setting?.type === 'on-off' || preheatSetting?.type === 'on-off') &&
       screen.value !== 'scale' &&
       screen.value !== 'settings' &&
       screen.prev !== 'scale' &&
       screen.prev !== 'settings'
     ) {
-      setActiveIndex(setting.value === 'yes' ? 0 : 1);
+      const mValue =
+        type === 'pre-infusion'
+          ? setting?.value || 'yes'
+          : preheatSetting?.value || 'yes';
+
+      setActiveIndex(mValue === 'yes' ? 0 : 1);
     }
-  }, [setting, screen]);
+  }, [setting, preheatSetting, screen]);
 
   useEffect(() => {
     if (screen.value === 'onOff') {
@@ -41,12 +58,24 @@ export function OnOff(): JSX.Element {
           }
           break;
         case 'click':
-          dispatch(
-            updatePresetSetting({
-              ...setting,
-              value: options[activeIndex].toLowerCase()
-            } as IPresetSetting)
-          );
+          if (type === 'pre-heat') {
+            dispatch(
+              updatePresetSetting({
+                ...preheatSetting,
+                value: options[activeIndex].toLowerCase()
+              } as IPresetOnOffPreheat)
+            );
+          }
+
+          if (type === 'pre-infusion') {
+            dispatch(
+              updatePresetSetting({
+                ...setting,
+                value: options[activeIndex].toLowerCase()
+              } as IPresetOnOffPreinfusion)
+            );
+          }
+
           break;
         default:
           break;
@@ -75,7 +104,7 @@ export function OnOff(): JSX.Element {
         activeIndex,
         contentAnimation: getAnimation(),
         options,
-        title: 'pre-infusion',
+        title: type,
         spaceBetween: -40
       }}
     />

@@ -19,7 +19,7 @@ import {
 } from '../components/store/features/presetSetting/presetSetting-slice';
 import { setScreen } from '../components/store/features/screens/screens-slice';
 import { useAppSelector } from '../components/store/hooks';
-import { SockerContext } from '../components/store/SockerManager';
+import { SocketContext } from '../components/store/SocketManager';
 import {
   resetActiveIndexGeneralSettingOption,
   setNextGeneralSettingOption,
@@ -33,7 +33,7 @@ export function useHandleGesture({
   presetSettingIndex: IPresetType;
   keyboardReady: React.MutableRefObject<boolean>;
 }) {
-  const dispatch = useContext(SockerContext);
+  const dispatch = useContext(SocketContext);
   const { gesture, screen, stats, presets, presetSetting, settings } =
     useAppSelector((state) => state);
 
@@ -102,6 +102,8 @@ export function useHandleGesture({
                 dispatch(setScreen('onOff'));
               } else if (presetSettingIndex === 'purge') {
                 dispatch(setScreen('purge'));
+              } else if (presetSettingIndex === 'pre-heat') {
+                dispatch(setScreen('onOff'));
               } else {
                 dispatch(setScreen('settingNumerical'));
               }
