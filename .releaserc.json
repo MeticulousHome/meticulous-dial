@@ -23,8 +23,15 @@
             }
         ],
         [
+            "@semantic-release/exec",
+            {
+                "prepareCmd": "chmod +x ./src/scripts/update-version.sh && bash ./src/scripts/update-version.sh ${nextRelease.version}"
+            }
+        ],
+        [
             "@semantic-release/git",
             {
+                "assets": ["src/meticulous-version.js", "package.json", "package-lock.json"],
                 "message": "chore(release): v${nextRelease.version} [skip ci]"
             }
         ],
