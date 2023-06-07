@@ -17,4 +17,6 @@ else
  	echo "creating version file" && echo -e "$CUSTOM_COMMENT\n\n$VERSION_SENTENCE" > "$FILE_URL"
 fi
 
+npm run format
+
 exit
