@@ -16,7 +16,7 @@ Barometer styles
 .bar-needle {
   /*background: url('/src/assets/images/bar-needle.svg') 86% 0 no-repeat;*/
   /*background: red url('/src/assets/images/bar-needle.svg') 82% 0 no-repeat;*/
-  
+
   /*background: url('/src/assets/images/bar-needle.svg') 81.2% 0 no-repeat;*/
   /*background-size: contain;*/
   position: absolute;
@@ -36,7 +36,7 @@ Barometer styles
   background-repeat: no-repeat;
 }
 .bar-needle--transition-all {
-  transition: all .3s ease-in;
+  transition: all 0.3s ease-in;
 }
 .bar-needle__content {
   width: 275px;
@@ -49,9 +49,9 @@ Barometer styles
   justify-content: center;
   /*line-height: 20px;*/
   text-align: center;
-  color: #5E5E5E;
+  color: #5e5e5e;
   font-weight: 600;
-  line-height: 1; 
+  line-height: 1;
 }
 
 .pressure {
@@ -59,8 +59,8 @@ Barometer styles
 }
 
 .pressure::before {
-  content: " ";
-  background-color: #F5C444;
+  content: ' ';
+  background-color: #f5c444;
   display: inline-block;
   width: 8px;
   height: 8px;
@@ -87,7 +87,7 @@ Barometer styles
 
   font-weight: 400;
   display: inline-block;
-  text-align: right; 
+  text-align: right;
 }
 .bar-needle__column--mb-16 {
   margin-bottom: 16px;
@@ -98,7 +98,7 @@ Barometer styles
   margin-top: 32px;
   margin-bottom: 24px;*/
   text-align: center;
-  color: #5E5E5E;
+  color: #5e5e5e;
   text-transform: uppercase;
   font-weight: 600;
   margin-bottom: 16px;
@@ -117,7 +117,7 @@ Barometer styles
   height: 24px;
 }*/
 
-.main-title-selected { 
+.main-title-selected {
   position: absolute;
   top: 60px;
   font-size: 23px;
@@ -139,7 +139,7 @@ Barometer styles
 
 .columns-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;  
+  grid-template-columns: 1fr 1fr;
 }
 
 .column-item {
@@ -153,7 +153,7 @@ Barometer styles
 }
 
 .column-value {
-  line-height: 1.1; 
+  line-height: 1.1;
   font-size: 30px;
 }
 
@@ -161,9 +161,9 @@ Barometer styles
 .column-label,
 .column-data {
   text-align: center;
-  color: #5E5E5E;
+  color: #5e5e5e;
   font-weight: 600;
-  line-height: 1.1; 
+  line-height: 1.1;
   margin-left: 3px;
   font-size: 14px;
 }
@@ -176,7 +176,7 @@ Barometer styles
 .column-data {
   display: flex;
   align-items: end;
-  width: 35px; 
+  width: 35px;
   text-align: left;
   position: relative;
   top: -1px;

@@ -19,7 +19,7 @@
 .gauge-unit {
   position: absolute;
   bottom: 183px;
-  right: 75px; 
+  right: 75px;
   font-weight: 400;
   font-size: 40px;
   font-family: 'Lekton';
@@ -32,18 +32,18 @@
   position: fixed;
   display: flex;
   align-items: center;
-  z-index: 12; 
+  z-index: 12;
 }
 
 .scale-content {
   width: 100%;
-  display: flex; 
+  display: flex;
   height: 104px;
 }
 
-.scale-content .scale-level { 
+.scale-content .scale-level {
   font-size: 140px;
-  line-height: 96px; 
+  line-height: 96px;
   width: 282px;
   text-align: right;
   margin: 0;
@@ -54,7 +54,7 @@
   font-size: 24px;
   line-height: 186px;
   font-family: sans-serif;
-} 
+}
 
 .scale-pressure .scale-level {
   margin-left: 100px;
@@ -65,14 +65,14 @@
 }
 
 .scale-weight-limit .scale-level {
-  margin-left: 88px; 
+  margin-left: 88px;
 }
 
 .scale-flow .scale-level {
   margin-left: 70px;
-  margin-right: 4px; 
+  margin-right: 4px;
 }
 
 .opacity-20 {
-  opacity: .2;
+  opacity: 0.2;
 }
