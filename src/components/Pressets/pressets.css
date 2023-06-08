@@ -64,7 +64,7 @@
 }
 
 .swiper-horizontal .swiper-slide {
-  opacity: .15;
+  opacity: 0.15;
   transition: opacity 0.4s ease;
 }
 
