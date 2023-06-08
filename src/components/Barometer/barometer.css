@@ -117,26 +117,6 @@ Barometer styles
   height: 24px;
 }*/
 
-.main-title-selected {
-  position: absolute;
-  top: 60px;
-  font-size: 23px;
-  width: 220px;
-  /*line-height: 1;*/
-  text-align: center;
-  /* new properties */
-  left: 50%;
-  transform: translateX(-50%);
-  /*line-height: 1;*/
-  transition: all;
-  z-index: 4;
-  font-weight: bold;
-  /* properties to animate when transition */
-  /* top: 70px; */
-  /* font-size: 35px; */
-  /* properties to animate when transition */
-}
-
 .columns-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

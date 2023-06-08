@@ -10,8 +10,6 @@ import { Scale } from './components/Scale/Scale';
 import { useAppSelector } from './components/store/hooks';
 import { SocketManager } from './components/store/SocketManager';
 import { store } from './components/store/store';
-/* import { PressetSettings } from './components/PressetSettings/PressetSettings'; */
-// import { TemperatureScale } from './components/TemperatureScale/TemperatureScale';
 import { CircleKeyboard } from './components/CircleKeyboard/CircleKeyboard';
 
 import BottomStatus from './components/BottomStatus';
