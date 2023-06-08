@@ -34,28 +34,28 @@
 }
 
 .transition-all {
-  transition: all 250ms cubic-bezier(.47,1.63,.41,.8);
+  transition: all 250ms cubic-bezier(0.47, 1.63, 0.41, 0.8);
 }
 
 .caption-content {
   position: absolute;
   top: 40%;
   left: 0;
-  right: 0; 
+  right: 0;
   text-align: center;
 }
 
-.circle-title { 
+.circle-title {
   font-weight: 300;
   font-size: 25px;
-  color: #FFFFFF;
+  color: #ffffff;
   opacity: 0.4;
-} 
+}
 
 .circle-caption {
   font-weight: 700;
   font-size: 40px;
-  color: #FFFFFF;
+  color: #ffffff;
   display: flex;
   justify-content: center;
 }
@@ -89,7 +89,7 @@
   font-size: 50px;
   top: 30px;
 }
- 
+
 .caps-active {
   fill: #fff;
 }
