@@ -1,7 +1,7 @@
 export interface MeticulousAPI {
   saveFile: (filename: string, data: string) => Promise<any>;
-  getPresetData: () => Promise<any>;
-  getPresetSettingData: () => Promise<any>;
+  getPresetData: () => Promise<string>;
+  getPresetSettingData: () => Promise<string>;
 }
 
 declare global {

@@ -1,7 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
-import 'swiper/swiper-bundle.min.css';
 
 import { Barometer } from './components/Barometer/Barometer';
 import MainTitle from './components/MainTitle';
@@ -92,11 +91,4 @@ const App = (): JSX.Element => {
   );
 };
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <Provider store={store}>
-    <SocketManager>
-      <App />
-    </SocketManager>
-  </Provider>
-);
+export default App;
