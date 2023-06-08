@@ -8,17 +8,23 @@
 npm install
 ```
 
+Note: you will need to have installed NodeJS v18 or later
+
 ### Run dev mode
 
 ```bash
 npm run start
 ```
 
-Note: you will need to have installed NodeJS v16.15.1 or major
+### Start storybook
+
+```bash
+npm run storybook
+```
 
 ## 2. Code conventions
 
-We are using [Commitizen](http://commitizen.github.io/cz-cli/) and [Commitlint](https://commitlint.js.org/#/) to provide commits meanfuls
+We are using [Commitizen](http://commitizen.github.io/cz-cli/) and [Commitlint](https://commitlint.js.org/#/) to provide meaningful commits
 
 ### Formatter
 
