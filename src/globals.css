@@ -44,6 +44,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    overflow: hidden
 }
 .text-gray {
     color: #5E5E5E;
@@ -61,10 +62,8 @@ body {
 .main-layout {
     height: 100%;
     width: 100%;
-    max-width: 480px;
-    min-width: 480px;
-    max-height: 480px;
-    min-height: 480px;
+    width: 480px;
+    height: 480px;
     position: fixed;
     top: 0;
     left: 0;

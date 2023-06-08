@@ -6,7 +6,8 @@ export const getPresetsData = async () => {
     return JSON.stringify(presetsMock);
   }
 
-  await window.meticulousAPI.getPresetData();
+  const data = await window.meticulousAPI.getPresetData();
+  return data;
 };
 
 export const setPresetsData = async (presets: IPreset[]) => {

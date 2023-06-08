@@ -9,7 +9,6 @@ import { store } from './components/store/store';
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const rootElement = document.getElementById('root')!;
 const root = ReactDOM.createRoot(rootElement);
-
 root.render(
   <ReduxProvider store={store}>
     <SocketManager>

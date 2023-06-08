@@ -6,14 +6,14 @@ export const getPresetSettingsData = async (): Promise<string> => {
     return JSON.stringify(presetSettingsMock);
   }
 
-  return await window.meticulousAPI.getPresetSettingData();
+  const data = await window.meticulousAPI.getPresetSettingData();
+  return data;
 };
 
 export const setPresetSettingsData = async (
   presets: IPresetsSettingData[]
 ): Promise<void> => {
   const json = JSON.stringify(presets);
-  console.log('HEY!');
   if (!window.meticulousAPI?.saveFile) {
     // TODO: We can implement local store
     console.log(`Can't save file in browser.`);
