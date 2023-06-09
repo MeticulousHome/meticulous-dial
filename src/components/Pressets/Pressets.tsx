@@ -1,5 +1,5 @@
 // Core modules imports are same as usual
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 import {
@@ -37,30 +37,6 @@ export function Pressets(): JSX.Element {
       }
     }
   }, [screen.value]);
-
-  // useEffect(() => {
-  //   if (presets.value.length === 0) {
-  //     dispatch(setScreen('pressets'));
-  //   }
-  // }, [presets.value]);
-
-  const getAnimation = useCallback(() => {
-    let animation = 'hidden';
-    if (
-      ((screen.value === 'scale' || screen.value === 'settings') &&
-        screen.prev === 'pressets') ||
-      (screen.value === 'pressets' &&
-        (screen.prev === 'scale' || screen.prev === 'settings'))
-    ) {
-      animation = '';
-    } else if (screen.value === 'pressets') {
-      animation = 'presset__fadeIn';
-    } else if (screen.prev === 'pressets') {
-      animation = 'presset__fadeOut';
-    }
-
-    return animation;
-  }, [screen]);
 
   const handlSlideChange = () => {
     if (swiper) {
@@ -101,7 +77,6 @@ export function Pressets(): JSX.Element {
                             style={{
                               zIndex: 50
                             }}
-                            className={`${getAnimation()}`}
                             viewBox="0 0 206 204"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
@@ -141,7 +116,6 @@ export function Pressets(): JSX.Element {
                       <svg
                         width="204"
                         height="204"
-                        className={`${getAnimation()}`}
                         viewBox="0 0 204 204"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"

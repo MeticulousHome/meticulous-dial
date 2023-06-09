@@ -2067,46 +2067,29 @@ body {
     100% { scale: 0.0016768196703307314; opacity: 0;} */
 }
 
-.barometer__fadeIn {
+.route-child__fadeIn {
   animation-name: barometerFadeIn;
   animation-timing-function: linear;
   animation-fill-mode: forwards;
   animation-duration: 1.1s;
 }
 
-.barometer__fadeOut {
+.route-child__fadeOut {
   animation-name: barometerFadeOut;
   animation-timing-function: linear;
   animation-fill-mode: forwards;
   animation-duration: 1.1s;
 }
 
-.scaleToBarometer__fadeIn {
-  animation-name: scaleToBarometerFadeIn;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-  animation-duration: 1.1s;
-}
-
-.barometerToScale__fadeOut {
-  animation-name: barometerToScaleFadeOut;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-  animation-duration: 1.1s;
-}
-
-.presset__fadeIn {
+.route-parent__fadeIn {
   animation-name: pressetFadeIn;
-  /* animation-timing-function: cubic-bezier(.47,-0.16,.46,1.45); */
   animation-timing-function: linear;
   animation-fill-mode: forwards;
   animation-duration: 1.1s;
-  /* animation-delay: 0.07s; */
 }
 
-.presset__fadeOut {
+.route-parent__fadeOut {
   animation-name: pressetFadeOut;
-  /* animation-timing-function: cubic-bezier(.47,-0.16,.46,1.45); */
   animation-timing-function: linear;
   animation-fill-mode: forwards;
   animation-duration: 1.1s;

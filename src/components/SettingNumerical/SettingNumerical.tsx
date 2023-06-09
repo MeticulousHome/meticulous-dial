@@ -10,7 +10,6 @@ import {
 import { roundPrecision } from '../../utils';
 import { useReduxSelector } from '../store/store';
 import { Gauge, Unit } from './Gauge';
-import { ScreenType } from '../store/features/screens/screens-slice';
 import { updatePresetSetting } from '../store/features/preset/preset-slice';
 
 interface ISettingConfig {
@@ -41,29 +40,8 @@ interface Props {
   type: ISettingType;
 }
 
-const getAnimationName = (
-  currentScreen: ScreenType,
-  prevScreen: ScreenType
-) => {
-  if (
-    ((currentScreen === 'scale' || currentScreen === 'settings') &&
-      prevScreen === 'settingNumerical') ||
-    (currentScreen === 'settingNumerical' &&
-      (prevScreen === 'scale' || prevScreen === 'settings'))
-  ) {
-    return null;
-  } else if (currentScreen === 'settingNumerical') {
-    return 'fadeIn';
-  } else if (prevScreen === 'settingNumerical') {
-    return 'fadeOut';
-  }
-
-  return 'hidden';
-};
-
 export function SettingNumerical({ type }: Props): JSX.Element {
   const gesture = useReduxSelector((state) => state.gesture);
-  const screen = useReduxSelector((state) => state.screen);
   const presets = useReduxSelector((state) => state.presets);
   const [total, setTotal] = useState<number>(0);
   const { interval, maxValue, unit } = unitSettingConfigMap[
@@ -89,9 +67,6 @@ export function SettingNumerical({ type }: Props): JSX.Element {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (screen.value !== 'settingNumerical') {
-      return;
-    }
     let mTotal;
     switch (gesture.value) {
       case 'click':
@@ -115,9 +90,6 @@ export function SettingNumerical({ type }: Props): JSX.Element {
   }, [gesture]);
 
   useEffect(() => {
-    if (screen.value !== 'settingNumerical') {
-      return;
-    }
     switch (type) {
       case 'temperature':
         dispatch(
@@ -171,7 +143,6 @@ export function SettingNumerical({ type }: Props): JSX.Element {
       maxValue={maxValue}
       precision={interval < 1 ? 1 : 0}
       value={total}
-      animationName={getAnimationName(screen.value, screen.prev)}
     />
   );
 }

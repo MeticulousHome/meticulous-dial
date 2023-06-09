@@ -1,59 +1,91 @@
-import { Swiper, SwiperSlide } from 'swiper/react';
+import { Swiper, SwiperRef, SwiperSlide } from 'swiper/react';
 
 import './settings.css';
 import '../PressetSettings/pressetSettings.css';
 import { useEffect, useRef, useState } from 'react';
-import { useAppSelector } from '../store/hooks';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { setScreen } from '../store/features/screens/screens-slice';
+import { useSocket } from '../store/SocketManager';
+
+const settings = [
+  {
+    key: 'home',
+    label: 'home'
+  },
+  {
+    key: 'purge',
+    label: 'purge'
+  },
+  {
+    key: 'calibrate',
+    label: 'calibrate scale'
+  },
+  {
+    key: 'exit',
+    label: 'exit'
+  }
+] as const;
 
 export function Settings(): JSX.Element {
+  const dispatch = useAppDispatch();
+  const screen = useAppSelector((state) => state.screen);
+  const [activeIndex, setActiveIndex] = useState(0);
   const [animationStyle, setAnimationStyle] = useState('');
-  const [swiper, setSwiper] = useState(null);
-  const { settings, screen } = useAppSelector((state) => state);
-  const reset = useRef<boolean>(false);
+  const swiperRef = useRef<SwiperRef>(null);
+  const socket = useSocket();
+
+  useHandleGestures({
+    left() {
+      setActiveIndex((prev) => Math.max(prev - 1, 0));
+    },
+    right() {
+      setActiveIndex((prev) => Math.min(prev + 1, settings.length - 1));
+    },
+    click() {
+      switch (settings[activeIndex].key) {
+        case 'home': {
+          socket.emit('action', 'home');
+          dispatch(setScreen('barometer'));
+          break;
+        }
+        case 'purge': {
+          socket.emit('action', 'purge');
+          dispatch(setScreen('barometer'));
+          break;
+        }
+        case 'calibrate': {
+          socket.emit('action', 'calibrate');
+          dispatch(setScreen('barometer'));
+          break;
+        }
+        case 'exit': {
+          dispatch(
+            setScreen(screen.prev === 'scale' ? 'barometer' : screen.prev)
+          );
+          break;
+        }
+      }
+    }
+  });
 
   useEffect(() => {
-    if (swiper) {
+    if (swiperRef.current?.swiper) {
       try {
-        if (reset.current) {
-          swiper.slideTo(settings.activeIndexSetting, 0, false);
-        } else {
-          swiper.slideTo(settings.activeIndexSetting);
-        }
+        swiperRef.current.swiper.slideTo(activeIndex);
       } catch (error) {
         console.log({ error, location: 'Settings' });
       }
     }
-  }, [swiper, settings.activeIndexSetting]);
-
-  useEffect(() => {
-    reset.current = screen.value !== 'settings';
-  }, [screen.value]);
-
-  useEffect(() => {
-    return () => {
-      setAnimationStyle('');
-    };
-  }, []);
+  }, [activeIndex]);
 
   return (
-    <div
-      className={`main-layout ${
-        screen.value === 'settings'
-          ? 'scale__fadeIn'
-          : screen.prev === 'settings'
-          ? 'scale__fadeOut'
-          : 'hidden'
-      }`}
-    >
-      <div className="title">Settings</div>
-      <div className="blur blur-top"></div>
-      <div className="blur blur-bottom"></div>
+    <div className="main-layout">
       <div className="settings-options">
         <Swiper
-          onSwiper={setSwiper}
+          ref={swiperRef}
           slidesPerView={9}
           allowTouchMove={false}
-          initialSlide={settings.activeIndexSetting}
           direction="vertical"
           autoHeight={false}
           centeredSlides={true}
@@ -63,7 +95,7 @@ export function Settings(): JSX.Element {
           onSlidePrevTransitionStart={() => setAnimationStyle('animation-prev')}
           onSlideChangeTransitionEnd={() => setAnimationStyle('')}
         >
-          {settings.settings.map((setting, index) => (
+          {settings.map((setting, index) => (
             <SwiperSlide
               className="setting-option-item"
               key={`option-${index}`}

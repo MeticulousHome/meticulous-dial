@@ -1,11 +1,13 @@
 import './barometer.css';
 import { formatStatValue } from '../../utils';
-import { useAppSelector } from '../store/hooks';
-import { useCallback } from 'react';
-import { ISensorData } from '../../types';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { generateSimplePayload } from '../../utils/preheat';
+import { useSocket } from '../store/SocketManager';
+import { setScreen } from '../store/features/screens/screens-slice';
+import { LCD_EVENTS } from '../../../src/constants';
 
 export interface IBarometerProps {
-  stats: ISensorData;
   maxValue?: number;
 }
 
@@ -18,61 +20,49 @@ const getBarNeedlePosition = (pressure: string, maxValue: number) => {
     : barNeedleRotatePosition + 114; //start position
 };
 
-export function Barometer({
-  stats,
-  maxValue = 13
-}: IBarometerProps): JSX.Element {
+export function Barometer({ maxValue = 13 }: IBarometerProps): JSX.Element {
+  const stats = useAppSelector((state) => state.stats);
+  const presets = useAppSelector((state) => state.presets);
+  const socket = useSocket();
+  const dispatch = useAppDispatch();
+
+  useHandleGestures({
+    start() {
+      const preset = {
+        name: presets.activePreset.name,
+        settings: (presets.activePreset?.settings || []).filter(
+          (item) => item.id !== -1 && item.id !== -2
+        )
+      };
+
+      const payload = generateSimplePayload({
+        presset: preset as any,
+        action: 'to_play'
+      });
+
+      socket.emit(LCD_EVENTS.ITALIAN_EVENT, payload);
+
+      console.log(LCD_EVENTS.ITALIAN_EVENT, payload);
+
+      // We not need send this event
+      // socket.emit(LCD_EVENTS.ACTION_EVENT, LCD_ACTIONS.START_VALUE);
+    },
+    click() {
+      dispatch(setScreen('pressetSettings'));
+    }
+  });
+
   const barNeedleRotatePosition = getBarNeedlePosition(
     stats.sensors.p,
     maxValue
   );
-  const { screen } = useAppSelector((state) => state);
-
-  const getAnimation = useCallback(() => {
-    let animation = '';
-
-    if (stats.name === 'idle') animation = 'hidden';
-
-    if (
-      ((screen.value === 'scale' || screen.value === 'settings') &&
-        screen.prev === 'barometer') ||
-      (screen.value === 'barometer' &&
-        (screen.prev === 'scale' || screen.prev === 'settings'))
-    ) {
-      animation = '';
-    } else if (
-      screen.value === 'barometer' &&
-      (screen.prev === 'pressets' || !screen.prev)
-    ) {
-      animation = 'barometer__fadeIn';
-    } else if (
-      screen.value === 'barometer' &&
-      screen.prev == 'pressetSettings'
-    ) {
-      animation = 'pressetSettingsToBarometer__fadeIn';
-    } else if (
-      screen.value === 'pressetSettings' &&
-      screen.prev === 'barometer'
-    ) {
-      animation = 'barometerToPressetSettings__fadeOut';
-    } else if (screen.value === 'pressets' && screen.prev === 'barometer') {
-      animation = 'barometer__fadeOut';
-    }
-
-    return animation;
-  }, [screen]);
 
   return (
-    <div className={`barometer-container ${getAnimation()}`}>
+    <div className="barometer-container">
       <div
         className="bar-needle bar-needle--transition-all"
         style={{ transform: `rotate(${barNeedleRotatePosition}deg)` }}
       ></div>
-
-      {/* {(screen.prev === 'scale' ||
-        (screen.value === 'scale' && stats.name)) && (
-        <div className="main-title-selected">{stats.name}</div>
-      )} */}
 
       <div className="bar-needle__content">
         <div className="pressure">PRESSURE</div>
