@@ -8,15 +8,22 @@ jobs:
       # Step 1
       - uses: actions/checkout@v2
       # Step 2
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version-file: '.node-version'
       # Step 3
-      - name: Check code format
-        run: npx prettier --config .prettierrc ./src/**/*.{tsx,ts} --check
-      # Step 4
       - name: Install dependencies
         run: npm install
+      # Step 4
+      - name: Check code format
+        run: npm run format:check
       # Step 5
+      - name: Check types
+        run: npm run types
+      # Step 5
+      - name: Static analysis
+        run: npm run lint
+      # Step 6
       - name: Build Application and Run unit Test
         run: exit 0
+        if: false
