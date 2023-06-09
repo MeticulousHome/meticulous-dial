@@ -1,5 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
-import { IpcMainEvent } from 'electron/main';
+import { app, BrowserWindow, ipcMain, IpcMainEvent } from 'electron';
 import { promises as fs } from 'fs';
 import mockPreset from './data/mock_presets.json';
 import mockPresetSetting from './data/mock_presetSettings.json';

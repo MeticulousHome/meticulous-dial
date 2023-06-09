@@ -23,9 +23,9 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ secrets.PUBLISH_BRANCH }}
-      - uses: actions/setup-node@master
+      - uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version-file: '.node-version'
       - name: install dependencies
         run: npm i
       - name: publish
