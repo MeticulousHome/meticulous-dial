@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '../store/hooks';
 import { MultipleOptionSlider } from '../shared/MultipleOptionSlider';
+import { updatePresetSetting } from '../store/features/preset/preset-slice';
 import { IPresetSetting } from '../../../src/types';
 
 import './purge.css';
-import { updatePresetSetting } from '../store/features/preset/preset-slice';
 
 export function Purge(): JSX.Element {
   const [options] = useState(['Automatic', 'Manual']);
@@ -56,29 +56,11 @@ export function Purge(): JSX.Element {
       }
     }
   }, [screen, gesture]);
-
-  const getAnimation = useCallback(() => {
-    if (
-      ((screen.value === 'scale' || screen.value === 'settings') &&
-        screen.prev === 'purge') ||
-      (screen.value === 'purge' &&
-        (screen.prev === 'scale' || screen.prev === 'settings'))
-    ) {
-      return 'None';
-    } else if (screen.value === 'purge') {
-      return 'FadeIn';
-    } else if (screen.prev === 'purge') {
-      return 'FadeOut';
-    }
-  }, [screen]);
-
   return (
     <MultipleOptionSlider
       {...{
         activeIndex,
-        contentAnimation: getAnimation(),
         options,
-        title: 'purge',
         extraClass: 'options--font-50'
       }}
     />

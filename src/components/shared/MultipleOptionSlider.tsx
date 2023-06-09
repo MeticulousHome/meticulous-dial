@@ -11,8 +11,6 @@ import './multipleOptionSlider.css';
 interface Props {
   options: string[];
   activeIndex: number;
-  contentAnimation: 'FadeOut' | 'FadeIn' | 'None';
-  title: string;
   extraClass?: string;
   spaceBetween?: string | number;
 }
@@ -20,8 +18,6 @@ interface Props {
 export function MultipleOptionSlider({
   activeIndex,
   options,
-  contentAnimation,
-  title,
   extraClass,
   spaceBetween
 }: Props): JSX.Element {
@@ -37,36 +33,8 @@ export function MultipleOptionSlider({
     }
   }, [activeIndex, swiper]);
 
-  const getAnimation = useCallback(() => {
-    let animation = 'hidden';
-
-    switch (contentAnimation) {
-      case 'FadeIn':
-        animation = 'multipleOptionContent__fadeIn';
-        break;
-      case 'FadeOut':
-        animation = 'multipleOptionContent__fadeOut';
-        break;
-      case 'None':
-        animation = '';
-        break;
-    }
-
-    return animation;
-  }, [contentAnimation]);
-
   return (
-    <div className={`multiple-option-wrapper ${getAnimation()}`}>
-      <div
-        className="main-title-selected"
-        style={{
-          fontWeight: 'bold',
-          fontSize: '35px',
-          top: 60
-        }}
-      >
-        {title}
-      </div>
+    <div className={`multiple-option-wrapper`}>
       <div className={`options-container ${extraClass ? extraClass : ''}`}>
         <Swiper
           slidesPerView={2}
