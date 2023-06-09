@@ -44,7 +44,6 @@ interface GaugeProps {
   maxValue: number;
   precision: number;
   unit: Unit;
-  animationName?: 'hidden' | 'fadeIn' | 'fadeOut' | null;
 }
 
 export function Gauge({
@@ -52,8 +51,7 @@ export function Gauge({
   value,
   maxValue,
   precision,
-  unit,
-  animationName
+  unit
 }: GaugeProps): JSX.Element {
   const { valueOnly, padded } = formatValue(value, precision);
   const padLength =
@@ -61,15 +59,7 @@ export function Gauge({
 
   return (
     <div className="gauge-container">
-      <div
-        className={`scalesLayout ${
-          animationName
-            ? animationName === 'hidden'
-              ? animationName
-              : `settingNumericalContent__${animationName}`
-            : ''
-        }`}
-      >
+      <div className="scalesLayout">
         <div
           className="main-title-selected title__Big"
           style={{
@@ -86,16 +76,7 @@ export function Gauge({
           <div className="scale-unit">{unitNameMap[unit]}</div>
         </div>
       </div>
-      <svg
-        width="480"
-        height="480"
-        viewBox="0 0 480 480"
-        className={
-          animationName === null || animationName === 'hidden'
-            ? 'hidden'
-            : animationName && `settingNumerical__${animationName}`
-        }
-      >
+      <svg width="480" height="480" viewBox="0 0 480 480">
         <circle
           fill="transparent"
           cx={radius}

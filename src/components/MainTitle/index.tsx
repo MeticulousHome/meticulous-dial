@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import {
   handleAddPresetAnimation,
@@ -11,7 +11,6 @@ import { useAppSelector, useAppDispatch } from '../store/hooks';
 const MainTitle = () => {
   const { presets, screen, stats } = useAppSelector((state) => state);
   const [swiper, setSwiper] = useState(null);
-  const currentAnimation = useRef('');
   const dispatch = useAppDispatch();
 
   const slideTo = (index: number) => {
@@ -49,51 +48,6 @@ const MainTitle = () => {
     }
   }, [stats.name, screen.value, presets.activeIndexSwiper, presets.value]);
 
-  const getAnimation = useCallback(() => {
-    let animation = 'hidden';
-
-    if (
-      screen.value === 'scale' ||
-      screen.value === 'settings' ||
-      ((screen.prev === 'scale' || screen.prev === 'settings') &&
-        screen.value !== 'barometer')
-    ) {
-      animation = currentAnimation.current;
-    } else if (screen.value === 'barometer') {
-      if (screen.prev === 'pressetSettings') {
-        animation = 'title__smallTwo';
-      } else {
-        animation = 'title__small';
-      }
-    } else if (screen.value === 'pressetSettings') {
-      if (screen.prev === 'barometer') {
-        animation = 'title__BigTwo';
-      } else if (
-        screen.prev === 'settingNumerical' ||
-        screen.prev === 'onOff' ||
-        screen.prev === 'purge'
-      ) {
-        animation = 'titleBigSettingNumerical';
-      } else if (screen.prev === 'circleKeyboard') {
-        animation = 'titleSmallCircleKeyboard__fadeIn';
-      }
-    } else if (screen.value === 'pressets') {
-      animation = 'title__Big';
-    } else if (
-      screen.value === 'settingNumerical' ||
-      screen.value === 'onOff' ||
-      screen.value === 'purge'
-    ) {
-      animation = 'titleSmallSettingNumerical';
-    } else if (screen.value === 'circleKeyboard') {
-      animation = 'titleBigCircleKeyboard__fadeOut';
-    }
-
-    currentAnimation.current = animation;
-
-    return animation;
-  }, [screen]);
-
   const handlSlideChange = () => {
     if (swiper) {
       handleRemovePresetsAnimation(swiper);
@@ -106,7 +60,7 @@ const MainTitle = () => {
 
   return (
     <div
-      className={`main-title-selected ${getAnimation()}`}
+      className="main-title-selected"
       style={{
         width: '100%'
       }}
