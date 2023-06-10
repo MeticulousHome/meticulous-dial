@@ -31,7 +31,8 @@ html,
 body {
     width: 480px;
     height: 480px;
-    margin: 0 auto;
+    overflow: auto; /* or overflow: hidden; if you don't want scroll bars */
+    margin: 0 auto; /* center the body if the window is larger */
 }
 
 body {
@@ -44,7 +45,11 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    overflow: hidden
+    overflow: hidden;
+    width: 480px;
+    height: 480px;
+    overflow: auto; /* or overflow: hidden; if you don't want scroll bars */
+    margin: 0 auto; /* center the body if the window is larger */
 }
 .text-gray {
     color: #5E5E5E;
