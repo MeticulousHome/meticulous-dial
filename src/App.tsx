@@ -70,9 +70,9 @@ const App = (): JSX.Element => {
                 : stats?.profile
           }}
         />
-        <SettingNumerical type={presetSettingIndex as ISettingType} />
+        {/* <SettingNumerical type={presetSettingIndex as ISettingType} /> */}
         <Pressets />
-        <CircleKeyboard
+        {/* <CircleKeyboard
           callback={() => {
             keyboardReady.current = true;
           }}
@@ -82,9 +82,9 @@ const App = (): JSX.Element => {
             setPresetSettingIndex(option as IPresetType)
           }
         />
-        {/* </div> */}
+        
         <OnOff type={presetSettingIndex as ISettingType} />
-        <Purge />
+        <Purge /> */}
 
         <BottomStatus />
       </div>
