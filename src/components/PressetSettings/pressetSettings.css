@@ -84,6 +84,7 @@
 
 .blur {
   background: black;
+  filter: blur(30px);
   z-index: 1;
   width: 100%;
   height: 200px;
