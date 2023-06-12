@@ -1,3 +1,14 @@
+interface JSONObject {
+  [x: string]: JSONValue;
+}
+
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | JSONObject
+  | Array<JSONValue>;
+
 export type ActionType =
   | 'Home'
   | 'Scale'
