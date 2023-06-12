@@ -2067,34 +2067,6 @@ body {
     100% { scale: 0.0016768196703307314; opacity: 0;} */
 }
 
-.route-child__fadeIn {
-  animation-name: barometerFadeIn;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-  animation-duration: 1.1s;
-}
-
-.route-child__fadeOut {
-  animation-name: barometerFadeOut;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-  animation-duration: 1.1s;
-}
-
-.route-parent__fadeIn {
-  animation-name: pressetFadeIn;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-  animation-duration: 1.1s;
-}
-
-.route-parent__fadeOut {
-  animation-name: pressetFadeOut;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-  animation-duration: 1.1s;
-}
-
 @keyframes titleBig {
   0% {
     top: 60px;

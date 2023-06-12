@@ -1,0 +1,325 @@
+@plugin "less-plugin-unique-directives";
+@plugin "./spring-physics-plugin";
+
+.spring-interpolate-keyframes(@property, @from, @to) {
+  each(range(100), {
+    @keyf: ~"@{value}%";
+    @{keyf} {
+      @interpolated: spring(@value, @from, @to);
+      @finalProperty: if((@property = translate-y), transform, @property);
+      @{finalProperty}: if((@property = translate-y), translate(0, @interpolated), @interpolated);
+    }
+  });
+}
+
+.fade-in-keyframes() {
+  0% {
+    opacity: 0;
+  }
+  4% {
+    opacity: 0.4;
+  }
+  22% {
+    opacity: 0.7;
+  }
+  23% {
+    opacity: 0.8;
+  }
+  24% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.fade-out-keyframes() {
+  0% {
+    opacity: 1;
+  }
+  20% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@zoom-out-scale: 2.3;
+@zoom-in-scale: 0.3;
+@navigation-title-font-size: 35;
+@navigation-title-top: 60px;
+@navigation-title-color: white;
+@navigation-title-parent-font-size: 20;
+@navigation-title-parent-top: 40px;
+@navigation-title-parent-color: #5e5e5e;
+
+.route {
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.route.enter.in {
+  animation-name: route-enter-in;
+}
+
+.route.enter.out {
+  animation-name: route-enter-out;
+}
+
+.route.leave.in {
+  animation-name: route-leave-in;
+}
+
+.route.leave.out {
+  animation-name: route-leave-out;
+}
+
+@keyframes route-enter-in {
+  .spring-interpolate-keyframes(scale, @zoom-in-scale, 1);
+  .fade-in-keyframes();
+}
+
+@keyframes route-enter-out {
+  .spring-interpolate-keyframes(scale, @zoom-out-scale, 1);
+  .fade-in-keyframes();
+}
+
+@keyframes route-leave-in {
+  .spring-interpolate-keyframes(scale, 1, @zoom-out-scale);
+  .fade-out-keyframes();
+}
+
+@keyframes route-leave-out {
+  .spring-interpolate-keyframes(scale, 1, @zoom-in-scale);
+  .fade-out-keyframes();
+}
+
+.navigation-title {
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+  animation-duration: 0.4s !important;
+}
+
+.navigation-title,
+.navigation-title.parent.enter.in,
+.navigation-title.shared.enter.in {
+  position: absolute;
+  top: @navigation-title-top;
+  left: 140px;
+  right: 140px;
+  text-align: center;
+  font-size: unit(@navigation-title-font-size, px);
+  color: @navigation-title-color;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.navigation-title.shared {
+  font-size: unit(@navigation-title-parent-font-size, px);
+}
+
+.navigation-title.parent {
+  top: @navigation-title-parent-top;
+  color: @navigation-title-parent-color;
+  font-size: unit(@navigation-title-parent-font-size, px);
+}
+
+.navigation-title.enter.in {
+  animation-name: child-title-enter-in;
+}
+
+.navigation-title.enter.out {
+  animation-name: child-title-enter-out;
+}
+
+.navigation-title.parent.enter.in {
+  animation-name: parent-title-enter-in;
+}
+
+.navigation-title.parent.enter.out {
+  animation-name: parent-title-enter-out;
+}
+
+.navigation-title.shared.enter.in {
+  animation-name: shared-title-enter-in;
+}
+
+.navigation-title.shared.enter.out {
+  animation-name: shared-title-enter-out;
+}
+
+.navigation-title.leave.in {
+  animation-name: child-title-leave-in;
+}
+
+.navigation-title.leave.out {
+  animation-name: child-title-leave-out;
+}
+
+.navigation-title.parent.leave.in {
+  animation-name: parent-title-leave-in;
+}
+
+.navigation-title.parent.leave.out {
+  animation-name: parent-title-leave-out;
+}
+
+@keyframes child-title-enter-in {
+  0% {
+    opacity: 0;
+    transform: translate(0, 50px) scale(@zoom-out-scale);
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes child-title-enter-out {
+  0% {
+    color: @navigation-title-parent-color;
+    transform: translate(
+        0,
+        ((@navigation-title-parent-top - @navigation-title-top) * 1.5)
+      )
+      scale((@navigation-title-parent-font-size / @navigation-title-font-size));
+  }
+
+  100% {
+    color: @navigation-title-color;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes shared-title-enter-in {
+  0% {
+    transform: translate(
+        0,
+        ((@navigation-title-parent-top - @navigation-title-top) * 1.5)
+      )
+      scale((@navigation-title-parent-font-size / @navigation-title-font-size));
+  }
+
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes shared-title-enter-out {
+  0% {
+    transform: translate(0, 50px) scale(@zoom-out-scale);
+  }
+
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes parent-title-enter-in {
+  0% {
+    color: @navigation-title-color;
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    color: @navigation-title-parent-color;
+    transform: translate(
+        0,
+        ((@navigation-title-parent-top - @navigation-title-top) * 1.5)
+      )
+      scale((@navigation-title-parent-font-size / @navigation-title-font-size));
+  }
+}
+
+@keyframes parent-title-enter-out {
+  0% {
+    color: @navigation-title-parent-color;
+    transform: translate(
+        0,
+        ((@navigation-title-parent-top - @navigation-title-top) * 1.5)
+      )
+      scale((@navigation-title-parent-font-size / @navigation-title-font-size));
+  }
+
+  100% {
+    color: @navigation-title-color;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes child-title-leave-in {
+  0% {
+    opacity: 1;
+    transform: translate(0, 50px) scale(@zoom-out-scale);
+  }
+
+  30% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes child-title-leave-out {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+
+  80% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(0, 50px) scale(@zoom-out-scale);
+  }
+}
+
+@keyframes parent-title-leave-in {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(
+        0,
+        ((@navigation-title-parent-top - @navigation-title-top) * 1.5)
+      )
+      scale((@navigation-title-parent-font-size / @navigation-title-font-size));
+  }
+}
+
+@keyframes parent-title-leave-out {
+  0% {
+    opacity: 1;
+    color: @navigation-title-parent-color;
+    transform: translate(
+        0,
+        ((@navigation-title-parent-top - @navigation-title-top) * 1.5)
+      )
+      scale((@navigation-title-parent-font-size / @navigation-title-font-size));
+  }
+
+  30% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+    color: @navigation-title-color;
+    transform: translate(0, 0) scale(1);
+  }
+}

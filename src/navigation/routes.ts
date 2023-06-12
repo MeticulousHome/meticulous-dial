@@ -9,31 +9,25 @@ import { Purge } from '../components/Purge/Purge';
 import { Settings } from '../components/Settings/Settings';
 import { ScreenType } from '../components/store/features/screens/screens-slice';
 import { CircleKeyboard } from '../components/CircleKeyboard/CircleKeyboard';
-import { store } from '../components/store/store';
+import { RootState } from '../components/store/store';
 
 interface Route {
   component: ComponentType;
-  title?: string | (() => string);
+  parentTitle?: string;
+  title?: string | ((state: RootState) => string);
+  titleShared?: boolean;
   parent?: ScreenType;
   bottomStatusHidden?: boolean;
   props?: object;
 }
 
+const selectActivePresetName = (state: RootState) =>
+  state.presets.activePreset.name;
+
 export const routes: Record<ScreenType, Route> = {
-  barometer: {
-    component: Barometer,
-    title: () => store.getState().presets.activePreset.name,
-    parent: 'settings',
-    bottomStatusHidden: true
-  },
-  pressets: {
-    component: Pressets,
-    title: 'pressets'
-  },
-  pressetSettings: {
-    component: PressetSettings,
-    title: () => store.getState().presets.activePreset.name,
-    parent: 'barometer',
+  settings: {
+    component: Settings,
+    title: 'settings',
     bottomStatusHidden: true
   },
   scale: {
@@ -41,20 +35,51 @@ export const routes: Record<ScreenType, Route> = {
     title: 'scale',
     bottomStatusHidden: true
   },
+  purge: {
+    component: Purge,
+    title: 'purge',
+    parent: 'settings'
+  },
+  pressets: {
+    component: Pressets,
+    parentTitle: 'pressets',
+    title: selectActivePresetName
+  },
+  barometer: {
+    component: Barometer,
+    parentTitle: null,
+    title: selectActivePresetName,
+    titleShared: true,
+    bottomStatusHidden: true
+  },
+  pressetSettings: {
+    component: PressetSettings,
+    title: selectActivePresetName,
+    bottomStatusHidden: true
+  },
   pressure: {
     component: SettingNumerical,
     title: 'pressure',
-    parent: 'pressetSettings'
+    parent: 'pressetSettings',
+    props: {
+      type: 'pressure'
+    }
   },
   temperature: {
     component: SettingNumerical,
     title: 'temperature',
-    parent: 'pressetSettings'
+    parent: 'pressetSettings',
+    props: {
+      type: 'temperature'
+    }
   },
   output: {
     component: SettingNumerical,
     title: 'output',
-    parent: 'pressetSettings'
+    parent: 'pressetSettings',
+    props: {
+      type: 'output'
+    }
   },
   dose: {
     component: () => null, // Multiple choice to be implemented
@@ -68,7 +93,6 @@ export const routes: Record<ScreenType, Route> = {
   },
   name: {
     component: CircleKeyboard,
-    title: 'name',
     parent: 'pressetSettings',
     bottomStatusHidden: true
   },
@@ -87,15 +111,5 @@ export const routes: Record<ScreenType, Route> = {
     props: {
       type: 'pre-heat'
     }
-  },
-  purge: {
-    component: Purge,
-    title: 'purge',
-    parent: 'settings'
-  },
-  settings: {
-    component: Settings,
-    title: 'settings',
-    bottomStatusHidden: true
   }
 };

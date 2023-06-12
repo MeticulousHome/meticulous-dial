@@ -38,7 +38,7 @@ const App = (): JSX.Element => {
     }
   });
 
-  return <Router screen={screen.value} />;
+  return <Router currentScreen={screen.value} previousScreen={screen.prev} />;
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
