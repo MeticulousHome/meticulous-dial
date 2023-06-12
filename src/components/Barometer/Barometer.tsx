@@ -49,6 +49,12 @@ export function Barometer({ maxValue = 13 }: IBarometerProps): JSX.Element {
     },
     click() {
       dispatch(setScreen('pressetSettings'));
+    },
+    left() {
+      dispatch(setScreen('pressets'));
+    },
+    right() {
+      dispatch(setScreen('pressets'));
     }
   });
 
