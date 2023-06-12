@@ -1,5 +1,5 @@
 // import { ThunkDispatch } from '@reduxjs/toolkit';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 import { ActionType, ISensorData } from '../../types/index';
@@ -57,82 +57,104 @@ export const SocketProviderValue = (): SocketProviderValueInterface => {
 
 export const SetSocketKeyboardListeners = () => {
   const dispatch = useAppDispatch();
-  const { presets, presetSetting, screen, settings } = useAppSelector(
-    (state) => state
-  );
+  // const { presets, presetSetting, screen, settings } = useAppSelector(
+  //   (state) => state
+  // );
+  const currentGesture = useRef('click');
 
   useEffect(() => {
-    const lister = (e: KeyboardEvent) => {
-      const preset = {
-        name: presets.activePreset.name,
-        settings: presetSetting.settings.settings.filter(
-          (item) => item.id !== -1 && item.id !== -2
-        )
-      };
-
-      const payload = generatePayload({ presset: preset as any });
-      console.log(e.code);
-      switch (e.code) {
-        case 'ArrowLeft':
-          dispatch(setGesture('left'));
+    const interval = setInterval(() => {
+      switch (currentGesture.current) {
+        case 'click':
+          currentGesture.current = 'right';
           break;
-        case 'ArrowRight':
-          dispatch(setGesture('right'));
-          break;
-        case 'Space':
-          if (
-            screen.value === 'settings' &&
-            settings.settings[settings.activeIndexSetting]
-          ) {
-            switch (settings.settings[settings.activeIndexSetting].key) {
-              case 'home':
-                socket.emit('action', 'home');
-                break;
-              case 'purge':
-                socket.emit('action', 'purge');
-                break;
-              case 'calibrate':
-                socket.emit('calibrate');
-                break;
-              default:
-                break;
-            }
-          }
-          dispatch(setGesture('click'));
-          break;
-        case 'Enter': {
-          if (screen.value !== 'barometer') return;
-
-          console.log(JSON.stringify(payload, null, 2));
-
-          socket.emit('parameters', payload);
-          socket.emit('action', 'start');
-          dispatch(setGesture('start'));
-          break;
-        }
-        case 'KeyS':
-          dispatch(setGesture('longTare'));
-          break;
-        case 'KeyE':
-          dispatch(setGesture('longEncoder'));
-          break;
-        case 'KeyD':
-          dispatch(setGesture('doubleTare'));
-          break;
-        case 'KeyX':
-          dispatch(setGesture('doubleClick'));
+        case 'right':
+          currentGesture.current = 'click';
           break;
         default:
           break;
       }
-    };
 
-    window.addEventListener('keydown', lister);
+      dispatch(setGesture(currentGesture.current as any));
+    }, 2000);
 
     return () => {
-      window.removeEventListener('keydown', lister);
+      clearInterval(interval);
     };
-  }, [presets, presetSetting, screen, settings]);
+  }, []);
+
+  // useEffect(() => {
+  //   const lister = (e: KeyboardEvent) => {
+  //     const preset = {
+  //       name: presets.activePreset.name,
+  //       settings: presetSetting.settings.settings.filter(
+  //         (item) => item.id !== -1 && item.id !== -2
+  //       )
+  //     };
+
+  //     const payload = generatePayload({ presset: preset as any });
+  //     console.log(e.code);
+  //     switch (e.code) {
+  //       case 'ArrowLeft':
+  //         dispatch(setGesture('left'));
+  //         break;
+  //       case 'ArrowRight':
+  //         dispatch(setGesture('right'));
+  //         break;
+  //       case 'Space':
+  //         if (
+  //           screen.value === 'settings' &&
+  //           settings.settings[settings.activeIndexSetting]
+  //         ) {
+  //           switch (settings.settings[settings.activeIndexSetting].key) {
+  //             case 'home':
+  //               socket.emit('action', 'home');
+  //               break;
+  //             case 'purge':
+  //               socket.emit('action', 'purge');
+  //               break;
+  //             case 'calibrate':
+  //               socket.emit('calibrate');
+  //               break;
+  //             default:
+  //               break;
+  //           }
+  //         }
+  //         dispatch(setGesture('click'));
+  //         break;
+  //       case 'Enter': {
+  //         if (screen.value !== 'barometer') return;
+
+  //         console.log(JSON.stringify(payload, null, 2));
+
+  //         socket.emit('parameters', payload);
+  //         socket.emit('action', 'start');
+  //         dispatch(setGesture('start'));
+  //         break;
+  //       }
+  //       case 'KeyS':
+  //         dispatch(setGesture('longTare'));
+  //         break;
+  //       case 'KeyE':
+  //         dispatch(setGesture('longEncoder'));
+  //         break;
+  //       case 'KeyD':
+  //         dispatch(setGesture('doubleTare'));
+  //         break;
+  //       case 'KeyX':
+  //         dispatch(setGesture('doubleClick'));
+  //         break;
+  //       default:
+  //         break;
+  //     }
+  //   };
+
+  //   window.addEventListener('keydown', lister);
+
+  //   return () => {
+  //     window.removeEventListener('keydown', lister);
+  //   };
+  // }, [presets, presetSetting, screen, settings]);
 
   return dispatch;
 };
