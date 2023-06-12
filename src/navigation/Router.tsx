@@ -4,38 +4,60 @@ import BottomStatus from '../components/BottomStatus';
 import { routes } from './routes';
 import { Transitioner } from './Transitioner';
 import { memo } from 'react';
+import { useAppSelector } from '../components/store/hooks';
+
+const routeKeys = Object.keys(routes);
 
 interface RouterProps {
-  screen: ScreenType;
+  currentScreen: ScreenType;
+  previousScreen?: ScreenType;
 }
 
-export const Router = memo(({ screen }: RouterProps): JSX.Element => {
-  const route = routes[screen];
-  const parentRoute = route.parent && routes[route.parent];
-  const RouteComponent = route.component;
-  const title = typeof route.title === 'function' ? route.title() : route.title;
-  const parentTitle =
-    typeof parentRoute?.title === 'function'
-      ? parentRoute.title()
-      : parentRoute?.title;
+export const Router = memo(
+  ({ currentScreen, previousScreen }: RouterProps): JSX.Element => {
+    const route = routes[currentScreen];
+    const parentRoute = route.parent && routes[route.parent];
+    const RouteComponent = route.component;
+    const title = useAppSelector((state) =>
+      typeof route.title === 'function' ? route.title(state) : route.title
+    );
+    const parentTitle = useAppSelector(
+      (state) =>
+        route.parentTitle ??
+        (parentRoute?.titleShared
+          ? null
+          : typeof parentRoute?.title === 'function'
+          ? parentRoute.title(state)
+          : parentRoute?.title)
+    );
 
-  return (
-    <>
-      <Transitioner
-        direction={parentRoute ? 'in' : 'out'}
-        screen={screen}
-        title={title}
-        parentTitle={parentTitle}
-      >
-        <RouteComponent {...route.props} />
-      </Transitioner>
-      <div
-        className={`bottom__${route.bottomStatusHidden ? 'fadeOut' : 'fadeIn'}`}
-      >
-        <Freeze freeze={route.bottomStatusHidden}>
-          <BottomStatus />
-        </Freeze>
-      </div>
-    </>
-  );
-});
+    const direction =
+      !previousScreen ||
+      routeKeys.indexOf(currentScreen) > routeKeys.indexOf(previousScreen)
+        ? 'in'
+        : 'out';
+
+    return (
+      <>
+        <Transitioner
+          direction={direction}
+          screen={currentScreen}
+          title={title}
+          titleShared={route.titleShared}
+          parentTitle={parentTitle}
+        >
+          <RouteComponent {...route.props} />
+        </Transitioner>
+        <div
+          className={`main-layout bottom__${
+            route.bottomStatusHidden ? 'fadeOut' : 'fadeIn'
+          }`}
+        >
+          <Freeze freeze={route.bottomStatusHidden}>
+            <BottomStatus />
+          </Freeze>
+        </div>
+      </>
+    );
+  }
+);

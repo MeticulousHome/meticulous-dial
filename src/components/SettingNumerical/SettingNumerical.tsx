@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
 import {
@@ -11,6 +10,8 @@ import { roundPrecision } from '../../utils';
 import { useReduxSelector } from '../store/store';
 import { Gauge, Unit } from './Gauge';
 import { updatePresetSetting } from '../store/features/preset/preset-slice';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { setScreen } from '../store/features/screens/screens-slice';
 
 interface ISettingConfig {
   interval: number;
@@ -41,9 +42,12 @@ interface Props {
 }
 
 export function SettingNumerical({ type }: Props): JSX.Element {
-  const gesture = useReduxSelector((state) => state.gesture);
-  const presets = useReduxSelector((state) => state.presets);
-  const [total, setTotal] = useState<number>(0);
+  const setting = useReduxSelector((state) =>
+    state.presets.updatingSettings.settings.find(
+      (setting) => setting.key === type
+    )
+  );
+  const total = Number(setting.value);
   const { interval, maxValue, unit } = unitSettingConfigMap[
     type as NumericalSettingType
   ] ?? {
@@ -52,89 +56,36 @@ export function SettingNumerical({ type }: Props): JSX.Element {
     unit: 'gram'
   };
 
-  const settingTemperature = presets.updatingSettings.settings.find(
-    (setting) => setting.key === 'temperature'
-  ) as IPresetNumericalTemperature;
-
-  const settingPressure = presets.updatingSettings.settings.find(
-    (setting) => setting.key === 'pressure'
-  ) as IPresetNumericalPressure;
-
-  const settingOutput = presets.updatingSettings.settings.find(
-    (setting) => setting.key === 'output'
-  ) as IPresetNumericalOutput;
-
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    let mTotal;
-    switch (gesture.value) {
-      case 'click':
-        break;
-      case 'doubleTare':
-        break;
-      case 'left':
-      case 'right':
-        if (
-          (total === maxValue && gesture.value === 'right') ||
-          (total === 0 && gesture.value === 'left')
-        ) {
-          return;
-        }
-        mTotal = total + (gesture.value === 'left' ? -interval : +interval);
-        setTotal(type === 'output' ? mTotal : roundPrecision(mTotal, 1));
-        break;
-      default:
-        break;
+  const updateValue = (gesture: 'left' | 'right') => {
+    if (
+      (total === maxValue && gesture === 'right') ||
+      (total === 0 && gesture === 'left')
+    ) {
+      return;
     }
-  }, [gesture]);
+    const mTotal = total + (gesture === 'left' ? -interval : +interval);
+    const value = type === 'output' ? mTotal : roundPrecision(mTotal, 1);
+    dispatch(
+      updatePresetSetting({
+        ...setting,
+        value
+      } as unknown as IPresetNumericalTemperature | IPresetNumericalPressure | IPresetNumericalOutput)
+    );
+  };
 
-  useEffect(() => {
-    switch (type) {
-      case 'temperature':
-        dispatch(
-          updatePresetSetting({
-            ...settingTemperature,
-            value: total
-          } as unknown as IPresetNumericalTemperature)
-        );
-        break;
-      case 'pressure':
-        dispatch(
-          updatePresetSetting({
-            ...settingPressure,
-            value: total
-          } as unknown as IPresetNumericalTemperature)
-        );
-        break;
-      case 'output':
-        dispatch(
-          updatePresetSetting({
-            ...settingOutput,
-            value: total
-          } as unknown as IPresetNumericalTemperature)
-        );
-        break;
-      default:
-        break;
+  useHandleGestures({
+    left() {
+      updateValue('left');
+    },
+    right() {
+      updateValue('right');
+    },
+    click() {
+      dispatch(setScreen('pressetSettings'));
     }
-  }, [type, total]);
-
-  useEffect(() => {
-    switch (type) {
-      case 'pressure':
-        setTotal(Number(settingPressure?.value));
-        break;
-      case 'temperature':
-        setTotal(Number(settingTemperature?.value));
-        break;
-      case 'output':
-        setTotal(Number(settingOutput?.value));
-        break;
-      default:
-        break;
-    }
-  }, [type, presets]);
+  });
 
   return (
     <Gauge

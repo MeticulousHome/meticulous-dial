@@ -72,28 +72,6 @@
   opacity: 1;
 }
 
-.blur {
-  position: absolute;
-  width: 20%;
-  height: 100%;
-  /*background: rgba(0, 0, 0, 0.8);*/
-  z-index: 5;
-}
-
-.blur-left {
-  top: 0;
-  left: 0;
-  bottom: 0;
-  /*background: linear-gradient(to left, #00000000, #000);*/
-}
-
-.blur-right {
-  top: 0;
-  right: 0;
-  bottom: 0;
-  /*background: linear-gradient(to left, #000, #00000000);*/
-}
-
 /* animation scroll to the right spring and bounce back */
 @keyframes bounce-right {
   0% {

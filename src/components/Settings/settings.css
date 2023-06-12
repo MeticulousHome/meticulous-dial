@@ -23,31 +23,3 @@
   font-family: 'Maison', sans-serif;
   justify-content: start;
 }
-.title {
-  text-align: center;
-  font-size: 35px;
-  line-height: 1;
-  z-index: 10;
-  position: absolute;
-  top: 60px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: 'Maison', sans-serif;
-}
-.blur {
-  background: black;
-  z-index: 1;
-  width: 100%;
-  height: 200px;
-  opacity: 0.9;
-}
-.blur-top {
-  position: absolute;
-  top: -100px;
-  left: 0;
-}
-.blur-bottom {
-  position: absolute;
-  bottom: -100px;
-  left: 0;
-}

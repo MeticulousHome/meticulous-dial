@@ -6,11 +6,18 @@ import {
   handleAddPresetAnimation,
   handleRemovePresetsAnimation
 } from '../../utils/preset';
-import { useAppSelector } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import './pressets.css';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { setScreen } from '../store/features/screens/screens-slice';
+import {
+  setNextPreset,
+  setPrevPreset
+} from '../store/features/preset/preset-slice';
 
 export function Pressets(): JSX.Element {
-  const { presets, screen } = useAppSelector((state) => state);
+  const dispatch = useAppDispatch();
+  const { presets } = useAppSelector((state) => state);
 
   const [swiper, setSwiper] = useState(null);
 
@@ -22,7 +29,18 @@ export function Pressets(): JSX.Element {
     }
   };
 
-  console.log('slide to', presets.activeIndexSwiper);
+  useHandleGestures({
+    click() {
+      dispatch(setScreen('barometer'));
+    },
+    left() {
+      dispatch(setNextPreset());
+    },
+    right() {
+      dispatch(setPrevPreset());
+    }
+  });
+
   useEffect(() => {
     if (swiper) {
       slideTo(presets.activeIndexSwiper);
@@ -31,12 +49,10 @@ export function Pressets(): JSX.Element {
   }, [presets.activeIndexSwiper, swiper]);
 
   useEffect(() => {
-    if (screen.value !== 'pressets') {
-      if (swiper) {
-        handleRemovePresetsAnimation(swiper);
-      }
+    if (swiper) {
+      handleRemovePresetsAnimation(swiper);
     }
-  }, [screen.value]);
+  }, []);
 
   const handlSlideChange = () => {
     if (swiper) {
@@ -50,12 +66,6 @@ export function Pressets(): JSX.Element {
 
   return (
     <div className="preset-wrapper">
-      {screen.value === 'pressets' && (
-        <>
-          <div className="blur blur-left"></div>
-          <div className="blur blur-right"></div>
-        </>
-      )}
       {presets.defaultPresetIndex > -1 && (
         <Swiper
           slidesPerView={2}
