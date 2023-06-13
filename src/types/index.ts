@@ -193,3 +193,14 @@ export interface PressetSettings {
   name: string;
   settings: Record<SettingsKeys, string | number>[];
 }
+
+export interface IItalian {
+  name: string;
+  automatic_purge: boolean;
+  temperature: number;
+  preinfusion: boolean;
+  preheat: boolean;
+  pressure: number;
+  out_weight: number;
+  source: 'lcd';
+}
