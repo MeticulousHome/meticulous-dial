@@ -6,9 +6,10 @@ import { ActionType, ISensorData } from '../../types/index';
 import { setGesture } from './features/gestures/gestures-slice';
 import { useAppDispatch, useAppSelector } from './hooks';
 import { setStats } from './features/stats/stats-slice';
-import { generatePayload } from '../../utils/preheat';
+import { generateSimplePayload } from '../../utils/preheat';
 import { addPresetFromDashboard } from './features/preset/preset-slice';
 import { ScreenType } from './features/screens/screens-slice';
+import { LCD_EVENTS, LCD_ACTIONS } from '../../../src/constants';
 
 interface SocketProviderValueInterface {
   sendAction: (name: ActionType) => void;
@@ -42,16 +43,6 @@ export const SocketProviderValue = (): SocketProviderValueInterface => {
       );
     });
   }, []);
-
-  // const sendAction = (name: ActionType) => {
-  //   socket.emit("action", name.toLowerCase());
-  // };
-
-  // const sendPreset = (name: string) => {
-  //   socket.emit("preset", name.toLowerCase());
-  // };
-
-  // return { sendAction, sendPreset };
   return;
 };
 
@@ -63,15 +54,6 @@ export const SetSocketKeyboardListeners = () => {
 
   useEffect(() => {
     const lister = (e: KeyboardEvent) => {
-      const preset = {
-        name: presets.activePreset.name,
-        settings: presetSetting.settings.settings.filter(
-          (item) => item.id !== -1 && item.id !== -2
-        )
-      };
-
-      const payload = generatePayload({ presset: preset as any });
-      console.log(e.code);
       switch (e.code) {
         case 'ArrowLeft':
           dispatch(setGesture('left'));
@@ -103,10 +85,18 @@ export const SetSocketKeyboardListeners = () => {
         case 'Enter': {
           if (screen.value !== 'barometer') return;
 
-          console.log(JSON.stringify(payload, null, 2));
+          const preset = {
+            name: presets.activePreset.name,
+            settings: presetSetting.settings.settings.filter(
+              (item) => item.id !== -1 && item.id !== -2
+            )
+          };
 
-          socket.emit('parameters', payload);
-          socket.emit('action', 'start');
+          const payload = generateSimplePayload({ presset: preset as any });
+
+          socket.emit(LCD_EVENTS.ITALIAN_EVENT, payload);
+          socket.emit(LCD_EVENTS.ACTION_EVENT, LCD_ACTIONS.START_VALUE);
+
           dispatch(setGesture('start'));
           break;
         }
