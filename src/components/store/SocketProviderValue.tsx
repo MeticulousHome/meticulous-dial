@@ -95,7 +95,11 @@ export const SetSocketKeyboardListeners = () => {
           const payload = generateSimplePayload({ presset: preset as any });
 
           socket.emit(LCD_EVENTS.ITALIAN_EVENT, payload);
-          socket.emit(LCD_EVENTS.ACTION_EVENT, LCD_ACTIONS.START_VALUE);
+
+          console.log(LCD_EVENTS.ITALIAN_EVENT, payload);
+
+          // We not need send this event
+          // socket.emit(LCD_EVENTS.ACTION_EVENT, LCD_ACTIONS.START_VALUE);
 
           dispatch(setGesture('start'));
           break;
