@@ -39,27 +39,29 @@ export const isValidJson = (json: string) => {
   }
 };
 
-export const mergeJson = (currentJson: JSONValue, defaultJson: JSONValue) => {
-  const mSettings = currentJson as unknown as IPresetsSettingData[];
-  const dSettings = defaultJson as unknown as IPresetsSettingData[];
+export const mergeJson = (currentJson: string, defaultJson: string) => {
+  const mSettings = JSON.parse(currentJson) as IPresetsSettingData[];
+  const dSettings = JSON.parse(defaultJson) as IPresetsSettingData[];
 
-  for (const y in dSettings[0].settings) {
-    const dKey = dSettings[0].settings[y].key;
-    for (const x in mSettings) {
-      let isOnObject = false;
-      for (const z in mSettings[x].settings) {
-        if (mSettings[x].settings[z].key === dKey) {
-          isOnObject = true;
-          continue;
-        }
-      }
+  const defaultSettings = dSettings[0].settings;
 
-      if (!isOnObject) {
-        mSettings[x].settings.push(dSettings[0].settings[y]);
-        mSettings[x].settings.sort((a, b) => a.id - b.id);
-      }
+  defaultSettings.forEach((dSetting) => {
+    const isOnObject = mSettings.some((mSetting) =>
+      mSetting.settings.some((mSetting) => mSetting.key === dSetting.key)
+    );
+
+    if (!isOnObject) {
+      mSettings.forEach((mSetting) => {
+        mSetting.settings.push(dSetting);
+        // We need to reassign the ID for each configuration
+        mSetting.settings.forEach((el) => {
+          el.id = defaultSettings.filter((e) => e.key === el.key)[0].id;
+        });
+
+        mSetting.settings.sort((a, b) => a.id - b.id);
+      });
     }
-  }
+  });
 
-  return mSettings;
+  return JSON.stringify(mSettings);
 };
