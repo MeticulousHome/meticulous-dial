@@ -39,11 +39,11 @@ export const isValidJson = (json: string) => {
   }
 };
 
-export const mergeJson = (currentJson: string, defaultJson: string) => {
+export const mergeSettings = (currentJson: string, defaultJson: string) => {
   const mSettings = JSON.parse(currentJson) as IPresetsSettingData[];
   const dSettings = JSON.parse(defaultJson) as IPresetsSettingData[];
 
-  const defaultSettings = dSettings[0].settings;
+  const defaultSettings = dSettings.length > 0 ? dSettings[0].settings : [];
 
   defaultSettings.forEach((dSetting) => {
     const isOnObject = mSettings.some((mSetting) =>
