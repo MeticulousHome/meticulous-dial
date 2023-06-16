@@ -194,7 +194,10 @@ export interface PressetSettings {
   settings: Record<SettingsKeys, string | number>[];
 }
 
+export type Actions = 'to_play';
+
 export interface IItalian {
+  action: Actions;
   name: string;
   automatic_purge: boolean;
   temperature: number;
