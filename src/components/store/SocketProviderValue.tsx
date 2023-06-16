@@ -92,7 +92,10 @@ export const SetSocketKeyboardListeners = () => {
             )
           };
 
-          const payload = generateSimplePayload({ presset: preset as any });
+          const payload = generateSimplePayload({
+            presset: preset as any,
+            action: 'to_play'
+          });
 
           socket.emit(LCD_EVENTS.ITALIAN_EVENT, payload);
 
