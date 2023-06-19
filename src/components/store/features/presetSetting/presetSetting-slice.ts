@@ -2,7 +2,8 @@ import {
   createAsyncThunk,
   createSlice,
   Draft,
-  PayloadAction
+  PayloadAction,
+  current
 } from '@reduxjs/toolkit';
 
 import {
@@ -168,18 +169,22 @@ const presetSettingSlice = createSlice({
       state: Draft<typeof initialState>,
       action: PayloadAction<number>
     ) {
+      state = current(state);
+
       const targetSetting = state.allSettings.find(
         (setting) => setting.presetId === action.payload.toString()
       );
-      const settings = [...dummyOptions, ...targetSetting.settings];
-      const hiddenSettings = targetSetting.settings.filter(
-        (setting) => setting.hidden
-      );
-      state.settings = { ...targetSetting, settings };
-      state.updatingSettings = { ...targetSetting, settings };
-      state.endIndex =
-        settings.length + DEFAULT_SETTING.length - 1 - hiddenSettings.length;
 
+      if (targetSetting) {
+        const settings = [...dummyOptions, ...targetSetting.settings];
+        const hiddenSettings = targetSetting.settings.filter(
+          (setting) => setting.hidden
+        );
+        state.settings = { ...targetSetting, settings };
+        state.updatingSettings = { ...targetSetting, settings };
+        state.endIndex =
+          settings.length + DEFAULT_SETTING.length - 1 - hiddenSettings.length;
+      }
       return state;
     },
     discardSettings(state: Draft<typeof initialState>) {
