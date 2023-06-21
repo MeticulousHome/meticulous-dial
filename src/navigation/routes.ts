@@ -93,7 +93,6 @@ export const routes: Record<ScreenType, Route> = {
   },
   name: {
     component: CircleKeyboard,
-    parent: 'pressetSettings',
     bottomStatusHidden: true
   },
   'pre-infusion': {

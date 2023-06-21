@@ -89,7 +89,6 @@ export function SettingNumerical({ type }: Props): JSX.Element {
 
   return (
     <Gauge
-      title={type}
       unit={unit}
       maxValue={maxValue}
       precision={interval < 1 ? 1 : 0}
