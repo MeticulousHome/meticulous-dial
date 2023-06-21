@@ -1,13 +1,15 @@
 # Cross compilation
 
-It is possible to build the app to target different platforms using the `--arch` flag. 
+It is possible to build the app to target different platforms using the `--arch` flag.
 
 ## ARM64 (Raspberrypi4 & Variscite IMX8)
+
 ```bash
 npm run make -- --arch=arm64
 ```
 
 ## ARMV7 (Variscite 6UL)
+
 ```bash
 npm run make -- --arch=armv7l
 ```
@@ -22,10 +24,12 @@ There are also folders generated under the `out` directory `meticulous-ui-linux-
 
 ```bash
 export DISPLAY=:0
-./meticulous-ui --disable-gpu --ignore-gpu-blacklist 
+./meticulous-ui --disable-gpu --ignore-gpu-blacklist
 
 ```
+
 **If running on wayland (Custom Meticulous Distro)**
+
 ```bash
 export XDG_RUNTIME_DIR=/run/user/0
 export WAYLAND_DISPLAY=wayland-0
