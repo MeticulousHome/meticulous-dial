@@ -36,7 +36,7 @@ export const SocketProviderValue = () => {
     });
   }, []);
 
-  return dispatch;
+  return socket;
 };
 
 const keyGestureMap: Record<string, GestureType> = {
