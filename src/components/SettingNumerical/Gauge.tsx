@@ -39,7 +39,6 @@ const getDashArray = (value: number, maxValue: number) => {
 };
 
 interface GaugeProps {
-  title: string;
   value: number;
   maxValue: number;
   precision: number;
@@ -47,7 +46,6 @@ interface GaugeProps {
 }
 
 export function Gauge({
-  title,
   value,
   maxValue,
   precision,
@@ -60,14 +58,6 @@ export function Gauge({
   return (
     <div className="gauge-container">
       <div className="scalesLayout">
-        <div
-          className="main-title-selected title__Big"
-          style={{
-            fontWeight: 'bold'
-          }}
-        >
-          {title}
-        </div>
         <div className={`scale-content ${unitClassNameMap[unit]}`}>
           <div className="scale-level">
             <span className="opacity-20">{padded.substring(0, padLength)}</span>

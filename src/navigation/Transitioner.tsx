@@ -12,7 +12,39 @@ interface TransitionerProps {
   titleShared?: boolean;
 }
 
-const duration = 800;
+const duration = 1000;
+const animationStyle = { animationDuration: `${duration / 1000}s` };
+
+interface TitleProps {
+  children: string;
+  shared?: boolean;
+  parent?: boolean;
+  animation?: 'enter' | 'leave';
+  direction?: 'in' | 'out';
+}
+
+const Title = ({
+  children,
+  parent,
+  shared,
+  animation,
+  direction
+}: TitleProps) => (
+  <div
+    className={[
+      'navigation-title',
+      parent && 'parent',
+      shared && 'shared',
+      animation,
+      direction
+    ]
+      .filter(Boolean)
+      .join(' ')}
+    style={animation && animationStyle}
+  >
+    {children}
+  </div>
+);
 
 export const Transitioner = (props: TransitionerProps): JSX.Element => {
   const [states, setStates] = useState<{
@@ -50,9 +82,10 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
 
   const shouldTransitionTitle =
     Boolean(previous) &&
-    (sharedTitleTransition ||
-      previous.title === parentTitle ||
-      previous.parentTitle === title);
+    (sharedTitleTransition || previous.parentTitle === title);
+
+  const shouldTransitionParentTitle =
+    Boolean(previous) && previous.title === parentTitle;
 
   const titleDirection =
     sharedTitleTransition && (previous.parentTitle || parentTitle)
@@ -61,88 +94,65 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
         : 'in'
       : direction;
 
-  const animationStyle = { animationDuration: `${duration / 1000}s` };
+  const animationSize =
+    shouldTransitionTitle || shouldTransitionParentTitle ? 'small' : 'large';
 
   return (
     <>
       <div
         key={screen}
-        className={`main-layout route enter ${direction}`}
+        className={`main-layout route route-${screen} ${
+          previous ? `enter ${direction} ${animationSize}` : ''
+        }`}
         style={animationStyle}
       >
         <VisibilityProvider value={true}>{children}</VisibilityProvider>
+        {!shouldTransitionParentTitle && parentTitle && (
+          <Title parent>{parentTitle}</Title>
+        )}
         {!shouldTransitionTitle && title && (
-          <>
-            {!titleShared && parentTitle && (
-              <div className="navigation-title parent">{parentTitle}</div>
-            )}
-            <div className={`navigation-title${titleShared ? ' shared' : ''}`}>
-              {title}
-            </div>
-          </>
+          <Title shared={titleShared}>{title}</Title>
         )}
       </div>
-      {previous && previous.screen !== screen && (
+      {previous && (
         <div
           key={previous.screen}
-          className={`main-layout route leave ${direction}`}
+          className={`main-layout route route-${previous.screen} leave ${direction} ${animationSize}`}
           style={animationStyle}
         >
           <VisibilityProvider value={false}>
             {previous.children}
           </VisibilityProvider>
-          {!shouldTransitionTitle && previous.title && (
-            <>
-              {!previous.titleShared && previous.parentTitle && (
-                <div className="navigation-title parent">
-                  {previous.parentTitle}
-                </div>
-              )}
-              <div
-                className={`navigation-title${
-                  previous.titleShared ? ' shared' : ''
-                }`}
-              >
-                {previous.title}
-              </div>
-            </>
-          )}
+          {!(titleDirection === direction
+            ? shouldTransitionTitle
+            : shouldTransitionParentTitle) &&
+            previous.parentTitle && (
+              <Title parent>{previous.parentTitle}</Title>
+            )}
+          {!(titleDirection === direction
+            ? direction === 'in' || shouldTransitionParentTitle
+            : shouldTransitionTitle) &&
+            previous.title && (
+              <Title shared={previous.titleShared}>{previous.title}</Title>
+            )}
         </div>
       )}
-      {shouldTransitionTitle && title && (
-        <div key={`${title}-title`} className={`main-layout`}>
-          {titleDirection === 'in'
-            ? previous?.parentTitle && (
-                <div
-                  className={`navigation-title parent leave ${titleDirection}`}
-                >
-                  {previous.parentTitle}
-                </div>
-              )
-            : previous?.title && (
-                <div className={`navigation-title leave ${titleDirection}`}>
-                  {previous.title}
-                </div>
-              )}
-          {!titleShared && parentTitle && (
-            <div
-              className={`navigation-title parent enter ${
-                // TODO: this logic is broken, see preset settings
-                shouldTransitionTitle ? '' : titleDirection
-              }`}
-            >
-              {parentTitle}
-            </div>
-          )}
-          <div
-            className={`navigation-title ${
-              titleShared || previous?.titleShared ? 'shared ' : ''
-            }enter ${titleDirection}`}
+      <div className={`main-layout`}>
+        {shouldTransitionParentTitle && parentTitle && (
+          <Title parent animation="enter" direction={titleDirection}>
+            {parentTitle}
+          </Title>
+        )}
+        {shouldTransitionTitle && title && (
+          <Title
+            shared={titleShared || previous?.titleShared}
+            animation="enter"
+            direction={titleDirection}
           >
             {title}
-          </div>
-        </div>
-      )}
+          </Title>
+        )}
+      </div>
     </>
   );
 };
