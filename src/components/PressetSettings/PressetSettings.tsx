@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { IPresetSetting, IPresetType } from '../../types';
+import { IPresetSetting } from '../../types';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 
 import './pressetSettings.css';
@@ -24,7 +24,6 @@ const formatSetting = (setting: IPresetSetting) => {
   ) {
     mValue = `: ${setting.value} ${(setting as any)?.unit || ''}`;
   }
-  mValue = `: ${setting.value}`;
 
   return `${setting.label}${mValue}`;
 };
@@ -33,9 +32,10 @@ export function PressetSettings(): JSX.Element {
   const dispatch = useAppDispatch();
   const [animationStyle, setAnimationStyle] = useState('');
   const [swiper, setSwiper] = useState(null);
-  const { presets } = useAppSelector((state) => state);
-  const currentPresetSetting = presets.activePreset?.settings || [];
-  const [presetSettingIndex, setPresetSettingIndex] = useState<IPresetType>('');
+  const currentPresetSetting = useAppSelector(
+    (state) => state.presets.activePreset?.settings || []
+  );
+  const presets = useAppSelector((state) => state.presets);
   const settings = useMemo(
     () => [
       ...(presets.updatingSettings.settings || []).filter(
@@ -47,6 +47,9 @@ export function PressetSettings(): JSX.Element {
     ],
     [presets.updatingSettings.settings]
   );
+  const [presetSettingIndex, setPresetSettingIndex] = useState<
+    IPresetSetting['key']
+  >(settings[presets.activeSetting].key);
 
   useHandleGestures({
     left() {
