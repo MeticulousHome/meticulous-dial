@@ -27,11 +27,22 @@
   font-weight: bolder;
 }
 
+html,
+body {
+  width: 480px;
+  height: 480px;
+  margin: 0;
+  overflow: hidden;
+}
+
 body {
   font-family: 'Open Sans';
   font-weight: 400;
   color: white;
-  margin: 0;
+  background-color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .text-gray {
   color: #5e5e5e;
@@ -47,13 +58,11 @@ body {
 /* Layouts */
 
 .main-layout {
-  height: 100%;
-  width: 100%;
-  position: fixed;
+  width: 480px;
+  height: 480px;
+  position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
 }
 
 .main-layout-content {
