@@ -21,11 +21,11 @@
 }
 
 .presset-options {
-  width: 100vw;
-  height: 100vh;
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
+  right: 0;
+  bottom: 0;
   padding-left: 72px;
 }
 
@@ -109,8 +109,7 @@
 }
 
 .presset-container {
-  position: relative;
+  position: absolute;
   height: 100%;
-  position: fixed;
   width: 100%;
 }

@@ -22,6 +22,7 @@ const createWindow = (): void => {
     minHeight: 480,
     minWidth: 480,
     title: 'Meticulous',
+    useContentSize: true,
     darkTheme: true,
     backgroundColor: 'black',
     center: true,
