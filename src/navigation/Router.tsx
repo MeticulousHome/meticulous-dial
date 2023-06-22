@@ -7,6 +7,12 @@ import { memo } from 'react';
 import { useAppSelector } from '../components/store/hooks';
 
 const routeKeys = Object.keys(routes);
+const memoizedRoutes = Object.fromEntries(
+  Object.entries(routes).map(([key, { component, ...route }]) => [
+    key,
+    { ...route, component: memo(component) }
+  ])
+);
 
 interface RouterProps {
   currentScreen: ScreenType;
@@ -15,8 +21,8 @@ interface RouterProps {
 
 export const Router = memo(
   ({ currentScreen, previousScreen }: RouterProps): JSX.Element => {
-    const route = routes[currentScreen];
-    const parentRoute = route.parent && routes[route.parent];
+    const route = memoizedRoutes[currentScreen];
+    const parentRoute = route.parent && memoizedRoutes[route.parent];
     const RouteComponent = route.component;
     const title = useAppSelector((state) =>
       typeof route.title === 'function' ? route.title(state) : route.title

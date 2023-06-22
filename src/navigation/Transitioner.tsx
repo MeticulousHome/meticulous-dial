@@ -54,9 +54,9 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
   const { current, previous } = states;
 
   useEffect(() => {
-    setStates((prev) => ({
+    setStates(({ current, previous }) => ({
       current: props,
-      previous: current.screen !== props.screen ? prev.current : prev.previous
+      previous: current.screen !== props.screen ? current : previous
     }));
   }, [current?.screen, props]);
 
@@ -70,7 +70,7 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
       }, duration);
       return () => clearTimeout(timer);
     }
-  }, [previous]);
+  }, [previous?.screen]);
 
   const { screen, direction, parentTitle, title, titleShared, children } =
     current || props;
