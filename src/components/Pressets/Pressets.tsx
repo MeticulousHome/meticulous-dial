@@ -11,6 +11,7 @@ import './pressets.css';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { setScreen } from '../store/features/screens/screens-slice';
 import {
+  addPresetNewOne,
   setNextPreset,
   setPrevPreset
 } from '../store/features/preset/preset-slice';
@@ -31,7 +32,11 @@ export function Pressets(): JSX.Element {
 
   useHandleGestures({
     click() {
-      dispatch(setScreen('barometer'));
+      if (presets.activeIndexSwiper === presets.value.length) {
+        dispatch(addPresetNewOne());
+      } else {
+        dispatch(setScreen('barometer'));
+      }
     },
     left() {
       dispatch(setNextPreset());
