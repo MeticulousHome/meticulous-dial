@@ -4,7 +4,7 @@ Barometer styles
 .barometer-container {
   height: 100%;
   width: 100%;
-  position: fixed;
+  position: absolute;
   display: flex;
   justify-content: center;
   /*background: url('/src/assets/images/arc.svg') center center no-repeat;*/
