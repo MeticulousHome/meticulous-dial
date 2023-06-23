@@ -50,21 +50,71 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
   const [states, setStates] = useState<{
     current: TransitionerProps | null;
     previous: TransitionerProps | null;
-  }>({ current: props, previous: null });
-  const { current, previous } = states;
+    shouldTransitionTitle: boolean;
+    shouldTransitionParentTitle: boolean;
+    titleDirection: 'in' | 'out';
+    animationSize: 'large' | 'small';
+  }>({
+    current: props,
+    previous: null,
+    shouldTransitionTitle: false,
+    shouldTransitionParentTitle: false,
+    titleDirection: props.direction,
+    animationSize: 'large'
+  });
 
   useEffect(() => {
-    setStates(({ current, previous }) => ({
-      current: props,
-      previous: current.screen !== props.screen ? current : previous
-    }));
-  }, [current?.screen, props]);
+    setStates((prev) => {
+      if (prev.current.screen === props.screen) {
+        return { ...prev, current: props };
+      }
+      const current = props;
+      const previous = prev.current;
+
+      const sharedTitleTransition =
+        previous.title === current.title &&
+        (current.titleShared || previous.titleShared);
+
+      const shouldTransitionTitle =
+        sharedTitleTransition || previous.parentTitle === current.title;
+
+      const shouldTransitionParentTitle =
+        previous.title === current.parentTitle;
+
+      const titleDirection =
+        sharedTitleTransition && (previous.parentTitle || current.parentTitle)
+          ? current.direction === 'in'
+            ? 'out'
+            : 'in'
+          : current.direction;
+
+      const animationSize =
+        shouldTransitionTitle || shouldTransitionParentTitle
+          ? 'small'
+          : 'large';
+
+      return {
+        current: props,
+        previous: current.screen !== props.screen ? current : previous,
+        shouldTransitionTitle,
+        shouldTransitionParentTitle,
+        titleDirection,
+        animationSize
+      };
+    });
+  }, [props]);
+
+  const { current, previous, titleDirection, animationSize } = states;
+  const animating = !!previous;
+  const shouldTransitionTitle = animating && states.shouldTransitionTitle;
+  const shouldTransitionParentTitle =
+    animating && states.shouldTransitionParentTitle;
 
   useEffect(() => {
     if (previous) {
       const timer = setTimeout(() => {
-        setStates(({ current }) => ({
-          current,
+        setStates((prev) => ({
+          ...prev,
           previous: null
         }));
       }, duration);
@@ -74,28 +124,6 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
 
   const { screen, direction, parentTitle, title, titleShared, children } =
     current || props;
-
-  const sharedTitleTransition =
-    Boolean(previous) &&
-    previous.title === title &&
-    (titleShared || previous.titleShared);
-
-  const shouldTransitionTitle =
-    Boolean(previous) &&
-    (sharedTitleTransition || previous.parentTitle === title);
-
-  const shouldTransitionParentTitle =
-    Boolean(previous) && previous.title === parentTitle;
-
-  const titleDirection =
-    sharedTitleTransition && (previous.parentTitle || parentTitle)
-      ? direction === 'in'
-        ? 'out'
-        : 'in'
-      : direction;
-
-  const animationSize =
-    shouldTransitionTitle || shouldTransitionParentTitle ? 'small' : 'large';
 
   return (
     <>
