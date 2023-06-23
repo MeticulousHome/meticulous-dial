@@ -35,11 +35,6 @@ export const routes: Record<ScreenType, Route> = {
     title: 'scale',
     bottomStatusHidden: true
   },
-  purge: {
-    component: Purge,
-    title: 'purge',
-    parent: 'settings'
-  },
   pressets: {
     component: Pressets,
     parentTitle: 'pressets',
@@ -80,6 +75,11 @@ export const routes: Record<ScreenType, Route> = {
     props: {
       type: 'output'
     }
+  },
+  purge: {
+    component: Purge,
+    title: 'purge',
+    parent: 'pressetSettings'
   },
   dose: {
     component: () => null, // Multiple choice to be implemented
