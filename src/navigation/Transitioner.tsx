@@ -151,15 +151,15 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
           <VisibilityProvider value={false}>
             {previous.children}
           </VisibilityProvider>
-          {!(titleDirection === direction
-            ? shouldTransitionTitle
-            : shouldTransitionParentTitle) &&
+          {!(direction === 'in'
+            ? shouldTransitionParentTitle
+            : shouldTransitionTitle) &&
             previous.parentTitle && (
               <Title parent>{previous.parentTitle}</Title>
             )}
-          {!(titleDirection === direction
-            ? direction === 'in' || shouldTransitionParentTitle
-            : shouldTransitionTitle) &&
+          {!(titleShared || previous.titleShared
+            ? shouldTransitionTitle
+            : shouldTransitionParentTitle) &&
             previous.title && (
               <Title shared={previous.titleShared}>{previous.title}</Title>
             )}
