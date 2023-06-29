@@ -1,9 +1,9 @@
 import { useContext, useEffect } from 'react';
-import { getPresets } from '../components/store/features/preset/preset-slice';
 import {
-  getPresetSettings,
+  getPresets,
   setSettings
-} from '../components/store/features/presetSetting/presetSetting-slice';
+} from '../components/store/features/preset/preset-slice';
+import { getPresetSettings } from '../components/store/features/presetSetting/presetSetting-slice';
 import { useAppSelector } from '../components/store/hooks';
 import { SocketContext } from '../components/store/SocketManager';
 

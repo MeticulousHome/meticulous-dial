@@ -58,6 +58,7 @@ export interface IPreset {
   id: number;
   name: string;
   isDefault?: boolean;
+  settings?: IPresetSetting[];
 }
 
 export interface IBasePresset {

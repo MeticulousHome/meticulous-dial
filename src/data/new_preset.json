@@ -1,0 +1,161 @@
+[
+    {
+        "id": 1,
+        "name": "78 a",
+        "isDefault": false,
+        "settings": [
+            {
+                "id": 1,
+                "type": "text",
+                "key": "name",
+                "label": "name",
+                "value": "78 a"
+            },
+            {
+                "id": 2,
+                "type": "numerical",
+                "key": "pressure",
+                "label": "pressure",
+                "value": 9,
+                "unit": "bar",
+                "hidden": true
+            },
+            {
+                "id": 3,
+                "type": "numerical",
+                "key": "temperature",
+                "label": "temperature",
+                "value": 90,
+                "unit": "°c"
+            },
+            {
+                "id": 4,
+                "type": "on-off",
+                "key": "pre-infusion",
+                "label": "pre-infusion",
+                "value": "yes",
+                "hidden": true
+            },
+            {
+                "id": 5,
+                "type": "numerical",
+                "key": "output",
+                "label": "output",
+                "value": 21,
+                "unit": "g"
+            },
+            {
+                "id": 6,
+                "type": "multiple-option",
+                "key": "purge",
+                "label": "purge",
+                "value": "automatic",
+                "hidden": true
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "name": "Espresso",
+        "isDefault": false,
+        "settings": [
+            {
+                "id": 1,
+                "type": "text",
+                "key": "name",
+                "label": "name",
+                "value": "Espresso"
+            },
+            {
+                "id": 2,
+                "type": "numerical",
+                "key": "pressure",
+                "label": "pressure",
+                "value": 9.3,
+                "unit": "bar"
+            },
+            {
+                "id": 3,
+                "type": "numerical",
+                "key": "temperature",
+                "label": "temperature",
+                "value": 99,
+                "unit": "°c"
+            },
+            {
+                "id": 4,
+                "type": "on-off",
+                "key": "pre-infusion",
+                "label": "pre-infusion",
+                "value": "no"
+            },
+            {
+                "id": 5,
+                "type": "numerical",
+                "key": "output",
+                "label": "output",
+                "value": 10,
+                "unit": "g"
+            },
+            {
+                "id": 6,
+                "type": "multiple-option",
+                "key": "purge",
+                "label": "purge",
+                "value": "automatic"
+            }
+        ]
+    },
+    {
+        "id": 3,
+        "name": "Maria",
+        "isDefault": true,
+        "settings": [
+            {
+                "id": 1,
+                "type": "text",
+                "key": "name",
+                "label": "name",
+                "value": "Mariaga"
+            },
+            {
+                "id": 2,
+                "type": "numerical",
+                "key": "pressure",
+                "label": "pressure",
+                "value": 8.6,
+                "unit": "bar"
+            },
+            {
+                "id": 3,
+                "type": "numerical",
+                "key": "temperature",
+                "label": "temperature",
+                "value": 86,
+                "unit": "°c"
+            },
+            {
+                "id": 4,
+                "type": "on-off",
+                "key": "pre-infusion",
+                "label": "pre-infusion",
+                "value": "yes"
+            },
+            {
+                "id": 5,
+                "type": "numerical",
+                "key": "output",
+                "label": "output",
+                "value": 18,
+                "unit": "g"
+            },
+            {
+                "id": 6,
+                "type": "multiple-option",
+                "key": "purge",
+                "label": "purge",
+                "value": "automatic"
+            }
+        ]
+    }
+]
