@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { useAppSelector } from '../store/hooks';
 import { MultipleOptionSlider } from '../shared/MultipleOptionSlider';
 import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
-import { IPresetMultipleOptionPurge, IPresetSetting } from '../../../src/types';
+import { IPresetSetting } from '../../../src/types';
 
 import './purge.css';
 

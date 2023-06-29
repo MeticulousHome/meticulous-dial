@@ -4,7 +4,6 @@ import './circle-keyboard.css';
 
 import { useDispatch } from 'react-redux';
 import { IPresetName, IPresetSetting } from '../../types';
-import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
 import {
   DEFAULT_ALPHABET,
   FIRST_POSITION,
@@ -14,7 +13,9 @@ import {
   JUMP_ROTATE
 } from './Keys';
 import { useAppSelector } from '../store/hooks';
+import { updatePresetSetting } from '../store/features/preset/preset-slice';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function CircleKeyboard({ callback }: any): JSX.Element {
   const [rotate, setRotate] = useState<number>(FIRST_POSITION);
   const [alphabet, setAlphabet] = useState<string[]>(DEFAULT_ALPHABET);
@@ -26,9 +27,9 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     active: false,
     keep: false
   });
-  const { gesture, screen, presetSetting } = useAppSelector((state) => state);
-  const setting = presetSetting?.updatingSettings.settings[
-    presetSetting.activeSetting
+  const { gesture, screen, presets } = useAppSelector((state) => state);
+  const setting = presets.updatingSettings.settings[
+    presets.activeSetting
   ] as IPresetName;
 
   const captionRef = useRef<HTMLDivElement>(null);

@@ -1,15 +1,25 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import {
+  createAsyncThunk,
+  createSlice,
+  Draft,
+  PayloadAction
+} from '@reduxjs/toolkit';
 import { getPresetsData, setPresetsData } from '../../../../data/presets';
 import { setPresetSettingsData } from '../../../../data/presetSettings';
 import { settingsDefaultNewPreset } from '../../../../utils/mock';
 
-import { IPreset, IPresetsSettingData } from '../../../../types/index';
+import {
+  IPreset,
+  IPresetSetting,
+  IPresetsSettingData
+} from '../../../../types/index';
 import { RootState } from '../../store';
 import {
   PresetSettingInterface,
   setDefaultSettingsNewPreset
 } from '../presetSetting/presetSetting-slice';
 import { getSettingsFromDashboardPayload } from '../../../../utils/preheat';
+import { DEFAULT_SETTING } from '../../../../constants/setting';
 
 interface PresetsState {
   value: IPreset[];
@@ -18,6 +28,12 @@ interface PresetsState {
   activePreset: IPreset;
   pending: boolean;
   error: boolean;
+  activeSetting: number;
+  startIndex: number;
+  endIndex: number;
+  settings: IPresetsSettingData;
+  updatingSettings: IPresetsSettingData;
+  allSettings: IPresetsSettingData[];
 }
 
 export const getPresets = createAsyncThunk('presetData/getData', async () => {
@@ -269,6 +285,18 @@ const initialState: PresetsState = {
     name: '',
     id: -1
   },
+  activeSetting: 0,
+  startIndex: 0,
+  endIndex: 0,
+  settings: {
+    presetId: '-1',
+    settings: []
+  },
+  updatingSettings: {
+    presetId: '-1',
+    settings: []
+  },
+  allSettings: [],
   pending: false,
   error: false
 };
@@ -293,14 +321,51 @@ const presetSlice = createSlice({
       if (action.payload > 0 && action.payload <= state.value.length) {
         state.activeIndexSwiper = action.payload;
       }
-    }
+    },
+    // setting
+    updatePresetSetting: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<IPresetSetting>
+    ) => {
+      state.updatingSettings.settings = state.updatingSettings.settings.map(
+        (setting) =>
+          setting.id === action.payload.id ? action.payload : setting
+      );
+    },
+    setNextSettingOption: (state: Draft<typeof initialState>) => {
+      const nextActiveSetting = state.activeSetting + 1;
+      if (nextActiveSetting > state.endIndex) {
+        return;
+      }
+      state.activeSetting = nextActiveSetting;
+      return state;
+    },
+    setPrevSettingOption: (state: Draft<typeof initialState>) => {
+      const nextActiveSetting = state.activeSetting - 1;
+      if (nextActiveSetting < state.startIndex) {
+        return;
+      }
+      state.activeSetting = nextActiveSetting;
+      return state;
+    },
+    setSettings(
+      state: Draft<typeof initialState>,
+      action: PayloadAction<number>
+    ) {
+      const targetSetting = state.allSettings.find(
+        (setting) => setting.presetId === action.payload.toString()
+      );
+      const settings = [...targetSetting.settings];
+      const hiddenSettings = targetSetting.settings.filter(
+        (setting) => setting.hidden
+      );
+      state.settings = { ...targetSetting, settings };
+      state.updatingSettings = { ...targetSetting, settings };
+      state.endIndex =
+        settings.length + DEFAULT_SETTING.length - 1 - hiddenSettings.length;
 
-    // setPresets: (state: PresetsState, action: PayloadAction<IPreset[]>) => {
-    //   state.value = action.payload;
-    //   if (action.payload[0]) {
-    //     state.activePreset = action.payload[0];
-    //   }
-    // }
+      return state;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -316,7 +381,15 @@ const presetSlice = createSlice({
           );
           if (defaultIndex !== -1) {
             state.defaultPresetIndex = defaultIndex;
+            state.allSettings = action.payload.map((preset) => ({
+              presetId: preset.id.toString(),
+              settings: preset?.settings || []
+            }));
             state.activePreset = action.payload[defaultIndex];
+            state.updatingSettings = {
+              presetId: action.payload[defaultIndex].id.toString(),
+              settings: action.payload[defaultIndex]?.settings || []
+            };
             state.activeIndexSwiper = defaultIndex;
             // state.activePresetIndex = defaultIndex;
           }
@@ -438,5 +511,12 @@ const presetSlice = createSlice({
   }
 });
 
-export const { setActivePreset, setActiveIndexSwiper } = presetSlice.actions;
+export const {
+  setActivePreset,
+  setActiveIndexSwiper,
+  updatePresetSetting,
+  setNextSettingOption,
+  setSettings,
+  setPrevSettingOption
+} = presetSlice.actions;
 export default presetSlice.reducer;

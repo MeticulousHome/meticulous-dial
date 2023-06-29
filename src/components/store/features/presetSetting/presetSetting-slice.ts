@@ -10,7 +10,7 @@ import {
   setPresetSettingsData
 } from '../../../../data/presetSettings';
 import { IPresetSetting, IPresetsSettingData } from '../../../../types';
-import { dummyOptions, settingsDefaultNewPreset } from '../../../../utils/mock';
+import { settingsDefaultNewPreset } from '../../../../utils/mock';
 import { RootState } from '../../store';
 import { DEFAULT_SETTING } from '../../../../constants/setting';
 import { filterSettingAction } from '../../../../utils/preset';
@@ -26,11 +26,11 @@ export interface PresetSettingInterface {
   allSettings: IPresetsSettingData[];
 }
 const initialState: PresetSettingInterface = {
-  activeSetting: 2,
-  startIndex: 2,
-  endIndex: 0,
   pending: false,
   error: false,
+  activeSetting: 0,
+  startIndex: 0,
+  endIndex: 0,
   settings: {
     presetId: '-1',
     settings: []
@@ -103,13 +103,7 @@ const presetSettingSlice = createSlice({
           setting.id === action.payload.id ? action.payload : setting
       );
     },
-    setActiveSetting: (
-      state: Draft<typeof initialState>,
-      action: PayloadAction<number>
-    ) => {
-      state.activeSetting = action.payload;
-      return state;
-    },
+
     setNextSettingOption: (state: Draft<typeof initialState>) => {
       const nextActiveSetting = state.activeSetting + 1;
       if (nextActiveSetting > state.endIndex) {
@@ -127,7 +121,7 @@ const presetSettingSlice = createSlice({
       return state;
     },
     resetActiveSetting: (state: Draft<typeof initialState>) => {
-      state.activeSetting = 2;
+      state.activeSetting = 0;
       return state;
     },
     setEndIndex: (
@@ -171,7 +165,7 @@ const presetSettingSlice = createSlice({
       const targetSetting = state.allSettings.find(
         (setting) => setting.presetId === action.payload.toString()
       );
-      const settings = [...dummyOptions, ...targetSetting.settings];
+      const settings = [...targetSetting.settings];
       const hiddenSettings = targetSetting.settings.filter(
         (setting) => setting.hidden
       );
@@ -273,6 +267,7 @@ const presetSettingSlice = createSlice({
         deletePresetSettings.fulfilled,
         (
           state: PresetSettingInterface,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           _action: PayloadAction<{
             newListPresetSettings: IPresetsSettingData[];
           }>
@@ -294,9 +289,7 @@ const presetSettingSlice = createSlice({
 
 export const {
   updatePresetSetting,
-  setActiveSetting,
   setNextSettingOption,
-  setPrevSettingOption,
   resetActiveSetting,
   setEndIndex,
   setDefaultSettingsNewPreset,
