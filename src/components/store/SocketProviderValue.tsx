@@ -54,6 +54,7 @@ export const SetSocketKeyboardListeners = () => {
 
   useEffect(() => {
     const lister = (e: KeyboardEvent) => {
+      console.log(e.code);
       switch (e.code) {
         case 'ArrowLeft':
           dispatch(setGesture('left'));
@@ -87,7 +88,7 @@ export const SetSocketKeyboardListeners = () => {
 
           const preset = {
             name: presets.activePreset.name,
-            settings: presetSetting.settings.settings.filter(
+            settings: (presets.activePreset?.settings || []).filter(
               (item) => item.id !== -1 && item.id !== -2
             )
           };
