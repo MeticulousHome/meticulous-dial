@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
+// eslint-disable-next-line import/no-unresolved
 import { IpcMainEvent } from 'electron/main';
 import { promises as fs } from 'fs';
 import mockPreset from './data/mock_presets.json';

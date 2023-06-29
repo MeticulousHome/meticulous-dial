@@ -1,6 +1,7 @@
-import { IPresetSetting, IPresetsSettingData } from '../types';
-import { DEFAULT_SETTING } from '../constants/setting';
+// eslint-disable-next-line import/no-named-as-default
 import Swiper from 'swiper';
+import { IPresetSetting } from '../types';
+import { DEFAULT_SETTING } from '../constants/setting';
 
 export const handleRemovePresetsAnimation = (swiper: Swiper) => {
   if (swiper && swiper.slides)
@@ -12,6 +13,8 @@ export const handleRemovePresetsAnimation = (swiper: Swiper) => {
 };
 
 export const handleAddPresetAnimation = (swiper: Swiper) => {
+  if (!swiper?.slides) return;
+
   const { previousIndex, activeIndex, slides } = swiper;
 
   const animation = activeIndex > previousIndex ? 'left' : 'right';

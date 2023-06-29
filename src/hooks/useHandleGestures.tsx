@@ -7,15 +7,15 @@ import {
   deletePreset,
   savePresets,
   setNextPreset,
-  setPrevPreset
+  setNextSettingOption,
+  setPrevPreset,
+  setPrevSettingOption
 } from '../components/store/features/preset/preset-slice';
 import {
   deletePresetSettings,
   discardSettings,
   resetActiveSetting,
-  savePresetSetting,
-  setNextSettingOption,
-  setPrevSettingOption
+  savePresetSetting
 } from '../components/store/features/presetSetting/presetSetting-slice';
 import { setScreen } from '../components/store/features/screens/screens-slice';
 import { useAppSelector } from '../components/store/hooks';

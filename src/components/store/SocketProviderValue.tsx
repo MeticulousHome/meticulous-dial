@@ -121,7 +121,7 @@ export const SetSocketKeyboardListeners = () => {
     const lister = (e: KeyboardEvent) => {
       const preset = {
         name: presets.activePreset.name,
-        settings: presetSetting.settings.settings.filter(
+        settings: (presets.activePreset?.settings || []).filter(
           (item) => item.id !== -1 && item.id !== -2
         )
       };

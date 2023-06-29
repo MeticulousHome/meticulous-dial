@@ -25,6 +25,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
     nodes: [
       {
         id: -1,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         controllers: <any>[],
         triggers: [
           {

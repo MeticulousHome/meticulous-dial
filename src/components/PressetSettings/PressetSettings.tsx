@@ -14,59 +14,57 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
   const [animationStyle, setAnimationStyle] = useState('');
   const [init, setInit] = useState(false);
   const [swiper, setSwiper] = useState(null);
-  const { screen, presetSetting } = useAppSelector((state) => state);
+  const { screen, presets } = useAppSelector((state) => state);
+
   const settings = useMemo(
     () => [
-      ...presetSetting.updatingSettings.settings.filter(
+      ...(presets.activePreset?.settings || []).filter(
         (setting) => !setting.hidden
       ),
       ...(generateDefaultAction(
-        presetSetting.updatingSettings.settings.length
+        presets.updatingSettings.settings.length
       ).flat() as IPresetSetting[])
     ],
-    [presetSetting.updatingSettings.settings]
+    [presets.updatingSettings.settings]
   );
 
   useEffect(() => {
     if (swiper) {
       const settingsExist =
-        presetSetting.settings && presetSetting.settings.settings.length > 0;
+        presets.settings && presets.settings.settings.length > 0;
 
       let settingBeforeChange;
 
-      if (
-        settingsExist &&
-        presetSetting.settings.settings[swiper['activeIndex']]
-      ) {
+      if (settingsExist && presets.settings.settings[swiper['activeIndex']]) {
         settingBeforeChange =
-          presetSetting.settings.settings[swiper['activeIndex']].key;
+          presets.settings.settings[swiper['activeIndex']].key;
       }
 
       if (
         (settingBeforeChange === 'save' || settingBeforeChange === 'discard') &&
-        presetSetting.activeSetting === 2
+        presets.activeSetting === 2
       ) {
-        swiper.slideTo(presetSetting.activeSetting, 0, false);
+        swiper.slideTo(presets.activeSetting, 0, false);
       } else {
-        swiper.slideTo(presetSetting.activeSetting);
+        swiper.slideTo(presets.activeSetting);
       }
 
       if (settingsExist) {
-        optionSelected(settings[presetSetting.activeSetting].key);
+        optionSelected(settings[presets.activeSetting].key);
       }
     }
-  }, [presetSetting.activeSetting, swiper]);
+  }, [presets.activeSetting, swiper]);
 
   useEffect(() => {
     if (
-      presetSetting.settings &&
-      presetSetting.settings.settings.length > 0 &&
-      presetSetting.settings.settings[presetSetting.activeSetting] &&
-      settings[presetSetting.activeSetting]?.key
+      presets.settings &&
+      presets.settings.settings.length > 0 &&
+      presets.settings.settings[presets.activeSetting] &&
+      settings[presets.activeSetting]?.key
     ) {
-      optionSelected(settings[presetSetting.activeSetting].key);
+      optionSelected(settings[presets.activeSetting].key);
     }
-  }, [presetSetting.settings]);
+  }, [presets.settings]);
 
   useEffect(() => {
     return () => {
