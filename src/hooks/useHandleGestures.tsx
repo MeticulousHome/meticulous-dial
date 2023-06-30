@@ -5,18 +5,14 @@ import { setGesture } from '../components/store/features/gestures/gestures-slice
 import {
   addPresetNewOne,
   deletePreset,
+  discardSettings,
+  resetActiveSetting,
   savePresets,
   setNextPreset,
   setNextSettingOption,
   setPrevPreset,
   setPrevSettingOption
 } from '../components/store/features/preset/preset-slice';
-import {
-  deletePresetSettings,
-  discardSettings,
-  resetActiveSetting,
-  savePresetSetting
-} from '../components/store/features/presetSetting/presetSetting-slice';
 import { setScreen } from '../components/store/features/screens/screens-slice';
 import { useAppSelector } from '../components/store/hooks';
 import { SocketContext } from '../components/store/SocketManager';
@@ -86,7 +82,7 @@ export function useHandleGesture({
           case 'pressetSettings':
             if (gesture.value === 'click') {
               if (presetSettingIndex === 'save') {
-                dispatch(savePresetSetting(presetSetting.updatingSettings));
+                // dispatch(savePresetSetting(presetSetting.updatingSettings));
                 dispatch(savePresets(presetSetting.updatingSettings));
                 dispatch(setScreen('barometer'));
               } else if (presetSettingIndex == 'discard') {
@@ -94,7 +90,7 @@ export function useHandleGesture({
                 dispatch(setScreen('barometer'));
               } else if (presetSettingIndex === 'delete') {
                 dispatch(deletePreset(presets.activePreset.id));
-                dispatch(deletePresetSettings(presets.activePreset.id));
+                // dispatch(deletePresetSettings(presets.activePreset.id));
                 dispatch(setScreen('pressets'));
               } else if (presetSettingIndex === 'name') {
                 dispatch(setScreen('circleKeyboard'));

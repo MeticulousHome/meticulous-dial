@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '../store/hooks';
 import { MultipleOptionSlider } from '../shared/MultipleOptionSlider';
-import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
 import { IPresetSetting } from '../../../src/types';
 
 import './purge.css';
+import { updatePresetSetting } from '../store/features/preset/preset-slice';
 
 export function Purge(): JSX.Element {
   const [options] = useState(['Automatic', 'Manual']);

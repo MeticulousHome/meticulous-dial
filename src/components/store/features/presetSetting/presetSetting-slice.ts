@@ -42,14 +42,6 @@ const initialState: PresetSettingInterface = {
   allSettings: []
 };
 
-export const getPresetSettings = createAsyncThunk(
-  'presetSetting/getSettings',
-  async () => {
-    const presetSettingsData = await getPresetSettingsData();
-    return JSON.parse(presetSettingsData);
-  }
-);
-
 export const savePresetSetting = createAsyncThunk(
   'presetSetting/saveSetting',
   async (presetSettings: IPresetsSettingData, { getState }) => {
@@ -94,16 +86,6 @@ const presetSettingSlice = createSlice({
   name: 'presetSettings',
   initialState: initialState,
   reducers: {
-    updatePresetSetting: (
-      state: Draft<typeof initialState>,
-      action: PayloadAction<IPresetSetting>
-    ) => {
-      state.updatingSettings.settings = state.updatingSettings.settings.map(
-        (setting) =>
-          setting.id === action.payload.id ? action.payload : setting
-      );
-    },
-
     setNextSettingOption: (state: Draft<typeof initialState>) => {
       const nextActiveSetting = state.activeSetting + 1;
       if (nextActiveSetting > state.endIndex) {
@@ -216,36 +198,36 @@ const presetSettingSlice = createSlice({
           console.log('savePresetSetting.rejected', action);
         }
       )
-      .addCase(getPresetSettings.pending, (state: PresetSettingInterface) => {
-        state.pending = true;
-        state.error = false;
-      })
-      .addCase(
-        getPresetSettings.fulfilled,
-        (
-          state: PresetSettingInterface,
-          action: PayloadAction<IPresetsSettingData[]>
-        ) => {
-          state.pending = false;
-          state.error = false;
-          state.allSettings = action.payload.map((presetSetting) => ({
-            ...presetSetting,
-            settings: filterSettingAction(presetSetting.settings)
-          }));
-          // reset active setting
-          // state.activeSetting = 2;
-        }
-      )
-      .addCase(
-        getPresetSettings.rejected,
-        (state: PresetSettingInterface, action: any) => {
-          console.log('getPresetSettings.rejected', action);
-          state.pending = false;
-          state.error = true;
-          state.endIndex = 0;
-          state.activeSetting = 0;
-        }
-      )
+      // .addCase(getPresetSettings.pending, (state: PresetSettingInterface) => {
+      //   state.pending = true;
+      //   state.error = false;
+      // })
+      // .addCase(
+      //   getPresetSettings.fulfilled,
+      //   (
+      //     state: PresetSettingInterface,
+      //     action: PayloadAction<IPresetsSettingData[]>
+      //   ) => {
+      //     state.pending = false;
+      //     state.error = false;
+      //     state.allSettings = action.payload.map((presetSetting) => ({
+      //       ...presetSetting,
+      //       settings: filterSettingAction(presetSetting.settings)
+      //     }));
+      //     // reset active setting
+      //     // state.activeSetting = 2;
+      //   }
+      // )
+      // .addCase(
+      //   getPresetSettings.rejected,
+      //   (state: PresetSettingInterface, action: any) => {
+      //     console.log('getPresetSettings.rejected', action);
+      //     state.pending = false;
+      //     state.error = true;
+      //     state.endIndex = 0;
+      //     state.activeSetting = 0;
+      //   }
+      // )
       .addCase(
         deletePresetSettings.pending,
         (state: PresetSettingInterface) => {
@@ -287,14 +269,12 @@ const presetSettingSlice = createSlice({
   }
 });
 
-export const {
-  updatePresetSetting,
-  setNextSettingOption,
-  resetActiveSetting,
-  setEndIndex,
-  setDefaultSettingsNewPreset,
-  setSettings,
-  discardSettings
-} = presetSettingSlice.actions;
+// export const { setDefaultSettingsNewPreset } = presetSettingSlice.actions;
 
 export default presetSettingSlice.reducer;
+// setNextSettingOption,
+// resetActiveSetting,
+// setEndIndex,
+// setDefaultSettingsNewPreset,
+// setSettings,
+// discardSettings
