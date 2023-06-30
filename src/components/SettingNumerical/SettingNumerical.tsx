@@ -8,9 +8,9 @@ import {
   ISettingType
 } from '../../types';
 import { addRightComplement, roundPrecision } from '../../utils';
-import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
 import { useReduxSelector } from '../store/store';
 import './setting-numerical.css';
+import { updatePresetSetting } from '../store/features/preset/preset-slice';
 
 const radius = 237;
 const strokeWidth = 6;
