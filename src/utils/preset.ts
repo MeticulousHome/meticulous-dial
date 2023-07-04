@@ -46,7 +46,6 @@ export const generateDefaultAction = (length: number) => {
     ...action,
     id: length + 1
   }));
-
   return actions;
 };
 

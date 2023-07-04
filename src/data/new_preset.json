@@ -1,15 +1,15 @@
 [
     {
         "id": 1,
-        "name": "78 a",
-        "isDefault": false,
+        "name": "78aaa",
+        "isDefault": true,
         "settings": [
             {
                 "id": 1,
                 "type": "text",
                 "key": "name",
                 "label": "name",
-                "value": "78 a"
+                "value": "78aaa"
             },
             {
                 "id": 2,
@@ -17,8 +17,7 @@
                 "key": "pressure",
                 "label": "pressure",
                 "value": 9,
-                "unit": "bar",
-                "hidden": true
+                "unit": "bar"
             },
             {
                 "id": 3,
@@ -33,8 +32,7 @@
                 "type": "on-off",
                 "key": "pre-infusion",
                 "label": "pre-infusion",
-                "value": "yes",
-                "hidden": true
+                "value": "yes"
             },
             {
                 "id": 5,
@@ -49,14 +47,13 @@
                 "type": "multiple-option",
                 "key": "purge",
                 "label": "purge",
-                "value": "automatic",
-                "hidden": true
+                "value": "automatic"
             }
         ]
     },
     {
         "id": 2,
-        "name": "Espresso",
+        "name": "Espre",
         "isDefault": false,
         "settings": [
             {
@@ -64,7 +61,7 @@
                 "type": "text",
                 "key": "name",
                 "label": "name",
-                "value": "Espresso"
+                "value": "Espre"
             },
             {
                 "id": 2,
@@ -109,14 +106,14 @@
     {
         "id": 3,
         "name": "Maria",
-        "isDefault": true,
+        "isDefault": false,
         "settings": [
             {
                 "id": 1,
                 "type": "text",
                 "key": "name",
                 "label": "name",
-                "value": "Mariaga"
+                "value": "Maria"
             },
             {
                 "id": 2,
@@ -147,6 +144,58 @@
                 "key": "output",
                 "label": "output",
                 "value": 18,
+                "unit": "g"
+            },
+            {
+                "id": 6,
+                "type": "multiple-option",
+                "key": "purge",
+                "label": "purge",
+                "value": "automatic"
+            }
+        ]
+    },
+    {
+        "id": 1688480246120,
+        "name": "New Preset",
+        "isDefault": false,
+        "settings": [
+            {
+                "id": 1,
+                "type": "text",
+                "key": "name",
+                "label": "name",
+                "value": "New Preset"
+            },
+            {
+                "id": 2,
+                "type": "numerical",
+                "key": "pressure",
+                "label": "pressure",
+                "value": 8,
+                "unit": "bar"
+            },
+            {
+                "id": 3,
+                "type": "numerical",
+                "key": "temperature",
+                "label": "temperature",
+                "value": 85,
+                "unit": "°c"
+            },
+            {
+                "id": 4,
+                "type": "on-off",
+                "key": "pre-infusion",
+                "label": "pre-infusion",
+                "value": "yes"
+            },
+            {
+                "id": 5,
+                "type": "numerical",
+                "key": "output",
+                "label": "output",
+                "value": 36,
                 "unit": "g"
             },
             {
