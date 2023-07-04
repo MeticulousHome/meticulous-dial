@@ -7,7 +7,7 @@ import {
   deletePreset,
   discardSettings,
   resetActiveSetting,
-  savePresets,
+  savePreset,
   setNextPreset,
   setNextSettingOption,
   setPrevPreset,
@@ -30,8 +30,9 @@ export function useHandleGesture({
   keyboardReady: React.MutableRefObject<boolean>;
 }) {
   const dispatch = useContext(SocketContext);
-  const { gesture, screen, stats, presets, presetSetting, settings } =
-    useAppSelector((state) => state);
+  const { gesture, screen, stats, presets, settings } = useAppSelector(
+    (state) => state
+  );
 
   useEffect(() => {
     // console.log('Prev Gesture >> ', gesture.prev);
@@ -83,13 +84,13 @@ export function useHandleGesture({
             if (gesture.value === 'click') {
               if (presetSettingIndex === 'save') {
                 // dispatch(savePresetSetting(presetSetting.updatingSettings));
-                dispatch(savePresets(presetSetting.updatingSettings));
+                dispatch(savePreset());
                 dispatch(setScreen('barometer'));
               } else if (presetSettingIndex == 'discard') {
                 dispatch(discardSettings());
                 dispatch(setScreen('barometer'));
               } else if (presetSettingIndex === 'delete') {
-                dispatch(deletePreset(presets.activePreset.id));
+                dispatch(deletePreset());
                 // dispatch(deletePresetSettings(presets.activePreset.id));
                 dispatch(setScreen('pressets'));
               } else if (presetSettingIndex === 'name') {

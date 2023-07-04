@@ -15,10 +15,10 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
   const [init, setInit] = useState(false);
   const [swiper, setSwiper] = useState(null);
   const { screen, presets } = useAppSelector((state) => state);
-
+  const currentPresetSetting = presets.activePreset?.settings || [];
   const settings = useMemo(
     () => [
-      ...(presets.activePreset?.settings || []).filter(
+      ...(presets.updatingSettings.settings || []).filter(
         (setting) => !setting.hidden
       ),
       ...(generateDefaultAction(
@@ -31,13 +31,12 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
   useEffect(() => {
     if (swiper) {
       const settingsExist =
-        presets.settings && presets.settings.settings.length > 0;
+        currentPresetSetting && currentPresetSetting.length > 0;
 
       let settingBeforeChange;
 
-      if (settingsExist && presets.settings.settings[swiper['activeIndex']]) {
-        settingBeforeChange =
-          presets.settings.settings[swiper['activeIndex']].key;
+      if (settingsExist && currentPresetSetting[swiper['activeIndex']]) {
+        settingBeforeChange = currentPresetSetting[swiper['activeIndex']].key;
       }
 
       if (
@@ -57,14 +56,14 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
 
   useEffect(() => {
     if (
-      presets.settings &&
-      presets.settings.settings.length > 0 &&
-      presets.settings.settings[presets.activeSetting] &&
+      presets.activePreset &&
+      currentPresetSetting.length > 0 &&
+      currentPresetSetting[presets.activeSetting] &&
       settings[presets.activeSetting]?.key
     ) {
       optionSelected(settings[presets.activeSetting].key);
     }
-  }, [presets.settings]);
+  }, [presets.activePreset.settings]);
 
   useEffect(() => {
     return () => {

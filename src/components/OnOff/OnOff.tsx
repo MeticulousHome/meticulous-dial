@@ -16,10 +16,10 @@ interface Props {
 export function OnOff({ type }: Props): JSX.Element {
   const [options] = useState(['Yes', 'No']);
   const [activeIndex, setActiveIndex] = useState(0);
-  const { screen, gesture, presetSetting } = useAppSelector((state) => state);
+  const { screen, gesture, presets } = useAppSelector((state) => state);
   const dispatch = useDispatch();
 
-  const setting = presetSetting?.updatingSettings.settings.find(
+  const setting = presets?.updatingSettings.settings.find(
     (setting) => setting.key === 'pre-infusion'
   );
 
