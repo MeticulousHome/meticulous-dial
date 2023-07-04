@@ -65,7 +65,7 @@ const getAnimationName = (
 export function SettingNumerical({ type }: Props): JSX.Element {
   const gesture = useReduxSelector((state) => state.gesture);
   const screen = useReduxSelector((state) => state.screen);
-  const presetSetting = useReduxSelector((state) => state.presetSetting);
+  const presets = useReduxSelector((state) => state.presets);
   const [total, setTotal] = useState<number>(0);
   const { interval, maxValue, unit } = unitSettingConfigMap[
     type as NumericalSettingType
@@ -75,15 +75,15 @@ export function SettingNumerical({ type }: Props): JSX.Element {
     unit: 'gram'
   };
 
-  const settingTemperature = presetSetting.updatingSettings.settings.find(
+  const settingTemperature = presets.updatingSettings.settings.find(
     (setting) => setting.key === 'temperature'
   ) as IPresetNumericalTemperature;
 
-  const settingPressure = presetSetting.updatingSettings.settings.find(
+  const settingPressure = presets.updatingSettings.settings.find(
     (setting) => setting.key === 'pressure'
   ) as IPresetNumericalPressure;
 
-  const settingOutput = presetSetting.updatingSettings.settings.find(
+  const settingOutput = presets.updatingSettings.settings.find(
     (setting) => setting.key === 'output'
   ) as IPresetNumericalOutput;
 
@@ -163,7 +163,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
       default:
         break;
     }
-  }, [type, presetSetting]);
+  }, [type, presets]);
 
   return (
     <Gauge

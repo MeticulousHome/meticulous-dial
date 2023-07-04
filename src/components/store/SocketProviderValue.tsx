@@ -48,9 +48,7 @@ export const SocketProviderValue = (): SocketProviderValueInterface => {
 
 export const SetSocketKeyboardListeners = () => {
   const dispatch = useAppDispatch();
-  const { presets, presetSetting, screen, settings } = useAppSelector(
-    (state) => state
-  );
+  const { presets, screen, settings } = useAppSelector((state) => state);
 
   useEffect(() => {
     const lister = (e: KeyboardEvent) => {
@@ -130,7 +128,7 @@ export const SetSocketKeyboardListeners = () => {
     return () => {
       window.removeEventListener('keydown', lister);
     };
-  }, [presets, presetSetting, screen, settings]);
+  }, [presets, screen, settings]);
 
   return dispatch;
 };
