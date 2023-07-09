@@ -1,15 +1,54 @@
 [
     {
         "id": 1,
-        "name": "78 a",
-        "isDefault": true
-    },
-    {
-        "id": 2,
-        "name": "Espresso"
-    },
-    {
-        "id": 3,
-        "name": "Mariage Frères"
+        "name": "New Preset",
+        "isDefault": true,
+        "settings": [
+            {
+                "id": 1,
+                "type": "text",
+                "key": "name",
+                "label": "name",
+                "value": "New Preset"
+            },
+            {
+                "id": 2,
+                "type": "numerical",
+                "key": "pressure",
+                "label": "pressure",
+                "value": 9,
+                "unit": "bar"
+            },
+            {
+                "id": 3,
+                "type": "numerical",
+                "key": "temperature",
+                "label": "temperature",
+                "value": 90,
+                "unit": "°c"
+            },
+            {
+                "id": 4,
+                "type": "on-off",
+                "key": "pre-infusion",
+                "label": "pre-infusion",
+                "value": "yes"
+            },
+            {
+                "id": 5,
+                "type": "numerical",
+                "key": "output",
+                "label": "output",
+                "value": 21,
+                "unit": "g"
+            },
+            {
+                "id": 6,
+                "type": "multiple-option",
+                "key": "purge",
+                "label": "purge",
+                "value": "automatic"
+            }
+        ]
     }
 ]
