@@ -22,6 +22,7 @@ export function Pressets(): JSX.Element {
     }
   };
 
+  console.log('slide to', presets.activeIndexSwiper);
   useEffect(() => {
     if (swiper) {
       slideTo(presets.activeIndexSwiper);
