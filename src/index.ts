@@ -68,7 +68,7 @@ const saveFile = async (
   return await fs.writeFile(filePath, content);
 };
 
-const checkPresetSettingExist = async (): Promise<
+const getLegacyPresetSettings = async (): Promise<
   IPresetsSettingData[] | undefined
 > => {
   const path = app.getPath(DEFAULT_USER_PATHNAME);
@@ -97,7 +97,7 @@ const getPresetData = async () => {
   // const path = './src/data';
   const path = app.getPath(DEFAULT_USER_PATHNAME);
   const presetPath = `${path}/presets.json`;
-  const presetSettingData = await checkPresetSettingExist();
+  const presetSettingData = await getLegacyPresetSettings();
   //get file
   try {
     const presetData = await fs.readFile(presetPath, 'utf-8');
@@ -136,33 +136,12 @@ const getPresetData = async () => {
   }
 };
 
-const getPresetSettingData = async () => {
-  const defaultData = JSON.stringify(mockPresetSetting);
-  // const path = './src/data';
-  const path = app.getPath(DEFAULT_USER_PATHNAME);
-  const presetPath = `${path}/presetSettings.json`;
-  try {
-    //get file
-    const presetData = await fs.readFile(presetPath, 'utf-8');
-    if (presetData.trim() && isValidJson(presetData)) {
-      const mergeData = mergeSettings(presetData, defaultData);
-      return isValidJson(JSON.stringify(mergeData)) ? mergeData : presetData;
-    } else {
-      return defaultData;
-    }
-  } catch (error) {
-    await fs.writeFile(presetPath, defaultData);
-    return defaultData;
-  }
-};
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
   ipcMain.handle('saveFile', saveFile);
   ipcMain.handle('getPresetData', getPresetData);
-  ipcMain.handle('getPresetSettingData', getPresetSettingData);
 
   createWindow();
 });
