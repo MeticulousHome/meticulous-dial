@@ -1,8 +1,5 @@
 import { IPresetsSettingData } from './../types/index';
 
-export const getPresetSettingsData = async () =>
-  await window.meticulousAPI.getPresetSettingData();
-
 export const setPresetSettingsData = async (presets: IPresetsSettingData[]) => {
   const json = JSON.stringify(presets);
 

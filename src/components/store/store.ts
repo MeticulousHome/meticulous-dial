@@ -5,7 +5,6 @@ import gestureReducer from './features/gestures/gestures-slice';
 import screenReducer from './features/screens/screens-slice';
 import statsReducer from './features/stats/stats-slice';
 import presetReducer from './features/preset/preset-slice';
-// import presetSettingReducer from './features/presetSetting/presetSetting-slice';
 import settingsReducer from './features/settings/settings-slice';
 
 export const store = configureStore({
