@@ -8,7 +8,6 @@ import { useAppSelector } from '../store/hooks';
 export function Settings(): JSX.Element {
   const [animationStyle, setAnimationStyle] = useState('');
   const [swiper, setSwiper] = useState(null);
-  const [init, setInit] = useState(false);
   const { settings, screen } = useAppSelector((state) => state);
   const reset = useRef<boolean>(false);
 
@@ -54,14 +53,11 @@ export function Settings(): JSX.Element {
           onSwiper={setSwiper}
           slidesPerView={9}
           allowTouchMove={false}
+          initialSlide={settings.activeIndexSetting}
           direction="vertical"
           autoHeight={false}
           centeredSlides={true}
           onSlideNextTransitionStart={() => {
-            if (!init) {
-              setInit(true);
-              return;
-            }
             setAnimationStyle('animation-next');
           }}
           onSlidePrevTransitionStart={() => setAnimationStyle('animation-prev')}
@@ -85,6 +81,8 @@ export function Settings(): JSX.Element {
           ))}
         </Swiper>
       </div>
+      <div className="fade fade-top"></div>
+      <div className="fade fade-bottom"></div>
     </div>
   );
 }

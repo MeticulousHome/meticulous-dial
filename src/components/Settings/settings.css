@@ -13,8 +13,10 @@
   bottom: 0;
   padding-left: 72px;
 }
+.settings-options .swiper {
+  z-index: 0;
+}
 .setting-option-item {
-  color: #5e5e5e;
   font-size: 40px;
   line-height: 52px;
   font-weight: 500;
