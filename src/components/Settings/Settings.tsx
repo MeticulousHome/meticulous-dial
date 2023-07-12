@@ -86,6 +86,7 @@ export function Settings(): JSX.Element {
           ref={swiperRef}
           slidesPerView={9}
           allowTouchMove={false}
+          initialSlide={activeIndex}
           direction="vertical"
           autoHeight={false}
           centeredSlides={true}

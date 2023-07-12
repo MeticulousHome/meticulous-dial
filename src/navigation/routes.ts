@@ -49,8 +49,7 @@ export const routes: Record<ScreenType, Route> = {
   },
   pressetSettings: {
     component: PressetSettings,
-    title: selectActivePresetName,
-    bottomStatusHidden: true
+    title: selectActivePresetName
   },
   pressure: {
     component: SettingNumerical,
