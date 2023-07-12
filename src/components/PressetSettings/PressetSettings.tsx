@@ -132,7 +132,7 @@ export function PressetSettings(): JSX.Element {
   }, []);
 
   return (
-    <div className={`presset-container`}>
+    <div className="presset-container">
       <div className="presset-options">
         <Swiper
           onSwiper={setSwiper}
