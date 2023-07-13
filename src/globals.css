@@ -1,30 +1,12 @@
 /* Fonts */
 @font-face {
-  font-family: 'Open Sans';
-  src: url('/src/assets/fonts/open-sans-v29-latin-regular.ttf');
-}
-@font-face {
-  font-family: 'Lekton';
-  src: url('/src/assets/fonts/Lekton-Regular.ttf');
+  font-family: 'Lato';
+  src: url('/src/assets/fonts/Lato-Regular.ttf');
 }
 
 @font-face {
-  font-family: 'Maison';
-  src: url('./assets/fonts/MaisonNeue-Light.otf') format('opentype');
-  font-weight: 500;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Maison';
-  src: url('./assets/fonts/MaisonNeue-Medium.otf') format('opentype');
-  font-weight: bold;
-}
-
-@font-face {
-  font-family: 'Maison';
-  src: url('./assets/fonts/MaisonNeue-Bold.otf') format('opentype');
-  font-weight: bolder;
+  font-family: 'Satoshi';
+  src: url('/src/assets/fonts/Satoshi-Regular.ttf');
 }
 
 html,
@@ -36,7 +18,7 @@ body {
 }
 
 body {
-  font-family: 'Open Sans';
+  font-family: 'Lato';
   font-weight: 400;
   color: white;
   background-color: black;
@@ -102,7 +84,8 @@ body {
 .main-title-selected {
   position: absolute;
   top: 60px;
-  font-size: 23px;
+  font-family: 'Satoshi';
+  font-size: 30px;
   width: 220px;
   /*line-height: 1;*/
   text-align: center;
@@ -112,7 +95,6 @@ body {
   /*line-height: 1;*/
   transition: all;
   z-index: 4;
-  font-weight: bold;
   /* properties to animate when transition */
   /* top: 70px; */
   /* font-size: 35px; */
@@ -150,22 +132,15 @@ body {
   justify-content: center;
 }
 
-/*.bottom-status .status-icon svg {
-    margin-top: 3px;
-}*/
-
 .bottom-status .status-value {
   width: 68px;
   font-size: 24px;
   justify-content: end;
-  font-size: 24px;
 }
 
 .bottom-status .status-data {
   color: #838383;
   width: 22px;
-  /*justify-content: center;
-    font-weight: 600; */
   justify-content: end;
   font-family: sans-serif;
   position: relative;
