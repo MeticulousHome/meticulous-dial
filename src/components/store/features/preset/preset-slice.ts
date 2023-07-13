@@ -14,8 +14,7 @@ import {
 import { RootState } from '../../store';
 import { getSettingsFromDashboardPayload } from '../../../../utils/preheat';
 import { DEFAULT_SETTING } from '../../../../constants/setting';
-import { getPresets } from '../extraReducer';
-import { setPresetsData } from '../../../../data/presets';
+import { getPresetsData, setPresetsData } from '../../../../data/presets';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -357,6 +356,12 @@ export const savePreset = createAsyncThunk(
     );
   }
 );
+
+export const getPresets = createAsyncThunk('presetData/getData', async () => {
+  const presetsData = await getPresetsData();
+
+  return JSON.parse(presetsData) as IPreset[];
+});
 
 const initialState: PresetsState = {
   value: [],

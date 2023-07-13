@@ -13,7 +13,6 @@ export const store = configureStore({
     screen: screenReducer,
     stats: statsReducer,
     presets: presetReducer,
-    // presetSetting: presetSettingReducer,
     settings: settingsReducer
   }
 });

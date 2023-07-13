@@ -1,7 +1,7 @@
 [
     {
         "id": 1,
-        "name": "New Preset",
+        "name": "78aaa",
         "isDefault": true,
         "settings": [
             {
@@ -9,7 +9,7 @@
                 "type": "text",
                 "key": "name",
                 "label": "name",
-                "value": "New Preset"
+                "value": "78aaa"
             },
             {
                 "id": 2,
@@ -40,6 +40,162 @@
                 "key": "output",
                 "label": "output",
                 "value": 21,
+                "unit": "g"
+            },
+            {
+                "id": 6,
+                "type": "multiple-option",
+                "key": "purge",
+                "label": "purge",
+                "value": "automatic"
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "name": "Espre",
+        "isDefault": false,
+        "settings": [
+            {
+                "id": 1,
+                "type": "text",
+                "key": "name",
+                "label": "name",
+                "value": "Espre"
+            },
+            {
+                "id": 2,
+                "type": "numerical",
+                "key": "pressure",
+                "label": "pressure",
+                "value": 9.3,
+                "unit": "bar"
+            },
+            {
+                "id": 3,
+                "type": "numerical",
+                "key": "temperature",
+                "label": "temperature",
+                "value": 99,
+                "unit": "°c"
+            },
+            {
+                "id": 4,
+                "type": "on-off",
+                "key": "pre-infusion",
+                "label": "pre-infusion",
+                "value": "no"
+            },
+            {
+                "id": 5,
+                "type": "numerical",
+                "key": "output",
+                "label": "output",
+                "value": 10,
+                "unit": "g"
+            },
+            {
+                "id": 6,
+                "type": "multiple-option",
+                "key": "purge",
+                "label": "purge",
+                "value": "automatic"
+            }
+        ]
+    },
+    {
+        "id": 3,
+        "name": "Maria",
+        "isDefault": false,
+        "settings": [
+            {
+                "id": 1,
+                "type": "text",
+                "key": "name",
+                "label": "name",
+                "value": "Maria"
+            },
+            {
+                "id": 2,
+                "type": "numerical",
+                "key": "pressure",
+                "label": "pressure",
+                "value": 8.6,
+                "unit": "bar"
+            },
+            {
+                "id": 3,
+                "type": "numerical",
+                "key": "temperature",
+                "label": "temperature",
+                "value": 86,
+                "unit": "°c"
+            },
+            {
+                "id": 4,
+                "type": "on-off",
+                "key": "pre-infusion",
+                "label": "pre-infusion",
+                "value": "yes"
+            },
+            {
+                "id": 5,
+                "type": "numerical",
+                "key": "output",
+                "label": "output",
+                "value": 18,
+                "unit": "g"
+            },
+            {
+                "id": 6,
+                "type": "multiple-option",
+                "key": "purge",
+                "label": "purge",
+                "value": "automatic"
+            }
+        ]
+    },
+    {
+        "id": 1688480246120,
+        "name": "New Preset",
+        "isDefault": false,
+        "settings": [
+            {
+                "id": 1,
+                "type": "text",
+                "key": "name",
+                "label": "name",
+                "value": "New Preset"
+            },
+            {
+                "id": 2,
+                "type": "numerical",
+                "key": "pressure",
+                "label": "pressure",
+                "value": 8,
+                "unit": "bar"
+            },
+            {
+                "id": 3,
+                "type": "numerical",
+                "key": "temperature",
+                "label": "temperature",
+                "value": 85,
+                "unit": "°c"
+            },
+            {
+                "id": 4,
+                "type": "on-off",
+                "key": "pre-infusion",
+                "label": "pre-infusion",
+                "value": "yes"
+            },
+            {
+                "id": 5,
+                "type": "numerical",
+                "key": "output",
+                "label": "output",
+                "value": 36,
                 "unit": "g"
             },
             {

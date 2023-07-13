@@ -83,7 +83,6 @@ export function useHandleGesture({
           case 'pressetSettings':
             if (gesture.value === 'click') {
               if (presetSettingIndex === 'save') {
-                // dispatch(savePresetSetting(presetSetting.updatingSettings));
                 dispatch(savePreset());
                 dispatch(setScreen('barometer'));
               } else if (presetSettingIndex == 'discard') {
@@ -91,7 +90,6 @@ export function useHandleGesture({
                 dispatch(setScreen('barometer'));
               } else if (presetSettingIndex === 'delete') {
                 dispatch(deletePreset());
-                // dispatch(deletePresetSettings(presets.activePreset.id));
                 dispatch(setScreen('pressets'));
               } else if (presetSettingIndex === 'name') {
                 dispatch(setScreen('circleKeyboard'));
