@@ -1,6 +1,6 @@
 import { useContext, useEffect } from 'react';
 import { SockerContext } from '../components/store/SockerManager';
-import { getPresets } from '../components/store/features/extraReducer';
+import { getPresets } from '../components/store/features/preset/preset-slice';
 
 export function useFetchData() {
   const dispatch = useContext(SockerContext);
@@ -8,10 +8,4 @@ export function useFetchData() {
   useEffect(() => {
     dispatch(getPresets());
   }, []);
-
-  // useEffect(() => {
-  //   if (presets.initAt) {
-  //     setPresetsData(presets.value);
-  //   }
-  // }, [presets.value, presets.initAt]);
 }
