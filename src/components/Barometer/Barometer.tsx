@@ -7,19 +7,11 @@ import { useSocket } from '../store/SocketManager';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { LCD_EVENTS } from '../../../src/constants';
 import { resetActiveSetting } from '../store/features/preset/preset-slice';
+import { Meter } from './Meter';
 
 export interface IBarometerProps {
   maxValue?: number;
 }
-
-const getBarNeedlePosition = (pressure: string, maxValue: number) => {
-  const final = (313 * parseFloat(pressure)) / maxValue;
-  const barNeedleRotatePosition = final < 0 ? 0 : final;
-
-  return barNeedleRotatePosition > 313
-    ? 313 + 114
-    : barNeedleRotatePosition + 114; //start position
-};
 
 export function Barometer({ maxValue = 13 }: IBarometerProps): JSX.Element {
   const stats = useAppSelector((state) => state.stats);
@@ -60,20 +52,17 @@ export function Barometer({ maxValue = 13 }: IBarometerProps): JSX.Element {
     }
   });
 
-  const barNeedleRotatePosition = getBarNeedlePosition(
-    stats.sensors.p,
-    maxValue
-  );
-
   return (
     <div className="barometer-container">
-      <div
-        className="bar-needle bar-needle--transition-all"
-        style={{ transform: `rotate(${barNeedleRotatePosition}deg)` }}
-      ></div>
-
+      <Meter
+        min={0}
+        max={maxValue}
+        step={1}
+        value={Number.parseFloat(stats.sensors.p)}
+        className="meter"
+      />
       <div className="bar-needle__content">
-        <div className="pressure">PRESSURE</div>
+        <div className="pressure">Pressure</div>
         <div className="bar-needle__legend">
           <span className="bar-needle__value">
             {formatStatValue(stats.sensors.p, 1)}
@@ -83,40 +72,32 @@ export function Barometer({ maxValue = 13 }: IBarometerProps): JSX.Element {
 
         <div className="columns-grid">
           <div className="column-item">
-            <div>
-              <div className="column-label">TEMP</div>
-              <div className="column-value">
-                {formatStatValue(stats.sensors.t, 1)}
-              </div>
+            <div className="column-label">TEMP</div>
+            <div className="column-value">
+              {formatStatValue(stats.sensors.t, 1)}
+              <div className="column-unit">°C</div>
             </div>
-            <div className="column-data">°C</div>
           </div>
           <div className="column-item">
-            <div>
-              <div className="column-label">WEIGHT</div>
-              <div className="column-value">
-                {formatStatValue(stats.sensors.w, 1)}
-              </div>
+            <div className="column-label">WEIGHT</div>
+            <div className="column-value">
+              {formatStatValue(stats.sensors.w, 1)}
+              <div className="column-unit">g</div>
             </div>
-            <div className="column-data">g</div>
           </div>
           <div className="column-item">
-            <div>
-              <div className="column-label">TIME</div>
-              <div className="column-value">
-                {formatStatValue(stats.time, 1)}
-              </div>
+            <div className="column-label">TIME</div>
+            <div className="column-value">
+              {formatStatValue(stats.time, 1)}
+              <div className="column-unit">sec</div>
             </div>
-            <div className="column-data">sec</div>
           </div>
           <div className="column-item">
-            <div>
-              <div className="column-label">FLOW</div>
-              <div className="column-value">
-                {formatStatValue(stats.sensors.f, 1)}
-              </div>
+            <div className="column-label">FLOW</div>
+            <div className="column-value">
+              {formatStatValue(stats.sensors.f, 1)}
+              <div className="column-unit">ml/s</div>
             </div>
-            <div className="column-data">ml/s</div>
           </div>
         </div>
 
