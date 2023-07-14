@@ -46,6 +46,7 @@ Barometer styles
   display: inline-block;
   margin-left: 8px;
   margin-right: -48px; /* offset to center the value (width+margin-left) */
+  text-transform: none;
 }
 
 .bar-needle__status {
@@ -98,4 +99,5 @@ Barometer styles
   margin-right: -53px;
   text-align: left;
   color: #4d4d4d;
+  text-transform: none;
 }
