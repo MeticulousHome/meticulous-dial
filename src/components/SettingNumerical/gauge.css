@@ -15,7 +15,6 @@
   font-weight: 400;
   font-size: 145px;
   text-align: center;
-  font-family: 'Satoshi';
 }
 
 .gauge-unit {
@@ -24,7 +23,6 @@
   right: 75px;
   font-weight: 400;
   font-size: 40px;
-  font-family: 'Satoshi';
 }
 
 .scalesLayout {
@@ -50,14 +48,13 @@
   width: 282px;
   text-align: right;
   margin: 0;
-  font-family: 'Satoshi';
+  font-family: 'Lato';
 }
 
 .scale-content .scale-unit {
   flex: 1;
   font-size: 24px;
   line-height: 186px;
-  font-family: 'Satoshi';
   text-transform: uppercase;
 }
 

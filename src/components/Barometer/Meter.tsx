@@ -50,6 +50,7 @@ export function Meter({ min, max, value, step, className }: MeterProps) {
         const end = start - STEP_LENGTH;
         return (
           <path
+            key={i}
             d={`M${ARC_RADIUS + x * start} ${ARC_RADIUS + y * start} L${
               ARC_RADIUS + x * end
             } ${ARC_RADIUS + y * end}`}

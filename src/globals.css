@@ -18,7 +18,7 @@ body {
 }
 
 body {
-  font-family: 'Lato';
+  font-family: 'Satoshi';
   font-weight: 400;
   color: white;
   background-color: black;
@@ -84,7 +84,6 @@ body {
 .main-title-selected {
   position: absolute;
   top: 60px;
-  font-family: 'Satoshi';
   font-size: 30px;
   width: 220px;
   /*line-height: 1;*/
@@ -136,6 +135,7 @@ body {
   width: 68px;
   font-size: 24px;
   justify-content: end;
+  font-family: Lato;
 }
 
 .bottom-status .status-data {
