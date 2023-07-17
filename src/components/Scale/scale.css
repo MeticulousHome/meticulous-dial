@@ -11,6 +11,7 @@
 }
 
 .scale-weight .weight {
+  font-family: Lato;
   text-align: center;
   flex: 1;
   margin-right: 3px;
@@ -18,7 +19,6 @@
 
 .scale-weight .weight-data {
   font-size: 36px;
-  font-family: sans-serif;
 }
 
 .pressets-options-conainer {
