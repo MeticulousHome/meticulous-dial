@@ -40,6 +40,7 @@ Barometer styles
 .bar-needle__value {
   font-size: 60px;
   letter-spacing: -1.5px;
+  font-family: Lato;
 }
 .bar-needle__legend .bar-label {
   width: 40px;
@@ -54,7 +55,6 @@ Barometer styles
   font-size: 20px;
   color: #808080;
   text-transform: uppercase;
-  font-family: Satoshi;
   letter-spacing: -0.5px;
   margin: 20px 0;
 }
@@ -73,6 +73,7 @@ Barometer styles
 .column-value {
   font-size: 30px;
   letter-spacing: -0.75px;
+  font-family: Lato;
 }
 
 .pressure,
@@ -80,7 +81,6 @@ Barometer styles
 .column-label,
 .column-unit {
   text-align: center;
-  font-family: Satoshi;
   font-size: 15px;
   letter-spacing: 1.125px;
   color: #808080;

@@ -9,7 +9,7 @@
 
 .letter {
   fill: rgba(255, 255, 255, 0.4);
-  font: normal 0.4rem 'Lato';
+  font-size: 0.4rem;
 }
 
 .main-letter {
@@ -17,7 +17,6 @@
   top: 15px;
   text-align: center;
   font-size: 60px;
-  font-family: 'Lato';
 }
 
 .letter-space {
