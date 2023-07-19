@@ -6,6 +6,7 @@ import { generateSimplePayload } from '../../utils/preheat';
 import { useSocket } from '../store/SocketManager';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { LCD_EVENTS } from '../../../src/constants';
+import { resetActiveSetting } from '../store/features/preset/preset-slice';
 
 export interface IBarometerProps {
   maxValue?: number;
@@ -48,6 +49,7 @@ export function Barometer({ maxValue = 13 }: IBarometerProps): JSX.Element {
       // socket.emit(LCD_EVENTS.ACTION_EVENT, LCD_ACTIONS.START_VALUE);
     },
     click() {
+      dispatch(resetActiveSetting());
       dispatch(setScreen('pressetSettings'));
     },
     left() {
