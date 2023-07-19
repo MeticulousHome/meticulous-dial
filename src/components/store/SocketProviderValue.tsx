@@ -162,9 +162,10 @@ export const SetSocketKeyboardListeners = () => {
           if (screen.value !== 'barometer') return;
 
           console.log(JSON.stringify(payload, null, 2));
-
-          socket.emit('parameters', payload);
-          socket.emit('action', 'start');
+          socket.emit(
+            'dashboard_1.0',
+            JSON.stringify({ ...payload, action: 'to_play' })
+          );
           dispatch(setGesture('start'));
           break;
         }
