@@ -11,7 +11,6 @@ import { roundPrecision } from '../../utils';
 import { useReduxSelector } from '../store/store';
 import { Gauge, Unit } from './Gauge';
 import { ScreenType } from '../store/features/screens/screens-slice';
-import './setting-numerical.css';
 import { updatePresetSetting } from '../store/features/preset/preset-slice';
 
 interface ISettingConfig {
