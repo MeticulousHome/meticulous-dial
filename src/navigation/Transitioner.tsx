@@ -129,7 +129,9 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
     <>
       <div
         key={screen}
-        className={`main-layout route route-${screen} ${`enter ${direction} ${animationSize}`}`}
+        className={`main-layout route route-${screen} ${
+          previous ? `enter ${direction} ${animationSize}` : ''
+        }`}
         style={animationStyle}
       >
         <VisibilityProvider value={true}>
