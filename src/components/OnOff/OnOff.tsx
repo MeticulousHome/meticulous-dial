@@ -23,7 +23,7 @@ export function OnOff({ type }: Props): JSX.Element {
     (setting) => setting.key === 'pre-infusion'
   );
 
-  const preheatSetting = presetSetting?.updatingSettings.settings.find(
+  const preheatSetting = presets?.updatingSettings.settings.find(
     (setting) => setting.key === 'pre-heat'
   );
 
