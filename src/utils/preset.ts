@@ -41,6 +41,15 @@ export const handleAddPresetAnimation = (swiper: Swiper) => {
   }
 };
 
+export const handlePresetSlideChange = (swiper: Swiper) => {
+  if (swiper.previousIndex !== undefined) {
+    handleRemovePresetsAnimation(swiper);
+    setTimeout(() => {
+      handleAddPresetAnimation(swiper);
+    }, 20);
+  }
+};
+
 export const generateDefaultAction = (length: number) => {
   const actions = DEFAULT_SETTING.map((action) => ({
     ...action,
