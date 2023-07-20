@@ -2,7 +2,7 @@
 @plugin "./spring-physics-plugin";
 
 .spring-interpolate-keyframes(@property, @from, @to) {
-  .spring-interpolate-keyframes(@property, @from, @to, 1, 250, 20);
+  .spring-interpolate-keyframes(@property, @from, @to, 1, 65, 10);
 }
 
 .spring-interpolate-keyframes(@property, @from, @to, @mass, @stiffness, @damping) {
@@ -301,7 +301,7 @@
     .navigation-title {
       animation-timing-function: linear;
       animation-fill-mode: forwards;
-      animation-duration: 1s;
+      animation-duration: 0.45s;
     }
     &.enter {
       .scalesLayout,
@@ -321,7 +321,7 @@
   .gauge-container > .scalesLayout {
     animation-timing-function: linear;
     animation-fill-mode: forwards;
-    animation-duration: 1s;
+    animation-duration: 0.45s;
   }
   &.enter .gauge-container > svg {
     animation-name: gauge-scale-in;
