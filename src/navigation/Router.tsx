@@ -14,6 +14,10 @@ const memoizedRoutes = Object.fromEntries(
   ])
 );
 
+export interface RouteProps {
+  transitioning: boolean;
+}
+
 interface RouterProps {
   currentScreen: ScreenType;
   previousScreen?: ScreenType;
