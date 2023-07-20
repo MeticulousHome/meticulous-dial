@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-import {
-  handleAddPresetAnimation,
-  handleRemovePresetsAnimation
-} from '../../utils/preset';
+import { handlePresetSlideChange } from '../../utils/preset';
 
 import './multipleOptionSlider.css';
 
@@ -43,13 +40,7 @@ export function MultipleOptionSlider({
           allowTouchMove={false}
           initialSlide={0}
           onSwiper={setSwiper}
-          onSlideChange={(e) => {
-            handleRemovePresetsAnimation(e);
-
-            setTimeout(() => {
-              handleAddPresetAnimation(e);
-            }, 20);
-          }}
+          onSlideChange={handlePresetSlideChange}
         >
           {options.map((option, index) => (
             <SwiperSlide key={`${index}-slide`}>

@@ -1,11 +1,11 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { useEffect, useState, cloneElement, ReactElement } from 'react';
 import { ScreenType } from '../components/store/features/screens/screens-slice';
 import { VisibilityProvider } from './VisibilityContext';
 import './navigation.less';
 
 interface TransitionerProps {
   screen: ScreenType;
-  children: ReactNode;
+  children: ReactElement;
   direction: 'in' | 'out';
   parentTitle?: string;
   title?: string;
@@ -23,7 +23,7 @@ interface TitleProps {
   direction?: 'in' | 'out';
 }
 
-const Title = ({
+export const Title = ({
   children,
   parent,
   shared,
@@ -132,7 +132,9 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
         className={`main-layout route route-${screen} ${`enter ${direction} ${animationSize}`}`}
         style={animationStyle}
       >
-        <VisibilityProvider value={true}>{children}</VisibilityProvider>
+        <VisibilityProvider value={true}>
+          {cloneElement(children, { transitioning: !!previous })}
+        </VisibilityProvider>
         {!shouldTransitionParentTitle && parentTitle && (
           <Title parent>{parentTitle}</Title>
         )}
@@ -147,7 +149,7 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
           style={animationStyle}
         >
           <VisibilityProvider value={false}>
-            {previous.children}
+            {cloneElement(previous.children, { transitioning: true })}
           </VisibilityProvider>
           {!(direction === 'in'
             ? shouldTransitionParentTitle

@@ -72,6 +72,33 @@
   opacity: 1;
 }
 
+.title-swiper {
+  position: absolute;
+  z-index: 10;
+  top: 0;
+}
+
+.title-swiper.transitioning::before,
+.title-swiper.transitioning .swiper-slide-active .navigation-title {
+  opacity: 0;
+}
+
+.title-swiper:before {
+  position: absolute;
+  content: '';
+  display: block;
+  left: 0;
+  right: 0;
+  top: 70px;
+  height: 50px;
+  background-color: black;
+}
+
+.preset-wrapper .navigation-title {
+  left: 0;
+  right: 0;
+}
+
 /* animation scroll to the right spring and bounce back */
 @keyframes bounce-right {
   0% {
