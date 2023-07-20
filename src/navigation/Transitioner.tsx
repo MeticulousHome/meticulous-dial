@@ -12,7 +12,7 @@ interface TransitionerProps {
   titleShared?: boolean;
 }
 
-const duration = 1000;
+const duration = 450;
 const animationStyle = { animationDuration: `${duration / 1000}s` };
 
 interface TitleProps {
