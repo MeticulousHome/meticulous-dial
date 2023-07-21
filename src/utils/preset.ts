@@ -41,8 +41,10 @@ export const handleAddPresetAnimation = (swiper: Swiper) => {
   }
 };
 
-export const handlePresetSlideChange = (swiper: Swiper) => {
-  if (swiper.previousIndex !== undefined) {
+export const handlePresetSlideChange = (
+  swiper: Swiper & { initialized?: boolean }
+) => {
+  if (swiper.initialized) {
     handleRemovePresetsAnimation(swiper);
     setTimeout(() => {
       handleAddPresetAnimation(swiper);
