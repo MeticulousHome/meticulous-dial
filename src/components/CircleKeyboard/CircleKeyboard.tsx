@@ -314,7 +314,7 @@ export function CircleKeyboard(): JSX.Element {
       {getMainLetter()}
       <div className="caption-content">
         <div className="circle-title">{setting?.label}</div>
-        <div ref={captionRef} className="circle-caption caption_shake">
+        <div ref={captionRef} className="circle-caption">
           {caption.map((el, index) => {
             if (el === ' ') {
               return (
