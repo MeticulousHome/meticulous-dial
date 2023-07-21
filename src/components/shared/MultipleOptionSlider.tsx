@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
+import { useEffect, useRef } from 'react';
+import { Swiper, SwiperRef, SwiperSlide } from 'swiper/react';
 
 import { handlePresetSlideChange } from '../../utils/preset';
 
@@ -18,17 +18,15 @@ export function MultipleOptionSlider({
   extraClass,
   spaceBetween
 }: Props): JSX.Element {
-  const [swiper, setSwiper] = useState(null);
+  const swiperRef = useRef<SwiperRef | null>(null);
 
   useEffect(() => {
-    if (swiper) {
-      try {
-        swiper.slideTo(activeIndex);
-      } catch (error) {
-        console.log({ error, location: 'MultipleOptionSlider' });
-      }
+    try {
+      swiperRef.current?.swiper.slideTo(activeIndex);
+    } catch (error) {
+      console.log({ error, location: 'MultipleOptionSlider' });
     }
-  }, [activeIndex, swiper]);
+  }, [activeIndex]);
 
   return (
     <div className={`multiple-option-wrapper`}>
@@ -38,8 +36,8 @@ export function MultipleOptionSlider({
           spaceBetween={spaceBetween}
           centeredSlides={true}
           allowTouchMove={false}
-          initialSlide={0}
-          onSwiper={setSwiper}
+          initialSlide={activeIndex}
+          ref={swiperRef}
           onSlideChange={handlePresetSlideChange}
         >
           {options.map((option, index) => (
