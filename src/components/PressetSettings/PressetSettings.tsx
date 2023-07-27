@@ -138,7 +138,7 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
           direction="vertical"
           autoHeight={false}
           centeredSlides={true}
-          initialSlide={presetSetting.activeSetting}
+          initialSlide={presets.activeSetting}
           onSlideNextTransitionStart={() => {
             setAnimationStyle('animation-next');
           }}
