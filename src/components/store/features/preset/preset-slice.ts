@@ -19,7 +19,6 @@ import { getPresetsData, setPresetsData } from '../../../../data/presets';
 export interface PresetSettingInterface {
   activeSetting: number;
   startIndex: number;
-  endIndex: number;
   pending: boolean;
   error: boolean;
   updatingSettings: IPresetsSettingData;
@@ -261,7 +260,12 @@ export const setNextSettingOption = createAsyncThunk(
     const state = getState() as RootState;
     const presetState = { ...state.presets } as PresetsState;
     const nextActiveSetting = presetState.activeSetting + 1;
-    if (nextActiveSetting > presetState.endIndex) {
+    const endIndex =
+      presetState.activePreset.settings.filter(({ hidden }) => !hidden).length +
+      DEFAULT_SETTING.length -
+      1;
+
+    if (nextActiveSetting > endIndex) {
       return;
     }
     presetState.activeSetting = nextActiveSetting;
@@ -373,7 +377,6 @@ const initialState: PresetsState = {
   },
   activeSetting: 0,
   startIndex: 0,
-  endIndex: 0,
 
   updatingSettings: {
     presetId: '-1',
@@ -434,11 +437,6 @@ const presetSlice = createSlice({
             };
             state.activeIndexSwiper = defaultIndex;
             // state.activePresetIndex = defaultIndex;
-
-            state.endIndex =
-              (action.payload[defaultIndex].settings || []).length +
-              DEFAULT_SETTING.length -
-              1;
           }
         } else {
           state.defaultPresetIndex = 0;
