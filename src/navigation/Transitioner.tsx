@@ -95,7 +95,7 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
 
       return {
         current: props,
-        previous: current.screen !== props.screen ? current : previous,
+        previous,
         shouldTransitionTitle,
         shouldTransitionParentTitle,
         titleDirection,
