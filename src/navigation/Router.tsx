@@ -58,15 +58,9 @@ export const Router = memo(
         >
           <RouteComponent {...route.props} />
         </Transitioner>
-        <div
-          className={`main-layout bottom__${
-            route.bottomStatusHidden ? 'fadeOut' : 'fadeIn'
-          }`}
-        >
-          <Freeze freeze={route.bottomStatusHidden}>
-            <BottomStatus />
-          </Freeze>
-        </div>
+        <Freeze freeze={route.bottomStatusHidden}>
+          <BottomStatus hidden={route.bottomStatusHidden} />
+        </Freeze>
       </>
     );
   }
