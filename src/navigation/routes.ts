@@ -37,7 +37,7 @@ export const routes: Record<ScreenType, Route> = {
   },
   pressets: {
     component: Pressets,
-    parentTitle: 'pressets',
+    parentTitle: 'presets',
     title: selectActivePresetName
   },
   barometer: {
