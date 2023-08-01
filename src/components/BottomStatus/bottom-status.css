@@ -1,0 +1,111 @@
+.bottom-status {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 45px;
+  width: 100%;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+}
+
+.bottom-status .bottom-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.bottom-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-status .status-icon,
+.bottom-status .status-value,
+.bottom-status .status-unit {
+  line-height: 1;
+  height: 30px;
+  display: flex;
+  align-items: center;
+}
+
+.bottom-status .status-icon {
+  width: 24px;
+  margin-right: 2px;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-status .status-value {
+  font-size: 25px;
+  flex: 1;
+  justify-content: center;
+  font-family: Lato;
+  letter-spacing: -0.625px;
+}
+
+.bottom-status .status-unit {
+  font-family: Satoshi;
+  color: #4d4d4d;
+  position: relative;
+  width: 24px;
+  font-size: 15px;
+  line-height: 1.4;
+  align-items: flex-end;
+  letter-spacing: 1.125px;
+  margin-left: 5px;
+}
+
+.bottom-status .status-temp-icon::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  margin-top: -6px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 12px solid #ff6534;
+}
+
+@keyframes bottomFadeIn {
+  0% {
+    opacity: 0.02;
+  }
+  24% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes bottomFadeOut {
+  0% {
+    opacity: 0.8;
+  }
+  20% {
+    opacity: 0.3;
+  }
+  21% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.bottom__fadeIn {
+  animation-name: bottomFadeIn;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  animation-duration: 1s;
+}
+
+.bottom__fadeOut {
+  animation-name: bottomFadeOut;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  animation-duration: 1s;
+}

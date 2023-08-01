@@ -19,7 +19,6 @@ body {
 
 body {
   font-family: 'Satoshi';
-  font-weight: 400;
   color: white;
   background-color: black;
   display: flex;
@@ -28,12 +27,6 @@ body {
 }
 .text-gray {
   color: #5e5e5e;
-}
-.flex {
-  display: flex;
-}
-.flex-1 {
-  flex: 1;
 }
 
 /*-----------------------------*/
@@ -98,110 +91,6 @@ body {
   /* top: 70px; */
   /* font-size: 35px; */
   /* properties to animate when transition */
-}
-
-.bottom-status {
-  position: absolute;
-  bottom: 24px;
-  width: 100%;
-  z-index: 5;
-}
-
-.bottom-status .flex {
-  justify-content: center;
-  margin-top: 8px;
-}
-
-/*.bottom-status .flex:last-of-type .status-data {
-    font-size: 18px;
-}*/
-
-.bottom-status .status-icon,
-.bottom-status .status-value,
-.bottom-status .status-data {
-  line-height: 1;
-  height: 24px;
-  display: flex;
-  align-items: end;
-}
-
-.bottom-status .status-icon {
-  width: 24px;
-  align-items: center;
-  justify-content: center;
-}
-
-.bottom-status .status-value {
-  width: 68px;
-  font-size: 24px;
-  justify-content: end;
-  font-family: Lato;
-}
-
-.bottom-status .status-data {
-  color: #838383;
-  width: 22px;
-  justify-content: end;
-  font-family: sans-serif;
-  position: relative;
-  font-size: 22px;
-}
-
-.bottom-status .status-temp-icon::after {
-  content: '';
-  position: absolute;
-  right: -18px;
-  top: 50%;
-  width: 0;
-  height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-bottom: 8px solid red;
-}
-
-.z2 {
-  z-index: 2;
-}
-
-@keyframes bottomFadeIn {
-  0% {
-    opacity: 0.02;
-  }
-  24% {
-    opacity: 0.9;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes bottomFadeOut {
-  0% {
-    opacity: 0.8;
-  }
-  20% {
-    opacity: 0.3;
-  }
-  21% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-.bottom__fadeIn {
-  animation-name: bottomFadeIn;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-  animation-duration: 1s;
-}
-
-.bottom__fadeOut {
-  animation-name: bottomFadeOut;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-  animation-duration: 1s;
 }
 
 @keyframes shakeAnimation {
