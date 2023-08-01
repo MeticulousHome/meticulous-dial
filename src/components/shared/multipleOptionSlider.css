@@ -14,10 +14,3 @@
   text-align: center;
   font-weight: 400;
 }
-.swiper-horizontal .swiper-slide {
-  opacity: 0.15;
-  transition: opacity 0.4s ease;
-}
-.swiper-horizontal .swiper-slide.swiper-slide-active {
-  opacity: 1;
-}
