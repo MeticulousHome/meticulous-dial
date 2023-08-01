@@ -52,9 +52,10 @@
 @zoom-out-scale: 2.3;
 @zoom-in-scale: 0.3;
 @navigation-title-font-size: 35px;
-@navigation-title-top: 70px;
-@navigation-title-parent-font-size: 20px;
-@navigation-title-parent-top: 40px;
+@navigation-title-top: 80px;
+@navigation-title-parent-font-size: 30px;
+@navigation-title-parent-top: 23px;
+@navigation-title-shared-top: 72px;
 
 .route {
   animation-timing-function: linear;
@@ -148,8 +149,8 @@
 .navigation-title.shared.enter.in {
   position: absolute;
   top: @navigation-title-top;
-  left: 120px;
-  right: 120px;
+  left: 95px;
+  right: 95px;
   text-align: center;
   font-size: @navigation-title-font-size;
   line-height: 1.3;
@@ -158,14 +159,15 @@
   text-overflow: ellipsis;
 }
 
-.navigation-title.shared {
+.navigation-title.parent {
+  top: @navigation-title-parent-top;
+  opacity: 0.4;
   font-size: @navigation-title-parent-font-size;
 }
 
-.navigation-title.parent {
-  top: @navigation-title-parent-top;
-  opacity: 0.5;
+.navigation-title.shared {
   font-size: @navigation-title-parent-font-size;
+  top: @navigation-title-shared-top;
 }
 
 .navigation-title.enter.in {
@@ -223,31 +225,31 @@
 }
 
 @keyframes child-title-enter-out {
-  .spring-interpolate-keyframes(scale, 0.571428571428571, 1);
+  .spring-interpolate-keyframes(scale, 0.857, 1);
   .spring-interpolate-keyframes(translate-y, -70px, 0);
-  .spring-interpolate-keyframes(opacity, 0.5, 1);
+  .spring-interpolate-keyframes(opacity, 0.4, 1);
 }
 
 @keyframes shared-title-enter-in {
-  .spring-interpolate-keyframes(scale, 0.571428571428571, 1);
-  .spring-interpolate-keyframes(translate-y, -15px, 0);
+  .spring-interpolate-keyframes(scale, 0.857, 1);
+  .spring-interpolate-keyframes(translate-y, -12px, 0);
 }
 
 @keyframes shared-title-enter-out {
-  .spring-interpolate-keyframes(scale, 1.75, 1);
-  .spring-interpolate-keyframes(translate-y, 5px, 0);
+  .spring-interpolate-keyframes(scale, 1.167, 1);
+  .spring-interpolate-keyframes(translate-y, 10px, 0);
 }
 
 @keyframes parent-title-enter-in {
-  .spring-interpolate-keyframes(scale, 1, 0.571428571428571);
+  .spring-interpolate-keyframes(scale, 1, 0.857);
   .spring-interpolate-keyframes(translate-y, 0, -70px);
-  .spring-interpolate-keyframes(opacity, 1, 0.5);
+  .spring-interpolate-keyframes(opacity, 1, 0.4);
 }
 
 @keyframes parent-title-enter-out {
-  .spring-interpolate-keyframes(scale, 0.571428571428571, 1);
+  .spring-interpolate-keyframes(scale, 0.857, 1);
   .spring-interpolate-keyframes(translate-y, -70px, 0);
-  .spring-interpolate-keyframes(opacity, 0.5, 1);
+  .spring-interpolate-keyframes(opacity, 0.4, 1);
 }
 
 @keyframes child-title-leave-in {
