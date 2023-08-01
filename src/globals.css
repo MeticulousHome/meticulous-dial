@@ -49,50 +49,6 @@ body {
   /* height: calc(100% - 136px);  */
 }
 
-.main-layout .title-main-1 {
-  position: absolute;
-  top: 42px;
-  left: 50%;
-  right: 0;
-  width: 170px;
-  transform: translateX(-50%);
-  text-align: center;
-  color: #5e5e5e;
-  z-index: 10;
-  font-size: 20px;
-  line-height: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.main-layout .title-main-2 {
-  text-align: center;
-  font-size: 35px;
-  line-height: 1;
-  z-index: 10;
-  position: relative;
-}
-
-.main-title-selected {
-  position: absolute;
-  top: 60px;
-  font-size: 30px;
-  width: 220px;
-  /*line-height: 1;*/
-  text-align: center;
-  /* new properties */
-  left: 50%;
-  transform: translateX(-50%);
-  /*line-height: 1;*/
-  transition: all;
-  z-index: 4;
-  /* properties to animate when transition */
-  /* top: 70px; */
-  /* font-size: 35px; */
-  /* properties to animate when transition */
-}
-
 @keyframes shakeAnimation {
   0% {
     transform: translateX(0px);
