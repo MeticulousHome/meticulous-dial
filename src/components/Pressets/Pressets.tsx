@@ -13,6 +13,7 @@ import {
   setPrevPreset
 } from '../store/features/preset/preset-slice';
 import { Title, RouteProps } from '../../navigation';
+import { Pagination } from './Pagination';
 
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const dispatch = useAppDispatch();
@@ -152,6 +153,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             ))}
             <SwiperSlide key="new">{() => <Title>New</Title>}</SwiperSlide>
           </Swiper>
+          <Pagination
+            page={presets.activeIndexSwiper}
+            pages={presets.value.length + 1}
+          />
         </>
       )}
     </div>
