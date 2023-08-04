@@ -138,3 +138,31 @@
 .animation-bounce-left {
   animation: bounce-left 500ms ease-out;
 }
+
+.pagination {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  column-gap: 6px;
+  justify-content: center;
+}
+
+.pagination li {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background-color: #fff;
+  opacity: 0.12;
+}
+
+.pagination li.active {
+  opacity: 1;
+}
+
+.preset-wrapper .pagination {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 353px;
+}
