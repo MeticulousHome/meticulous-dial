@@ -167,24 +167,19 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
             )}
         </div>
       )}
-      {((shouldTransitionParentTitle && parentTitle) ||
-        (shouldTransitionTitle && title)) && (
-        <div className="main-layout">
-          {shouldTransitionParentTitle && parentTitle && (
-            <Title parent animation="enter" direction={titleDirection}>
-              {parentTitle}
-            </Title>
-          )}
-          {shouldTransitionTitle && title && (
-            <Title
-              shared={titleShared || previous?.titleShared}
-              animation="enter"
-              direction={titleDirection}
-            >
-              {title}
-            </Title>
-          )}
-        </div>
+      {shouldTransitionParentTitle && parentTitle && (
+        <Title parent animation="enter" direction={titleDirection}>
+          {parentTitle}
+        </Title>
+      )}
+      {shouldTransitionTitle && title && (
+        <Title
+          shared={titleShared || previous?.titleShared}
+          animation="enter"
+          direction={titleDirection}
+        >
+          {title}
+        </Title>
       )}
     </>
   );
