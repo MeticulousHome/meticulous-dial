@@ -33,7 +33,7 @@ export function Barometer({ maxValue = 13 }: IBarometerProps): JSX.Element {
         action: 'to_play'
       });
 
-      socket.emit(LCD_EVENTS.ITALIAN_EVENT, payload);
+      socket.emit(LCD_EVENTS.ITALIAN_EVENT, JSON.stringify(payload));
 
       console.log(LCD_EVENTS.ITALIAN_EVENT, payload);
 
