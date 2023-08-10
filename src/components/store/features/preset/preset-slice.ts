@@ -15,6 +15,7 @@ import { RootState } from '../../store';
 import { getSettingsFromDashboardPayload } from '../../../../utils/preheat';
 import { DEFAULT_SETTING } from '../../../../constants/setting';
 import { getPresetsData, setPresetsData } from '../../../../data/presets';
+import { setScreen } from '../screens/screens-slice';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -361,11 +362,18 @@ export const savePreset = createAsyncThunk(
   }
 );
 
-export const getPresets = createAsyncThunk('presetData/getData', async () => {
-  const presetsData = await getPresetsData();
+export const getPresets = createAsyncThunk(
+  'presetData/getData',
+  async (_, { dispatch }) => {
+    const presetsData = await getPresetsData();
+    const presets = JSON.parse(presetsData) as IPreset[];
 
-  return JSON.parse(presetsData) as IPreset[];
-});
+    if (presets.length === 0) {
+      dispatch(setScreen('pressets'));
+    }
+    return presets;
+  }
+);
 
 const initialState: PresetsState = {
   value: [],
