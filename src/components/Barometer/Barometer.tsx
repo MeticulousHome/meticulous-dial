@@ -27,7 +27,7 @@ export function Barometer({ maxValue = 13 }: IBarometerProps): JSX.Element {
           (item) => item.id !== -1 && item.id !== -2
         )
       };
-
+      if (preset.settings.length === 0) return;
       const payload = generateSimplePayload({
         presset: preset as any,
         action: 'to_play'
