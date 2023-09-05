@@ -40,5 +40,5 @@ jobs:
           branch: ${{ github.ref_name }}
           enforce_admins: ${{ steps.disable_include_admins.outputs.initial_status }}
       - name: Sync beta with master branch
-        if: github.ref_name == 'master'
+        if: github.ref_name == 'xmaster'
         run: git push origin master:beta --force
