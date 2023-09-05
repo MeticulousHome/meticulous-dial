@@ -337,9 +337,13 @@ export const savePreset = createAsyncThunk(
     const state = getState() as RootState;
     const presetState = { ...state.presets } as PresetsState;
     const updateSetting = presetState.updatingSettings;
+    const nameSetting = updateSetting.settings.find(
+      (setting) => setting.key === 'name'
+    );
     const activePreset = {
       ...presetState.activePreset,
-      settings: [...updateSetting.settings]
+      settings: [...updateSetting.settings],
+      name: nameSetting.value as string
     };
     presetState.activePreset = { ...activePreset };
 
