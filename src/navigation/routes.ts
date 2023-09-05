@@ -24,6 +24,11 @@ interface Route {
 const selectActivePresetName = (state: RootState) =>
   state.presets.activePreset.name;
 
+// Profile from "start" event may not exist in LCD. Prefer using
+// that profile name over selected preset
+const selectStatProfileName = (state: RootState) =>
+  state.stats.profile || state.presets.activePreset.name;
+
 export const routes: Record<ScreenType, Route> = {
   settings: {
     component: Settings,
@@ -43,7 +48,7 @@ export const routes: Record<ScreenType, Route> = {
   barometer: {
     component: Barometer,
     parentTitle: null,
-    title: selectActivePresetName,
+    title: selectStatProfileName,
     titleShared: true,
     bottomStatusHidden: true
   },
