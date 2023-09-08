@@ -8,7 +8,6 @@ import { setScreen } from '../store/features/screens/screens-slice';
 import { LCD_EVENTS } from '../../../src/constants';
 import { resetActiveSetting } from '../store/features/preset/preset-slice';
 import { Meter } from './Meter';
-import { stat } from 'original-fs';
 
 export interface IBarometerProps {
   maxValue?: number;
