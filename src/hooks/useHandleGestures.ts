@@ -4,7 +4,8 @@ import { handleEvents } from '../HandleEvents';
 import { useVisibility } from '../navigation/VisibilityContext';
 
 export function useHandleGestures(
-  gestureHandlers: Partial<Record<GestureType, () => void>>
+  gestureHandlers: Partial<Record<GestureType, () => void>>,
+  shouldIgnoreGesture = false
 ) {
   const isVisible = useVisibility();
   const state = { gestureHandlers, isVisible };
@@ -14,10 +15,10 @@ export function useHandleGestures(
   useEffect(
     () =>
       handleEvents.on('gesture', (gesture) => {
-        if (stateRef.current.isVisible) {
+        if (stateRef.current.isVisible && !shouldIgnoreGesture) {
           stateRef.current.gestureHandlers[gesture]?.();
         }
       }),
-    [stateRef]
+    [stateRef, shouldIgnoreGesture]
   );
 }
