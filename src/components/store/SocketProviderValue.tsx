@@ -4,6 +4,7 @@ import { io, Socket } from 'socket.io-client';
 import { GestureType, ISensorData } from '../../types/index';
 import { useAppDispatch, useAppSelector } from './hooks';
 import { setStats } from './features/stats/stats-slice';
+import { setScreen } from './features/screens/screens-slice';
 import { addPresetFromDashboard } from './features/preset/preset-slice';
 import { ScreenType } from './features/screens/screens-slice';
 import { handleEvents } from '../../HandleEvents';
@@ -20,6 +21,11 @@ export const SocketProviderValue = () => {
     socket.on('status', (data: ISensorData) => {
       console.log('Listening: status', data.name);
       dispatch(setStats(data));
+
+      // When stat is not in idle, lock the screen at Barometer
+      if (data?.name !== 'idle') {
+        dispatch(setScreen('barometer'));
+      }
     });
 
     socket.on('save_profile', (data: any) => {
