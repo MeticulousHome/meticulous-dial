@@ -8,6 +8,7 @@ import { setScreen } from '../store/features/screens/screens-slice';
 import { LCD_EVENTS } from '../../../src/constants';
 import { resetActiveSetting } from '../store/features/preset/preset-slice';
 import { Meter } from './Meter';
+import { stat } from 'original-fs';
 
 export interface IBarometerProps {
   maxValue?: number;
@@ -19,38 +20,41 @@ export function Barometer({ maxValue = 13 }: IBarometerProps): JSX.Element {
   const socket = useSocket();
   const dispatch = useAppDispatch();
 
-  useHandleGestures({
-    start() {
-      const preset = {
-        name: presets.activePreset.name,
-        settings: (presets.activePreset?.settings || []).filter(
-          (item) => item.id !== -1 && item.id !== -2
-        )
-      };
-      if (preset.settings.length === 0) return;
-      const payload = generateSimplePayload({
-        presset: preset as any,
-        action: 'to_play'
-      });
+  useHandleGestures(
+    {
+      start() {
+        const preset = {
+          name: presets.activePreset.name,
+          settings: (presets.activePreset?.settings || []).filter(
+            (item) => item.id !== -1 && item.id !== -2
+          )
+        };
+        if (preset.settings.length === 0) return;
+        const payload = generateSimplePayload({
+          presset: preset as any,
+          action: 'to_play'
+        });
 
-      socket.emit(LCD_EVENTS.ITALIAN_EVENT, JSON.stringify(payload));
+        socket.emit(LCD_EVENTS.ITALIAN_EVENT, JSON.stringify(payload));
 
-      console.log(LCD_EVENTS.ITALIAN_EVENT, payload);
+        console.log(LCD_EVENTS.ITALIAN_EVENT, payload);
 
-      // We not need send this event
-      // socket.emit(LCD_EVENTS.ACTION_EVENT, LCD_ACTIONS.START_VALUE);
+        // We not need send this event
+        // socket.emit(LCD_EVENTS.ACTION_EVENT, LCD_ACTIONS.START_VALUE);
+      },
+      click() {
+        dispatch(resetActiveSetting());
+        dispatch(setScreen('pressetSettings'));
+      },
+      left() {
+        dispatch(setScreen('pressets'));
+      },
+      right() {
+        dispatch(setScreen('pressets'));
+      }
     },
-    click() {
-      dispatch(resetActiveSetting());
-      dispatch(setScreen('pressetSettings'));
-    },
-    left() {
-      dispatch(setScreen('pressets'));
-    },
-    right() {
-      dispatch(setScreen('pressets'));
-    }
-  });
+    stats?.name !== 'idle'
+  );
 
   return (
     <div className="barometer-container">
