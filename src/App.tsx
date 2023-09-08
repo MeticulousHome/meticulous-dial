@@ -17,26 +17,31 @@ const App = (): JSX.Element => {
     (state) => state.screen,
     (prev, next) => prev === next
   );
+  const stats = useAppSelector((state) => state.stats);
+
   useSocketKeyboardListeners();
   useFetchData();
-  useHandleGestures({
-    doubleTare() {
-      dispatch(
-        setScreen(
-          screen.value === 'scale'
-            ? screen.prev === 'settings'
-              ? 'barometer'
-              : screen.prev
-            : 'scale'
-        )
-      );
-    },
-    longTare() {
-      if (screen.value !== 'settings') {
-        dispatch(setScreen('settings'));
+  useHandleGestures(
+    {
+      doubleTare() {
+        dispatch(
+          setScreen(
+            screen.value === 'scale'
+              ? screen.prev === 'settings'
+                ? 'barometer'
+                : screen.prev
+              : 'scale'
+          )
+        );
+      },
+      longTare() {
+        if (screen.value !== 'settings') {
+          dispatch(setScreen('settings'));
+        }
       }
-    }
-  });
+    },
+    stats?.name !== 'idle'
+  );
 
   return <Router currentScreen={screen.value} previousScreen={screen.prev} />;
 };
