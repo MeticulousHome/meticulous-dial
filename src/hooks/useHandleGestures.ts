@@ -5,6 +5,7 @@ import { useVisibility } from '../navigation/VisibilityContext';
 
 export function useHandleGestures(
   gestureHandlers: Partial<Record<GestureType, () => void>>,
+  // When stat is not in idle, lock the screen at Barometer
   shouldIgnoreGesture = false
 ) {
   const isVisible = useVisibility();
