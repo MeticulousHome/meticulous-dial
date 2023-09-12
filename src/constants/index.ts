@@ -1,10 +1,12 @@
-export type Profile = 'italian_1_0';
+export type ItalianProfile = 'italian_1_0';
 
-export const LCD_EVENTS: { ITALIAN_EVENT: Profile; ACTION_EVENT: 'action' } = {
-  ITALIAN_EVENT: 'italian_1_0',
-  ACTION_EVENT: 'action'
+export const KIND_PROFILE: { ITALIAN: ItalianProfile } = {
+  ITALIAN: 'italian_1_0'
 };
-
-export const LCD_ACTIONS = {
-  START_VALUE: 'start'
+export const LCD_EVENT_EMIT: {
+  ACTION: 'action';
+  FEED_PROFILE: 'feed_profile';
+} = {
+  ACTION: 'action',
+  FEED_PROFILE: 'feed_profile'
 };
