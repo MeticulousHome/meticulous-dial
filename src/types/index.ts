@@ -1,3 +1,5 @@
+import { Profile } from 'src/constants';
+
 interface JSONObject {
   [x: string]: JSONValue;
 }
@@ -217,4 +219,5 @@ export interface IItalian {
   pressure: number;
   out_weight: number;
   source: 'lcd';
+  kind: Profile;
 }

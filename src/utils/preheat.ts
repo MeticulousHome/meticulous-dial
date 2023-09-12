@@ -1,3 +1,4 @@
+import { LCD_EVENTS } from '../constants';
 import {
   IItalian,
   IPresetSetting,
@@ -28,6 +29,7 @@ export const generateSimplePayload = ({
   return {
     action,
     name: presset.name,
+    kind: LCD_EVENTS.ITALIAN_EVENT,
     automatic_purge: purge?.value === 'automatic',
     temperature: Number(temperature.value),
     preinfusion: preinfusion?.value === 'yes',
