@@ -5,9 +5,9 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { generateSimplePayload } from '../../utils/preheat';
 import { useSocket } from '../store/SocketManager';
 import { setScreen } from '../store/features/screens/screens-slice';
-import { LCD_EVENTS } from '../../../src/constants';
 import { resetActiveSetting } from '../store/features/preset/preset-slice';
 import { Meter } from './Meter';
+import { LCD_EVENT_EMIT } from '../../constants';
 
 export interface IBarometerProps {
   maxValue?: number;
@@ -33,7 +33,7 @@ export function Barometer({ maxValue = 13 }: IBarometerProps): JSX.Element {
           presset: preset as any,
           action: 'to_play'
         });
-        socket.emit(LCD_EVENTS.ITALIAN_EVENT, JSON.stringify(payload));
+        socket.emit(LCD_EVENT_EMIT.FEED_PROFILE, JSON.stringify(payload));
       },
       click() {
         dispatch(resetActiveSetting());
