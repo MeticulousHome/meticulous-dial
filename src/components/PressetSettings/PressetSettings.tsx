@@ -14,6 +14,7 @@ import {
   setPrevSettingOption
 } from '../store/features/preset/preset-slice';
 import { setScreen } from '../store/features/screens/screens-slice';
+import { KIND_PROFILE } from '../../constants';
 
 const formatSetting = (setting: IPresetSetting) => {
   let mValue = '';
@@ -36,17 +37,30 @@ export function PressetSettings(): JSX.Element {
     (state) => state.presets.activePreset?.settings || []
   );
   const presets = useAppSelector((state) => state.presets);
-  const settings = useMemo(
-    () => [
-      ...(presets.updatingSettings.settings || []).filter(
-        (setting) => !setting.hidden
-      ),
-      ...(generateDefaultAction(
-        presets.updatingSettings.settings.length
-      ).flat() as IPresetSetting[])
-    ],
-    [presets.updatingSettings.settings]
-  );
+  const settings = useMemo(() => {
+    const defaultSettings = generateDefaultAction(
+      presets.updatingSettings.settings.length
+    ).flat() as IPresetSetting[];
+
+    if (
+      presets.activePreset.kind &&
+      presets.activePreset.kind !== KIND_PROFILE.ITALIAN
+    ) {
+      return [
+        ...presets.updatingSettings.settings.filter(
+          (setting) => setting.key === 'name'
+        ),
+        ...defaultSettings
+      ];
+    } else {
+      return [
+        ...(presets.updatingSettings.settings || []).filter(
+          (setting) => !setting.hidden
+        ),
+        ...defaultSettings
+      ];
+    }
+  }, [presets.updatingSettings.settings]);
   const [presetSettingIndex, setPresetSettingIndex] = useState<
     IPresetSetting['key']
   >(settings[presets.activeSetting].key);
