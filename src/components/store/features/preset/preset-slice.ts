@@ -12,10 +12,10 @@ import {
   IPresetsSettingData
 } from '../../../../types/index';
 import { RootState } from '../../store';
-import { getSettingsFromDashboardPayload } from '../../../../utils/preheat';
 import { DEFAULT_SETTING } from '../../../../constants/setting';
 import { getPresetsData, setPresetsData } from '../../../../data/presets';
 import { setScreen } from '../screens/screens-slice';
+import { KIND_PROFILE } from '../../../../constants';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -48,11 +48,12 @@ export const addPresetFromDashboard = createAsyncThunk(
 
     const presetId = new Date().getTime();
 
-    const settings = getSettingsFromDashboardPayload(payload.profile);
+    const settings = payload.profile;
     presetList.push({
       id: presetId,
       name: payload?.profile?.name,
       isDefault: true,
+      kind: payload?.profile?.kind ?? KIND_PROFILE.DASHBOARD,
       settings
     });
 

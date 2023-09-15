@@ -58,6 +58,7 @@ export interface ISensorData {
 export interface IPreset {
   id: number;
   name: string;
+  kind?: string;
   isDefault?: boolean;
   settings?: IPresetSetting[];
 }

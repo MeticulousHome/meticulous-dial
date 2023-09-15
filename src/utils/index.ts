@@ -1,4 +1,4 @@
-import { JSONValue, IPresetsSettingData } from '../../src/types';
+import { IPresetsSettingData } from '../../src/types';
 
 const regex = /^-?[0-9]+$/;
 
@@ -35,6 +35,7 @@ export const isValidJson = (json: string) => {
     JSON.parse(json);
     return true;
   } catch (e) {
+    console.log('ERROR:>> ', e);
     return false;
   }
 };
