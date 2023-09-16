@@ -28,8 +28,8 @@ export const SocketProviderValue = () => {
       }
     });
 
-    socket.on('save_profile', (data: any) => {
-      console.log('Receive: save_profile');
+    socket.on('save_in_dial', (data: any) => {
+      console.log('Receive: save_in_dial');
 
       const shouldSetActiveScreen =
         NON_EDITING_SCREENS.includes(screen.value) && stats.name === 'idle';

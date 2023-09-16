@@ -48,10 +48,12 @@ export const addPresetFromDashboard = createAsyncThunk(
 
     const presetId = new Date().getTime();
 
+    const settings = getSettingsFromDashboardPayload(payload.profile);
     presetList.push({
       id: presetId,
-      name: payload.name,
-      isDefault: true
+      name: payload?.profile?.name,
+      isDefault: true,
+      settings
     });
 
     presetState.value = presetList;
@@ -59,16 +61,6 @@ export const addPresetFromDashboard = createAsyncThunk(
     presetState.activePreset = presetState.value[presetState.activeIndexSwiper];
 
     await setPresetsData(presetList);
-
-    const settings = getSettingsFromDashboardPayload(payload);
-
-    const allSettings: IPresetsSettingData[] = [
-      ...state.presets.allSettings,
-      {
-        presetId: presetId.toString(),
-        settings
-      }
-    ];
 
     return presetState;
   }
@@ -98,14 +90,6 @@ export const addPresetNewOne = createAsyncThunk(
     presetState.activePreset = presetState.value[presetState.activeIndexSwiper];
 
     await setPresetsData(presetList);
-
-    // const allSettings: IPresetsSettingData[] = [
-    //   ...state.presets.allSettings,
-    //   {
-    //     presetId: presetId.toString(),
-    //     settings: settingsDefaultNewPreset
-    //   }
-    // ];
 
     return presetState;
   }
