@@ -906,12 +906,12 @@ export const generatePayload = ({ presset }: PayloadProps) => {
 };
 
 export const getSettingsFromDashboardPayload = (
-  payload: any
+  profile: any = {}
 ): IPresetSetting[] => {
+  const { name, stages = [] } = profile;
+
   // points
-  const infusionStages = payload.stages.filter(
-    (item: any) => item.name === 'infusion'
-  );
+  const infusionStages = stages.filter((item: any) => item.name === 'infusion');
 
   let infusionNode;
 
@@ -942,9 +942,7 @@ export const getSettingsFromDashboardPayload = (
   // points
 
   // temperature
-  const heatingStages = payload.stages.filter(
-    (item: any) => item.name === 'heating'
-  );
+  const heatingStages = stages.filter((item: any) => item.name === 'heating');
 
   let heatingNode;
 
@@ -970,9 +968,7 @@ export const getSettingsFromDashboardPayload = (
   // temperature
 
   // preinfusio
-  const preInfusion = payload.stages.find(
-    (item: any) => item.name === 'preinfusion'
-  );
+  const preInfusion = stages.find((item: any) => item.name === 'preinfusion');
   // preinfusio
 
   // output
@@ -1027,7 +1023,7 @@ export const getSettingsFromDashboardPayload = (
       type: 'text',
       key: 'name',
       label: `name`,
-      value: payload.name
+      value: name
     },
     {
       id: 2,
