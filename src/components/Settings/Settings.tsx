@@ -55,7 +55,7 @@ export function Settings(): JSX.Element {
           break;
         }
         case 'calibrate': {
-          socket.emit('action', 'calibrate');
+          socket.emit('calibrate', '');
           dispatch(setScreen('barometer'));
           break;
         }
