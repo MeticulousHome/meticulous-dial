@@ -13,5 +13,8 @@
     "plugin:import/typescript",
     "plugin:storybook/recommended"
   ],
-  "parser": "@typescript-eslint/parser"
+  "parser": "@typescript-eslint/parser",
+  "rules": {
+    "no-extra-boolean-cast": 0
+  }
 }
