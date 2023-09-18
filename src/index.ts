@@ -103,6 +103,32 @@ const getUpdatedKeys = (
   return keys;
 };
 
+const updateSettingsWithDiff = (
+  keys: Array<any>,
+  current: IPresetSetting[],
+  lastVersion: IPresetSetting[]
+) => {
+  return keys.map((key: any) => [
+    ...current,
+    ...lastVersion.filter((ns) => ns.key === key)
+  ]);
+};
+
+const getSettingsKeyOrdering = (settings: IPresetSetting[]) => {
+  return settingsDefaultNewPreset.map((i: IPresetSetting) => i.key);
+};
+
+const purgeSetting = (keys: Array<any>, settings: any) => {
+  return keys
+    .map((key: any, index: number) => {
+      const _settings = settings[0].filter(
+        (setting: IPresetSetting) => setting.key === key
+      );
+      return { ..._settings[0], id: ++index };
+    })
+    .map((item: any) => ({ ...item }));
+};
+
 const getPresetData = async () => {
   const defaultData = JSON.stringify(mockPreset);
 
@@ -120,30 +146,19 @@ const getPresetData = async () => {
           const settings = presetSettingData.find(
             (setting) => Number(setting.presetId) === preset.id
           ).settings;
-          /* const nameKeyIndex = settings.findIndex(
-            (setting) => setting.key === 'name'
-          ); */
 
           const diffKeys = getUpdatedKeys(settings, settingsDefaultNewPreset);
 
           if (diffKeys.length > 0) {
-            const settingsUpdated = diffKeys.map((key: any) => [
-              ...settings,
-              ...settingsDefaultNewPreset.filter((ns) => ns.key === key)
-            ]);
-
-            const keyOrdering = settingsDefaultNewPreset.map(
-              (i: IPresetSetting) => i.key
+            const settingsUpdated = updateSettingsWithDiff(
+              diffKeys,
+              settings,
+              settingsDefaultNewPreset
             );
-
-            const settingsPurged = keyOrdering
-              .map((key: any, index: number) => {
-                const settings = settingsUpdated[0].filter(
-                  (setting: IPresetSetting) => setting.key === key
-                );
-                return { ...settings[0], id: ++index };
-              })
-              .map((item) => ({ ...item }));
+            const keyOrdering = getSettingsKeyOrdering(
+              settingsDefaultNewPreset
+            );
+            const settingsPurged = purgeSetting(keyOrdering, settingsUpdated);
 
             console.log(JSON.stringify(settingsPurged));
 
