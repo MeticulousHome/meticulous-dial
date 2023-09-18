@@ -68,7 +68,7 @@ export function Meter({ min, max, value, step, className }: MeterProps) {
         transform={`rotate(${Math.round(
           needleAngle * (CIRCLE_DEG / CIRCLE)
         )}, ${ARC_RADIUS}, ${ARC_RADIUS})`}
-        style={{ transition: 'all 0.3s ease-in' }}
+        style={{ transition: 'all 0.15s linear' }}
       />
     </svg>
   );
