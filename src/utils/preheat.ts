@@ -908,7 +908,7 @@ export const generatePayload = ({ presset }: PayloadProps) => {
 export const getSettingsFromDashboardPayload = (
   profile: any = {}
 ): IPresetSetting[] => {
-  const { name, stages = [] } = profile;
+  const { name, stages = [], isPreheatOn } = profile;
 
   // points
   const infusionStages = stages.filter((item: any) => item.name === 'infusion');
@@ -1053,6 +1053,14 @@ export const getSettingsFromDashboardPayload = (
     },
     {
       id: 5,
+      type: 'on-off',
+      key: 'pre-heat',
+      label: 'pre-heat',
+      value: !!isPreheatOn ? 'yes' : 'no',
+      hidden: true
+    },
+    {
+      id: 6,
       type: 'numerical',
       key: 'output',
       label: 'output',
@@ -1061,7 +1069,7 @@ export const getSettingsFromDashboardPayload = (
       hidden: true
     },
     {
-      id: 6,
+      id: 7,
       type: 'multiple-option',
       key: 'purge',
       label: 'purge',
