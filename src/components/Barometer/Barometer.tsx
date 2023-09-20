@@ -46,7 +46,8 @@ export function Barometer({ maxValue = 13 }: IBarometerProps): JSX.Element {
           case 'dashboard_1_0': {
             const preset = {
               ...(presets.activePreset as any).dashboard,
-              name: presets.activePreset.name
+              name: presets.activePreset.name,
+              source: 'lcd'
             };
 
             const payload = {
