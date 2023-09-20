@@ -38,32 +38,52 @@ interface PresetsState extends PresetSettingInterface {
 export const addPresetFromDashboard = createAsyncThunk(
   'presetData/addPresetFromDashboard',
   async (payload: any, { getState, dispatch }) => {
-    const state = getState() as RootState;
-    const presetState = { ...state.presets } as PresetsState;
+    try {
+      const state = getState() as RootState;
+      const presetState = { ...state.presets } as PresetsState;
 
-    const presetList = presetState.value.map((preset) => ({
-      ...preset,
-      isDefault: false
-    }));
+      const presetList = presetState.value.map((preset) => ({
+        ...preset,
+        isDefault: false
+      }));
 
-    const presetId = new Date().getTime();
+      const presetId = new Date().getTime();
 
-    const settings = payload.profile;
-    presetList.push({
-      id: presetId,
-      name: payload?.profile?.name,
-      isDefault: true,
-      kind: payload?.profile?.kind ?? KIND_PROFILE.DASHBOARD,
-      settings
-    });
+      const settings = payload.profile;
+      presetList.push({
+        id: presetId,
+        name: payload?.profile?.name,
+        isDefault: true,
+        kind: payload?.profile?.kind ?? KIND_PROFILE.DASHBOARD,
+        settings: [
+          {
+            id: 1,
+            type: 'text',
+            key: 'name',
+            label: 'name',
+            value: payload?.profile?.name
+          }
+        ],
+        dashboard: {
+          ...settings
+        }
+      } as any);
 
-    presetState.value = presetList;
-    presetState.activeIndexSwiper = presetState.value.length - 1;
-    presetState.activePreset = presetState.value[presetState.activeIndexSwiper];
+      presetState.value = presetList;
+      presetState.activeIndexSwiper = presetState.value.length - 1;
+      presetState.activePreset =
+        presetState.value[presetState.activeIndexSwiper];
+      presetState.updatingSettings = {
+        presetId: presetState.activePreset.id.toString(),
+        settings: presetState.activePreset.settings
+      };
 
-    await setPresetsData(presetList);
+      await setPresetsData(presetList);
 
-    return presetState;
+      return presetState;
+    } catch (e) {
+      console.log('ERROR:> ', e);
+    }
   }
 );
 
@@ -473,6 +493,7 @@ const presetSlice = createSlice({
           state.value = action.payload.value;
           state.activeIndexSwiper = action.payload.activeIndexSwiper;
           state.activePreset = action.payload.activePreset;
+          state.updatingSettings = action.payload.updatingSettings;
         }
       )
       .addCase(setNextPreset.rejected, (state, action) => {

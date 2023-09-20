@@ -1,4 +1,4 @@
-import { ItalianProfile } from '../constants';
+import { DashboardProfile, ItalianProfile } from '../constants';
 
 interface JSONObject {
   [x: string]: JSONValue;
@@ -58,7 +58,7 @@ export interface ISensorData {
 export interface IPreset {
   id: number;
   name: string;
-  kind?: string;
+  kind?: ItalianProfile | DashboardProfile;
   isDefault?: boolean;
   settings?: IPresetSetting[];
 }
