@@ -205,18 +205,18 @@ const getPresetData = async () => {
         const presetDataWithSettings = currentPresets.map((preset) =>
           mergePresetsFromFiles(preset, legacyPresetSettings)
         );
-        console.log('legacy >> ', JSON.stringify(presetDataWithSettings));
+        console.log('****legacy****');
         return await savePresetsMigrated(
           presetDataWithSettings,
           presetPath,
           removePresetSettingFile
         );
       } else {
-        console.log('currentPresets >> ', JSON.stringify(currentPresets));
+        console.log('****currentPresets****');
         return await savePresetsMigrated(currentPresets, presetPath);
       }
     } else {
-      console.log('defaultData >> ', defaultData);
+      console.log('****defaultData****');
       return defaultData;
     }
   } catch (error) {
