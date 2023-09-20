@@ -162,7 +162,10 @@ const mergePresetsFromFiles = (preset: IPreset, legacyPresetSettings: any) => {
 };
 
 const addKindBecauseOfMigration = (preset: IPreset) => {
-  if (preset.settings.find((setting: IPresetSetting) => setting.hidden)) {
+  if (
+    preset.settings.find((setting: IPresetSetting) => setting.hidden) ||
+    preset.dashboard
+  ) {
     return {
       ...preset,
       kind: KIND_PROFILE.DASHBOARD
