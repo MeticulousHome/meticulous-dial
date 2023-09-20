@@ -61,6 +61,7 @@ export interface IPreset {
   kind?: ItalianProfile | DashboardProfile;
   isDefault?: boolean;
   settings?: IPresetSetting[];
+  dashboard?: any;
 }
 
 export interface IBasePresset {

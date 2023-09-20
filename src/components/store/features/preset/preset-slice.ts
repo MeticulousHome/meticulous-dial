@@ -80,7 +80,11 @@ export const addPresetFromDashboard = createAsyncThunk(
 
       await setPresetsData(presetList);
 
-      return presetState;
+      dispatch(
+        setPresetState({
+          ...presetState
+        })
+      );
     } catch (e) {
       console.log('ERROR:> ', e);
     }
@@ -104,15 +108,25 @@ export const addPresetNewOne = createAsyncThunk(
       id: presetId,
       name: 'New Preset',
       isDefault: true,
-      settings: settingsDefaultNewPreset
+      settings: settingsDefaultNewPreset,
+      kind: KIND_PROFILE.ITALIAN
     });
     presetState.value = presetList;
     presetState.activeIndexSwiper = presetState.value.length - 1;
     presetState.activePreset = presetState.value[presetState.activeIndexSwiper];
 
+    presetState.updatingSettings = {
+      presetId: presetState.activePreset.id.toString(),
+      settings: presetState.activePreset.settings
+    };
+
     await setPresetsData(presetList);
 
-    return presetState;
+    dispatch(
+      setPresetState({
+        ...presetState
+      })
+    );
   }
 );
 
@@ -235,6 +249,11 @@ export const deletePreset = createAsyncThunk(
     presetState.value = newListPresets;
     presetState.activeIndexSwiper = newSwiperIndex;
     presetState.activePreset = newDefaultPreset;
+
+    presetState.updatingSettings = {
+      presetId: presetState.activePreset.id.toString(),
+      settings: presetState.activePreset.settings
+    };
 
     dispatch(
       setPresetState({
@@ -408,9 +427,6 @@ const presetSlice = createSlice({
   name: 'presets',
   initialState,
   reducers: {
-    setActivePreset: (state: PresetsState, action: PayloadAction<number>) => {
-      // state.activePresetIndex = action.payload;
-    },
     setPresetState: (
       state: Draft<typeof initialState>,
       action: PayloadAction<PresetsState>
@@ -464,38 +480,6 @@ const presetSlice = createSlice({
         state.pending = false;
         state.error = true;
       })
-      .addCase(addPresetNewOne.pending, (state) => {
-        state.pending = true;
-      })
-      .addCase(addPresetNewOne.rejected, (state, action) => {
-        state.pending = false;
-        state.error = true;
-        console.log(action.error);
-      })
-      .addCase(
-        addPresetNewOne.fulfilled,
-        (state, action: PayloadAction<PresetsState>) => {
-          state.value = action.payload.value;
-          state.activeIndexSwiper = action.payload.activeIndexSwiper;
-          state.activePreset = action.payload.activePreset;
-        }
-      )
-      .addCase(addPresetFromDashboard.pending, (state) => {
-        state.pending = true;
-      })
-      .addCase(addPresetFromDashboard.rejected, (state) => {
-        state.pending = false;
-        state.error = true;
-      })
-      .addCase(
-        addPresetFromDashboard.fulfilled,
-        (state, action: PayloadAction<PresetsState>) => {
-          state.value = action.payload.value;
-          state.activeIndexSwiper = action.payload.activeIndexSwiper;
-          state.activePreset = action.payload.activePreset;
-          state.updatingSettings = action.payload.updatingSettings;
-        }
-      )
       .addCase(setNextPreset.rejected, (state, action) => {
         console.log(action);
       })
@@ -505,6 +489,5 @@ const presetSlice = createSlice({
   }
 });
 
-export const { setActivePreset, updatePresetSetting, setPresetState } =
-  presetSlice.actions;
+export const { updatePresetSetting, setPresetState } = presetSlice.actions;
 export default presetSlice.reducer;
