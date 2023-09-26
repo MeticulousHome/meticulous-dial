@@ -116,7 +116,7 @@ const updateSettingsWithDiff = (
   ]);
 };
 
-const getSettingsKeyOrdering = (settings: IPresetSetting[]) => {
+const getSettingsKeyOrdering = () => {
   return settingsDefaultNewPreset.map((i: IPresetSetting) => i.key);
 };
 
@@ -126,7 +126,8 @@ const purgeSetting = (keys: Array<any>, settings: any) => {
       const _settings = settings[0].filter(
         (setting: IPresetSetting) => setting.key === key
       );
-      return { ..._settings[0], id: ++index };
+
+      return !!_settings[0] ? { ..._settings[0], id: ++index } : undefined;
     })
     .map((item: any) => ({ ...item }));
 };
@@ -140,7 +141,7 @@ const migrateSettings = (settings: IPresetSetting[]) => {
       settings,
       settingsDefaultNewPreset
     );
-    const keyOrdering = getSettingsKeyOrdering(settingsDefaultNewPreset);
+    const keyOrdering = getSettingsKeyOrdering();
     const settingsPurged = purgeSetting(keyOrdering, settingsUpdated);
 
     return {
@@ -216,7 +217,24 @@ const getPresetData = async () => {
         );
       } else {
         console.log('****currentPresets****');
-        return await savePresetsMigrated(currentPresets, presetPath);
+        const presetsMigrated = currentPresets.map((preset) => ({
+          ...preset,
+          ...migrateSettings(preset.settings)
+        }));
+
+        const presetPurged = presetsMigrated.map((preset: IPreset) => {
+          if (preset.kind === KIND_PROFILE.DASHBOARD) {
+            return {
+              ...preset,
+              settings: preset.settings.filter(
+                (setting) => setting.key === 'name'
+              )
+            };
+          }
+          return { ...preset };
+        });
+
+        return await savePresetsMigrated(presetPurged, presetPath);
       }
     } else {
       console.log('****defaultData****');
