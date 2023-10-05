@@ -1,0 +1,344 @@
+@plugin "less-plugin-unique-directives";
+@plugin "./spring-physics-plugin";
+
+.spring-interpolate-keyframes(@property, @from, @to) {
+  .spring-interpolate-keyframes(@property, @from, @to, 1, 65, 10);
+}
+
+.spring-interpolate-keyframes(@property, @from, @to, @mass, @stiffness, @damping) {
+  each(range(0, 100), {
+    @keyf: ~"@{value}%";
+    @{keyf} {
+      @interpolated: spring(@value, @from, @to, @mass, @stiffness, @damping);
+      @finalProperty: if((@property = translate-y), transform, @property);
+      @{finalProperty}: if((@property = translate-y), translate(0, @interpolated), @interpolated);
+    }
+  });
+}
+
+.fade-in-keyframes() {
+  0% {
+    opacity: 0;
+  }
+  4% {
+    opacity: 0.4;
+  }
+  22% {
+    opacity: 0.7;
+  }
+  23% {
+    opacity: 0.8;
+  }
+  24% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.fade-out-keyframes() {
+  0% {
+    opacity: 1;
+  }
+  20% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@zoom-out-scale: 2.3;
+@zoom-in-scale: 0.3;
+@navigation-title-font-size: 35px;
+@navigation-title-top: 80px;
+@navigation-title-parent-font-size: 30px;
+@navigation-title-parent-top: 23px;
+@navigation-title-shared-top: 72px;
+
+.route {
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  will-change: transform, opacity;
+}
+
+.route.enter.in {
+  animation-name: route-enter-in;
+  &.small {
+    animation-name: route-enter-in-small;
+  }
+}
+
+.route.enter.out {
+  animation-name: route-enter-out;
+  &.small {
+    animation-name: route-enter-out-small;
+  }
+}
+
+.route.leave.in {
+  animation-name: route-leave-in;
+  &.small {
+    animation-name: route-leave-in-small;
+  }
+}
+
+.route.leave.out {
+  animation-name: route-leave-out;
+  &.small {
+    animation-name: route-leave-out-small;
+  }
+}
+
+@keyframes route-enter-in {
+  .spring-interpolate-keyframes(scale, @zoom-in-scale, 1);
+  .fade-in-keyframes();
+}
+
+@keyframes route-enter-out {
+  .spring-interpolate-keyframes(scale, @zoom-out-scale, 1);
+  .fade-in-keyframes();
+}
+
+@keyframes route-leave-in {
+  .spring-interpolate-keyframes(scale, 1, @zoom-out-scale);
+  .fade-out-keyframes();
+}
+
+@keyframes route-leave-out {
+  .spring-interpolate-keyframes(scale, 1, @zoom-in-scale);
+  .fade-out-keyframes();
+}
+
+@keyframes route-enter-in-small {
+  .fade-in-keyframes();
+  .spring-interpolate-keyframes(scale, 0.87, 1);
+}
+
+@keyframes route-enter-out-small {
+  .fade-in-keyframes();
+  .spring-interpolate-keyframes(scale, 1.4, 1);
+}
+
+@keyframes route-leave-in-small {
+  .fade-out-keyframes();
+  .spring-interpolate-keyframes(scale, 1, 1.4);
+}
+
+@keyframes route-leave-out-small {
+  .fade-out-keyframes();
+  .spring-interpolate-keyframes(scale, 1, 0.87);
+}
+
+.navigation-title {
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+.navigation-title.enter {
+  animation-name: title-fade-in;
+}
+
+.navigation-title.leave {
+  animation-name: title-fade-out;
+}
+
+.navigation-title,
+.navigation-title.parent.enter.in,
+.navigation-title.shared.enter.in {
+  position: absolute;
+  top: @navigation-title-top;
+  left: 95px;
+  right: 95px;
+  text-align: center;
+  font-size: @navigation-title-font-size;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.navigation-title.parent {
+  top: @navigation-title-parent-top;
+  opacity: 0.4;
+  font-size: @navigation-title-parent-font-size;
+}
+
+.navigation-title.shared {
+  font-size: @navigation-title-parent-font-size;
+  top: @navigation-title-shared-top;
+}
+
+.navigation-title.enter.in {
+  animation-name: child-title-enter-in;
+}
+
+.navigation-title.enter.out {
+  animation-name: child-title-enter-out;
+}
+
+.navigation-title.parent.enter.in {
+  animation-name: parent-title-enter-in;
+}
+
+.navigation-title.parent.enter.out {
+  animation-name: parent-title-enter-out;
+}
+
+.navigation-title.shared.enter.in {
+  animation-name: shared-title-enter-in;
+}
+
+.navigation-title.shared.enter.out {
+  animation-name: shared-title-enter-out;
+}
+
+.navigation-title.leave.in {
+  animation-name: child-title-leave-in;
+}
+
+.navigation-title.leave.out {
+  animation-name: child-title-leave-out;
+}
+
+.navigation-title.parent.leave.in {
+  animation-name: parent-title-leave-in;
+}
+
+.navigation-title.parent.leave.out {
+  animation-name: parent-title-leave-out;
+}
+
+@keyframes title-fade-in {
+  .fade-in-keyframes();
+}
+
+@keyframes title-fade-out {
+  .fade-out-keyframes();
+}
+
+@keyframes child-title-enter-in {
+  .spring-interpolate-keyframes(scale, 2.3, 1);
+  .spring-interpolate-keyframes(translate-y, 50px, 0);
+  .spring-interpolate-keyframes(opacity, 0, 1);
+}
+
+@keyframes child-title-enter-out {
+  .spring-interpolate-keyframes(scale, 0.857, 1);
+  .spring-interpolate-keyframes(translate-y, -70px, 0);
+  .spring-interpolate-keyframes(opacity, 0.4, 1);
+}
+
+@keyframes shared-title-enter-in {
+  .spring-interpolate-keyframes(scale, 0.857, 1);
+  .spring-interpolate-keyframes(translate-y, -12px, 0);
+}
+
+@keyframes shared-title-enter-out {
+  .spring-interpolate-keyframes(scale, 1.167, 1);
+  .spring-interpolate-keyframes(translate-y, 10px, 0);
+}
+
+@keyframes parent-title-enter-in {
+  .spring-interpolate-keyframes(scale, 1, 0.857);
+  .spring-interpolate-keyframes(translate-y, 0, -70px);
+  .spring-interpolate-keyframes(opacity, 1, 0.4);
+}
+
+@keyframes parent-title-enter-out {
+  .spring-interpolate-keyframes(scale, 0.857, 1);
+  .spring-interpolate-keyframes(translate-y, -70px, 0);
+  .spring-interpolate-keyframes(opacity, 0.4, 1);
+}
+
+@keyframes child-title-leave-in {
+  .spring-interpolate-keyframes(scale, 2.3, 1);
+  .spring-interpolate-keyframes(translate-y, -50px, 0);
+
+  0% {
+    opacity: 1;
+  }
+
+  30%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes child-title-leave-out {
+  .spring-interpolate-keyframes(scale, 1, 2.3);
+  .spring-interpolate-keyframes(translate-y, 0, 50px);
+
+  0% {
+    opacity: 1;
+  }
+
+  80%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes parent-title-leave-in {
+  .spring-interpolate-keyframes(scale, 1, 0.571428571428571);
+  .spring-interpolate-keyframes(translate-y, 0, 60px);
+  .spring-interpolate-keyframes(opacity, 1, 0);
+}
+
+@keyframes parent-title-leave-out {
+  .spring-interpolate-keyframes(scale, 0.571428571428571, 1);
+  .spring-interpolate-keyframes(translate-y, 60px, 0);
+  .spring-interpolate-keyframes(opacity, 1, 0);
+}
+
+/* Route specific overrides */
+
+.route.small {
+  &.route-output,
+  &.route-temperature,
+  &.route-pressure {
+    animation-name: none !important;
+
+    .navigation-title {
+      animation-timing-function: linear;
+      animation-fill-mode: forwards;
+      animation-duration: 0.45s;
+    }
+    &.enter {
+      .scalesLayout,
+      .navigation-title {
+        animation-name: route-enter-in-small;
+      }
+    }
+    &.leave {
+      .scalesLayout,
+      .navigation-title {
+        animation-name: route-leave-out-small;
+      }
+    }
+  }
+
+  .gauge-container > svg,
+  .gauge-container > .scalesLayout {
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+    animation-duration: 0.45s;
+  }
+  &.enter .gauge-container > svg {
+    animation-name: gauge-scale-in;
+  }
+  &.leave .gauge-container > svg {
+    animation-name: gauge-scale-out;
+  }
+}
+
+@keyframes gauge-scale-in {
+  .fade-in-keyframes();
+  .spring-interpolate-keyframes(scale, 1.12, 1);
+}
+
+@keyframes gauge-scale-out {
+  .fade-out-keyframes();
+  .spring-interpolate-keyframes(scale, 1, 1.12);
+}

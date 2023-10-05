@@ -1,3 +1,16 @@
+import { DashboardProfile, ItalianProfile } from '../constants';
+
+interface JSONObject {
+  [x: string]: JSONValue;
+}
+
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | JSONObject
+  | Array<JSONValue>;
+
 export type ActionType =
   | 'Home'
   | 'Scale'
@@ -25,7 +38,6 @@ export type GestureType =
   | 'doubleTare'
   | 'doubleClick'
   | 'start'
-  | ''
   | 'longTare'
   | 'longEncoder';
 
@@ -46,7 +58,10 @@ export interface ISensorData {
 export interface IPreset {
   id: number;
   name: string;
+  kind?: ItalianProfile | DashboardProfile;
   isDefault?: boolean;
+  settings?: IPresetSetting[];
+  dashboard?: any;
 }
 
 export interface IBasePresset {
@@ -69,6 +84,8 @@ export type PurgeKey = 'purge';
 export type OutputKey = 'output';
 
 export type PreInfusionKey = 'pre-infusion';
+
+export type PreHeatKey = 'pre-heat';
 
 export type ActionKey = 'save' | 'discard' | 'delete';
 
@@ -133,9 +150,14 @@ export type PresetOnOff = {
 };
 
 export type PresetOnOffPreinfusion = PresetOnOff & { key: PreInfusionKey };
+
+export type PresetOnOffPreHeat = PresetOnOff & { key: PreHeatKey };
+
 export interface IPresetOnOffPreinfusion
   extends IBasePresset,
     PresetOnOffPreinfusion {}
+
+export interface IPresetOnOffPreheat extends IBasePresset, PresetOnOffPreHeat {}
 
 export type PresetAction = {
   type: 'action';
@@ -154,6 +176,7 @@ export type IPresetSetting =
   | IPresetMultipleOptionRatio
   | IPresetMultipleOptionPurge
   | IPresetOnOffPreinfusion
+  | IPresetOnOffPreheat
   | IPresetAction;
 
 export interface IPresetsSettingData {
@@ -169,13 +192,34 @@ export type IPresetType =
   | RatioKey
   | PurgeKey
   | PreInfusionKey
+  | PreHeatKey
   | ActionKey
   | '';
 
-export type ISettingType = PressureKey | TemperatureKey | OutputKey;
+export type ISettingType =
+  | PressureKey
+  | TemperatureKey
+  | OutputKey
+  | PreHeatKey
+  | PreInfusionKey;
 
 type SettingsKeys = 'key' | 'value';
 export interface PressetSettings {
   name: string;
   settings: Record<SettingsKeys, string | number>[];
+}
+
+export type Actions = 'to_play';
+
+export interface IItalian {
+  action: Actions;
+  name: string;
+  automatic_purge: boolean;
+  temperature: number;
+  preinfusion: boolean;
+  preheat: boolean;
+  pressure: number;
+  out_weight: number;
+  source: 'lcd';
+  kind: ItalianProfile;
 }

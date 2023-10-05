@@ -1,81 +1,94 @@
 import './barometer.css';
 import { formatStatValue } from '../../utils';
-import { useAppSelector } from '../store/hooks';
-import { useCallback } from 'react';
-import { ISensorData } from '../../types';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { generateSimplePayload } from '../../utils/preheat';
+import { useSocket } from '../store/SocketManager';
+import { setScreen } from '../store/features/screens/screens-slice';
+import { resetActiveSetting } from '../store/features/preset/preset-slice';
+import { Meter } from './Meter';
+import { KIND_PROFILE, LCD_EVENT_EMIT } from '../../constants';
 
 export interface IBarometerProps {
-  stats: ISensorData;
   maxValue?: number;
 }
 
-const getBarNeedlePosition = (pressure: string, maxValue: number) => {
-  const final = (313 * parseFloat(pressure)) / maxValue;
-  const barNeedleRotatePosition = final < 0 ? 0 : final;
+export function Barometer({ maxValue = 13 }: IBarometerProps): JSX.Element {
+  const stats = useAppSelector((state) => state.stats);
+  const presets = useAppSelector((state) => state.presets);
+  const socket = useSocket();
+  const dispatch = useAppDispatch();
 
-  return barNeedleRotatePosition > 313
-    ? 313 + 114
-    : barNeedleRotatePosition + 114; //start position
-};
+  useHandleGestures(
+    {
+      start() {
+        switch (presets.activePreset.kind) {
+          case 'italian_1_0': {
+            const preset = {
+              name: presets.activePreset.name,
+              settings: (presets.activePreset?.settings || []).filter(
+                (item) => item.id !== -1 && item.id !== -2
+              )
+            };
 
-export function Barometer({
-  stats,
-  maxValue = 13
-}: IBarometerProps): JSX.Element {
-  const barNeedleRotatePosition = getBarNeedlePosition(
-    stats.sensors.p,
-    maxValue
+            if (preset.settings.length === 0) return;
+
+            const payload = generateSimplePayload({
+              presset: preset as any,
+              action: 'to_play'
+            });
+
+            console.log(`${KIND_PROFILE.ITALIAN}:> ${JSON.stringify(payload)}`);
+
+            socket.emit(LCD_EVENT_EMIT.FEED_PROFILE, JSON.stringify(payload));
+            break;
+          }
+          case 'dashboard_1_0': {
+            const preset = {
+              ...(presets.activePreset as any).dashboard,
+              name: presets.activePreset.name,
+              source: 'lcd'
+            };
+
+            const payload = {
+              ...preset,
+              action: 'to_play'
+            };
+
+            console.log(
+              `${KIND_PROFILE.DASHBOARD}:> ${JSON.stringify(payload)}`
+            );
+
+            socket.emit(LCD_EVENT_EMIT.FEED_PROFILE, JSON.stringify(payload));
+            break;
+          }
+        }
+      },
+      click() {
+        dispatch(resetActiveSetting());
+        dispatch(setScreen('pressetSettings'));
+      },
+      left() {
+        dispatch(setScreen('pressets'));
+      },
+      right() {
+        dispatch(setScreen('pressets'));
+      }
+    },
+    stats?.name !== 'idle'
   );
-  const { screen } = useAppSelector((state) => state);
-
-  const getAnimation = useCallback(() => {
-    let animation = '';
-
-    if (stats.name === 'idle') animation = 'hidden';
-
-    if (
-      ((screen.value === 'scale' || screen.value === 'settings') &&
-        screen.prev === 'barometer') ||
-      (screen.value === 'barometer' &&
-        (screen.prev === 'scale' || screen.prev === 'settings'))
-    ) {
-      animation = '';
-    } else if (
-      screen.value === 'barometer' &&
-      (screen.prev === 'pressets' || !screen.prev)
-    ) {
-      animation = 'barometer__fadeIn';
-    } else if (
-      screen.value === 'barometer' &&
-      screen.prev == 'pressetSettings'
-    ) {
-      animation = 'pressetSettingsToBarometer__fadeIn';
-    } else if (
-      screen.value === 'pressetSettings' &&
-      screen.prev === 'barometer'
-    ) {
-      animation = 'barometerToPressetSettings__fadeOut';
-    } else if (screen.value === 'pressets' && screen.prev === 'barometer') {
-      animation = 'barometer__fadeOut';
-    }
-
-    return animation;
-  }, [screen]);
 
   return (
-    <div className={`barometer-container ${getAnimation()}`}>
-      <div
-        className="bar-needle bar-needle--transition-all"
-        style={{ transform: `rotate(${barNeedleRotatePosition}deg)` }}
-      ></div>
-
-      {/* {(screen.prev === 'scale' ||
-        (screen.value === 'scale' && stats.name)) && (
-        <div className="main-title-selected">{stats.name}</div>
-      )} */}
-
+    <div className="barometer-container">
+      <Meter
+        min={0}
+        max={maxValue}
+        step={1}
+        value={Number.parseFloat(stats.sensors.p)}
+        className="meter"
+      />
       <div className="bar-needle__content">
-        <div className="pressure">PRESSURE</div>
+        <div className="pressure">Pressure</div>
         <div className="bar-needle__legend">
           <span className="bar-needle__value">
             {formatStatValue(stats.sensors.p, 1)}
@@ -85,40 +98,32 @@ export function Barometer({
 
         <div className="columns-grid">
           <div className="column-item">
-            <div>
-              <div className="column-label">TEMP</div>
-              <div className="column-value">
-                {formatStatValue(stats.sensors.t, 1)}
-              </div>
+            <div className="column-label">TEMP</div>
+            <div className="column-value">
+              {formatStatValue(stats.sensors.t, 1)}
+              <div className="column-unit">°C</div>
             </div>
-            <div className="column-data">°C</div>
           </div>
           <div className="column-item">
-            <div>
-              <div className="column-label">WEIGHT</div>
-              <div className="column-value">
-                {formatStatValue(stats.sensors.w, 1)}
-              </div>
+            <div className="column-label">WEIGHT</div>
+            <div className="column-value">
+              {formatStatValue(stats.sensors.w, 1)}
+              <div className="column-unit">g</div>
             </div>
-            <div className="column-data">g</div>
           </div>
           <div className="column-item">
-            <div>
-              <div className="column-label">TIME</div>
-              <div className="column-value">
-                {formatStatValue(stats.time, 1)}
-              </div>
+            <div className="column-label">TIME</div>
+            <div className="column-value">
+              {formatStatValue(stats.time, 1)}
+              <div className="column-unit">sec</div>
             </div>
-            <div className="column-data">sec</div>
           </div>
           <div className="column-item">
-            <div>
-              <div className="column-label">FLOW</div>
-              <div className="column-value">
-                {formatStatValue(stats.sensors.f, 1)}
-              </div>
+            <div className="column-label">FLOW</div>
+            <div className="column-value">
+              {formatStatValue(stats.sensors.f, 1)}
+              <div className="column-unit">ml/s</div>
             </div>
-            <div className="column-data">ml/s</div>
           </div>
         </div>
 

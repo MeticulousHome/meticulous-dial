@@ -29,27 +29,13 @@ export function Scale(): JSX.Element {
 
   return (
     <div
-      className={`main-layout ${
-        screen.value === 'scale'
-          ? 'scale__fadeIn'
-          : screen.prev === 'scale'
-          ? 'scale__fadeOut'
-          : 'hidden'
-      }`}
+      className={`main-layout`}
       style={{
         zIndex: 50
       }}
     >
       <div className="main-layout-content">
         <div className="pressets-options-conainer">
-          <div
-            className="title-main-2"
-            style={{
-              fontWeight: 'bold'
-            }}
-          >
-            scale
-          </div>
           <div className="scale-weight">
             <div className="weight">{getTotalScale()}</div>
             <div className="weight-data">g</div>

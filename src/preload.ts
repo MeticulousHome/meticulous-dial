@@ -3,9 +3,9 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('meticulousAPI', {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   saveFile: (filename: string, data: any) =>
     ipcRenderer.invoke('saveFile', filename, data),
-  getPresetData: () => ipcRenderer.invoke('getPresetData'),
-  getPresetSettingData: () => ipcRenderer.invoke('getPresetSettingData')
+  getPresetData: () => ipcRenderer.invoke('getPresetData')
   // we can also expose variables, not just functions
 });

@@ -1,5 +1,0 @@
-<svg width="480" height="480" viewBox="0 0 480 480" fill="none" xmlns="http://www.w3.org/2000/svg">
-<circle cx="240" cy="240" r="237" stroke="white" stroke-opacity="0.15" stroke-width="6"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M240 474C110.765 474 6 369.235 6 240C6 110.765 110.765 6 240 6C362.157 6 462.451 99.6042 473.07 219H479.094C468.457 96.2859 365.473 0 240 0C107.452 0 0 107.452 0 240C0 372.548 107.452 480 240 480V474Z" fill="white"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M240 240L176.5 368.5L120 480H240H360L303.5 368.5L240 240Z" fill="black"/>
-</svg>

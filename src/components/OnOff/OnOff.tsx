@@ -1,81 +1,56 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '../store/hooks';
 import { MultipleOptionSlider } from '../shared/MultipleOptionSlider';
-import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
-import { IPresetSetting } from '../../../src/types';
+import { updatePresetSetting } from '../store/features/preset/preset-slice';
+import { IPresetSetting, ISettingType } from '../../../src/types';
+import { useHandleGestures } from '../../../src/hooks/useHandleGestures';
+import { setScreen } from '../store/features/screens/screens-slice';
 
-export function OnOff(): JSX.Element {
-  const [options] = useState(['Yes', 'No']);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const { screen, gesture, presetSetting } = useAppSelector((state) => state);
+interface Props {
+  type: ISettingType;
+}
+
+const options = ['Yes', 'No'];
+
+export function OnOff({ type }: Props): JSX.Element {
   const dispatch = useDispatch();
-
-  const setting = presetSetting?.updatingSettings.settings.find(
-    (setting) => setting.key === 'pre-infusion'
+  const setting = useAppSelector((state) =>
+    state.presets.updatingSettings.settings.find(
+      (setting) => setting.key === type
+    )
   );
 
-  useEffect(() => {
-    if (
-      setting?.type === 'on-off' &&
-      screen.value !== 'scale' &&
-      screen.value !== 'settings' &&
-      screen.prev !== 'scale' &&
-      screen.prev !== 'settings'
-    ) {
-      setActiveIndex(setting.value === 'yes' ? 0 : 1);
-    }
-  }, [setting, screen]);
+  const [activeIndex, setActiveIndex] = useState(
+    setting?.value
+      ? options.findIndex((option) => option.toLowerCase() === setting.value)
+      : 0
+  );
 
-  useEffect(() => {
-    if (screen.value === 'onOff') {
-      switch (gesture.value) {
-        case 'right':
-          if (activeIndex > 0) {
-            setActiveIndex(activeIndex - 1);
-          }
-          break;
-        case 'left':
-          if (activeIndex < options.length - 1) {
-            setActiveIndex(activeIndex + 1);
-          }
-          break;
-        case 'click':
-          dispatch(
-            updatePresetSetting({
-              ...setting,
-              value: options[activeIndex].toLowerCase()
-            } as IPresetSetting)
-          );
-          break;
-        default:
-          break;
-      }
+  useHandleGestures({
+    left() {
+      setActiveIndex((prev) => Math.min(prev + 1, options.length - 1));
+    },
+    right() {
+      setActiveIndex((prev) => Math.max(prev - 1, 0));
+    },
+    click() {
+      const value = options[activeIndex].toLowerCase();
+      dispatch(
+        updatePresetSetting({
+          ...setting,
+          value
+        } as IPresetSetting)
+      );
+      dispatch(setScreen('pressetSettings'));
     }
-  }, [screen, gesture]);
-
-  const getAnimation = useCallback(() => {
-    if (
-      ((screen.value === 'scale' || screen.value === 'settings') &&
-        screen.prev === 'onOff') ||
-      (screen.value === 'onOff' &&
-        (screen.prev === 'scale' || screen.prev === 'settings'))
-    ) {
-      return 'None';
-    } else if (screen.value === 'onOff') {
-      return 'FadeIn';
-    } else if (screen.prev === 'onOff') {
-      return 'FadeOut';
-    }
-  }, [screen]);
+  });
 
   return (
     <MultipleOptionSlider
       {...{
         activeIndex,
-        contentAnimation: getAnimation(),
         options,
-        title: 'pre-infusion',
         spaceBetween: -40
       }}
     />

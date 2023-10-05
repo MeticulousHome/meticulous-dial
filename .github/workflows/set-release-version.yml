@@ -15,9 +15,9 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}
       - name: Setup Node.js 18
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version-file: '.node-version'
       - name: Disable "include administrators" branch protection
         id: disable_include_admins
         uses: benjefferies/branch-protection-bot@1.0.8
@@ -40,5 +40,5 @@ jobs:
           branch: ${{ github.ref_name }}
           enforce_admins: ${{ steps.disable_include_admins.outputs.initial_status }}
       - name: Sync beta with master branch
-        if: github.ref_name == 'xmaster'
+        if: github.ref_name == 'master'
         run: git push origin master:beta --force

@@ -17,68 +17,6 @@ export const dummyOptions = [
   }
 ] as unknown as IPresetSetting[];
 
-export const generateMockSetting = (name: string): IPresetSetting[] => {
-  return [
-    {
-      id: 1,
-      type: 'text',
-      key: 'name',
-      label: `name: ${name}`,
-      value: name
-    },
-    {
-      id: 2,
-      type: 'numerical',
-      key: 'pressure',
-      label: 'pressure: 9 bar',
-      value: 9,
-      unit: 'bar'
-    },
-    {
-      id: 3,
-      type: 'numerical',
-      key: 'temperature',
-      label: 'temperature: 86°c',
-      value: 86,
-      unit: '°c'
-    },
-    {
-      id: 4,
-      type: 'on-off',
-      key: 'pre-infusion',
-      label: 'pre-infusion: yes',
-      value: 'yes'
-    },
-    {
-      id: 6,
-      type: 'numerical',
-      key: 'output',
-      label: 'output',
-      value: 18,
-      unit: 'g'
-    },
-    {
-      id: 7,
-      type: 'multiple-option',
-      key: 'purge',
-      label: 'purge: automatic',
-      value: 'automatic'
-    },
-    {
-      id: 8,
-      type: 'action',
-      key: 'save',
-      label: 'save'
-    },
-    {
-      id: 9,
-      type: 'action',
-      key: 'discard',
-      label: 'discard'
-    }
-  ];
-};
-
 export const settingsDefaultNewPreset: IPresetSetting[] = [
   {
     id: 1,
@@ -112,6 +50,13 @@ export const settingsDefaultNewPreset: IPresetSetting[] = [
   },
   {
     id: 5,
+    type: 'on-off',
+    key: 'pre-heat',
+    label: 'pre-heat',
+    value: 'yes'
+  },
+  {
+    id: 6,
     type: 'numerical',
     key: 'output',
     label: 'output',
@@ -119,7 +64,7 @@ export const settingsDefaultNewPreset: IPresetSetting[] = [
     unit: 'g'
   },
   {
-    id: 6,
+    id: 7,
     type: 'multiple-option',
     key: 'purge',
     label: 'purge',

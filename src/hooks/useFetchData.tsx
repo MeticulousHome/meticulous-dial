@@ -1,24 +1,11 @@
-import { useContext, useEffect } from 'react';
+import { useEffect } from 'react';
 import { getPresets } from '../components/store/features/preset/preset-slice';
-import {
-  getPresetSettings,
-  setSettings
-} from '../components/store/features/presetSetting/presetSetting-slice';
-import { useAppSelector } from '../components/store/hooks';
-import { SockerContext } from '../components/store/SockerManager';
+import { useAppDispatch } from '../components/store/hooks';
 
 export function useFetchData() {
-  const dispatch = useContext(SockerContext);
-  const { presets, presetSetting } = useAppSelector((state) => state);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     dispatch(getPresets());
-    dispatch(getPresetSettings());
   }, []);
-
-  useEffect(() => {
-    if (presets.activePreset.id !== -1 && presetSetting.allSettings.length) {
-      dispatch(setSettings(presets.activePreset.id));
-    }
-  }, [presets.activePreset, presetSetting.allSettings]);
 }
