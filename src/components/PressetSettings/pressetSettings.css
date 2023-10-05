@@ -1,32 +1,25 @@
 .presset-option-item {
-  color: #5e5e5e;
   font-size: 40px;
   line-height: 52px;
   font-weight: 500;
-  font-family: 'Maison', sans-serif;
   justify-content: start;
 }
 
-.item-active {
-  color: #fff;
-}
-
 .delete-option-item {
-  color: #E74D4D;
-  opacity: 0.5;
-}
-
-.item-active.delete-option-item {
-  opacity: 1;
+  color: #e74d4d;
 }
 
 .presset-options {
-  width: 100vw;
-  height: 100vh;
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
+  right: 0;
+  bottom: 0;
   padding-left: 72px;
+}
+
+.presset-options .swiper {
+  z-index: 0;
 }
 
 .test-mid-screen {
@@ -42,12 +35,11 @@
 @keyframes bounce-next {
   0%,
   100% {
-    transform: translateY(-36px);
+    transform: translateY(-16px);
   }
   20% {
     transform: translateY(0);
   }
-
   34% {
     transform: translateY(0);
   }
@@ -60,12 +52,11 @@
 @keyframes bounce-prev {
   0%,
   100% {
-    transform: translateY(36px);
+    transform: translateY(16px);
   }
   20% {
     transform: translateY(0);
   }
-
   34% {
     transform: translateY(0);
   }
@@ -82,25 +73,36 @@
   animation: bounce-prev 1800ms ease-in-out;
 }
 
-.blur {
-  background: black;
-  filter: blur(30px);
-  z-index: 1;
-  width: 100%;
-  height: 200px;
-  opacity: 0.9;
+.fade {
+  position: absolute;
+  left: 0;
+  right: 0;
 }
 
-.blur-top {
-  position: absolute;
-  top: -100px;
-  left: 0;
+.fade-top {
+  top: 0;
+  height: 220px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 25%,
+    rgba(0, 0, 0, 0.7) 60%,
+    rgba(0, 0, 0, 0.7) 95%,
+    rgba(0, 0, 0, 0) 100%
+  );
 }
 
-.blur-bottom {
-  position: absolute;
-  bottom: -100px;
-  left: 0;
+.fade-bottom {
+  bottom: 0;
+  height: 215px;
+  background: linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 25%,
+    rgba(0, 0, 0, 0.7) 60%,
+    rgba(0, 0, 0, 0.7) 95%,
+    rgba(0, 0, 0, 0) 100%
+  );
 }
 
 .presset-title {
@@ -110,8 +112,7 @@
 }
 
 .presset-container {
-  position: relative;
+  position: absolute;
   height: 100%;
-  position: fixed;
   width: 100%;
 }

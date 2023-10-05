@@ -1,9 +1,6 @@
 import { createContext, ReactNode, useContext } from 'react';
 
-import {
-  SetSocketKeyboardListeners,
-  SocketProviderValue
-} from './SocketProviderValue';
+import { SocketProviderValue } from './SocketProviderValue';
 
 // socket context
 export const SocketContext = createContext(null);
@@ -18,8 +15,7 @@ export const SocketManager = ({
 }: {
   children: ReactNode;
 }): JSX.Element => {
-  SocketProviderValue();
-  const dispatch = SetSocketKeyboardListeners();
+  const dispatch = SocketProviderValue();
   return (
     <SocketContext.Provider value={dispatch}>{children}</SocketContext.Provider>
   );

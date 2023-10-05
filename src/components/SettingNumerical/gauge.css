@@ -1,7 +1,9 @@
 .gauge-container {
-  height: 100%;
-  width: 100%;
-  position: fixed;
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -13,48 +15,48 @@
   font-weight: 400;
   font-size: 145px;
   text-align: center;
-  font-family: 'Lekton';
 }
 
 .gauge-unit {
   position: absolute;
   bottom: 183px;
-  right: 75px; 
+  right: 75px;
   font-weight: 400;
   font-size: 40px;
-  font-family: 'Lekton';
 }
 
 .scalesLayout {
-  /* background-color: #000000; */
-  height: 100%;
-  width: 100%;
-  position: fixed;
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
-  z-index: 12; 
+  z-index: 12;
 }
 
 .scale-content {
   width: 100%;
-  display: flex; 
+  display: flex;
   height: 104px;
 }
 
-.scale-content .scale-level { 
+.scale-content .scale-level {
   font-size: 140px;
-  line-height: 96px; 
+  line-height: 96px;
   width: 282px;
   text-align: right;
   margin: 0;
+  font-family: 'Lato';
 }
 
 .scale-content .scale-unit {
   flex: 1;
   font-size: 24px;
   line-height: 186px;
-  font-family: sans-serif;
-} 
+  text-transform: uppercase;
+}
 
 .scale-pressure .scale-level {
   margin-left: 100px;
@@ -65,14 +67,14 @@
 }
 
 .scale-weight-limit .scale-level {
-  margin-left: 88px; 
+  margin-left: 88px;
 }
 
 .scale-flow .scale-level {
   margin-left: 70px;
-  margin-right: 4px; 
+  margin-right: 4px;
 }
 
 .opacity-20 {
-  opacity: .2;
+  opacity: 0.2;
 }

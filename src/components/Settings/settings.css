@@ -1,50 +1,24 @@
 .settings-container {
-    width: 100%;
-    height: 100%;
-    position: fixed
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
 }
 .settings-options {
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    padding-left: 72px;
-  }
-  .setting-option-item {
-    color: #5e5e5e;
-    font-size: 40px;
-    line-height: 52px;
-    font-weight: 500;
-    font-family: 'Maison', sans-serif;
-    justify-content: start;
-  }
-  .title {
-    text-align: center;
-    font-size: 35px;
-    line-height: 1;
-    z-index: 10;
-    position: absolute;
-    top: 60px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: 'Maison', sans-serif;
-  }
-  .blur {
-    background: black;
-    filter: blur(30px);
-    z-index: 1;
-    width: 100%;
-    height: 200px;
-    opacity: 0.9;
-  }
-  .blur-top {
-    position: absolute;
-    top: -100px;
-    left: 0;
-  }
-  .blur-bottom {
-    position: absolute;
-    bottom: -100px;
-    left: 0;
-  }
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  padding-left: 72px;
+}
+.settings-options .swiper {
+  z-index: 0;
+}
+.setting-option-item {
+  font-size: 40px;
+  line-height: 52px;
+  font-weight: 500;
+  justify-content: start;
+}

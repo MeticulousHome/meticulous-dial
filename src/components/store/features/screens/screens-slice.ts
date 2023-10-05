@@ -4,12 +4,17 @@ export type ScreenType =
   | 'barometer'
   | 'pressets'
   | 'pressetSettings'
+  | 'name'
+  | 'pressure'
+  | 'temperature'
+  | 'dose'
+  | 'ratio'
+  | 'output'
+  | 'pre-infusion'
+  | 'pre-heat'
   | 'scale'
-  | 'settingNumerical'
-  | 'circleKeyboard'
-  | 'onOff'
-  | 'purge'
-  | 'settings';
+  | 'settings'
+  | 'purge';
 
 interface ScreenState {
   value: ScreenType;

@@ -1,3 +1,6 @@
 # Ignore artifacts:
 build
 coverage
+
+# Ignore vendored dependencies:
+/src/assets/fonts/custom

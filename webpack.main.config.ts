@@ -10,9 +10,9 @@ export const mainConfig: Configuration = {
   entry: './src/index.ts',
   // Put your normal webpack config below here
   module: {
-    rules,
+    rules
   },
   resolve: {
-    extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.json'],
-  },
+    extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.json']
+  }
 };

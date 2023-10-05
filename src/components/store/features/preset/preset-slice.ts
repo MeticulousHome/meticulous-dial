@@ -1,17 +1,32 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { getPresetsData, setPresetsData } from '../../../../data/presets';
-import { setPresetSettingsData } from '../../../../data/presetSettings';
+import {
+  createAsyncThunk,
+  createSlice,
+  Draft,
+  PayloadAction
+} from '@reduxjs/toolkit';
 import { settingsDefaultNewPreset } from '../../../../utils/mock';
 
-import { IPreset, IPresetsSettingData } from '../../../../types/index';
-import { RootState } from '../../store';
 import {
-  PresetSettingInterface,
-  setDefaultSettingsNewPreset
-} from '../presetSetting/presetSetting-slice';
-import { getSettingsFromDashboardPayload } from '../../../../utils/preheat';
+  IPreset,
+  IPresetSetting,
+  IPresetsSettingData
+} from '../../../../types/index';
+import { RootState } from '../../store';
+import { DEFAULT_SETTING } from '../../../../constants/setting';
+import { getPresetsData, setPresetsData } from '../../../../data/presets';
+import { setScreen } from '../screens/screens-slice';
+import { KIND_PROFILE } from '../../../../constants';
 
-interface PresetsState {
+export interface PresetSettingInterface {
+  activeSetting: number;
+  startIndex: number;
+  pending: boolean;
+  error: boolean;
+  updatingSettings: IPresetsSettingData;
+  allSettings: IPresetsSettingData[];
+}
+
+interface PresetsState extends PresetSettingInterface {
   value: IPreset[];
   defaultPresetIndex: number;
   activeIndexSwiper: number;
@@ -20,49 +35,202 @@ interface PresetsState {
   error: boolean;
 }
 
-export const getPresets = createAsyncThunk('presetData/getData', async () => {
-  const presetsData = await getPresetsData();
+export const addPresetFromDashboard = createAsyncThunk(
+  'presetData/addPresetFromDashboard',
+  async (payload: any, { getState, dispatch }) => {
+    try {
+      const state = getState() as RootState;
+      const presetState = { ...state.presets } as PresetsState;
 
-  return JSON.parse(presetsData) as IPreset[];
-});
+      const presetList = presetState.value.map((preset) => ({
+        ...preset,
+        isDefault: false
+      }));
 
-export const savePresets = createAsyncThunk(
-  'presetData/saveData',
-  async (presetSetting: IPresetsSettingData, { getState }) => {
-    const state = getState() as RootState;
+      const presetId = new Date().getTime();
 
-    const presetState = state.presets;
-    const index = presetState.value.findIndex(
-      (preset) => preset.id === Number(presetSetting.presetId)
-    );
-    const presetList = [...presetState.value];
+      const settings = payload.profile;
+      presetList.push({
+        id: presetId,
+        name: payload?.profile?.name,
+        isDefault: true,
+        kind: payload?.profile?.kind ?? KIND_PROFILE.DASHBOARD,
+        settings: [
+          {
+            id: 1,
+            type: 'text',
+            key: 'name',
+            label: 'name',
+            value: payload?.profile?.name
+          }
+        ],
+        dashboard: {
+          ...settings
+        }
+      } as any);
 
-    const nameSetting = presetSetting.settings.find(
-      (setting) => setting.key === 'name'
-    );
-
-    if (nameSetting) {
-      presetList[index] = {
-        ...presetList[index],
-        name: nameSetting.value as string
+      presetState.value = presetList;
+      presetState.activeIndexSwiper = presetState.value.length - 1;
+      presetState.activePreset =
+        presetState.value[presetState.activeIndexSwiper];
+      presetState.updatingSettings = {
+        presetId: presetState.activePreset.id.toString(),
+        settings: presetState.activePreset.settings
       };
-    }
-    await setPresetsData(presetList);
 
-    return presetList;
+      await setPresetsData(presetList);
+
+      dispatch(
+        setPresetState({
+          ...presetState
+        })
+      );
+    } catch (e) {
+      console.log('ERROR:> ', e);
+    }
   }
 );
 
+export const addPresetNewOne = createAsyncThunk(
+  'presetData/addNewOne',
+  async (_, { getState, dispatch }) => {
+    const state = getState() as RootState;
+    const presetState = { ...state.presets } as PresetsState;
+
+    const presetList = presetState.value.map((preset) => ({
+      ...preset,
+      isDefault: false
+    }));
+
+    const presetId = new Date().getTime();
+
+    presetList.push({
+      id: presetId,
+      name: 'New Preset',
+      isDefault: true,
+      settings: settingsDefaultNewPreset,
+      kind: KIND_PROFILE.ITALIAN
+    });
+    presetState.value = presetList;
+    presetState.activeIndexSwiper = presetState.value.length - 1;
+    presetState.activePreset = presetState.value[presetState.activeIndexSwiper];
+
+    presetState.updatingSettings = {
+      presetId: presetState.activePreset.id.toString(),
+      settings: presetState.activePreset.settings
+    };
+
+    await setPresetsData(presetList);
+
+    dispatch(
+      setPresetState({
+        ...presetState
+      })
+    );
+  }
+);
+
+export const setPrevPreset = createAsyncThunk(
+  'presetData/setPrevPreset',
+  async (_, { getState, dispatch }) => {
+    const state = getState() as RootState;
+    const presetState = { ...state.presets } as PresetsState;
+    const currentActiveIndex =
+      presetState.activeIndexSwiper > -1
+        ? presetState.activeIndexSwiper
+        : presetState.defaultPresetIndex;
+    if (presetState.activeIndexSwiper > 0) {
+      presetState.activeIndexSwiper += -1;
+    }
+    if (presetState.activeIndexSwiper === presetState.value.length) return;
+    if (currentActiveIndex > 0) {
+      const newActivePresetIndex = currentActiveIndex - 1;
+      const presetList = [...presetState.value].map((i) => {
+        return {
+          ...i,
+          isDefault: false
+        };
+      });
+      presetList[newActivePresetIndex] = {
+        ...presetList[newActivePresetIndex],
+        isDefault: true
+      };
+      presetState.activePreset = presetList[newActivePresetIndex];
+      presetState.value = presetList;
+      presetState.updatingSettings = {
+        presetId: presetList[newActivePresetIndex].id.toString(),
+        settings: presetList[newActivePresetIndex].settings
+      };
+      await setPresetsData(presetList);
+      dispatch(
+        setPresetState({
+          ...presetState
+        })
+      );
+    } else {
+      // throw new Error('No more presets');
+    }
+  }
+);
+
+export const setNextPreset = createAsyncThunk(
+  'presetData/setNextPreset',
+  async (_, { getState, dispatch }) => {
+    const state = getState() as RootState;
+    const presetState = { ...state.presets } as PresetsState;
+
+    const currentActiveIndex =
+      presetState.activeIndexSwiper > -1
+        ? presetState.activeIndexSwiper
+        : presetState.defaultPresetIndex;
+
+    if (presetState.activeIndexSwiper < presetState.value.length) {
+      presetState.activeIndexSwiper += 1;
+    }
+
+    if (currentActiveIndex === presetState.value.length) return;
+
+    if (currentActiveIndex < presetState.value.length - 1) {
+      const newActivePresetIndex = currentActiveIndex + 1;
+
+      const presetList = [...presetState.value].map((i) => {
+        return {
+          ...i,
+          isDefault: false
+        };
+      });
+
+      presetList[newActivePresetIndex] = {
+        ...presetList[newActivePresetIndex],
+        isDefault: true
+      };
+      presetState.activePreset = presetList[newActivePresetIndex];
+      presetState.updatingSettings = {
+        presetId: presetList[newActivePresetIndex].id.toString(),
+        settings: presetList[newActivePresetIndex].settings
+      };
+      presetState.value = presetList;
+
+      await setPresetsData(presetList);
+    }
+    dispatch(
+      setPresetState({
+        ...presetState
+      })
+    );
+  }
+);
 export const deletePreset = createAsyncThunk(
   'presetData/deletePreset',
-  async (presetId: number, { getState }) => {
+  async (_, { getState, dispatch }) => {
     const state = getState() as RootState;
-    const presets = [...state.presets.value];
-    let newSwiperIndex = state.presets.activeIndexSwiper;
-    let newDefaultPreset = { ...state.presets.activePreset };
+    const presetState = { ...state.presets } as PresetsState;
+    const presets = [...presetState.value];
+    let newSwiperIndex = presetState.activeIndexSwiper;
+    let newDefaultPreset = { ...presetState.activePreset };
 
     let newListPresets: IPreset[] = presets.filter(
-      (preset) => preset.id !== presetId
+      (preset) => preset.id !== presetState.activePreset.id
     );
 
     if (newListPresets.length < presets.length) {
@@ -75,189 +243,163 @@ export const deletePreset = createAsyncThunk(
         ...preset,
         isDefault: preset.id === newDefaultPreset.id
       }));
-
-      await setPresetsData(newListPresets);
     }
+    await setPresetsData(newListPresets);
 
-    return { newListPresets, newSwiperIndex, newDefaultPreset };
+    presetState.value = newListPresets;
+    presetState.activeIndexSwiper = newSwiperIndex;
+    presetState.activePreset = newDefaultPreset;
+
+    presetState.updatingSettings = {
+      presetId: presetState.activePreset.id.toString(),
+      settings: presetState.activePreset.settings
+    };
+
+    dispatch(
+      setPresetState({
+        ...presetState
+      })
+    );
   }
 );
-
-export const setNextPreset = createAsyncThunk(
-  'presetData/setNextPreset',
-  async (_, { getState }) => {
+export const setActiveIndexSwiper = createAsyncThunk(
+  'presetData/setActiveIndexSwiper',
+  async (payload: number, { getState, dispatch }) => {
     const state = getState() as RootState;
     const presetState = { ...state.presets } as PresetsState;
-    const index =
-      presetState.activeIndexSwiper > -1
-        ? presetState.activeIndexSwiper
-        : presetState.defaultPresetIndex;
-
-    if (presetState.activeIndexSwiper < presetState.value.length) {
-      presetState.activeIndexSwiper += 1;
+    if (payload > 0 && payload <= presetState.value.length) {
+      presetState.activeIndexSwiper = payload;
     }
 
-    if (index === presetState.value.length - 1) return presetState;
-
-    if (index < presetState.value.length - 1) {
-      const newActivePresetIndex = index + 1;
-
-      const presetList = [...presetState.value].map((i) => {
-        return {
-          ...i,
-          isDefault: false
-        };
-      });
-
-      presetList[newActivePresetIndex] = {
-        ...presetList[newActivePresetIndex],
-        isDefault: true
-      };
-      presetState.activePreset = presetList[newActivePresetIndex];
-      await setPresetsData(presetList);
-    }
-    return presetState;
+    dispatch(
+      setPresetState({
+        ...presetState
+      })
+    );
   }
 );
 
-export const setPrevPreset = createAsyncThunk(
-  'presetData/setPrevPreset',
-  async (_, { getState }) => {
-    const state = getState() as RootState;
-    const presetState = { ...state.presets } as PresetsState;
-
-    const index =
-      presetState.activeIndexSwiper > -1
-        ? presetState.activeIndexSwiper
-        : presetState.defaultPresetIndex;
-
-    if (presetState.activeIndexSwiper > 0) {
-      presetState.activeIndexSwiper += -1;
-    }
-
-    if (presetState.activeIndexSwiper === presetState.value.length - 1)
-      return presetState;
-
-    if (index > 0) {
-      const newActivePresetIndex = index - 1;
-
-      const presetList = [...presetState.value].map((i) => {
-        return {
-          ...i,
-          isDefault: false
-        };
-      });
-
-      presetList[newActivePresetIndex] = {
-        ...presetList[newActivePresetIndex],
-        isDefault: true
-      };
-      presetState.activePreset = presetList[newActivePresetIndex];
-      await setPresetsData(presetList);
-    } else {
-      // throw new Error('No more presets');
-    }
-    return presetState;
-  }
-);
-
-export const addPresetFromDashboard = createAsyncThunk(
-  'presetData/addPresetFromDashboard',
-  async (payload: any, { getState, dispatch }) => {
-    const state = getState() as RootState;
-    const presetState = { ...state.presets } as PresetsState;
-    const settingsState = { ...state.presetSetting } as PresetSettingInterface;
-    const { profile, shouldSetActiveScreen } = payload;
-
-    if (state.screen.value === 'circleKeyboard') return;
-
-    const presetList = presetState.value.map((preset) => ({
-      ...preset,
-      isDefault: false
-    }));
-
-    const presetId = new Date().getTime();
-
-    presetList.push({
-      id: presetId,
-      name: profile.name,
-      isDefault: true
-    });
-
-    presetState.value = presetList;
-    presetState.activeIndexSwiper = presetState.value.length - 1;
-    presetState.activePreset = presetState.value[presetState.activeIndexSwiper];
-
-    await setPresetsData(presetList);
-
-    const settings = getSettingsFromDashboardPayload(profile);
-
-    const allSettings: IPresetsSettingData[] = [
-      ...settingsState.allSettings,
-      {
-        presetId: presetId.toString(),
-        settings
-      }
-    ];
-
-    await setPresetSettingsData(allSettings);
-
-    if (shouldSetActiveScreen) {
-      dispatch(
-        setDefaultSettingsNewPreset({
-          presetId: presetId.toString(),
-          settingsDefault: settings
-        })
-      );
-    }
-
-    return presetState;
-  }
-);
-
-export const addPresetNewOne = createAsyncThunk(
-  'presetData/addNewOne',
+export const setNextSettingOption = createAsyncThunk(
+  'presetData/setNextSettingOption',
   async (_, { getState, dispatch }) => {
     const state = getState() as RootState;
     const presetState = { ...state.presets } as PresetsState;
-    const settingsState = { ...state.presetSetting } as PresetSettingInterface;
+    const nextActiveSetting = presetState.activeSetting + 1;
+    const endIndex =
+      presetState.activePreset.settings.filter(({ hidden }) => !hidden).length +
+      DEFAULT_SETTING.length -
+      1;
 
-    const presetList = presetState.value.map((preset) => ({
-      ...preset,
-      isDefault: false
-    }));
-
-    const presetId = new Date().getTime();
-
-    presetList.push({
-      id: presetId,
-      name: 'New Preset',
-      isDefault: true
-    });
-    presetState.value = presetList;
-    presetState.activeIndexSwiper = presetState.value.length - 1;
-    presetState.activePreset = presetState.value[presetState.activeIndexSwiper];
-
-    await setPresetsData(presetList);
-
-    const allSettings: IPresetsSettingData[] = [
-      ...settingsState.allSettings,
-      {
-        presetId: presetId.toString(),
-        settings: settingsDefaultNewPreset
-      }
-    ];
-
-    await setPresetSettingsData(allSettings);
+    if (nextActiveSetting > endIndex) {
+      return;
+    }
+    presetState.activeSetting = nextActiveSetting;
 
     dispatch(
-      setDefaultSettingsNewPreset({
-        presetId: presetId.toString(),
-        settingsDefault: settingsDefaultNewPreset
+      setPresetState({
+        ...presetState
       })
     );
+  }
+);
 
-    return presetState;
+export const setPrevSettingOption = createAsyncThunk(
+  'presetData/setPrevSettingOption',
+  async (_, { getState, dispatch }) => {
+    const state = getState() as RootState;
+    const presetState = { ...state.presets } as PresetsState;
+    const nextActiveSetting = presetState.activeSetting - 1;
+    if (nextActiveSetting < presetState.startIndex) {
+      return;
+    }
+    presetState.activeSetting = nextActiveSetting;
+
+    dispatch(
+      setPresetState({
+        ...presetState
+      })
+    );
+  }
+);
+
+export const discardSettings = createAsyncThunk(
+  'presetData/discardSettings',
+  async (_, { getState, dispatch }) => {
+    const state = getState() as RootState;
+    const presetState = { ...state.presets } as PresetsState;
+    presetState.updatingSettings = {
+      presetId: presetState.activePreset.id.toString(),
+      settings: presetState.activePreset.settings || []
+    };
+
+    dispatch(
+      setPresetState({
+        ...presetState
+      })
+    );
+  }
+);
+
+export const resetActiveSetting = createAsyncThunk(
+  'presetData/resetActiveSetting',
+  async (_, { getState, dispatch }) => {
+    const state = getState() as RootState;
+    const presetState = { ...state.presets } as PresetsState;
+    presetState.activeSetting = 0;
+
+    dispatch(
+      setPresetState({
+        ...presetState
+      })
+    );
+  }
+);
+
+export const savePreset = createAsyncThunk(
+  'presetData/savePreset',
+  async (_, { getState, dispatch }) => {
+    const state = getState() as RootState;
+    const presetState = { ...state.presets } as PresetsState;
+    const updateSetting = presetState.updatingSettings;
+    const nameSetting = updateSetting.settings.find(
+      (setting) => setting.key === 'name'
+    );
+    const activePreset = {
+      ...presetState.activePreset,
+      settings: [...updateSetting.settings],
+      name: nameSetting.value as string
+    };
+    presetState.activePreset = { ...activePreset };
+
+    const activeIndex = presetState.activeIndexSwiper;
+    const copyListPresets = [...presetState.value];
+    copyListPresets[activeIndex] = {
+      ...copyListPresets[activeIndex],
+      name: updateSetting.settings[0]?.value.toString(),
+      settings: [...updateSetting.settings]
+    };
+    presetState.value = [...copyListPresets];
+    console.log('run', presetState.value);
+    await setPresetsData(presetState.value);
+
+    dispatch(
+      setPresetState({
+        ...presetState
+      })
+    );
+  }
+);
+
+export const getPresets = createAsyncThunk(
+  'presetData/getData',
+  async (_, { dispatch }) => {
+    const presetsData = await getPresetsData();
+    const presets = JSON.parse(presetsData) as IPreset[];
+
+    if (presets.length === 0) {
+      dispatch(setScreen('pressets'));
+    }
+    return presets;
   }
 );
 
@@ -269,6 +411,14 @@ const initialState: PresetsState = {
     name: '',
     id: -1
   },
+  activeSetting: 0,
+  startIndex: 0,
+
+  updatingSettings: {
+    presetId: '-1',
+    settings: []
+  },
+  allSettings: [],
   pending: false,
   error: false
 };
@@ -277,30 +427,23 @@ const presetSlice = createSlice({
   name: 'presets',
   initialState,
   reducers: {
-    setActivePreset: (state: PresetsState, action: PayloadAction<number>) => {
-      // state.activePresetIndex = action.payload;
-    },
-    setPresets: (state: PresetsState, action: PayloadAction<IPreset[]>) => {
-      state.value = action.payload;
-      if (action.payload[0]) {
-        state.activePreset = action.payload[0];
-      }
-    },
-    setActiveIndexSwiper: (
-      state: PresetsState,
-      action: PayloadAction<number>
+    setPresetState: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<PresetsState>
     ) => {
-      if (action.payload > 0 && action.payload <= state.value.length) {
-        state.activeIndexSwiper = action.payload;
-      }
-    }
+      return { ...action.payload };
+    },
 
-    // setPresets: (state: PresetsState, action: PayloadAction<IPreset[]>) => {
-    //   state.value = action.payload;
-    //   if (action.payload[0]) {
-    //     state.activePreset = action.payload[0];
-    //   }
-    // }
+    // setting
+    updatePresetSetting: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<IPresetSetting>
+    ) => {
+      state.updatingSettings.settings = state.updatingSettings.settings.map(
+        (setting) =>
+          setting.id === action.payload.id ? action.payload : setting
+      );
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -316,7 +459,15 @@ const presetSlice = createSlice({
           );
           if (defaultIndex !== -1) {
             state.defaultPresetIndex = defaultIndex;
+            state.allSettings = action.payload.map((preset) => ({
+              presetId: preset.id.toString(),
+              settings: preset?.settings || []
+            }));
             state.activePreset = action.payload[defaultIndex];
+            state.updatingSettings = {
+              presetId: action.payload[defaultIndex].id.toString(),
+              settings: action.payload[defaultIndex]?.settings || []
+            };
             state.activeIndexSwiper = defaultIndex;
             // state.activePresetIndex = defaultIndex;
           }
@@ -329,114 +480,14 @@ const presetSlice = createSlice({
         state.pending = false;
         state.error = true;
       })
-      .addCase(savePresets.pending, (state) => {
-        state.pending = true;
-      })
-      .addCase(
-        savePresets.fulfilled,
-        (state, action: PayloadAction<IPreset[]>) => {
-          state.pending = false;
-          state.value = action.payload;
-          const index =
-            state.activeIndexSwiper > -1
-              ? state.activeIndexSwiper
-              : state.defaultPresetIndex;
-          state.activePreset = state.value[index];
-        }
-      )
-      .addCase(savePresets.rejected, (state, action) => {
-        state.pending = false;
-        state.error = true;
-        console.log(action.error);
-      })
-      .addCase(setNextPreset.pending, (state) => {
-        state.pending = true;
-      })
-      .addCase(
-        setNextPreset.fulfilled,
-        (state, action: PayloadAction<PresetsState>) => {
-          state.pending = false;
-          state.activePreset = action.payload.activePreset;
-          state.activeIndexSwiper = action.payload.activeIndexSwiper;
-        }
-      )
       .addCase(setNextPreset.rejected, (state, action) => {
-        state.pending = false;
-        state.error = true;
-        console.log(action.error);
+        console.log(action);
       })
-      .addCase(setPrevPreset.pending, (state) => {
-        state.pending = true;
-      })
-      .addCase(
-        setPrevPreset.fulfilled,
-        (state, action: PayloadAction<PresetsState>) => {
-          state.pending = false;
-          state.activePreset = action.payload.activePreset;
-          state.activeIndexSwiper = action.payload.activeIndexSwiper;
-        }
-      )
-      .addCase(setPrevPreset.rejected, (state, action) => {
-        state.pending = false;
-        state.error = true;
-        console.log(action.error);
-      })
-      .addCase(addPresetNewOne.pending, (state) => {
-        state.pending = true;
-      })
-      .addCase(addPresetNewOne.rejected, (state, action) => {
-        state.pending = false;
-        state.error = true;
-        console.log(action.error);
-      })
-      .addCase(
-        addPresetNewOne.fulfilled,
-        (state, action: PayloadAction<PresetsState>) => {
-          state.value = action.payload.value;
-          state.activeIndexSwiper = action.payload.activeIndexSwiper;
-          state.activePreset = action.payload.activePreset;
-        }
-      )
-      .addCase(deletePreset.pending, (state) => {
-        state.pending = true;
-      })
-      .addCase(deletePreset.rejected, (state, action) => {
-        state.pending = false;
-        state.error = true;
-        console.log(action.error);
-      })
-      .addCase(
-        deletePreset.fulfilled,
-        (
-          state,
-          action: PayloadAction<{
-            newListPresets: IPreset[];
-            newSwiperIndex: number;
-            newDefaultPreset: IPreset;
-          }>
-        ) => {
-          state.value = action.payload.newListPresets;
-          state.activeIndexSwiper = action.payload.newSwiperIndex;
-          state.activePreset = action.payload.newDefaultPreset;
-        }
-      )
-      .addCase(addPresetFromDashboard.pending, (state) => {
-        state.pending = true;
-      })
-      .addCase(addPresetFromDashboard.rejected, (state) => {
-        state.pending = false;
-        state.error = true;
-      })
-      .addCase(
-        addPresetFromDashboard.fulfilled,
-        (state, action: PayloadAction<PresetsState>) => {
-          state.value = action.payload.value;
-          state.activeIndexSwiper = action.payload.activeIndexSwiper;
-          state.activePreset = action.payload.activePreset;
-        }
-      );
+      .addCase(savePreset.rejected, (state, action) => {
+        console.log('save error', action);
+      });
   }
 });
 
-export const { setActivePreset, setActiveIndexSwiper } = presetSlice.actions;
+export const { updatePresetSetting, setPresetState } = presetSlice.actions;
 export default presetSlice.reducer;

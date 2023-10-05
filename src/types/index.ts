@@ -1,3 +1,16 @@
+import { DashboardProfile, ItalianProfile } from '../constants';
+
+interface JSONObject {
+  [x: string]: JSONValue;
+}
+
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | JSONObject
+  | Array<JSONValue>;
+
 export type ActionType =
   | 'Home'
   | 'Scale'
@@ -25,7 +38,6 @@ export type GestureType =
   | 'doubleTare'
   | 'doubleClick'
   | 'start'
-  | ''
   | 'longTare'
   | 'longEncoder';
 
@@ -46,7 +58,10 @@ export interface ISensorData {
 export interface IPreset {
   id: number;
   name: string;
+  kind?: ItalianProfile | DashboardProfile;
   isDefault?: boolean;
+  settings?: IPresetSetting[];
+  dashboard?: any;
 }
 
 export interface IBasePresset {
@@ -192,4 +207,19 @@ type SettingsKeys = 'key' | 'value';
 export interface PressetSettings {
   name: string;
   settings: Record<SettingsKeys, string | number>[];
+}
+
+export type Actions = 'to_play';
+
+export interface IItalian {
+  action: Actions;
+  name: string;
+  automatic_purge: boolean;
+  temperature: number;
+  preinfusion: boolean;
+  preheat: boolean;
+  pressure: number;
+  out_weight: number;
+  source: 'lcd';
+  kind: ItalianProfile;
 }

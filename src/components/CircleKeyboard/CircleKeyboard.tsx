@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import '../../assets/fonts/custom/css/fontello.css';
 import './circle-keyboard.css';
 
 import { useDispatch } from 'react-redux';
 import { IPresetName, IPresetSetting } from '../../types';
-import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
 import {
   DEFAULT_ALPHABET,
   FIRST_POSITION,
@@ -14,8 +13,11 @@ import {
   JUMP_ROTATE
 } from './Keys';
 import { useAppSelector } from '../store/hooks';
+import { updatePresetSetting } from '../store/features/preset/preset-slice';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { setScreen } from '../store/features/screens/screens-slice';
 
-export function CircleKeyboard({ callback }: any): JSX.Element {
+export function CircleKeyboard(): JSX.Element {
   const [rotate, setRotate] = useState<number>(FIRST_POSITION);
   const [alphabet, setAlphabet] = useState<string[]>(DEFAULT_ALPHABET);
   const [mainLetter, setMainLetter] = useState<string>(FIRST_KEY);
@@ -26,9 +28,9 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     active: false,
     keep: false
   });
-  const { gesture, screen, presetSetting } = useAppSelector((state) => state);
-  const setting = presetSetting?.updatingSettings.settings[
-    presetSetting.activeSetting
+  const { screen, presets } = useAppSelector((state) => state);
+  const setting = presets.updatingSettings.settings[
+    presets.activeSetting
   ] as IPresetName;
 
   const captionRef = useRef<HTMLDivElement>(null);
@@ -111,39 +113,26 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     }
   }, [setting, screen]);
 
-  useEffect(() => {
-    if (screen.value !== 'circleKeyboard') return;
-
-    if (gesture.value === 'left') {
+  useHandleGestures({
+    left() {
       moveElements(true);
-      return;
-    }
-
-    if (gesture.value === 'right') {
+    },
+    right() {
       moveElements(false);
-      return;
-    }
+    },
+    doubleClick() {
+      if (mainLetter === 'capslock') {
+        setCapsLockActive({
+          active: !capsLockActive.active,
+          keep: !capsLockActive.keep
+        });
+      }
+    },
+    click() {
+      const goToMainScreen = () => {
+        dispatch(setScreen('pressetSettings'));
+      };
 
-    if (gesture.value === 'doubleClick' && mainLetter === 'capslock') {
-      setCapsLockActive({
-        active: !capsLockActive.active,
-        keep: !capsLockActive.keep
-      });
-      return;
-    }
-
-    const goToMainScreen = () => {
-      setCapsLockActive({
-        active: false,
-        keep: false
-      });
-      setAlphabet(DEFAULT_ALPHABET);
-      setRotate(FIRST_POSITION);
-      setMainLetter(FIRST_KEY);
-      callback();
-    };
-
-    if (gesture.value === 'click') {
       if (caption.length > 7 && mainLetter !== 'backspace') {
         if (mainLetter === 'ok') {
           //if (mainLetter === 'ok' && caption.join('').trim().length > 0) {
@@ -208,7 +197,7 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
           }
       }
     }
-  }, [callback, gesture]);
+  });
 
   const toUpperOrLowerCase = (
     cpAlphabet: string[] | string
@@ -320,34 +309,12 @@ export function CircleKeyboard({ callback }: any): JSX.Element {
     }
   };
 
-  const getAnimation = useCallback(() => {
-    let animation = 'hidden';
-
-    if (
-      ((screen.value === 'scale' || screen.value === 'settings') &&
-        screen.prev === 'circleKeyboard') ||
-      (screen.value === 'circleKeyboard' &&
-        (screen.prev === 'scale' || screen.prev === 'settings'))
-    ) {
-      animation = '';
-    } else if (screen.value === 'circleKeyboard') {
-      animation = 'circleKeyboard__fadeIn';
-    } else if (
-      screen.value === 'pressetSettings' &&
-      screen.prev === 'circleKeyboard'
-    ) {
-      animation = 'circleKeyboard__fadeOut';
-    }
-
-    return animation;
-  }, [screen]);
-
   return (
-    <div className={`circle-keyboard-container ${getAnimation()}`}>
+    <div className="circle-keyboard-container">
       {getMainLetter()}
       <div className="caption-content">
         <div className="circle-title">{setting?.label}</div>
-        <div ref={captionRef} className="circle-caption caption_shake">
+        <div ref={captionRef} className="circle-caption">
           {caption.map((el, index) => {
             if (el === ' ') {
               return (

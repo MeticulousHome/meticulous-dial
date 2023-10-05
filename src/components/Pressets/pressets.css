@@ -9,18 +9,12 @@
 }
 
 .pressets-conainer > div:first-child {
-  /* margin-left: 18%; */
   margin: 0 auto;
 }
 
-.pressets-conainer > div:last-child {
-  /* margin-right: 20%; */
-}
-/**/
-
 .swiper-horizontal .presset-item {
-  min-width: 300px;
-  max-width: 300px;
+  min-width: 160px;
+  max-width: 160px;
   opacity: 0.5;
 }
 
@@ -32,12 +26,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  /*margin-top: 24px;*/
 }
 
 .swiper-horizontal .presset-icon svg {
-  height: 200px;
-  width: 200px;
+  height: 166px;
+  width: 166px;
   max-width: 100%;
   max-height: 100%;
 }
@@ -60,38 +53,48 @@
 .preset-wrapper {
   width: 100%;
   height: 100%;
-  position: fixed;
+  position: absolute;
 }
 
 .swiper-horizontal .swiper-slide {
-  opacity: .15;
-  transition: opacity 0.4s ease;
+  opacity: 0.15;
 }
 
 .swiper-horizontal .swiper-slide.swiper-slide-active {
   opacity: 1;
 }
 
-.blur {
+.swiper-horizontal .swiper-slide-prev,
+.swiper-horizontal .swiper-slide-next,
+.swiper-horizontal .swiper-slide-active {
+  transition: opacity 0.4s ease;
+}
+
+.title-swiper {
   position: absolute;
-  width: 20%;
-  height: 100%;
-  /*background: rgba(0, 0, 0, 0.8);*/
-  z-index: 5;
+  z-index: 10;
+  top: 0;
 }
 
-.blur-left {
-  top: 0;
+.title-swiper.transitioning::before,
+.title-swiper.transitioning .swiper-slide-active .navigation-title {
+  opacity: 0;
+}
+
+.title-swiper:before {
+  position: absolute;
+  content: '';
+  display: block;
   left: 0;
-  bottom: 0;
-  /*background: linear-gradient(to left, #00000000, #000);*/
+  right: 0;
+  top: 80px;
+  height: 50px;
+  background-color: black;
 }
 
-.blur-right {
-  top: 0;
+.preset-wrapper .navigation-title {
+  left: 0;
   right: 0;
-  bottom: 0;
-  /*background: linear-gradient(to left, #000, #00000000);*/
 }
 
 /* animation scroll to the right spring and bounce back */
@@ -134,4 +137,32 @@
 
 .animation-bounce-left {
   animation: bounce-left 500ms ease-out;
+}
+
+.pagination {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  column-gap: 6px;
+  justify-content: center;
+}
+
+.pagination li {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background-color: #fff;
+  opacity: 0.12;
+}
+
+.pagination li.active {
+  opacity: 1;
+}
+
+.preset-wrapper .pagination {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 353px;
 }

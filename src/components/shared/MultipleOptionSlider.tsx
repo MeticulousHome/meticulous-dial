@@ -1,18 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
+import { useEffect, useRef } from 'react';
+import { Swiper, SwiperRef, SwiperSlide } from 'swiper/react';
 
-import {
-  handleAddPresetAnimation,
-  handleRemovePresetsAnimation
-} from '../../utils/preset';
+import { handlePresetSlideChange } from '../../utils/preset';
 
 import './multipleOptionSlider.css';
 
 interface Props {
   options: string[];
   activeIndex: number;
-  contentAnimation: 'FadeOut' | 'FadeIn' | 'None';
-  title: string;
   extraClass?: string;
   spaceBetween?: string | number;
 }
@@ -20,68 +15,30 @@ interface Props {
 export function MultipleOptionSlider({
   activeIndex,
   options,
-  contentAnimation,
-  title,
   extraClass,
   spaceBetween
 }: Props): JSX.Element {
-  const [swiper, setSwiper] = useState(null);
+  const swiperRef = useRef<SwiperRef | null>(null);
 
   useEffect(() => {
-    if (swiper) {
-      try {
-        swiper.slideTo(activeIndex);
-      } catch (error) {
-        console.log({ error, location: 'MultipleOptionSlider' });
-      }
+    try {
+      swiperRef.current?.swiper.slideTo(activeIndex);
+    } catch (error) {
+      console.log({ error, location: 'MultipleOptionSlider' });
     }
-  }, [activeIndex, swiper]);
-
-  const getAnimation = useCallback(() => {
-    let animation = 'hidden';
-
-    switch (contentAnimation) {
-      case 'FadeIn':
-        animation = 'multipleOptionContent__fadeIn';
-        break;
-      case 'FadeOut':
-        animation = 'multipleOptionContent__fadeOut';
-        break;
-      case 'None':
-        animation = '';
-        break;
-    }
-
-    return animation;
-  }, [contentAnimation]);
+  }, [activeIndex]);
 
   return (
-    <div className={`multiple-option-wrapper ${getAnimation()}`}>
-      <div
-        className="main-title-selected"
-        style={{
-          fontWeight: 'bold',
-          fontSize: '35px',
-          top: 60
-        }}
-      >
-        {title}
-      </div>
+    <div className={`multiple-option-wrapper`}>
       <div className={`options-container ${extraClass ? extraClass : ''}`}>
         <Swiper
           slidesPerView={2}
           spaceBetween={spaceBetween}
           centeredSlides={true}
           allowTouchMove={false}
-          initialSlide={0}
-          onSwiper={setSwiper}
-          onSlideChange={(e) => {
-            handleRemovePresetsAnimation(e);
-
-            setTimeout(() => {
-              handleAddPresetAnimation(e);
-            }, 20);
-          }}
+          initialSlide={activeIndex}
+          ref={swiperRef}
+          onSlideChange={handlePresetSlideChange}
         >
           {options.map((option, index) => (
             <SwiperSlide key={`${index}-slide`}>

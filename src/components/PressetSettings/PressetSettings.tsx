@@ -1,77 +1,143 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { IPresetSetting } from '../../types';
-import { useAppSelector } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 
 import './pressetSettings.css';
 import { generateDefaultAction } from '../../utils/preset';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import {
+  deletePreset,
+  savePreset,
+  discardSettings,
+  setNextSettingOption,
+  setPrevSettingOption
+} from '../store/features/preset/preset-slice';
+import { setScreen } from '../store/features/screens/screens-slice';
+import { KIND_PROFILE } from '../../constants';
 
-interface Props {
-  optionSelected: (option: string) => void;
-}
+const formatSetting = (setting: IPresetSetting) => {
+  let mValue = '';
 
-export function PressetSettings({ optionSelected }: Props): JSX.Element {
+  if (
+    (setting.value || setting.label) &&
+    (typeof setting.value === 'number' || typeof setting.value === 'string')
+  ) {
+    mValue = `: ${setting.value} ${(setting as any)?.unit || ''}`;
+  }
+
+  return `${setting.label}${mValue}`;
+};
+
+export function PressetSettings(): JSX.Element {
+  const dispatch = useAppDispatch();
   const [animationStyle, setAnimationStyle] = useState('');
-  const [init, setInit] = useState(false);
   const [swiper, setSwiper] = useState(null);
-  const { screen, presetSetting } = useAppSelector((state) => state);
-  const settings = useMemo(
-    () => [
-      ...presetSetting.updatingSettings.settings.filter(
-        (setting) => !setting.hidden
-      ),
-      ...(generateDefaultAction(
-        presetSetting.updatingSettings.settings.length
-      ).flat() as IPresetSetting[])
-    ],
-    [presetSetting.updatingSettings.settings]
+  const currentPresetSetting = useAppSelector(
+    (state) => state.presets.activePreset?.settings || []
   );
+  const presets = useAppSelector((state) => state.presets);
+  const settings = useMemo(() => {
+    const defaultSettings = generateDefaultAction(
+      presets.updatingSettings.settings.length
+    ).flat() as IPresetSetting[];
+
+    if (
+      presets.activePreset.kind &&
+      presets.activePreset.kind !== KIND_PROFILE.ITALIAN
+    ) {
+      return [
+        ...presets.updatingSettings.settings.filter(
+          (setting) => setting.key === 'name'
+        ),
+        ...defaultSettings
+      ];
+    } else {
+      return [
+        ...(presets.updatingSettings.settings || []).filter(
+          (setting) => !setting.hidden
+        ),
+        ...defaultSettings
+      ];
+    }
+  }, [presets.updatingSettings.settings]);
+  const [presetSettingIndex, setPresetSettingIndex] = useState<
+    IPresetSetting['key']
+  >(settings[presets.activeSetting].key);
+
+  useHandleGestures({
+    left() {
+      dispatch(setPrevSettingOption());
+    },
+    right() {
+      dispatch(setNextSettingOption());
+    },
+    click() {
+      if (presetSettingIndex === 'save') {
+        dispatch(savePreset());
+        dispatch(setScreen('barometer'));
+      } else if (presetSettingIndex == 'discard') {
+        dispatch(discardSettings());
+        dispatch(setScreen('barometer'));
+      } else if (presetSettingIndex === 'delete') {
+        dispatch(deletePreset());
+        dispatch(setScreen('pressets'));
+      } else if (presetSettingIndex === 'name') {
+        dispatch(setScreen('name'));
+      } else if (presetSettingIndex === 'pre-infusion') {
+        dispatch(setScreen('pre-infusion'));
+      } else if (presetSettingIndex === 'purge') {
+        dispatch(setScreen('purge'));
+      } else if (presetSettingIndex === 'pre-heat') {
+        dispatch(setScreen('pre-heat'));
+      } else if (presetSettingIndex === 'output') {
+        dispatch(setScreen('output'));
+      } else if (presetSettingIndex === 'pressure') {
+        dispatch(setScreen('pressure'));
+      } else if (presetSettingIndex === 'temperature') {
+        dispatch(setScreen('temperature'));
+      } else if (presetSettingIndex === 'ratio') {
+        dispatch(setScreen('ratio'));
+      }
+    }
+  });
 
   useEffect(() => {
     if (swiper) {
       const settingsExist =
-        presetSetting.settings && presetSetting.settings.settings.length > 0;
+        currentPresetSetting && currentPresetSetting.length > 0;
 
       let settingBeforeChange;
 
-      if (
-        settingsExist &&
-        presetSetting.settings.settings[swiper['activeIndex']]
-      ) {
-        settingBeforeChange =
-          presetSetting.settings.settings[swiper['activeIndex']].key;
+      if (settingsExist && currentPresetSetting[swiper['activeIndex']]) {
+        settingBeforeChange = currentPresetSetting[swiper['activeIndex']].key;
       }
 
-      try {
-        if (
-          (settingBeforeChange === 'save' ||
-            settingBeforeChange === 'discard') &&
-          presetSetting.activeSetting === 2
-        ) {
-          swiper.slideTo(presetSetting.activeSetting, 0, false);
-        } else {
-          swiper.slideTo(presetSetting.activeSetting);
-        }
-      } catch (error) {
-        console.log({ error, location: 'PressetSettings' });
+      if (
+        (settingBeforeChange === 'save' || settingBeforeChange === 'discard') &&
+        presets.activeSetting === 2
+      ) {
+        swiper.slideTo(presets.activeSetting, 0, false);
+      } else {
+        swiper.slideTo(presets.activeSetting);
       }
 
       if (settingsExist) {
-        optionSelected(settings[presetSetting.activeSetting].key);
+        setPresetSettingIndex(settings[presets.activeSetting].key);
       }
     }
-  }, [presetSetting.activeSetting, swiper]);
+  }, [presets.activeSetting, swiper]);
 
   useEffect(() => {
     if (
-      presetSetting.settings &&
-      presetSetting.settings.settings.length > 0 &&
-      presetSetting.settings.settings[presetSetting.activeSetting] &&
-      settings[presetSetting.activeSetting]?.key
+      presets.activePreset &&
+      currentPresetSetting.length > 0 &&
+      currentPresetSetting[presets.activeSetting] &&
+      settings[presets.activeSetting]?.key
     ) {
-      optionSelected(settings[presetSetting.activeSetting].key);
+      setPresetSettingIndex(settings[presets.activeSetting].key);
     }
-  }, [presetSetting.settings]);
+  }, [presets.activePreset.settings]);
 
   useEffect(() => {
     return () => {
@@ -79,72 +145,8 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
     };
   }, []);
 
-  const getAnimation = useCallback(() => {
-    let animation = 'hidden';
-
-    if (
-      ((screen.value === 'scale' || screen.value === 'settings') &&
-        screen.prev === 'pressetSettings') ||
-      (screen.value === 'pressetSettings' &&
-        (screen.prev === 'scale' || screen.prev === 'settings'))
-    ) {
-      animation = '';
-    } else if (screen.value === 'pressetSettings') {
-      if (
-        screen.prev === 'settingNumerical' ||
-        screen.prev === 'onOff' ||
-        screen.prev === 'purge'
-      ) {
-        animation = 'settingNumericalToPressetSettings__fadeIn';
-      } else if (screen.prev === 'circleKeyboard') {
-        animation = 'keyboardToPressetSettings__fadeIn';
-      } else {
-        animation = 'pressetSettings__fadeIn';
-      }
-    } else if (
-      (screen.value === 'settingNumerical' ||
-        screen.value === 'onOff' ||
-        screen.value === 'purge') &&
-      screen.prev === 'pressetSettings'
-    ) {
-      animation = 'pressetSettingsToSettingNumerical__fadeOut';
-    } else if (
-      screen.prev === 'pressetSettings' &&
-      screen.value === 'barometer'
-    ) {
-      animation = 'pressetSettings__fadeOut';
-    }
-    if (
-      screen.value === 'circleKeyboard' &&
-      screen.prev === 'pressetSettings'
-    ) {
-      animation = 'pressetSettingsToKeyboard__fadeOut';
-    }
-
-    return animation;
-  }, [screen]);
-
-  const displaySetting = (setting: IPresetSetting, isActive: boolean) => {
-    if (isActive) {
-      let mValue = '';
-
-      if (
-        typeof setting.value === 'number' ||
-        typeof setting.value === 'string'
-      ) {
-        mValue = `: ${setting.value}`;
-      }
-
-      return `${setting.label}${mValue} ${(setting as any)?.unit || ''}`;
-    }
-    return setting.label;
-  };
-
   return (
-    <div className={`presset-container ${getAnimation()}`}>
-      {/* <div className="presset-title title-main-2">Filter 2.1</div> */}
-      <div className="blur blur-top"></div>
-      <div className="blur blur-bottom"></div>
+    <div className="presset-container">
       <div className="presset-options">
         <Swiper
           onSwiper={setSwiper}
@@ -153,11 +155,8 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
           direction="vertical"
           autoHeight={false}
           centeredSlides={true}
+          initialSlide={presets.activeSetting}
           onSlideNextTransitionStart={() => {
-            if (!init) {
-              setInit(true);
-              return;
-            }
             setAnimationStyle('animation-next');
           }}
           onSlidePrevTransitionStart={() => setAnimationStyle('animation-prev')}
@@ -168,19 +167,19 @@ export function PressetSettings({ optionSelected }: Props): JSX.Element {
               className="presset-option-item"
               key={`option-${index}`}
             >
-              {({ isActive }) => (
-                <div
-                  className={`${animationStyle} ${
-                    isActive ? `item-active` : ''
-                  } ${setting.key === 'delete' ? 'delete-option-item' : ''}`}
-                >
-                  {displaySetting(setting, isActive)}
-                </div>
-              )}
+              <div
+                className={`${animationStyle} ${
+                  setting.key === 'delete' ? 'delete-option-item' : ''
+                }`}
+              >
+                {formatSetting(setting)}
+              </div>
             </SwiperSlide>
           ))}
         </Swiper>
       </div>
+      <div className="fade fade-top"></div>
+      <div className="fade fade-bottom"></div>
     </div>
   );
 }

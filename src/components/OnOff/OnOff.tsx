@@ -1,110 +1,56 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '../store/hooks';
 import { MultipleOptionSlider } from '../shared/MultipleOptionSlider';
-import { updatePresetSetting } from '../store/features/presetSetting/presetSetting-slice';
-import {
-  IPresetOnOffPreheat,
-  IPresetOnOffPreinfusion,
-  ISettingType
-} from '../../../src/types';
+import { updatePresetSetting } from '../store/features/preset/preset-slice';
+import { IPresetSetting, ISettingType } from '../../../src/types';
+import { useHandleGestures } from '../../../src/hooks/useHandleGestures';
+import { setScreen } from '../store/features/screens/screens-slice';
 
 interface Props {
   type: ISettingType;
 }
 
+const options = ['Yes', 'No'];
+
 export function OnOff({ type }: Props): JSX.Element {
-  const [options] = useState(['Yes', 'No']);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const { screen, gesture, presetSetting } = useAppSelector((state) => state);
   const dispatch = useDispatch();
-
-  const setting = presetSetting?.updatingSettings.settings.find(
-    (setting) => setting.key === 'pre-infusion'
+  const setting = useAppSelector((state) =>
+    state.presets.updatingSettings.settings.find(
+      (setting) => setting.key === type
+    )
   );
 
-  const preheatSetting = presetSetting?.updatingSettings.settings.find(
-    (setting) => setting.key === 'pre-heat'
+  const [activeIndex, setActiveIndex] = useState(
+    setting?.value
+      ? options.findIndex((option) => option.toLowerCase() === setting.value)
+      : 0
   );
 
-  useEffect(() => {
-    if (
-      (setting?.type === 'on-off' || preheatSetting?.type === 'on-off') &&
-      screen.value !== 'scale' &&
-      screen.value !== 'settings' &&
-      screen.prev !== 'scale' &&
-      screen.prev !== 'settings'
-    ) {
-      const mValue =
-        type === 'pre-infusion'
-          ? setting?.value || 'yes'
-          : preheatSetting?.value || 'yes';
-
-      setActiveIndex(mValue === 'yes' ? 0 : 1);
+  useHandleGestures({
+    left() {
+      setActiveIndex((prev) => Math.min(prev + 1, options.length - 1));
+    },
+    right() {
+      setActiveIndex((prev) => Math.max(prev - 1, 0));
+    },
+    click() {
+      const value = options[activeIndex].toLowerCase();
+      dispatch(
+        updatePresetSetting({
+          ...setting,
+          value
+        } as IPresetSetting)
+      );
+      dispatch(setScreen('pressetSettings'));
     }
-  }, [setting, preheatSetting, screen]);
-
-  useEffect(() => {
-    if (screen.value === 'onOff') {
-      switch (gesture.value) {
-        case 'right':
-          if (activeIndex > 0) {
-            setActiveIndex(activeIndex - 1);
-          }
-          break;
-        case 'left':
-          if (activeIndex < options.length - 1) {
-            setActiveIndex(activeIndex + 1);
-          }
-          break;
-        case 'click':
-          if (type === 'pre-heat') {
-            dispatch(
-              updatePresetSetting({
-                ...preheatSetting,
-                value: options[activeIndex].toLowerCase()
-              } as IPresetOnOffPreheat)
-            );
-          }
-
-          if (type === 'pre-infusion') {
-            dispatch(
-              updatePresetSetting({
-                ...setting,
-                value: options[activeIndex].toLowerCase()
-              } as IPresetOnOffPreinfusion)
-            );
-          }
-
-          break;
-        default:
-          break;
-      }
-    }
-  }, [screen, gesture]);
-
-  const getAnimation = useCallback(() => {
-    if (
-      ((screen.value === 'scale' || screen.value === 'settings') &&
-        screen.prev === 'onOff') ||
-      (screen.value === 'onOff' &&
-        (screen.prev === 'scale' || screen.prev === 'settings'))
-    ) {
-      return 'None';
-    } else if (screen.value === 'onOff') {
-      return 'FadeIn';
-    } else if (screen.prev === 'onOff') {
-      return 'FadeOut';
-    }
-  }, [screen]);
+  });
 
   return (
     <MultipleOptionSlider
       {...{
         activeIndex,
-        contentAnimation: getAnimation(),
         options,
-        title: type,
         spaceBetween: -40
       }}
     />

@@ -1,95 +1,49 @@
-import { useCallback, useRef, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import 'swiper/swiper-bundle.min.css';
 
-import { Barometer } from './components/Barometer/Barometer';
-import MainTitle from './components/MainTitle';
-import { Pressets } from './components/Pressets/Pressets';
-import { Scale } from './components/Scale/Scale';
-import { useAppSelector } from './components/store/hooks';
+import { useAppDispatch, useAppSelector } from './components/store/hooks';
 import { SocketManager } from './components/store/SocketManager';
 import { store } from './components/store/store';
-/* import { PressetSettings } from './components/PressetSettings/PressetSettings'; */
-// import { TemperatureScale } from './components/TemperatureScale/TemperatureScale';
-import { CircleKeyboard } from './components/CircleKeyboard/CircleKeyboard';
-
-import BottomStatus from './components/BottomStatus';
-import { PressetTitle } from './components/Pressets/PressetsTitle';
-import { PressetSettings } from './components/PressetSettings/PressetSettings';
-import { SettingNumerical } from './components/SettingNumerical/SettingNumerical';
 import { useFetchData } from './hooks/useFetchData';
-import { useHandleGesture } from './hooks/useHandleGestures';
-import { IPresetType, ISettingType } from './types';
-import { OnOff } from './components/OnOff/OnOff';
-import { Purge } from './components/Purge/Purge';
-import { Settings } from './components/Settings/Settings';
+import { useSocketKeyboardListeners } from './components/store/SocketProviderValue';
+import { useHandleGestures } from './hooks/useHandleGestures';
+import { setScreen } from './components/store/features/screens/screens-slice';
+import { Router } from './navigation/Router';
 
 const App = (): JSX.Element => {
-  //console.info(window.meticulous_envs.SERVER_URL());
-  const { stats, presets } = useAppSelector((state) => state);
-  const [presetSettingIndex, setPresetSettingIndex] = useState<IPresetType>('');
-  const keyboardReady = useRef(false);
-  const { screen } = useAppSelector((state) => state);
-  //const [option, setOption] = useState(false); // Emulate Save or Cancel option
-  useFetchData();
-  useHandleGesture({ presetSettingIndex, keyboardReady });
-
-  // if (error) {
-  //   return <div className="main-layout">Error</div>;
-  // }
-  // if (pending) {
-  //   return <div className="main-layout">Loading</div>;
-  // }
-
-  const getAnimation = useCallback(() => {
-    let animation = 'barometer__fadeIn';
-
-    if (screen.value === 'scale' || screen.value === 'settings') {
-      animation = 'barometerToScale__fadeOut';
-    }
-
-    return animation;
-  }, [screen]);
-
-  return (
-    <div className="main-layout">
-      <Scale />
-      <Settings />
-      <div className={`main-layout ${getAnimation()}`}>
-        <PressetTitle />
-        <MainTitle />
-        <Barometer
-          stats={{
-            sensors: stats.sensors,
-            name: stats.name,
-            time: stats.time,
-            profile:
-              stats.name === 'idle'
-                ? presets?.activePreset?.name
-                : stats?.profile
-          }}
-        />
-        <SettingNumerical type={presetSettingIndex as ISettingType} />
-        <Pressets />
-        <CircleKeyboard
-          callback={() => {
-            keyboardReady.current = true;
-          }}
-        />
-        <PressetSettings
-          optionSelected={(option: string) =>
-            setPresetSettingIndex(option as IPresetType)
-          }
-        />
-        {/* </div> */}
-        <OnOff type={presetSettingIndex as ISettingType} />
-        <Purge />
-
-        <BottomStatus />
-      </div>
-    </div>
+  const dispatch = useAppDispatch();
+  const screen = useAppSelector(
+    (state) => state.screen,
+    (prev, next) => prev === next
   );
+  const stats = useAppSelector((state) => state.stats);
+
+  useSocketKeyboardListeners();
+  useFetchData();
+  useHandleGestures(
+    {
+      doubleTare() {
+        dispatch(
+          setScreen(
+            screen.value === 'scale'
+              ? screen.prev === 'settings'
+                ? 'barometer'
+                : screen.prev
+              : 'scale'
+          )
+        );
+      },
+      longTare() {
+        if (screen.value !== 'settings') {
+          dispatch(setScreen('settings'));
+        }
+      }
+    },
+    stats?.name !== 'idle'
+  );
+
+  return <Router currentScreen={screen.value} previousScreen={screen.prev} />;
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
