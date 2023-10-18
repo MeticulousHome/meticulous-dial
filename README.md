@@ -122,4 +122,4 @@ Following, we have the JSON structure we define to allow app to process the pres
 ]
 ```
 
-For more information about it, see the following [file](https://github.com/PrivSocial/meticulous-ui/blob/master/src/types/index.ts).
+For more information about it, see the following [file](https://github.com/FFFuego/meticulous-dial/blob/master/src/types/index.ts).
