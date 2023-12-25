@@ -2,20 +2,16 @@ import { useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 import { GestureType, ISensorData } from '../../types/index';
-import { useAppDispatch, useAppSelector } from './hooks';
+import { useAppDispatch } from './hooks';
 import { setStats } from './features/stats/stats-slice';
 import { setScreen } from './features/screens/screens-slice';
 import { addPresetFromDashboard } from './features/preset/preset-slice';
-import { ScreenType } from './features/screens/screens-slice';
 import { handleEvents } from '../../HandleEvents';
 
 const socket: Socket | null = io('http://localhost:8080');
 
-const NON_EDITING_SCREENS: ScreenType[] = ['barometer', 'pressets'];
-
 export const SocketProviderValue = () => {
   const dispatch = useAppDispatch();
-  const { stats, screen } = useAppSelector((state) => state);
 
   useEffect(() => {
     socket.on('status', (data: ISensorData) => {
@@ -31,14 +27,32 @@ export const SocketProviderValue = () => {
     socket.on('save_in_dial', (data: any) => {
       console.log('Receive: save_in_dial');
 
-      const shouldSetActiveScreen =
-        NON_EDITING_SCREENS.includes(screen.value) && stats.name === 'idle';
       dispatch(
         addPresetFromDashboard({
-          profile: JSON.parse(data),
-          shouldSetActiveScreen
+          profile: JSON.parse(data)
         })
       );
+    });
+
+    socket.on('button', (data: { type: string }) => {
+      console.log('Receive: button', data);
+
+      const eventGestureMap: Record<string, GestureType> = {
+        ENCODER_CLOCKWISE: 'right',
+        ENCODER_COUNTERCLOCKWISE: 'left',
+        ENCODER_PUSH: 'click',
+        ENCODER_DOUBLE: 'doubleClick',
+        ENCODER_LONG: 'longEncoder',
+        TARE_DUBLE: 'doubleTare',
+        TARE_LONG: 'longTare',
+        START: 'start'
+      };
+
+      const gesture = eventGestureMap[data.type];
+      if (gesture) {
+        console.log('gesture:', gesture);
+        handleEvents.emit('gesture', gesture);
+      }
     });
   }, []);
 
