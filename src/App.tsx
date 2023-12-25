@@ -6,7 +6,6 @@ import { useAppDispatch, useAppSelector } from './components/store/hooks';
 import { SocketManager } from './components/store/SocketManager';
 import { store } from './components/store/store';
 import { useFetchData } from './hooks/useFetchData';
-import { useSocketKeyboardListeners } from './components/store/SocketProviderValue';
 import { useHandleGestures } from './hooks/useHandleGestures';
 import { setScreen } from './components/store/features/screens/screens-slice';
 import { Router } from './navigation/Router';
@@ -19,7 +18,8 @@ const App = (): JSX.Element => {
   );
   const stats = useAppSelector((state) => state.stats);
 
-  useSocketKeyboardListeners();
+  // This can bu used for development purpose
+  // useSocketKeyboardListeners();
   useFetchData();
   useHandleGestures(
     {
