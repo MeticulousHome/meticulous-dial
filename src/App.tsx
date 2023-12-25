@@ -18,7 +18,7 @@ const App = (): JSX.Element => {
   );
   const stats = useAppSelector((state) => state.stats);
 
-  // This can bu used for development purpose
+  // This can be used for development purpose
   // useSocketKeyboardListeners();
   useFetchData();
   useHandleGestures(
