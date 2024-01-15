@@ -10,6 +10,7 @@ import { Settings } from '../components/Settings/Settings';
 import { ScreenType } from '../components/store/features/screens/screens-slice';
 import { CircleKeyboard } from '../components/CircleKeyboard/CircleKeyboard';
 import { RootState } from '../components/store/store';
+import { Notification } from '../components/Notification/Notification';
 
 interface Route {
   component: ComponentType;
@@ -114,5 +115,9 @@ export const routes: Record<ScreenType, Route> = {
     props: {
       type: 'pre-heat'
     }
+  },
+  notifications: {
+    component: Notification,
+    bottomStatusHidden: true
   }
 };

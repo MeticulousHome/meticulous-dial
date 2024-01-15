@@ -14,7 +14,8 @@ export type ScreenType =
   | 'pre-heat'
   | 'scale'
   | 'settings'
-  | 'purge';
+  | 'purge'
+  | 'notifications';
 
 interface ScreenState {
   value: ScreenType;
