@@ -1,5 +1,5 @@
 import * as ReactDOM from 'react-dom/client';
-import { Provider } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import 'swiper/swiper-bundle.min.css';
 
 import { useAppDispatch, useAppSelector } from './components/store/hooks';
@@ -9,6 +9,8 @@ import { useFetchData } from './hooks/useFetchData';
 import { useHandleGestures } from './hooks/useHandleGestures';
 import { setScreen } from './components/store/features/screens/screens-slice';
 import { Router } from './navigation/Router';
+import { useEffect } from 'react';
+import { notificationSelector } from './components/store/features/notifications/notification-slice';
 
 const App = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -17,6 +19,17 @@ const App = (): JSX.Element => {
     (prev, next) => prev === next
   );
   const stats = useAppSelector((state) => state.stats);
+  const notifications = useSelector(notificationSelector.selectAll);
+
+  useEffect(() => {
+    if (notifications.length > 0 && screen.value !== 'notifications') {
+      dispatch(setScreen('notifications'));
+    }
+
+    if (notifications.length === 0 && screen.value === 'notifications') {
+      dispatch(setScreen(screen.prev));
+    }
+  }, [notifications]);
 
   // This can be used for development purpose
   // useSocketKeyboardListeners();

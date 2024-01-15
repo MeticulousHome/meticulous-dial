@@ -4,12 +4,14 @@ import { useSelector, TypedUseSelectorHook } from 'react-redux';
 import screenReducer from './features/screens/screens-slice';
 import statsReducer from './features/stats/stats-slice';
 import presetReducer from './features/preset/preset-slice';
+import notificationReducer from './features/notifications/notification-slice';
 
 export const store = configureStore({
   reducer: {
     screen: screenReducer,
     stats: statsReducer,
-    presets: presetReducer
+    presets: presetReducer,
+    notifications: notificationReducer
   }
 });
 
