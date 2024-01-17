@@ -3,7 +3,7 @@ import { RootState } from '../../store';
 
 type ResponseOption = 'Update' | 'Auto Update' | 'Skip';
 
-interface NotificationItem {
+export interface NotificationItem {
   id: string;
   message: string;
   image?: string;
