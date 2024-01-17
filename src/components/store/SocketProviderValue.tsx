@@ -4,10 +4,13 @@ import { io, Socket } from 'socket.io-client';
 import { GestureType, ISensorData } from '../../types/index';
 import { useAppDispatch } from './hooks';
 import { setStats } from './features/stats/stats-slice';
-import { setScreen, ScreenType } from './features/screens/screens-slice';
+import { setScreen } from './features/screens/screens-slice';
 import { addPresetFromDashboard } from './features/preset/preset-slice';
 import { handleEvents } from '../../HandleEvents';
-import { addOneNotification } from './features/notifications/notification-slice';
+import {
+  addOneNotification,
+  NotificationItem
+} from './features/notifications/notification-slice';
 
 const socket: Socket | null = io('http://localhost:80');
 
@@ -15,12 +18,10 @@ export const SocketProviderValue = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    socket.on(
-      'notification',
-      (notification: { id: string; message: string }) => {
-        dispatch(addOneNotification(notification));
-      }
-    );
+    socket.on('notification', (notification: string) => {
+      const oNotification: NotificationItem = JSON.parse(notification);
+      dispatch(addOneNotification(oNotification));
+    });
 
     socket.on('status', (data: ISensorData) => {
       console.log('Listening: status', data.name);
