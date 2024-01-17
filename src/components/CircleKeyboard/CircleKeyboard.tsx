@@ -181,7 +181,7 @@ export function CircleKeyboard(): JSX.Element {
         case 'capslock':
           setCapsLockActive({
             active: !capsLockActive.active,
-            keep: capsLockActive.keep ? false : capsLockActive.keep
+            keep: !capsLockActive.keep
           });
           return;
         default:
