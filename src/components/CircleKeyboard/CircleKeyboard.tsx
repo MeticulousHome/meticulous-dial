@@ -282,27 +282,53 @@ export function CircleKeyboard(): JSX.Element {
         );
       case 'ok':
         return (
-          <div className="main-letter-space icon-ok-selected">&#xe801;</div>
+          <div className="main-letter-space icon-ok-selected">
+            <div className="relative">
+              <span className="main-letter__label main-letter__label--top-0 main-letter__label--rigth-55">
+                Ok
+              </span>
+              <div>&#xe801;</div>
+            </div>
+          </div>
         );
       case 'backspace':
         return (
-          <div className="main-letter-space icon-backspace-selected">
-            &#xf177;
-          </div>
+          <>
+            <div className="main-letter-space icon-backspace-selected">
+              <div className="relative">
+                <span className="main-letter__label main-letter__label--top-0">
+                  Back
+                </span>
+                <div>&#xf177;</div>
+              </div>
+            </div>
+          </>
         );
       case 'capslock':
         return (
-          <div
-            className={`main-letter-space icon-capslock-selected ${
-              capsLockActive.active ? 'caps-active' : 'caps-inactive'
-            }`}
-          >
-            &#xe803;
+          <div className="main-letter-space icon-capslock-selected">
+            <div className="relative">
+              <span className="main-letter__label">CAPSLock</span>
+              <div
+                className={`${
+                  capsLockActive.active ? 'caps-active' : 'caps-inactive'
+                }`}
+              >
+                &#xe803;
+              </div>
+            </div>
           </div>
         );
       case 'cancel':
         return (
-          <div className="main-letter-space icon-cancel-selected">&#xe802;</div>
+          <div className="main-letter-space icon-cancel-selected">
+            <div className="relative">
+              <span className="main-letter__label main-letter__label--rigth-65 main-letter__label--top-14">
+                Abort
+              </span>
+              <div>&#xe802;</div>
+            </div>
+          </div>
         );
       default:
         return <div className="main-letter">{mainLetter}</div>;
