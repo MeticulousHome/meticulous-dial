@@ -33,29 +33,32 @@
 }
 .main-letter__label {
   position: absolute;
-  top: -8px;
+  bottom: -17px;
   text-align: center;
   -webkit-text-stroke: #ffffff;
   transform: translateX(50%);
   right: 50%;
   font-weight: bold;
-  font-size: 10px;
-  font-family: 'fontello';
+  font-size: 17px;
+  font-family: 'Satoshi';
 }
-.main-letter__label--top-14 {
-  top: -14px;
+.main-letter__label--bottom-11 {
+  bottom: -11px;
 }
-.main-letter__label--top-0 {
-  top: 0px;
+.main-letter__label--bottom-16 {
+  bottom: -16px;
 }
-.main-letter__label--top-3 {
-  top: -3px;
+.main-letter__label--bottom-20 {
+  bottom: -20px;
 }
-.main-letter__label--rigth-55 {
-  right: 55%;
+.main-letter__label--rigth-5 {
+  right: 52%;
 }
 .main-letter__label--rigth-65 {
   right: 65%;
+}
+.main-letter__label--rigth-46 {
+  right: 46%;
 }
 
 .transition-all {
