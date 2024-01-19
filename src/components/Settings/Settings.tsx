@@ -7,6 +7,7 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { useSocket } from '../store/SocketManager';
+import { setIsSoundEnable } from '../store/features/settings/settings-slice';
 
 const settings = [
   {
@@ -22,14 +23,19 @@ const settings = [
     label: 'calibrate scale'
   },
   {
+    key: 'sound',
+    label: 'enable sound'
+  },
+  {
     key: 'exit',
     label: 'exit'
   }
-] as const;
+];
 
 export function Settings(): JSX.Element {
   const dispatch = useAppDispatch();
   const screen = useAppSelector((state) => state.screen);
+  const settingsState = useAppSelector((state) => state.settings);
   const [activeIndex, setActiveIndex] = useState(0);
   const [animationStyle, setAnimationStyle] = useState('');
   const swiperRef = useRef<SwiperRef>(null);
@@ -63,6 +69,16 @@ export function Settings(): JSX.Element {
           dispatch(
             setScreen(screen.prev === 'scale' ? 'barometer' : screen.prev)
           );
+
+          break;
+        }
+        case 'sound': {
+          const activeSound = !settingsState.isSoundEnable;
+          dispatch(setIsSoundEnable({ isSoundEnable: activeSound }));
+
+          settings[activeIndex].label = activeSound
+            ? 'disable sound'
+            : 'enable sound';
           break;
         }
       }

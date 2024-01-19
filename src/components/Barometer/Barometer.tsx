@@ -8,6 +8,7 @@ import { setScreen } from '../store/features/screens/screens-slice';
 import { resetActiveSetting } from '../store/features/preset/preset-slice';
 import { Meter } from './Meter';
 import { KIND_PROFILE, LCD_EVENT_EMIT } from '../../constants';
+import { usePlaySound } from '../../hooks/usePlaySound';
 
 export interface IBarometerProps {
   maxValue?: number;
@@ -18,6 +19,7 @@ export function Barometer({ maxValue = 13 }: IBarometerProps): JSX.Element {
   const presets = useAppSelector((state) => state.presets);
   const socket = useSocket();
   const dispatch = useAppDispatch();
+  usePlaySound(stats.name);
 
   useHandleGestures(
     {

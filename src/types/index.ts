@@ -223,3 +223,7 @@ export interface IItalian {
   source: 'lcd';
   kind: ItalianProfile;
 }
+
+export interface ISettingsData {
+  isSoundEnable: boolean;
+}
