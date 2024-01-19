@@ -284,7 +284,7 @@ export function CircleKeyboard(): JSX.Element {
         return (
           <div className="main-letter-space icon-ok-selected">
             <div className="relative">
-              <span className="main-letter__label main-letter__label--top-0 main-letter__label--rigth-55">
+              <span className="main-letter__label main-letter__label--rigth-52 main-letter__label--bottom-16">
                 Ok
               </span>
               <div>&#xe801;</div>
@@ -296,7 +296,7 @@ export function CircleKeyboard(): JSX.Element {
           <>
             <div className="main-letter-space icon-backspace-selected">
               <div className="relative">
-                <span className="main-letter__label main-letter__label--top-0">
+                <span className="main-letter__label main-letter__label--bottom-11 main-letter__label--rigth-46">
                   Back
                 </span>
                 <div>&#xf177;</div>
@@ -308,7 +308,9 @@ export function CircleKeyboard(): JSX.Element {
         return (
           <div className="main-letter-space icon-capslock-selected">
             <div className="relative">
-              <span className="main-letter__label">CAPSLock</span>
+              <span className="main-letter__label main-letter__label--bottom-20">
+                CAPSLock
+              </span>
               <div
                 className={`${
                   capsLockActive.active ? 'caps-active' : 'caps-inactive'
@@ -323,7 +325,7 @@ export function CircleKeyboard(): JSX.Element {
         return (
           <div className="main-letter-space icon-cancel-selected">
             <div className="relative">
-              <span className="main-letter__label main-letter__label--rigth-65 main-letter__label--top-14">
+              <span className="main-letter__label main-letter__label--rigth-65">
                 Abort
               </span>
               <div>&#xe802;</div>
