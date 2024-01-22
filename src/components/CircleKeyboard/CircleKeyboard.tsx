@@ -69,10 +69,11 @@ export function CircleKeyboard(): JSX.Element {
       setMainLetter(
         toUpperOrLowerCase(!right ? LAST_KEY : FIRST_KEY) as string
       );
+
       setRotate(
         !right
-          ? rotate + ROTATE_VALUE * JUMP_ROTATE
-          : rotate - ROTATE_VALUE * JUMP_ROTATE
+          ? rotate + ROTATE_VALUE + JUMP_ROTATE
+          : rotate - ROTATE_VALUE - JUMP_ROTATE
       );
       return;
     }
