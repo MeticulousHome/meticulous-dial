@@ -7,11 +7,13 @@ import {
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch } from '../store/hooks';
 import { useRef, useState } from 'react';
+import { useSocket } from '../store/SocketManager';
 
 const SCROLL_VALUE = 20;
 
 export function Notification(): JSX.Element {
   const dispatch = useAppDispatch();
+  const socket = useSocket();
   const [activeButton, setActivebutton] = useState<HTMLButtonElement | null>(
     null
   );
@@ -34,7 +36,7 @@ export function Notification(): JSX.Element {
   );
 
   if (notifications.length === 0) {
-    return <div>No hay notificaciones</div>;
+    return <></>;
   }
 
   const { id, message, responses, image } = notifications[0];
@@ -105,10 +107,12 @@ export function Notification(): JSX.Element {
                       key={index}
                       data-key={index}
                       onClick={() => {
-                        if (response === 'Skip') {
-                          dispatch(removeOneNotification(id));
-                        }
-                        console.log('BUTTON_PRESSED', response);
+                        socket.emit(
+                          'notification',
+                          JSON.stringify({ id, response })
+                        );
+
+                        dispatch(removeOneNotification(id));
                       }}
                     >
                       {response}
