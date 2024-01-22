@@ -60,6 +60,12 @@
 .main-letter__label--rigth-46 {
   right: 46%;
 }
+.main-letter__label-color--grey {
+  color: rgba(255, 255, 255, 0.4);
+}
+.main-letter__label-color--white {
+  color: #ffffff;
+}
 
 .transition-all {
   transition: all 250ms cubic-bezier(0.47, 1.63, 0.41, 0.8);
