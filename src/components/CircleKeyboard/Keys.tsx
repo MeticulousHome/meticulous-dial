@@ -2,10 +2,8 @@ export const FIRST_POSITION = 353;
 export const FIRST_KEY = 'a';
 export const LAST_KEY = 'cancel';
 
-//NOTE: We use ROTATE_VALUE x alphabet(41 items) to have 297.25 + JUMP_ROTATE = 360 degrees
+//NOTE: We use ROTATE_VALUE x alphabet(items) to have x + JUMP_ROTATE = 360 degrees
 export const ROTATE_VALUE = 7.25;
-export const JUMP_ROTATE = 62.75;
-
 export const DEFAULT_ALPHABET = [
   ' ',
   'a',
@@ -51,3 +49,10 @@ export const DEFAULT_ALPHABET = [
   'capslock',
   'cancel'
 ];
+
+// we filter empty string because they do not take up space.
+export const JUMP_ROTATE =
+  360 -
+  ROTATE_VALUE *
+    DEFAULT_ALPHABET.filter((alphabetItem) => alphabetItem.trim() !== '')
+      .length;
