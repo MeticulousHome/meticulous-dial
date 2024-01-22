@@ -308,7 +308,13 @@ export function CircleKeyboard(): JSX.Element {
         return (
           <div className="main-letter-space icon-capslock-selected">
             <div className="relative">
-              <span className="main-letter__label main-letter__label--bottom-20">
+              <span
+                className={`main-letter__label main-letter__label--bottom-20 ${
+                  capsLockActive.active
+                    ? 'main-letter__label-color--white'
+                    : 'main-letter__label-color--grey'
+                }`}
+              >
                 CAPSLock
               </span>
               <div
