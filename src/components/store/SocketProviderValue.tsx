@@ -12,7 +12,8 @@ import {
   NotificationItem
 } from './features/notifications/notification-slice';
 
-const socket: Socket | null = io('http://localhost:8080');
+const SERVER_URL: string = process.env.SERVER_URL ?? 'http://localhost:8080';
+const socket: Socket | null = io(SERVER_URL);
 
 export const SocketProviderValue = () => {
   const dispatch = useAppDispatch();
