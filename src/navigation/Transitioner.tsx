@@ -12,8 +12,8 @@ interface TransitionerProps {
   titleShared?: boolean;
 }
 
-const duration = 450;
-const animationStyle = { animationDuration: `${duration / 1000}s` };
+export const durationAnimation = 450;
+const animationStyle = { animationDuration: `${durationAnimation / 1000}s` };
 
 interface TitleProps {
   children: string;
@@ -117,7 +117,7 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
           ...prev,
           previous: null
         }));
-      }, duration);
+      }, durationAnimation);
       return () => clearTimeout(timer);
     }
   }, [previous?.screen]);
