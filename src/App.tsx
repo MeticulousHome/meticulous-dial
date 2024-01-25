@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider, useSelector } from 'react-redux';
 import 'swiper/swiper-bundle.min.css';
@@ -9,8 +10,8 @@ import { useFetchData } from './hooks/useFetchData';
 import { useHandleGestures } from './hooks/useHandleGestures';
 import { setScreen } from './components/store/features/screens/screens-slice';
 import { Router } from './navigation/Router';
-import { useEffect } from 'react';
 import { notificationSelector } from './components/store/features/notifications/notification-slice';
+import { durationAnimation } from './navigation/Transitioner';
 
 const App = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -31,12 +32,22 @@ const App = (): JSX.Element => {
     }
   }, [notifications]);
 
+  const getureTimeAgo = useRef(new Date());
+
   // This can be used for development purpose
   // useSocketKeyboardListeners();
   useFetchData();
   useHandleGestures(
     {
       doubleTare() {
+        const gestureTime = new Date();
+
+        const timeDiff = +gestureTime - +getureTimeAgo.current;
+
+        if (timeDiff < durationAnimation + 50) return;
+
+        getureTimeAgo.current = gestureTime;
+
         dispatch(
           setScreen(
             screen.value === 'scale'
