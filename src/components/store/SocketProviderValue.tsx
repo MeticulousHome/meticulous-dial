@@ -20,11 +20,15 @@ export const SocketProviderValue = () => {
   useEffect(() => {
     socket.on('notification', (notification: string) => {
       const oNotification: NotificationItem = JSON.parse(notification);
+
+      if (oNotification.responses.length === 0) {
+        return;
+      }
+
       dispatch(addOneNotification(oNotification));
     });
 
     socket.on('status', (data: ISensorData) => {
-      console.log('Listening: status', data.name);
       dispatch(setStats(data));
 
       // When stat is not in idle, lock the screen at Barometer
