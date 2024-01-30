@@ -30,6 +30,24 @@ export function Notification(): JSX.Element {
       right: () => {
         mainContainerScroll(false);
         moveBButtons(false);
+      },
+      click: () => {
+        if (activeButton !== null) {
+          setAllowScroll(true);
+          activeButton.classList.remove('focused-button');
+          setActivebutton(null);
+          socket.emit(
+            'notification',
+            JSON.stringify({
+              id,
+              response: activeButton.getAttribute('data-value')
+            })
+          );
+
+          mainContainerRef.current.scrollTop = 0;
+
+          dispatch(removeOneNotification(id));
+        }
       }
     },
     false
@@ -59,7 +77,7 @@ export function Notification(): JSX.Element {
 
   const myActiveButton = (id: number) => {
     if (id < 0) {
-      activeButton.blur();
+      activeButton.classList.remove('focused-button');
       mainContainerRef.current.scrollTop -= SCROLL_VALUE;
       setAllowScroll(true);
       setActivebutton(null);
@@ -68,7 +86,7 @@ export function Notification(): JSX.Element {
 
     let myButton: HTMLButtonElement = null;
     myButton = document.getElementById(`button-${id}`) as HTMLButtonElement;
-    myButton.focus();
+    myButton.classList.add('focused-button');
     setActivebutton(myButton);
   };
 
@@ -83,8 +101,11 @@ export function Notification(): JSX.Element {
 
     const intKey =
       parseInt(activeButton.getAttribute('data-key')) + (left ? -1 : +1);
-
     if (responses.length - 1 >= intKey) {
+      if (activeButton !== null) {
+        activeButton.classList.remove('focused-button');
+      }
+
       myActiveButton(intKey);
     }
   };
@@ -106,14 +127,8 @@ export function Notification(): JSX.Element {
                       id={`button-${index}`}
                       key={index}
                       data-key={index}
-                      onClick={() => {
-                        socket.emit(
-                          'notification',
-                          JSON.stringify({ id, response })
-                        );
-
-                        dispatch(removeOneNotification(id));
-                      }}
+                      data-value={response}
+                      className="response-button"
                     >
                       {response}
                     </button>

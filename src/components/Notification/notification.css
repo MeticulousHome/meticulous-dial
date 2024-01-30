@@ -66,6 +66,15 @@
   margin-bottom: 50px;
 }
 
-.buttons button:focus {
-  background-color: brown;
+.reponse-button {
+  text-transform: capitalize;
+  font-size: 16px;
+  padding: 10px;
+  background-color: transparent!important;
+  color: white;
+}
+
+.focused-button {
+  border: 2px white solid;
+  background-color: red;
 }
