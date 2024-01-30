@@ -9,7 +9,7 @@ import { useAppDispatch } from '../store/hooks';
 import { useRef, useState } from 'react';
 import { useSocket } from '../store/SocketManager';
 
-const SCROLL_VALUE = 20;
+const SCROLL_VALUE = 50;
 
 export function Notification(): JSX.Element {
   const dispatch = useAppDispatch();
