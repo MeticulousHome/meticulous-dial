@@ -13,8 +13,8 @@
   align-items: center;
   flex-direction: column;
   justify-content: space-around;
-  height: 390px;
-  width: 390px;
+  height: 480px;
+  width: 480px;
   z-index: 2;
 }
 
@@ -22,12 +22,12 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 390px;
+  height: 480px;
 }
 
 .circle {
-  width: 390px;
-  height: 390px;
+  width: 480px;
+  height: 480px;
   border-radius: 50%;
   overflow: auto;
   scroll-behavior: smooth;
@@ -37,26 +37,45 @@
   display: none;
 }
 
+.circle p {
+  font-size: 30px;
+  margin: 0;
+  padding: 0px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  text-align: center;
+  font-family: Lato;
+}
+
+.circle .limit-left {
+  content: "";
+  width: 50%;
+  height: 50%;
+  float: left;
+  shape-outside: polygon(0.0% 0.0%, 70.00% 0.0%, 45.00% 10.00%, 20.00% 30.00%, 6.00% 66%, 0px 100%);
+  shape-margin: 3%;
+}
+
+.circle .limit-right {
+  content: "";
+  width: 50%;
+  height: 50%;
+  float: right;
+  shape-outside: polygon(30% 0.0%, 55.00% 10.00%, 80.00% 30.00%, 94% 66%, 100% 100%, 100% 0%);
+  shape-margin: 3%;
+}
+
 .image-container {
   display: flex;
   width: 100%;
   flex-direction: row;
   justify-content: center;
-  margin-bottom: 35px;
+  margin-bottom: 20px;
 }
 
 .image-container img {
   width: 195px;
   justify-self: center;
-}
-
-.circle p {
-  font-size: 24px;
-  text-align: center;
-  margin: 0;
-  padding: 30px;
-  margin-top: 20px;
-  margin-bottom: 5px;
 }
 
 .buttons {
@@ -77,4 +96,16 @@
 .focused-button {
   border: 2px white solid;
   background-color: red;
+}
+
+.fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.fade-bottom {
+  bottom: 0;
+  height: 30%;
+  background: linear-gradient(0deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.70) 35%, rgba(255,255,255,0) 100%)
 }
