@@ -80,22 +80,31 @@
 
 .buttons {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: center;
-  margin-bottom: 50px;
+  margin-bottom: 150px;
 }
 
-.reponse-button {
-  text-transform: capitalize;
-  font-size: 16px;
-  padding: 10px;
+
+.response-button {
+  border: 0!important;
+  border-color: transparent!important;
+  font-size: 30px;
+  line-height: 52px;
+  font-weight: 500;
+  justify-content: start;
+  font-family: Lato;
+  border: 0!important;
+  background: none;
+  color: #808080;
+  padding: 5px;
   background-color: transparent!important;
-  color: white;
 }
 
-.focused-button {
-  border: 2px white solid;
-  background-color: red;
+.response-button:focus {
+  color:white;
+  border: 0!important;
+  border-color: transparent!important;
 }
 
 .fade {
