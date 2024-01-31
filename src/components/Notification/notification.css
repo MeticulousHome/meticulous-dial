@@ -48,20 +48,20 @@
 }
 
 .circle .limit-left {
-  content: "";
+  content: '';
   width: 50%;
   height: 50%;
   float: left;
-  shape-outside: polygon(0.0% 0.0%, 70.00% 0.0%, 45.00% 10.00%, 20.00% 30.00%, 6.00% 66%, 0px 100%);
+  shape-outside: polygon(0% 0%, 70% 0%, 45% 10%, 20% 30%, 6% 66%, 0px 100%);
   shape-margin: 3%;
 }
 
 .circle .limit-right {
-  content: "";
+  content: '';
   width: 50%;
   height: 50%;
   float: right;
-  shape-outside: polygon(30% 0.0%, 55.00% 10.00%, 80.00% 30.00%, 94% 66%, 100% 100%, 100% 0%);
+  shape-outside: polygon(30% 0%, 55% 10%, 80% 30%, 94% 66%, 100% 100%, 100% 0%);
   shape-margin: 3%;
 }
 
@@ -85,36 +85,32 @@
   margin-bottom: 150px;
 }
 
-
 .response-button {
-  border: 0!important;
-  border-color: transparent!important;
+  border: unset;
   font-size: 30px;
   line-height: 52px;
   font-weight: 500;
   justify-content: start;
   font-family: Lato;
-  border: 0!important;
-  background: none;
   color: #808080;
   padding: 5px;
-  background-color: transparent!important;
+  background-color: transparent;
+  background: none;
 }
 
-.response-button:focus {
-  color:white;
-  border: 0!important;
-  border-color: transparent!important;
-}
-
-.fade {
-  position: absolute;
-  left: 0;
-  right: 0;
+.focused-button {
+  color: white;
 }
 
 .fade-bottom {
+  width: 100%;
+  position: absolute;
   bottom: 0;
   height: 30%;
-  background: linear-gradient(0deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.70) 35%, rgba(255,255,255,0) 100%)
+  background: linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.7) 35%,
+    rgba(255, 255, 255, 0) 100%
+  );
 }
