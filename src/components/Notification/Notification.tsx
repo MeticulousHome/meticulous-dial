@@ -116,32 +116,33 @@ export function Notification(): JSX.Element {
         <div className="message-container">
           <div className="circle-container">
             <div className="circle" id="main-circle" ref={mainContainerRef}>
-              <div className="cicle limit-left"></div>
-              <div className="cicle limit-right"></div>
-              <p>{message}
-              <div className="image-container">
-                <img src={image} />
-              </div>
-              <div className="buttons">
-                {responses.map((response, index) => {
-                  return (
-                    <button
-                      id={`button-${index}`}
-                      key={index}
-                      data-key={index}
-                      data-value={response}
-                      className="response-button"
-                    >
-                      {response}
-                    </button>
-                  );
-                })}
-              </div>
+              <div className="cicle limit-left" />
+              <div className="cicle limit-right" />
+              <p>
+                {message}
+                <div className="image-container">
+                  <img src={image} />
+                </div>
+                <div className="buttons">
+                  {responses.map((response, index) => {
+                    return (
+                      <button
+                        id={`button-${index}`}
+                        key={index}
+                        data-key={index}
+                        data-value={response}
+                        className="response-button"
+                      >
+                        {response}
+                      </button>
+                    );
+                  })}
+                </div>
               </p>
             </div>
           </div>
         </div>
-        <div className="fade fade-bottom"></div>
+        <div className="fade-bottom" />
       </div>
     </div>
   );
