@@ -477,11 +477,11 @@ const presetSlice = createSlice({
         state.value = action.payload;
         if (action.payload.length) {
           const defaultIndex = action.payload.findIndex(
-            (preset) => preset.isDefault
+            (preset: IPreset) => preset.isDefault
           );
           if (defaultIndex !== -1) {
             state.defaultPresetIndex = defaultIndex;
-            state.allSettings = action.payload.map((preset) => ({
+            state.allSettings = action.payload.map((preset: IPreset) => ({
               presetId: preset.id.toString(),
               settings: preset?.settings || []
             }));
