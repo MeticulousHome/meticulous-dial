@@ -16,6 +16,7 @@ import { DEFAULT_SETTING } from '../../../../constants/setting';
 import { getPresetsData, setPresetsData } from '../../../../data/presets';
 import { setScreen } from '../screens/screens-slice';
 import { KIND_PROFILE } from '../../../../constants';
+import Profile from '../../../../api/profile';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -392,7 +393,7 @@ export const savePreset = createAsyncThunk(
     };
     presetState.value = [...copyListPresets];
     console.log('run', presetState.value);
-    await setPresetsData(presetState.value);
+    await Profile.save(presetState.activePreset);
 
     dispatch(
       setPresetState({
@@ -405,13 +406,13 @@ export const savePreset = createAsyncThunk(
 export const getPresets = createAsyncThunk(
   'presetData/getData',
   async (_, { dispatch }) => {
-    const presetsData = await getPresetsData();
-    const presets = JSON.parse(presetsData) as IPreset[];
+    const { data } = await Profile.getAll();
 
-    if (presets.length === 0) {
+    if (data.length === 0) {
       dispatch(setScreen('pressets'));
     }
-    return presets;
+
+    return data;
   }
 );
 
