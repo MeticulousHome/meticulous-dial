@@ -101,6 +101,7 @@
     "react-freeze": "^1.0.3",
     "react-redux": "8.0.5",
     "socket.io-client": "^4.5.4",
-    "swiper": "^9.0.2"
+    "swiper": "^9.0.2",
+    "uuid": "^9.0.1"
   }
 }

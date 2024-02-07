@@ -4,6 +4,8 @@ import {
   Draft,
   PayloadAction
 } from '@reduxjs/toolkit';
+import { v4 as uuidv4 } from 'uuid';
+
 import { settingsDefaultNewPreset } from '../../../../utils/mock';
 
 import {
@@ -13,7 +15,7 @@ import {
 } from '../../../../types/index';
 import { RootState } from '../../store';
 import { DEFAULT_SETTING } from '../../../../constants/setting';
-import { getPresetsData, setPresetsData } from '../../../../data/presets';
+import { setPresetsData } from '../../../../data/presets';
 import { setScreen } from '../screens/screens-slice';
 import { KIND_PROFILE } from '../../../../constants';
 import Profile from '../../../../api/profile';
@@ -49,7 +51,7 @@ export const addPresetFromDashboard = createAsyncThunk(
         isDefault: false
       }));
 
-      const presetId = new Date().getTime();
+      const presetId = uuidv4();
 
       const settings = payload.profile;
       presetList.push({
@@ -104,7 +106,7 @@ export const addPresetNewOne = createAsyncThunk(
       isDefault: false
     }));
 
-    const presetId = new Date().getTime();
+    const presetId = uuidv4();
 
     presetList.push({
       id: presetId,
@@ -384,7 +386,6 @@ export const savePreset = createAsyncThunk(
       settings: [...updateSetting.settings]
     };
     presetState.value = [...copyListPresets];
-    console.log('run', presetState.value);
     await Profile.save(presetState.activePreset);
 
     dispatch(

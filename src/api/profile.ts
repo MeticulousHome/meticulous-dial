@@ -19,7 +19,7 @@ class Profile extends Api implements ProfileImplementation {
     return this._axios.post(this.PROFILE_BASE_URL + '/load', body);
   }
 
-  async loadProfile(profile_id: number): Promise<AxiosResponse> {
+  async loadProfile(profile_id: string | number): Promise<AxiosResponse> {
     return this._axios.get(this.PROFILE_BASE_URL + `/load/${profile_id}`);
   }
 
