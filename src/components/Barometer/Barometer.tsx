@@ -10,7 +10,7 @@ import { setScreen } from '../store/features/screens/screens-slice';
 import { resetActiveSetting } from '../store/features/preset/preset-slice';
 import { Meter } from './Meter';
 import { KIND_PROFILE, LCD_EVENT_EMIT } from '../../constants';
-
+import Profile from '../../api/profile';
 export interface IBarometerProps {
   maxValue?: number;
 }
@@ -21,6 +21,20 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
   const presets = useAppSelector((state) => state.presets);
   const socket = useSocket();
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (presets.activePreset && presets.activePreset.id >= 0) {
+        try {
+          await Profile.loadProfile(presets.activePreset.id);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   useHandleGestures(
     {
