@@ -63,7 +63,7 @@ export interface ISensorData {
 }
 
 export interface IPreset {
-  id: number;
+  id: string | number;
   name: string;
   kind?: ItalianProfile | DashboardProfile;
   isDefault?: boolean;

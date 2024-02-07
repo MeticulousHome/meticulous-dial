@@ -105,6 +105,7 @@
     "react-redux": "8.0.5",
     "socket.io-client": "^4.5.4",
     "styled-components": "^6.1.8",
-    "swiper": "^9.0.2"
+    "swiper": "^9.0.2",
+    "uuid": "^9.0.1"
   }
 }
