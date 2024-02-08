@@ -1,0 +1,41 @@
+.connect-wifi-options {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+}
+
+.connect-wifi-options > .swiper {
+  z-index: 0;
+}
+
+.connect-wifi-option-item {
+  font-size: 30px;
+  line-height: 52px;
+  font-weight: 500;
+  justify-content: start;
+}
+
+.connect-wifi-option-item > .center {
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.qr-wrapper {
+  width: 80px;
+  height: 80px;
+  background-color: red;
+}
+
+.connect-wifi-fade-top {
+  height: 180px;
+}
+
+.connect-wifi-fade-bottom {
+  height: 100px;
+}

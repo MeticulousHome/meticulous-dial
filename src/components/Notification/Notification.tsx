@@ -143,7 +143,7 @@ export function Notification(): JSX.Element {
             </div>
           </div>
         </div>
-        <div className="fade-bottom" />
+        <div className="notification-fade-bottom" />
       </div>
     </div>
   );
