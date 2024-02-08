@@ -3,7 +3,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import { IpcMainEvent } from 'electron/main';
 import { promises as fs } from 'fs';
 import _, { difference } from 'lodash';
-import { getNetworkConfig, updateNetworkConfig } from './api/wifi';
+import { getNetworkConfig, getWifiList, updateNetworkConfig } from './api/wifi';
 import { KIND_PROFILE } from './constants';
 import mockPreset from './data/mock_presets.json';
 import { IPreset, IPresetSetting, IPresetsSettingData } from './types';
@@ -256,6 +256,7 @@ app.on('ready', () => {
   ipcMain.handle('saveFile', saveFile);
   ipcMain.handle('getPresetData', getPresetData);
   ipcMain.handle('getNetworkConfig', getNetworkConfig);
+  ipcMain.handle('getWifiList', getWifiList);
   ipcMain.handle('updateNetworkConfig', updateNetworkConfig);
   createWindow();
 });

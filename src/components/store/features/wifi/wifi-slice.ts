@@ -1,4 +1,4 @@
-import { NetworkConfig, WifiStatus } from './../../../../types';
+import { NetworkConfig, Wifi, WifiStatus } from './../../../../types';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface WifiState {
@@ -8,6 +8,7 @@ interface WifiState {
   error: boolean;
   networkConfig: NetworkConfig;
   wifiStatus: WifiStatus;
+  wifiList: Wifi[];
 }
 
 const initialState: WifiState = {
@@ -15,12 +16,18 @@ const initialState: WifiState = {
   pending: false,
   error: false,
   networkConfig: null,
-  wifiStatus: null
+  wifiStatus: null,
+  wifiList: []
 };
 
 export const getConfig = createAsyncThunk('wifi/getConfig', async () => {
   const networkConfig = await window.meticulousAPI.getNetworkConfig();
   return networkConfig;
+});
+
+export const getWifis = createAsyncThunk('wifi/list', async () => {
+  const wifiList = await window.meticulousAPI.getWifiList();
+  return wifiList;
 });
 
 // TODO: re-enable when API finish
@@ -63,6 +70,18 @@ const wifiSlice = createSlice({
         const { config, status } = action.payload;
         state.networkConfig = config;
         state.wifiStatus = status;
+      })
+      .addCase(getWifis.pending, (state) => {
+        state.pending = true;
+      })
+      .addCase(getWifis.rejected, (state) => {
+        state.pending = false;
+        state.error = true;
+      })
+      .addCase(getWifis.fulfilled, (state, action) => {
+        state.pending = false;
+        const list = action.payload;
+        state.wifiList = list;
       });
     // .addCase(updateConfig.rejected, (state, action) => {
     //   console.log('save error', action);

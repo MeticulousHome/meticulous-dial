@@ -20,3 +20,10 @@ export interface WifiStatus {
   mac: string;
   hostname: string;
 }
+
+export interface Wifi {
+  ssid: string;
+  signal: number;
+  rate: number;
+  in_use: boolean;
+}
