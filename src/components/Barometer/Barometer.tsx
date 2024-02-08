@@ -24,7 +24,10 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (presets.activePreset && presets.activePreset.id >= 0) {
+      if (
+        presets.activePreset &&
+        presets.activePreset.id.toString().length > 2
+      ) {
         try {
           await Profile.loadProfile(presets.activePreset.id);
         } catch (error) {
