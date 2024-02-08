@@ -15,6 +15,15 @@ export const getNetworkConfig = async () => {
   }
 };
 
+export const getWifiList = async () => {
+  try {
+    const response = await axiosInstance.get('/wifi/list');
+    return response.data;
+  } catch (error) {
+    console.error('getWifiList error ', error);
+  }
+};
+
 export const updateNetworkConfig = async (
   _event: IpcMainEvent,
   newConfig: Partial<NetworkConfig>
