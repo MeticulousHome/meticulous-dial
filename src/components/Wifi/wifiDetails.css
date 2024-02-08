@@ -12,14 +12,15 @@
 
 .wifi-detail-wrapper .wifi-item {
   display: flex;
+  margin-top: 4px;
   justify-content: space-between;
-}
-
-.wifi-item {
-  margin-top: 16px;
 }
 
 .ip-value {
   text-align: right;
   font-size: 18px;
+}
+
+.wifi-details-fade-top {
+  height: 170px;
 }

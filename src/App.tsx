@@ -64,8 +64,8 @@ const App = (): JSX.Element => {
           dispatch(setScreen('settings'));
         }
       }
-    },
-    stats?.name !== 'idle'
+    }
+    // stats?.name !== 'idle'
   );
 
   return <Router currentScreen={screen.value} previousScreen={screen.prev} />;
