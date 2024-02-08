@@ -35,7 +35,7 @@ const App = (): JSX.Element => {
 
   const getureTimeAgo = useRef(new Date());
 
-  // This can be used for development purpose
+  // For development purpose
   useSocketKeyboardListeners();
   useFetchData();
   useHandleGestures(
@@ -64,8 +64,8 @@ const App = (): JSX.Element => {
           dispatch(setScreen('settings'));
         }
       }
-    }
-    // stats?.name !== 'idle'
+    },
+    stats?.name !== 'idle'
   );
 
   return <Router currentScreen={screen.value} previousScreen={screen.prev} />;
