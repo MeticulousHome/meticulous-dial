@@ -42,8 +42,7 @@ export const WifiSettings = (): JSX.Element => {
       );
     },
     click() {
-      const activeSlideId =
-        swiperRef.current.swiper.slidesEl.children[activeIndex].id;
+      const activeSlideId = swiperRef.current.swiper.slides[activeIndex].id;
       if (activeSlideId === SETTING_OPTIONS.WIFI_DETAILS) {
         dispatch(setScreen('wifiDetails'));
       }
