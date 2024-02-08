@@ -41,7 +41,7 @@ const App = (): JSX.Element => {
 
   const getureTimeAgo = useRef(new Date());
 
-  // This can be used for development purpose
+  // For development purpose
   useSocketKeyboardListeners();
   useFetchData();
   useHandleGestures(

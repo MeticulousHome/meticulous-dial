@@ -32,9 +32,9 @@ export const SocketProviderValue = () => {
       dispatch(setStats(data));
 
       // When stat is not in idle, lock the screen at Barometer
-      // if (data?.name !== 'idle') {
-      //   dispatch(setScreen('barometer'));
-      // }
+      if (data?.name !== 'idle') {
+        dispatch(setScreen('barometer'));
+      }
     });
 
     socket.on('save_in_dial', (data: any) => {
