@@ -10,7 +10,8 @@ import './wifiSettings.css';
 
 enum SETTING_OPTIONS {
   WIFI_DETAILS = 'wifi-details',
-  CONNECT_NEW_WIFI = 'connect-new-wifi'
+  CONNECT_NEW_WIFI = 'connect-new-wifi',
+  TOGGLE_WIFI_MODE = 'toggle-wifi-mode'
 }
 
 export const WifiSettings = (): JSX.Element => {
@@ -49,15 +50,15 @@ export const WifiSettings = (): JSX.Element => {
       if (activeSlideId === SETTING_OPTIONS.CONNECT_NEW_WIFI) {
         dispatch(setScreen('connectWifi'));
       }
-      // if (activeIndex === 2) {
-      //   dispatch(
-      //     updateConfig({
-      //       ...networkConfig,
-      //       mode:
-      //         networkConfig.mode === AppMode.AP ? AppMode.CLIENT : AppMode.AP
-      //     })
-      //   );
-      // }
+      if (activeSlideId === SETTING_OPTIONS.TOGGLE_WIFI_MODE) {
+        dispatch(
+          updateConfig({
+            ...networkConfig,
+            mode:
+              networkConfig.mode === AppMode.AP ? AppMode.CLIENT : AppMode.AP
+          })
+        );
+      }
     }
   });
 
@@ -106,7 +107,11 @@ export const WifiSettings = (): JSX.Element => {
                   see current configuration
                 </div>
               </SwiperSlide>
-              <SwiperSlide key="app-mode" className="wifi-option-item">
+              <SwiperSlide
+                key="app-mode"
+                id={SETTING_OPTIONS.TOGGLE_WIFI_MODE}
+                className="wifi-option-item"
+              >
                 <div className={`${animationStyle} center`}>
                   network mode: &nbsp; {networkConfig?.mode}
                 </div>
