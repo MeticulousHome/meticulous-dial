@@ -23,15 +23,15 @@ export const WifiDetails = (): JSX.Element => {
 
   useHandleGestures({
     left() {
+      setActiveIndex((prev) => Math.max(prev - 1, 0));
+    },
+    right() {
       setActiveIndex((prev) =>
         Math.min(
           prev + 1,
           (swiperRef?.current?.swiper?.slides || []).length - 1
         )
       );
-    },
-    right() {
-      setActiveIndex((prev) => Math.max(prev - 1, 0));
     },
     click() {
       if (activeIndex === 1) {
