@@ -1,0 +1,25 @@
+.content-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.wifi-detail-wrapper {
+  width: 80%;
+  font-size: 26px;
+}
+
+.wifi-detail-wrapper .wifi-item {
+  display: flex;
+  justify-content: space-between;
+}
+
+.wifi-item {
+  margin-top: 16px;
+}
+
+.ip-value {
+  text-align: right;
+  font-size: 18px;
+}

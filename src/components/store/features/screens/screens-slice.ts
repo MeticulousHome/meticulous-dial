@@ -15,7 +15,12 @@ export type ScreenType =
   | 'scale'
   | 'settings'
   | 'purge'
-  | 'notifications';
+  | 'notifications'
+  | 'wifiSettings'
+  | 'wifiDetails'
+  | 'connectWifi'
+  | 'selectWifi'
+  | 'enterWifiPassword';
 
 interface ScreenState {
   value: ScreenType;

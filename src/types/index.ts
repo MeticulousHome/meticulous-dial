@@ -1,3 +1,5 @@
+export * from './wifi';
+
 import { DashboardProfile, ItalianProfile } from '../constants';
 
 interface JSONObject {

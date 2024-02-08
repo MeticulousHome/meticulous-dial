@@ -8,7 +8,12 @@ import { OnOff } from '../components/OnOff/OnOff';
 import { Purge } from '../components/Purge/Purge';
 import { Settings } from '../components/Settings/Settings';
 import { ScreenType } from '../components/store/features/screens/screens-slice';
-import { CircleKeyboard } from '../components/CircleKeyboard/CircleKeyboard';
+import { EditNameScreen } from '../components/EditNameScreen/EditNameScreen';
+import { ConnectWifi } from '../components/Wifi/ConnectWifi';
+import { WifiSettings } from './../components/Wifi/WifiSettings';
+import { SelectWifi } from '../components/Wifi/SelectWifi';
+import { EnterWifiPassword } from '../components/Wifi/EnterWifiPassword';
+import { WifiDetails } from '../components/Wifi/WifiDetails';
 import { RootState } from '../components/store/store';
 import { Notification } from '../components/Notification/Notification';
 
@@ -97,7 +102,7 @@ export const routes: Record<ScreenType, Route> = {
     parent: 'pressetSettings'
   },
   name: {
-    component: CircleKeyboard,
+    component: EditNameScreen,
     bottomStatusHidden: true
   },
   'pre-infusion': {
@@ -118,6 +123,30 @@ export const routes: Record<ScreenType, Route> = {
   },
   notifications: {
     component: Notification,
+    bottomStatusHidden: true
+  },
+  wifiSettings: {
+    component: WifiSettings,
+    title: 'wifi settings',
+    bottomStatusHidden: true
+  },
+  wifiDetails: {
+    component: WifiDetails,
+    title: 'wifi settings',
+    bottomStatusHidden: true
+  },
+  connectWifi: {
+    component: ConnectWifi,
+    title: 'connect to a new network',
+    bottomStatusHidden: true
+  },
+  selectWifi: {
+    component: SelectWifi,
+    title: 'select wifi',
+    bottomStatusHidden: true
+  },
+  enterWifiPassword: {
+    component: EnterWifiPassword,
     bottomStatusHidden: true
   }
 };
