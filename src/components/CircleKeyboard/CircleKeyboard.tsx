@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import '../../assets/fonts/custom/css/fontello.css';
 import './circle-keyboard.css';
 
-import { useDispatch } from 'react-redux';
-import { IPresetName, IPresetSetting } from '../../types';
 import {
   DEFAULT_ALPHABET,
   FIRST_POSITION,
@@ -12,12 +10,17 @@ import {
   ROTATE_VALUE,
   JUMP_ROTATE
 } from './Keys';
-import { useAppSelector } from '../store/hooks';
-import { updatePresetSetting } from '../store/features/preset/preset-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { setScreen } from '../store/features/screens/screens-slice';
 
-export function CircleKeyboard(): JSX.Element {
+interface IKeyboardProps {
+  name: string;
+  type?: string;
+  defaultValue?: string[];
+  onSubmit: (text: string) => void;
+  onCancel: () => void;
+}
+
+export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
   const [rotate, setRotate] = useState<number>(FIRST_POSITION);
   const [alphabet, setAlphabet] = useState<string[]>(DEFAULT_ALPHABET);
   const [mainLetter, setMainLetter] = useState<string>(FIRST_KEY);
@@ -28,16 +31,11 @@ export function CircleKeyboard(): JSX.Element {
     active: false,
     keep: false
   });
-  const { screen, presets } = useAppSelector((state) => state);
-  const setting = presets.updatingSettings.settings[
-    presets.activeSetting
-  ] as IPresetName;
+
+  const { name, defaultValue, type, onSubmit, onCancel } = props;
 
   const captionRef = useRef<HTMLDivElement>(null);
-  const [caption, setCaption] = useState(() =>
-    setting && setting.value ? setting.value.split('') : []
-  );
-  const dispatch = useDispatch();
+  const [caption, setCaption] = useState([]);
 
   const moveElements = (right: boolean) => {
     const newAlphabet = [...alphabet];
@@ -89,14 +87,6 @@ export function CircleKeyboard(): JSX.Element {
     setRotate(pmr);
   };
 
-  const updateSetting = (updatedText: string) => {
-    const updatedSetting = {
-      ...setting,
-      value: updatedText
-    } as IPresetSetting;
-    dispatch(updatePresetSetting(updatedSetting));
-  };
-
   const addAnimation = () => {
     if (captionRef.current) {
       //add class to trigger animation
@@ -109,10 +99,10 @@ export function CircleKeyboard(): JSX.Element {
   };
 
   useEffect(() => {
-    if (setting?.type === 'text') {
-      setCaption(setting.value.split(''));
+    if (defaultValue) {
+      setCaption(defaultValue);
     }
-  }, [setting, screen]);
+  }, [defaultValue]);
 
   useHandleGestures({
     left() {
@@ -130,19 +120,17 @@ export function CircleKeyboard(): JSX.Element {
       }
     },
     click() {
-      const goToMainScreen = () => {
-        dispatch(setScreen('pressetSettings'));
-      };
-
-      if (caption.length > 7 && mainLetter !== 'backspace') {
+      if (
+        caption.length > 7 &&
+        mainLetter !== 'backspace' &&
+        type !== 'password'
+      ) {
         if (mainLetter === 'ok') {
-          //if (mainLetter === 'ok' && caption.join('').trim().length > 0) {
-          updateSetting(caption.join('').trim());
-          goToMainScreen();
+          onSubmit(caption.join('').trim());
         }
         if (mainLetter === 'cancel') {
-          setCaption(setting ? setting.value.split('') : []);
-          goToMainScreen();
+          setCaption(defaultValue);
+          onCancel();
         }
         return;
       }
@@ -168,8 +156,7 @@ export function CircleKeyboard(): JSX.Element {
             addAnimation();
             return;
           }
-          updateSetting(caption.join('').trim());
-          goToMainScreen();
+          onSubmit(caption.join('').trim());
           return;
         case 'backspace':
           if (caption.length > 0) {
@@ -177,7 +164,7 @@ export function CircleKeyboard(): JSX.Element {
           }
           return;
         case 'cancel':
-          goToMainScreen();
+          onCancel();
           return;
         case 'capslock':
           setCapsLockActive({
@@ -348,9 +335,12 @@ export function CircleKeyboard(): JSX.Element {
     <div className="circle-keyboard-container">
       {getMainLetter()}
       <div className="caption-content">
-        <div className="circle-title">{setting?.label}</div>
+        <div className="circle-title">{name}</div>
         <div ref={captionRef} className="circle-caption">
           {caption.map((el, index) => {
+            if (type === 'password') {
+              return '*';
+            }
             if (el === ' ') {
               return (
                 <div key={index} className="transparent">

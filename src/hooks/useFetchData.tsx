@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { getPresets } from '../components/store/features/preset/preset-slice';
+import { getConfig as getWifiConfig } from '../components/store/features/wifi/wifi-slice';
 import { useAppDispatch } from '../components/store/hooks';
 
 export function useFetchData() {
@@ -7,5 +8,6 @@ export function useFetchData() {
 
   useEffect(() => {
     dispatch(getPresets());
+    dispatch(getWifiConfig());
   }, []);
 }

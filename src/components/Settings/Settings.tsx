@@ -22,6 +22,10 @@ const settings = [
     label: 'calibrate scale'
   },
   {
+    key: 'wifiSettings',
+    label: 'wifi'
+  },
+  {
     key: 'exit',
     label: 'exit'
   }
@@ -57,6 +61,10 @@ export function Settings(): JSX.Element {
         case 'calibrate': {
           socket.emit('calibrate', '');
           dispatch(setScreen('barometer'));
+          break;
+        }
+        case 'wifiSettings': {
+          dispatch(setScreen('wifiSettings'));
           break;
         }
         case 'exit': {
