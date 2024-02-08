@@ -12,7 +12,6 @@ export const WifiSettings = (): JSX.Element => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [animationStyle, setAnimationStyle] = useState('');
   const { wifiStatus, networkConfig } = useAppSelector((state) => state.wifi);
-  console.log('Log ~ WifiSettings ~ wifiStatus:', wifiStatus);
 
   const isWifiConnected = wifiStatus?.connected;
   const isAppMode = isWifiConnected && networkConfig?.mode === AppMode.AP;
@@ -104,11 +103,13 @@ export const WifiSettings = (): JSX.Element => {
             </>
           )}
 
-          <SwiperSlide key="connect-wifi" className="wifi-option-item">
-            <div className={`${animationStyle} center`}>
-              connect to a new network
-            </div>
-          </SwiperSlide>
+          {(!isWifiConnected || isClientMode) && (
+            <SwiperSlide key="connect-wifi" className="wifi-option-item">
+              <div className={`${animationStyle} center`}>
+                connect to a new network
+              </div>
+            </SwiperSlide>
+          )}
 
           {isAppMode && (
             <>
@@ -119,9 +120,19 @@ export const WifiSettings = (): JSX.Element => {
                   <div className="wifi-item">{`hostname: ${wifiStatus?.hostname}`}</div>
                 </div>
               </SwiperSlide>
-              <SwiperSlide key="app-credentials" className="wifi-option-item">
+              <SwiperSlide
+                key="app-credentials-name"
+                className="wifi-option-item"
+              >
                 <div className={`${animationStyle} center`}>
                   <div className="wifi-item">{`app name: ${networkConfig?.apName}`}</div>
+                </div>
+              </SwiperSlide>
+              <SwiperSlide
+                key="app-credentials-password"
+                className="wifi-option-item"
+              >
+                <div className={`${animationStyle} center`}>
                   <div className="wifi-item">{`app password: ${networkConfig?.apPassword}`}</div>
                 </div>
               </SwiperSlide>

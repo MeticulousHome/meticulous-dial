@@ -155,7 +155,7 @@ export const routes: Record<ScreenType, Route> = {
   },
   wifiDetails: {
     component: WifiDetails,
-    title: 'wifi settings',
+    title: 'wifi details',
     bottomStatusHidden: true
   },
   connectWifi: {
