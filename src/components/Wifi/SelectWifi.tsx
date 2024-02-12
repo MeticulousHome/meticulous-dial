@@ -32,7 +32,7 @@ export const SelectWifi = (): JSX.Element => {
     },
     click() {
       if (activeIndex === wifiList.length) {
-        dispatch(setScreen('wifiSettings'));
+        dispatch(setScreen('connectWifi'));
       } else {
         dispatch(selectWifi(wifiList[activeIndex].ssid));
         dispatch(setScreen('enterWifiPassword'));
