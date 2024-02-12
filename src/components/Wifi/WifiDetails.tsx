@@ -1,54 +1,28 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Swiper, SwiperRef, SwiperSlide } from 'swiper/react';
+import React, { useEffect, useState } from 'react';
+import { SwiperSlide } from 'swiper/react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { getConfig as getWifiConfig } from '../store/features/wifi/wifi-slice';
-import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { setScreen } from '../store/features/screens/screens-slice';
+import { SwiperWrapper } from '../Swiper/SwiperWrapper';
 
 import './wifiDetails.css';
 
 export const WifiDetails = (): JSX.Element => {
-  const [activeIndex, setActiveIndex] = useState(0);
   const [animationStyle, setAnimationStyle] = useState('');
 
   const dispatch = useAppDispatch();
   const { wifiStatus, pending } = useAppSelector((state) => state.wifi);
 
-  const swiperRef = useRef<SwiperRef>(null);
-
   useEffect(() => {
     dispatch(getWifiConfig());
   }, []);
 
-  useHandleGestures({
-    left() {
-      setActiveIndex((prev) => Math.max(prev - 1, 0));
-    },
-    right() {
-      setActiveIndex((prev) =>
-        Math.min(
-          prev + 1,
-          (swiperRef?.current?.swiper?.slides || []).length - 1
-        )
-      );
-    },
-    click() {
-      if (activeIndex === 1) {
-        dispatch(setScreen('wifiSettings'));
-      }
+  const onClick = (_activeId: string, activeIndex: number) => {
+    if (activeIndex === 1) {
+      dispatch(setScreen('wifiSettings'));
     }
-  });
-
-  useEffect(() => {
-    if (swiperRef.current?.swiper) {
-      try {
-        swiperRef.current.swiper.slideTo(activeIndex);
-      } catch (error) {
-        console.log({ error, location: 'WifiSettings' });
-      }
-    }
-  }, [activeIndex]);
+  };
 
   if (pending) {
     return <LoadingScreen />;
@@ -57,21 +31,14 @@ export const WifiDetails = (): JSX.Element => {
   return (
     <div className="main-layout content-center">
       <div className="wifi-options">
-        <Swiper
-          ref={swiperRef}
-          slidesPerView={3}
-          allowTouchMove={false}
-          initialSlide={activeIndex}
-          direction="vertical"
-          autoHeight={true}
-          centeredSlides={true}
-          onSlideNextTransitionStart={() => {
-            setAnimationStyle('animation-next');
-          }}
-          onSlidePrevTransitionStart={() => setAnimationStyle('animation-prev')}
-          onSlideChangeTransitionEnd={() => setAnimationStyle('')}
+        <SwiperWrapper
+          largeContentIndices={[0]}
+          largeContentFadeClassNameTop="wifi-details-fade-top"
+          largeContentFadeClassNameBottom="wifi-fade-bottom"
+          onClick={onClick}
+          setAnimationStyle={setAnimationStyle}
         >
-          <SwiperSlide key="wifi-details">
+          <SwiperSlide key="wifi-details" style={{ height: '190px' }}>
             <div className={`${animationStyle} wifi-detail-wrapper`}>
               <div className="wifi-item">
                 <div>network:</div>
@@ -93,12 +60,12 @@ export const WifiDetails = (): JSX.Element => {
               </div>
             </div>
           </SwiperSlide>
-          <SwiperSlide key="exit">
+          <SwiperSlide key="exit" style={{ height: '60px' }}>
             <div className={`${animationStyle}`}>
               <div className="wifi-detail-wrapper">back</div>
             </div>
           </SwiperSlide>
-        </Swiper>
+        </SwiperWrapper>
       </div>
       <div className="fade fade-top wifi-details-fade-top"></div>
       <div className="fade fade-bottom wifi-fade-bottom"></div>
