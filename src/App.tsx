@@ -80,6 +80,7 @@ const App = (): JSX.Element => {
   if (loadingPressets) return <></>;
 
   return <Router currentScreen={screen.value} previousScreen={screen.prev} />;
+  // return <Router currentScreen={'wifiSettings'} previousScreen={screen.prev} />;
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

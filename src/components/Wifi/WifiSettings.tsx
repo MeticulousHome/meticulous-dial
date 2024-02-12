@@ -1,21 +1,39 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Swiper, SwiperRef, SwiperSlide } from 'swiper/react';
-import { useHandleGestures } from '../../hooks/useHandleGestures';
+import React, { useState } from 'react';
+import { SwiperSlide } from 'swiper/react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { updateConfig } from '../store/features/wifi/wifi-slice';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { AppMode } from '../../types';
+import { SwiperWrapper } from '../Swiper/SwiperWrapper';
 
 import './wifiSettings.css';
+
+const LARGE_CONTENT_SETTINGS = {} as const;
 
 enum SETTING_OPTIONS {
   WIFI_DETAILS = 'wifi-details',
   CONNECT_NEW_WIFI = 'connect-new-wifi',
-  TOGGLE_WIFI_MODE = 'toggle-wifi-mode'
+  TOGGLE_WIFI_MODE = 'toggle-wifi-mode',
+  CONNECT_TO_THE_MACHINE = 'connect-to-the-machine',
+  SCAN_TO_CONNECT_WIFI = 'scan-to-connect-wifi',
+  SCAN_TO_CONNECT_MACHINE = 'scan-to-connect-machine'
 }
 
+const LARGE_CONTENT_OPTIONS = [
+  SETTING_OPTIONS.CONNECT_TO_THE_MACHINE,
+  SETTING_OPTIONS.SCAN_TO_CONNECT_MACHINE,
+  SETTING_OPTIONS.SCAN_TO_CONNECT_WIFI
+];
+
+const SMALL_SLIDE_STYLE = {
+  height: '60px'
+};
+
+const LARGE_SLIDE_STYLE = {
+  height: '180px'
+};
+
 export const WifiSettings = (): JSX.Element => {
-  const [activeIndex, setActiveIndex] = useState(0);
   const [animationStyle, setAnimationStyle] = useState('');
   const { wifiStatus, networkConfig } = useAppSelector((state) => state.wifi);
 
@@ -24,71 +42,38 @@ export const WifiSettings = (): JSX.Element => {
   const isClientMode =
     isWifiConnected && networkConfig?.mode === AppMode.CLIENT;
 
-  const swiperRef = useRef<SwiperRef>(null);
-  console.log('Log ~ WifiSettings ~ swiperRef:', swiperRef);
-
   const dispatch = useAppDispatch();
 
-  useHandleGestures({
-    left() {
-      setActiveIndex((prev) => Math.max(prev - 1, 0));
-    },
-    right() {
-      setActiveIndex((prev) =>
-        Math.min(
-          prev + 1,
-          (swiperRef?.current?.swiper?.slides || []).length - 1
-        )
+  const onClick = (activeSlideId: SETTING_OPTIONS) => {
+    if (activeSlideId === SETTING_OPTIONS.WIFI_DETAILS) {
+      dispatch(setScreen('wifiDetails'));
+    }
+    if (activeSlideId === SETTING_OPTIONS.CONNECT_NEW_WIFI) {
+      dispatch(setScreen('connectWifi'));
+    }
+    if (activeSlideId === SETTING_OPTIONS.TOGGLE_WIFI_MODE) {
+      dispatch(
+        updateConfig({
+          ...networkConfig,
+          mode: networkConfig.mode === AppMode.AP ? AppMode.CLIENT : AppMode.AP
+        })
       );
-    },
-    click() {
-      const activeSlideId = swiperRef.current.swiper.slides[activeIndex].id;
-      if (activeSlideId === SETTING_OPTIONS.WIFI_DETAILS) {
-        dispatch(setScreen('wifiDetails'));
-      }
-      if (activeSlideId === SETTING_OPTIONS.CONNECT_NEW_WIFI) {
-        dispatch(setScreen('connectWifi'));
-      }
-      if (activeSlideId === SETTING_OPTIONS.TOGGLE_WIFI_MODE) {
-        dispatch(
-          updateConfig({
-            ...networkConfig,
-            mode:
-              networkConfig.mode === AppMode.AP ? AppMode.CLIENT : AppMode.AP
-          })
-        );
-      }
     }
-  });
-
-  useEffect(() => {
-    if (swiperRef.current?.swiper) {
-      try {
-        swiperRef.current.swiper.slideTo(activeIndex);
-      } catch (error) {
-        console.log({ error, location: 'WifiSettings' });
-      }
-    }
-  }, [activeIndex]);
+  };
 
   return (
     <div className="main-layout">
       <div className="wifi-options">
-        <Swiper
-          ref={swiperRef}
-          slidesPerView={3}
-          allowTouchMove={false}
-          initialSlide={activeIndex}
-          direction="vertical"
-          autoHeight={true}
-          centeredSlides={true}
-          onSlideNextTransitionStart={() => {
-            setAnimationStyle('animation-next');
-          }}
-          onSlidePrevTransitionStart={() => setAnimationStyle('animation-prev')}
-          onSlideChangeTransitionEnd={() => setAnimationStyle('')}
+        <SwiperWrapper
+          largeContentIds={LARGE_CONTENT_OPTIONS}
+          onClick={onClick}
+          setAnimationStyle={setAnimationStyle}
         >
-          <SwiperSlide key="wifi-status" className="wifi-option-item">
+          <SwiperSlide
+            key="wifi-status"
+            className="wifi-option-item"
+            style={SMALL_SLIDE_STYLE}
+          >
             <div className={`${animationStyle} center`}>
               status: &nbsp;
               {isWifiConnected ? 'connected' : 'not connected'}
@@ -101,6 +86,7 @@ export const WifiSettings = (): JSX.Element => {
                 id={SETTING_OPTIONS.WIFI_DETAILS}
                 key="wifi-config"
                 className="wifi-option-item"
+                style={SMALL_SLIDE_STYLE}
               >
                 <div className={`${animationStyle} center`}>
                   see current configuration
@@ -110,6 +96,7 @@ export const WifiSettings = (): JSX.Element => {
                 key="app-mode"
                 id={SETTING_OPTIONS.TOGGLE_WIFI_MODE}
                 className="wifi-option-item"
+                style={SMALL_SLIDE_STYLE}
               >
                 <div className={`${animationStyle} center`}>
                   network mode: &nbsp; {networkConfig?.mode}
@@ -123,6 +110,7 @@ export const WifiSettings = (): JSX.Element => {
               key="connect-wifi"
               id={SETTING_OPTIONS.CONNECT_NEW_WIFI}
               className="wifi-option-item"
+              style={SMALL_SLIDE_STYLE}
             >
               <div className={`${animationStyle} center`}>
                 connect to a new network
@@ -132,7 +120,12 @@ export const WifiSettings = (): JSX.Element => {
 
           {isAppMode && (
             <>
-              <SwiperSlide key="app-details" className="wifi-option-item">
+              <SwiperSlide
+                id={SETTING_OPTIONS.CONNECT_TO_THE_MACHINE}
+                key="app-details"
+                className="wifi-option-item"
+                style={LARGE_SLIDE_STYLE}
+              >
                 <div className={`${animationStyle} center`}>
                   <div>connect to the machine:</div>
                   <div className="wifi-item">{`network: ${wifiStatus?.connection_name}`}</div>
@@ -142,6 +135,7 @@ export const WifiSettings = (): JSX.Element => {
               <SwiperSlide
                 key="app-credentials-name"
                 className="wifi-option-item"
+                style={SMALL_SLIDE_STYLE}
               >
                 <div className={`${animationStyle} center`}>
                   <div className="wifi-item">{`app name: ${networkConfig?.apName}`}</div>
@@ -150,12 +144,18 @@ export const WifiSettings = (): JSX.Element => {
               <SwiperSlide
                 key="app-credentials-password"
                 className="wifi-option-item"
+                style={SMALL_SLIDE_STYLE}
               >
                 <div className={`${animationStyle} center`}>
                   <div className="wifi-item">{`app password: ${networkConfig?.apPassword}`}</div>
                 </div>
               </SwiperSlide>
-              <SwiperSlide key="wifi-qr" className="wifi-option-item">
+              <SwiperSlide
+                id={SETTING_OPTIONS.SCAN_TO_CONNECT_WIFI}
+                key="wifi-qr"
+                className="wifi-option-item"
+                style={LARGE_SLIDE_STYLE}
+              >
                 <div className={`${animationStyle} center`}>
                   scan to connect wifi:
                   <div className="qr-wrapper"></div>
@@ -166,7 +166,12 @@ export const WifiSettings = (): JSX.Element => {
 
           {isClientMode && (
             <>
-              <SwiperSlide key="wifi-qr" className="wifi-option-item">
+              <SwiperSlide
+                id={SETTING_OPTIONS.SCAN_TO_CONNECT_MACHINE}
+                key="wifi-qr"
+                className="wifi-option-item"
+                style={LARGE_SLIDE_STYLE}
+              >
                 <div className={`${animationStyle} center`}>
                   scan to connect to this machine:
                   <div className="qr-wrapper"></div>
@@ -174,10 +179,8 @@ export const WifiSettings = (): JSX.Element => {
               </SwiperSlide>
             </>
           )}
-        </Swiper>
+        </SwiperWrapper>
       </div>
-      <div className="fade fade-top wifi-fade-top"></div>
-      <div className="fade fade-bottom wifi-fade-bottom"></div>
     </div>
   );
 };
