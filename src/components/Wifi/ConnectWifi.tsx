@@ -11,7 +11,7 @@ export const ConnectWifi = (): JSX.Element => {
   const dispatch = useAppDispatch();
 
   const onClick = (_activeId: string, activeIndex: number) => {
-    if (activeIndex === 0) {
+    if (activeIndex === 1) {
       dispatch(setScreen('selectWifi'));
     }
     if (activeIndex === 2) {
