@@ -30,6 +30,11 @@ interface Route {
 const selectActivePresetName = (state: RootState) =>
   state.presets.activePreset.name;
 
+const activePresset = (state: RootState) =>
+  state.presets.value[state.presets.activeIndexSwiper]
+    ? state.presets.value[state.presets.activeIndexSwiper].name
+    : '';
+
 const selectPressetTitle = (state: RootState) =>
   state.presets.option === 'HOME' ? state.presets.activePreset.name : 'Catalog';
 
@@ -55,7 +60,7 @@ export const routes: Record<ScreenType, Route> = {
   pressets: {
     component: Pressets,
     parentTitle: selectPressetTitle,
-    title: null
+    title: activePresset
   },
   barometer: {
     component: Barometer,

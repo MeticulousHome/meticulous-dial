@@ -248,3 +248,44 @@
   right: 0;
   top: 353px;
 }
+
+
+@keyframes moveTitleTop {
+  0% {
+    top: 80px;
+    opacity: 1;
+    font-size: 35px;
+  }
+  100% {
+    top: 23px;
+    opacity: 0.4;
+    font-size: 30px;
+  }
+}
+
+.animation-move-title-top {
+  animation: moveTitleTop 250ms linear forwards;
+}
+
+@keyframes moveTitleBottom {
+  0% {
+    top: 23px;
+    opacity: 0.4;
+    font-size: 30px;
+  }
+  99%{
+    opacity: 1;
+  }
+  100% {
+    top: 80px;
+    opacity: 1;
+    font-size: 35px;
+    z-index: 99;
+    opacity: 0;
+  }
+}
+
+.animation-move-title-bottom {
+  animation: moveTitleBottom 250ms linear forwards;
+}
+
