@@ -16,17 +16,34 @@ import {
 import { setScreen } from '../store/features/screens/screens-slice';
 import { KIND_PROFILE } from '../../constants';
 
-const formatSetting = (setting: IPresetSetting) => {
-  let mValue = '';
+interface FormatSettingProps {
+  setting: IPresetSetting;
+  isActive: boolean;
+}
 
-  if (
-    (setting.value || setting.label) &&
-    (typeof setting.value === 'number' || typeof setting.value === 'string')
-  ) {
-    mValue = `: ${setting.value} ${(setting as any)?.unit || ''}`;
+const formatSetting = ({ setting, isActive }: FormatSettingProps) => {
+  const { label, value } = setting;
+  let mValue = '';
+  let mLabel = label;
+  const activeClass = isActive ? 'active' : '';
+  const isValidType = typeof value === 'number' || typeof value === 'string';
+
+  if ((value || label) && isValidType) {
+    mLabel = `${label}${isActive ? ': ' : ''}`;
+    mValue = `${value || ''}`;
   }
 
-  return `${setting.label}${mValue}`;
+  return (
+    <div>
+      <span className={`capitalize presset-option-label ${activeClass}`}>
+        {mLabel}
+      </span>
+      <span className={`presset-option-value ${activeClass}`}>{mValue}</span>
+      <span className={`presset-option-unit ${activeClass}`}>
+        {(setting as any)?.unit}
+      </span>
+    </div>
+  );
 };
 
 export function PressetSettings(): JSX.Element {
@@ -176,7 +193,11 @@ export function PressetSettings(): JSX.Element {
                   setting.key === 'delete' ? 'delete-option-item' : ''
                 }`}
               >
-                {formatSetting(setting)}
+                {formatSetting({
+                  setting,
+                  isActive:
+                    settings[presets.activeSetting].label === setting.label
+                })}
               </div>
             </SwiperSlide>
           ))}

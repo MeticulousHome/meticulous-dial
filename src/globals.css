@@ -9,6 +9,22 @@
   src: url('/src/assets/fonts/Satoshi-Regular.ttf');
 }
 
+@font-face {
+  font-family: 'Abc';
+  src: url('/src/assets/fonts/abc-diatype-regular.otf');
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: 'Abc_light';
+  src: url('/src/assets/fonts/abc-diatype-light.otf');
+}
+
+@font-face {
+  font-family: 'Abc_trial';
+  src: url('/src/assets/fonts/abc-diatype-mono-regular-trial.otf');
+}
+
 html,
 body {
   width: 480px;
@@ -18,7 +34,7 @@ body {
 }
 
 body {
-  font-family: 'Satoshi';
+  font-family: 'Abc';
   color: white;
   background-color: black;
   display: flex;

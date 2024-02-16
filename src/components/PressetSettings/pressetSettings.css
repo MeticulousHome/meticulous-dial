@@ -1,8 +1,28 @@
 .presset-option-item {
-  font-size: 40px;
+  font-size: 35px;
   line-height: 52px;
   font-weight: 500;
   justify-content: start;
+  color: #686868;
+}
+
+.presset-option-value,
+.presset-option-unit {
+  color: #f5c444;
+  visibility: hidden;
+}
+
+.presset-option-unit {
+  font-size: 17px;
+}
+
+.presset-option-value.active,
+.presset-option-unit.active {
+  visibility: visible;
+}
+
+.presset-option-label.active {
+  color: white;
 }
 
 .delete-option-item {
@@ -86,7 +106,7 @@
     180deg,
     rgba(0, 0, 0, 1) 0%,
     rgba(0, 0, 0, 1) 25%,
-    rgba(0, 0, 0, 0.7) 60%,
+    rgba(0, 0, 0, 0.7) 85%,
     rgba(0, 0, 0, 0.7) 95%,
     rgba(0, 0, 0, 0) 100%
   );
