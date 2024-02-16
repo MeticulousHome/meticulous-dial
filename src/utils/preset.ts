@@ -215,6 +215,20 @@ export const clearSlides = (swiper: Swiper & { initialized?: boolean }) => {
   }
 };
 
+export const handleAddOpacityTitleActive = (
+  swiper: Swiper & { initialized?: boolean }
+) => {
+  if (!swiper.initialized) return;
+
+  if (!swiper.slides) return;
+
+  const { activeIndex, slides } = swiper;
+
+  if (slides[activeIndex]) {
+    slides[activeIndex].classList.add('animation-title-opacity-zero');
+  }
+};
+
 export const handleSlidesLeave = (
   swiper: Swiper & { initialized?: boolean }
 ) => {
