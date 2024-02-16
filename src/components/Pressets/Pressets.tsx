@@ -8,7 +8,8 @@ import {
   handleAddLeaveAnimation,
   handleAddDecreseAnimation,
   handleAddIncreseAnimation,
-  handlePresetSlideChange
+  handlePresetSlideChange,
+  handleAddOpacityTitleActive
 } from '../../utils/preset';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import './pressets.css';
@@ -27,7 +28,7 @@ import '../../navigation/navigation.less';
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
   // console.log('transitioning', transitioning);
   const dispatch = useAppDispatch();
-  const { presets } = useAppSelector((state) => state);
+  const { presets, screen } = useAppSelector((state) => state);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
   const [pressetSwiper, setPressetsSwiper] = useState(null);
   const [pressetTitleSwiper, setPressetTitleSwiper] = useState(null);
@@ -77,6 +78,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               .querySelector('div.navigation-title.parent')
               .classList.add('animation-move-title-top');
 
+            document
+              .querySelector('div.navigation-title.parent')
+              .nextElementSibling.classList.add('title-opacity-zero');
+
             clearSlides(pressetSwiper);
             clearSlides(pressetTitleSwiper);
 
@@ -103,6 +108,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             document
               .querySelector('div.navigation-title.parent')
               .classList.remove('animation-move-title-top');
+
             document
               .querySelector('div.navigation-title.parent')
               .nextElementSibling.classList.remove(
@@ -116,6 +122,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             clearSlides(pressetSwiper);
             clearSlides(pressetTitleSwiper);
 
+            handleAddOpacityTitleActive(pressetTitleSwiper);
             handleAddDecreseAnimation(pressetSwiper);
 
             handleAddEnterAnimation(pressetSwiper);
@@ -141,6 +148,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             document
               .querySelector('div.navigation-title.parent')
               .classList.remove('animation-move-title-top');
+
             document
               .querySelector('div.navigation-title.parent')
               .nextElementSibling.classList.remove(
@@ -154,6 +162,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             clearSlides(pressetSwiper);
             clearSlides(pressetTitleSwiper);
 
+            handleAddOpacityTitleActive(pressetTitleSwiper);
             handleAddDecreseAnimation(pressetSwiper);
 
             handleAddEnterAnimation(pressetSwiper);
@@ -189,6 +198,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       handleAddLeaveAnimation(pressetSwiper);
     }
   }, [pressetSwiper, pressetTitleSwiper]);
+
+  useEffect(() => {
+    dispatch(setOptionPressets('HOME'));
+  }, []);
 
   return (
     <div className="preset-wrapper">

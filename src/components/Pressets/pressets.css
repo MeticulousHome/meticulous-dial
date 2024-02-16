@@ -289,3 +289,23 @@
   animation: moveTitleBottom 250ms linear forwards;
 }
 
+.title-opacity-zero {
+  opacity: 0;
+}
+
+@keyframes titleOpacityZero {
+  0% {
+    opacity: 0;
+  }
+  99% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+    /*  */
+  }
+}
+
+.animation-title-opacity-zero {
+  animation: titleOpacityZero 250ms linear forwards;
+}
