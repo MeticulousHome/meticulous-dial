@@ -1,8 +1,15 @@
 // Core modules imports are same as usual
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
 
-import { handlePresetSlideChange } from '../../utils/preset';
+import {
+  clearSlides,
+  handleAddEnterAnimation,
+  handleAddLeaveAnimation,
+  handleAddDecreseAnimation,
+  handleAddIncreseAnimation,
+  handlePresetSlideChange
+} from '../../utils/preset';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import './pressets.css';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
@@ -10,17 +17,28 @@ import { setScreen } from '../store/features/screens/screens-slice';
 import {
   addPresetNewOne,
   setNextPreset,
+  setOptionPressets,
   setPrevPreset
 } from '../store/features/preset/preset-slice';
 import { Title, RouteProps } from '../../navigation';
 import { Pagination } from './Pagination';
 
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
+  // console.log('transitioning', transitioning);
   const dispatch = useAppDispatch();
   const { presets } = useAppSelector((state) => state);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
+  const [pressetSwiper, setPressetsSwiper] = useState(null);
+  const [pressetTitleSwiper, setPressetTitleSwiper] = useState(null);
   const titleSwiperRef = useRef<SwiperRef | null>(null);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const [option, setOption] = useState<{
+    screen: 'HOME' | 'PRESETS';
+    animating: boolean;
+  }>({
+    screen: 'HOME',
+    animating: false
+  });
 
   const slideTo = useCallback((index: number) => {
     try {
@@ -37,17 +55,79 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
         if (presets.activeIndexSwiper === presets.value.length) {
           dispatch(addPresetNewOne());
         } else {
-          dispatch(setScreen('barometer'));
+          if (option.screen === 'PRESETS') {
+            setOption({
+              screen: 'HOME',
+              animating: true
+            });
+            dispatch(setOptionPressets('HOME'));
+            clearSlides(pressetSwiper);
+            clearSlides(pressetTitleSwiper);
+
+            handleAddIncreseAnimation(pressetSwiper);
+
+            handleAddLeaveAnimation(pressetSwiper);
+            handleAddLeaveAnimation(pressetTitleSwiper);
+
+            setTimeout(() => {
+              setOption((prev) => ({
+                ...prev,
+                animating: false
+              }));
+            }, 200);
+          }
         }
       },
       left() {
         if (!transitioning) {
-          dispatch(setNextPreset());
+          if (!option.animating && option.screen === 'PRESETS') {
+            dispatch(setNextPreset());
+          } else {
+            dispatch(setOptionPressets('PRESSETS'));
+
+            clearSlides(pressetSwiper);
+            clearSlides(pressetTitleSwiper);
+
+            handleAddDecreseAnimation(pressetSwiper);
+
+            handleAddEnterAnimation(pressetSwiper);
+            handleAddEnterAnimation(pressetTitleSwiper);
+
+            setOption({
+              screen: 'PRESETS',
+              animating: true
+            });
+            setTimeout(() => {
+              dispatch(setNextPreset());
+              setOption((prev) => ({ ...prev, animating: false }));
+            }, 250);
+          }
         }
       },
       right() {
         if (!transitioning) {
-          dispatch(setPrevPreset());
+          if (!option.animating && option.screen === 'PRESETS') {
+            dispatch(setPrevPreset());
+          } else {
+            dispatch(setOptionPressets('PRESSETS'));
+
+            clearSlides(pressetSwiper);
+            clearSlides(pressetTitleSwiper);
+
+            handleAddDecreseAnimation(pressetSwiper);
+
+            handleAddEnterAnimation(pressetSwiper);
+            handleAddEnterAnimation(pressetTitleSwiper);
+
+            setOption({
+              screen: 'PRESETS',
+              animating: true
+            });
+            setTimeout(() => {
+              dispatch(setPrevPreset());
+              setOption((prev) => ({ ...prev, animating: false }));
+            }, 250);
+          }
         }
       }
     },
@@ -58,11 +138,24 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     slideTo(presets.activeIndexSwiper);
   }, [presets.activeIndexSwiper, slideTo]);
 
+  useEffect(() => {
+    if (pressetSwiper && pressetTitleSwiper) {
+      clearSlides(pressetSwiper);
+      clearSlides(pressetTitleSwiper);
+
+      handleAddIncreseAnimation(pressetSwiper);
+
+      handleAddLeaveAnimation(pressetTitleSwiper);
+      handleAddLeaveAnimation(pressetSwiper);
+    }
+  }, [pressetSwiper, pressetTitleSwiper]);
+
   return (
     <div className="preset-wrapper">
       {presets.defaultPresetIndex > -1 && (
         <>
           <Swiper
+            onSwiper={setPressetsSwiper}
             slidesPerView={2.15}
             spaceBetween={0}
             initialSlide={presets.activeIndexSwiper}
@@ -75,7 +168,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               presets.value.map((preset) => (
                 <SwiperSlide key={preset.id}>
                   {() => (
-                    <div className="main-layout-content">
+                    <div>
                       <div className="pressets-conainer">
                         <div className="presset-item presset-active">
                           <div className="presset-icon">
@@ -141,6 +234,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             </SwiperSlide>
           </Swiper>
           <Swiper
+            style={{
+              display: option.screen === 'PRESETS' ? 'block' : 'none'
+            }}
+            onSwiper={setPressetTitleSwiper}
             slidesPerView={2.15}
             spaceBetween={0}
             centeredSlides={true}
@@ -157,10 +254,12 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             ))}
             <SwiperSlide key="new">{() => <Title>New</Title>}</SwiperSlide>
           </Swiper>
-          <Pagination
-            page={presets.activeIndexSwiper}
-            pages={presets.value.length + 1}
-          />
+          {option.screen === 'PRESETS' && (
+            <Pagination
+              page={presets.activeIndexSwiper}
+              pages={presets.value.length + 1}
+            />
+          )}
         </>
       )}
     </div>

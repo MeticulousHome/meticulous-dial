@@ -30,9 +30,9 @@ interface ScreenState {
 }
 
 const initialState: ScreenState = {
-  value: 'barometer',
   prev: null,
-  bubbleDisplay: { visible: false, component: null }
+  bubbleDisplay: { visible: false, component: null },
+  value: 'pressets'
 };
 
 const screenSlice = createSlice({
