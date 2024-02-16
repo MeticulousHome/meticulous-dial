@@ -22,6 +22,7 @@ import {
 } from '../store/features/preset/preset-slice';
 import { Title, RouteProps } from '../../navigation';
 import { Pagination } from './Pagination';
+import '../../navigation/navigation.less';
 
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
   // console.log('transitioning', transitioning);
@@ -61,6 +62,21 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               animating: true
             });
             dispatch(setOptionPressets('HOME'));
+
+            document
+              .querySelector('div.navigation-title.parent')
+              .classList.remove('animation-move-title-top');
+
+            document
+              .querySelector('div.navigation-title.parent')
+              .nextElementSibling.classList.remove(
+                'animation-move-title-bottom'
+              );
+
+            document
+              .querySelector('div.navigation-title.parent')
+              .classList.add('animation-move-title-top');
+
             clearSlides(pressetSwiper);
             clearSlides(pressetTitleSwiper);
 
@@ -84,6 +100,18 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             dispatch(setNextPreset());
           } else {
             dispatch(setOptionPressets('PRESSETS'));
+            document
+              .querySelector('div.navigation-title.parent')
+              .classList.remove('animation-move-title-top');
+            document
+              .querySelector('div.navigation-title.parent')
+              .nextElementSibling.classList.remove(
+                'animation-move-title-bottom'
+              );
+
+            document
+              .querySelector('div.navigation-title.parent')
+              .nextElementSibling.classList.add('animation-move-title-bottom');
 
             clearSlides(pressetSwiper);
             clearSlides(pressetTitleSwiper);
@@ -110,6 +138,18 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             dispatch(setPrevPreset());
           } else {
             dispatch(setOptionPressets('PRESSETS'));
+            document
+              .querySelector('div.navigation-title.parent')
+              .classList.remove('animation-move-title-top');
+            document
+              .querySelector('div.navigation-title.parent')
+              .nextElementSibling.classList.remove(
+                'animation-move-title-bottom'
+              );
+
+            document
+              .querySelector('div.navigation-title.parent')
+              .nextElementSibling.classList.add('animation-move-title-bottom');
 
             clearSlides(pressetSwiper);
             clearSlides(pressetTitleSwiper);
@@ -247,7 +287,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             onSlideChange={handlePresetSlideChange}
             className={`title-swiper ${transitioning ? 'transitioning' : ''}`}
           >
-            {presets.value.map((preset) => (
+            {presets.value.map((preset, index) => (
               <SwiperSlide key={preset.id}>
                 {() => <Title>{preset.name}</Title>}
               </SwiperSlide>
