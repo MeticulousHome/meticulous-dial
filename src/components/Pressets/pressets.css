@@ -139,6 +139,88 @@
   animation: bounce-left 500ms ease-out;
 }
 
+
+
+@keyframes pressets-left-leave {
+  0%{
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animation-pressets-left-leave {
+  animation: pressets-left-leave 300ms ease-out forwards;
+}
+
+
+@keyframes pressets-left-enter {
+  0%{
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animation-pressets-left-enter {
+  animation: pressets-left-enter 300ms ease-out forwards;
+}
+
+@keyframes pressets-right-enter {
+  0%{
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animation-pressets-right-enter {
+  animation: pressets-right-enter 300ms ease-out forwards;
+}
+
+@keyframes pressets-right-leave {
+  0%{
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animation-pressets-right-leave {
+  animation: pressets-right-leave 300ms ease-out forwards;
+}
+
+
+@keyframes presset-selected-increse {
+  0%{
+    transform: scale(1);
+  }
+  100%{
+    transform: scale(1.3);
+  }
+}
+
+.animation-presset-selected-increse {
+  animation: presset-selected-increse 200ms ease-out forwards;
+}
+
+@keyframes presset-selected-decrese {
+  0%{
+    transform: scale(1.3);
+  }
+  100%{
+    transform: scale(1);
+  }
+}
+
+.animation-presset-selected-decrese {
+  animation: presset-selected-decrese 200ms ease-out forwards;
+}
+
 .pagination {
   list-style: none;
   padding: 0;

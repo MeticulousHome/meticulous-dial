@@ -19,7 +19,7 @@ import { Notification } from '../components/Notification/Notification';
 
 interface Route {
   component: ComponentType;
-  parentTitle?: string;
+  parentTitle?: string | ((state: RootState) => string);
   title?: string | ((state: RootState) => string);
   titleShared?: boolean;
   parent?: ScreenType;
@@ -29,6 +29,12 @@ interface Route {
 
 const selectActivePresetName = (state: RootState) =>
   state.presets.activePreset.name;
+
+const selectPressetTitle = (state: RootState) =>
+  state.presets.option === 'HOME' ? state.presets.activePreset.name : 'Catalog';
+
+const selectActivePresetNamePressetScreen = (state: RootState) =>
+  state.presets.option === 'HOME' ? null : selectActivePresetName(state);
 
 // Profile from "start" event may not exist in LCD. Prefer using
 // that profile name over selected preset
@@ -48,8 +54,8 @@ export const routes: Record<ScreenType, Route> = {
   },
   pressets: {
     component: Pressets,
-    parentTitle: 'presets',
-    title: selectActivePresetName
+    parentTitle: selectPressetTitle,
+    title: null
   },
   barometer: {
     component: Barometer,

@@ -33,6 +33,7 @@ interface PresetsState extends PresetSettingInterface {
   activePreset: IPreset;
   pending: boolean;
   error: boolean;
+  option: 'HOME' | 'PRESSETS';
 }
 
 export const addPresetFromDashboard = createAsyncThunk(
@@ -405,6 +406,7 @@ export const getPresets = createAsyncThunk(
 
 const initialState: PresetsState = {
   value: [],
+  option: 'HOME',
   defaultPresetIndex: -1,
   activeIndexSwiper: 0,
   activePreset: {
@@ -443,6 +445,12 @@ const presetSlice = createSlice({
         (setting) =>
           setting.id === action.payload.id ? action.payload : setting
       );
+    },
+    setOptionPressets: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<'HOME' | 'PRESSETS'>
+    ) => {
+      state.option = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -489,5 +497,6 @@ const presetSlice = createSlice({
   }
 });
 
-export const { updatePresetSetting, setPresetState } = presetSlice.actions;
+export const { updatePresetSetting, setPresetState, setOptionPressets } =
+  presetSlice.actions;
 export default presetSlice.reducer;
