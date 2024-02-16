@@ -33,14 +33,17 @@ export const Router = memo(
     const title = useAppSelector((state) =>
       typeof route.title === 'function' ? route.title(state) : route.title
     );
-    const parentTitle = useAppSelector(
-      (state) =>
-        route.parentTitle ??
-        (parentRoute?.titleShared
-          ? null
-          : typeof parentRoute?.title === 'function'
-          ? parentRoute.title(state)
-          : parentRoute?.title)
+
+    const parentTitle = useAppSelector((state) =>
+      route.parentTitle
+        ? typeof route.parentTitle === 'function'
+          ? route.parentTitle(state)
+          : route.parentTitle
+        : parentRoute?.titleShared
+        ? null
+        : typeof parentRoute?.title === 'function'
+        ? parentRoute.title(state)
+        : parentRoute?.title
     );
 
     const direction =
