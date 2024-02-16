@@ -54,8 +54,7 @@
 .scale-content .scale-unit {
   flex: 1;
   font-size: 24px;
-  line-height: 186px;
-  text-transform: uppercase;
+  line-height: 20px;
 }
 
 .scale-pressure .scale-level {
