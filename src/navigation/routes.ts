@@ -61,7 +61,7 @@ export const routes: Record<ScreenType, Route> = {
   pressets: {
     component: Pressets,
     parentTitle: selectPressetTitle,
-    title: activePresset
+    title: null
   },
   barometer: {
     component: Barometer,
