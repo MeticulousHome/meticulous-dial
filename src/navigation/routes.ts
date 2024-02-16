@@ -66,37 +66,42 @@ export const routes: Record<ScreenType, Route> = {
   barometer: {
     component: Barometer,
     parentTitle: null,
-    title: selectStatProfileName,
-    titleShared: true,
+    title: selectActivePresetName || selectStatProfileName,
+    // titleShared: true,
     bottomStatusHidden: true
   },
   pressetSettings: {
     component: PressetSettings,
-    title: selectActivePresetName
+    title: selectActivePresetName,
+    bottomStatusHidden: true
   },
   pressure: {
     component: SettingNumerical,
-    title: 'pressure',
-    parent: 'pressetSettings',
+    title: selectActivePresetName,
+    // parent: 'pressetSettings',
+    // parentTitle: null,
     props: {
       type: 'pressure'
-    }
+    },
+    bottomStatusHidden: true
   },
   temperature: {
     component: SettingNumerical,
-    title: 'temperature',
-    parent: 'pressetSettings',
+    title: selectActivePresetName,
+    // parent: 'pressetSettings',
     props: {
       type: 'temperature'
-    }
+    },
+    bottomStatusHidden: true
   },
   output: {
+    title: selectActivePresetName,
     component: SettingNumerical,
-    title: 'output',
-    parent: 'pressetSettings',
+    // parent: 'pressetSettings',
     props: {
       type: 'output'
-    }
+    },
+    bottomStatusHidden: true
   },
   purge: {
     component: Purge,

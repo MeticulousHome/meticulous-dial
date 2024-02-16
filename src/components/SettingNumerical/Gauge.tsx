@@ -2,9 +2,9 @@ import { addRightComplement, roundPrecision } from '../../utils';
 import './gauge.css';
 
 const radius = 237;
-const strokeWidth = 6;
+const strokeWidth = 3;
 const circumference = radius * 2 * Math.PI;
-const transform = `rotate(116.5, ${radius}, ${radius})`;
+const transform = `rotate(90, ${radius}, ${radius})`;
 const minDigits = 3;
 
 export type Unit = 'bar' | 'celcius' | 'gram';
@@ -31,7 +31,7 @@ const formatValue = (value: number, precision: number) => {
 };
 
 const getDashArray = (value: number, maxValue: number) => {
-  const mI = (307.2 / maxValue) * (Math.min(value, maxValue) / 100);
+  const mI = (360 / maxValue) * (Math.min(value, maxValue) / 100);
   const fA = mI * 100;
   const marc = circumference * (fA / 360);
 
@@ -72,9 +72,10 @@ export function Gauge({
           cx={radius}
           cy={radius - 3}
           r={radius}
-          stroke="#272727"
+          stroke="#676767"
           strokeWidth={strokeWidth}
           strokeDasharray={getDashArray(maxValue, maxValue)}
+          strokeLinecap="round"
           transform={transform}
         />
         <circle
@@ -82,7 +83,7 @@ export function Gauge({
           cx={radius}
           cy={radius - 3}
           r={radius}
-          stroke="white"
+          stroke="#F5C444"
           strokeWidth={strokeWidth}
           strokeDasharray={getDashArray(value, maxValue)}
           transform={transform}
