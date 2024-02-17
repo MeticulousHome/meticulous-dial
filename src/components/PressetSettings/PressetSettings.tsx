@@ -31,6 +31,7 @@ const formatSetting = (setting: IPresetSetting) => {
 
 export function PressetSettings(): JSX.Element {
   const dispatch = useAppDispatch();
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [animationStyle, setAnimationStyle] = useState('');
   const [swiper, setSwiper] = useState(null);
   const currentPresetSetting = useAppSelector(
@@ -65,42 +66,45 @@ export function PressetSettings(): JSX.Element {
     IPresetSetting['key']
   >(settings[presets.activeSetting].key);
 
-  useHandleGestures({
-    left() {
-      dispatch(setPrevSettingOption());
-    },
-    right() {
-      dispatch(setNextSettingOption());
-    },
-    click() {
-      if (presetSettingIndex === 'save') {
-        dispatch(savePreset());
-        dispatch(setScreen('barometer'));
-      } else if (presetSettingIndex == 'discard') {
-        dispatch(discardSettings());
-        dispatch(setScreen('barometer'));
-      } else if (presetSettingIndex === 'delete') {
-        dispatch(deletePreset());
-        dispatch(setScreen('pressets'));
-      } else if (presetSettingIndex === 'name') {
-        dispatch(setScreen('name'));
-      } else if (presetSettingIndex === 'pre-infusion') {
-        dispatch(setScreen('pre-infusion'));
-      } else if (presetSettingIndex === 'purge') {
-        dispatch(setScreen('purge'));
-      } else if (presetSettingIndex === 'pre-heat') {
-        dispatch(setScreen('pre-heat'));
-      } else if (presetSettingIndex === 'output') {
-        dispatch(setScreen('output'));
-      } else if (presetSettingIndex === 'pressure') {
-        dispatch(setScreen('pressure'));
-      } else if (presetSettingIndex === 'temperature') {
-        dispatch(setScreen('temperature'));
-      } else if (presetSettingIndex === 'ratio') {
-        dispatch(setScreen('ratio'));
+  useHandleGestures(
+    {
+      left() {
+        dispatch(setPrevSettingOption());
+      },
+      right() {
+        dispatch(setNextSettingOption());
+      },
+      click() {
+        if (presetSettingIndex === 'save') {
+          dispatch(savePreset());
+          dispatch(setScreen('barometer'));
+        } else if (presetSettingIndex == 'discard') {
+          dispatch(discardSettings());
+          dispatch(setScreen('barometer'));
+        } else if (presetSettingIndex === 'delete') {
+          dispatch(deletePreset());
+          dispatch(setScreen('pressets'));
+        } else if (presetSettingIndex === 'name') {
+          dispatch(setScreen('name'));
+        } else if (presetSettingIndex === 'pre-infusion') {
+          dispatch(setScreen('pre-infusion'));
+        } else if (presetSettingIndex === 'purge') {
+          dispatch(setScreen('purge'));
+        } else if (presetSettingIndex === 'pre-heat') {
+          dispatch(setScreen('pre-heat'));
+        } else if (presetSettingIndex === 'output') {
+          dispatch(setScreen('output'));
+        } else if (presetSettingIndex === 'pressure') {
+          dispatch(setScreen('pressure'));
+        } else if (presetSettingIndex === 'temperature') {
+          dispatch(setScreen('temperature'));
+        } else if (presetSettingIndex === 'ratio') {
+          dispatch(setScreen('ratio'));
+        }
       }
-    }
-  });
+    },
+    bubbleDisplay.visible
+  );
 
   useEffect(() => {
     if (swiper) {

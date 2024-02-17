@@ -8,11 +8,15 @@ import { SocketManager } from './components/store/SocketManager';
 import { store } from './components/store/store';
 import { useFetchData } from './hooks/useFetchData';
 import { useHandleGestures } from './hooks/useHandleGestures';
-import { setScreen } from './components/store/features/screens/screens-slice';
+import {
+  setBubbleDisplay,
+  setScreen
+} from './components/store/features/screens/screens-slice';
 import { Router } from './navigation/Router';
 import { notificationSelector } from './components/store/features/notifications/notification-slice';
 import { durationAnimation } from './navigation/Transitioner';
 import { useSocketKeyboardListeners } from './components/store/SocketProviderValue';
+import { QuickSettings } from './components/QuickSettings/QuickSettings';
 
 const App = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -21,6 +25,7 @@ const App = (): JSX.Element => {
     (prev, next) => prev === next
   );
   const stats = useAppSelector((state) => state.stats);
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const notifications = useSelector(notificationSelector.selectAll);
 
   useEffect(() => {
@@ -60,12 +65,19 @@ const App = (): JSX.Element => {
         );
       },
       longTare() {
-        if (screen.value !== 'settings') {
-          dispatch(setScreen('settings'));
-        }
+        // TODO change it to the correct way implementation
+        dispatch(
+          setBubbleDisplay({
+            visible: !bubbleDisplay.visible,
+            component: QuickSettings
+          })
+        );
+        // if (screen.value !== 'settings') {
+        //   dispatch(setScreen('settings'));
+        // }
       }
     },
-    stats?.name !== 'idle'
+    stats?.name !== 'idle' || bubbleDisplay.visible
   );
 
   return <Router currentScreen={screen.value} previousScreen={screen.prev} />;
