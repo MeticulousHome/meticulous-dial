@@ -5,6 +5,7 @@ import { routes } from './routes';
 import { Transitioner } from './Transitioner';
 import { memo } from 'react';
 import { useAppSelector } from '../components/store/hooks';
+import Bubble from '../../src/components/Bubble/Bubble';
 
 const routeKeys = Object.keys(routes);
 const memoizedRoutes = Object.fromEntries(
@@ -25,6 +26,7 @@ interface RouterProps {
 
 export const Router = memo(
   ({ currentScreen, previousScreen }: RouterProps): JSX.Element => {
+    const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
     const route = memoizedRoutes[currentScreen];
     const parentRoute = route.parent && memoizedRoutes[route.parent];
     const RouteComponent = route.component;
@@ -49,6 +51,7 @@ export const Router = memo(
 
     return (
       <>
+        {bubbleDisplay.visible && <Bubble />}
         <Transitioner
           direction={direction}
           screen={currentScreen}
@@ -59,7 +62,9 @@ export const Router = memo(
           <RouteComponent {...route.props} />
         </Transitioner>
         <Freeze freeze={route.bottomStatusHidden}>
-          <BottomStatus hidden={route.bottomStatusHidden} />
+          <BottomStatus
+            hidden={route.bottomStatusHidden || bubbleDisplay.visible}
+          />
         </Freeze>
       </>
     );

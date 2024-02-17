@@ -34,48 +34,52 @@ const settings = [
 export function Settings(): JSX.Element {
   const dispatch = useAppDispatch();
   const screen = useAppSelector((state) => state.screen);
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [activeIndex, setActiveIndex] = useState(0);
   const [animationStyle, setAnimationStyle] = useState('');
   const swiperRef = useRef<SwiperRef>(null);
   const socket = useSocket();
 
-  useHandleGestures({
-    left() {
-      setActiveIndex((prev) => Math.max(prev - 1, 0));
-    },
-    right() {
-      setActiveIndex((prev) => Math.min(prev + 1, settings.length - 1));
-    },
-    click() {
-      switch (settings[activeIndex].key) {
-        case 'home': {
-          socket.emit('action', 'home');
-          dispatch(setScreen('barometer'));
-          break;
-        }
-        case 'purge': {
-          socket.emit('action', 'purge');
-          dispatch(setScreen('barometer'));
-          break;
-        }
-        case 'calibrate': {
-          socket.emit('calibrate', '');
-          dispatch(setScreen('barometer'));
-          break;
-        }
-        case 'wifiSettings': {
-          dispatch(setScreen('wifiSettings'));
-          break;
-        }
-        case 'exit': {
-          dispatch(
-            setScreen(screen.prev === 'scale' ? 'barometer' : screen.prev)
-          );
-          break;
+  useHandleGestures(
+    {
+      left() {
+        setActiveIndex((prev) => Math.max(prev - 1, 0));
+      },
+      right() {
+        setActiveIndex((prev) => Math.min(prev + 1, settings.length - 1));
+      },
+      click() {
+        switch (settings[activeIndex].key) {
+          case 'home': {
+            socket.emit('action', 'home');
+            dispatch(setScreen('barometer'));
+            break;
+          }
+          case 'purge': {
+            socket.emit('action', 'purge');
+            dispatch(setScreen('barometer'));
+            break;
+          }
+          case 'calibrate': {
+            socket.emit('calibrate', '');
+            dispatch(setScreen('barometer'));
+            break;
+          }
+          case 'wifiSettings': {
+            dispatch(setScreen('wifiSettings'));
+            break;
+          }
+          case 'exit': {
+            dispatch(
+              setScreen(screen.prev === 'scale' ? 'barometer' : screen.prev)
+            );
+            break;
+          }
         }
       }
-    }
-  });
+    },
+    bubbleDisplay.visible
+  );
 
   useEffect(() => {
     if (swiperRef.current?.swiper) {
