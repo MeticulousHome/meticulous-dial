@@ -46,23 +46,16 @@ export const handleAddLeaveAnimation = (swiper: Swiper) => {
   //
   const { activeIndex, slides } = swiper;
 
-  console.log('---handleAddLeaveAnimation---');
-  console.log('slides', slides);
-
   if (slides[activeIndex - 1]) {
-    console.log('prev');
     slides[activeIndex - 1]
       .querySelector('div')
       .classList.add('animation-pressets-left-leave');
   }
   if (slides[activeIndex + 1]) {
-    console.log('next');
-
     slides[activeIndex + 1]
       .querySelector('div')
       .classList.add('animation-pressets-right-leave');
   }
-  console.log('---handleAddLeaveAnimation---');
 };
 
 export const handleRemoveLeaveAnimation = (swiper: Swiper) => {
@@ -70,22 +63,16 @@ export const handleRemoveLeaveAnimation = (swiper: Swiper) => {
 
   const { activeIndex, slides } = swiper;
 
-  console.log('---handleRemoveLeaveAnimation---');
-  console.log('slides', slides);
-  console.log('activeIndex', activeIndex);
   if (slides[activeIndex - 1]) {
-    console.log('prev');
     slides[activeIndex - 1]
       .querySelector('div')
       .classList.remove('animation-pressets-left-leave');
   }
   if (slides[activeIndex + 1]) {
-    console.log('prev');
     slides[activeIndex + 1]
       .querySelector('div')
       .classList.remove('animation-pressets-right-leave');
   }
-  console.log('---handleRemoveLeaveAnimation---');
 };
 
 export const handleRemoveEnterAnimation = (swiper: Swiper) => {
@@ -93,24 +80,16 @@ export const handleRemoveEnterAnimation = (swiper: Swiper) => {
 
   const { activeIndex, slides } = swiper;
 
-  console.log('---handleRemoveEnterAnimation---');
-  console.log('slides', slides);
-  console.log('activeIndex', activeIndex);
-
   if (slides[activeIndex - 1]) {
-    console.log('prev');
     slides[activeIndex - 1]
       .querySelector('div')
       .classList.remove('animation-pressets-left-enter');
   }
   if (slides[activeIndex + 1]) {
-    console.log('next');
-
     slides[activeIndex + 1]
       .querySelector('div')
       .classList.remove('animation-pressets-right-enter');
   }
-  console.log('---handleRemoveEnterAnimation---');
 };
 
 export const handleAddEnterAnimation = (swiper: Swiper) => {
@@ -118,22 +97,16 @@ export const handleAddEnterAnimation = (swiper: Swiper) => {
 
   const { activeIndex, slides } = swiper;
 
-  console.log('--handleAddEnterAnimation--');
-
   if (slides[activeIndex - 1]) {
-    console.log('prev');
     slides[activeIndex - 1]
       .querySelector('div')
       .classList.add('animation-pressets-left-enter');
   }
   if (slides[activeIndex + 1]) {
-    console.log('next');
-
     slides[activeIndex + 1]
       .querySelector('div')
       .classList.add('animation-pressets-right-enter');
   }
-  console.log('--handleAddEnterAnimation--');
 };
 
 export const handleAddIncreseAnimation = (swiper: Swiper) => {
@@ -225,7 +198,49 @@ export const handleAddOpacityTitleActive = (
   const { activeIndex, slides } = swiper;
 
   if (slides[activeIndex]) {
+    slides[activeIndex].classList.add('animation-title-opacity-one');
+  }
+};
+
+export const handleRemoveOpacityTitleActive = (
+  swiper: Swiper & { initialized?: boolean }
+) => {
+  if (!swiper.initialized) return;
+
+  if (!swiper.slides) return;
+
+  const { activeIndex, slides } = swiper;
+
+  if (slides[activeIndex]) {
+    slides[activeIndex].classList.remove('animation-title-opacity-one');
+  }
+};
+
+export const handleAddOpacityTitleInactive = (
+  swiper: Swiper & { initialized?: boolean }
+) => {
+  if (!swiper.initialized) return;
+
+  if (!swiper.slides) return;
+
+  const { activeIndex, slides } = swiper;
+
+  if (slides[activeIndex]) {
     slides[activeIndex].classList.add('animation-title-opacity-zero');
+  }
+};
+
+export const handleRemoveOpacityTitleInactive = (
+  swiper: Swiper & { initialized?: boolean }
+) => {
+  if (!swiper.initialized) return;
+
+  if (!swiper.slides) return;
+
+  const { activeIndex, slides } = swiper;
+
+  if (slides[activeIndex]) {
+    slides[activeIndex].classList.remove('animation-title-opacity-zero');
   }
 };
 
