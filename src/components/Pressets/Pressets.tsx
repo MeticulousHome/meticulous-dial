@@ -17,7 +17,6 @@ import {
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import './pressets.css';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { setScreen } from '../store/features/screens/screens-slice';
 import {
   addPresetNewOne,
   setNextPreset,
@@ -27,7 +26,6 @@ import {
 import { Title, RouteProps } from '../../navigation';
 import { Pagination } from './Pagination';
 import '../../navigation/navigation.less';
-import SwiperS from 'swiper';
 
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
   // console.log('transitioning', transitioning);
