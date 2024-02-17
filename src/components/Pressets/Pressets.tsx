@@ -9,7 +9,10 @@ import {
   handleAddDecreseAnimation,
   handleAddIncreseAnimation,
   handlePresetSlideChange,
-  handleAddOpacityTitleActive
+  handleAddOpacityTitleActive,
+  handleAddOpacityTitleInactive,
+  handleRemoveOpacityTitleActive,
+  handleRemoveOpacityTitleInactive
 } from '../../utils/preset';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import './pressets.css';
@@ -24,11 +27,12 @@ import {
 import { Title, RouteProps } from '../../navigation';
 import { Pagination } from './Pagination';
 import '../../navigation/navigation.less';
+import SwiperS from 'swiper';
 
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
   // console.log('transitioning', transitioning);
   const dispatch = useAppDispatch();
-  const { presets, screen } = useAppSelector((state) => state);
+  const { presets } = useAppSelector((state) => state);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
   const [pressetSwiper, setPressetsSwiper] = useState(null);
   const [pressetTitleSwiper, setPressetTitleSwiper] = useState(null);
@@ -66,7 +70,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
             document
               .querySelector('div.navigation-title.parent')
-              .classList.remove('animation-move-title-top');
+              .classList.remove('animation-move-title-top-two');
 
             document
               .querySelector('div.navigation-title.parent')
@@ -76,11 +80,18 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
             document
               .querySelector('div.navigation-title.parent')
-              .classList.add('animation-move-title-top');
+              .nextElementSibling.classList.add('animation-move-title-top');
+
+            handleAddOpacityTitleInactive(pressetTitleSwiper);
+            handleRemoveOpacityTitleActive(pressetTitleSwiper);
 
             document
               .querySelector('div.navigation-title.parent')
-              .nextElementSibling.classList.add('title-opacity-zero');
+              .classList.add('animation-move-title-top-two');
+
+            // document
+            //   .querySelector('div.navigation-title.parent')
+            //   .nextElementSibling.classList.add('animation-title-opacity-zero');
 
             clearSlides(pressetSwiper);
             clearSlides(pressetTitleSwiper);
@@ -107,13 +118,19 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             dispatch(setOptionPressets('PRESSETS'));
             document
               .querySelector('div.navigation-title.parent')
-              .classList.remove('animation-move-title-top');
+              .classList.remove('animation-move-title-top-two');
 
             document
               .querySelector('div.navigation-title.parent')
               .nextElementSibling.classList.remove(
                 'animation-move-title-bottom'
               );
+
+            handleRemoveOpacityTitleInactive(pressetTitleSwiper);
+
+            // document
+            //   .querySelector('div.navigation-title.parent')
+            //   .nextElementSibling.classList.remove('animation-title-opacity-zero');
 
             document
               .querySelector('div.navigation-title.parent')
@@ -147,13 +164,20 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             dispatch(setOptionPressets('PRESSETS'));
             document
               .querySelector('div.navigation-title.parent')
-              .classList.remove('animation-move-title-top');
+              .classList.remove('animation-move-title-top-two');
+            //
 
             document
               .querySelector('div.navigation-title.parent')
               .nextElementSibling.classList.remove(
                 'animation-move-title-bottom'
               );
+
+            handleRemoveOpacityTitleInactive(pressetTitleSwiper);
+
+            // document
+            //   .querySelector('div.navigation-title.parent')
+            //   .nextElementSibling.classList.remove('animation-title-opacity-zero');
 
             document
               .querySelector('div.navigation-title.parent')
@@ -188,16 +212,20 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   }, [presets.activeIndexSwiper, slideTo]);
 
   useEffect(() => {
-    if (pressetSwiper && pressetTitleSwiper) {
-      clearSlides(pressetSwiper);
+    if (pressetTitleSwiper) {
+      handleAddOpacityTitleInactive(pressetTitleSwiper);
       clearSlides(pressetTitleSwiper);
-
-      handleAddIncreseAnimation(pressetSwiper);
-
       handleAddLeaveAnimation(pressetTitleSwiper);
+    }
+  }, [pressetTitleSwiper]);
+
+  useEffect(() => {
+    if (pressetSwiper) {
+      clearSlides(pressetSwiper);
+      handleAddIncreseAnimation(pressetSwiper);
       handleAddLeaveAnimation(pressetSwiper);
     }
-  }, [pressetSwiper, pressetTitleSwiper]);
+  }, [pressetSwiper]);
 
   useEffect(() => {
     dispatch(setOptionPressets('HOME'));
@@ -288,7 +316,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           </Swiper>
           <Swiper
             style={{
-              display: option.screen === 'PRESETS' ? 'block' : 'none'
+              display: option.screen === 'PRESETS' ? 'title-opacity-zero' : ' '
             }}
             onSwiper={setPressetTitleSwiper}
             slidesPerView={2.15}
@@ -300,11 +328,12 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             onSlideChange={handlePresetSlideChange}
             className={`title-swiper ${transitioning ? 'transitioning' : ''}`}
           >
-            {presets.value.map((preset, index) => (
-              <SwiperSlide key={preset.id}>
-                {() => <Title>{preset.name}</Title>}
-              </SwiperSlide>
-            ))}
+            {presets.value.length &&
+              presets.value.map((preset) => (
+                <SwiperSlide key={preset.id}>
+                  {() => <Title>{preset.name}</Title>}
+                </SwiperSlide>
+              ))}
             <SwiperSlide key="new">{() => <Title>New</Title>}</SwiperSlide>
           </Swiper>
           {option.screen === 'PRESETS' && (

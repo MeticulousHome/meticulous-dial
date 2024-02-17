@@ -37,6 +37,10 @@ const activePresset = (state: RootState) =>
     ? state.presets.value[state.presets.activeIndexSwiper].name
     : '';
 
+// state.presets.value[state.presets.activeIndexSwiper]
+//   ? state.presets.value[state.presets.activeIndexSwiper].name
+//   : '';
+
 const selectPressetTitle = (state: RootState) =>
   state.presets.option === 'HOME' ? state.presets.activePreset.name : 'Catalog';
 
