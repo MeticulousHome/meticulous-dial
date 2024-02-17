@@ -12,6 +12,7 @@ import { Gauge, Unit } from './Gauge';
 import { updatePresetSetting } from '../store/features/preset/preset-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { setScreen } from '../store/features/screens/screens-slice';
+import { useAppSelector } from '../store/hooks';
 
 interface ISettingConfig {
   interval: number;
@@ -47,6 +48,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
       (setting) => setting.key === type
     )
   );
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const total = Number(setting.value);
   const { interval, maxValue, unit } = unitSettingConfigMap[
     type as NumericalSettingType
@@ -75,17 +77,20 @@ export function SettingNumerical({ type }: Props): JSX.Element {
     );
   };
 
-  useHandleGestures({
-    left() {
-      updateValue('left');
+  useHandleGestures(
+    {
+      left() {
+        updateValue('left');
+      },
+      right() {
+        updateValue('right');
+      },
+      click() {
+        dispatch(setScreen('pressetSettings'));
+      }
     },
-    right() {
-      updateValue('right');
-    },
-    click() {
-      dispatch(setScreen('pressetSettings'));
-    }
-  });
+    bubbleDisplay.visible
+  );
 
   return (
     <Gauge

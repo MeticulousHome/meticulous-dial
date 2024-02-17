@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { ComponentType } from 'react';
 
 export type ScreenType =
   | 'barometer'
@@ -25,11 +26,13 @@ export type ScreenType =
 interface ScreenState {
   value: ScreenType;
   prev: ScreenType;
+  bubbleDisplay: { visible: boolean; component: ComponentType | null };
 }
 
 const initialState: ScreenState = {
   value: 'barometer',
-  prev: null
+  prev: null,
+  bubbleDisplay: { visible: false, component: null }
 };
 
 const screenSlice = createSlice({
@@ -39,9 +42,16 @@ const screenSlice = createSlice({
     setScreen: (state: ScreenState, action: PayloadAction<ScreenType>) => {
       state.prev = state.value;
       state.value = action.payload;
+    },
+    setBubbleDisplay: (
+      state: ScreenState,
+      action: PayloadAction<{ visible: boolean; component: ComponentType }>
+    ) => {
+      state.bubbleDisplay.visible = action.payload.visible;
+      state.bubbleDisplay.component = action.payload.component;
     }
   }
 });
 
-export const { setScreen } = screenSlice.actions;
+export const { setScreen, setBubbleDisplay } = screenSlice.actions;
 export default screenSlice.reducer;
