@@ -17,6 +17,7 @@ export function Purge(): JSX.Element {
       (setting) => setting.key === 'purge'
     )
   );
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [activeIndex, setActiveIndex] = useState(
     setting?.value
       ? options.findIndex((option) => option.toLowerCase() === setting.value)
@@ -25,27 +26,30 @@ export function Purge(): JSX.Element {
 
   const dispatch = useDispatch();
 
-  useHandleGestures({
-    left() {
-      if (activeIndex < options.length - 1) {
-        setActiveIndex(activeIndex + 1);
+  useHandleGestures(
+    {
+      left() {
+        if (activeIndex < options.length - 1) {
+          setActiveIndex(activeIndex + 1);
+        }
+      },
+      right() {
+        if (activeIndex > 0) {
+          setActiveIndex(activeIndex - 1);
+        }
+      },
+      click() {
+        dispatch(
+          updatePresetSetting({
+            ...setting,
+            value: options[activeIndex].toLowerCase()
+          } as IPresetSetting)
+        );
+        dispatch(setScreen('pressetSettings'));
       }
     },
-    right() {
-      if (activeIndex > 0) {
-        setActiveIndex(activeIndex - 1);
-      }
-    },
-    click() {
-      dispatch(
-        updatePresetSetting({
-          ...setting,
-          value: options[activeIndex].toLowerCase()
-        } as IPresetSetting)
-      );
-      dispatch(setScreen('pressetSettings'));
-    }
-  });
+    bubbleDisplay.visible
+  );
 
   return (
     <MultipleOptionSlider

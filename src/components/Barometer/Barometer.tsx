@@ -15,6 +15,7 @@ export interface IBarometerProps {
 
 export function Barometer({ maxValue = 13 }: IBarometerProps): JSX.Element {
   const stats = useAppSelector((state) => state.stats);
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const presets = useAppSelector((state) => state.presets);
   const socket = useSocket();
   const dispatch = useAppDispatch();
@@ -75,7 +76,7 @@ export function Barometer({ maxValue = 13 }: IBarometerProps): JSX.Element {
         dispatch(setScreen('pressets'));
       }
     },
-    stats?.name !== 'idle'
+    stats?.name !== 'idle' || bubbleDisplay.visible
   );
 
   return (

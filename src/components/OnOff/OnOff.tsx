@@ -15,6 +15,7 @@ const options = ['Yes', 'No'];
 
 export function OnOff({ type }: Props): JSX.Element {
   const dispatch = useDispatch();
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const setting = useAppSelector((state) =>
     state.presets.updatingSettings.settings.find(
       (setting) => setting.key === type
@@ -27,24 +28,27 @@ export function OnOff({ type }: Props): JSX.Element {
       : 0
   );
 
-  useHandleGestures({
-    left() {
-      setActiveIndex((prev) => Math.min(prev + 1, options.length - 1));
+  useHandleGestures(
+    {
+      left() {
+        setActiveIndex((prev) => Math.min(prev + 1, options.length - 1));
+      },
+      right() {
+        setActiveIndex((prev) => Math.max(prev - 1, 0));
+      },
+      click() {
+        const value = options[activeIndex].toLowerCase();
+        dispatch(
+          updatePresetSetting({
+            ...setting,
+            value
+          } as IPresetSetting)
+        );
+        dispatch(setScreen('pressetSettings'));
+      }
     },
-    right() {
-      setActiveIndex((prev) => Math.max(prev - 1, 0));
-    },
-    click() {
-      const value = options[activeIndex].toLowerCase();
-      dispatch(
-        updatePresetSetting({
-          ...setting,
-          value
-        } as IPresetSetting)
-      );
-      dispatch(setScreen('pressetSettings'));
-    }
-  });
+    bubbleDisplay.visible
+  );
 
   return (
     <MultipleOptionSlider

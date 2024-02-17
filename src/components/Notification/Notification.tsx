@@ -5,7 +5,7 @@ import {
   removeOneNotification
 } from '../store/features/notifications/notification-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { useAppDispatch } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useRef, useState } from 'react';
 import { useSocket } from '../store/SocketManager';
 
@@ -13,6 +13,7 @@ const SCROLL_VALUE = 50;
 
 export function Notification(): JSX.Element {
   const dispatch = useAppDispatch();
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const socket = useSocket();
   const [activeButton, setActivebutton] = useState<HTMLButtonElement | null>(
     null
@@ -50,7 +51,7 @@ export function Notification(): JSX.Element {
         }
       }
     },
-    false
+    bubbleDisplay.visible
   );
 
   if (notifications.length === 0) {

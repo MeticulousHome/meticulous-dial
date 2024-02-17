@@ -20,6 +20,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const { presets } = useAppSelector((state) => state);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
   const titleSwiperRef = useRef<SwiperRef | null>(null);
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
 
   const slideTo = useCallback((index: number) => {
     try {
@@ -30,25 +31,28 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     }
   }, []);
 
-  useHandleGestures({
-    click() {
-      if (presets.activeIndexSwiper === presets.value.length) {
-        dispatch(addPresetNewOne());
-      } else {
-        dispatch(setScreen('barometer'));
+  useHandleGestures(
+    {
+      click() {
+        if (presets.activeIndexSwiper === presets.value.length) {
+          dispatch(addPresetNewOne());
+        } else {
+          dispatch(setScreen('barometer'));
+        }
+      },
+      left() {
+        if (!transitioning) {
+          dispatch(setNextPreset());
+        }
+      },
+      right() {
+        if (!transitioning) {
+          dispatch(setPrevPreset());
+        }
       }
     },
-    left() {
-      if (!transitioning) {
-        dispatch(setNextPreset());
-      }
-    },
-    right() {
-      if (!transitioning) {
-        dispatch(setPrevPreset());
-      }
-    }
-  });
+    bubbleDisplay.visible
+  );
 
   useEffect(() => {
     slideTo(presets.activeIndexSwiper);

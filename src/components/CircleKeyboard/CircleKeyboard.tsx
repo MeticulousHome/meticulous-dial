@@ -18,6 +18,7 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { setScreen } from '../store/features/screens/screens-slice';
 
 export function CircleKeyboard(): JSX.Element {
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [rotate, setRotate] = useState<number>(FIRST_POSITION);
   const [alphabet, setAlphabet] = useState<string[]>(DEFAULT_ALPHABET);
   const [mainLetter, setMainLetter] = useState<string>(FIRST_KEY);
@@ -114,91 +115,94 @@ export function CircleKeyboard(): JSX.Element {
     }
   }, [setting, screen]);
 
-  useHandleGestures({
-    left() {
-      moveElements(true);
-    },
-    right() {
-      moveElements(false);
-    },
-    doubleClick() {
-      if (mainLetter === 'capslock') {
-        setCapsLockActive({
-          active: !capsLockActive.active,
-          keep: !capsLockActive.keep
-        });
-      }
-    },
-    click() {
-      const goToMainScreen = () => {
-        dispatch(setScreen('pressetSettings'));
-      };
-
-      if (caption.length > 7 && mainLetter !== 'backspace') {
-        if (mainLetter === 'ok') {
-          //if (mainLetter === 'ok' && caption.join('').trim().length > 0) {
-          updateSetting(caption.join('').trim());
-          goToMainScreen();
-        }
-        if (mainLetter === 'cancel') {
-          setCaption(setting ? setting.value.split('') : []);
-          goToMainScreen();
-        }
-        return;
-      }
-      if (captionRef.current) {
-        //remove class to trigger animation if caption is empty next time
-        captionRef.current.classList.remove('caption_shake');
-      }
-      switch (mainLetter) {
-        case 'space':
-          if (caption.length >= 7) {
-            addAnimation();
-            return;
-          }
-
-          if (caption.length < 8 && caption.join('').trim().length === 0) {
-            addAnimation();
-            return;
-          }
-          setCaption(caption.concat(' '));
-          return;
-        case 'ok':
-          if (caption.length === 0 || caption.join('').trim().length === 0) {
-            addAnimation();
-            return;
-          }
-          updateSetting(caption.join('').trim());
-          goToMainScreen();
-          return;
-        case 'backspace':
-          if (caption.length > 0) {
-            setCaption(caption.slice(0, -1));
-          }
-          return;
-        case 'cancel':
-          goToMainScreen();
-          return;
-        case 'capslock':
+  useHandleGestures(
+    {
+      left() {
+        moveElements(true);
+      },
+      right() {
+        moveElements(false);
+      },
+      doubleClick() {
+        if (mainLetter === 'capslock') {
           setCapsLockActive({
             active: !capsLockActive.active,
             keep: !capsLockActive.keep
           });
+        }
+      },
+      click() {
+        const goToMainScreen = () => {
+          dispatch(setScreen('pressetSettings'));
+        };
+
+        if (caption.length > 7 && mainLetter !== 'backspace') {
+          if (mainLetter === 'ok') {
+            //if (mainLetter === 'ok' && caption.join('').trim().length > 0) {
+            updateSetting(caption.join('').trim());
+            goToMainScreen();
+          }
+          if (mainLetter === 'cancel') {
+            setCaption(setting ? setting.value.split('') : []);
+            goToMainScreen();
+          }
           return;
-        default:
-          setCaption(caption.concat(mainLetter));
-          if (!/^[A-Za-z]$/.test(mainLetter) && capsLockActive.active) {
+        }
+        if (captionRef.current) {
+          //remove class to trigger animation if caption is empty next time
+          captionRef.current.classList.remove('caption_shake');
+        }
+        switch (mainLetter) {
+          case 'space':
+            if (caption.length >= 7) {
+              addAnimation();
+              return;
+            }
+
+            if (caption.length < 8 && caption.join('').trim().length === 0) {
+              addAnimation();
+              return;
+            }
+            setCaption(caption.concat(' '));
             return;
-          }
-          if (!capsLockActive.keep && capsLockActive.active) {
+          case 'ok':
+            if (caption.length === 0 || caption.join('').trim().length === 0) {
+              addAnimation();
+              return;
+            }
+            updateSetting(caption.join('').trim());
+            goToMainScreen();
+            return;
+          case 'backspace':
+            if (caption.length > 0) {
+              setCaption(caption.slice(0, -1));
+            }
+            return;
+          case 'cancel':
+            goToMainScreen();
+            return;
+          case 'capslock':
             setCapsLockActive({
-              ...capsLockActive,
-              active: false
+              active: !capsLockActive.active,
+              keep: !capsLockActive.keep
             });
-          }
+            return;
+          default:
+            setCaption(caption.concat(mainLetter));
+            if (!/^[A-Za-z]$/.test(mainLetter) && capsLockActive.active) {
+              return;
+            }
+            if (!capsLockActive.keep && capsLockActive.active) {
+              setCapsLockActive({
+                ...capsLockActive,
+                active: false
+              });
+            }
+        }
       }
-    }
-  });
+    },
+    bubbleDisplay.visible
+  );
 
   const toUpperOrLowerCase = (
     cpAlphabet: string[] | string
