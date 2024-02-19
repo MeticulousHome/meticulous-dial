@@ -70,7 +70,7 @@ export function QuickSettings(): JSX.Element {
         <div className="presset-options">
           <Swiper
             onSwiper={setSwiper}
-            slidesPerView={9}
+            slidesPerView={10}
             allowTouchMove={false}
             direction="vertical"
             autoHeight={false}
