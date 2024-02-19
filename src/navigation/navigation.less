@@ -52,10 +52,11 @@
 @zoom-out-scale: 2.3;
 @zoom-in-scale: 0.3;
 @navigation-title-font-size: 20px;
-@navigation-title-top: 72px;
+@navigation-title-top: 63px;
 @navigation-title-parent-font-size: 20px;
-@navigation-title-parent-top: 72px;
-@navigation-title-shared-top: 72px;
+@navigation-title-parent-top: 63px;
+@navigation-title-shared-top: 63px;
+@navigation-title-bottom: 365px;
 
 .route {
   animation-timing-function: linear;
@@ -149,6 +150,17 @@
 
 .navigation-title.leave {
   animation-name: title-fade-out;
+}
+
+.navigation-title.bottom {
+  top: @navigation-title-bottom;
+  border: none;
+  text-transform: capitalize;
+  letter-spacing: -1px;
+  font-size: 26px;
+  text-overflow: unset;
+  color: #e0dcd0;
+  font-family: 'ABC';
 }
 
 .navigation-title,

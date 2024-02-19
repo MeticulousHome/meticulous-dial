@@ -19,6 +19,7 @@ interface Route {
   titleShared?: boolean;
   parent?: ScreenType;
   bottomStatusHidden?: boolean;
+  bottomTitle?: string;
   props?: object;
 }
 
@@ -39,8 +40,8 @@ const activePresset = (state: RootState) =>
 const selectPressetTitle = (state: RootState) =>
   state.presets.option === 'HOME' ? state.presets.activePreset.name : 'Catalog';
 
-const selectActivePresetNamePressetScreen = (state: RootState) =>
-  state.presets.option === 'HOME' ? null : selectActivePresetName(state);
+// const selectActivePresetNamePressetScreen = (state: RootState) =>
+//   state.presets.option === 'HOME' ? null : selectActivePresetName(state);
 
 // Profile from "start" event may not exist in LCD. Prefer using
 // that profile name over selected preset
@@ -78,6 +79,7 @@ export const routes: Record<ScreenType, Route> = {
   pressure: {
     component: SettingNumerical,
     title: selectActivePresetName,
+    bottomTitle: 'pressure',
     // parent: 'pressetSettings',
     // parentTitle: null,
     props: {
@@ -88,6 +90,7 @@ export const routes: Record<ScreenType, Route> = {
   temperature: {
     component: SettingNumerical,
     title: selectActivePresetName,
+    bottomTitle: 'temperature',
     // parent: 'pressetSettings',
     props: {
       type: 'temperature'
@@ -97,6 +100,7 @@ export const routes: Record<ScreenType, Route> = {
   output: {
     title: selectActivePresetName,
     component: SettingNumerical,
+    bottomTitle: 'output',
     // parent: 'pressetSettings',
     props: {
       type: 'output'
