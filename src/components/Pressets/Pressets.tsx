@@ -104,7 +104,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                 ...prev,
                 animating: false
               }));
-            }, 200);
+            }, 280);
           }
         }
       },
@@ -113,6 +113,11 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           if (!option.animating && option.screen === 'PRESETS') {
             dispatch(setNextPreset());
           } else {
+            setOption({
+              screen: 'PRESETS',
+              animating: true
+            });
+
             dispatch(setOptionPressets('PRESSETS'));
             document
               .querySelector('div.navigation-title.parent')
@@ -143,14 +148,12 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             handleAddEnterAnimation(pressetSwiper);
             handleAddEnterAnimation(pressetTitleSwiper);
 
-            setOption({
-              screen: 'PRESETS',
-              animating: true
-            });
             setTimeout(() => {
               dispatch(setNextPreset());
-              setOption((prev) => ({ ...prev, animating: false }));
             }, 250);
+            setTimeout(() => {
+              setOption((prev) => ({ ...prev, animating: false }));
+            }, 500);
           }
         }
       },
@@ -159,6 +162,11 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           if (!option.animating && option.screen === 'PRESETS') {
             dispatch(setPrevPreset());
           } else {
+            setOption({
+              screen: 'PRESETS',
+              animating: true
+            });
+
             dispatch(setOptionPressets('PRESSETS'));
             document
               .querySelector('div.navigation-title.parent')
@@ -190,19 +198,17 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             handleAddEnterAnimation(pressetSwiper);
             handleAddEnterAnimation(pressetTitleSwiper);
 
-            setOption({
-              screen: 'PRESETS',
-              animating: true
-            });
             setTimeout(() => {
               dispatch(setPrevPreset());
+            }, 280);
+            setTimeout(() => {
               setOption((prev) => ({ ...prev, animating: false }));
-            }, 250);
+            }, 500);
           }
         }
       }
     },
-    bubbleDisplay.visible
+    bubbleDisplay.visible || option.animating
   );
 
   useEffect(() => {
