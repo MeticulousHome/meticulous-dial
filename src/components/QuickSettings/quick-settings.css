@@ -19,15 +19,22 @@
 .settings-item {
   text-transform: uppercase;
   border-radius: 4px;
-  height: 43px;
+  height: 23px;
   display: flex;
   align-items: center;
   padding-left: 16px;
   font-size: 22px;
   color: #dddddd;
+  text-align: left;
+  width: 100%;
+  justify-content: start;
+  font-weight: 400;
+  letter-spacing: 2.2px;
+  line-height: 10px;
 }
 
 .active-setting {
   color: black;
   background: #f5c444;
+  width: 80%;
 }
