@@ -250,7 +250,7 @@
     border: none;
     top: 80px;
     opacity: 1;
-    font-size: 30px;
+    font-size: 26px;
     z-index: 99;
   }
   100% {
@@ -270,7 +270,7 @@
   0% {
     top: 117px;
     opacity: 1;
-    font-size: 30px;
+    font-size: 26px;
     z-index: 99;
     border: none;
   }
@@ -298,9 +298,9 @@
     opacity: 1;
   }
   100% {
-    top: 120px;
+    top: 117px;
     opacity: 1;
-    font-size: 30px;
+    font-size: 26px;
     z-index: 99;
     opacity: 0;
     border: none;
@@ -350,5 +350,6 @@
 .presset-title-top {
   top: 117px !important;
   border: none !important;
-  font-size: 30px !important;
+  font-size: 26px !important;
+  text-transform: capitalize !important;
 }

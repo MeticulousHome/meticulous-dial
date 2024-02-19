@@ -33,7 +33,7 @@ const selectActivePresetName = (state: RootState) =>
 
 const activePresset = (state: RootState) =>
   state.screen.prev !== 'pressets' && state.presets.option === 'HOME'
-    ? '   '
+    ? ''
     : state.presets.value[state.presets.activeIndexSwiper]
     ? state.presets.value[state.presets.activeIndexSwiper].name
     : '';
