@@ -252,6 +252,7 @@
     opacity: 1;
     font-size: 26px;
     z-index: 99;
+    text-transform: capitalize;
   }
   100% {
     top: 63px;
@@ -259,6 +260,7 @@
     font-size: 20px;
     z-index: 99;
     border: none;
+    text-transform: uppercase;
   }
 }
 
@@ -268,11 +270,12 @@
 
 @keyframes moveTitleTopTwo {
   0% {
-    top: 117px;
+    top: 110px;
     opacity: 1;
     font-size: 26px;
     z-index: 99;
     border: none;
+    text-transform: capitalize;
   }
   100% {
     top: 63px;
@@ -280,6 +283,7 @@
     font-size: 20px;
     z-index: 99;
     border: 1px solid #5d5d5d;
+    text-transform: uppercase;
   }
 }
 
@@ -293,17 +297,19 @@
     opacity: 0.4;
     font-size: 20px;
     border: none;
+    text-transform: capitalize;
   }
   99% {
     opacity: 1;
   }
   100% {
-    top: 117px;
+    top: 110px;
     opacity: 1;
     font-size: 26px;
     z-index: 99;
     opacity: 0;
     border: none;
+    text-transform: capitalize;
   }
 }
 
