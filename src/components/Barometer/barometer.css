@@ -24,6 +24,8 @@ Barometer styles
   margin-top: -4px;
   margin-bottom: 14px;
   text-align: center;
+  display: flex;
+  justify-content: center;
 }
 .bar-needle__value {
   font-size: 50px;
@@ -67,6 +69,11 @@ Barometer styles
   font-family: 'Abc';
   letter-spacing: -0.75px;
   color: #e0dcd0;
+  display: flex;
+  justify-content: center;
+}
+.bar-label {
+  margin-top: 10px;
 }
 
 .pressure,
