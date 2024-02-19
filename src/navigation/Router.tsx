@@ -54,7 +54,7 @@ export const Router = memo(
 
     return (
       <>
-        {bubbleDisplay.visible && <Bubble />}
+        <Bubble />
         <Transitioner
           direction={direction}
           screen={currentScreen}
