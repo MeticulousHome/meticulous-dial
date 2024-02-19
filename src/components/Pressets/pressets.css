@@ -357,3 +357,24 @@
   color: #e0dcd0;
   letter-spacing: -0.75px;
 }
+
+.swiper-pagination  {
+  position: absolute !important; 
+  top: 353px !important;
+}
+
+.swiper-pagination-bullet {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background-color: #fff;
+  opacity: 0.3;
+}
+
+.swiper-pagination-bullet-active {
+  opacity: 1;
+}
+
+.bullet-hidden {
+  opacity: 0 !important;
+}
