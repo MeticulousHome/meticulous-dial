@@ -45,6 +45,38 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     animating: false
   });
 
+  const navigationTitleParentRef = useRef<HTMLDivElement | null>(null);
+  const navigationTitleRef = useRef<HTMLDivElement | null>(null);
+
+  const navigationTitleExistValidation = useCallback((): boolean => {
+    if (!navigationTitleRef.current) {
+      if (!navigationTitleParentExistValidation()) return false;
+
+      const element: HTMLDivElement = navigationTitleParentRef.current
+        .nextElementSibling as HTMLDivElement;
+
+      if (!element) return false;
+
+      navigationTitleRef.current = element;
+    }
+
+    return true;
+  }, []);
+
+  const navigationTitleParentExistValidation = useCallback((): boolean => {
+    if (!navigationTitleParentRef.current) {
+      const element: HTMLDivElement = document.querySelector(
+        'div.navigation-title.parent'
+      );
+
+      if (!element) return false;
+
+      navigationTitleParentRef.current = element;
+    }
+
+    return true;
+  }, []);
+
   const slideTo = useCallback((index: number) => {
     try {
       presetSwiperRef.current?.swiper.slideTo(index);
@@ -76,30 +108,26 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
             dispatch(setOptionPressets('HOME'));
 
-            document
-              .querySelector('div.navigation-title.parent')
-              .classList.remove('animation-move-title-top-two');
+            if (navigationTitleParentExistValidation()) {
+              navigationTitleParentRef.current.classList.remove(
+                'animation-move-title-top-two'
+              );
+              navigationTitleParentRef.current.classList.add(
+                'animation-move-title-top-two'
+              );
+            }
 
-            document
-              .querySelector('div.navigation-title.parent')
-              .nextElementSibling.classList.remove(
+            if (navigationTitleExistValidation()) {
+              navigationTitleRef.current.classList.remove(
                 'animation-move-title-bottom'
               );
-
-            document
-              .querySelector('div.navigation-title.parent')
-              .nextElementSibling.classList.add('animation-move-title-top');
+              navigationTitleRef.current.classList.add(
+                'animation-move-title-top'
+              );
+            }
 
             handleAddOpacityTitleInactive(pressetTitleSwiper);
             handleRemoveOpacityTitleActive(pressetTitleSwiper);
-
-            document
-              .querySelector('div.navigation-title.parent')
-              .classList.add('animation-move-title-top-two');
-
-            // document
-            //   .querySelector('div.navigation-title.parent')
-            //   .nextElementSibling.classList.add('animation-title-opacity-zero');
 
             clearSlides(pressetSwiper);
             clearSlides(pressetTitleSwiper);
@@ -137,25 +165,24 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             });
 
             dispatch(setOptionPressets('PRESSETS'));
-            document
-              .querySelector('div.navigation-title.parent')
-              .classList.remove('animation-move-title-top-two');
 
-            document
-              .querySelector('div.navigation-title.parent')
-              .nextElementSibling.classList.remove(
+            if (navigationTitleParentExistValidation()) {
+              navigationTitleParentRef.current.classList.remove(
+                'animation-move-title-top-two'
+              );
+            }
+
+            if (navigationTitleExistValidation()) {
+              navigationTitleRef.current.classList.remove(
                 'animation-move-title-bottom'
               );
 
+              navigationTitleRef.current.classList.add(
+                'animation-move-title-bottom'
+              );
+            }
+
             handleRemoveOpacityTitleInactive(pressetTitleSwiper);
-
-            // document
-            //   .querySelector('div.navigation-title.parent')
-            //   .nextElementSibling.classList.remove('animation-title-opacity-zero');
-
-            document
-              .querySelector('div.navigation-title.parent')
-              .nextElementSibling.classList.add('animation-move-title-bottom');
 
             clearSlides(pressetSwiper);
             clearSlides(pressetTitleSwiper);
@@ -166,9 +193,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             handleAddEnterAnimation(pressetSwiper);
             handleAddEnterAnimation(pressetTitleSwiper);
 
-            // setTimeout(() => {
-            //   dispatch(setNextPreset());
-            // }, 250);
             setTimeout(() => {
               setOption((prev) => ({ ...prev, animating: false }));
             }, 280);
@@ -194,26 +218,24 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             });
 
             dispatch(setOptionPressets('PRESSETS'));
-            document
-              .querySelector('div.navigation-title.parent')
-              .classList.remove('animation-move-title-top-two');
-            //
 
-            document
-              .querySelector('div.navigation-title.parent')
-              .nextElementSibling.classList.remove(
+            if (navigationTitleParentExistValidation()) {
+              navigationTitleParentRef.current.classList.remove(
+                'animation-move-title-top-two'
+              );
+            }
+
+            if (navigationTitleExistValidation()) {
+              navigationTitleRef.current.classList.remove(
                 'animation-move-title-bottom'
               );
 
+              navigationTitleRef.current.classList.add(
+                'animation-move-title-bottom'
+              );
+            }
+
             handleRemoveOpacityTitleInactive(pressetTitleSwiper);
-
-            // document
-            //   .querySelector('div.navigation-title.parent')
-            //   .nextElementSibling.classList.remove('animation-title-opacity-zero');
-
-            document
-              .querySelector('div.navigation-title.parent')
-              .nextElementSibling.classList.add('animation-move-title-bottom');
 
             clearSlides(pressetSwiper);
             clearSlides(pressetTitleSwiper);
@@ -224,9 +246,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             handleAddEnterAnimation(pressetSwiper);
             handleAddEnterAnimation(pressetTitleSwiper);
 
-            // setTimeout(() => {
-            //   dispatch(setPrevPreset());
-            // }, 280);
             setTimeout(() => {
               setOption((prev) => ({ ...prev, animating: false }));
             }, 280);
