@@ -7,15 +7,19 @@ const animationStyle = { animationDuration: `${durationAnimation / 1000}s` };
 export default function Bubble() {
   const Bubble = useAppSelector((state) => state.screen.bubbleDisplay);
 
+  console.log('Bubble.visible ', Bubble.visible);
+
   return (
     <div
-      className={`main-bubble main-layout route enter ${
-        Bubble.visible ? 'in' : 'out'
+      className={`main-bubble main-layout ${
+        Bubble && Bubble.visible
+          ? 'bubble-enter-animation'
+          : 'bubble-leave-animation'
       } large`}
       style={animationStyle}
     >
       <div className="bubble-container">
-        <Bubble.component />
+        {Bubble && Bubble.component && <Bubble.component />}
       </div>
     </div>
   );

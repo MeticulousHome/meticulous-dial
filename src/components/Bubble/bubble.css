@@ -15,3 +15,29 @@
   height: 100%;
   width: 420px;
 }
+
+@keyframes bubbleEnter {
+  0%{
+    transform: translateX(100%);
+  }
+  100%{
+    transform: translateX(0);
+  }
+}
+
+.bubble-enter-animation {
+  animation: bubbleEnter 20ms ease-in forwards;
+}
+
+@keyframes bubbleLeave {
+  0%{
+    transform: translateX(0%);
+  }
+  100%{
+    transform: translateX(100%);
+  }
+}
+
+.bubble-leave-animation {
+  animation: bubbleLeave 20ms ease-out forwards;
+}
