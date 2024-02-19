@@ -56,7 +56,9 @@ export function QuickSettings(): JSX.Element {
         {settings.map((setting, key) => {
           const isActive = key === activeIndex;
           return (
-            <label className={`settings-item ${isActive ? 'active' : ''}`}>
+            <label
+              className={`settings-item ${isActive ? 'active-setting' : ''}`}
+            >
               {setting.label}
             </label>
           );

@@ -109,8 +109,7 @@ export const routes: Record<ScreenType, Route> = {
   },
   purge: {
     component: Purge,
-    title: 'purge',
-    parent: 'pressetSettings'
+    title: selectActivePresetName
   },
   dose: {
     component: () => null, // Multiple choice to be implemented
@@ -128,16 +127,15 @@ export const routes: Record<ScreenType, Route> = {
   },
   'pre-infusion': {
     component: OnOff,
-    title: 'pre-infusion',
-    parent: 'pressetSettings',
+    title: selectActivePresetName,
     props: {
       type: 'pre-infusion'
     }
   },
   'pre-heat': {
     component: OnOff,
-    title: 'pre-heat',
-    parent: 'pressetSettings',
+    title: selectActivePresetName,
+    // parent: 'pressetSettings',
     props: {
       type: 'pre-heat'
     }
