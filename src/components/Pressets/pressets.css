@@ -139,10 +139,8 @@
   animation: bounce-left 500ms ease-out;
 }
 
-
-
 @keyframes pressets-left-leave {
-  0%{
+  0% {
     transform: translateX(0%);
   }
   100% {
@@ -154,9 +152,8 @@
   animation: pressets-left-leave 300ms ease-out forwards;
 }
 
-
 @keyframes pressets-left-enter {
-  0%{
+  0% {
     transform: translateX(-100%);
   }
   100% {
@@ -169,7 +166,7 @@
 }
 
 @keyframes pressets-right-enter {
-  0%{
+  0% {
     transform: translateX(100%);
   }
   100% {
@@ -182,7 +179,7 @@
 }
 
 @keyframes pressets-right-leave {
-  0%{
+  0% {
     transform: translateX(0%);
   }
   100% {
@@ -194,12 +191,11 @@
   animation: pressets-right-leave 300ms ease-out forwards;
 }
 
-
 @keyframes presset-selected-increse {
-  0%{
+  0% {
     transform: scale(1);
   }
-  100%{
+  100% {
     transform: scale(1.3);
   }
 }
@@ -209,10 +205,10 @@
 }
 
 @keyframes presset-selected-decrese {
-  0%{
+  0% {
     transform: scale(1.3);
   }
-  100%{
+  100% {
     transform: scale(1);
   }
 }
@@ -249,7 +245,6 @@
   top: 353px;
 }
 
-
 @keyframes moveTitleTop {
   0% {
     top: 80px;
@@ -258,14 +253,12 @@
     z-index: 99;
   }
   100% {
-    top: 23px;
+    top: 0px;
     opacity: 0.4;
     font-size: 30px;
     z-index: 99;
   }
 }
-
-
 
 .animation-move-title-top {
   animation: moveTitleTop 250ms linear forwards;
@@ -286,12 +279,9 @@
   }
 }
 
-
-
 .animation-move-title-top-two {
   animation: moveTitleTopTwo 250ms linear forwards;
 }
-
 
 @keyframes moveTitleBottom {
   0% {
@@ -299,11 +289,11 @@
     opacity: 0.4;
     font-size: 30px;
   }
-  99%{
+  99% {
     opacity: 1;
   }
   100% {
-    top: 80px;
+    top: 120px;
     opacity: 1;
     font-size: 35px;
     z-index: 99;
@@ -328,7 +318,6 @@
   }
   100% {
     opacity: 1;
-    
   }
 }
 
@@ -345,10 +334,14 @@
   }
   100% {
     opacity: 0;
-    
   }
 }
 
 .animation-title-opacity-zero {
   animation: titleOpacityZero 250ms linear forwards;
+}
+
+.presset-title-top {
+  top: 100px !important;
+  border: none !important;
 }
