@@ -73,6 +73,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               screen: 'HOME',
               animating: true
             });
+
             dispatch(setOptionPressets('HOME'));
 
             document
@@ -165,12 +166,12 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             handleAddEnterAnimation(pressetSwiper);
             handleAddEnterAnimation(pressetTitleSwiper);
 
-            setTimeout(() => {
-              dispatch(setNextPreset());
-            }, 250);
+            // setTimeout(() => {
+            //   dispatch(setNextPreset());
+            // }, 250);
             setTimeout(() => {
               setOption((prev) => ({ ...prev, animating: false }));
-            }, 500);
+            }, 280);
           }
         }
       },
@@ -223,12 +224,12 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             handleAddEnterAnimation(pressetSwiper);
             handleAddEnterAnimation(pressetTitleSwiper);
 
-            setTimeout(() => {
-              dispatch(setPrevPreset());
-            }, 280);
+            // setTimeout(() => {
+            //   dispatch(setPrevPreset());
+            // }, 280);
             setTimeout(() => {
               setOption((prev) => ({ ...prev, animating: false }));
-            }, 500);
+            }, 280);
           }
         }
       }
@@ -267,6 +268,20 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     dispatch(setOptionPressets('HOME'));
   }, []);
 
+  useEffect(() => {
+    if (presets.value.length > 5 || presets.value.length <= 5) {
+      if (
+        pressetSwiper &&
+        pressetSwiper.pagination &&
+        pressetSwiper.pagination.el
+      ) {
+        pressetSwiper.pagination.destroy();
+        pressetSwiper.pagination.init();
+        pressetSwiper.pagination.update();
+      }
+    }
+  }, [presets.value.length]);
+
   return (
     <div className="preset-wrapper">
       {presets.defaultPresetIndex > -1 && (
@@ -282,7 +297,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             onSlideChange={handlePresetSlideChange}
             modules={[PaginationSwiper]}
             pagination={{
-              dynamicBullets: presets.value.length > 7,
+              dynamicBullets: presets.value.length > 5,
               bulletActiveClass: 'swiper-pagination-bullet-active',
               bulletClass: 'swiper-pagination-bullet'
             }}
