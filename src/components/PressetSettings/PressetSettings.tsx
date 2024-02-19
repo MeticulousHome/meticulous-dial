@@ -25,10 +25,11 @@ const formatSetting = ({ setting, isActive }: FormatSettingProps) => {
   const { label, value } = setting;
   let mValue = '';
   let mLabel = label;
-  const activeClass = isActive ? 'active' : '';
+  let activeClass = isActive ? 'active' : '';
   const isValidType = typeof value === 'number' || typeof value === 'string';
 
   if ((value || label) && isValidType) {
+    if (label === 'delete profile') activeClass = '';
     mLabel = `${label}${isActive ? ': ' : ''}`;
     mValue = `${value || ''}`;
   }

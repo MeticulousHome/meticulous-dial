@@ -1,9 +1,10 @@
 import './quick-settings.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch } from '../store/hooks';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useSocket } from '../store/SocketManager';
+import { Swiper, SwiperSlide } from 'swiper/react';
 
 const settings = [
   {
@@ -30,7 +31,8 @@ const settings = [
 
 export function QuickSettings(): JSX.Element {
   const dispatch = useAppDispatch();
-
+  const [swiper, setSwiper] = useState(null);
+  const [animationStyle, setAnimationStyle] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const socket = useSocket();
 
@@ -50,19 +52,53 @@ export function QuickSettings(): JSX.Element {
     }
   });
 
+  useEffect(() => {
+    if (swiper) {
+      swiper.slideTo(activeIndex, 0, false);
+    }
+  }, [activeIndex, swiper]);
+
+  useEffect(() => {
+    return () => {
+      setAnimationStyle('');
+    };
+  }, []);
+
   return (
     <div className="main-quick-settings">
-      <div className="quick-settings">
-        {settings.map((setting, key) => {
-          const isActive = key === activeIndex;
-          return (
-            <label
-              className={`settings-item ${isActive ? 'active-setting' : ''}`}
-            >
-              {setting.label}
-            </label>
-          );
-        })}
+      <div className="presset-container">
+        <div className="presset-options">
+          <Swiper
+            onSwiper={setSwiper}
+            slidesPerView={9}
+            allowTouchMove={false}
+            direction="vertical"
+            autoHeight={false}
+            centeredSlides={true}
+            initialSlide={activeIndex}
+            onSlideNextTransitionStart={() => {
+              setAnimationStyle('animation-next');
+            }}
+            onSlidePrevTransitionStart={() => {
+              setAnimationStyle('animation-prev');
+            }}
+            onSlideChangeTransitionEnd={() => setAnimationStyle('')}
+          >
+            {settings.map((setting, index: number) => {
+              const isActive = index === activeIndex;
+              return (
+                <SwiperSlide
+                  className={`${animationStyle} settings-item ${
+                    isActive ? 'active-setting' : ''
+                  }`}
+                  key={`option-${index}`}
+                >
+                  <div>{setting.label}</div>
+                </SwiperSlide>
+              );
+            })}
+          </Swiper>
+        </div>
       </div>
     </div>
   );
