@@ -329,10 +329,14 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             {presets.value.length &&
               presets.value.map((preset) => (
                 <SwiperSlide key={preset.id}>
-                  {() => <Title>{preset.name}</Title>}
+                  {() => (
+                    <Title customClass="presset-title-top">{preset.name}</Title>
+                  )}
                 </SwiperSlide>
               ))}
-            <SwiperSlide key="new">{() => <Title>New</Title>}</SwiperSlide>
+            <SwiperSlide key="new">
+              {() => <Title customClass="presset-title-top">New</Title>}
+            </SwiperSlide>
           </Swiper>
           {option.screen === 'PRESETS' && (
             <Pagination

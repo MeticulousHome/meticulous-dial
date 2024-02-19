@@ -23,6 +23,7 @@ interface TitleProps {
   animation?: 'enter' | 'leave';
   direction?: 'in' | 'out';
   position?: 'top' | 'bottom';
+  customClass?: string;
 }
 
 export const Title = ({
@@ -31,7 +32,8 @@ export const Title = ({
   shared,
   animation,
   direction,
-  position
+  position,
+  customClass
 }: TitleProps) => (
   <div
     className={[
@@ -40,7 +42,8 @@ export const Title = ({
       shared && 'shared',
       position && position,
       animation,
-      direction
+      direction,
+      customClass
     ]
       .filter(Boolean)
       .join(' ')}
