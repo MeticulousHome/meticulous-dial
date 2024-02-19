@@ -247,16 +247,18 @@
 
 @keyframes moveTitleTop {
   0% {
+    border: none;
     top: 80px;
     opacity: 1;
-    font-size: 35px;
+    font-size: 30px;
     z-index: 99;
   }
   100% {
-    top: 0px;
+    top: 63px;
     opacity: 0.4;
-    font-size: 30px;
+    font-size: 20px;
     z-index: 99;
+    border: none;
   }
 }
 
@@ -266,16 +268,18 @@
 
 @keyframes moveTitleTopTwo {
   0% {
-    top: 80px;
-    opacity: 0;
-    font-size: 35px;
-    z-index: 99;
-  }
-  100% {
-    top: 23px;
-    opacity: 0.4;
+    top: 117px;
+    opacity: 1;
     font-size: 30px;
     z-index: 99;
+    border: none;
+  }
+  100% {
+    top: 63px;
+    opacity: 0.4;
+    font-size: 20px;
+    z-index: 99;
+    border: 1px solid #5d5d5d;
   }
 }
 
@@ -285,9 +289,10 @@
 
 @keyframes moveTitleBottom {
   0% {
-    top: 23px;
+    top: 63px;
     opacity: 0.4;
-    font-size: 30px;
+    font-size: 20px;
+    border: none;
   }
   99% {
     opacity: 1;
@@ -295,9 +300,10 @@
   100% {
     top: 120px;
     opacity: 1;
-    font-size: 35px;
+    font-size: 30px;
     z-index: 99;
     opacity: 0;
+    border: none;
   }
 }
 
@@ -342,6 +348,7 @@
 }
 
 .presset-title-top {
-  top: 100px !important;
+  top: 117px !important;
   border: none !important;
+  font-size: 30px !important;
 }
