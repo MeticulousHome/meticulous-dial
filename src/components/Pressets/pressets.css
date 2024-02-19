@@ -249,7 +249,7 @@
   0% {
     border: none;
     top: 80px;
-    font-size: 26px;
+    font-size: 30px;
     z-index: 99;
     text-transform: capitalize;
   }
@@ -269,7 +269,7 @@
 @keyframes moveTitleTopTwo {
   0% {
     top: 110px;
-    font-size: 26px;
+    font-size: 30px;
     z-index: 99;
     border: none;
     text-transform: capitalize;
@@ -301,7 +301,7 @@
   100% {
     top: 110px;
     opacity: 1;
-    font-size: 26px;
+    font-size: 30px;
     z-index: 99;
     opacity: 0;
     border: none;
@@ -352,7 +352,8 @@
 .presset-title-top {
   top: 110px !important;
   border: none !important;
-  font-size: 26px !important;
+  font-size: 30px !important;
   text-transform: capitalize !important;
   color: #e0dcd0;
+  letter-spacing: -0.75px;
 }
