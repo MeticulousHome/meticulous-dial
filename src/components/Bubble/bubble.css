@@ -17,10 +17,10 @@
 }
 
 @keyframes bubbleEnter {
-  0%{
+  0% {
     transform: translateX(100%);
   }
-  100%{
+  100% {
     transform: translateX(0);
   }
 }
@@ -30,10 +30,10 @@
 }
 
 @keyframes bubbleLeave {
-  0%{
+  0% {
     transform: translateX(0%);
   }
-  100%{
+  100% {
     transform: translateX(100%);
   }
 }
