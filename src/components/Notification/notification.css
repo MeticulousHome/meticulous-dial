@@ -44,7 +44,6 @@
   margin-top: 20px;
   margin-bottom: 10px;
   text-align: center;
-  font-family: Lato;
 }
 
 .circle .limit-left {
@@ -91,7 +90,6 @@
   line-height: 52px;
   font-weight: 500;
   justify-content: start;
-  font-family: Lato;
   color: #808080;
   padding: 5px;
   background-color: transparent;
