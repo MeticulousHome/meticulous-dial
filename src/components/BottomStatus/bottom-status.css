@@ -12,6 +12,7 @@
 .bottom-status .bottom-content {
   display: flex;
   flex-direction: column;
+  transform: translateX(13px);
 }
 
 .bottom-item {
