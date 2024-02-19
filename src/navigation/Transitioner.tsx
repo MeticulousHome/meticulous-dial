@@ -154,7 +154,7 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
         {!shouldTransitionParentTitle && parentTitle && (
           <Title parent>{parentTitle}</Title>
         )}
-        {!shouldTransitionTitle && title && (
+        {!shouldTransitionTitle && (title || typeof title === 'string') && (
           <Title shared={titleShared}>{title}</Title>
         )}
         {!shouldTransitionTitle && bottomTitle && (
@@ -179,7 +179,7 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
           {!(titleShared || previous.titleShared
             ? shouldTransitionTitle
             : shouldTransitionParentTitle) &&
-            previous.title && (
+            (title || typeof previous.title === 'string') && (
               <Title shared={previous.titleShared}>{previous.title}</Title>
             )}
         </div>
@@ -189,7 +189,7 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
           {parentTitle}
         </Title>
       )}
-      {shouldTransitionTitle && title && (
+      {shouldTransitionTitle && (title || typeof title === 'string') && (
         <Title
           shared={titleShared || previous?.titleShared}
           animation="enter"
