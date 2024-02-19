@@ -27,9 +27,9 @@ import {
 import { Title, RouteProps } from '../../navigation';
 // import { Pagination } from './Pagination';
 import '../../navigation/navigation.less';
+import { ProfileImage } from './ProfileImage';
 
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
-  // console.log('transitioning', transitioning);
   const dispatch = useAppDispatch();
   const { presets } = useAppSelector((state) => state);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
@@ -274,7 +274,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           <Swiper
             onSwiper={setPressetsSwiper}
             slidesPerView={2.15}
-            spaceBetween={0}
+            spaceBetween={120}
             initialSlide={presets.activeIndexSwiper}
             centeredSlides={true}
             allowTouchMove={false}
@@ -292,38 +292,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                 <SwiperSlide key={preset.id}>
                   {() => (
                     <div>
-                      <div className="pressets-conainer">
-                        <div className="presset-item presset-active">
-                          <div className="presset-icon">
-                            <svg
-                              width="166"
-                              height="166"
-                              viewBox="0 0 166 166"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <circle
-                                cx="83"
-                                cy="83"
-                                r="80.5"
-                                stroke="white"
-                                strokeWidth="5"
-                              />
-                              <circle
-                                cx="83"
-                                cy="83"
-                                r="10.6875"
-                                fill="#F5C444"
-                              />
-                              <path
-                                d="M83 83L124.562 41.4375"
-                                stroke="#F5C444"
-                                strokeWidth="5"
-                              />
-                            </svg>
-                          </div>
-                        </div>
-                      </div>
+                      <ProfileImage
+                        image="https://s3-alpha-sig.figma.com/img/3bec/1eb7/70a88356f139d75984f876b73138c7e9?Expires=1709510400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=S0XSq-zY7CaJCUd0YAwRYhxcEt6sLz6i-1RnLiuMBxuKvykhQUgLhLtlFKITfpdAzzT1ldraecIiKixshyJWbAuANdQiviWRLtjPM5J~sY8sF38NK1wdawZ9oC8Lom3l41BiEBwqM-UEO7NeXIYZHMczDhWAc4mtxKsiyzQD60ymbDGFf0ClroI9kPuESSDJfm5A1398bGjsGPHlL~~4v0nsjSKVtqtTcHfAJ7EXQyg7JLClu56zxDW4zL5NlweZbHcQsPtCB4BoJpX9OnKF77ebSGIiEv1GUWzxTuZOvfJOsJmX4Q-AZ68xCREVp9eIYPLFRGbBoS7zjk77Dn0Wkw__"
+                        borderColor="#A56751"
+                      />
                     </div>
                   )}
                 </SwiperSlide>

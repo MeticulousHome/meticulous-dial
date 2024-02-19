@@ -40,18 +40,17 @@
   font-size: 25px;
   flex: 1;
   justify-content: center;
-  font-family: Lato;
   letter-spacing: -0.625px;
+  color: #e0dcd0;
 }
 
 .bottom-status .status-unit {
-  font-family: Satoshi;
   color: #4d4d4d;
   position: relative;
   width: 24px;
-  font-size: 15px;
-  line-height: 1.4;
-  align-items: flex-end;
+  font-size: 12px;
+  line-height: 2.2;
+  align-items: flex-start;
   letter-spacing: 1.125px;
   margin-left: 5px;
 }
@@ -59,14 +58,14 @@
 .bottom-status .status-temp-icon::after {
   content: '';
   position: absolute;
-  right: -10px;
+  right: 65px;
   top: 50%;
-  margin-top: -6px;
+  margin-top: -7px;
   width: 0;
   height: 0;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
-  border-bottom: 12px solid #ff6534;
+  border-bottom: 12px solid #ff3d00;
 }
 
 @keyframes bottomFadeIn {
