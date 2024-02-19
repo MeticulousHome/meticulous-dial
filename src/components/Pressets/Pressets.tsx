@@ -313,7 +313,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             centeredSlides={true}
             allowTouchMove={false}
             ref={presetSwiperRef}
-            onSlideChange={handlePresetSlideChange}
+            onSlideChange={(e) => {
+              clearSlides(e);
+              handlePresetSlideChange(e);
+            }}
             modules={[PaginationSwiper]}
             pagination={{
               dynamicBullets: presets.value.length > 5,
@@ -373,7 +376,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             initialSlide={presets.activeIndexSwiper}
             allowTouchMove={false}
             ref={titleSwiperRef}
-            onSlideChange={handlePresetSlideChange}
+            onSlideChange={(e) => {
+              clearSlides(e);
+              handlePresetSlideChange(e);
+            }}
             className={`title-swiper ${transitioning ? 'transitioning' : ''}`}
           >
             {presets.value.length &&
