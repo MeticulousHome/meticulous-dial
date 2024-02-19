@@ -9,6 +9,7 @@ interface TransitionerProps {
   direction: 'in' | 'out';
   parentTitle?: string;
   title?: string;
+  bottomTitle?: string;
   titleShared?: boolean;
 }
 
@@ -21,6 +22,7 @@ interface TitleProps {
   parent?: boolean;
   animation?: 'enter' | 'leave';
   direction?: 'in' | 'out';
+  position?: 'top' | 'bottom';
 }
 
 export const Title = ({
@@ -28,13 +30,15 @@ export const Title = ({
   parent,
   shared,
   animation,
-  direction
+  direction,
+  position
 }: TitleProps) => (
   <div
     className={[
       'navigation-title',
       parent && 'parent',
       shared && 'shared',
+      position && position,
       animation,
       direction
     ]
@@ -122,8 +126,15 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
     }
   }, [previous?.screen]);
 
-  const { screen, direction, parentTitle, title, titleShared, children } =
-    current || props;
+  const {
+    screen,
+    direction,
+    parentTitle,
+    title,
+    titleShared,
+    children,
+    bottomTitle
+  } = current || props;
 
   return (
     <>
@@ -142,6 +153,9 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
         )}
         {!shouldTransitionTitle && title && (
           <Title shared={titleShared}>{title}</Title>
+        )}
+        {!shouldTransitionTitle && bottomTitle && (
+          <Title position="bottom">{bottomTitle}</Title>
         )}
       </div>
       {previous && (
@@ -179,6 +193,16 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
           direction={titleDirection}
         >
           {title}
+        </Title>
+      )}
+      {shouldTransitionTitle && bottomTitle && (
+        <Title
+          shared={titleShared || previous?.titleShared}
+          animation="enter"
+          direction={titleDirection}
+          position="bottom"
+        >
+          {bottomTitle}
         </Title>
       )}
     </>

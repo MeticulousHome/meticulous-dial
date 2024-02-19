@@ -61,6 +61,7 @@ export const Router = memo(
           title={title}
           titleShared={route.titleShared}
           parentTitle={parentTitle}
+          bottomTitle={route.bottomTitle}
         >
           <RouteComponent {...route.props} />
         </Transitioner>
