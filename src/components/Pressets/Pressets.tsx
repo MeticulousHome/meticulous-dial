@@ -1,6 +1,7 @@
 // Core modules imports are same as usual
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
+import SwiperS, { Pagination as PaginationSwiper } from 'swiper';
 
 import {
   clearSlides,
@@ -24,7 +25,7 @@ import {
   setPrevPreset
 } from '../store/features/preset/preset-slice';
 import { Title, RouteProps } from '../../navigation';
-import { Pagination } from './Pagination';
+// import { Pagination } from './Pagination';
 import '../../navigation/navigation.less';
 
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
@@ -32,7 +33,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const dispatch = useAppDispatch();
   const { presets } = useAppSelector((state) => state);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
-  const [pressetSwiper, setPressetsSwiper] = useState(null);
+  const [pressetSwiper, setPressetsSwiper] = useState<SwiperS | null>(null);
   const [pressetTitleSwiper, setPressetTitleSwiper] = useState(null);
   const titleSwiperRef = useRef<SwiperRef | null>(null);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
@@ -60,6 +61,14 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           dispatch(addPresetNewOne());
         } else {
           if (option.screen === 'PRESETS') {
+            if (
+              pressetSwiper &&
+              pressetSwiper.pagination &&
+              pressetSwiper.pagination.el
+            ) {
+              pressetSwiper.pagination.el.classList.add('bullet-hidden');
+            }
+
             setOption({
               screen: 'HOME',
               animating: true
@@ -113,6 +122,14 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           if (!option.animating && option.screen === 'PRESETS') {
             dispatch(setNextPreset());
           } else {
+            if (
+              pressetSwiper &&
+              pressetSwiper.pagination &&
+              pressetSwiper.pagination.el
+            ) {
+              pressetSwiper.pagination.el.classList.remove('bullet-hidden');
+            }
+
             setOption({
               screen: 'PRESETS',
               animating: true
@@ -162,6 +179,14 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           if (!option.animating && option.screen === 'PRESETS') {
             dispatch(setPrevPreset());
           } else {
+            if (
+              pressetSwiper &&
+              pressetSwiper.pagination &&
+              pressetSwiper.pagination.el
+            ) {
+              pressetSwiper.pagination.el.classList.remove('bullet-hidden');
+            }
+
             setOption({
               screen: 'PRESETS',
               animating: true
@@ -225,6 +250,13 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
   useEffect(() => {
     if (pressetSwiper) {
+      if (
+        pressetSwiper &&
+        pressetSwiper.pagination &&
+        pressetSwiper.pagination.el
+      ) {
+        pressetSwiper.pagination.el.classList.add('bullet-hidden');
+      }
       clearSlides(pressetSwiper);
       handleAddIncreseAnimation(pressetSwiper);
       handleAddLeaveAnimation(pressetSwiper);
@@ -248,6 +280,12 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             allowTouchMove={false}
             ref={presetSwiperRef}
             onSlideChange={handlePresetSlideChange}
+            modules={[PaginationSwiper]}
+            pagination={{
+              dynamicBullets: presets.value.length > 7,
+              bulletActiveClass: 'swiper-pagination-bullet-active',
+              bulletClass: 'swiper-pagination-bullet'
+            }}
           >
             {presets.value.length &&
               presets.value.map((preset) => (
@@ -344,12 +382,12 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               {() => <Title customClass="presset-title-top">New</Title>}
             </SwiperSlide>
           </Swiper>
-          {option.screen === 'PRESETS' && (
+          {/* {option.screen === 'PRESETS' && (
             <Pagination
               page={presets.activeIndexSwiper}
               pages={presets.value.length + 1}
             />
-          )}
+          )} */}
         </>
       )}
     </div>
