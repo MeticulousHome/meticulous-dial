@@ -66,7 +66,7 @@ export function Gauge({
           <div className="scale-unit">{unitNameMap[unit]}</div>
         </div>
       </div>
-      <svg width="460" height="460" viewBox="0 -5 480 480">
+      <svg width="460" height="460" viewBox="-1 -2 480 480">
         <circle
           fill="transparent"
           cx={radius}
