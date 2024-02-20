@@ -1,7 +1,7 @@
 .main-quick-settings {
   display: flex;
   align-items: center;
-  height: 135%;
+  height: 100%;
   width: 100%;
   justify-content: center;
 }
@@ -19,8 +19,7 @@
 .settings-item {
   text-transform: uppercase;
   border-radius: 4px;
-  height: 35px !important;
-  padding-left: 18px;
+  /* height: 35px !important; */
   font-size: 22px;
   color: #dddddd;
   text-align: left;
@@ -30,8 +29,7 @@
   letter-spacing: 2.2px;
   font-family: 'Abc_mono';
   width: 85%;
-  margin-bottom: 10px;
-  margin-top: 10px;
+  padding-left: 18px;
 }
 
 .active-setting {
