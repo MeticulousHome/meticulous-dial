@@ -308,7 +308,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           <Swiper
             onSwiper={setPressetsSwiper}
             slidesPerView={2.15}
-            spaceBetween={120}
+            spaceBetween={79}
             initialSlide={presets.activeIndexSwiper}
             centeredSlides={true}
             allowTouchMove={false}
@@ -371,7 +371,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             }}
             onSwiper={setPressetTitleSwiper}
             slidesPerView={2.15}
-            spaceBetween={0}
+            spaceBetween={79}
             centeredSlides={true}
             initialSlide={presets.activeIndexSwiper}
             allowTouchMove={false}
