@@ -21,17 +21,20 @@ Barometer styles
 }
 
 .bar-needle__legend {
-  margin-top: -4px;
+  margin-top: -2px;
   margin-bottom: 14px;
   text-align: center;
   display: flex;
   justify-content: center;
 }
+
 .bar-needle__value {
+  font-family: 'Abc_mono' I !important;
   font-size: 50px;
   letter-spacing: -1.5px;
   color: #e0dcd0;
 }
+
 .bar-needle__legend .bar-label {
   width: 40px;
   display: inline-block;
@@ -60,12 +63,12 @@ Barometer styles
 .columns-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 40px 50px;
+  gap: 32px 50px;
 }
 
 .column-value {
   font-size: 33px;
-  font-family: 'Abc';
+  font-family: 'Abc_mono';
   letter-spacing: -0.75px;
   color: #e0dcd0;
   display: flex;
