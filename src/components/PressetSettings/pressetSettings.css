@@ -22,6 +22,7 @@
 .presset-option-unit.active {
   visibility: visible;
   font-family: 'Abc_mono';
+  letter-spacing: -0.5px;
 }
 
 .presset-option-label.active {
