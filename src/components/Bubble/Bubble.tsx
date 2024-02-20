@@ -6,8 +6,7 @@ const animationStyle = { animationDuration: `${durationAnimation / 1000}s` };
 
 export default function Bubble() {
   const Bubble = useAppSelector((state) => state.screen.bubbleDisplay);
-
-  console.log('Bubble.visible ', Bubble.visible);
+  if (!Bubble || !Bubble.component) return <></>;
 
   return (
     <div
@@ -19,7 +18,7 @@ export default function Bubble() {
       style={animationStyle}
     >
       <div className="bubble-container">
-        {Bubble && Bubble.component && <Bubble.component />}
+        <Bubble.component />
       </div>
     </div>
   );
