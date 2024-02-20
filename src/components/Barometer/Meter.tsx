@@ -10,7 +10,7 @@ const ARC_START_ANGLE =
 const ARC_END_ANGLE = ARC_START_ANGLE + ARC_FILL_RATIO * CIRCLE;
 
 // Sizing
-const ARC_SIZE = 480; // Basically window size, but can be anything as long as svg is sized properly
+const ARC_SIZE = 478; // Basically window size, but can be anything as long as svg is sized properly
 const ARC_RADIUS = ARC_SIZE / 2;
 const STEP_LENGTH = 13;
 const STEP_EDGE_OFFSET = 19;
