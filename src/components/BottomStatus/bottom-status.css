@@ -43,10 +43,11 @@
   justify-content: center;
   letter-spacing: -0.625px;
   color: #e0dcd0;
+  font-family: 'Abc_mono';
 }
 
 .bottom-status .status-unit {
-  color: #4d4d4d;
+  color: #e0dcd0;
   position: relative;
   width: 24px;
   font-size: 12px;

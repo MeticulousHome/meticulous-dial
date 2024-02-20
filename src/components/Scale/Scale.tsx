@@ -4,7 +4,7 @@ import { roundPrecision, addRightComplement } from '../../utils';
 import './scale.css';
 
 export function Scale(): JSX.Element {
-  const { screen, stats } = useAppSelector((state) => state);
+  const { stats } = useAppSelector((state) => state);
 
   const getTotalScale = useCallback(() => {
     const toLayout = addRightComplement(
