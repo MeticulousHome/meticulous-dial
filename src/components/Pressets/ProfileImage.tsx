@@ -8,10 +8,10 @@ export const ProfileImage = ({ image, borderColor }: ProfileImageProps) => {
     <img
       src={image}
       alt="image-profile"
-      width="171"
-      height="171"
+      width="164"
+      height="164"
       className="profile-image"
-      style={{ border: `6px solid ${borderColor}` }}
+      style={{ border: `7px solid ${borderColor}` }}
     />
   );
 };
