@@ -14,11 +14,14 @@
 
 .presset-option-unit {
   font-size: 17px;
+  position: absolute;
+  top: -7px;
 }
 
 .presset-option-value.active,
 .presset-option-unit.active {
   visibility: visible;
+  font-family: 'Abc_mono';
 }
 
 .presset-option-label.active {

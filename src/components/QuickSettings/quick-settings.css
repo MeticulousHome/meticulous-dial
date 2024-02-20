@@ -19,9 +19,7 @@
 .settings-item {
   text-transform: uppercase;
   border-radius: 4px;
-  height: 23px;
-  display: flex;
-  align-items: center;
+  height: 20px;
   padding-left: 16px;
   font-size: 22px;
   color: #dddddd;
@@ -30,7 +28,7 @@
   justify-content: start;
   font-weight: 400;
   letter-spacing: 2.2px;
-  line-height: 10px;
+  font-family: 'Abc_mono';
 }
 
 .active-setting {
