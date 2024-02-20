@@ -30,14 +30,14 @@ const settings = [
 ] as const;
 
 export function QuickSettings(): JSX.Element {
+  const socket = useSocket();
   const dispatch = useAppDispatch();
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const socket = useSocket();
 
   useHandleGestures({
     longTare() {
-      dispatch(setBubbleDisplay({ visible: false, component: null }));
+      dispatch(setBubbleDisplay({ visible: false, component: QuickSettings }));
     },
     left() {
       setActiveIndex((prev) => Math.max(prev - 1, 0));
@@ -47,7 +47,7 @@ export function QuickSettings(): JSX.Element {
     },
     click() {
       socket.emit('action', settings[activeIndex].key);
-      dispatch(setBubbleDisplay({ visible: false, component: null }));
+      dispatch(setBubbleDisplay({ visible: false, component: QuickSettings }));
     }
   });
 
