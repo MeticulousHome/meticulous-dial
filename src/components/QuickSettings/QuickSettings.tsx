@@ -61,13 +61,14 @@ export function QuickSettings(): JSX.Element {
     <div className="main-quick-settings">
       <Swiper
         onSwiper={setSwiper}
-        slidesPerView={11}
+        slidesPerView={8}
         allowTouchMove={false}
         direction="vertical"
+        spaceBetween={25}
         autoHeight={false}
         centeredSlides={true}
         initialSlide={activeIndex}
-        style={{ paddingLeft: '30px', top: '-80px' }}
+        style={{ paddingLeft: '29px', top: '-4px' }}
       >
         {settings.map((setting, index: number) => {
           const isActive = index === activeIndex;
@@ -76,7 +77,13 @@ export function QuickSettings(): JSX.Element {
               className={`settings-item ${isActive ? 'active-setting' : ''}`}
               key={`option-${index}`}
             >
-              <div>{setting.label}</div>
+              <div
+                style={{
+                  height: '30px !important'
+                }}
+              >
+                {setting.label}
+              </div>
             </SwiperSlide>
           );
         })}
