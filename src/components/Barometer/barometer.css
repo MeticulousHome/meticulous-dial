@@ -17,11 +17,11 @@ Barometer styles
 
 .bar-needle__content {
   width: 290px;
-  margin: 130px auto 0;
+  margin: 120px auto 0;
 }
 
 .bar-needle__legend {
-  margin-top: -2px;
+  margin-top: -3px;
   margin-bottom: 14px;
   text-align: center;
   display: flex;
@@ -36,7 +36,7 @@ Barometer styles
 }
 
 .bar-needle__legend .bar-label {
-  width: 40px;
+  width: 39px;
   display: inline-block;
   margin-left: 8px;
   margin-right: -48px; /* offset to center the value (width+margin-left) */
@@ -63,7 +63,7 @@ Barometer styles
 .columns-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 32px 50px;
+  gap: 33px 50px;
 }
 
 .column-value {
@@ -75,14 +75,15 @@ Barometer styles
   justify-content: center;
 }
 .bar-label {
-  margin-top: 10px;
+  margin-top: 3px;
+  font-size: 11px !important;
 }
 
 .pressure,
 .bar-label,
 .column-label,
 .column-unit {
-  text-align: center;
+  text-align: left;
   font-size: 14px;
   letter-spacing: 1.125px;
   color: #808080;
@@ -106,10 +107,16 @@ Barometer styles
 .column-unit {
   display: inline-block;
   width: 45px;
-  margin-left: 8px;
+  margin-left: 5px;
   margin-right: -53px;
   text-align: left;
   color: #4d4d4d;
   text-transform: none;
   font-size: 11px;
+  margin-top: 2px;
+}
+
+.pressure {
+  text-align: center;
+  margin-bottom: 10px;
 }
