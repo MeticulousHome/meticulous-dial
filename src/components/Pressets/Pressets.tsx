@@ -97,10 +97,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       click() {
         switch (option.screen) {
           case 'HOME': {
-            if (presets.activeIndexSwiper === presets.value.length) {
-              return dispatch(addPresetNewOne());
-            }
-
             switch (presets.activePreset.kind) {
               case 'italian_1_0': {
                 const preset = {
@@ -153,6 +149,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             break;
           }
           case 'PRESETS': {
+            if (presets.activeIndexSwiper === presets.value.length) {
+              return dispatch(addPresetNewOne());
+            }
+
             if (
               pressetSwiper &&
               pressetSwiper.pagination &&
