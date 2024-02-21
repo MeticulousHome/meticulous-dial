@@ -399,8 +399,8 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                   {() => (
                     <div>
                       <ProfileImage
-                        image="https://s3-alpha-sig.figma.com/img/3bec/1eb7/70a88356f139d75984f876b73138c7e9?Expires=1709510400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=S0XSq-zY7CaJCUd0YAwRYhxcEt6sLz6i-1RnLiuMBxuKvykhQUgLhLtlFKITfpdAzzT1ldraecIiKixshyJWbAuANdQiviWRLtjPM5J~sY8sF38NK1wdawZ9oC8Lom3l41BiEBwqM-UEO7NeXIYZHMczDhWAc4mtxKsiyzQD60ymbDGFf0ClroI9kPuESSDJfm5A1398bGjsGPHlL~~4v0nsjSKVtqtTcHfAJ7EXQyg7JLClu56zxDW4zL5NlweZbHcQsPtCB4BoJpX9OnKF77ebSGIiEv1GUWzxTuZOvfJOsJmX4Q-AZ68xCREVp9eIYPLFRGbBoS7zjk77Dn0Wkw__"
-                        borderColor="#A56751"
+                        image={preset.image}
+                        borderColor={preset.borderColor}
                       />
                     </div>
                   )}
