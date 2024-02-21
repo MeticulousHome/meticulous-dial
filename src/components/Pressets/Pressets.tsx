@@ -20,6 +20,7 @@ import './pressets.css';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import {
   addPresetNewOne,
+  resetActiveSetting,
   setNextPreset,
   setOptionPressets,
   setPrevPreset
@@ -28,8 +29,13 @@ import { Title, RouteProps } from '../../navigation';
 // import { Pagination } from './Pagination';
 import '../../navigation/navigation.less';
 import { ProfileImage } from './ProfileImage';
+import { setScreen } from '../store/features/screens/screens-slice';
+import { generateSimplePayload } from '../../utils/preheat';
+import { useSocket } from '../store/SocketManager';
+import { KIND_PROFILE, LCD_EVENT_EMIT } from '../../constants';
 
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
+  const socket = useSocket();
   const dispatch = useAppDispatch();
   const { presets } = useAppSelector((state) => state);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
@@ -89,10 +95,64 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   useHandleGestures(
     {
       click() {
-        if (presets.activeIndexSwiper === presets.value.length) {
-          dispatch(addPresetNewOne());
-        } else {
-          if (option.screen === 'PRESETS') {
+        switch (option.screen) {
+          case 'HOME': {
+            if (presets.activeIndexSwiper === presets.value.length) {
+              return dispatch(addPresetNewOne());
+            }
+
+            switch (presets.activePreset.kind) {
+              case 'italian_1_0': {
+                const preset = {
+                  name: presets.activePreset.name,
+                  settings: (presets.activePreset?.settings || []).filter(
+                    (item) => item.id !== -1 && item.id !== -2
+                  )
+                };
+
+                if (preset.settings.length === 0) return;
+
+                const payload = generateSimplePayload({
+                  presset: preset as any,
+                  action: 'to_play'
+                });
+
+                console.log(
+                  `${KIND_PROFILE.ITALIAN}:> ${JSON.stringify(payload)}`
+                );
+
+                socket.emit(
+                  LCD_EVENT_EMIT.FEED_PROFILE,
+                  JSON.stringify(payload)
+                );
+                break;
+              }
+              case 'dashboard_1_0': {
+                const preset = {
+                  ...(presets.activePreset as any).dashboard,
+                  name: presets.activePreset.name,
+                  source: 'lcd'
+                };
+
+                const payload = {
+                  ...preset,
+                  action: 'to_play'
+                };
+
+                console.log(
+                  `${KIND_PROFILE.DASHBOARD}:> ${JSON.stringify(payload)}`
+                );
+
+                socket.emit(
+                  LCD_EVENT_EMIT.FEED_PROFILE,
+                  JSON.stringify(payload)
+                );
+                break;
+              }
+            }
+            break;
+          }
+          case 'PRESETS': {
             if (
               pressetSwiper &&
               pressetSwiper.pagination &&
@@ -143,7 +203,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                 animating: false
               }));
             }, 280);
+            break;
           }
+          default:
+            break;
         }
       },
       left() {
@@ -250,6 +313,12 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               setOption((prev) => ({ ...prev, animating: false }));
             }, 280);
           }
+        }
+      },
+      longTare() {
+        if (option.screen === 'HOME') {
+          dispatch(resetActiveSetting());
+          dispatch(setScreen('pressetSettings'));
         }
       }
     },
