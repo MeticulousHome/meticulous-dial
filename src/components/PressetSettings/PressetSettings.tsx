@@ -102,7 +102,7 @@ export function PressetSettings(): JSX.Element {
           dispatch(setScreen('pressets'));
         } else if (presetSettingIndex === 'delete') {
           dispatch(deletePreset());
-          dispatch(setScreen('pressets'));
+          // dispatch(setScreen('pressets'));
         } else if (presetSettingIndex === 'name') {
           dispatch(setScreen('name'));
         } else if (presetSettingIndex === 'pre-infusion') {

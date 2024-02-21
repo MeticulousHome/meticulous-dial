@@ -261,6 +261,8 @@ export const deletePreset = createAsyncThunk(
         ...presetState
       })
     );
+
+    dispatch(setScreen('pressets'));
   }
 );
 export const setActiveIndexSwiper = createAsyncThunk(
