@@ -30,7 +30,7 @@ const formatSetting = ({ setting, isActive }: FormatSettingProps) => {
 
   if ((value || label) && isValidType) {
     mLabel = `${label}${isActive ? ': ' : ''}`;
-    mValue = `${value || ''}`;
+    mValue = `${value || 0}`;
   }
 
   if (label === 'delete profile') activeClass = '';
@@ -53,34 +53,38 @@ export function PressetSettings(): JSX.Element {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [animationStyle, setAnimationStyle] = useState('');
   const [swiper, setSwiper] = useState(null);
+  const presets = useAppSelector((state) => state.presets);
   const currentPresetSetting = useAppSelector(
     (state) => state.presets.activePreset?.settings || []
   );
-  const presets = useAppSelector((state) => state.presets);
-  const settings = useMemo(() => {
-    const defaultSettings = generateDefaultAction(
-      presets.updatingSettings.settings.length
-    ).flat() as IPresetSetting[];
 
-    if (
-      presets.activePreset.kind &&
-      presets.activePreset.kind !== KIND_PROFILE.ITALIAN
-    ) {
-      return [
-        ...presets.updatingSettings.settings.filter(
-          (setting) => setting.key === 'name'
-        ),
-        ...defaultSettings
-      ];
-    } else {
-      return [
-        ...(presets.updatingSettings.settings || []).filter(
-          (setting) => !setting.hidden
-        ),
-        ...defaultSettings
-      ];
+  const settings = useMemo(() => {
+    if (presets.updatingSettings.settings) {
+      const defaultSettings = generateDefaultAction(
+        presets.updatingSettings.settings.length
+      ).flat() as IPresetSetting[];
+
+      if (
+        presets.activePreset.kind &&
+        presets.activePreset.kind !== KIND_PROFILE.ITALIAN
+      ) {
+        return [
+          ...presets.updatingSettings.settings.filter(
+            (setting) => setting.key === 'name'
+          ),
+          ...defaultSettings
+        ];
+      } else {
+        return [
+          ...(presets.updatingSettings.settings || []).filter(
+            (setting) => !setting.hidden
+          ),
+          ...defaultSettings
+        ];
+      }
     }
   }, [presets.updatingSettings.settings]);
+
   const [presetSettingIndex, setPresetSettingIndex] = useState<
     IPresetSetting['key']
   >(settings[presets.activeSetting].key);
