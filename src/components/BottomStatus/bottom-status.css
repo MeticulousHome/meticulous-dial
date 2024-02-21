@@ -57,11 +57,11 @@
   margin-left: 2px;
 }
 
-.bottom-status .status-temp-icon::after {
+.bottom-status .status-value::after {
   content: '';
   position: absolute;
-  right: 63px;
-  top: 40%;
+  right: 95%;
+  top: 20%;
   margin-top: -7px;
   width: 0;
   height: 0;

@@ -8,15 +8,11 @@ import { SocketManager } from './components/store/SocketManager';
 import { store } from './components/store/store';
 import { useFetchData } from './hooks/useFetchData';
 import { useHandleGestures } from './hooks/useHandleGestures';
-import {
-  setBubbleDisplay,
-  setScreen
-} from './components/store/features/screens/screens-slice';
+import { setScreen } from './components/store/features/screens/screens-slice';
 import { Router } from './navigation/Router';
 import { notificationSelector } from './components/store/features/notifications/notification-slice';
 import { durationAnimation } from './navigation/Transitioner';
 import { useSocketKeyboardListeners } from './components/store/SocketProviderValue';
-import { QuickSettings } from './components/QuickSettings/QuickSettings';
 
 const App = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -63,18 +59,6 @@ const App = (): JSX.Element => {
               : 'scale'
           )
         );
-      },
-      longTare() {
-        // TODO change it to the correct way implementation
-        dispatch(
-          setBubbleDisplay({
-            visible: !bubbleDisplay.visible,
-            component: QuickSettings
-          })
-        );
-        // if (screen.value !== 'settings') {
-        //   dispatch(setScreen('settings'));
-        // }
       }
     },
     stats?.name !== 'idle' || bubbleDisplay.visible
