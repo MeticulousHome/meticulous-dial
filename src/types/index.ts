@@ -62,6 +62,8 @@ export interface IPreset {
   isDefault?: boolean;
   settings?: IPresetSetting[];
   dashboard?: any;
+  image?: string;
+  borderColor?: string;
 }
 
 export interface IBasePresset {
