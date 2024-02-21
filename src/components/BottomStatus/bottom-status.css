@@ -60,7 +60,7 @@
 .bottom-status .status-value::after {
   content: '';
   position: absolute;
-  right: 95%;
+  right: 103%;
   top: 20%;
   margin-top: -7px;
   width: 0;
