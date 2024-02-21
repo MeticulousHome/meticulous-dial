@@ -96,10 +96,10 @@ export function PressetSettings(): JSX.Element {
       click() {
         if (presetSettingIndex === 'save') {
           dispatch(savePreset());
-          dispatch(setScreen('barometer'));
+          dispatch(setScreen('pressets'));
         } else if (presetSettingIndex == 'discard') {
           dispatch(discardSettings());
-          dispatch(setScreen('barometer'));
+          dispatch(setScreen('pressets'));
         } else if (presetSettingIndex === 'delete') {
           dispatch(deletePreset());
           dispatch(setScreen('pressets'));
