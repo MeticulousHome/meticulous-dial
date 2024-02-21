@@ -2,7 +2,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 45px;
+  bottom: 53px;
   width: 100%;
   z-index: 5;
   display: flex;
@@ -25,7 +25,7 @@
 .bottom-status .status-value,
 .bottom-status .status-unit {
   line-height: 1;
-  height: 30px;
+  height: 23px;
   display: flex;
   align-items: center;
 }
@@ -51,23 +51,23 @@
   position: relative;
   width: 24px;
   font-size: 12px;
-  line-height: 2.2;
+  line-height: 1.8;
   align-items: flex-start;
-  letter-spacing: 1.125px;
-  margin-left: 5px;
+  letter-spacing: 0;
+  margin-left: 2px;
 }
 
 .bottom-status .status-temp-icon::after {
   content: '';
   position: absolute;
-  right: 65px;
-  top: 50%;
+  right: 63px;
+  top: 40%;
   margin-top: -7px;
   width: 0;
   height: 0;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
-  border-bottom: 12px solid #ff3d00;
+  border-bottom: 9px solid #ff3d00;
 }
 
 @keyframes bottomFadeIn {
