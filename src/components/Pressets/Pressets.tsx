@@ -53,6 +53,18 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
   const navigationTitleParentRef = useRef<HTMLDivElement | null>(null);
   const navigationTitleRef = useRef<HTMLDivElement | null>(null);
+  const pressetsTitleContentRef = useRef<HTMLDivElement | null>(null);
+
+  const pressetTitleContenExistValidation = useCallback(() => {
+    if (!pressetsTitleContentRef.current) {
+      const element = document.getElementById('pressets-title-content');
+
+      if (!element) return false;
+
+      pressetsTitleContentRef.current = element as HTMLDivElement;
+    }
+    return true;
+  }, []);
 
   const navigationTitleExistValidation = useCallback((): boolean => {
     if (!navigationTitleRef.current) {
@@ -170,12 +182,15 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               animating: true
             });
 
-            if (navigationTitleParentExistValidation()) {
-              navigationTitleParentRef.current.classList.remove(
-                'animation-move-title-top-two'
+            if (pressetTitleContenExistValidation()) {
+              pressetsTitleContentRef.current.classList.remove(
+                'animation-pressets-content-bottom'
               );
-              navigationTitleParentRef.current.classList.add(
-                'animation-move-title-top-two'
+              pressetsTitleContentRef.current.classList.remove(
+                'animation-pressets-content-top'
+              );
+              pressetsTitleContentRef.current.classList.add(
+                'animation-pressets-content-top'
               );
             }
 
@@ -233,9 +248,15 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               navigationTitleParentRef.current = null;
             }
 
-            if (navigationTitleParentExistValidation()) {
-              navigationTitleParentRef.current.classList.remove(
-                'animation-move-title-top-two'
+            if (pressetTitleContenExistValidation()) {
+              pressetsTitleContentRef.current.classList.remove(
+                'animation-pressets-content-bottom'
+              );
+              pressetsTitleContentRef.current.classList.remove(
+                'animation-pressets-content-top'
+              );
+              pressetsTitleContentRef.current.classList.add(
+                'animation-pressets-content-bottom'
               );
             }
 
@@ -288,9 +309,15 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               navigationTitleParentRef.current = null;
             }
 
-            if (navigationTitleParentExistValidation()) {
-              navigationTitleParentRef.current.classList.remove(
-                'animation-move-title-top-two'
+            if (pressetTitleContenExistValidation()) {
+              pressetsTitleContentRef.current.classList.remove(
+                'animation-pressets-content-bottom'
+              );
+              pressetsTitleContentRef.current.classList.remove(
+                'animation-pressets-content-top'
+              );
+              pressetsTitleContentRef.current.classList.add(
+                'animation-pressets-content-bottom'
               );
             }
 
@@ -347,12 +374,9 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
         handleAddOpacityTitleInactive(pressetTitleSwiper);
         handleAddLeaveAnimation(pressetTitleSwiper);
 
-        if (navigationTitleParentExistValidation()) {
-          navigationTitleParentRef.current.classList.remove(
-            'animation-move-title-top-two'
-          );
-          navigationTitleParentRef.current.classList.add(
-            'animation-move-title-top-two'
+        if (pressetTitleContenExistValidation()) {
+          pressetsTitleContentRef.current.classList.add(
+            'animation-pressets-content-top'
           );
         }
 

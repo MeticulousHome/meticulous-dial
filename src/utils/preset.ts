@@ -1,7 +1,10 @@
 // eslint-disable-next-line import/no-named-as-default
 import Swiper from 'swiper';
+
 import { IPresetSetting } from '../types';
 import { DEFAULT_SETTING } from '../constants/setting';
+import { PresetsState } from '../components/store/features/preset/preset-slice';
+import { KIND_PROFILE } from '../constants';
 
 export const handleRemovePresetsAnimation = (swiper: Swiper) => {
   if (swiper && swiper.slides)
@@ -286,4 +289,33 @@ export const filterSettingAction = (data: IPresetSetting[] = []) => {
   });
 
   return newData;
+};
+
+export const getPresetSettings = (presets: PresetsState): IPresetSetting[] => {
+  if (presets.updatingSettings.settings) {
+    const presetsLength = presets.updatingSettings.settings.length;
+
+    const defaultSettings = generateDefaultAction(
+      presetsLength
+    ).flat() as IPresetSetting[];
+
+    if (
+      presets.activePreset.kind &&
+      presets.activePreset.kind !== KIND_PROFILE.ITALIAN
+    ) {
+      return [
+        ...presets.updatingSettings.settings.filter(
+          (setting) => setting.key === 'name'
+        ),
+        ...defaultSettings
+      ];
+    } else {
+      return [
+        ...(presets.updatingSettings.settings || []).filter(
+          (setting) => !setting.hidden
+        ),
+        ...defaultSettings
+      ];
+    }
+  }
 };
