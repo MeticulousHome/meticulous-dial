@@ -259,6 +259,7 @@
     z-index: 99;
     border: none;
     text-transform: capitalize;
+    opacity: 0;
   }
 }
 
