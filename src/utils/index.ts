@@ -14,7 +14,11 @@ export const addRightComplement = (value: string) => {
   return value;
 };
 
-export const formatStatValue = (value: string, padEnd: number) => {
+export const formatStatValue = (
+  value: string,
+  padEnd: number,
+  fixpointFactor = 1.0
+) => {
   let fValue = 0.0;
 
   try {
@@ -23,7 +27,7 @@ export const formatStatValue = (value: string, padEnd: number) => {
     return fValue;
   }
 
-  const finalNumber = roundPrecision(fValue, 1).toString();
+  const finalNumber = roundPrecision(fValue / fixpointFactor, 1).toString();
   if (regex.test(finalNumber)) {
     return finalNumber + '.' + '0'.repeat(padEnd);
   }
