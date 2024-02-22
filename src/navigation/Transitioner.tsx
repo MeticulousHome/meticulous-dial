@@ -7,7 +7,7 @@ interface TransitionerProps {
   screen: ScreenType;
   children: ReactElement;
   direction: 'in' | 'out';
-  parentTitle?: string;
+  parentTitle?: string | JSX.Element;
   title?: string;
   bottomTitle?: string;
   titleShared?: boolean;
@@ -17,7 +17,7 @@ export const durationAnimation = 450;
 const animationStyle = { animationDuration: `${durationAnimation / 1000}s` };
 
 interface TitleProps {
-  children: string;
+  children: string | JSX.Element | JSX.Element[];
   shared?: boolean;
   parent?: boolean;
   animation?: 'enter' | 'leave';

@@ -11,10 +11,11 @@ import { ScreenType } from '../components/store/features/screens/screens-slice';
 import { CircleKeyboard } from '../components/CircleKeyboard/CircleKeyboard';
 import { RootState } from '../components/store/store';
 import { Notification } from '../components/Notification/Notification';
+import { getTitlePressets } from '../components/Pressets/TitlePressets';
 
 interface Route {
   component: ComponentType;
-  parentTitle?: string | ((state: RootState) => string);
+  parentTitle?: string | ((state: RootState) => string) | (() => JSX.Element);
   title?: string | ((state: RootState) => string);
   titleShared?: boolean;
   parent?: ScreenType;
@@ -27,9 +28,7 @@ const selectActivePresetName = (state: RootState) =>
   state.presets.activePreset.name;
 
 const activePresset = (state: RootState) =>
-  state.screen.prev !== 'pressets' && state.presets.option === 'HOME'
-    ? ''
-    : state.presets.value[state.presets.activeIndexSwiper]
+  state.presets.value[state.presets.activeIndexSwiper]
     ? state.presets.value[state.presets.activeIndexSwiper].name
     : '';
 
@@ -61,7 +60,7 @@ export const routes: Record<ScreenType, Route> = {
   },
   pressets: {
     component: Pressets,
-    parentTitle: selectPressetTitle,
+    parentTitle: getTitlePressets,
     title: activePresset
   },
   barometer: {
