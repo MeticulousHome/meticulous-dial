@@ -61,7 +61,8 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       const element: HTMLDivElement = navigationTitleParentRef.current
         .nextElementSibling as HTMLDivElement;
 
-      if (!element) return false;
+      if (!element || !element.classList.contains('navigation-title'))
+        return false;
 
       navigationTitleRef.current = element;
     }
@@ -151,9 +152,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           case 'PRESSETS': {
             if (presets.activeIndexSwiper === presets.value.length) {
               if (navigationTitleExistValidation()) {
-                navigationTitleRef.current.classList.add(
-                  'animation-move-title-bottom'
-                );
+                navigationTitleRef.current.classList.add('title-bottom');
               }
               return dispatch(addPresetNewOne());
             }
@@ -170,8 +169,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               screen: 'HOME',
               animating: true
             });
-
-            // dispatch(setOptionPressets('HOME'));
 
             if (navigationTitleParentExistValidation()) {
               navigationTitleParentRef.current.classList.remove(
@@ -232,7 +229,9 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               animating: true
             });
 
-            // dispatch(setOptionPressets('PRESSETS'));
+            if (!navigationTitleExistValidation()) {
+              navigationTitleParentRef.current = null;
+            }
 
             if (navigationTitleParentExistValidation()) {
               navigationTitleParentRef.current.classList.remove(
@@ -284,6 +283,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               screen: 'PRESSETS',
               animating: true
             });
+
+            if (!navigationTitleExistValidation()) {
+              navigationTitleParentRef.current = null;
+            }
 
             if (navigationTitleParentExistValidation()) {
               navigationTitleParentRef.current.classList.remove(
@@ -361,7 +364,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           navigationTitleRef.current.classList.add('animation-move-title-top');
         }
       } else {
-        // handleAddOpacityTitleInactive(pressetTitleSwiper);
         clearSlides(pressetTitleSwiper);
         handleAddLeaveAnimation(pressetTitleSwiper);
       }
