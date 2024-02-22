@@ -255,21 +255,21 @@
     border: none;
     text-transform: capitalize;
   }
-  50% {
-    opacity: 0.6;
+  40% {
+    opacity: 0.5;
   }
   100% {
     z-index: 99;
     opacity: 0;
     top: 50px;
-    font-size: 16px;
+    font-size: 30px;
     border: none;
     text-transform: capitalize;
   }
 }
 
 .animation-move-title-top {
-  animation: moveTitleTop 250ms linear forwards;
+  animation: moveTitleTop 200ms linear forwards;
 }
 
 @keyframes moveTitleTopTwo {
