@@ -26,7 +26,7 @@ export interface PresetSettingInterface {
   allSettings: IPresetsSettingData[];
 }
 
-interface PresetsState extends PresetSettingInterface {
+export interface PresetsState extends PresetSettingInterface {
   value: IPreset[];
   defaultPresetIndex: number;
   activeIndexSwiper: number;
@@ -245,6 +245,7 @@ export const deletePreset = createAsyncThunk(
         isDefault: preset.id === newDefaultPreset.id
       }));
     }
+
     await setPresetsData(newListPresets);
 
     presetState.value = newListPresets;

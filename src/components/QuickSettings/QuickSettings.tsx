@@ -6,26 +6,45 @@ import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useSocket } from '../store/SocketManager';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
+// const settings = [
+//   {
+//     key: 'wifi',
+//     label: 'wifi'
+//   },
+//   {
+//     key: 'power',
+//     label: 'power'
+//   },
+//   {
+//     key: 'idle',
+//     label: 'idle'
+//   },
+//   {
+//     key: 'setting',
+//     label: 'setting'
+//   },
+//   {
+//     key: 'sleep',
+//     label: 'sleep'
+//   }
+// ] as const;
+
 const settings = [
   {
-    key: 'wifi',
-    label: 'wifi'
+    key: 'home',
+    label: 'home'
   },
   {
-    key: 'power',
-    label: 'power'
+    key: 'purge',
+    label: 'purge'
   },
   {
-    key: 'idle',
-    label: 'idle'
+    key: 'calibrate',
+    label: 'calibrate scale'
   },
   {
-    key: 'setting',
-    label: 'setting'
-  },
-  {
-    key: 'sleep',
-    label: 'sleep'
+    key: 'exit',
+    label: 'exit'
   }
 ] as const;
 
