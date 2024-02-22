@@ -66,7 +66,7 @@ export const routes: Record<ScreenType, Route> = {
   barometer: {
     component: Barometer,
     parentTitle: null,
-    title: selectActivePresetName || selectStatProfileName,
+    title: selectStatProfileName,
     // titleShared: true,
     bottomStatusHidden: true
   },
