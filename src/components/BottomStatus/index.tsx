@@ -10,7 +10,7 @@ const BottomStatus = ({ hidden }: { hidden: boolean }) => {
       <div className="bottom-content">
         <div className="bottom-item">
           <div className="status-value">
-            {formatStatValue(stats.sensors.t, 1, 1000)}
+            {formatStatValue(stats.sensors.t, 1)}
             <div className="status-unit status-temp-icon">°C</div>
           </div>
         </div>
