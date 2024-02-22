@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { IPresetSetting } from '../../types';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
 
 import './pressetSettings.css';
-import { generateDefaultAction } from '../../utils/preset';
+import { IPresetSetting } from '../../types';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { getPresetSettings } from '../../utils/preset';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import {
   deletePreset,
@@ -14,39 +14,7 @@ import {
   setPrevSettingOption
 } from '../store/features/preset/preset-slice';
 import { setScreen } from '../store/features/screens/screens-slice';
-import { KIND_PROFILE } from '../../constants';
-
-interface FormatSettingProps {
-  setting: IPresetSetting;
-  isActive: boolean;
-}
-
-const formatSetting = ({ setting, isActive }: FormatSettingProps) => {
-  const { label, value } = setting;
-  let mValue = '';
-  let mLabel = label;
-  let activeClass = isActive ? 'active' : '';
-  const isValidType = typeof value === 'number' || typeof value === 'string';
-
-  if ((value || label) && isValidType) {
-    mLabel = `${label}${isActive ? ': ' : ''}`;
-    mValue = `${value || 0}`;
-  }
-
-  if (label === 'delete profile') activeClass = '';
-
-  return (
-    <div>
-      <span className={`capitalize presset-option-label ${activeClass}`}>
-        {mLabel}
-      </span>
-      <span className={`presset-option-value ${activeClass}`}>{mValue}</span>
-      <span className={`presset-option-unit ${activeClass}`}>
-        {(setting as any)?.unit}
-      </span>
-    </div>
-  );
-};
+import { FormatSetting } from './FormatSetting';
 
 export function PressetSettings(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -59,30 +27,7 @@ export function PressetSettings(): JSX.Element {
   );
 
   const settings = useMemo(() => {
-    if (presets.updatingSettings.settings) {
-      const defaultSettings = generateDefaultAction(
-        presets.updatingSettings.settings.length
-      ).flat() as IPresetSetting[];
-
-      if (
-        presets.activePreset.kind &&
-        presets.activePreset.kind !== KIND_PROFILE.ITALIAN
-      ) {
-        return [
-          ...presets.updatingSettings.settings.filter(
-            (setting) => setting.key === 'name'
-          ),
-          ...defaultSettings
-        ];
-      } else {
-        return [
-          ...(presets.updatingSettings.settings || []).filter(
-            (setting) => !setting.hidden
-          ),
-          ...defaultSettings
-        ];
-      }
-    }
+    return getPresetSettings(presets);
   }, [presets.updatingSettings.settings]);
 
   const [presetSettingIndex, setPresetSettingIndex] = useState<
@@ -105,8 +50,8 @@ export function PressetSettings(): JSX.Element {
           dispatch(discardSettings());
           dispatch(setScreen('pressets'));
         } else if (presetSettingIndex === 'delete') {
+          console.log('Delete preset');
           dispatch(deletePreset());
-          // dispatch(setScreen('pressets'));
         } else if (presetSettingIndex === 'name') {
           dispatch(setScreen('name'));
         } else if (presetSettingIndex === 'pre-infusion') {
@@ -199,11 +144,12 @@ export function PressetSettings(): JSX.Element {
                   setting.key === 'delete' ? 'delete-option-item' : ''
                 }`}
               >
-                {formatSetting({
-                  setting,
-                  isActive:
+                <FormatSetting
+                  setting={setting}
+                  isActive={
                     settings[presets.activeSetting].label === setting.label
-                })}
+                  }
+                />
               </div>
             </SwiperSlide>
           ))}
