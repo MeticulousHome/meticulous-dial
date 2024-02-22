@@ -310,6 +310,16 @@
   }
 }
 
+.title-bottom {
+  top: 110px;
+  opacity: 1;
+  font-size: 30px;
+  z-index: 99;
+  opacity: 0;
+  border: none;
+  text-transform: capitalize;
+}
+
 .animation-move-title-bottom {
   animation: moveTitleBottom 250ms linear forwards;
 }
