@@ -423,7 +423,7 @@ const initialState: PresetsState = {
     settings: []
   },
   allSettings: [],
-  pending: false,
+  pending: true,
   error: false
 };
 

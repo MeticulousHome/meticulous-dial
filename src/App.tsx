@@ -20,6 +20,7 @@ const App = (): JSX.Element => {
     (state) => state.screen,
     (prev, next) => prev === next
   );
+  const loadingPressets = useAppSelector((state) => state.presets.pending);
   const stats = useAppSelector((state) => state.stats);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const notifications = useSelector(notificationSelector.selectAll);
@@ -63,6 +64,8 @@ const App = (): JSX.Element => {
     },
     stats?.name !== 'idle' || bubbleDisplay.visible
   );
+
+  if (loadingPressets) return <></>;
 
   return <Router currentScreen={screen.value} previousScreen={screen.prev} />;
   // return <Router currentScreen={'wifiSettings'} previousScreen={screen.prev} />;

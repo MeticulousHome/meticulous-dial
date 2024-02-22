@@ -44,10 +44,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const titleSwiperRef = useRef<SwiperRef | null>(null);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [option, setOption] = useState<{
-    screen: 'HOME' | 'PRESETS';
+    screen: 'HOME' | 'PRESSETS';
     animating: boolean;
   }>({
-    screen: 'HOME',
+    screen: presets.value.length === 0 ? 'PRESSETS' : 'HOME',
     animating: false
   });
 
@@ -148,8 +148,13 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             }
             break;
           }
-          case 'PRESETS': {
+          case 'PRESSETS': {
             if (presets.activeIndexSwiper === presets.value.length) {
+              if (navigationTitleExistValidation()) {
+                navigationTitleRef.current.classList.add(
+                  'animation-move-title-bottom'
+                );
+              }
               return dispatch(addPresetNewOne());
             }
 
@@ -166,7 +171,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               animating: true
             });
 
-            dispatch(setOptionPressets('HOME'));
+            // dispatch(setOptionPressets('HOME'));
 
             if (navigationTitleParentExistValidation()) {
               navigationTitleParentRef.current.classList.remove(
@@ -211,7 +216,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       },
       left() {
         if (!transitioning) {
-          if (!option.animating && option.screen === 'PRESETS') {
+          if (!option.animating && option.screen === 'PRESSETS') {
             dispatch(setNextPreset());
           } else {
             if (
@@ -223,11 +228,11 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             }
 
             setOption({
-              screen: 'PRESETS',
+              screen: 'PRESSETS',
               animating: true
             });
 
-            dispatch(setOptionPressets('PRESSETS'));
+            // dispatch(setOptionPressets('PRESSETS'));
 
             if (navigationTitleParentExistValidation()) {
               navigationTitleParentRef.current.classList.remove(
@@ -264,7 +269,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       },
       right() {
         if (!transitioning) {
-          if (!option.animating && option.screen === 'PRESETS') {
+          if (!option.animating && option.screen === 'PRESSETS') {
             dispatch(setPrevPreset());
           } else {
             if (
@@ -276,11 +281,9 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             }
 
             setOption({
-              screen: 'PRESETS',
+              screen: 'PRESSETS',
               animating: true
             });
-
-            dispatch(setOptionPressets('PRESSETS'));
 
             if (navigationTitleParentExistValidation()) {
               navigationTitleParentRef.current.classList.remove(
@@ -330,31 +333,40 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   }, [presets.activeIndexSwiper, slideTo]);
 
   useEffect(() => {
-    if (pressetTitleSwiper) {
-      handleAddOpacityTitleInactive(pressetTitleSwiper);
-      clearSlides(pressetTitleSwiper);
-      handleAddLeaveAnimation(pressetTitleSwiper);
-    }
-  }, [pressetTitleSwiper]);
-
-  useEffect(() => {
-    if (pressetSwiper) {
-      if (
-        pressetSwiper &&
-        pressetSwiper.pagination &&
-        pressetSwiper.pagination.el
-      ) {
+    if (pressetTitleSwiper && pressetSwiper) {
+      if (option.screen === 'HOME') {
         pressetSwiper.pagination.el.classList.add('bullet-hidden');
-      }
-      clearSlides(pressetSwiper);
-      handleAddIncreseAnimation(pressetSwiper);
-      handleAddLeaveAnimation(pressetSwiper);
-    }
-  }, [pressetSwiper]);
+        clearSlides(pressetSwiper);
+        handleAddIncreseAnimation(pressetSwiper);
+        handleAddLeaveAnimation(pressetSwiper);
 
-  useEffect(() => {
-    dispatch(setOptionPressets('HOME'));
-  }, []);
+        clearSlides(pressetTitleSwiper);
+        handleAddOpacityTitleInactive(pressetTitleSwiper);
+        handleAddLeaveAnimation(pressetTitleSwiper);
+
+        if (navigationTitleParentExistValidation()) {
+          navigationTitleParentRef.current.classList.remove(
+            'animation-move-title-top-two'
+          );
+          navigationTitleParentRef.current.classList.add(
+            'animation-move-title-top-two'
+          );
+        }
+
+        if (navigationTitleExistValidation()) {
+          navigationTitleRef.current.classList.remove(
+            'animation-move-title-bottom'
+          );
+
+          navigationTitleRef.current.classList.add('animation-move-title-top');
+        }
+      } else {
+        // handleAddOpacityTitleInactive(pressetTitleSwiper);
+        clearSlides(pressetTitleSwiper);
+        handleAddLeaveAnimation(pressetTitleSwiper);
+      }
+    }
+  }, [pressetTitleSwiper, pressetSwiper]);
 
   useEffect(() => {
     if (presets.value.length > 5 || presets.value.length <= 5) {
@@ -369,6 +381,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       }
     }
   }, [presets.value.length]);
+
+  useEffect(() => {
+    dispatch(setOptionPressets(option.screen));
+  }, [option.screen]);
 
   return (
     <div className="preset-wrapper">
@@ -436,7 +452,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           </Swiper>
           <Swiper
             style={{
-              display: option.screen === 'PRESETS' ? 'title-opacity-zero' : ' '
+              display: option.screen === 'PRESSETS' ? 'title-opacity-zero' : ' '
             }}
             onSwiper={setPressetTitleSwiper}
             slidesPerView={2.15}
