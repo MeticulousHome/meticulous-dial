@@ -1,33 +1,13 @@
 import './quick-settings.css';
 import { useEffect, useState } from 'react';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { useAppDispatch } from '../store/hooks';
-import { setBubbleDisplay } from '../store/features/screens/screens-slice';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import {
+  setBubbleDisplay,
+  setScreen
+} from '../store/features/screens/screens-slice';
 import { useSocket } from '../store/SocketManager';
 import { Swiper, SwiperSlide } from 'swiper/react';
-
-// const settings = [
-//   {
-//     key: 'wifi',
-//     label: 'wifi'
-//   },
-//   {
-//     key: 'power',
-//     label: 'power'
-//   },
-//   {
-//     key: 'idle',
-//     label: 'idle'
-//   },
-//   {
-//     key: 'setting',
-//     label: 'setting'
-//   },
-//   {
-//     key: 'sleep',
-//     label: 'sleep'
-//   }
-// ] as const;
 
 const settings = [
   {
@@ -51,24 +31,55 @@ const settings = [
 export function QuickSettings(): JSX.Element {
   const socket = useSocket();
   const dispatch = useAppDispatch();
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  useHandleGestures({
-    longTare() {
-      dispatch(setBubbleDisplay({ visible: false, component: QuickSettings }));
+  useHandleGestures(
+    {
+      context() {
+        dispatch(
+          setBubbleDisplay({
+            visible: !bubbleDisplay.visible,
+            component: QuickSettings
+          })
+        );
+      },
+      left() {
+        setActiveIndex((prev) => Math.max(prev - 1, 0));
+      },
+      right() {
+        setActiveIndex((prev) => Math.min(prev + 1, settings.length - 1));
+      },
+      click() {
+        switch (settings[activeIndex].key) {
+          case 'home': {
+            socket.emit('action', 'home');
+            dispatch(setScreen('pressets'));
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
+          case 'purge': {
+            socket.emit('action', 'purge');
+            dispatch(setScreen('barometer'));
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
+          case 'calibrate': {
+            socket.emit('calibrate', '');
+            dispatch(setScreen('barometer'));
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
+          case 'exit': {
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
+        }
+      }
     },
-    left() {
-      setActiveIndex((prev) => Math.max(prev - 1, 0));
-    },
-    right() {
-      setActiveIndex((prev) => Math.min(prev + 1, settings.length - 1));
-    },
-    click() {
-      socket.emit('action', settings[activeIndex].key);
-      dispatch(setBubbleDisplay({ visible: false, component: QuickSettings }));
-    }
-  });
+    !bubbleDisplay.visible
+  );
 
   useEffect(() => {
     if (swiper) {
