@@ -15,8 +15,8 @@ import {
 import { Router } from './navigation/Router';
 import { notificationSelector } from './components/store/features/notifications/notification-slice';
 import { durationAnimation } from './navigation/Transitioner';
-import { useSocketKeyboardListeners } from './components/store/SocketProviderValue';
 import { QuickSettings } from './components/QuickSettings/QuickSettings';
+import { useSocketKeyboardListeners } from './components/store/SocketProviderValue';
 
 const App = (): JSX.Element => {
   const dispatch = useAppDispatch();

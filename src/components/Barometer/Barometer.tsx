@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import './barometer.css';
 import { formatStatValue } from '../../utils';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -8,7 +10,6 @@ import { setScreen } from '../store/features/screens/screens-slice';
 import { resetActiveSetting } from '../store/features/preset/preset-slice';
 import { Meter } from './Meter';
 import { KIND_PROFILE, LCD_EVENT_EMIT } from '../../constants';
-import { useEffect } from 'react';
 
 export interface IBarometerProps {
   maxValue?: number;
@@ -80,11 +81,11 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
     stats?.name !== 'idle' || bubbleDisplay.visible
   );
 
-  // useEffect(() => {
-  //   if (stats.name === 'idle') {
-  //     dispatch(setScreen('pressets'));
-  //   }
-  // }, [stats.name]);
+  useEffect(() => {
+    if (stats.name === 'idle') {
+      dispatch(setScreen('pressets'));
+    }
+  }, [stats.name]);
 
   return (
     <div className="barometer-container">
