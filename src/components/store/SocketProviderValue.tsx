@@ -56,9 +56,9 @@ export const SocketProviderValue = () => {
         ENCODER_PUSH: 'click',
         ENCODER_DOUBLE: 'doubleClick',
         ENCODER_LONG: 'longEncoder',
-        TARE_DUBLE: 'doubleTare',
+        TARE_DOUBLE: 'doubleTare',
         TARE_LONG: 'longTare',
-        START: 'start'
+        CONTEXT: 'context'
       };
 
       const gesture = eventGestureMap[data.type];
@@ -76,7 +76,7 @@ const keyGestureMap: Record<string, GestureType> = {
   ArrowLeft: 'left',
   ArrowRight: 'right',
   Space: 'click',
-  Enter: 'start',
+  Enter: 'context',
   KeyS: 'longTare',
   KeyE: 'longEncoder',
   KeyD: 'doubleTare',
