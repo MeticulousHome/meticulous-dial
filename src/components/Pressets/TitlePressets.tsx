@@ -1,5 +1,5 @@
 import { useAppSelector } from '../store/hooks';
-import './pressets.css';
+import './pressets.less';
 
 export const getTitlePressets = () => <TitlePressets />;
 

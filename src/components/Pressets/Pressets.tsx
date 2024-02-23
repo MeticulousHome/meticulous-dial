@@ -16,7 +16,7 @@ import {
   handleRemoveOpacityTitleInactive
 } from '../../utils/preset';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import './pressets.css';
+import './pressets.less';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import {
   addPresetNewOne,
@@ -194,17 +194,8 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               );
             }
 
-            if (navigationTitleExistValidation()) {
-              navigationTitleRef.current.classList.remove(
-                'animation-move-title-bottom'
-              );
-              navigationTitleRef.current.classList.add(
-                'animation-move-title-top'
-              );
-            }
-
-            handleAddOpacityTitleInactive(pressetTitleSwiper);
             handleRemoveOpacityTitleActive(pressetTitleSwiper);
+            handleAddOpacityTitleInactive(pressetTitleSwiper);
 
             clearSlides(pressetSwiper);
             clearSlides(pressetTitleSwiper);
@@ -219,7 +210,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                 ...prev,
                 animating: false
               }));
-            }, 280);
+            }, 300);
             break;
           }
           default:
@@ -260,16 +251,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               );
             }
 
-            if (navigationTitleExistValidation()) {
-              navigationTitleRef.current.classList.remove(
-                'animation-move-title-bottom'
-              );
-
-              navigationTitleRef.current.classList.add(
-                'animation-move-title-bottom'
-              );
-            }
-
             handleRemoveOpacityTitleInactive(pressetTitleSwiper);
 
             clearSlides(pressetSwiper);
@@ -283,7 +264,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
             setTimeout(() => {
               setOption((prev) => ({ ...prev, animating: false }));
-            }, 280);
+            }, 300);
           }
         }
       },
@@ -321,16 +302,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               );
             }
 
-            if (navigationTitleExistValidation()) {
-              navigationTitleRef.current.classList.remove(
-                'animation-move-title-bottom'
-              );
-
-              navigationTitleRef.current.classList.add(
-                'animation-move-title-bottom'
-              );
-            }
-
             handleRemoveOpacityTitleInactive(pressetTitleSwiper);
 
             clearSlides(pressetSwiper);
@@ -344,7 +315,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
             setTimeout(() => {
               setOption((prev) => ({ ...prev, animating: false }));
-            }, 280);
+            }, 300);
           }
         }
       },
@@ -378,14 +349,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           pressetsTitleContentRef.current.classList.add(
             'animation-pressets-content-top'
           );
-        }
-
-        if (navigationTitleExistValidation()) {
-          navigationTitleRef.current.classList.remove(
-            'animation-move-title-bottom'
-          );
-
-          navigationTitleRef.current.classList.add('animation-move-title-top');
         }
       } else {
         clearSlides(pressetTitleSwiper);

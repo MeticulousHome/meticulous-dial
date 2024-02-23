@@ -1,3 +1,37 @@
+@import  '../../navigation/navigation.less';
+
+.spring-interpolate-keyframes(@property, @from, @to) {
+  .spring-interpolate-keyframes(@property, @from, @to, 1, 51, 10);
+}
+
+
+.spring-interpolate-keyframes(@property, @from, @to, @mass, @stiffness, @damping) {
+  each(range(0, 100), {
+    @keyf: ~"@{value}%";
+    @{keyf} {
+      @interpolated: spring(@value, @from, @to, @mass, @stiffness, @damping);
+      @finalProperty: if((@property = translate-y) or (@property = translate-x), transform, @property);
+      @{finalProperty}: if((@property = translate-y), translate(0, @interpolated), if((@property = translate-x), translate(@interpolated, 0), @interpolated) );
+    }
+  });
+}
+
+.spring-interpolate-keyframes-pressets(@xFrom, @xTo, @yFrom, @yTo) {
+  .spring-interpolate-keyframes-pressets(@xFrom, @xTo, @yFrom, @yTo, 1, 51, 10);
+}
+
+.spring-interpolate-keyframes-pressets(@xFrom, @xTo, @yFrom, @yTo, @mass, @stiffness, @damping) {
+  each(range(0, 100), {
+    @keyf: ~"@{value}%";
+    @{keyf} {
+      @interpolatedX: spring(@value, @xFrom, @xTo, @mass, @stiffness, @damping);
+      @interpolatedY: spring(@value, @yFrom, @yTo, @mass, @stiffness, @damping);
+      @finalProperty: transform;
+      @{finalProperty}: translate(@interpolatedX, @interpolatedY);
+    }
+  });
+}
+
 .pressets-conainer {
   display: flex;
 }
@@ -140,81 +174,43 @@
 }
 
 @keyframes pressets-left-leave {
-  0% {
-    transform: translateX(0%);
-  }
-  100% {
-    transform: translateX(-100%);
-  }
+  // .spring-interpolate-keyframes(translate-x, 0%, -100%);
+  // .spring-interpolate-keyframes(translate-y, 0%, -10%);
+  .spring-interpolate-keyframes-pressets(0%, -50%, 0%, -30%)
 }
 
 .animation-pressets-left-leave {
-  animation: pressets-left-leave 300ms ease-out forwards;
+  animation: pressets-left-leave 280ms ease-out forwards;
 }
 
 @keyframes pressets-left-enter {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(0%);
-  }
+  // .spring-interpolate-keyframes(translate-x, -100%, 0%);
+  // .spring-interpolate-keyframes(translate-y, -10%, 0%);
+  .spring-interpolate-keyframes-pressets(-100%, 0%, -70%, 0%)
 }
 
 .animation-pressets-left-enter {
-  animation: pressets-left-enter 300ms ease-out forwards;
+  animation: pressets-left-enter 280ms ease-out forwards;
 }
 
 @keyframes pressets-right-enter {
-  0% {
-    transform: translateX(100%);
-  }
-  100% {
-    transform: translateX(0%);
-  }
+  // .spring-interpolate-keyframes(translate-x, 100%, 0%);
+  // .spring-interpolate-keyframes(translate-y, -10%, 0%);
+  .spring-interpolate-keyframes-pressets(100%, 0%, -70%, 0%)
 }
 
 .animation-pressets-right-enter {
-  animation: pressets-right-enter 300ms ease-out forwards;
+  animation: pressets-right-enter 280ms ease-out forwards;
 }
 
 @keyframes pressets-right-leave {
-  0% {
-    transform: translateX(0%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
+  // .spring-interpolate-keyframes(translate-x, 0%, 100%);
+  // .spring-interpolate-keyframes(translate-y, 0%, -10%);
+  .spring-interpolate-keyframes-pressets(0%, 50%, 0%, -30%)
 }
 
 .animation-pressets-right-leave {
-  animation: pressets-right-leave 300ms ease-out forwards;
-}
-
-@keyframes presset-selected-increse {
-  0% {
-    transform: scale(1);
-  }
-  100% {
-    transform: scale(1.36) translateY(2px);
-  }
-}
-
-.animation-presset-selected-increse {
-  animation: presset-selected-increse 200ms ease-out forwards;
-}
-
-@keyframes presset-selected-decrese {
-  0% {
-    transform: scale(1.36);
-  }
-  100% {
-    transform: scale(1) translateY(2px);
-  }
-}
-
-.animation-presset-selected-decrese {
-  animation: presset-selected-decrese 200ms ease-out forwards;
+  animation: pressets-right-leave 280ms ease-out forwards;
 }
 
 .pagination {
@@ -290,20 +286,34 @@
 }
 
 .animation-move-title-top-two {
-  animation: moveTitleTopTwo 250ms linear forwards;
+  animation: moveTitleTopTwo 280ms forwards;
 }
 
 @keyframes moveTitleBottom {
   0% {
     top: 50px;
-    font-size: 16px;
+    font-size: 30px;
     z-index: 99;
     opacity: 0;
     border: none;
     text-transform: capitalize;
+    text-overflow: initial;
+  }
+  50% {
+    opacity: 0;
+  }
+  70% {
+    top: 109px;
+    opacity: 0;
+  }
+  80% {
+    top: 108px;
+    opacity: 0;
+
   }
   90% {
-    opacity: 1;
+    top: 107px;
+    opacity: 0;
   }
   100% {
     top: 106px;
@@ -327,43 +337,57 @@
 }
 
 .animation-move-title-bottom {
-  animation: moveTitleBottom 250ms linear forwards;
+  animation: moveTitleBottom 280 forwards;
 }
 
 .title-opacity-zero {
   opacity: 0;
 }
 
-@keyframes titleOpacityOne {
-  0% {
+
+.fade-in-title(){
+  0%{
     opacity: 0;
   }
-  99% {
-    opacity: 0;
+  70% {
+    opacity: 1;
   }
   100% {
     opacity: 1;
   }
 }
 
+@keyframes titleOpacityOne {
+  .fade-in-title();
+  .spring-interpolate-keyframes(translate-y, -52px, 0px);
+}
+
 .animation-title-opacity-one {
-  animation: titleOpacityOne 250ms linear forwards;
+  animation: titleOpacityOne 280ms forwards;
+}
+
+.fade-out-title(){
+  0%{
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.1;
+  }
+  60% {
+    opacity: 0;
+  }
+  100%{
+    opacity: 0;
+  }
 }
 
 @keyframes titleOpacityZero {
-  0% {
-    opacity: 0;
-  }
-  99% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 0;
-  }
+  .fade-out-title();
+  .spring-interpolate-keyframes(translate-y, 0px, -52px);
 }
 
 .animation-title-opacity-zero {
-  animation: titleOpacityZero 250ms linear forwards;
+  animation: titleOpacityZero 280ms forwards;
 }
 
 .presset-title-top {
@@ -413,27 +437,34 @@
   flex-direction: column;
 }
 @keyframes pressets-title-content-bottom {
-  0% {
-    transform: translateY(-21px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
+  .spring-interpolate-keyframes(translate-y, -21px, 0);
 }
 
 @keyframes pressets-title-content-top {
-  0% {
-    transform: translateY(0px);
-  }
-  100% {
-    transform: translateY(-21px);
-  }
+  .spring-interpolate-keyframes(translate-y, 0, -21px);
 }
 
 .animation-pressets-content-top {
-  animation: pressets-title-content-top 200ms ease-out forwards;
+  animation: pressets-title-content-top 280ms forwards;
 }
 
 .animation-pressets-content-bottom {
-  animation: pressets-title-content-bottom 200ms ease-in forwards;
+  animation: pressets-title-content-bottom 280ms forwards;
+}
+
+
+@keyframes presset-selected-decrese {
+  .spring-interpolate-keyframes(scale, 1.36, 1);
+}
+
+.animation-presset-selected-decrese {
+  animation: presset-selected-decrese 280ms forwards;
+}
+
+@keyframes presset-selected-increse {
+  .spring-interpolate-keyframes(scale, 1, 1.36);
+}
+
+.animation-presset-selected-increse {
+  animation: presset-selected-increse 280ms forwards;
 }
