@@ -348,7 +348,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           }
         }
       },
-      longTare() {
+      longEncoder() {
         if (option.screen === 'HOME') {
           dispatch(resetActiveSetting());
           dispatch(setScreen('pressetSettings'));
