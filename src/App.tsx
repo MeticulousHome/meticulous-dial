@@ -16,6 +16,7 @@ import { Router } from './navigation/Router';
 import { notificationSelector } from './components/store/features/notifications/notification-slice';
 import { durationAnimation } from './navigation/Transitioner';
 import { QuickSettings } from './components/QuickSettings/QuickSettings';
+import { useSocketKeyboardListeners } from './components/store/SocketProviderValue';
 
 const App = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -41,7 +42,7 @@ const App = (): JSX.Element => {
   const getureTimeAgo = useRef(new Date());
 
   // This can be used for development purpose
-  // useSocketKeyboardListeners();
+  useSocketKeyboardListeners();
   useFetchData();
   useHandleGestures(
     {
