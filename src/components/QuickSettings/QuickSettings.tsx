@@ -61,13 +61,11 @@ export function QuickSettings(): JSX.Element {
           }
           case 'purge': {
             socket.emit('action', 'purge');
-            dispatch(setScreen('barometer'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
           case 'calibrate': {
             socket.emit('calibrate', '');
-            dispatch(setScreen('barometer'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
