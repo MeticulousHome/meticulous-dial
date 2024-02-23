@@ -80,12 +80,11 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
     stats?.name !== 'idle' || bubbleDisplay.visible
   );
 
-  useEffect(() => {
-    console.log('stats.name', stats.name);
-    if (stats.name === 'idle') {
-      dispatch(setScreen('pressets'));
-    }
-  }, [stats.name]);
+  // useEffect(() => {
+  //   if (stats.name === 'idle') {
+  //     dispatch(setScreen('pressets'));
+  //   }
+  // }, [stats.name]);
 
   return (
     <div className="barometer-container">
