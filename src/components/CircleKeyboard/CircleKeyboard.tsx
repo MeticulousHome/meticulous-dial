@@ -46,7 +46,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
   const firstKey =
     keyboardType === KEYBOARD_TYPE.Default
       ? 'a'
-      : KEYBOARD_TYPE.AccentCharacters
+      : keyboardType === KEYBOARD_TYPE.AccentCharacters
       ? '&#224;'
       : '-';
 
@@ -216,7 +216,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
                 SPECIAL_CHARACTERS.length - 2
               )
             );
-            setRotate(423);
+            setRotate(466);
           } else {
             setKeyboardType(KEYBOARD_TYPE.Default);
             setAlphabet(
