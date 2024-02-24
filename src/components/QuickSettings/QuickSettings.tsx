@@ -23,6 +23,10 @@ const settings = [
     label: 'calibrate scale'
   },
   {
+    key: 'wifi',
+    label: 'wifi'
+  },
+  {
     key: 'exit',
     label: 'exit'
   }
@@ -66,6 +70,11 @@ export function QuickSettings(): JSX.Element {
           }
           case 'calibrate': {
             socket.emit('calibrate', '');
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
+          case 'wifi': {
+            dispatch(setScreen('wifiSettings'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }

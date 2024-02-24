@@ -67,9 +67,11 @@ const wifiSlice = createSlice({
       })
       .addCase(getConfig.fulfilled, (state, action) => {
         state.pending = false;
-        const { config, status } = action.payload;
-        state.networkConfig = config;
-        state.wifiStatus = status;
+        if (action.payload) {
+          const { config, status } = action.payload;
+          state.networkConfig = config;
+          state.wifiStatus = status;
+        }
       })
       .addCase(getWifis.pending, (state) => {
         state.pending = true;
