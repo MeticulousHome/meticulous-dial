@@ -4,11 +4,17 @@ import './circle-keyboard.css';
 
 import {
   DEFAULT_ALPHABET,
+  SMALL_ACCENT_CHARACTERS,
+  CAPITAL_ACCENT_CHARACTERS,
   FIRST_POSITION,
-  FIRST_KEY,
   LAST_KEY,
   ROTATE_VALUE,
-  JUMP_ROTATE
+  KEYBOARD_TYPE,
+  getJumpRotate,
+  CASE_ACCENT_TO_UPPERCASE_MAPPING,
+  CASE_ACCENT_TO_LOWERCASE_MAPPING,
+  massageAlphabetWithMainChar,
+  SPECIAL_CHARACTERS
 } from './Keys';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 
@@ -22,8 +28,13 @@ interface IKeyboardProps {
 
 export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
   const [rotate, setRotate] = useState<number>(FIRST_POSITION);
-  const [alphabet, setAlphabet] = useState<string[]>(DEFAULT_ALPHABET);
-  const [mainLetter, setMainLetter] = useState<string>(FIRST_KEY);
+  const [keyboardType, setKeyboardType] = useState<KEYBOARD_TYPE>(
+    KEYBOARD_TYPE.Default
+  );
+  const [alphabet, setAlphabet] = useState<string[]>(
+    massageAlphabetWithMainChar(DEFAULT_ALPHABET, 0)
+  );
+  const [mainLetter, setMainLetter] = useState<string>('a');
   const [capsLockActive, setCapsLockActive] = useState<{
     active: boolean;
     keep: boolean;
@@ -31,6 +42,13 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
     active: false,
     keep: false
   });
+
+  const firstKey =
+    keyboardType === KEYBOARD_TYPE.Default
+      ? 'a'
+      : KEYBOARD_TYPE.AccentCharacters
+      ? '&#224;'
+      : '-';
 
   const { name, defaultValue, type, onSubmit, onCancel } = props;
 
@@ -59,19 +77,18 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         newAlphabet.push(' ');
       } else {
         newAlphabet.unshift(' ');
-        newAlphabet.unshift(FIRST_KEY);
+        newAlphabet.unshift(firstKey);
         newAlphabet.unshift(' ');
       }
 
       setAlphabet(toUpperOrLowerCase(newAlphabet) as string[]);
-      setMainLetter(
-        toUpperOrLowerCase(!right ? LAST_KEY : FIRST_KEY) as string
-      );
+      setMainLetter(toUpperOrLowerCase(!right ? LAST_KEY : firstKey) as string);
 
+      const jumpRotate = getJumpRotate(keyboardType);
       setRotate(
         !right
-          ? rotate + ROTATE_VALUE + JUMP_ROTATE
-          : rotate - ROTATE_VALUE - JUMP_ROTATE
+          ? rotate + ROTATE_VALUE + jumpRotate
+          : rotate - ROTATE_VALUE - jumpRotate
       );
       return;
     }
@@ -172,6 +189,45 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
             keep: !capsLockActive.keep
           });
           return;
+        case 'keyboardType':
+          if (keyboardType === KEYBOARD_TYPE.Default) {
+            setKeyboardType(KEYBOARD_TYPE.AccentCharacters);
+            if (capsLockActive.active) {
+              setAlphabet(
+                massageAlphabetWithMainChar(
+                  CAPITAL_ACCENT_CHARACTERS,
+                  CAPITAL_ACCENT_CHARACTERS.length - 2
+                )
+              );
+            } else {
+              setAlphabet(
+                massageAlphabetWithMainChar(
+                  SMALL_ACCENT_CHARACTERS,
+                  SMALL_ACCENT_CHARACTERS.length - 2
+                )
+              );
+            }
+            setRotate(467);
+          } else if (keyboardType === KEYBOARD_TYPE.AccentCharacters) {
+            setKeyboardType(KEYBOARD_TYPE.SpecialCharacters);
+            setAlphabet(
+              massageAlphabetWithMainChar(
+                SPECIAL_CHARACTERS,
+                SPECIAL_CHARACTERS.length - 2
+              )
+            );
+            setRotate(423);
+          } else {
+            setKeyboardType(KEYBOARD_TYPE.Default);
+            setAlphabet(
+              massageAlphabetWithMainChar(
+                DEFAULT_ALPHABET,
+                DEFAULT_ALPHABET.length - 2
+              )
+            );
+            setRotate(423);
+          }
+          return;
         default:
           setCaption(caption.concat(mainLetter));
           if (!/^[A-Za-z]$/.test(mainLetter) && capsLockActive.active) {
@@ -192,6 +248,15 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
   ): string[] | string => {
     if (Array.isArray(cpAlphabet)) {
       cpAlphabet = cpAlphabet.map((c) => {
+        if (keyboardType === KEYBOARD_TYPE.SpecialCharacters) {
+          return c;
+        }
+        if (keyboardType === KEYBOARD_TYPE.AccentCharacters) {
+          const mappedChar = capsLockActive.active
+            ? CASE_ACCENT_TO_UPPERCASE_MAPPING[c]
+            : CASE_ACCENT_TO_LOWERCASE_MAPPING[c];
+          return mappedChar ? mappedChar : c;
+        }
         if (c.length > 1) {
           return c;
         }
@@ -247,6 +312,17 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
             &#xe803;
           </text>
         );
+      case 'keyboardType':
+        return (
+          <text
+            key={index}
+            y={-44}
+            textAnchor="-120%"
+            className="letter-space letter-keyboard-type"
+          >
+            &#127760;
+          </text>
+        );
       case 'cancel':
         return (
           <text key={index} y={-44} textAnchor="-120%" className="letter-space">
@@ -255,9 +331,13 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         );
       default:
         return (
-          <text key={index} y={-44} className="letter" textAnchor="-120%">
-            {letter}
-          </text>
+          <text
+            key={index}
+            y={-44}
+            className="letter"
+            textAnchor="-120%"
+            dangerouslySetInnerHTML={{ __html: letter }}
+          />
         );
     }
   };
@@ -315,6 +395,19 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
             </div>
           </div>
         );
+      case 'keyboardType':
+        return (
+          <>
+            <div className="main-letter-space icon-backspace-selected letter-keyboard-type">
+              <div className="relative">
+                <span className="main-letter__label main-letter__label--bottom-11 main-letter__label--rigth-46">
+                  Keyboard
+                </span>
+                <div>&#127760;</div>
+              </div>
+            </div>
+          </>
+        );
       case 'cancel':
         return (
           <div className="main-letter-space icon-cancel-selected">
@@ -327,7 +420,12 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
           </div>
         );
       default:
-        return <div className="main-letter">{mainLetter}</div>;
+        return (
+          <div
+            className="main-letter"
+            dangerouslySetInnerHTML={{ __html: mainLetter }}
+          />
+        );
     }
   };
 
@@ -348,7 +446,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
                 </div>
               );
             }
-            return <div key={index}>{el}</div>;
+            return <div key={index} dangerouslySetInnerHTML={{ __html: el }} />;
           })}
           {caption.length >= 0 && caption.length < 8 && (
             <div className="blink">_</div>
