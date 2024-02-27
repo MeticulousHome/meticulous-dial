@@ -2,7 +2,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  left: 0;
+  left: 50px;
   bottom: 0;
 }
 
@@ -12,10 +12,8 @@
 
 .wifi-option-item {
   font-size: 30px;
-  line-height: 52px;
   font-weight: 500;
   justify-content: start;
-  text-transform: lowercase;
 }
 
 .wifi-option-item > .center {
@@ -32,9 +30,15 @@
 }
 
 .qr-wrapper {
-  width: 120px;
-  height: 120px;
-  background-color: red;
+  width: 140px;
+  height: 140px;
+  margin: auto;
+  margin-top: 10px;
+}
+
+.qr-container {
+  width: 100%;
+  text-align: left;
 }
 
 .wifi-fade-top {
@@ -43,4 +47,9 @@
 
 .wifi-fade-bottom {
   height: 155px;
+}
+
+.item-qr {
+  width: 100%;
+  text-align: left;
 }

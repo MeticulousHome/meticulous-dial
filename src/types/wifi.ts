@@ -8,6 +8,7 @@ export interface NetworkConfig {
   mode: AppMode;
   apName: string;
   apPassword: string;
+  qr?: string;
 }
 
 export interface WifiStatus {

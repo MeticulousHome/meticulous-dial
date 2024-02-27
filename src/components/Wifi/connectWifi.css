@@ -2,7 +2,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  left: 0;
+  left: 50px;
   bottom: 0;
 }
 
@@ -12,9 +12,8 @@
 
 .connect-wifi-option-item {
   font-size: 30px;
-  line-height: 52px;
   font-weight: 500;
-  justify-content: center;
+  justify-content: start;
 }
 
 .connect-wifi-option-item > .center {
@@ -27,9 +26,9 @@
 }
 
 .qr-wrapper {
-  width: 80px;
-  height: 80px;
-  background-color: red;
+  width: 140px;
+  height: 140px;
+  margin: auto;
 }
 
 .connect-wifi-fade-top {
