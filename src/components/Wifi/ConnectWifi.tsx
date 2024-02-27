@@ -28,23 +28,21 @@ export const ConnectWifi = (): JSX.Element => {
             className="connect-wifi-option-item"
             style={{ height: '60px' }}
           >
-            <div className={`${animationStyle} center`}>connect via app</div>
+            <div className={`${animationStyle}`}>Connect via APP</div>
           </SwiperSlide>
           <SwiperSlide
             key="choose-wifi"
             className="connect-wifi-option-item"
             style={{ height: '60px' }}
           >
-            <div className={`${animationStyle} center`}>
-              connect to a network
-            </div>
+            <div className={`${animationStyle}`}>Connect to a network</div>
           </SwiperSlide>
           <SwiperSlide
             key="exit"
             className="connect-wifi-option-item"
             style={{ height: '60px' }}
           >
-            <div className={`${animationStyle}`}>back</div>
+            <div className={`${animationStyle}`}>Back</div>
           </SwiperSlide>
         </SwiperWrapper>
       </div>
