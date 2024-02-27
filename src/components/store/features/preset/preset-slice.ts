@@ -238,8 +238,15 @@ export const deletePreset = createAsyncThunk(
       newDefaultPreset =
         newListPresets.length > 0
           ? newListPresets[0]
-          : { id: -1, name: 'Default', isDefault: false };
+          : {
+              id: -1,
+              name: 'Default',
+              isDefault: false,
+              settings: []
+            };
       newSwiperIndex = 0;
+      newListPresets =
+        newListPresets.length > 0 ? newListPresets : [newDefaultPreset];
       newListPresets = newListPresets.map((preset) => ({
         ...preset,
         isDefault: preset.id === newDefaultPreset.id
@@ -248,13 +255,14 @@ export const deletePreset = createAsyncThunk(
 
     await setPresetsData(newListPresets);
 
-    presetState.value = newListPresets;
     presetState.activeIndexSwiper = newSwiperIndex;
     presetState.activePreset = newDefaultPreset;
+    presetState.activeSetting = 0;
+    presetState.value = newListPresets.filter((item) => item.id !== -1);
 
     presetState.updatingSettings = {
       presetId: presetState.activePreset.id.toString(),
-      settings: presetState.activePreset.settings
+      settings: presetState.activePreset.settings ?? []
     };
 
     dispatch(
