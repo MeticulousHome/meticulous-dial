@@ -51,6 +51,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       : '-';
 
   const { name, defaultValue, type, onSubmit, onCancel } = props;
+  const inputLimit = type === 'password' ? 63 : 8;
 
   const captionRef = useRef<HTMLDivElement>(null);
   const [caption, setCaption] = useState([]);
@@ -137,11 +138,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       }
     },
     click() {
-      if (
-        caption.length > 7 &&
-        mainLetter !== 'backspace' &&
-        type !== 'password'
-      ) {
+      if (caption.length >= inputLimit && mainLetter !== 'backspace') {
         if (mainLetter === 'ok') {
           onSubmit(caption.join('').trim());
         }
@@ -157,12 +154,15 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       }
       switch (mainLetter) {
         case 'space':
-          if (caption.length >= 7) {
+          if (caption.length >= inputLimit - 1) {
             addAnimation();
             return;
           }
 
-          if (caption.length < 8 && caption.join('').trim().length === 0) {
+          if (
+            caption.length < inputLimit &&
+            caption.join('').trim().length === 0
+          ) {
             addAnimation();
             return;
           }
@@ -435,10 +435,8 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       <div className="caption-content">
         <div className="circle-title">{name}</div>
         <div ref={captionRef} className="circle-caption">
-          {caption.map((el, index) => {
-            if (type === 'password') {
-              return '*';
-            }
+          {caption.length > 10 && '...'}
+          {caption.slice(Math.max(caption.length - 10, 0)).map((el, index) => {
             if (el === ' ') {
               return (
                 <div key={index} className="transparent">
@@ -448,7 +446,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
             }
             return <div key={index} dangerouslySetInnerHTML={{ __html: el }} />;
           })}
-          {caption.length >= 0 && caption.length < 8 && (
+          {caption.length >= 0 && caption.length < inputLimit && (
             <div className="blink">_</div>
           )}
         </div>
