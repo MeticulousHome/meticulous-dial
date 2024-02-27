@@ -1,5 +1,5 @@
 import { useAppSelector } from '../store/hooks';
-import './bubble.css';
+import './bubble.less';
 
 export const durationAnimation = 450;
 const animationStyle = { animationDuration: `${durationAnimation / 1000}s` };
