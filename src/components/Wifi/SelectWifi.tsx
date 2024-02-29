@@ -1,67 +1,94 @@
 import React, { useEffect, useState } from 'react';
-import { SwiperSlide } from 'swiper/react';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { setScreen } from '../store/features/screens/screens-slice';
-import { getWifis, selectWifi } from '../store/features/wifi/wifi-slice';
-import { WifiIcon } from './WifiIcon';
-import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
-import { SwiperWrapper } from '../Swiper/SwiperWrapper';
+import { Swiper, SwiperSlide } from 'swiper/react';
 
 import './selectWifi.css';
+import { WifiIcon } from './WifiIcon';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { getWifis, selectWifi } from '../store/features/wifi/wifi-slice';
+import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import {
+  setBubbleDisplay,
+  setScreen
+} from '../store/features/screens/screens-slice';
+import { ConnectWifi } from './ConnectWifi';
 
 export const SelectWifi = (): JSX.Element => {
-  const [animationStyle, setAnimationStyle] = useState('');
-
   const dispatch = useAppDispatch();
+  const [swiper, setSwiper] = useState(null);
+  const [activeIndex, setActiveIndex] = useState(0);
   const { pending, wifiList = [] } = useAppSelector((state) => state.wifi);
 
-  const onClick = (_activeId: string, activeIndex: number) => {
-    if (activeIndex === wifiList.length) {
-      dispatch(setScreen('connectWifi'));
-    } else {
-      dispatch(selectWifi(wifiList[activeIndex].ssid));
-      dispatch(setScreen('enterWifiPassword'));
+  useHandleGestures({
+    left() {
+      setActiveIndex((prev) => Math.max(prev - 1, 0));
+    },
+    right() {
+      setActiveIndex((prev) => Math.min(prev + 1, wifiList.length));
+    },
+    click() {
+      if (activeIndex >= wifiList.length) {
+        dispatch(setBubbleDisplay({ visible: true, component: ConnectWifi }));
+      } else {
+        dispatch(setBubbleDisplay({ visible: false, component: null }));
+        dispatch(selectWifi(wifiList[activeIndex].ssid));
+        dispatch(setScreen('enterWifiPassword'));
+      }
     }
-  };
+  });
 
   useEffect(() => {
     dispatch(getWifis());
   }, []);
+
+  useEffect(() => {
+    if (swiper) {
+      swiper.slideTo(activeIndex, 0, false);
+    }
+  }, [activeIndex, swiper]);
 
   if (pending) {
     return <LoadingScreen />;
   }
 
   return (
-    <div className="main-layout">
-      <div className="settings-options">
-        <SwiperWrapper onClick={onClick} setAnimationStyle={setAnimationStyle}>
-          {wifiList.length &&
-            wifiList.map((network, index) => {
-              return (
-                <SwiperSlide
-                  className="setting-option-item"
-                  key={`option-${index}`}
-                  style={{ height: '60px' }}
-                >
-                  <div className={`${animationStyle} network-option`}>
-                    <span>{network.ssid}</span>
-                    <WifiIcon level={Math.min(wifiList.length - index, 4)} />
-                  </div>
-                </SwiperSlide>
-              );
-            })}
-          <SwiperSlide
-            className="setting-option-item"
-            key="cancel"
-            style={{ height: '60px' }}
-          >
-            <div className={`${animationStyle} network-option`}>cancel</div>
-          </SwiperSlide>
-        </SwiperWrapper>
-      </div>
-      <div className="fade fade-top"></div>
-      <div className="fade fade-bottom"></div>
+    <div className="main-quick-settings">
+      <Swiper
+        onSwiper={setSwiper}
+        slidesPerView={8}
+        allowTouchMove={false}
+        direction="vertical"
+        spaceBetween={25}
+        autoHeight={false}
+        centeredSlides={true}
+        initialSlide={activeIndex}
+        style={{ paddingLeft: '29px', top: '-4px' }}
+      >
+        {wifiList.length &&
+          wifiList.map((network, index) => {
+            const isActive = index === activeIndex;
+            return (
+              <SwiperSlide
+                key={network.ssid}
+                className={`settings-item ${isActive ? 'active-setting' : ''}`}
+              >
+                <div className="network-option">
+                  <span>{network.ssid}</span>
+                  <WifiIcon level={Math.min(wifiList.length - index, 4)} />
+                </div>
+              </SwiperSlide>
+            );
+          })}
+        <SwiperSlide
+          key="back"
+          className={`settings-item ${
+            activeIndex >= wifiList.length ? 'active-setting' : ''
+          }`}
+          style={{ height: '30px' }}
+        >
+          <div>Back</div>
+        </SwiperSlide>
+      </Swiper>
     </div>
   );
 };

@@ -1,53 +1,96 @@
-import React, { useState } from 'react';
-import { SwiperSlide } from 'swiper/react';
-import { useAppDispatch } from '../store/hooks';
-import { setScreen } from '../store/features/screens/screens-slice';
-import { SwiperWrapper } from '../Swiper/SwiperWrapper';
+import React, { useEffect, useState } from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
 
 import './connectWifi.css';
+import { setBubbleDisplay } from '../store/features/screens/screens-slice';
+import { useAppDispatch } from '../store/hooks';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { WifiSettings } from './WifiSettings';
+import { SelectWifi } from './SelectWifi';
+
+const items = [
+  { key: 'connect-via-app' },
+  { key: 'choose-wifi' },
+  { key: 'back' }
+];
 
 export const ConnectWifi = (): JSX.Element => {
-  const [animationStyle, setAnimationStyle] = useState('');
   const dispatch = useAppDispatch();
+  const [swiper, setSwiper] = useState(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  const onClick = (_activeId: string, activeIndex: number) => {
-    if (activeIndex === 1) {
-      dispatch(setScreen('selectWifi'));
+  useHandleGestures({
+    left() {
+      setActiveIndex((prev) => Math.max(prev - 1, 0));
+    },
+    right() {
+      setActiveIndex((prev) => Math.min(prev + 1, items.length - 1));
+    },
+    click() {
+      switch (items[activeIndex].key) {
+        case 'connect-via-app': {
+          break;
+        }
+        case 'choose-wifi': {
+          dispatch(setBubbleDisplay({ visible: true, component: SelectWifi }));
+          break;
+        }
+        case 'back':
+          dispatch(
+            setBubbleDisplay({ visible: true, component: WifiSettings })
+          );
+          break;
+
+        default:
+          break;
+      }
     }
-    if (activeIndex === 2) {
-      dispatch(setScreen('wifiSettings'));
+  });
+
+  useEffect(() => {
+    if (swiper) {
+      swiper.slideTo(activeIndex, 0, false);
     }
-  };
+  }, [activeIndex, swiper]);
 
   return (
-    <div className="main-layout">
-      <div className="connect-wifi-options">
-        <SwiperWrapper onClick={onClick} setAnimationStyle={setAnimationStyle}>
-          <SwiperSlide
-            key="connect-via-app"
-            className="connect-wifi-option-item"
-            style={{ height: '60px' }}
-          >
-            <div className={`${animationStyle}`}>Connect via APP</div>
-          </SwiperSlide>
-          <SwiperSlide
-            key="choose-wifi"
-            className="connect-wifi-option-item"
-            style={{ height: '60px' }}
-          >
-            <div className={`${animationStyle}`}>Connect to a network</div>
-          </SwiperSlide>
-          <SwiperSlide
-            key="exit"
-            className="connect-wifi-option-item"
-            style={{ height: '60px' }}
-          >
-            <div className={`${animationStyle}`}>Back</div>
-          </SwiperSlide>
-        </SwiperWrapper>
-      </div>
-      <div className="fade fade-top connect-wifi-fade-top"></div>
-      <div className="fade fade-bottom connect-wifi-fade-bottom"></div>
+    <div className="main-quick-settings">
+      <Swiper
+        onSwiper={setSwiper}
+        slidesPerView={8}
+        allowTouchMove={false}
+        direction="vertical"
+        spaceBetween={25}
+        autoHeight={false}
+        centeredSlides={true}
+        initialSlide={activeIndex}
+        style={{ paddingLeft: '29px', top: '-4px' }}
+      >
+        <SwiperSlide
+          key="connect-via-app"
+          className={`settings-item ${
+            items[activeIndex].key === 'connect-via-app' ? 'active-setting' : ''
+          }`}
+        >
+          <div>Connect via APP</div>
+        </SwiperSlide>
+        <SwiperSlide
+          key="choose-wifi"
+          className={`settings-item ${
+            items[activeIndex].key === 'choose-wifi' ? 'active-setting' : ''
+          }`}
+        >
+          <div>Connect to a network</div>
+        </SwiperSlide>
+        <SwiperSlide
+          key="back"
+          className={`settings-item ${
+            items[activeIndex].key === 'back' ? 'active-setting' : ''
+          }`}
+        >
+          <div style={{ height: '30px' }}>Back</div>
+        </SwiperSlide>
+      </Swiper>
     </div>
   );
 };
