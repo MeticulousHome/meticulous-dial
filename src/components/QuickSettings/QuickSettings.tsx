@@ -8,6 +8,7 @@ import {
 } from '../store/features/screens/screens-slice';
 import { useSocket } from '../store/SocketManager';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { WifiSettings } from '../Wifi/WifiSettings';
 
 const settings = [
   {
@@ -74,8 +75,10 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'wifi': {
-            dispatch(setScreen('wifiSettings'));
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            // dispatch(setScreen('wifiSettings'));
+            dispatch(
+              setBubbleDisplay({ visible: true, component: WifiSettings })
+            );
             break;
           }
           case 'exit': {
