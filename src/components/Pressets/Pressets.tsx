@@ -1,5 +1,11 @@
 // Core modules imports are same as usual
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
 import SwiperS, { Pagination as PaginationSwiper } from 'swiper';
 
@@ -33,6 +39,72 @@ import { setScreen } from '../store/features/screens/screens-slice';
 import { generateSimplePayload } from '../../utils/preheat';
 import { useSocket } from '../store/SocketManager';
 import { KIND_PROFILE, LCD_EVENT_EMIT } from '../../constants';
+import {
+  circumference,
+  getDashArray,
+  getValue
+} from '../SettingNumerical/Gauge';
+import styled, { RuleSet, css, keyframes } from 'styled-components';
+
+const radius = 237;
+const transform = `rotate(90, ${radius}, ${radius})`;
+
+const dashValue = getDashArray(0, 100);
+const dashFinalValues = getDashArray(0, 100);
+
+// let scroll = keyframes`
+//       0% {
+//         troke-dashoffset: ${dashValue}
+//       }
+//       100% {
+//         troke-dashoffset: ${dashFinalValues}
+//       }`;
+
+// const scrollAnimation = () => css`
+//   ${scroll} 2s ease-out forwards
+// `;
+
+// const SlideTrackContainer = styled.circle``;
+
+const Circle = React.memo(
+  ({ value1, value2 }: { value1: number; value2: number }) => {
+    const value1Ref = useRef(getDashArray(value1, 100));
+    const value2Ref = useRef(getDashArray(value2, 100));
+
+    const scroll = keyframes`
+    0% {
+      stroke-dasharray: ${value1Ref.current}
+    }
+    100% {
+      stroke-dasharray: ${value2Ref.current}
+    }`;
+
+    const scrollAnimation = () => css`
+      ${scroll} ${value1 * 30}ms linear forwards
+    `;
+
+    const SlideTrackContainer = styled.circle`
+      animation: ${scrollAnimation};
+    `;
+
+    return (
+      <SlideTrackContainer
+        data-counter={value1}
+        id="bar"
+        cx={radius}
+        cy={radius - 3}
+        r={radius}
+        fill="transparent"
+        // strokeDasharray={getDashArray(100, 100)}
+        strokeDashoffset="0"
+        strokeLinecap="butt"
+        transform={transform}
+      />
+    );
+  }
+);
+
+export default Circle;
 
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const socket = useSocket();
@@ -42,6 +114,21 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const [pressetSwiper, setPressetsSwiper] = useState<SwiperS | null>(null);
   const [pressetTitleSwiper, setPressetTitleSwiper] = useState(null);
   const titleSwiperRef = useRef<SwiperRef | null>(null);
+  const circleOne = useRef<SVGCircleElement>(null);
+  const intervalReturn = useRef(null);
+
+  const [animation, setAnimation] = useState<{
+    key: number;
+    value1: number;
+    value2: number;
+  }>({
+    key: 1,
+    value1: 0,
+    value2: 0
+  });
+
+  const getureTimeAgo = useRef(new Date());
+
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [option, setOption] = useState<{
     screen: 'HOME' | 'PRESSETS';
@@ -54,6 +141,8 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const navigationTitleParentRef = useRef<HTMLDivElement | null>(null);
   const navigationTitleRef = useRef<HTMLDivElement | null>(null);
   const pressetsTitleContentRef = useRef<HTMLDivElement | null>(null);
+  const [percentaje, setPercentaje] = useState(0);
+  const percentajeRef = useRef(0);
 
   const pressetTitleContenExistValidation = useCallback(() => {
     if (!pressetsTitleContentRef.current) {
@@ -110,6 +199,59 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       click() {
         switch (option.screen) {
           case 'HOME': {
+            const gestureTime = new Date();
+
+            const timeDiff = +gestureTime - +getureTimeAgo.current;
+
+            console.log('percentajeRef.current', percentajeRef.current);
+
+            const dashValue = getDashArray(percentajeRef.current, 100);
+
+            console.log('dashValue', dashValue);
+
+            console.log('dashValue.split', dashValue.split(' ')[0]);
+
+            // console.log('value<<<', percentajeRef.current * 30)
+
+            const dashValueUnit =
+              (parseFloat(dashValue.split(' ')[0]) / percentajeRef.current) *
+              30;
+
+            console.log('dashValueUnit>>>', dashValueUnit);
+
+            // console.log('timeDiff', timeDiff);
+
+            const final = parseFloat(dashValue.split(' ')[0]) - dashValueUnit;
+
+            console.log('final', final);
+
+            const valueFinal = Math.round((final / circumference) * 100);
+
+            console.log('valueFinal', valueFinal);
+
+            getureTimeAgo.current = gestureTime;
+
+            circleOne.current = document.getElementById(
+              'bar'
+            ) as unknown as SVGCircleElement;
+
+            return setPercentaje((prev) => {
+              const value = circleOne.current.style.strokeDasharray;
+
+              // console.log('circleOne.current.style.strokeDasharray;');
+
+              const resul = getValue(+value.split(',')[0]);
+
+              // console.log(
+              //   'resul',
+              //   Math.round(+value.split(',')[0] / 14.891184)
+              // );
+
+              // console.log('prev', prev);
+
+              return prev === 0 && valueFinal > 0 ? valueFinal : prev + 1;
+            });
+
             switch (presets.activePreset.kind) {
               case 'italian_1_0': {
                 const preset = {
@@ -375,8 +517,68 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     dispatch(setOptionPressets(option.screen));
   }, [option.screen]);
 
+  useEffect(() => {
+    // if (!circleOne.current) {
+    circleOne.current = document.getElementById(
+      'bar'
+    ) as unknown as SVGCircleElement;
+    // }
+
+    if (circleOne.current) {
+      if (percentaje > 0) {
+        intervalReturn.current = setInterval(() => {
+          // console.log('CLEAR');
+          setPercentaje(() => {
+            setAnimation((prev) => ({
+              key: prev.key + 1,
+              value1: percentajeRef.current,
+              value2: 0
+            }));
+
+            return 0;
+          });
+        }, 350);
+      }
+
+      const dashValue = getDashArray(percentaje, 100);
+
+      if (percentaje > 0) {
+        percentajeRef.current = percentaje;
+      }
+
+      for (const [, dato] of circleOne.current.classList.entries()) {
+        circleOne.current.classList.remove(dato);
+      }
+      circleOne.current.style.strokeDasharray = `${dashValue.toString()}`;
+    }
+
+    return () => {
+      clearInterval(intervalReturn.current);
+      intervalReturn.current = null;
+    };
+  }, [percentaje]);
+
   return (
     <div className="preset-wrapper">
+      <div className="cicle-container">
+        <svg id="svg" width="460" height="460" viewBox="-1 -2 480 480">
+          <circle
+            cx={radius}
+            cy={radius - 3}
+            r={radius}
+            fill="transparent"
+            strokeDasharray={getDashArray(0, 100)}
+            strokeDashoffset="0"
+            transform={transform}
+          ></circle>
+
+          <Circle
+            key={animation.key}
+            value1={animation.value1}
+            value2={animation.value2}
+          />
+        </svg>
+      </div>
       {presets.defaultPresetIndex > -1 && (
         <>
           <Swiper
@@ -440,9 +642,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             </SwiperSlide>
           </Swiper>
           <Swiper
-            style={{
-              display: option.screen === 'PRESSETS' ? 'title-opacity-zero' : ' '
-            }}
             onSwiper={setPressetTitleSwiper}
             slidesPerView={2.15}
             spaceBetween={79}
