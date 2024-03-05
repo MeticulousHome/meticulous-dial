@@ -7,23 +7,51 @@ import { IPreset } from '../types';
 const PROFILE_BASE_URL = '/profile';
 class Profile extends Api implements ProfileImplementation {
   async save(body: IPreset): Promise<AxiosResponse> {
-    return this._axios.post(PROFILE_BASE_URL + '/save', body);
+    try {
+      return await this._axios.post(PROFILE_BASE_URL + '/save', body);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async getAll(): Promise<AxiosResponse> {
-    return this._axios.get(PROFILE_BASE_URL + '/list');
+    try {
+      return await this._axios.get(PROFILE_BASE_URL + '/list');
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async loadDataProfile(body: any): Promise<AxiosResponse> {
-    return this._axios.post(PROFILE_BASE_URL + '/load', body);
+    try {
+      return await this._axios.post(PROFILE_BASE_URL + '/load', body);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async loadProfile(profile_id: string | number): Promise<AxiosResponse> {
-    return this._axios.get(PROFILE_BASE_URL + `/load/${profile_id}`);
+    try {
+      return await this._axios.get(PROFILE_BASE_URL + `/load/${profile_id}`);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
-  async get(id: number): Promise<AxiosResponse> {
-    return this._axios.get(PROFILE_BASE_URL + `/get/${id}`);
+  async get(profile_id: number | string): Promise<AxiosResponse> {
+    try {
+      return await this._axios.get(PROFILE_BASE_URL + `/get/${profile_id}`);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async delete(profile_id: number | string): Promise<AxiosResponse> {
+    try {
+      return await this._axios.get(PROFILE_BASE_URL + `/delete/${profile_id}`);
+    } catch (error) {
+      console.log(error);
+    }
   }
 }
 

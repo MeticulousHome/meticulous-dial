@@ -256,7 +256,7 @@ export const deletePreset = createAsyncThunk(
       }));
     }
 
-    await setPresetsData(newListPresets);
+    await Profile.delete(presetState.activePreset.id);
 
     presetState.activeIndexSwiper = newSwiperIndex;
     presetState.activePreset = newDefaultPreset;

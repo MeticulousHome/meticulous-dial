@@ -8,8 +8,9 @@ export interface SettingsImplementation {
 }
 
 export interface ProfileImplementation {
-  get: (id: number) => Promise<AxiosResponse>;
+  get: (id: number | string) => Promise<AxiosResponse>;
   save: (body: IPreset) => Promise<AxiosResponse>;
+  delete(id: number | string): Promise<AxiosResponse>;
   loadDataProfile: (data: any) => Promise<AxiosResponse>;
   loadProfile: (profile_id: number) => Promise<AxiosResponse>;
   getAll: () => Promise<AxiosResponse>;
