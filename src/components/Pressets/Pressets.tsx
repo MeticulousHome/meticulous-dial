@@ -127,8 +127,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     value2: 0
   });
 
-  const getureTimeAgo = useRef(new Date());
-
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [option, setOption] = useState<{
     screen: 'HOME' | 'PRESSETS';
@@ -199,57 +197,26 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       click() {
         switch (option.screen) {
           case 'HOME': {
-            const gestureTime = new Date();
-
-            const timeDiff = +gestureTime - +getureTimeAgo.current;
-
-            console.log('percentajeRef.current', percentajeRef.current);
-
-            const dashValue = getDashArray(percentajeRef.current, 100);
-
-            console.log('dashValue', dashValue);
-
-            console.log('dashValue.split', dashValue.split(' ')[0]);
-
-            // console.log('value<<<', percentajeRef.current * 30)
-
-            const dashValueUnit =
-              (parseFloat(dashValue.split(' ')[0]) / percentajeRef.current) *
-              30;
-
-            console.log('dashValueUnit>>>', dashValueUnit);
-
-            // console.log('timeDiff', timeDiff);
-
-            const final = parseFloat(dashValue.split(' ')[0]) - dashValueUnit;
-
-            console.log('final', final);
-
-            const valueFinal = Math.round((final / circumference) * 100);
-
-            console.log('valueFinal', valueFinal);
-
-            getureTimeAgo.current = gestureTime;
-
             circleOne.current = document.getElementById(
               'bar'
             ) as unknown as SVGCircleElement;
 
+            console.log('Current VALUES');
+
+            const valueACTUAL = Math.round(
+              (+getComputedStyle(circleOne.current)
+                .strokeDasharray.split(',')[0]
+                .replace('px', '') /
+                circumference) *
+                100
+            );
+
+            // console.log('valueACTUAL', valueACTUAL);
+
             return setPercentaje((prev) => {
-              const value = circleOne.current.style.strokeDasharray;
-
-              // console.log('circleOne.current.style.strokeDasharray;');
-
-              const resul = getValue(+value.split(',')[0]);
-
-              // console.log(
-              //   'resul',
-              //   Math.round(+value.split(',')[0] / 14.891184)
-              // );
-
-              // console.log('prev', prev);
-
-              return prev === 0 && valueFinal > 0 ? valueFinal : prev + 1;
+              percentajeRef.current =
+                prev === 0 && valueACTUAL > 0 ? valueACTUAL : prev + 1;
+              return prev === 0 && valueACTUAL > 0 ? valueACTUAL : prev + 1;
             });
 
             switch (presets.activePreset.kind) {
@@ -518,11 +485,9 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   }, [option.screen]);
 
   useEffect(() => {
-    // if (!circleOne.current) {
     circleOne.current = document.getElementById(
       'bar'
     ) as unknown as SVGCircleElement;
-    // }
 
     if (circleOne.current) {
       if (percentaje > 0) {
