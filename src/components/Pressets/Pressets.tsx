@@ -67,16 +67,29 @@ const dashFinalValues = getDashArray(0, 100);
 // const SlideTrackContainer = styled.circle``;
 
 const Circle = React.memo(
-  ({ value1, value2 }: { value1: number; value2: number; timing: number }) => {
+  ({
+    value1,
+    value2,
+    fillEnd,
+    fillInitial
+  }: {
+    value1: number;
+    value2: number;
+    timing: number;
+    fillInitial: number;
+    fillEnd: number;
+  }) => {
     const value1Ref = useRef(getDashArray(value1, 100));
     const value2Ref = useRef(getDashArray(value2, 100));
 
     const scroll = keyframes`
     0% {
-      stroke-dasharray: ${value1Ref.current}
+      stroke-dasharray: ${value1Ref.current};
+      fill: rgba(0,0,0, ${fillInitial > 0.7 ? 0.7 : fillInitial});
     }
     100% {
-      stroke-dasharray: ${value2Ref.current}
+      stroke-dasharray: ${value2Ref.current};
+      fill: rgba(0,0,0, ${fillEnd > 0.7 ? 0.7 : fillEnd});
     }`;
 
     const scrollAnimation = () => css`
@@ -108,6 +121,15 @@ const Circle = React.memo(
 
 export default Circle;
 
+const initialValue = {
+  key: 1,
+  value1: 0,
+  value2: 0,
+  timming: 0,
+  fillInitial: 0.0,
+  fillEnd: 0.0
+};
+
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const socket = useSocket();
   const dispatch = useAppDispatch();
@@ -125,12 +147,9 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     value1: number;
     value2: number;
     timming: number;
-  }>({
-    key: 1,
-    value1: 0,
-    value2: 0,
-    timming: 0
-  });
+    fillInitial: number;
+    fillEnd: number;
+  }>(initialValue);
 
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [option, setOption] = useState<{
@@ -242,11 +261,16 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                   circleOne.current.classList.remove(dato);
                 }
                 setAnimation((prev2) => ({
-                  key: prev2.key + 1,
+                  key: prev2.key + 1 > 10 ? 0 : prev2.key + 1,
                   value1:
                     prev === 0 && valueACTUAL > 0 ? valueACTUAL : prev + 1,
                   value2: 100,
-                  timming: 1000
+                  timming: 1000,
+                  fillInitial:
+                    valueACTUAL / 100 > 0
+                      ? valueACTUAL / 100 + 0.2
+                      : valueACTUAL,
+                  fillEnd: 0.7
                 }));
               }
 
@@ -316,6 +340,8 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           if (!option.animating && option.screen === 'PRESSETS') {
             dispatch(setNextPreset());
           } else {
+            setAnimation(initialValue);
+
             if (
               pressetSwiper &&
               pressetSwiper.pagination &&
@@ -367,6 +393,8 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           if (!option.animating && option.screen === 'PRESSETS') {
             dispatch(setPrevPreset());
           } else {
+            setAnimation(initialValue);
+
             if (
               pressetSwiper &&
               pressetSwiper.pagination &&
@@ -497,15 +525,18 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
           setPercentaje(() => {
             setAnimation((prev) => ({
-              key: prev.key + 1,
+              key: prev.key + 1 > 10 ? 0 : prev.key + 1,
               value1: valueACTUAL,
               value2: 0,
-              timming: 0
+              timming: 0,
+              fillInitial:
+                valueACTUAL / 100 > 0 ? valueACTUAL / 100 + 0.2 : valueACTUAL,
+              fillEnd: 0.0
             }));
 
             return 0;
           });
-        }, 300);
+        }, 200);
       }
 
       // const dashValue = getDashArray(percentaje, 100);
@@ -548,12 +579,16 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             transform={transform}
           ></circle>
 
-          <Circle
-            timing={animation.timming}
-            key={animation.key}
-            value1={animation.value1}
-            value2={animation.value2}
-          />
+          {option.screen === 'HOME' && (
+            <Circle
+              fillEnd={animation.fillEnd}
+              fillInitial={animation.fillInitial}
+              timing={animation.timming}
+              key={animation.key}
+              value1={animation.value1}
+              value2={animation.value2}
+            />
+          )}
         </svg>
       </div>
       {presets.defaultPresetIndex > -1 && (
