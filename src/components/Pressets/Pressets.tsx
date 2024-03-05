@@ -67,7 +67,7 @@ const dashFinalValues = getDashArray(0, 100);
 // const SlideTrackContainer = styled.circle``;
 
 const Circle = React.memo(
-  ({ value1, value2 }: { value1: number; value2: number }) => {
+  ({ value1, value2 }: { value1: number; value2: number; timing: number }) => {
     const value1Ref = useRef(getDashArray(value1, 100));
     const value2Ref = useRef(getDashArray(value2, 100));
 
@@ -80,7 +80,9 @@ const Circle = React.memo(
     }`;
 
     const scrollAnimation = () => css`
-      ${scroll} ${value1 * 30}ms linear forwards
+      ${scroll} ${value2 > 0
+        ? (value2 - value1) * 20
+        : value1 * 30}ms linear forwards
     `;
 
     const SlideTrackContainer = styled.circle`
@@ -116,15 +118,18 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const titleSwiperRef = useRef<SwiperRef | null>(null);
   const circleOne = useRef<SVGCircleElement>(null);
   const intervalReturn = useRef(null);
+  const animationInProgress = useRef(false);
 
   const [animation, setAnimation] = useState<{
     key: number;
     value1: number;
     value2: number;
+    timming: number;
   }>({
     key: 1,
     value1: 0,
-    value2: 0
+    value2: 0,
+    timming: 0
   });
 
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
@@ -141,6 +146,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const pressetsTitleContentRef = useRef<HTMLDivElement | null>(null);
   const [percentaje, setPercentaje] = useState(0);
   const percentajeRef = useRef(0);
+  const [startCoffe, setStartCoffe] = useState(false);
+  const ready = useRef(false);
+
+  // console.log('percentaje', percentaje);
 
   const pressetTitleContenExistValidation = useCallback(() => {
     if (!pressetsTitleContentRef.current) {
@@ -197,11 +206,20 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       click() {
         switch (option.screen) {
           case 'HOME': {
+            if (ready.current) return;
+
             circleOne.current = document.getElementById(
               'bar'
             ) as unknown as SVGCircleElement;
 
-            console.log('Current VALUES');
+            // console.log('Current VALUES');
+
+            clearInterval(intervalReturn.current);
+            intervalReturn.current = null;
+
+            circleOne.current.onanimationend = (e) => {
+              setStartCoffe(true);
+            };
 
             const valueACTUAL = Math.round(
               (+getComputedStyle(circleOne.current)
@@ -216,59 +234,26 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             return setPercentaje((prev) => {
               percentajeRef.current =
                 prev === 0 && valueACTUAL > 0 ? valueACTUAL : prev + 1;
+
+              if (!animationInProgress.current) {
+                // console.log('set animation');
+
+                for (const [, dato] of circleOne.current.classList.entries()) {
+                  circleOne.current.classList.remove(dato);
+                }
+                setAnimation((prev2) => ({
+                  key: prev2.key + 1,
+                  value1:
+                    prev === 0 && valueACTUAL > 0 ? valueACTUAL : prev + 1,
+                  value2: 100,
+                  timming: 1000
+                }));
+              }
+
+              animationInProgress.current = true;
+
               return prev === 0 && valueACTUAL > 0 ? valueACTUAL : prev + 1;
             });
-
-            switch (presets.activePreset.kind) {
-              case 'italian_1_0': {
-                const preset = {
-                  name: presets.activePreset.name,
-                  settings: (presets.activePreset?.settings || []).filter(
-                    (item) => item.id !== -1 && item.id !== -2
-                  )
-                };
-
-                if (preset.settings.length === 0) return;
-
-                const payload = generateSimplePayload({
-                  presset: preset as any,
-                  action: 'to_play'
-                });
-
-                console.log(
-                  `${KIND_PROFILE.ITALIAN}:> ${JSON.stringify(payload)}`
-                );
-
-                socket.emit(
-                  LCD_EVENT_EMIT.FEED_PROFILE,
-                  JSON.stringify(payload)
-                );
-                break;
-              }
-              case 'dashboard_1_0': {
-                const preset = {
-                  ...(presets.activePreset as any).dashboard,
-                  name: presets.activePreset.name,
-                  source: 'lcd'
-                };
-
-                const payload = {
-                  ...preset,
-                  action: 'to_play'
-                };
-
-                console.log(
-                  `${KIND_PROFILE.DASHBOARD}:> ${JSON.stringify(payload)}`
-                );
-
-                socket.emit(
-                  LCD_EVENT_EMIT.FEED_PROFILE,
-                  JSON.stringify(payload)
-                );
-                break;
-              }
-            }
-            break;
           }
           case 'PRESSETS': {
             if (presets.activeIndexSwiper === presets.value.length) {
@@ -319,7 +304,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                 ...prev,
                 animating: false
               }));
-            }, 300);
+            }, 200);
             break;
           }
           default:
@@ -424,7 +409,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
             setTimeout(() => {
               setOption((prev) => ({ ...prev, animating: false }));
-            }, 300);
+            }, 0);
           }
         }
       },
@@ -493,28 +478,46 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       if (percentaje > 0) {
         intervalReturn.current = setInterval(() => {
           // console.log('CLEAR');
+
+          for (const [, dato] of circleOne.current.classList.entries()) {
+            circleOne.current.classList.remove(dato);
+          }
+
+          setStartCoffe(false);
+          const valueACTUAL = Math.round(
+            (+getComputedStyle(circleOne.current)
+              .strokeDasharray.split(',')[0]
+              .replace('px', '') /
+              circumference) *
+              100
+          );
+          animationInProgress.current = false;
+
+          if (ready.current) return;
+
           setPercentaje(() => {
             setAnimation((prev) => ({
               key: prev.key + 1,
-              value1: percentajeRef.current,
-              value2: 0
+              value1: valueACTUAL,
+              value2: 0,
+              timming: 0
             }));
 
             return 0;
           });
-        }, 350);
+        }, 300);
       }
 
-      const dashValue = getDashArray(percentaje, 100);
+      // const dashValue = getDashArray(percentaje, 100);
 
       if (percentaje > 0) {
         percentajeRef.current = percentaje;
       }
 
-      for (const [, dato] of circleOne.current.classList.entries()) {
-        circleOne.current.classList.remove(dato);
-      }
-      circleOne.current.style.strokeDasharray = `${dashValue.toString()}`;
+      // for (const [, dato] of circleOne.current.classList.entries()) {
+      //   circleOne.current.classList.remove(dato);
+      // }
+      // circleOne.current.style.strokeDasharray = `${dashValue.toString()}`;
     }
 
     return () => {
@@ -522,6 +525,14 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       intervalReturn.current = null;
     };
   }, [percentaje]);
+
+  useEffect(() => {
+    if (startCoffe) {
+      ready.current = true;
+      console.log('INICIA COFFEEE');
+      dispatch(setScreen('barometer'));
+    }
+  }, [startCoffe]);
 
   return (
     <div className="preset-wrapper">
@@ -538,6 +549,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           ></circle>
 
           <Circle
+            timing={animation.timming}
             key={animation.key}
             value1={animation.value1}
             value2={animation.value2}

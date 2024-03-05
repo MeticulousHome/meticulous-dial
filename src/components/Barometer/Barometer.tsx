@@ -82,9 +82,9 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
   );
 
   useEffect(() => {
-    if (stats.name === 'idle') {
-      dispatch(setScreen('pressets'));
-    }
+    // if (stats.name === 'idle') {
+    //   dispatch(setScreen('pressets'));
+    // }
   }, [stats.name]);
 
   return (
