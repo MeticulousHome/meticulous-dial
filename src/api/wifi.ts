@@ -36,3 +36,15 @@ export const updateNetworkConfig = async (
     console.error('getNetworkConfig error ', error);
   }
 };
+
+export const notificationFeedback = async (id: string, response: string) => {
+  try {
+    const notification = await axiosInstance.post('/notifications', {
+      id,
+      response
+    });
+    return notification;
+  } catch (error) {
+    console.log('notification feedback error', id);
+  }
+};

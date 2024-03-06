@@ -8,6 +8,7 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch } from '../store/hooks';
 import { useRef, useState } from 'react';
 import { useSocket } from '../store/SocketManager';
+import { notificationFeedback } from '../../../src/api/wifi';
 
 const SCROLL_VALUE = 50;
 
@@ -31,22 +32,20 @@ export function Notification(): JSX.Element {
         mainContainerScroll(false);
         moveBButtons(false);
       },
-      click: () => {
+      click: async () => {
         if (activeButton !== null) {
           setAllowScroll(true);
           activeButton.classList.remove('focused-button');
           setActivebutton(null);
-          socket.emit(
-            'notification',
-            JSON.stringify({
-              id,
-              response: activeButton.getAttribute('data-value')
-            })
+
+          const myNotification = await notificationFeedback(
+            id,
+            activeButton.getAttribute('data-value')
           );
-
-          mainContainerRef.current.scrollTop = 0;
-
-          dispatch(removeOneNotification(id));
+          if (myNotification.status === 200) {
+            mainContainerRef.current.scrollTop = 0;
+            dispatch(removeOneNotification(id));
+          }
         }
       }
     },
