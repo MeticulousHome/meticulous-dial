@@ -48,6 +48,7 @@ export type IPresetSettings = string[];
 
 export interface ISensorData {
   time: string;
+  waitingForActionAlreadySent: boolean;
   name: StageType;
   sensors: {
     p: string; // Pressure - Bars

@@ -37,6 +37,7 @@ export function QuickSettings(): JSX.Element {
   const socket = useSocket();
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const stats = useAppSelector((state) => state.stats);
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -88,7 +89,7 @@ export function QuickSettings(): JSX.Element {
         }
       }
     },
-    !bubbleDisplay.visible
+    !bubbleDisplay.visible || stats.waitingForActionAlreadySent
   );
 
   useEffect(() => {
