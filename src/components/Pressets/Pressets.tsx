@@ -35,6 +35,7 @@ import { useSocket } from '../store/SocketManager';
 import { KIND_PROFILE, LCD_EVENT_EMIT } from '../../constants';
 import { circumference, getDashArray } from '../SettingNumerical/Gauge';
 import styled, { css, keyframes } from 'styled-components';
+import { setWaitingForAction } from '../store/features/stats/stats-slice';
 
 const radius = 237;
 const transform = `rotate(90, ${radius}, ${radius})`;
@@ -248,8 +249,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               'bar'
             ) as unknown as SVGCircleElement;
 
-            // console.log('Current VALUES');
-
             clearInterval(intervalReturn.current);
             intervalReturn.current = null;
 
@@ -264,8 +263,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                 circumference) *
                 100
             );
-
-            // console.log('valueACTUAL', valueACTUAL);
 
             return setPercentaje((prev) => {
               if (!animationInProgress.current) {
@@ -567,10 +564,53 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   useEffect(() => {
     if (startCoffe) {
       ready.current = true;
-      console.log('INICIA COFFEEE');
+      dispatch(setWaitingForAction(true));
+      switch (presets.activePreset.kind) {
+        case 'italian_1_0': {
+          const preset = {
+            name: presets.activePreset.name,
+            settings: (presets.activePreset?.settings || []).filter(
+              (item) => item.id !== -1 && item.id !== -2
+            )
+          };
+
+          if (preset.settings.length === 0) return;
+
+          const payload = generateSimplePayload({
+            presset: preset as any,
+            action: 'to_play'
+          });
+
+          console.log(`${KIND_PROFILE.ITALIAN}:> ${JSON.stringify(payload)}`);
+
+          socket.emit(LCD_EVENT_EMIT.FEED_PROFILE, JSON.stringify(payload));
+          break;
+        }
+        case 'dashboard_1_0': {
+          const preset = {
+            ...(presets.activePreset as any).dashboard,
+            name: presets.activePreset.name,
+            source: 'lcd'
+          };
+
+          const payload = {
+            ...preset,
+            action: 'to_play'
+          };
+
+          console.log(`${KIND_PROFILE.DASHBOARD}:> ${JSON.stringify(payload)}`);
+
+          socket.emit(LCD_EVENT_EMIT.FEED_PROFILE, JSON.stringify(payload));
+          break;
+        }
+      }
       dispatch(setScreen('barometer'));
     }
   }, [startCoffe]);
+
+  useEffect(() => {
+    dispatch(setWaitingForAction(false));
+  }, []);
 
   return (
     <div className="preset-wrapper">
