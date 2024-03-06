@@ -340,7 +340,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                 ...prev,
                 animating: false
               }));
-            }, 200);
+            }, 300);
             break;
           }
           default:
@@ -449,7 +449,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
             setTimeout(() => {
               setOption((prev) => ({ ...prev, animating: false }));
-            }, 0);
+            }, 300);
           }
         }
       },
