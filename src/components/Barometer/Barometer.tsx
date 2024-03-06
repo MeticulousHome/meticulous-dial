@@ -81,6 +81,12 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
     }
   }, [stats.name, stats.waitingForActionAlreadySent]);
 
+  useEffect(() => {
+    if (stats.name !== 'idle') {
+      dispatch(setWaitingForAction(false));
+    }
+  }, [stats.name]);
+
   return (
     <div className="barometer-container">
       <Meter
