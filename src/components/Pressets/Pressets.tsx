@@ -134,12 +134,23 @@ const Circle = React.memo(
 
 export default Circle;
 
-const initialValue = {
-  key: 1,
-  key2: 20,
-  value1: 0,
-  value2: 0,
-  timming: 0,
+interface AnimationData {
+  circlekey: number;
+  titlekey: number;
+  strokeDashValueInitial: number;
+  strokeDashValueEnd: number;
+  fillInitial: number;
+  fillEnd: number;
+  titleOpacityInitial: number;
+  titleOpacityEnd: number;
+  timeFunc: 'linear' | 'ease-in';
+}
+
+const initialValue: AnimationData = {
+  circlekey: 1,
+  titlekey: 20,
+  strokeDashValueInitial: 0,
+  strokeDashValueEnd: 0,
   fillInitial: 0.0,
   fillEnd: 0.0,
   titleOpacityEnd: 0,
@@ -159,18 +170,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const intervalReturn = useRef(null);
   const animationInProgress = useRef(false);
 
-  const [animation, setAnimation] = useState<{
-    key: number;
-    key2: number;
-    value1: number;
-    value2: number;
-    timming: number;
-    fillInitial: number;
-    fillEnd: number;
-    titleOpacityInitial: number;
-    titleOpacityEnd: number;
-    timeFunc: 'linear' | 'ease-in';
-  }>(initialValue);
+  const [animation, setAnimation] = useState<AnimationData>(initialValue);
 
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [option, setOption] = useState<{
@@ -252,11 +252,11 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             clearInterval(intervalReturn.current);
             intervalReturn.current = null;
 
-            circleOne.current.onanimationend = (e) => {
+            circleOne.current.onanimationend = () => {
               setStartCoffe(true);
             };
 
-            const valueACTUAL = Math.round(
+            const currentStrokeDashValue = Math.round(
               (+getComputedStyle(circleOne.current)
                 .strokeDasharray.split(',')[0]
                 .replace('px', '') /
@@ -266,19 +266,21 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
             return setPercentaje((prev) => {
               if (!animationInProgress.current) {
-                // console.log('set animation');
-
-                for (const [, dato] of circleOne.current.classList.entries()) {
-                  circleOne.current.classList.remove(dato);
+                for (const [
+                  ,
+                  classStyle
+                ] of circleOne.current.classList.entries()) {
+                  circleOne.current.classList.remove(classStyle);
                 }
                 setAnimation((prev2) => ({
-                  key: prev2.key + 1 > 10 ? 0 : prev2.key + 1,
-                  key2: prev2.key2 + 1 > 30 ? 20 : prev2.key2 + 1,
-                  value1:
-                    prev === 0 && valueACTUAL > 0 ? valueACTUAL : prev + 1,
-                  value2: 100,
-                  timming: 1000,
-                  fillInitial: valueACTUAL / 100,
+                  circlekey: prev2.circlekey + 1 > 10 ? 0 : prev2.circlekey + 1,
+                  titlekey: prev2.titlekey + 1 > 30 ? 20 : prev2.titlekey + 1,
+                  strokeDashValueInitial:
+                    prev === 0 && currentStrokeDashValue > 0
+                      ? currentStrokeDashValue
+                      : Math.min(prev + 1, 99),
+                  strokeDashValueEnd: 100,
+                  fillInitial: currentStrokeDashValue / 100,
                   fillEnd: 0.7,
                   titleOpacityEnd: 0,
                   titleOpacityInitial: 0,
@@ -288,7 +290,9 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
               animationInProgress.current = true;
 
-              return prev === 0 && valueACTUAL > 0 ? valueACTUAL : prev + 1;
+              return prev === 0 && currentStrokeDashValue > 0
+                ? currentStrokeDashValue
+                : prev + 1;
             });
           }
           case 'PRESSETS': {
@@ -517,34 +521,33 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     if (circleOne.current) {
       if (percentaje > 0) {
         intervalReturn.current = setInterval(() => {
-          // console.log('CLEAR');
-
           for (const [, dato] of circleOne.current.classList.entries()) {
             circleOne.current.classList.remove(dato);
           }
 
           setStartCoffe(false);
-          const valueACTUAL = Math.round(
+
+          const currentStrokeDashValue = Math.round(
             (+getComputedStyle(circleOne.current)
               .strokeDasharray.split(',')[0]
               .replace('px', '') /
               circumference) *
               100
           );
+
           animationInProgress.current = false;
 
           if (ready.current) return;
 
           setPercentaje(() => {
             setAnimation((prev) => ({
-              key: prev.key + 1 > 10 ? 0 : prev.key + 1,
-              key2: prev.key2 + 1 > 30 ? 20 : prev.key2 + 1,
-              value1: valueACTUAL,
-              value2: 0,
-              timming: 0,
-              fillInitial: valueACTUAL / 100,
+              circlekey: prev.circlekey + 1 > 10 ? 0 : prev.circlekey + 1,
+              titlekey: prev.titlekey + 1 > 30 ? 20 : prev.titlekey + 1,
+              strokeDashValueInitial: currentStrokeDashValue,
+              strokeDashValueEnd: 0,
+              fillInitial: currentStrokeDashValue / 100,
               fillEnd: 0.0,
-              titleOpacityInitial: Math.min(valueACTUAL / 100, 0.9),
+              titleOpacityInitial: Math.min(currentStrokeDashValue / 100, 0.9),
               titleOpacityEnd: 0,
               timeFunc: 'ease-in'
             }));
@@ -621,9 +624,9 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           }}
         >
           <TitleCircle
-            key={animation.key2}
-            value1={animation.value1}
-            value2={animation.value2}
+            key={animation.titlekey}
+            value1={animation.strokeDashValueInitial}
+            value2={animation.strokeDashValueEnd}
             titleOpacityEnd={animation.titleOpacityEnd}
             titleOpacityInitial={animation.titleOpacityInitial}
           />
@@ -640,12 +643,12 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
             {option.screen === 'HOME' && (
               <Circle
+                key={animation.circlekey}
                 timeFunc={animation.timeFunc}
                 fillEnd={animation.fillEnd}
                 fillInitial={animation.fillInitial}
-                key={animation.key}
-                value1={animation.value1}
-                value2={animation.value2}
+                value1={animation.strokeDashValueInitial}
+                value2={animation.strokeDashValueEnd}
               />
             )}
           </svg>
