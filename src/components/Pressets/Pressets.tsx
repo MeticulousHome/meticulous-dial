@@ -1,5 +1,5 @@
 // Core modules imports are same as usual
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
 import SwiperS, { Pagination as PaginationSwiper } from 'swiper';
 
@@ -34,105 +34,9 @@ import { generateSimplePayload } from '../../utils/preheat';
 import { useSocket } from '../store/SocketManager';
 import { KIND_PROFILE, LCD_EVENT_EMIT } from '../../constants';
 import { circumference, getDashArray } from '../SettingNumerical/Gauge';
-import styled, { css, keyframes } from 'styled-components';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
-
-const radius = 237;
-const transform = `rotate(90, ${radius}, ${radius})`;
-
-const TitleCircle = React.memo(
-  ({
-    titleOpacityEnd,
-    titleOpacityInitial,
-    value1,
-    value2
-  }: {
-    value1: number;
-    value2: number;
-    titleOpacityInitial: number;
-    titleOpacityEnd: number;
-  }) => {
-    const fade = keyframes`
-  0%{
-    opacity: ${titleOpacityInitial};
-  }
-  100% {
-    opacity: ${titleOpacityEnd};
-  }
-  `;
-
-    const fadeAnimation = () => css`
-      ${fade} ${value2 > 0
-        ? (value2 - value1) * 10
-        : value1 * 30}ms linear forwards
-    `;
-
-    const Title = styled.h1`
-      animation: ${fadeAnimation};
-    `;
-
-    return (
-      <div className="cicle-container">
-        <Title>Hold to start</Title>
-      </div>
-    );
-  }
-);
-
-const Circle = React.memo(
-  ({
-    value1,
-    value2,
-    fillEnd,
-    fillInitial,
-    timeFunc
-  }: {
-    value1: number;
-    value2: number;
-    fillInitial: number;
-    fillEnd: number;
-    timeFunc?: 'ease-in' | 'linear';
-  }) => {
-    const value1Ref = useRef(getDashArray(value1, 100));
-    const value2Ref = useRef(getDashArray(value2, 100));
-
-    const scroll = keyframes`
-    0% {
-      stroke-dasharray: ${value1Ref.current};
-      fill: rgba(0,0,0, ${Math.min(fillInitial, 0.8)});
-    }
-    100% {
-      stroke-dasharray: ${value2Ref.current};
-      fill: rgba(0,0,0, ${Math.min(fillEnd, 0.8)});
-    }`;
-
-    const scrollAnimation = () => css`
-      ${scroll} ${value2 > 0
-        ? (value2 - value1) * 10
-        : value1 * 30}ms ${timeFunc} forwards
-    `;
-
-    const SlideTrackContainer = styled.circle`
-      animation: ${scrollAnimation};
-    `;
-
-    return (
-      <SlideTrackContainer
-        data-counter={value1}
-        id="bar"
-        cx={radius}
-        cy={radius - 3}
-        r={radius}
-        fill="transparent"
-        strokeDashoffset="0"
-        strokeLinecap="butt"
-        transform={transform}
-      />
-    );
-  }
-);
-
-export default Circle;
+import { Circle, radius, transform } from './Circle';
+import { TitleCircle } from './Title';
 
 interface AnimationData {
   circlekey: number;
@@ -647,8 +551,8 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                 timeFunc={animation.timeFunc}
                 fillEnd={animation.fillEnd}
                 fillInitial={animation.fillInitial}
-                value1={animation.strokeDashValueInitial}
-                value2={animation.strokeDashValueEnd}
+                strokeInitialValue={animation.strokeDashValueInitial}
+                strokeEndValue={animation.strokeDashValueEnd}
               />
             )}
           </svg>
