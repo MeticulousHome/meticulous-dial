@@ -13,9 +13,22 @@ export const TitleCircle = React.memo(
     titleOpacityInitial: number;
     titleOpacityEnd: number;
   }) => {
+    const timeTotal = (value2 > 0 ? value2 - value1 : value1 - value2) * 15;
+
+    const per = (((timeTotal / value1) * 30) / timeTotal) * 100;
+
     const fade = keyframes`
     0%{
       opacity: ${titleOpacityInitial};
+    }
+    ${
+      !isNaN(per) && per < 100
+        ? `
+      ${100 - per}% {
+        opacity: ${titleOpacityInitial};
+      }
+      `
+        : ``
     }
     100% {
       opacity: ${titleOpacityEnd};
@@ -23,9 +36,7 @@ export const TitleCircle = React.memo(
     `;
 
     const fadeAnimation = () => css`
-      ${fade} ${value2 > 0
-        ? (value2 - value1) * 10
-        : value1 * 30}ms linear forwards
+      ${fade} ${timeTotal}ms linear forwards
     `;
 
     const Title = styled.h1`

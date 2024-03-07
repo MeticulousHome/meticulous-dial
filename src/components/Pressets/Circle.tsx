@@ -7,12 +7,14 @@ export const transform = `rotate(90, ${radius}, ${radius})`;
 
 export const Circle = React.memo(
   ({
+    extraDelay,
     strokeInitialValue,
     strokeEndValue,
     fillEnd,
     fillInitial,
     timeFunc
   }: {
+    extraDelay: number;
     strokeInitialValue: number;
     strokeEndValue: number;
     fillInitial: number;
@@ -22,10 +24,28 @@ export const Circle = React.memo(
     const value1Ref = useRef(getDashArray(strokeInitialValue, 100));
     const value2Ref = useRef(getDashArray(strokeEndValue, 100));
 
+    const treinta = (strokeEndValue - strokeInitialValue) * 0.3;
+
+    const timeTotal =
+      (strokeEndValue > 0
+        ? strokeEndValue - strokeInitialValue
+        : strokeInitialValue - strokeEndValue) *
+        15 +
+      extraDelay;
+
     const stroke = keyframes`
       0% {
         stroke-dasharray: ${value1Ref.current};
         fill: rgba(0,0,0, ${Math.min(fillInitial, 0.8)});
+      }
+      ${
+        extraDelay
+          ? `
+        ${(timeTotal * extraDelay) / 100}% {
+          stroke-dasharray: ${getDashArray(treinta, 100)}
+        }
+        `
+          : ``
       }
       100% {
         stroke-dasharray: ${value2Ref.current};
@@ -33,9 +53,9 @@ export const Circle = React.memo(
       }`;
 
     const scrollAnimation = () => css`
-      ${stroke} ${strokeEndValue > 0
-        ? (strokeEndValue - strokeInitialValue) * 10
-        : strokeInitialValue * 30}ms ${timeFunc} forwards
+      ${stroke} ${strokeInitialValue === 0
+        ? 2000
+        : timeTotal}ms ${timeFunc} forwards
     `;
 
     const SlideTrackContainer = styled.circle`
