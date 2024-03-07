@@ -5,12 +5,13 @@ import { formatStatValue } from '../../utils';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 // import { useHandleGestures } from '../../hooks/useHandleGestures';
 // import { generateSimplePayload } from '../../utils/preheat';
-// import { useSocket } from '../store/SocketManager';
+import { useSocket } from '../store/SocketManager';
 import { setScreen } from '../store/features/screens/screens-slice';
 // import { resetActiveSetting } from '../store/features/preset/preset-slice';
 import { Meter } from './Meter';
 // import { KIND_PROFILE, LCD_EVENT_EMIT } from '../../constants';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
 
 export interface IBarometerProps {
   maxValue?: number;
@@ -20,9 +21,15 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
   const stats = useAppSelector((state) => state.stats);
   // const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   // const presets = useAppSelector((state) => state.presets);
-  // const socket = useSocket();
+  const socket = useSocket();
   const dispatch = useAppDispatch();
 
+  useHandleGestures({
+    cancel() {
+      socket.emit('action', 'stop');
+      dispatch(setWaitingForAction(false));
+    }
+  });
   // useHandleGestures(
   //   {
   //     start() {
