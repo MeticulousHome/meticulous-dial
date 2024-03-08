@@ -79,11 +79,19 @@
   text-align: center;
 }
 
+.circle-content-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .circle-title {
   font-weight: 300;
   font-size: 25px;
   color: #ffffff;
   opacity: 0.4;
+  width: 200px;
+  word-wrap: break-word;
 }
 
 .circle-caption {
