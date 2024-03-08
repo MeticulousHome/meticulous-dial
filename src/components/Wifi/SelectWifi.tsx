@@ -28,7 +28,9 @@ export const SelectWifi = (): JSX.Element => {
     },
     click() {
       if (activeIndex >= wifiList.length) {
-        dispatch(setBubbleDisplay({ visible: true, component: ConnectWifi }));
+        dispatch(
+          setBubbleDisplay({ visible: true, component: ConnectWifiMenu })
+        );
       } else {
         dispatch(setBubbleDisplay({ visible: false, component: null }));
         dispatch(selectWifi(wifiList[activeIndex].ssid));
