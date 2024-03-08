@@ -8,7 +8,8 @@ const CopyPlugin = require('copy-webpack-plugin');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ForkTsCheckerWebpackPlugin: typeof IForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
-const webpackPathByOs = process.platform === 'linux' ? 'main_window/' : '';
+const webpackPathByOs =
+  process.env.NODE_ENV === 'production' ? 'main_window/' : '';
 
 export const plugins = [
   new CopyPlugin({

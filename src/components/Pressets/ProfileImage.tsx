@@ -3,7 +3,7 @@ interface ProfileImageProps {
   image?: string;
 }
 
-const staticImage = 'assets/images/profile-default.svg';
+const staticImage = 'assets/images/profile-default.png';
 
 const borderExample = '#A56751';
 
