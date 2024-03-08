@@ -405,21 +405,13 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
           <div className="main-letter-space icon-capslock-selected">
             <div className="relative">
               <span
-                className={`main-letter__label main-letter__label--bottom-20 ${
-                  capsLockActive.active
-                    ? 'main-letter__label-color--white'
-                    : 'main-letter__label-color--grey'
-                }`}
+                className={
+                  'main-letter__label main-letter__label--bottom-20 $main-letter__label-color--white'
+                }
               >
-                CAPSLock
+                {capsLockActive.active ? 'capslock' : 'CAPSLOCK'}
               </span>
-              <div
-                className={`${
-                  capsLockActive.active ? 'caps-active' : 'caps-inactive'
-                }`}
-              >
-                &#xe803;
-              </div>
+              <div className={'main-letter__label-color--white'}>&#xe803;</div>
             </div>
           </div>
         );
