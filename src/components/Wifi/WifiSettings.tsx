@@ -3,7 +3,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 
 import './wifiSettings.css';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { updateConfig } from '../store/features/wifi/wifi-slice';
+import { saveConfig, updateConfig } from '../store/features/wifi/wifi-slice';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { WifiMode } from '../../types';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
@@ -17,6 +17,7 @@ export const WifiSettings = (): JSX.Element => {
   const [activeIndex, setActiveIndex] = useState(0);
   const isWifiConnected = wifiStatus?.connected;
   const isApMode = isWifiConnected && networkConfig?.mode === WifiMode.AP;
+  const [userWifiMode, setUserWifiMode] = useState(null);
   const isClientMode =
     isWifiConnected && networkConfig?.mode === WifiMode.CLIENT;
 
@@ -30,20 +31,25 @@ export const WifiSettings = (): JSX.Element => {
       visible: isWifiConnected
     },
     {
+      key: 'details',
+      label: 'See network details',
+      visible: true
+    },
+    {
       key: 'network_mode',
       label: 'Network mode',
-      value: networkConfig?.mode === WifiMode.AP ? 'AP' : 'Client',
+      value: isApMode ? 'AP' : 'Client',
       visible: isWifiConnected
     },
     {
-      key: 'details',
-      label: 'See network details',
-      visible: isApMode
+      key: 'connect_new_network',
+      label: 'Connect to a new network',
+      visible: true
     },
     {
-      key: 'connect_new_network',
-      label: 'Connect to a new net.',
-      visible: !isWifiConnected || isClientMode
+      key: 'save',
+      label: 'Save',
+      visible: userWifiMode !== null
     },
     {
       key: 'back',
@@ -73,10 +79,18 @@ export const WifiSettings = (): JSX.Element => {
           const mode =
             networkConfig.mode === WifiMode.AP ? WifiMode.CLIENT : WifiMode.AP;
           dispatch(updateConfig({ ...networkConfig, mode }));
+          setUserWifiMode(mode);
           break;
         }
         case 'details': {
           dispatch(setBubbleDisplay({ visible: true, component: WifiDetails }));
+          break;
+        }
+        case 'save': {
+          dispatch(saveConfig({ ...networkConfig }));
+          dispatch(
+            setBubbleDisplay({ visible: true, component: QuickSettings })
+          );
           break;
         }
         case 'back': {
@@ -86,7 +100,9 @@ export const WifiSettings = (): JSX.Element => {
           break;
         }
         case 'connect_new_network': {
-          dispatch(setBubbleDisplay({ visible: true, component: ConnectWifi }));
+          dispatch(
+            setBubbleDisplay({ visible: true, component: ConnectWifiMenu })
+          );
           break;
         }
         default:
@@ -125,7 +141,7 @@ export const WifiSettings = (): JSX.Element => {
                 key={item.key}
                 className={`settings-item ${isActive ? 'active-setting' : ''}`}
               >
-                <div style={{ height: '30px' }}>
+                <div className="settings-entry">
                   <span>
                     {item.label}
                     {item.value && ': '}
