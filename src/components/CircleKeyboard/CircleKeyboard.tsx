@@ -42,6 +42,15 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
     keep: false
   });
 
+  // the fontsize is initially filled from the first render
+  const [fontSize, setFontSize] = useState<string>(undefined);
+  const [maxFontSize, setMaxFontSize] = useState<number>(25);
+
+  const maxCaptionCharactersBeforeShrink = 10;
+  const averageCaptionCharactersPerLine = 19;
+  const captionMinFontSize = 28;
+  const maxShownCharacters = 35;
+
   const firstKey =
     keyboardType === KEYBOARD_TYPE.Default
       ? DEFAULT_ALPHABET[0]
@@ -272,6 +281,31 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
     setMainLetter(toUpperOrLowerCase(mainLetter) as string);
   }, [capsLockActive]);
 
+  // Recalculate caption style when the caption changes length
+  useEffect(() => {
+    if (captionRef.current) {
+      const computedStyle = getComputedStyle(captionRef.current);
+      let baseFontSize = parseInt(computedStyle.fontSize, 10);
+      if (baseFontSize > maxFontSize) setMaxFontSize(baseFontSize);
+
+      let adjustedFontSize = baseFontSize;
+      if (caption.length > maxCaptionCharactersBeforeShrink) {
+        baseFontSize = Math.max(baseFontSize, maxFontSize);
+        const fontScaleFactor = -(
+          (baseFontSize - captionMinFontSize) /
+          (maxCaptionCharactersBeforeShrink - averageCaptionCharactersPerLine)
+        );
+        const excessLength = caption.length - maxCaptionCharactersBeforeShrink;
+        adjustedFontSize = Math.max(
+          baseFontSize - excessLength * fontScaleFactor,
+          captionMinFontSize
+        );
+      }
+
+      setFontSize(`${adjustedFontSize}px`);
+    }
+  }, [caption.length]);
+
   const parseCharacter = (letter: string, index: number) => {
     switch (letter) {
       case 'space':
@@ -429,20 +463,23 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         <div className="circle-content-wrapper">
           <div className="circle-title">{name}</div>
         </div>
-        <div ref={captionRef} className="circle-caption">
-          {caption.length > 10 && '...'}
-          {caption.slice(Math.max(caption.length - 10, 0)).map((el, index) => {
-            if (el === ' ') {
-              return (
-                <div key={index} className="transparent">
-                  _
-                </div>
-              );
-            }
-            return <div key={index} dangerouslySetInnerHTML={{ __html: el }} />;
-          })}
-          {caption.length >= 0 && caption.length < inputLimit && (
-            <div className="blink">_</div>
+        <div ref={captionRef} className="circle-caption" style={{ fontSize }}>
+          {caption.length > maxShownCharacters && (
+            <span>
+              ... <br />
+            </span>
+          )}
+          {caption
+            .slice(Math.max(caption.length - maxShownCharacters, 0))
+            .map((el, index) => (
+              <>
+                <span key={index} className={el === ' ' ? 'transparent' : ''}>
+                  {el === ' ' ? '_' : el}
+                </span>
+              </>
+            ))}
+          {caption.length > 0 && caption.length < inputLimit && (
+            <span className="blink">_</span>
           )}
         </div>
       </div>

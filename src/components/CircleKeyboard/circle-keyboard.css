@@ -90,16 +90,19 @@
   font-size: 25px;
   color: #ffffff;
   opacity: 0.4;
-  width: 200px;
+  width: 300px;
   word-wrap: break-word;
+  margin-bottom: 10px;
 }
 
 .circle-caption {
   font-weight: 700;
   font-size: 40px;
   color: #ffffff;
-  display: flex;
+  display: inline-block;
   justify-content: center;
+  width: 280px;
+  word-wrap: break-word;
 }
 
 .icon-space-selected {
