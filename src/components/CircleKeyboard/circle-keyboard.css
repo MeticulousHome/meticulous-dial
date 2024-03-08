@@ -24,6 +24,11 @@
   font: normal 0.3rem 'fontello';
 }
 
+.letter-keyboard-type {
+  fill: rgba(255, 255, 255, 0.4);
+  font: normal 0.28rem 'fontello';
+}
+
 .main-letter-space {
   position: absolute;
   top: 35px;
@@ -59,6 +64,9 @@
 }
 .main-letter__label--rigth-46 {
   right: 46%;
+}
+.main-letter__label--top-62 {
+  top: 62px;
 }
 .main-letter__label-color--grey {
   color: rgba(255, 255, 255, 0.4);
@@ -121,6 +129,13 @@
   -webkit-text-stroke: 2px #000;
   font-size: 62px;
   top: 24px;
+}
+
+.icon-keyboard-type-selected {
+  /* The icon is 12px larger then the average icon, so we add that as extra padding to the botton */
+  font-size: 50px;
+  top: 24px;
+  padding-bottom: 10px;
 }
 
 .icon-capslock-selected {

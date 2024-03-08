@@ -346,8 +346,9 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
             y={-44}
             textAnchor="-120%"
             className="letter-space letter-keyboard-type"
+            fill="white"
           >
-            &#127760;
+            🌐
           </text>
         );
       case 'cancel':
@@ -425,10 +426,10 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       case 'keyboardType':
         return (
           <>
-            <div className="main-letter-space icon-backspace-selected letter-keyboard-type">
+            <div className="main-letter-space icon-keyboard-type-selected letter-keyboard-type">
               <div className="relative">
-                <span className="main-letter__label main-letter__label--bottom-11 main-letter__label--rigth-46">
-                  Keyboard
+                <span className="main-letter__label main-letter__label--top-62 main-letter__label--rigth-46">
+                  Special Characters
                 </span>
                 <div>&#127760;</div>
               </div>
