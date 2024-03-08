@@ -45,10 +45,10 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
 
   const firstKey =
     keyboardType === KEYBOARD_TYPE.Default
-      ? 'a'
+      ? DEFAULT_ALPHABET[0]
       : keyboardType === KEYBOARD_TYPE.AccentCharacters
-      ? '&#224;'
-      : '-';
+      ? SMALL_ACCENT_CHARACTERS[0]
+      : SPECIAL_CHARACTERS[0];
 
   const { name, defaultValue, type, onSubmit, onCancel } = props;
   const inputLimit = type === 'password' ? 63 : 8;
