@@ -54,7 +54,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
   const inputLimit = type === 'password' ? 63 : 8;
 
   const captionRef = useRef<HTMLDivElement>(null);
-  const [caption, setCaption] = useState(defaultValue);
+  const [caption, setCaption] = useState(defaultValue || []);
 
   const moveElements = (right: boolean) => {
     const newAlphabet = [...alphabet];
