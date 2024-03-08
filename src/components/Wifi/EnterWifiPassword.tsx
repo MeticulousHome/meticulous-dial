@@ -28,7 +28,6 @@ export function EnterWifiPassword(): JSX.Element {
   return (
     <CircleKeyboard
       name={`password for ${wifi.selectedWifi}`}
-      type="password"
       onSubmit={updateSetting}
       onCancel={onCancel}
     />
