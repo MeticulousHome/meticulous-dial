@@ -1,11 +1,11 @@
-export enum AppMode {
+export enum WifiMode {
   AP = 'AP',
   CLIENT = 'CLIENT'
 }
 
 export interface NetworkConfig {
   provisioning: boolean;
-  mode: AppMode;
+  mode: WifiMode;
   apName: string;
   apPassword: string;
   qr?: string;
