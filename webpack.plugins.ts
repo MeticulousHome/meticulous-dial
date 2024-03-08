@@ -8,12 +8,17 @@ const CopyPlugin = require('copy-webpack-plugin');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ForkTsCheckerWebpackPlugin: typeof IForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
+const webpackPathByOs = process.platform === 'linux' ? 'main_window/' : '';
+
 export const plugins = [
   new CopyPlugin({
     patterns: [
       {
         from: path.resolve(__dirname, 'src/assets/'),
-        to: path.resolve(__dirname, '.webpack/renderer/assets/')
+        to: path.resolve(
+          __dirname,
+          `.webpack/renderer/${webpackPathByOs}assets/`
+        )
       }
     ]
   }),
