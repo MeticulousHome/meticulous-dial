@@ -1,26 +1,31 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import Marquee from 'react-fast-marquee';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { getConfig as getWifiConfig } from '../store/features/wifi/wifi-slice';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
-import {
-  setBubbleDisplay,
-  setScreen
-} from '../store/features/screens/screens-slice';
-import { SwiperWrapper } from '../Swiper/SwiperWrapper';
+import { setBubbleDisplay } from '../store/features/screens/screens-slice';
+import { getConfig as getWifiConfig } from '../store/features/wifi/wifi-slice';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 
-import './wifiDetails.css';
+import { backendURL } from '../../api/wifi';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { WifiSettings } from './WifiSettings';
+import { WifiMode } from '../../types';
 import { QrImage } from './QrImage';
+import { WifiSettings } from './WifiSettings';
+import './wifiDetails.css';
 
 const items = [
   { key: 'network' },
   { key: 'hostname' },
   { key: 'ap_name' },
   { key: 'ap_password' },
+  { key: 'ips' },
   { key: 'back' }
 ];
+
+const marqueeIfNeeded = (enabled: boolean, val: string) => {
+  if (enabled && val.length > 18) return <Marquee delay={0.6}>{val}</Marquee>;
+  return <>{val}</>;
+};
 
 export const WifiDetails = (): JSX.Element => {
   const [swiper, setSwiper] = useState(null);
@@ -29,6 +34,9 @@ export const WifiDetails = (): JSX.Element => {
   const { wifiStatus, pending, networkConfig } = useAppSelector(
     (state) => state.wifi
   );
+
+  const isWifiConnected = wifiStatus?.connected;
+  const isApMode = isWifiConnected && networkConfig?.mode === WifiMode.AP;
 
   useEffect(() => {
     dispatch(getWifiConfig());
@@ -83,9 +91,21 @@ export const WifiDetails = (): JSX.Element => {
             items[activeIndex].key === 'network' ? 'active-setting' : ''
           }`}
         >
-          <div style={{ height: '30px' }}>
+          <div className="settings-entry">
             Network:
-            <span>{wifiStatus?.connection_name}</span>
+            <span
+              className="settings-text"
+              style={{
+                fontSize: `${
+                  wifiStatus?.hostname.length > 14 ? '18px' : undefined
+                }`
+              }}
+            >
+              {marqueeIfNeeded(
+                items[activeIndex].key === 'network',
+                wifiStatus?.connection_name
+              )}
+            </span>
           </div>
         </SwiperSlide>
 
@@ -95,9 +115,22 @@ export const WifiDetails = (): JSX.Element => {
             items[activeIndex].key === 'hostname' ? 'active-setting' : ''
           }`}
         >
-          <div style={{ height: '30px' }}>
+          <div className="settings-entry">
             Hostname:
-            <span>{wifiStatus?.hostname}</span>
+            <span
+              className="settings-text"
+              style={{
+                fontSize: `${
+                  wifiStatus?.hostname.length > 14 ? '18px' : undefined
+                }`,
+                wordBreak: 'break-word'
+              }}
+            >
+              {marqueeIfNeeded(
+                items[activeIndex].key === 'hostname',
+                wifiStatus?.hostname
+              )}
+            </span>
           </div>
         </SwiperSlide>
 
@@ -108,47 +141,73 @@ export const WifiDetails = (): JSX.Element => {
             items[activeIndex].key === 'ap_name' ? 'active-setting' : ''
           }`}
         >
-          <span>
+          <div className="settings-entry">
             AP Name:
             <span
+              className="settings-text"
               style={{
                 fontSize: `${
-                  networkConfig?.apName.length > 14 ? '12px' : undefined
+                  wifiStatus?.hostname.length > 14 ? '18px' : undefined
                 }`
               }}
             >
-              {networkConfig?.apName}
+              {marqueeIfNeeded(
+                items[activeIndex].key === 'ap_name',
+                networkConfig?.apName
+              )}
             </span>
-          </span>
+          </div>
         </SwiperSlide>
-
         <SwiperSlide
           key="ap_password"
           className={`settings-item ${
             items[activeIndex].key === 'ap_password' ? 'active-setting' : ''
           }`}
         >
-          <div style={{ height: '30px' }}>
+          <div className="settings-entry">
             AP Password:
-            <span>{networkConfig?.apPassword}</span>
+            <span
+              className="settings-text"
+              style={{
+                fontSize: `${
+                  wifiStatus?.hostname.length > 14 ? '18px' : undefined
+                }`
+              }}
+            >
+              {marqueeIfNeeded(
+                items[activeIndex].key === 'ap_password',
+                networkConfig?.apPassword
+              )}
+            </span>
           </div>
         </SwiperSlide>
 
-        {/* <SwiperSlide
+        <SwiperSlide
           key="ips"
+          style={{ height: '30px' }}
           className={`settings-item ${
             items[activeIndex].key === 'ips' ? 'active-setting' : ''
           }`}
         >
-          <div style={{ height: '30px' }}>Ips: {wifiStatus?.hostname}</div>
-          <div>
-            {(wifiStatus?.ips || []).map((ip) => (
-              <div key={ip}>{ip}</div>
-            ))}
+          <div className="settings-entry">
+            IP:
+            <span
+              className="settings-text"
+              style={{
+                fontSize: `${
+                  wifiStatus?.hostname.length > 14 ? '18px' : undefined
+                }`
+              }}
+            >
+              {marqueeIfNeeded(
+                items[activeIndex].key === 'ips',
+                wifiStatus?.ips[0]
+              )}
+            </span>
           </div>
-        </SwiperSlide> */}
+        </SwiperSlide>
         <SwiperSlide style={{ height: '300px' }}>
-          <QrImage src={null} />
+          <QrImage src={`${backendURL}/wifi/config/qr.png`} />
         </SwiperSlide>
 
         <SwiperSlide></SwiperSlide>
@@ -158,7 +217,9 @@ export const WifiDetails = (): JSX.Element => {
             items[activeIndex].key === 'back' ? 'active-setting' : ''
           }`}
         >
-          <div style={{ height: '30px' }}>Back</div>
+          <div className="settings-entry">
+            <span>Back</span>
+          </div>
         </SwiperSlide>
       </Swiper>
     </div>
