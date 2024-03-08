@@ -20,7 +20,6 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 
 interface IKeyboardProps {
   name: string;
-  type?: string;
   defaultValue?: string[];
   onSubmit: (text: string) => void;
   onCancel: () => void;
@@ -50,8 +49,8 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       ? SMALL_ACCENT_CHARACTERS[0]
       : SPECIAL_CHARACTERS[0];
 
-  const { name, defaultValue, type, onSubmit, onCancel } = props;
-  const inputLimit = type === 'password' ? 63 : 8;
+  const { name, defaultValue, onSubmit, onCancel } = props;
+  const inputLimit = 64;
 
   const captionRef = useRef<HTMLDivElement>(null);
   const [caption, setCaption] = useState(defaultValue || []);
