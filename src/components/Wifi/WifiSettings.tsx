@@ -42,7 +42,7 @@ export const WifiSettings = (): JSX.Element => {
     },
     {
       key: 'connect_new_network',
-      label: 'Connect to a new network',
+      label: 'Connect to a new net.',
       visible: !isWifiConnected || isClientMode
     },
     {
