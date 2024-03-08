@@ -9,7 +9,7 @@ import { WifiMode } from '../../types';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { QuickSettings } from '../QuickSettings/QuickSettings';
 import { WifiDetails } from './WifiDetails';
-import { ConnectWifi } from './ConnectWifi';
+import { ConnectWifiMenu } from './ConnectWifiMenu';
 
 export const WifiSettings = (): JSX.Element => {
   const { wifiStatus, networkConfig } = useAppSelector((state) => state.wifi);

@@ -20,7 +20,9 @@ export type ScreenType =
   | 'wifiSettings'
   | 'wifiDetails'
   | 'connectWifi'
+  | 'connectWifiMenu'
   | 'selectWifi'
+  | 'connectWifiViaApp'
   | 'enterWifiPassword';
 
 interface ScreenState {

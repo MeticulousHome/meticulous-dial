@@ -30,7 +30,9 @@ export const ConnectWifiMenu = (): JSX.Element => {
     click() {
       switch (items[activeIndex].key) {
         case 'connect-via-app': {
-          dispatch(setBubbleDisplay({ visible: true, component: ConnectWifiViaApp }));
+          dispatch(
+            setBubbleDisplay({ visible: true, component: ConnectWifiViaApp })
+          );
           break;
         }
         case 'choose-wifi': {
