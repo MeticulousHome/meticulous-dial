@@ -3,6 +3,11 @@ export enum WifiMode {
   CLIENT = 'CLIENT'
 }
 
+export interface PasswortConnect {
+  ssid: string;
+  password: string;
+}
+
 export interface NetworkConfig {
   provisioning: boolean;
   mode: WifiMode;
