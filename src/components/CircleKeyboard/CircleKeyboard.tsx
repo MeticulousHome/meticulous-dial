@@ -427,7 +427,9 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
     <div className="circle-keyboard-container">
       {getMainLetter()}
       <div className="caption-content">
-        <div className="circle-title">{name}</div>
+        <div className="circle-content-wrapper">
+          <div className="circle-title">{name}</div>
+        </div>
         <div ref={captionRef} className="circle-caption">
           {caption.length > 10 && '...'}
           {caption.slice(Math.max(caption.length - 10, 0)).map((el, index) => {
