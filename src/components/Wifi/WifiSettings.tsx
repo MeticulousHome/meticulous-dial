@@ -5,7 +5,7 @@ import './wifiSettings.css';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { updateConfig } from '../store/features/wifi/wifi-slice';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
-import { AppMode } from '../../types';
+import { WifiMode } from '../../types';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { QuickSettings } from '../QuickSettings/QuickSettings';
 import { WifiDetails } from './WifiDetails';
@@ -16,9 +16,9 @@ export const WifiSettings = (): JSX.Element => {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const isWifiConnected = wifiStatus?.connected;
-  const isAppMode = isWifiConnected && networkConfig?.mode === AppMode.AP;
+  const isApMode = isWifiConnected && networkConfig?.mode === WifiMode.AP;
   const isClientMode =
-    isWifiConnected && networkConfig?.mode === AppMode.CLIENT;
+    isWifiConnected && networkConfig?.mode === WifiMode.CLIENT;
 
   const dispatch = useAppDispatch();
 
@@ -32,13 +32,13 @@ export const WifiSettings = (): JSX.Element => {
     {
       key: 'network_mode',
       label: 'Network mode',
-      value: networkConfig?.mode === AppMode.AP ? 'AP' : 'Client',
+      value: networkConfig?.mode === WifiMode.AP ? 'AP' : 'Client',
       visible: isWifiConnected
     },
     {
       key: 'details',
       label: 'See network details',
-      visible: isAppMode
+      visible: isApMode
     },
     {
       key: 'connect_new_network',
@@ -71,7 +71,7 @@ export const WifiSettings = (): JSX.Element => {
       switch (filter) {
         case 'network_mode': {
           const mode =
-            networkConfig.mode === AppMode.AP ? AppMode.CLIENT : AppMode.AP;
+            networkConfig.mode === WifiMode.AP ? WifiMode.CLIENT : WifiMode.AP;
           dispatch(updateConfig({ ...networkConfig, mode }));
           break;
         }
