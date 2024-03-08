@@ -9,7 +9,7 @@ import { Purge } from '../components/Purge/Purge';
 import { Settings } from '../components/Settings/Settings';
 import { ScreenType } from '../components/store/features/screens/screens-slice';
 import { EditNameScreen } from '../components/EditNameScreen/EditNameScreen';
-import { ConnectWifi } from '../components/Wifi/ConnectWifi';
+import { ConnectWifiMenu } from '../components/Wifi/ConnectWifiMenu';
 import { WifiSettings } from './../components/Wifi/WifiSettings';
 import { SelectWifi } from '../components/Wifi/SelectWifi';
 import { EnterWifiPassword } from '../components/Wifi/EnterWifiPassword';
@@ -17,6 +17,8 @@ import { WifiDetails } from '../components/Wifi/WifiDetails';
 import { RootState } from '../components/store/store';
 import { Notification } from '../components/Notification/Notification';
 import { getTitlePressets } from '../components/Pressets/TitlePressets';
+import { ConnectWifiViaApp } from '../components/Wifi/ConnetWifiViaApp';
+import { ConnectWifi } from '../components/Wifi/ConnectWifi';
 
 interface Route {
   component: ComponentType;
@@ -158,14 +160,24 @@ export const routes: Record<ScreenType, Route> = {
     title: 'wifi details',
     bottomStatusHidden: true
   },
+  connectWifiMenu: {
+    component: ConnectWifiMenu,
+    title: 'connect to a new network',
+    bottomStatusHidden: true
+  },
   connectWifi: {
     component: ConnectWifi,
-    title: 'connect to a new network',
+    title: 'connecting...',
     bottomStatusHidden: true
   },
   selectWifi: {
     component: SelectWifi,
     title: 'select wifi',
+    bottomStatusHidden: true
+  },
+  connectWifiViaApp: {
+    component: ConnectWifiViaApp,
+    title: 'connect to wifi via app',
     bottomStatusHidden: true
   },
   enterWifiPassword: {

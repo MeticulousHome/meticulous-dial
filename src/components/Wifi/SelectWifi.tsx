@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 import './selectWifi.css';
@@ -11,7 +11,7 @@ import {
   setBubbleDisplay,
   setScreen
 } from '../store/features/screens/screens-slice';
-import { ConnectWifi } from './ConnectWifi';
+import { ConnectWifiMenu } from './ConnectWifiMenu';
 
 export const SelectWifi = (): JSX.Element => {
   const dispatch = useAppDispatch();

@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('meticulousAPI', {
   getNetworkConfig: () => ipcRenderer.invoke('getNetworkConfig'),
   getWifiList: () => ipcRenderer.invoke('getWifiList'),
   updateNetworkConfig: (newConfig: Partial<NetworkConfig>) =>
-    ipcRenderer.invoke('updateNetworkConfig', newConfig)
+    ipcRenderer.invoke('updateNetworkConfig', newConfig),
+  connectToWifi: (ssid: string, password: string) =>
+    ipcRenderer.invoke('connectToWifi', ssid, password)
   // we can also expose variables, not just functions
 });

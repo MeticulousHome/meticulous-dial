@@ -1,96 +1,52 @@
-import React, { useEffect, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
+import '../../assets/fonts/custom/css/fontello.css';
+
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
+import {
+  setBubbleDisplay,
+  setScreen
+} from '../store/features/screens/screens-slice';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 
 import './connectWifi.css';
-import { setBubbleDisplay } from '../store/features/screens/screens-slice';
-import { useAppDispatch } from '../store/hooks';
-import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { WifiSettings } from './WifiSettings';
-import { SelectWifi } from './SelectWifi';
+import './wifiSettings.css';
 
-const items = [
-  { key: 'connect-via-app' },
-  { key: 'choose-wifi' },
-  { key: 'back' }
-];
-
-export const ConnectWifi = (): JSX.Element => {
+export function ConnectWifi(): JSX.Element {
   const dispatch = useAppDispatch();
-  const [swiper, setSwiper] = useState(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const { pending, error, connectionResult } = useAppSelector(
+    (state) => state.wifi
+  );
 
   useHandleGestures({
-    left() {
-      setActiveIndex((prev) => Math.max(prev - 1, 0));
-    },
-    right() {
-      setActiveIndex((prev) => Math.min(prev + 1, items.length - 1));
-    },
     click() {
-      switch (items[activeIndex].key) {
-        case 'connect-via-app': {
-          break;
-        }
-        case 'choose-wifi': {
-          dispatch(setBubbleDisplay({ visible: true, component: SelectWifi }));
-          break;
-        }
-        case 'back':
-          dispatch(
-            setBubbleDisplay({ visible: true, component: WifiSettings })
-          );
-          break;
-
-        default:
-          break;
+      if (!pending) {
+        dispatch(setBubbleDisplay({ visible: false, component: null }));
+        dispatch(setScreen('pressets'));
       }
     }
   });
 
-  useEffect(() => {
-    if (swiper) {
-      swiper.slideTo(activeIndex, 0, false);
-    }
-  }, [activeIndex, swiper]);
+  if (pending) {
+    return <LoadingScreen />;
+  }
 
+  console.log("error is", error)
   return (
-    <div className="main-quick-settings">
-      <Swiper
-        onSwiper={setSwiper}
-        slidesPerView={8}
-        allowTouchMove={false}
-        direction="vertical"
-        spaceBetween={25}
-        autoHeight={false}
-        centeredSlides={true}
-        initialSlide={activeIndex}
-        style={{ paddingLeft: '29px', top: '-4px' }}
+    <div className="quick-settings">
+      <div
+        className={` connect-response ${error ? 'error-entry' : ''}`}
       >
-        <SwiperSlide
-          key="connect-via-app"
-          className={`settings-item ${
-            items[activeIndex].key === 'connect-via-app' ? 'active-setting' : ''
-          }`}
-        >
-          <div>Connect via APP</div>
-        </SwiperSlide>
-        <SwiperSlide
-          key="choose-wifi"
-          className={`settings-item ${
-            items[activeIndex].key === 'choose-wifi' ? 'active-setting' : ''
-          }`}
-        >
-          <div>Connect to a network</div>
-        </SwiperSlide>
-        <SwiperSlide
-          key="back"
-          className={`settings-item ${
-            items[activeIndex].key === 'back' ? 'active-setting' : ''
-          }`}
-        >
-          <div style={{ height: '30px' }}>Back</div>
-        </SwiperSlide>
-      </Swiper>
+        {connectionResult ? connectionResult : error === true
+          ? 'An unknown error occured. Please try again'
+          : 'Connection could not be verified, please check the connection details'}
+      </div>
+      <br />
+      <div
+        key="back"
+        className={`settings-item active-setting connect-item`}
+      >
+        <div className="settings-entry connect-button">Ok</div>
+      </div>
     </div>
   );
-};
+}
