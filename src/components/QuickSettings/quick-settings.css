@@ -39,7 +39,6 @@
   display: flex;
   overflow: hidden;
   width: 100%;
-
 }
 
 .settings-text {
@@ -47,7 +46,6 @@
   font-size: 20px;
   align-self: center;
 }
-
 
 .active-setting {
   color: black;
