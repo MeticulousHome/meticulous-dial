@@ -30,21 +30,18 @@ export function ConnectWifi(): JSX.Element {
     return <LoadingScreen />;
   }
 
-  console.log("error is", error)
+  console.log('error is', error);
   return (
     <div className="quick-settings">
-      <div
-        className={` connect-response ${error ? 'error-entry' : ''}`}
-      >
-        {connectionResult ? connectionResult : error === true
+      <div className={` connect-response ${error ? 'error-entry' : ''}`}>
+        {connectionResult
+          ? connectionResult
+          : error === true
           ? 'An unknown error occured. Please try again'
           : 'Connection could not be verified, please check the connection details'}
       </div>
       <br />
-      <div
-        key="back"
-        className={`settings-item active-setting connect-item`}
-      >
+      <div key="back" className={`settings-item active-setting connect-item`}>
         <div className="settings-entry connect-button">Ok</div>
       </div>
     </div>
