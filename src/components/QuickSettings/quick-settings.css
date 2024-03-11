@@ -23,12 +23,11 @@
   font-size: 22px;
   color: #dddddd;
   text-align: left;
-  width: 100%;
+  width: 90%;
   justify-content: start;
   font-weight: 400;
   letter-spacing: 1.3px;
   font-family: 'Abc_mono';
-  width: 89%;
   padding-left: 18px;
   white-space: nowrap;
 }
