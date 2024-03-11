@@ -33,6 +33,8 @@ import { setScreen } from '../store/features/screens/screens-slice';
 import { generateSimplePayload } from '../../utils/preheat';
 import { useSocket } from '../store/SocketManager';
 import { KIND_PROFILE, LCD_EVENT_EMIT } from '../../constants';
+import SettingsApi from '../../api/settings';
+import { updateSettings } from '../store/features/settings/settings-slice';
 
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const socket = useSocket();
@@ -374,6 +376,15 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   useEffect(() => {
     dispatch(setOptionPressets(option.screen));
   }, [option.screen]);
+
+  useEffect(() => {
+    const getConfigItems = async () => {
+      const { data } = await SettingsApi.get();
+      if (data) dispatch(updateSettings(data));
+    };
+
+    getConfigItems();
+  }, []);
 
   return (
     <div className="preset-wrapper">

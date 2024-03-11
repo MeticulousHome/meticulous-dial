@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import Marquee from 'react-fast-marquee';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
@@ -12,6 +11,7 @@ import { WifiMode } from '../../types';
 import { QrImage } from './QrImage';
 import { WifiSettings } from './WifiSettings';
 import './wifiDetails.css';
+import { marqueeIfNeeded } from '../shared/MarqueeValue';
 
 const items = [
   { key: 'network' },
@@ -21,11 +21,6 @@ const items = [
   { key: 'ips' },
   { key: 'back' }
 ];
-
-const marqueeIfNeeded = (enabled: boolean, val: string) => {
-  if (enabled && val.length > 18) return <Marquee delay={0.6}>{val}</Marquee>;
-  return <>{val}</>;
-};
 
 export const WifiDetails = (): JSX.Element => {
   const [swiper, setSwiper] = useState(null);
