@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import Marquee from 'react-fast-marquee';
 
 import './settings.css';
 import '../PressetSettings/pressetSettings.css';
@@ -8,130 +7,85 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { QuickSettings } from '../QuickSettings/QuickSettings';
-import { updateSettings } from '../store/features/settings/settings-slice';
-
-interface ISettings {
-  key: string;
-  label: string;
-  value?: boolean | string;
-  visible: boolean;
-}
-
-let settings: ISettings[] = [
-  {
-    key: 'save',
-    label: 'save',
-    value: null,
-    visible: true
-  },
-  {
-    key: 'back',
-    label: 'back',
-    value: null,
-    visible: true
-  }
-];
-
-function showValue(item: Record<string, any>) {
-  let val = item.value;
-  if (item.type === 'boolean') {
-    val = val ? ' ENABLED' : ' DISABLED';
-  }
-
-  if (item.type === 'string') val = ` ${val}`;
-
-  if (item.label.length > 15) {
-    return <Marquee delay={0.6}>{val}</Marquee>;
-  }
-
-  return <span>{val}</span>;
-}
+import {
+  UserSettingsKeys,
+  updateItemSetting,
+  updateSettings
+} from '../store/features/settings/settings-slice';
+import UserSettings from '../../schemas/settings.json';
+import { marqueeIfNeeded } from '../shared/MarqueeValue';
 
 export function Settings(): JSX.Element {
   const dispatch = useAppDispatch();
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const globalSettings = useAppSelector((state) => state.settings);
 
-  useEffect(() => {
-    const entries = Object.entries(globalSettings || {});
-    if (entries.length > 0) {
-      const items = entries.map((item: any) => {
-        const [key, obj] = item;
-        return {
-          key,
-          label: key.split('_').join(' '),
-          value: obj['value'],
-          type: obj['type'],
-          visible: obj['visible']
-        };
-      });
+  const showValue = useCallback(
+    (isActive: boolean, item: UserSettingsKeys) => {
+      if (!item) return <></>;
 
-      if (items.length > 0) settings.unshift(...items);
-      settings = settings.filter((item) => item.visible);
-    }
-  }, [globalSettings]);
-
-  useEffect(() => {
-    return () => {
-      settings = [
-        {
-          key: 'save',
-          label: 'save',
-          value: null,
-          visible: true
-        },
-        {
-          key: 'back',
-          label: 'back',
-          value: null,
-          visible: true
+      if (UserSettings && globalSettings) {
+        let val = globalSettings[item];
+        if (UserSettings.properties[item]?.type === 'boolean') {
+          val = globalSettings[item] ? ' ENABLED' : ' DISABLED';
         }
-      ];
-    };
-  }, []);
 
-  useHandleGestures({
-    left() {
-      setActiveIndex((prev) => Math.max(prev - 1, 0));
-    },
-    right() {
-      setActiveIndex((prev) => Math.min(prev + 1, settings.length - 1));
-    },
-    click() {
-      switch (settings[activeIndex].key) {
-        case 'save': {
-          const itemsToSave = settings
-            .filter((item) => item.value !== null)
-            .map((item) => {
-              return {
-                [item.key]: item.value
-              };
-            });
+        if (item.length > 15) {
+          return marqueeIfNeeded({ enabled: isActive, val, len: 0 });
+        }
 
-          if (itemsToSave) {
-            const body = Object.assign({}, ...itemsToSave);
-            dispatch(updateSettings(body));
+        return val;
+      }
+    },
+    [globalSettings]
+  );
+
+  useHandleGestures(
+    {
+      left() {
+        setActiveIndex((prev) => Math.max(prev - 1, 0));
+      },
+      right() {
+        setActiveIndex((prev) =>
+          Math.min(prev + 1, UserSettings.properties.visible.length - 1)
+        );
+      },
+      click() {
+        const activeItem = UserSettings.properties.visible[activeIndex];
+        const settingItem = UserSettings.properties;
+        switch (activeItem) {
+          case 'save': {
+            dispatch(updateSettings(globalSettings));
             dispatch(
               setBubbleDisplay({ visible: true, component: QuickSettings })
             );
+            break;
           }
-          break;
-        }
-        case 'back':
-          dispatch(
-            setBubbleDisplay({ visible: true, component: QuickSettings })
-          );
-          break;
-        default: {
-          if (typeof settings[activeIndex].value === 'boolean') {
-            settings[activeIndex].value = !settings[activeIndex].value;
+          case 'back':
+            dispatch(
+              setBubbleDisplay({ visible: true, component: QuickSettings })
+            );
+            break;
+          default: {
+            if (
+              settingItem[activeItem as UserSettingsKeys].type === 'boolean'
+            ) {
+              dispatch(
+                updateItemSetting({
+                  key: activeItem,
+                  value: !globalSettings[activeItem as UserSettingsKeys]
+                })
+              );
+            }
+            break;
           }
-          break;
         }
       }
-    }
-  });
+    },
+    !bubbleDisplay.visible
+  );
 
   useEffect(() => {
     if (swiper) {
@@ -152,22 +106,22 @@ export function Settings(): JSX.Element {
         initialSlide={activeIndex}
         style={{ paddingLeft: '29px', top: '-4px' }}
       >
-        {settings.map((item, index) => {
+        {UserSettings.properties.visible.map((item, index) => {
           const isActive = index === activeIndex;
           return (
             <SwiperSlide
-              key={item.key}
+              key={index}
               className={`settings-item ${isActive ? 'active-setting' : ''}`}
             >
               <div style={{ height: '30px' }}>
                 <div className="settings-entry">
-                  {item.label}
-                  {item.value !== null ? ':' : ''}&nbsp;
+                  {item.split('_').join(' ')}
+                  {item !== 'save' && item !== 'back' && ': '}
                   <span
                     className="settings-text"
                     style={{ wordBreak: 'break-word' }}
                   >
-                    {showValue(item)}
+                    {showValue(isActive, item as UserSettingsKeys)}
                   </span>
                 </div>
               </div>

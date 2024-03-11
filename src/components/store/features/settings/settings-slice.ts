@@ -3,7 +3,20 @@ import { isAxiosError } from 'axios';
 
 import SettingsApi from '../../../../api/settings';
 
-const initialState = {};
+export type UserSettingsKeys =
+  | 'sounds_enabled'
+  | 'disallow_firmware_flashing'
+  | 'debug_shot_data'
+  | 'auto_purge_after_shot'
+  | 'auto_start_shot';
+
+const initialState: Partial<Record<UserSettingsKeys, any>> = {
+  sounds_enabled: false,
+  disallow_firmware_flashing: false,
+  debug_shot_data: false,
+  auto_purge_after_shot: false,
+  auto_start_shot: false
+};
 
 export const fetchSettigns = createAsyncThunk(
   'settings/fetchSettings',
@@ -34,7 +47,11 @@ export const updateSettings = createAsyncThunk(
 const settingsSlice = createSlice({
   name: 'settings',
   initialState,
-  reducers: {},
+  reducers: {
+    updateItemSetting: (state: typeof initialState, action) => {
+      state[action.payload.key as UserSettingsKeys] = action.payload.value;
+    }
+  },
   extraReducers(builder) {
     builder
       .addCase(fetchSettigns.fulfilled, (state, action) => {
@@ -46,4 +63,5 @@ const settingsSlice = createSlice({
   }
 });
 
+export const { updateItemSetting } = settingsSlice.actions;
 export default settingsSlice.reducer;
