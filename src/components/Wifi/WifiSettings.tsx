@@ -12,16 +12,13 @@ import { WifiDetails } from './WifiDetails';
 import { ConnectWifiMenu } from './ConnectWifiMenu';
 
 export const WifiSettings = (): JSX.Element => {
-  const { wifiStatus, networkConfig } = useAppSelector((state) => state.wifi);
+  const dispatch = useAppDispatch();
+  const [userWifiMode, setUserWifiMode] = useState(null);
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const { wifiStatus, networkConfig } = useAppSelector((state) => state.wifi);
   const isWifiConnected = wifiStatus?.connected;
   const isApMode = isWifiConnected && networkConfig?.mode === WifiMode.AP;
-  const [userWifiMode, setUserWifiMode] = useState(null);
-  const isClientMode =
-    isWifiConnected && networkConfig?.mode === WifiMode.CLIENT;
-
-  const dispatch = useAppDispatch();
 
   const wifiSettingItems = [
     {
@@ -152,8 +149,6 @@ export const WifiSettings = (): JSX.Element => {
             );
           })}
       </Swiper>
-
-      {/* </div> */}
     </div>
   );
 };

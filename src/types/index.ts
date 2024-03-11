@@ -228,3 +228,18 @@ export interface IItalian {
   source: 'lcd';
   kind: ItalianProfile;
 }
+
+export interface GlobalSettings {
+  soundsEnabled: boolean;
+  disallowFirmware: boolean;
+  debugShotData: boolean;
+  profileAutoStart: boolean;
+  profileAutoPurge: boolean;
+}
+
+export interface SettingsItem {
+  type: string;
+  values?: any;
+  value: any;
+  visible: boolean;
+}
