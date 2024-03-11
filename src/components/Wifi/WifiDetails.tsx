@@ -88,18 +88,11 @@ export const WifiDetails = (): JSX.Element => {
         >
           <div className="settings-entry">
             Network:
-            <span
-              className="settings-text"
-              style={{
-                fontSize: `${
-                  wifiStatus?.hostname.length > 14 ? '18px' : undefined
-                }`
-              }}
-            >
-              {marqueeIfNeeded(
-                items[activeIndex].key === 'network',
-                wifiStatus?.connection_name
-              )}
+            <span className="settings-text">
+              {marqueeIfNeeded({
+                enabled: items[activeIndex].key === 'network',
+                val: wifiStatus?.connection_name
+              })}
             </span>
           </div>
         </SwiperSlide>
@@ -121,10 +114,10 @@ export const WifiDetails = (): JSX.Element => {
                 wordBreak: 'break-word'
               }}
             >
-              {marqueeIfNeeded(
-                items[activeIndex].key === 'hostname',
-                wifiStatus?.hostname
-              )}
+              {marqueeIfNeeded({
+                enabled: items[activeIndex].key === 'hostname',
+                val: wifiStatus?.hostname
+              })}
             </span>
           </div>
         </SwiperSlide>
@@ -146,10 +139,10 @@ export const WifiDetails = (): JSX.Element => {
                 }`
               }}
             >
-              {marqueeIfNeeded(
-                items[activeIndex].key === 'ap_name',
-                networkConfig?.apName
-              )}
+              {marqueeIfNeeded({
+                enabled: items[activeIndex].key === 'ap_name',
+                val: networkConfig?.apName
+              })}
             </span>
           </div>
         </SwiperSlide>
@@ -169,10 +162,10 @@ export const WifiDetails = (): JSX.Element => {
                 }`
               }}
             >
-              {marqueeIfNeeded(
-                items[activeIndex].key === 'ap_password',
-                networkConfig?.apPassword
-              )}
+              {marqueeIfNeeded({
+                enabled: items[activeIndex].key === 'ap_password',
+                val: networkConfig?.apPassword
+              })}
             </span>
           </div>
         </SwiperSlide>
@@ -194,10 +187,10 @@ export const WifiDetails = (): JSX.Element => {
                 }`
               }}
             >
-              {marqueeIfNeeded(
-                items[activeIndex].key === 'ips',
-                wifiStatus?.ips[0]
-              )}
+              {marqueeIfNeeded({
+                enabled: items[activeIndex].key === 'ips',
+                val: wifiStatus?.ips[0]
+              })}
             </span>
           </div>
         </SwiperSlide>
