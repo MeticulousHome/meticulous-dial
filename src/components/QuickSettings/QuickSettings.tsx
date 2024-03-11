@@ -1,5 +1,6 @@
-import './quick-settings.css';
 import { useEffect, useState } from 'react';
+
+import './quick-settings.css';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
@@ -9,7 +10,7 @@ import {
 import { useSocket } from '../store/SocketManager';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { WifiSettings } from '../Wifi/WifiSettings';
-
+import { Settings } from '../Settings/Settings';
 const settings = [
   {
     key: 'home',
@@ -26,6 +27,10 @@ const settings = [
   {
     key: 'wifi',
     label: 'wifi'
+  },
+  {
+    key: 'config',
+    label: 'config'
   },
   {
     key: 'exit',
@@ -75,12 +80,16 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'wifi': {
-            // dispatch(setScreen('wifiSettings'));
             dispatch(
               setBubbleDisplay({ visible: true, component: WifiSettings })
             );
             break;
           }
+          case 'config': {
+            dispatch(setBubbleDisplay({ visible: true, component: Settings }));
+            break;
+          }
+
           case 'exit': {
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
