@@ -8,7 +8,6 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { QuickSettings } from '../QuickSettings/QuickSettings';
-import SettingsApi from '../../api/settings';
 import { updateSettings } from '../store/features/settings/settings-slice';
 
 interface ISettings {
@@ -92,11 +91,6 @@ export function Settings(): JSX.Element {
     };
   }, []);
 
-  const saveSettings = useCallback(async (settings: any) => {
-    const res = await SettingsApi.update(settings);
-    if (res.data) dispatch(updateSettings(res.data));
-  }, []);
-
   useHandleGestures({
     left() {
       setActiveIndex((prev) => Math.max(prev - 1, 0));
@@ -117,7 +111,7 @@ export function Settings(): JSX.Element {
 
           if (itemsToSave) {
             const body = Object.assign({}, ...itemsToSave);
-            saveSettings(body);
+            dispatch(updateSettings(body));
             dispatch(
               setBubbleDisplay({ visible: true, component: QuickSettings })
             );
