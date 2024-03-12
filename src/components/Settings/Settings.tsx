@@ -26,10 +26,10 @@ export function Settings(): JSX.Element {
     (isActive: boolean, item: UserSettingsKeys) => {
       if (!item) return <></>;
 
+      let val = item.split('_').join(' ').toUpperCase();
       if (UserSettings && globalSettings) {
-        let val = globalSettings[item];
         if (UserSettings.properties[item]?.type === 'boolean') {
-          val = globalSettings[item] ? ' ENABLED' : ' DISABLED';
+          val = globalSettings[item] ? val + ': ENABLED' : val + ': DISABLED';
         }
 
         if (item.length > 15) {
@@ -114,9 +114,7 @@ export function Settings(): JSX.Element {
               className={`settings-item ${isActive ? 'active-setting' : ''}`}
             >
               <div style={{ height: '30px' }}>
-                <div className="settings-entry">
-                  {item.split('_').join(' ')}
-                  {item !== 'save' && item !== 'back' && ': '}
+                <div className="settings-entry text-container">
                   <span
                     className="settings-text"
                     style={{ wordBreak: 'break-word' }}
