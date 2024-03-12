@@ -10,6 +10,7 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { QuickSettings } from '../QuickSettings/QuickSettings';
 import { WifiDetails } from './WifiDetails';
 import { ConnectWifiMenu } from './ConnectWifiMenu';
+import { marqueeIfNeeded } from '../shared/MarqueeValue';
 
 export const WifiSettings = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -24,7 +25,7 @@ export const WifiSettings = (): JSX.Element => {
     {
       key: 'status',
       label: 'Status',
-      value: isWifiConnected ? 'connected' : 'not connected',
+      value: isWifiConnected ? 'CONNECTED' : 'NOT CONNECTED',
       visible: isWifiConnected
     },
     {
@@ -35,7 +36,7 @@ export const WifiSettings = (): JSX.Element => {
     {
       key: 'network_mode',
       label: 'Network mode',
-      value: isApMode ? 'AP' : 'Client',
+      value: isApMode ? 'AP' : 'CLIENT',
       visible: isWifiConnected
     },
     {
@@ -138,12 +139,18 @@ export const WifiSettings = (): JSX.Element => {
                 key={item.key}
                 className={`settings-item ${isActive ? 'active-setting' : ''}`}
               >
-                <div className="settings-entry">
-                  <span>
-                    {item.label}
-                    {item.value && ': '}
+                <div className="settings-entry text-container">
+                  <span
+                    className="settings-text"
+                    style={{ wordBreak: 'break-word' }}
+                  >
+                    {marqueeIfNeeded({
+                      enabled: isActive,
+                      val: `${item.label.toUpperCase()}${
+                        item.value ? ': ' + item.value : ''
+                      }`
+                    })}
                   </span>
-                  {item.value && <span>{item.value}</span>}
                 </div>
               </SwiperSlide>
             );

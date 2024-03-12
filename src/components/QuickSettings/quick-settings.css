@@ -49,4 +49,33 @@
 .active-setting {
   color: black;
   background: #f5c444;
+  overflow: hidden;
+}
+
+.text-container {
+  width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.text-container > span {
+  display: inline-block;
+}
+
+@keyframes leftright {
+  0%,
+  20% {
+    transform: translateX(0%);
+    left: 0%;
+  }
+  80%,
+  100% {
+    transform: translateX(70%);
+    left: -72%;
+  }
+}
+
+.animate {
+  position: relative;
+  animation: leftright 6s infinite alternate ease-in-out;
 }
