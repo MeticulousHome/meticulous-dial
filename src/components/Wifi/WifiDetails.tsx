@@ -86,12 +86,11 @@ export const WifiDetails = (): JSX.Element => {
             items[activeIndex].key === 'network' ? 'active-setting' : ''
           }`}
         >
-          <div className="settings-entry">
-            Network:
+          <div className="settings-entry text-container">
             <span className="settings-text">
               {marqueeIfNeeded({
                 enabled: items[activeIndex].key === 'network',
-                val: wifiStatus?.connection_name
+                val: 'NETWORK:' + wifiStatus?.connection_name
               })}
             </span>
           </div>
@@ -103,8 +102,7 @@ export const WifiDetails = (): JSX.Element => {
             items[activeIndex].key === 'hostname' ? 'active-setting' : ''
           }`}
         >
-          <div className="settings-entry">
-            Hostname:
+          <div className="settings-entry text-container">
             <span
               className="settings-text"
               style={{
@@ -116,7 +114,7 @@ export const WifiDetails = (): JSX.Element => {
             >
               {marqueeIfNeeded({
                 enabled: items[activeIndex].key === 'hostname',
-                val: wifiStatus?.hostname
+                val: 'HOSTNAME:' + wifiStatus?.hostname
               })}
             </span>
           </div>
@@ -129,8 +127,7 @@ export const WifiDetails = (): JSX.Element => {
             items[activeIndex].key === 'ap_name' ? 'active-setting' : ''
           }`}
         >
-          <div className="settings-entry">
-            AP Name:
+          <div className="settings-entry text-container">
             <span
               className="settings-text"
               style={{
@@ -141,7 +138,7 @@ export const WifiDetails = (): JSX.Element => {
             >
               {marqueeIfNeeded({
                 enabled: items[activeIndex].key === 'ap_name',
-                val: networkConfig?.apName
+                val: 'AP NAME:' + networkConfig?.apName
               })}
             </span>
           </div>
@@ -152,8 +149,7 @@ export const WifiDetails = (): JSX.Element => {
             items[activeIndex].key === 'ap_password' ? 'active-setting' : ''
           }`}
         >
-          <div className="settings-entry">
-            AP Password:
+          <div className="settings-entry text-container">
             <span
               className="settings-text"
               style={{
@@ -164,7 +160,7 @@ export const WifiDetails = (): JSX.Element => {
             >
               {marqueeIfNeeded({
                 enabled: items[activeIndex].key === 'ap_password',
-                val: networkConfig?.apPassword
+                val: 'AP PASSWORD:' + networkConfig?.apPassword
               })}
             </span>
           </div>
@@ -177,8 +173,7 @@ export const WifiDetails = (): JSX.Element => {
             items[activeIndex].key === 'ips' ? 'active-setting' : ''
           }`}
         >
-          <div className="settings-entry">
-            IP:
+          <div className="settings-entry text-container">
             <span
               className="settings-text"
               style={{
@@ -189,7 +184,7 @@ export const WifiDetails = (): JSX.Element => {
             >
               {marqueeIfNeeded({
                 enabled: items[activeIndex].key === 'ips',
-                val: wifiStatus?.ips[0]
+                val: 'IP:' + wifiStatus?.ips[0]
               })}
             </span>
           </div>

@@ -19,14 +19,22 @@ export const FormatSetting = ({ setting, isActive }: FormatSettingProps) => {
 
   if (label === 'delete profile') activeClass = '';
 
+  const animateClass = mValue.length > 11 && activeClass;
+
   return (
-    <div>
-      <span className={`capitalize presset-option-label ${activeClass}`}>
-        {mLabel}
-      </span>
-      <span className={`presset-option-value ${activeClass}`}>{mValue}</span>
-      <span className={`presset-option-unit ${activeClass}`}>
-        {(setting as any)?.unit}
+    <div className="text-container">
+      <span>
+        <span className={animateClass ? 'animate' : ''}>
+          <span className={`capitalize presset-option-label ${activeClass}`}>
+            {mLabel}
+          </span>
+          <span className={`presset-option-value ${activeClass}`}>
+            {mValue}
+          </span>
+          <span className={`presset-option-unit ${activeClass}`}>
+            {(setting as any)?.unit}
+          </span>
+        </span>
       </span>
     </div>
   );
