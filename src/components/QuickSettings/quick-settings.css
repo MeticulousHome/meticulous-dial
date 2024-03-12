@@ -70,8 +70,8 @@
   }
   80%,
   100% {
-    transform: translateX(70%);
-    left: -72%;
+    transform: translateX(20%);
+    left: -20%;
   }
 }
 
