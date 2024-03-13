@@ -8,14 +8,16 @@ export type UserSettingsKeys =
   | 'disallow_firmware_flashing'
   | 'debug_shot_data'
   | 'auto_purge_after_shot'
-  | 'auto_start_shot';
+  | 'auto_start_shot'
+  | 'auto_preheat';
 
 const initialState: Partial<Record<UserSettingsKeys, any>> = {
   sounds_enabled: false,
   disallow_firmware_flashing: false,
   debug_shot_data: false,
   auto_purge_after_shot: false,
-  auto_start_shot: false
+  auto_start_shot: false,
+  auto_preheat: 0
 };
 
 export const fetchSettigns = createAsyncThunk(
