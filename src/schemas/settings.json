@@ -22,6 +22,10 @@
       "type": "boolean",
       "value": false
     },
+    "auto_preheat": {
+      "type": "number",
+      "value": 0
+    },
     "visible": ["auto_start_shot", "auto_purge_after_shot", "save", "back"]
   },
   "type": "object"

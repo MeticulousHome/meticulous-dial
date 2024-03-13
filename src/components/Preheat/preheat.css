@@ -1,0 +1,13 @@
+.g-container {
+  height: 100%;
+  width: 480px;
+  background: #1d1d1d;
+  position: absolute;
+  left: -63px;
+}
+
+.preheat-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}

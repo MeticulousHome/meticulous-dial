@@ -11,6 +11,8 @@ import { useSocket } from '../store/SocketManager';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { WifiSettings } from '../Wifi/WifiSettings';
 import { Settings } from '../Settings/Settings';
+import { QuickPreheat } from '../Preheat/Preheat';
+
 const settings = [
   {
     key: 'home',
@@ -19,6 +21,10 @@ const settings = [
   {
     key: 'purge',
     label: 'purge'
+  },
+  {
+    key: 'preheat',
+    label: 'preheat'
   },
   {
     key: 'calibrate',
@@ -72,6 +78,12 @@ export function QuickSettings(): JSX.Element {
           case 'purge': {
             socket.emit('action', 'purge');
             dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
+          case 'preheat': {
+            dispatch(
+              setBubbleDisplay({ visible: true, component: QuickPreheat })
+            );
             break;
           }
           case 'calibrate': {
