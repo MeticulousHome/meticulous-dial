@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import './preheat.css';
-import { MultipleOptionSlider } from '../shared/MultipleOptionSlider';
 import { useHandleGestures } from '../../../src/hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { Gauge } from '../SettingNumerical/Gauge';
@@ -9,10 +8,11 @@ import { QuickSettings } from '../QuickSettings/QuickSettings';
 import { roundPrecision } from '../../../src/utils';
 import { updateSettings } from '../store/features/settings/settings-slice';
 
+import { Swiper, SwiperSlide } from 'swiper/react';
+
 enum OptionType {
   yes = 'yes',
-  no = 'no',
-  none = ''
+  no = 'no'
 }
 
 const options: OptionType[] = [OptionType.yes, OptionType.no];
@@ -21,13 +21,15 @@ const MAX_PREHEAT = 99;
 const MIN_PREHEAT = 25;
 const INTERVAL_PREHEAT = 1;
 
-export function QuickPreheat() {
-  const { auto_preheat } = useAppSelector((state) => state.settings);
-  const [total, setTotal] = useState<number>(MIN_PREHEAT);
+export function QuickPreheat(): JSX.Element {
+  const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [optionSelected, setOptionSelected] = useState<OptionType>(
-    OptionType.none
+    OptionType.no
   );
+  const [showGauge, setShowGauge] = useState<boolean>(false);
+  const [total, setTotal] = useState<number>(MIN_PREHEAT);
+  const { auto_preheat } = useAppSelector((state) => state.settings);
   const dispatch = useAppDispatch();
 
   const updateValue = (gesture: 'left' | 'right') => {
@@ -50,68 +52,115 @@ export function QuickPreheat() {
     );
   };
 
-  useEffect(() => {
-    setActiveIndex(auto_preheat === 0 ? 1 : 0);
-    setTotal(auto_preheat === 0 ? MIN_PREHEAT : auto_preheat);
-  }, [auto_preheat]);
-
   useHandleGestures({
-    left() {
-      if (optionSelected === OptionType.yes) {
-        updateValue('left');
+    right() {
+      if (showGauge) {
+        updateValue('right');
         return;
       }
 
-      setActiveIndex((prev) => Math.min(prev + 1, options.length - 1));
+      setActiveIndex((prev) => Math.min(prev + 1, options.length));
     },
-    right() {
-      if (optionSelected === OptionType.yes) {
-        updateValue('right');
+    left() {
+      if (showGauge) {
+        updateValue('left');
         return;
       }
       setActiveIndex((prev) => Math.max(prev - 1, 0));
     },
     click() {
-      const value = options[activeIndex] as OptionType;
-
-      if (optionSelected === OptionType.yes) {
-        updatePreheat();
-        setOptionSelected(OptionType.none);
+      if (activeIndex === 2) {
         dispatch(setBubbleDisplay({ visible: true, component: QuickSettings }));
+        updatePreheat();
+      }
+
+      if (showGauge && activeIndex === 1) {
+        setShowGauge(false);
         return;
       }
 
-      if (value === OptionType.no) {
-        updatePreheat();
-        dispatch(setBubbleDisplay({ visible: true, component: QuickSettings }));
-        return;
+      if (activeIndex === 0) {
+        setOptionSelected(
+          optionSelected === OptionType.yes ? OptionType.no : OptionType.yes
+        );
       }
 
-      if (value === OptionType.yes) {
-        setOptionSelected(OptionType.yes);
+      if (activeIndex === 1) {
+        setShowGauge(true);
       }
     }
   });
 
-  const renderOption = useMemo(() => {
-    return optionSelected === OptionType.yes ? (
-      <div className="g-container">
-        <Gauge
-          value={total}
-          maxValue={MAX_PREHEAT}
-          precision={1}
-          unit="celcius"
-        />
-      </div>
-    ) : (
-      <MultipleOptionSlider
-        activeIndex={activeIndex}
-        options={options.map((word) => {
-          return word[0].toUpperCase() + word.substring(1);
-        })}
-      />
-    );
-  }, [activeIndex, optionSelected, total]);
+  useEffect(() => {
+    if (swiper) {
+      swiper.slideTo(activeIndex, 0, false);
+    }
+  }, [activeIndex, swiper]);
 
-  return <div className="preheat-container">{renderOption}</div>;
+  useEffect(() => {
+    setOptionSelected(auto_preheat === 0 ? OptionType.no : OptionType.yes);
+    setTotal(auto_preheat === 0 ? MIN_PREHEAT : auto_preheat);
+  }, [auto_preheat]);
+
+  return (
+    <div className="preheat-container">
+      {showGauge && (
+        <div className="g-container">
+          <Gauge
+            value={total}
+            maxValue={MAX_PREHEAT}
+            precision={1}
+            unit="celcius"
+          />
+        </div>
+      )}
+      {!showGauge && (
+        <Swiper
+          onSwiper={setSwiper}
+          slidesPerView={8}
+          allowTouchMove={false}
+          direction="vertical"
+          spaceBetween={25}
+          autoHeight={false}
+          centeredSlides={true}
+          initialSlide={activeIndex}
+          style={{ paddingLeft: '29px', top: '-4px' }}
+        >
+          <SwiperSlide
+            key={0}
+            className={`settings-item ${
+              0 === activeIndex ? 'active-setting' : ''
+            }`}
+          >
+            <div style={{ height: '30px' }}>
+              <div className="settings-entry text-container">
+                <span
+                  className="settings-text"
+                  style={{ wordBreak: 'break-word' }}
+                >
+                  ENABLED: {optionSelected.toUpperCase()}
+                </span>
+              </div>
+            </div>
+          </SwiperSlide>
+          <SwiperSlide
+            key={1}
+            className={`settings-item ${
+              1 === activeIndex ? 'active-setting' : ''
+            }`}
+          >
+            <div>VALUE: {total}°C</div>
+          </SwiperSlide>
+          <SwiperSlide
+            key={2}
+            className={`settings-item ${
+              2 === activeIndex ? 'active-setting' : ''
+            }`}
+          >
+            <div>BACK</div>
+          </SwiperSlide>
+        </Swiper>
+      )}
+    </div>
+  );
 }
