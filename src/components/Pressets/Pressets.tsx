@@ -37,6 +37,7 @@ import { circumference, getDashArray } from '../SettingNumerical/Gauge';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
 import { Circle, radius, transform } from './Circle';
 import { TitleCircle } from './Title';
+import { clickAndHold } from '../../utils/index';
 
 interface AnimationData {
   circlekey: number;
@@ -75,6 +76,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const circleOne = useRef<SVGCircleElement>(null);
   const intervalReturn = useRef(null);
   const animationInProgress = useRef(false);
+  const btnUpRef = useRef<HTMLElement>(null);
 
   const [animation, setAnimation] = useState<AnimationData>(initialValue);
 
@@ -159,151 +161,57 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
             if (!clickTimer.current.firstClick) {
               clickTimer.current.firstClick = new Date().getTime();
-
-              intervalReturn.current = setTimeout(() => {
-                clickTimer.current.firstClick = null;
-                clickTimer.current.secondClick = null;
-                console.log('animacion de 500...');
-                for (const [, dato] of circleOne.current.classList.entries()) {
-                  circleOne.current.classList.remove(dato);
-                }
-
-                setStartCoffe(false);
-
-                const currentStrokeDashValue = Math.round(
-                  (+getComputedStyle(circleOne.current)
-                    .strokeDasharray.split(',')[0]
-                    .replace('px', '') /
-                    circumference) *
-                    100
-                );
-
-                animationInProgress.current = false;
-
-                if (ready.current) return;
-
-                setPercentaje(() => {
-                  setAnimation((prev) => ({
-                    circlekey: prev.circlekey + 1 > 10 ? 0 : prev.circlekey + 1,
-                    titlekey: prev.titlekey + 1 > 30 ? 20 : prev.titlekey + 1,
-                    strokeDashValueInitial: currentStrokeDashValue,
-                    strokeDashValueEnd: 0,
-                    fillInitial: currentStrokeDashValue / 100,
-                    fillEnd: 0.0,
-                    titleOpacityInitial: 1,
-                    titleOpacityEnd: 0,
-                    timeFunc: 'ease-in',
-                    extraDelay: 0
-                  }));
-
-                  return 0;
-                });
-              }, 550);
             } else if (!clickTimer.current.secondClick) {
               clickTimer.current.secondClick = new Date().getTime();
 
               // animationInProgress.current = false;
-
-              if (
-                clickTimer.current.firstClick - clickTimer.current.secondClick >
-                550
-              ) {
-                clearTimeout(intervalReturn.current);
-                intervalReturn.current = null;
-
-                intervalReturn.current = setTimeout(() => {
-                  clickTimer.current.firstClick = null;
-                  clickTimer.current.secondClick = null;
-                  console.log('animacion de 200...');
-                  for (const [
-                    ,
-                    dato
-                  ] of circleOne.current.classList.entries()) {
-                    circleOne.current.classList.remove(dato);
-                  }
-
-                  setStartCoffe(false);
-
-                  const currentStrokeDashValue = Math.round(
-                    (+getComputedStyle(circleOne.current)
-                      .strokeDasharray.split(',')[0]
-                      .replace('px', '') /
-                      circumference) *
-                      100
-                  );
-
-                  animationInProgress.current = false;
-
-                  if (ready.current) return;
-
-                  setPercentaje(() => {
-                    setAnimation((prev) => ({
-                      circlekey:
-                        prev.circlekey + 1 > 10 ? 0 : prev.circlekey + 1,
-                      titlekey: prev.titlekey + 1 > 30 ? 20 : prev.titlekey + 1,
-                      strokeDashValueInitial: currentStrokeDashValue,
-                      strokeDashValueEnd: 0,
-                      fillInitial: currentStrokeDashValue / 100,
-                      fillEnd: 0.0,
-                      titleOpacityInitial: 1,
-                      titleOpacityEnd: 0,
-                      timeFunc: 'ease-in',
-                      extraDelay: 0
-                    }));
-
-                    return 0;
-                  });
-                }, 200);
-              }
             } else {
               clickTimer.current.firstClick = clickTimer.current.secondClick;
               clickTimer.current.secondClick = new Date().getTime();
-
-              // animationInProgress.current = false;
-
-              clearTimeout(intervalReturn.current);
-              intervalReturn.current = null;
-
-              intervalReturn.current = setTimeout(() => {
-                clickTimer.current.firstClick = null;
-                clickTimer.current.secondClick = null;
-                console.log('animacion de 200...');
-                for (const [, dato] of circleOne.current.classList.entries()) {
-                  circleOne.current.classList.remove(dato);
-                }
-
-                setStartCoffe(false);
-
-                const currentStrokeDashValue = Math.round(
-                  (+getComputedStyle(circleOne.current)
-                    .strokeDasharray.split(',')[0]
-                    .replace('px', '') /
-                    circumference) *
-                    100
-                );
-
-                animationInProgress.current = false;
-
-                if (ready.current) return;
-
-                setPercentaje(() => {
-                  setAnimation((prev) => ({
-                    circlekey: prev.circlekey + 1 > 10 ? 0 : prev.circlekey + 1,
-                    titlekey: prev.titlekey + 1 > 30 ? 20 : prev.titlekey + 1,
-                    strokeDashValueInitial: currentStrokeDashValue,
-                    strokeDashValueEnd: 0,
-                    fillInitial: currentStrokeDashValue / 100,
-                    fillEnd: 0.0,
-                    titleOpacityInitial: 1,
-                    titleOpacityEnd: 0,
-                    timeFunc: 'ease-in',
-                    extraDelay: 0
-                  }));
-
-                  return 0;
-                });
-              }, 200);
             }
+
+            clearTimeout(intervalReturn.current);
+            intervalReturn.current = null;
+
+            intervalReturn.current = setTimeout(() => {
+              clickTimer.current.firstClick = null;
+              clickTimer.current.secondClick = null;
+              console.log('animacion de 200...');
+              for (const [, dato] of circleOne.current.classList.entries()) {
+                circleOne.current.classList.remove(dato);
+              }
+
+              setStartCoffe(false);
+
+              const currentStrokeDashValue = Math.round(
+                (+getComputedStyle(circleOne.current)
+                  .strokeDasharray.split(',')[0]
+                  .replace('px', '') /
+                  circumference) *
+                  100
+              );
+
+              animationInProgress.current = false;
+
+              if (ready.current) return;
+
+              setPercentaje(() => {
+                setAnimation((prev) => ({
+                  circlekey: prev.circlekey + 1 > 10 ? 0 : prev.circlekey + 1,
+                  titlekey: prev.titlekey + 1 > 30 ? 20 : prev.titlekey + 1,
+                  strokeDashValueInitial: currentStrokeDashValue,
+                  strokeDashValueEnd: 0,
+                  fillInitial: currentStrokeDashValue / 100,
+                  fillEnd: 0.0,
+                  titleOpacityInitial: 1,
+                  titleOpacityEnd: 0,
+                  timeFunc: 'ease-in',
+                  extraDelay: 0
+                }));
+
+                return 0;
+              });
+            }, 200);
 
             circleOne.current = document.getElementById(
               'bar'
@@ -645,6 +553,184 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     dispatch(setWaitingForAction(false));
   }, []);
 
+  const handleClick = () => {
+    console.log('CLICK>>>>>>>>>>>');
+    switch (option.screen) {
+      case 'HOME': {
+        if (ready.current) return;
+
+        const extra = !clickTimer.current.firstClick;
+
+        if (!clickTimer.current.firstClick) {
+          clickTimer.current.firstClick = new Date().getTime();
+        } else if (!clickTimer.current.secondClick) {
+          clickTimer.current.secondClick = new Date().getTime();
+
+          // animationInProgress.current = false;
+        } else {
+          clickTimer.current.firstClick = clickTimer.current.secondClick;
+          clickTimer.current.secondClick = new Date().getTime();
+        }
+
+        clearTimeout(intervalReturn.current);
+        intervalReturn.current = null;
+
+        intervalReturn.current = setTimeout(() => {
+          clickTimer.current.firstClick = null;
+          clickTimer.current.secondClick = null;
+          console.log('animacion de 200...');
+          for (const [, dato] of circleOne.current.classList.entries()) {
+            circleOne.current.classList.remove(dato);
+          }
+
+          setStartCoffe(false);
+
+          const currentStrokeDashValue = Math.round(
+            (+getComputedStyle(circleOne.current)
+              .strokeDasharray.split(',')[0]
+              .replace('px', '') /
+              circumference) *
+              100
+          );
+
+          animationInProgress.current = false;
+
+          if (ready.current) return;
+
+          setPercentaje(() => {
+            setAnimation((prev) => ({
+              circlekey: prev.circlekey + 1 > 10 ? 0 : prev.circlekey + 1,
+              titlekey: prev.titlekey + 1 > 30 ? 20 : prev.titlekey + 1,
+              strokeDashValueInitial: currentStrokeDashValue,
+              strokeDashValueEnd: 0,
+              fillInitial: currentStrokeDashValue / 100,
+              fillEnd: 0.0,
+              titleOpacityInitial: 1,
+              titleOpacityEnd: 0,
+              timeFunc: 'ease-in',
+              extraDelay: 0
+            }));
+
+            return 0;
+          });
+        }, 200);
+
+        circleOne.current = document.getElementById(
+          'bar'
+        ) as unknown as SVGCircleElement;
+
+        // clearTimeout(intervalReturn.current);
+        // intervalReturn.current = null
+
+        circleOne.current.onanimationend = () => {
+          setStartCoffe(true);
+        };
+
+        const currentStrokeDashValue = Math.round(
+          (+getComputedStyle(circleOne.current)
+            .strokeDasharray.split(',')[0]
+            .replace('px', '') /
+            circumference) *
+            100
+        );
+
+        return setPercentaje((prev) => {
+          if (!animationInProgress.current) {
+            // for (const [
+            //   ,
+            //   classStyle
+            // ] of circleOne.current.classList.entries()) {
+            //   circleOne.current.classList.remove(classStyle);
+            // }
+            setAnimation((prev2) => ({
+              circlekey: prev2.circlekey + 1 > 10 ? 0 : prev2.circlekey + 1,
+              titlekey: prev2.titlekey + 1 > 30 ? 20 : prev2.titlekey + 1,
+              strokeDashValueInitial:
+                prev === 0 && currentStrokeDashValue > 0
+                  ? currentStrokeDashValue
+                  : Math.min(prev + 1, 99),
+              strokeDashValueEnd: 100,
+              fillInitial: currentStrokeDashValue / 100,
+              fillEnd: 0.7,
+              titleOpacityEnd: 0,
+              titleOpacityInitial: 0,
+              timeFunc: 'ease-in',
+              extraDelay: extra ? 500 : 0
+            }));
+          }
+
+          animationInProgress.current = true;
+
+          return prev === 0 && currentStrokeDashValue > 0
+            ? currentStrokeDashValue
+            : prev + 1;
+        });
+      }
+      case 'PRESSETS': {
+        if (presets.activeIndexSwiper === presets.value.length) {
+          if (navigationTitleExistValidation()) {
+            navigationTitleRef.current.classList.add('title-bottom');
+          }
+          return dispatch(addPresetNewOne());
+        }
+
+        if (
+          pressetSwiper &&
+          pressetSwiper.pagination &&
+          pressetSwiper.pagination.el
+        ) {
+          pressetSwiper.pagination.el.classList.add('bullet-hidden');
+        }
+
+        setOption({
+          screen: 'HOME',
+          animating: true
+        });
+
+        if (pressetTitleContenExistValidation()) {
+          pressetsTitleContentRef.current.classList.remove(
+            'animation-pressets-content-bottom'
+          );
+          pressetsTitleContentRef.current.classList.remove(
+            'animation-pressets-content-top'
+          );
+          pressetsTitleContentRef.current.classList.add(
+            'animation-pressets-content-top'
+          );
+        }
+
+        handleRemoveOpacityTitleActive(pressetTitleSwiper);
+        handleAddOpacityTitleInactive(pressetTitleSwiper);
+
+        clearSlides(pressetSwiper);
+        clearSlides(pressetTitleSwiper);
+
+        handleAddIncreseAnimation(pressetSwiper);
+
+        handleAddLeaveAnimation(pressetSwiper);
+        handleAddLeaveAnimation(pressetTitleSwiper);
+
+        setTimeout(() => {
+          setOption((prev) => ({
+            ...prev,
+            animating: false
+          }));
+        }, 300);
+        break;
+      }
+      default:
+        break;
+    }
+  };
+
+  useEffect(() => {
+    const removeListenerUp = clickAndHold(btnUpRef.current);
+
+    return () => {
+      removeListenerUp();
+    };
+  }, []);
+
   return (
     <div className="preset-wrapper">
       <div className="cicle-container">
@@ -683,6 +769,11 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               />
             )}
           </svg>
+          <div className="buttons">
+            <button ref={btnUpRef as any} onClick={handleClick}>
+              Button
+            </button>
+          </div>
         </div>
       </div>
       {presets.defaultPresetIndex > -1 && (

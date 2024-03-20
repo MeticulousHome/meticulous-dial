@@ -1,9 +1,8 @@
-@import  '../../navigation/navigation.less';
+@import '../../navigation/navigation.less';
 
 .spring-interpolate-keyframes(@property, @from, @to) {
   .spring-interpolate-keyframes(@property, @from, @to, 1, 51, 10);
 }
-
 
 .spring-interpolate-keyframes(@property, @from, @to, @mass, @stiffness, @damping) {
   each(range(0, 100), {
@@ -176,7 +175,7 @@
 @keyframes pressets-left-leave {
   // .spring-interpolate-keyframes(translate-x, 0%, -100%);
   // .spring-interpolate-keyframes(translate-y, 0%, -10%);
-  .spring-interpolate-keyframes-pressets(0%, -50%, 0%, -30%)
+  .spring-interpolate-keyframes-pressets(0%, -50%, 0%, -30%);
 }
 
 .animation-pressets-left-leave {
@@ -186,7 +185,7 @@
 @keyframes pressets-left-enter {
   // .spring-interpolate-keyframes(translate-x, -100%, 0%);
   // .spring-interpolate-keyframes(translate-y, -10%, 0%);
-  .spring-interpolate-keyframes-pressets(-100%, 0%, -70%, 0%)
+  .spring-interpolate-keyframes-pressets(-100%, 0%, -70%, 0%);
 }
 
 .animation-pressets-left-enter {
@@ -196,7 +195,7 @@
 @keyframes pressets-right-enter {
   // .spring-interpolate-keyframes(translate-x, 100%, 0%);
   // .spring-interpolate-keyframes(translate-y, -10%, 0%);
-  .spring-interpolate-keyframes-pressets(100%, 0%, -70%, 0%)
+  .spring-interpolate-keyframes-pressets(100%, 0%, -70%, 0%);
 }
 
 .animation-pressets-right-enter {
@@ -206,7 +205,7 @@
 @keyframes pressets-right-leave {
   // .spring-interpolate-keyframes(translate-x, 0%, 100%);
   // .spring-interpolate-keyframes(translate-y, 0%, -10%);
-  .spring-interpolate-keyframes-pressets(0%, 50%, 0%, -30%)
+  .spring-interpolate-keyframes-pressets(0%, 50%, 0%, -30%);
 }
 
 .animation-pressets-right-leave {
@@ -309,7 +308,6 @@
   80% {
     top: 108px;
     opacity: 0;
-
   }
   90% {
     top: 107px;
@@ -344,9 +342,8 @@
   opacity: 0;
 }
 
-
-.fade-in-title(){
-  0%{
+.fade-in-title() {
+  0% {
     opacity: 0;
   }
   70% {
@@ -366,8 +363,8 @@
   animation: titleOpacityOne 280ms forwards;
 }
 
-.fade-out-title(){
-  0%{
+.fade-out-title() {
+  0% {
     opacity: 1;
   }
   50% {
@@ -376,7 +373,7 @@
   60% {
     opacity: 0;
   }
-  100%{
+  100% {
     opacity: 0;
   }
 }
@@ -452,7 +449,6 @@
   animation: pressets-title-content-bottom 280ms forwards;
 }
 
-
 @keyframes presset-selected-decrese {
   .spring-interpolate-keyframes(scale, 1.36, 1);
 }
@@ -483,7 +479,7 @@
 
 #svg circle {
   stroke-dashoffset: 0;
-  transition: stroke-dashoffset .1s linear;
+  transition: stroke-dashoffset 0.1s linear;
   stroke-width: 5;
 }
 #svg #bar {
@@ -497,4 +493,11 @@
   bottom: 0;
   top: 0;
   z-index: 55 !important;
+}
+
+.buttons {
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 99;
 }
