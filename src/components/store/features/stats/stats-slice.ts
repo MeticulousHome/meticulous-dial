@@ -10,7 +10,8 @@ const initialState: ISensorData = {
     t: '0'
   },
   time: '0',
-  profile: undefined
+  profile: undefined,
+  waterStatus: false
 };
 
 const statsSlice = createSlice({
@@ -23,10 +24,17 @@ const statsSlice = createSlice({
     ) => {
       state = action.payload;
       return state;
+    },
+    setWaterStatus: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<boolean>
+    ) => {
+      state.waterStatus = action.payload;
+      return state;
     }
   }
 });
 
-export const { setStats } = statsSlice.actions;
+export const { setStats, setWaterStatus } = statsSlice.actions;
 
 export default statsSlice.reducer;
