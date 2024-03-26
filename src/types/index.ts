@@ -56,6 +56,7 @@ export interface ISensorData {
     f: string; // Flow - ml/s
   };
   profile: string;
+  waterStatus: boolean;
 }
 
 export interface IPreset {
