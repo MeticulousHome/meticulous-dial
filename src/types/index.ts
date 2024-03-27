@@ -42,13 +42,16 @@ export type GestureType =
   | 'context'
   | 'start'
   | 'longTare'
-  | 'longEncoder';
+  | 'longEncoder'
+  | 'pressDown'
+  | 'pressUp';
 
 export type IPresetSettings = string[];
 
 export interface ISensorData {
   time: string;
   name: StageType;
+  waitingForActionAlreadySent: boolean;
   sensors: {
     p: string; // Pressure - Bars
     t: string; // Temperature - degrees celsius
