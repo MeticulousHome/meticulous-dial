@@ -12,8 +12,13 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { WifiSettings } from '../Wifi/WifiSettings';
 import { Settings } from '../Settings/Settings';
 import { QuickPreheat } from '../Preheat/Preheat';
+import { resetActiveSetting } from '../store/features/preset/preset-slice';
 
 const settings = [
+  {
+    key: 'Edit',
+    label: 'Edit profile'
+  },
   {
     key: 'home',
     label: 'home'
@@ -73,6 +78,12 @@ export function QuickSettings(): JSX.Element {
           case 'home': {
             socket.emit('action', 'home');
             dispatch(setScreen('pressets'));
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
+          case 'Edit': {
+            dispatch(resetActiveSetting());
+            dispatch(setScreen('pressetSettings'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
