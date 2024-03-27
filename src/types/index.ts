@@ -42,7 +42,9 @@ export type GestureType =
   | 'context'
   | 'start'
   | 'longTare'
-  | 'longEncoder';
+  | 'longEncoder'
+  | 'pressDown'
+  | 'pressUp';
 
 export type IPresetSettings = string[];
 

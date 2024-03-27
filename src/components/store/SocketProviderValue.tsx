@@ -59,7 +59,9 @@ export const SocketProviderValue = () => {
         ENCODER_LONG: 'longEncoder',
         TARE_DOUBLE: 'doubleTare',
         TARE_LONG: 'longTare',
-        CONTEXT: 'context'
+        CONTEXT: 'context',
+        ENCODER_PRESSED: 'pressDown',
+        ENCODER_RELEASED: 'pressUp'
       };
 
       const gesture = eventGestureMap[data.type];
@@ -81,7 +83,9 @@ const keyGestureMap: Record<string, GestureType> = {
   KeyS: 'longTare',
   KeyE: 'longEncoder',
   KeyD: 'doubleTare',
-  KeyX: 'doubleClick'
+  KeyX: 'doubleClick',
+  KeyB: 'pressDown',
+  KeyN: 'pressUp'
 };
 
 export const useSocketKeyboardListeners = () => {
