@@ -26,13 +26,43 @@ import {
   setPrevPreset
 } from '../store/features/preset/preset-slice';
 import { Title, RouteProps } from '../../navigation';
+// import { Pagination } from './Pagination';
 import '../../navigation/navigation.less';
 import { ProfileImage } from './ProfileImage';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { generateSimplePayload } from '../../utils/preheat';
 import { useSocket } from '../store/SocketManager';
 import { KIND_PROFILE, LCD_EVENT_EMIT } from '../../constants';
-import { fetchSettigns } from '../store/features/settings/settings-slice';
+import { circumference, getDashArray } from '../SettingNumerical/Gauge';
+import { setWaitingForAction } from '../store/features/stats/stats-slice';
+import { Circle, radius, transform } from './Circle';
+import { TitleCircle } from './Title';
+
+interface AnimationData {
+  circlekey: number;
+  titlekey: number;
+  strokeDashValueInitial: number;
+  strokeDashValueEnd: number;
+  fillInitial: number;
+  fillEnd: number;
+  titleOpacityInitial: number;
+  titleOpacityEnd: number;
+  timeFunc: 'linear' | 'ease-in';
+  extraDelay: number;
+}
+
+const initialValue: AnimationData = {
+  circlekey: 1,
+  titlekey: 20,
+  strokeDashValueInitial: 0,
+  strokeDashValueEnd: 0,
+  fillInitial: 0.0,
+  fillEnd: 0.0,
+  titleOpacityEnd: 0,
+  titleOpacityInitial: 0,
+  timeFunc: 'linear' as 'linear' | 'ease-in',
+  extraDelay: 500
+};
 
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const socket = useSocket();
@@ -42,6 +72,11 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const [pressetSwiper, setPressetsSwiper] = useState<SwiperS | null>(null);
   const [pressetTitleSwiper, setPressetTitleSwiper] = useState(null);
   const titleSwiperRef = useRef<SwiperRef | null>(null);
+  const circleOne = useRef<SVGCircleElement>(null);
+  const animationInProgress = useRef(false);
+
+  const [animation, setAnimation] = useState<AnimationData>(initialValue);
+
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [option, setOption] = useState<{
     screen: 'HOME' | 'PRESSETS';
@@ -54,6 +89,9 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const navigationTitleParentRef = useRef<HTMLDivElement | null>(null);
   const navigationTitleRef = useRef<HTMLDivElement | null>(null);
   const pressetsTitleContentRef = useRef<HTMLDivElement | null>(null);
+  const [percentaje, setPercentaje] = useState(0);
+  const [startCoffe, setStartCoffe] = useState(false);
+  const ready = useRef(false);
 
   const pressetTitleContenExistValidation = useCallback(() => {
     if (!pressetsTitleContentRef.current) {
@@ -107,60 +145,106 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
   useHandleGestures(
     {
-      click() {
+      pressDown() {
         switch (option.screen) {
           case 'HOME': {
-            switch (presets.activePreset.kind) {
-              case 'italian_1_0': {
-                const preset = {
-                  name: presets.activePreset.name,
-                  settings: (presets.activePreset?.settings || []).filter(
-                    (item) => item.id !== -1 && item.id !== -2
-                  )
-                };
+            if (ready.current) return;
 
-                if (preset.settings.length === 0) return;
+            circleOne.current = document.getElementById(
+              'bar'
+            ) as unknown as SVGCircleElement;
 
-                const payload = generateSimplePayload({
-                  presset: preset as any,
-                  action: 'to_play'
-                });
+            circleOne.current.onanimationend = () => {
+              setStartCoffe(true);
+            };
 
-                console.log(
-                  `${KIND_PROFILE.ITALIAN}:> ${JSON.stringify(payload)}`
-                );
+            const currentStrokeDashValue = Math.round(
+              (+getComputedStyle(circleOne.current)
+                .strokeDasharray.split(',')[0]
+                .replace('px', '') /
+                circumference) *
+                100
+            );
 
-                socket.emit(
-                  LCD_EVENT_EMIT.FEED_PROFILE,
-                  JSON.stringify(payload)
-                );
-                break;
+            return setPercentaje((prev) => {
+              if (!animationInProgress.current) {
+                console.log('update animation');
+                setAnimation((prev2) => ({
+                  circlekey: prev2.circlekey + 1 > 10 ? 0 : prev2.circlekey + 1,
+                  titlekey: prev2.titlekey + 1 > 30 ? 20 : prev2.titlekey + 1,
+                  strokeDashValueInitial:
+                    prev === 0 && currentStrokeDashValue > 0
+                      ? currentStrokeDashValue
+                      : Math.min(prev + 1, 99),
+                  strokeDashValueEnd: 100,
+                  fillInitial: currentStrokeDashValue / 100,
+                  fillEnd: 0.7,
+                  titleOpacityEnd: 0,
+                  titleOpacityInitial: 0,
+                  timeFunc: 'ease-in',
+                  extraDelay: 500
+                }));
               }
-              case 'dashboard_1_0': {
-                const preset = {
-                  ...(presets.activePreset as any).dashboard,
-                  name: presets.activePreset.name,
-                  source: 'lcd'
-                };
 
-                const payload = {
-                  ...preset,
-                  action: 'to_play'
-                };
+              animationInProgress.current = true;
 
-                console.log(
-                  `${KIND_PROFILE.DASHBOARD}:> ${JSON.stringify(payload)}`
-                );
+              return prev === 0 && currentStrokeDashValue > 0
+                ? currentStrokeDashValue
+                : prev + 1;
+            });
 
-                socket.emit(
-                  LCD_EVENT_EMIT.FEED_PROFILE,
-                  JSON.stringify(payload)
-                );
-                break;
-              }
-            }
             break;
           }
+
+          default:
+            break;
+        }
+      },
+      pressUp() {
+        switch (option.screen) {
+          case 'HOME': {
+            if (ready.current) return;
+
+            circleOne.current = document.getElementById(
+              'bar'
+            ) as unknown as SVGCircleElement;
+
+            setStartCoffe(false);
+
+            const currentStrokeDashValue = Math.round(
+              (+getComputedStyle(circleOne.current)
+                .strokeDasharray.split(',')[0]
+                .replace('px', '') /
+                circumference) *
+                100
+            );
+
+            setPercentaje(() => {
+              if (animationInProgress.current) {
+                setAnimation((prev) => ({
+                  circlekey: prev.circlekey + 1 > 10 ? 0 : prev.circlekey + 1,
+                  titlekey: prev.titlekey + 1 > 30 ? 20 : prev.titlekey + 1,
+                  strokeDashValueInitial: currentStrokeDashValue,
+                  strokeDashValueEnd: 0,
+                  fillInitial: currentStrokeDashValue / 100,
+                  fillEnd: 0.0,
+                  titleOpacityInitial: 1,
+                  titleOpacityEnd: 0,
+                  timeFunc: 'ease-in',
+                  extraDelay: 200
+                }));
+
+                animationInProgress.current = false;
+              }
+
+              return 0;
+            });
+            break;
+          }
+        }
+      },
+      click() {
+        switch (option.screen) {
           case 'PRESSETS': {
             if (presets.activeIndexSwiper === presets.value.length) {
               if (navigationTitleExistValidation()) {
@@ -222,6 +306,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           if (!option.animating && option.screen === 'PRESSETS') {
             dispatch(setNextPreset());
           } else {
+            setAnimation(initialValue);
+            setPercentaje(0);
+            animationInProgress.current = false;
+
             if (
               pressetSwiper &&
               pressetSwiper.pagination &&
@@ -273,6 +361,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           if (!option.animating && option.screen === 'PRESSETS') {
             dispatch(setPrevPreset());
           } else {
+            setAnimation(initialValue);
+            setPercentaje(0);
+            animationInProgress.current = false;
+
             if (
               pressetSwiper &&
               pressetSwiper.pagination &&
@@ -376,11 +468,110 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   }, [option.screen]);
 
   useEffect(() => {
-    dispatch(fetchSettigns());
-  }, [dispatch]);
+    circleOne.current = document.getElementById(
+      'bar'
+    ) as unknown as SVGCircleElement;
+
+    if (circleOne.current) {
+      if (percentaje > 0) {
+        circleOne.current.onanimationend = () => {
+          setStartCoffe(true);
+        };
+      }
+    }
+  }, [percentaje]);
+
+  useEffect(() => {
+    if (startCoffe) {
+      ready.current = true;
+      dispatch(setWaitingForAction(true));
+      switch (presets.activePreset.kind) {
+        case 'italian_1_0': {
+          const preset = {
+            name: presets.activePreset.name,
+            settings: (presets.activePreset?.settings || []).filter(
+              (item) => item.id !== -1 && item.id !== -2
+            )
+          };
+
+          if (preset.settings.length === 0) return;
+
+          const payload = generateSimplePayload({
+            presset: preset as any,
+            action: 'to_play'
+          });
+
+          console.log(`${KIND_PROFILE.ITALIAN}:> ${JSON.stringify(payload)}`);
+
+          socket.emit(LCD_EVENT_EMIT.FEED_PROFILE, JSON.stringify(payload));
+          break;
+        }
+        case 'dashboard_1_0': {
+          const preset = {
+            ...(presets.activePreset as any).dashboard,
+            name: presets.activePreset.name,
+            source: 'lcd'
+          };
+
+          const payload = {
+            ...preset,
+            action: 'to_play'
+          };
+
+          console.log(`${KIND_PROFILE.DASHBOARD}:> ${JSON.stringify(payload)}`);
+
+          socket.emit(LCD_EVENT_EMIT.FEED_PROFILE, JSON.stringify(payload));
+          break;
+        }
+      }
+      dispatch(setScreen('barometer'));
+    }
+  }, [startCoffe]);
+
+  useEffect(() => {
+    dispatch(setWaitingForAction(false));
+  }, []);
 
   return (
     <div className="preset-wrapper">
+      <div className="cicle-container">
+        <div
+          style={{
+            position: 'relative'
+          }}
+        >
+          <TitleCircle
+            key={animation.titlekey}
+            value1={animation.strokeDashValueInitial}
+            value2={animation.strokeDashValueEnd}
+            titleOpacityEnd={animation.titleOpacityEnd}
+            titleOpacityInitial={animation.titleOpacityInitial}
+          />
+          <svg id="svg" width="460" height="460" viewBox="-1 -2 480 480">
+            <circle
+              cx={radius}
+              cy={radius - 3}
+              r={radius}
+              fill="transparent"
+              strokeDasharray={getDashArray(0, 100)}
+              strokeDashoffset="0"
+              transform={transform}
+            ></circle>
+
+            {option.screen === 'HOME' && (
+              <Circle
+                key={animation.circlekey}
+                timeFunc={animation.timeFunc}
+                fillEnd={animation.fillEnd}
+                fillInitial={animation.fillInitial}
+                strokeInitialValue={animation.strokeDashValueInitial}
+                strokeEndValue={animation.strokeDashValueEnd}
+                extraDelay={animation.extraDelay}
+              />
+            )}
+          </svg>
+        </div>
+      </div>
       {presets.defaultPresetIndex > -1 && (
         <>
           <Swiper
@@ -444,9 +635,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             </SwiperSlide>
           </Swiper>
           <Swiper
-            style={{
-              display: option.screen === 'PRESSETS' ? 'title-opacity-zero' : ' '
-            }}
             onSwiper={setPressetTitleSwiper}
             slidesPerView={2.15}
             spaceBetween={79}

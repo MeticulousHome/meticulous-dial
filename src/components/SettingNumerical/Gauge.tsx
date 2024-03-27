@@ -3,7 +3,7 @@ import './gauge.css';
 
 const radius = 237;
 const strokeWidth = 3;
-const circumference = radius * 2 * Math.PI;
+export const circumference = radius * 2 * Math.PI;
 const transform = `rotate(90, ${radius}, ${radius})`;
 const minDigits = 3;
 
@@ -30,7 +30,7 @@ const formatValue = (value: number, precision: number) => {
   return { valueOnly, padded };
 };
 
-const getDashArray = (value: number, maxValue: number) => {
+export const getDashArray = (value: number, maxValue: number) => {
   const mI = (360 / maxValue) * (Math.min(value, maxValue) / 100);
   const fA = mI * 100;
   const marc = circumference * (fA / 360);
