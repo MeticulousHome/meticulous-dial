@@ -56,6 +56,8 @@ export function QuickSettings(): JSX.Element {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const stats = useAppSelector((state) => state.stats);
+  const { auto_preheat } = useAppSelector((state) => state.settings);
+  const [preheatValue, setPreheatValue] = useState<string>('');
 
   useHandleGestures(
     {
@@ -130,6 +132,10 @@ export function QuickSettings(): JSX.Element {
     }
   }, [activeIndex, swiper]);
 
+  useEffect(() => {
+    setPreheatValue(auto_preheat === 0 ? '' : `${auto_preheat}°C`);
+  }, [auto_preheat]);
+
   return (
     <div className="main-quick-settings">
       <Swiper
@@ -150,12 +156,11 @@ export function QuickSettings(): JSX.Element {
               className={`settings-item ${isActive ? 'active-setting' : ''}`}
               key={`option-${index}`}
             >
-              <div
-                style={{
-                  height: '30px !important'
-                }}
-              >
+              <div className="swiper-label">
                 {setting.label}
+                {setting.key === 'preheat' && (
+                  <div style={{ marginLeft: 10 }}>{preheatValue}</div>
+                )}
               </div>
             </SwiperSlide>
           );
