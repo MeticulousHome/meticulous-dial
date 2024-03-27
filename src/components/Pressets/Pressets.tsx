@@ -182,7 +182,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                   titleOpacityEnd: 0,
                   titleOpacityInitial: 0,
                   timeFunc: 'ease-in',
-                  extraDelay: 500
+                  extraDelay: 600
                 }));
               }
 
@@ -231,7 +231,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                   titleOpacityInitial: 1,
                   titleOpacityEnd: 0,
                   timeFunc: 'ease-in',
-                  extraDelay: 200
+                  extraDelay: 100
                 }));
 
                 animationInProgress.current = false;
