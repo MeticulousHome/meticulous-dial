@@ -79,3 +79,9 @@
   position: relative;
   animation: leftright 6s infinite alternate ease-in-out;
 }
+
+.swiper-label {
+  height: 30px !important;
+  display: flex;
+  flex-direction: row;
+}

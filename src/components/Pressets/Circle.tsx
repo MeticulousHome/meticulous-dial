@@ -30,7 +30,7 @@ export const Circle = React.memo(
       (strokeEndValue > 0
         ? strokeEndValue - strokeInitialValue
         : strokeInitialValue - strokeEndValue) *
-        3 +
+        (extraDelay === 100 ? 12 : 3) +
       extraDelay;
 
     const stroke = keyframes`
