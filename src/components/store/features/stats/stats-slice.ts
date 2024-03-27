@@ -25,6 +25,7 @@ const statsSlice = createSlice({
     ) => {
       state = {
         ...action.payload,
+        waterStatus: state.waterStatus,
         waitingForActionAlreadySent: state.waitingForActionAlreadySent
       };
       return state;
