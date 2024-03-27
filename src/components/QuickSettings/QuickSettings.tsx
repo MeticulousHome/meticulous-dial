@@ -50,6 +50,7 @@ export function QuickSettings(): JSX.Element {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const stats = useAppSelector((state) => state.stats);
 
   useHandleGestures(
     {
@@ -109,7 +110,7 @@ export function QuickSettings(): JSX.Element {
         }
       }
     },
-    !bubbleDisplay.visible
+    !bubbleDisplay.visible || stats.waitingForActionAlreadySent
   );
 
   useEffect(() => {

@@ -3,13 +3,14 @@ import { useEffect } from 'react';
 import './barometer.css';
 import { formatStatValue } from '../../utils';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { generateSimplePayload } from '../../utils/preheat';
-import { useSocket } from '../store/SocketManager';
+// import { useHandleGestures } from '../../hooks/useHandleGestures';
+// import { generateSimplePayload } from '../../utils/preheat';
+// import { useSocket } from '../store/SocketManager';
 import { setScreen } from '../store/features/screens/screens-slice';
-import { resetActiveSetting } from '../store/features/preset/preset-slice';
+// import { resetActiveSetting } from '../store/features/preset/preset-slice';
 import { Meter } from './Meter';
-import { KIND_PROFILE, LCD_EVENT_EMIT } from '../../constants';
+import { setWaitingForAction } from '../store/features/stats/stats-slice';
+// import { KIND_PROFILE, LCD_EVENT_EMIT } from '../../constants';
 
 export interface IBarometerProps {
   maxValue?: number;
@@ -17,73 +18,79 @@ export interface IBarometerProps {
 
 export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
   const stats = useAppSelector((state) => state.stats);
-  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const presets = useAppSelector((state) => state.presets);
-  const socket = useSocket();
+  // const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  // const presets = useAppSelector((state) => state.presets);
+  // const socket = useSocket();
   const dispatch = useAppDispatch();
 
-  useHandleGestures(
-    {
-      start() {
-        switch (presets.activePreset.kind) {
-          case 'italian_1_0': {
-            const preset = {
-              name: presets.activePreset.name,
-              settings: (presets.activePreset?.settings || []).filter(
-                (item) => item.id !== -1 && item.id !== -2
-              )
-            };
+  // useHandleGestures(
+  //   {
+  //     start() {
+  //       switch (presets.activePreset.kind) {
+  //         case 'italian_1_0': {
+  //           const preset = {
+  //             name: presets.activePreset.name,
+  //             settings: (presets.activePreset?.settings || []).filter(
+  //               (item) => item.id !== -1 && item.id !== -2
+  //             )
+  //           };
 
-            if (preset.settings.length === 0) return;
+  //           if (preset.settings.length === 0) return;
 
-            const payload = generateSimplePayload({
-              presset: preset as any,
-              action: 'to_play'
-            });
+  //           const payload = generateSimplePayload({
+  //             presset: preset as any,
+  //             action: 'to_play'
+  //           });
 
-            console.log(`${KIND_PROFILE.ITALIAN}:> ${JSON.stringify(payload)}`);
+  //           console.log(`${KIND_PROFILE.ITALIAN}:> ${JSON.stringify(payload)}`);
 
-            socket.emit(LCD_EVENT_EMIT.FEED_PROFILE, JSON.stringify(payload));
-            break;
-          }
-          case 'dashboard_1_0': {
-            const preset = {
-              ...(presets.activePreset as any).dashboard,
-              name: presets.activePreset.name,
-              source: 'lcd'
-            };
+  //           socket.emit(LCD_EVENT_EMIT.FEED_PROFILE, JSON.stringify(payload));
+  //           break;
+  //         }
+  //         case 'dashboard_1_0': {
+  //           const preset = {
+  //             ...(presets.activePreset as any).dashboard,
+  //             name: presets.activePreset.name,
+  //             source: 'lcd'
+  //           };
 
-            const payload = {
-              ...preset,
-              action: 'to_play'
-            };
+  //           const payload = {
+  //             ...preset,
+  //             action: 'to_play'
+  //           };
 
-            console.log(
-              `${KIND_PROFILE.DASHBOARD}:> ${JSON.stringify(payload)}`
-            );
+  //           console.log(
+  //             `${KIND_PROFILE.DASHBOARD}:> ${JSON.stringify(payload)}`
+  //           );
 
-            socket.emit(LCD_EVENT_EMIT.FEED_PROFILE, JSON.stringify(payload));
-            break;
-          }
-        }
-      },
-      click() {
-        dispatch(resetActiveSetting());
-        dispatch(setScreen('pressetSettings'));
-      },
-      left() {
-        dispatch(setScreen('pressets'));
-      },
-      right() {
-        dispatch(setScreen('pressets'));
-      }
-    },
-    stats?.name !== 'idle' || bubbleDisplay.visible
-  );
+  //           socket.emit(LCD_EVENT_EMIT.FEED_PROFILE, JSON.stringify(payload));
+  //           break;
+  //         }
+  //       }
+  //     },
+  //     click() {
+  //       dispatch(resetActiveSetting());
+  //       dispatch(setScreen('pressetSettings'));
+  //     },
+  //     left() {
+  //       dispatch(setScreen('pressets'));
+  //     },
+  //     right() {
+  //       dispatch(setScreen('pressets'));
+  //     }
+  //   },
+  //   stats?.name !== 'idle' || bubbleDisplay.visible
+  // );
 
   useEffect(() => {
-    if (stats.name === 'idle') {
+    if (stats.name === 'idle' && !stats.waitingForActionAlreadySent) {
       dispatch(setScreen('pressets'));
+    }
+  }, [stats.name, stats.waitingForActionAlreadySent]);
+
+  useEffect(() => {
+    if (stats.name !== 'idle') {
+      dispatch(setWaitingForAction(false));
     }
   }, [stats.name]);
 
