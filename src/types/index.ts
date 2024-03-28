@@ -214,6 +214,7 @@ export type ISettingType =
 
 type SettingsKeys = 'key' | 'value';
 export interface PressetSettings {
+  id: string;
   name: string;
   settings: Record<SettingsKeys, string | number>[];
 }

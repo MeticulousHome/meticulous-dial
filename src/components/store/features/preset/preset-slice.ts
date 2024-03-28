@@ -394,6 +394,7 @@ export const savePreset = createAsyncThunk(
       settings: [...updateSetting.settings]
     };
     presetState.value = [...copyListPresets];
+
     await Profile.save(presetState.activePreset);
 
     dispatch(

@@ -143,6 +143,11 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     }
   }, []);
 
+  const loadProfile = useCallback(async (payload: Record<string, any>) => {
+    const res = await ProfileApi.loadDataProfile(payload);
+    if (res?.data) await ProfileApi.start();
+  }, []);
+
   useHandleGestures(
     {
       pressDown() {
@@ -497,13 +502,13 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           if (preset.settings.length === 0) return;
 
           const payload = generateSimplePayload({
-            presset: preset as any,
-            action: 'to_play'
+            presset: preset as any
           });
 
           console.log(`${KIND_PROFILE.ITALIAN}:> ${JSON.stringify(payload)}`);
 
-          socket.emit(LCD_EVENT_EMIT.FEED_PROFILE, JSON.stringify(payload));
+          // socket.emit(LCD_EVENT_EMIT.FEED_PROFILE, JSON.stringify(payload));
+          loadProfile(payload);
           break;
         }
         case 'dashboard_1_0': {

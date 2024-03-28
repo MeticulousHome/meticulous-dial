@@ -53,6 +53,14 @@ class Profile extends Api implements ProfileImplementation {
       console.log(error);
     }
   }
+
+  async start(): Promise<AxiosResponse> {
+    try {
+      return await this._axios.get('/action/start');
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }
 
 export default new Profile();
