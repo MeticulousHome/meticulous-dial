@@ -6,14 +6,9 @@ import { Transitioner } from './Transitioner';
 import { memo } from 'react';
 import { useAppSelector } from '../components/store/hooks';
 import Bubble from '../../src/components/Bubble/Bubble';
+import { memoizedRoutes } from '../../src/utils';
 
 const routeKeys = Object.keys(routes);
-const memoizedRoutes = Object.fromEntries(
-  Object.entries(routes).map(([key, { component, ...route }]) => [
-    key,
-    { ...route, component: memo(component) }
-  ])
-);
 
 export interface RouteProps {
   transitioning: boolean;

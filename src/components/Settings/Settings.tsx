@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-
 import './settings.css';
 import '../PressetSettings/pressetSettings.css';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
-import { QuickSettings } from '../QuickSettings/QuickSettings';
 import {
   UserSettingsKeys,
   updateItemSetting,
@@ -59,13 +57,13 @@ export function Settings(): JSX.Element {
           case 'save': {
             dispatch(updateSettings(globalSettings));
             dispatch(
-              setBubbleDisplay({ visible: true, component: QuickSettings })
+              setBubbleDisplay({ visible: true, component: 'quick-settings' })
             );
             break;
           }
           case 'back':
             dispatch(
-              setBubbleDisplay({ visible: true, component: QuickSettings })
+              setBubbleDisplay({ visible: true, component: 'quick-settings' })
             );
             break;
           default: {

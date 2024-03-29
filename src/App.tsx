@@ -15,7 +15,6 @@ import {
 import { Router } from './navigation/Router';
 import { notificationSelector } from './components/store/features/notifications/notification-slice';
 import { durationAnimation } from './navigation/Transitioner';
-import { QuickSettings } from './components/QuickSettings/QuickSettings';
 import { useSocketKeyboardListeners } from './components/store/SocketProviderValue';
 
 const App = (): JSX.Element => {
@@ -69,7 +68,7 @@ const App = (): JSX.Element => {
         dispatch(
           setBubbleDisplay({
             visible: !bubbleDisplay.visible,
-            component: QuickSettings
+            component: 'quick-settings'
           })
         );
       }

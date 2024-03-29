@@ -1,3 +1,4 @@
+import { memoizedRoutes } from '../../../src/utils';
 import { useAppSelector } from '../store/hooks';
 import './bubble.less';
 
@@ -6,6 +7,7 @@ const animationStyle = { animationDuration: `${durationAnimation / 1000}s` };
 
 export default function Bubble() {
   const Bubble = useAppSelector((state) => state.screen.bubbleDisplay);
+  const route = memoizedRoutes[Bubble.component];
   if (!Bubble || !Bubble.component) return <></>;
 
   return (
@@ -18,7 +20,7 @@ export default function Bubble() {
       style={animationStyle}
     >
       <div className="bubble-container">
-        <Bubble.component />
+        <route.component />
       </div>
     </div>
   );

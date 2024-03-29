@@ -4,12 +4,9 @@ import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { getConfig as getWifiConfig } from '../store/features/wifi/wifi-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-
 import { backendURL } from '../../api/wifi';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { WifiMode } from '../../types';
 import { QrImage } from './QrImage';
-import { WifiSettings } from './WifiSettings';
 import './wifiDetails.css';
 import { marqueeIfNeeded } from '../shared/MarqueeValue';
 
@@ -30,9 +27,6 @@ export const WifiDetails = (): JSX.Element => {
     (state) => state.wifi
   );
 
-  const isWifiConnected = wifiStatus?.connected;
-  const isApMode = isWifiConnected && networkConfig?.mode === WifiMode.AP;
-
   useEffect(() => {
     dispatch(getWifiConfig());
   }, []);
@@ -48,7 +42,7 @@ export const WifiDetails = (): JSX.Element => {
       switch (items[activeIndex].key) {
         case 'back':
           dispatch(
-            setBubbleDisplay({ visible: true, component: WifiSettings })
+            setBubbleDisplay({ visible: true, component: 'wifiSettings' })
           );
           break;
 

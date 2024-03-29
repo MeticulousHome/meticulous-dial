@@ -4,7 +4,6 @@ import { useHandleGestures } from '../../../src/hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { Gauge } from '../SettingNumerical/Gauge';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
-import { QuickSettings } from '../QuickSettings/QuickSettings';
 import { roundPrecision } from '../../../src/utils';
 import { updateSettings } from '../store/features/settings/settings-slice';
 
@@ -70,7 +69,9 @@ export function QuickPreheat(): JSX.Element {
     },
     click() {
       if (activeIndex === 2) {
-        dispatch(setBubbleDisplay({ visible: true, component: QuickSettings }));
+        dispatch(
+          setBubbleDisplay({ visible: true, component: 'quick-settings' })
+        );
         updatePreheat();
       }
 

@@ -11,7 +11,6 @@ import {
   setBubbleDisplay,
   setScreen
 } from '../store/features/screens/screens-slice';
-import { ConnectWifiMenu } from './ConnectWifiMenu';
 
 export const SelectWifi = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -29,7 +28,7 @@ export const SelectWifi = (): JSX.Element => {
     click() {
       if (activeIndex >= wifiList.length) {
         dispatch(
-          setBubbleDisplay({ visible: true, component: ConnectWifiMenu })
+          setBubbleDisplay({ visible: true, component: 'connectWifiMenu' })
         );
       } else {
         dispatch(setBubbleDisplay({ visible: false, component: null }));

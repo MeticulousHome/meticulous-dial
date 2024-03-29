@@ -1,3 +1,5 @@
+import { memo } from 'react';
+import { routes } from '../../src/navigation/routes';
 import { IPresetsSettingData } from '../../src/types';
 
 const regex = /^-?[0-9]+$/;
@@ -70,3 +72,10 @@ export const mergeSettings = (currentJson: string, defaultJson: string) => {
 
   return JSON.stringify(mSettings);
 };
+
+export const memoizedRoutes = Object.fromEntries(
+  Object.entries(routes).map(([key, { component, ...route }]) => [
+    key,
+    { ...route, component: memo(component) }
+  ])
+);

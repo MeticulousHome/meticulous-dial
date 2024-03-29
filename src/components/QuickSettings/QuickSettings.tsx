@@ -9,14 +9,11 @@ import {
 } from '../store/features/screens/screens-slice';
 import { useSocket } from '../store/SocketManager';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { WifiSettings } from '../Wifi/WifiSettings';
-import { Settings } from '../Settings/Settings';
-import { QuickPreheat } from '../Preheat/Preheat';
 import { resetActiveSetting } from '../store/features/preset/preset-slice';
 
-const settings = [
+const defaultSettings = [
   {
-    key: 'Edit',
+    key: 'edit',
     label: 'Edit profile'
   },
   {
@@ -47,7 +44,7 @@ const settings = [
     key: 'exit',
     label: 'exit'
   }
-] as const;
+];
 
 export function QuickSettings(): JSX.Element {
   const socket = useSocket();
@@ -58,6 +55,9 @@ export function QuickSettings(): JSX.Element {
   const stats = useAppSelector((state) => state.stats);
   const { auto_preheat } = useAppSelector((state) => state.settings);
   const [preheatValue, setPreheatValue] = useState<string>('');
+  const [settings, setSettings] = useState(defaultSettings);
+  const pressets = useAppSelector((state) => state.presets);
+  const currentScreen = useAppSelector((state) => state.screen.value);
 
   useHandleGestures(
     {
@@ -65,7 +65,7 @@ export function QuickSettings(): JSX.Element {
         dispatch(
           setBubbleDisplay({
             visible: !bubbleDisplay.visible,
-            component: QuickSettings
+            component: 'quick-settings'
           })
         );
       },
@@ -83,7 +83,7 @@ export function QuickSettings(): JSX.Element {
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
-          case 'Edit': {
+          case 'edit': {
             dispatch(resetActiveSetting());
             dispatch(setScreen('pressetSettings'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
@@ -96,7 +96,7 @@ export function QuickSettings(): JSX.Element {
           }
           case 'preheat': {
             dispatch(
-              setBubbleDisplay({ visible: true, component: QuickPreheat })
+              setBubbleDisplay({ visible: true, component: 'quick-preheat' })
             );
             break;
           }
@@ -107,12 +107,14 @@ export function QuickSettings(): JSX.Element {
           }
           case 'wifi': {
             dispatch(
-              setBubbleDisplay({ visible: true, component: WifiSettings })
+              setBubbleDisplay({ visible: true, component: 'wifiSettings' })
             );
             break;
           }
           case 'config': {
-            dispatch(setBubbleDisplay({ visible: true, component: Settings }));
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'settings' })
+            );
             break;
           }
 
@@ -125,6 +127,12 @@ export function QuickSettings(): JSX.Element {
     },
     !bubbleDisplay.visible || stats.waitingForActionAlreadySent
   );
+
+  useEffect(() => {
+    if (pressets.option !== 'HOME' || currentScreen === 'pressetSettings') {
+      setSettings(defaultSettings.filter((item) => item.key !== 'edit'));
+    }
+  }, [pressets, currentScreen]);
 
   useEffect(() => {
     if (swiper) {
