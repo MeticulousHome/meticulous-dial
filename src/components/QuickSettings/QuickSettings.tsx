@@ -164,11 +164,8 @@ export function QuickSettings(): JSX.Element {
               className={`settings-item ${isActive ? 'active-setting' : ''}`}
               key={`option-${index}`}
             >
-              <div className="swiper-label">
-                {setting.label}
-                {setting.key === 'preheat' && (
-                  <div style={{ marginLeft: 10 }}>{preheatValue}</div>
-                )}
+              <div>
+                {setting.label} {setting.key === 'preheat' && preheatValue}
               </div>
             </SwiperSlide>
           );
