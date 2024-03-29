@@ -62,6 +62,7 @@ export function QuickSettings(): JSX.Element {
   useHandleGestures(
     {
       context() {
+        setActiveIndex(0);
         dispatch(
           setBubbleDisplay({
             visible: !bubbleDisplay.visible,
