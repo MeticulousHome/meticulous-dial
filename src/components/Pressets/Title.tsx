@@ -1,5 +1,5 @@
 import React from 'react';
-import styled, { css, keyframes } from 'styled-components';
+import styledComponents, { css, keyframes } from 'styled-components';
 
 export const TitleCircle = React.memo(
   ({
@@ -39,7 +39,7 @@ export const TitleCircle = React.memo(
       ${fade} ${timeTotal}ms linear forwards
     `;
 
-    const Title = styled.h1`
+    const Title = styledComponents.h1`
       animation: ${fadeAnimation};
     `;
 

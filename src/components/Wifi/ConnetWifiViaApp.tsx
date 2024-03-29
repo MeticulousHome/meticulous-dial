@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useAppDispatch } from '../store/hooks';
-import { ConnectWifiMenu } from './ConnectWifiMenu';
 
 import './connectWifiViaApp.css';
 import './wifiDetails.css';
@@ -27,7 +25,7 @@ export const ConnectWifiViaApp = (): JSX.Element => {
       switch (items[activeIndex].key) {
         case 'back':
           dispatch(
-            setBubbleDisplay({ visible: true, component: ConnectWifiMenu })
+            setBubbleDisplay({ visible: true, component: 'connectWifiMenu' })
           );
           break;
 

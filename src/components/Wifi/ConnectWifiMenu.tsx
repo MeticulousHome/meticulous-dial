@@ -5,9 +5,6 @@ import './connectWifiMenu.css';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useAppDispatch } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { WifiSettings } from './WifiSettings';
-import { SelectWifi } from './SelectWifi';
-import { ConnectWifiViaApp } from './ConnetWifiViaApp';
 
 const items = [
   { key: 'connect-via-app' },
@@ -31,17 +28,19 @@ export const ConnectWifiMenu = (): JSX.Element => {
       switch (items[activeIndex].key) {
         case 'connect-via-app': {
           dispatch(
-            setBubbleDisplay({ visible: true, component: ConnectWifiViaApp })
+            setBubbleDisplay({ visible: true, component: 'connectWifiViaApp' })
           );
           break;
         }
         case 'choose-wifi': {
-          dispatch(setBubbleDisplay({ visible: true, component: SelectWifi }));
+          dispatch(
+            setBubbleDisplay({ visible: true, component: 'selectWifi' })
+          );
           break;
         }
         case 'back':
           dispatch(
-            setBubbleDisplay({ visible: true, component: WifiSettings })
+            setBubbleDisplay({ visible: true, component: 'wifiSettings' })
           );
           break;
 
