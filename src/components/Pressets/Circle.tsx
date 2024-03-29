@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { getDashArray } from '../SettingNumerical/Gauge';
-import styled, { css, keyframes } from 'styled-components';
+import styledComponents, { css, keyframes } from 'styled-components';
 
 export const radius = 237;
 export const transform = `rotate(90, ${radius}, ${radius})`;
@@ -33,7 +33,7 @@ export const Circle = React.memo(
         (extraDelay === 100 ? 12 : 3) +
       extraDelay;
 
-    const stroke = keyframes`
+    const strokeAnimation = keyframes`
       0% {
         stroke-dasharray: ${value1Ref.current};
         fill: rgba(0,0,0, ${Math.min(fillInitial, 0.8)});
@@ -53,12 +53,12 @@ export const Circle = React.memo(
       }`;
 
     const scrollAnimation = () => css`
-      ${stroke} ${strokeInitialValue === 0
+      ${strokeAnimation} ${strokeInitialValue === 0
         ? 2000
         : timeTotal}ms ${timeFunc} forwards
     `;
 
-    const SlideTrackContainer = styled.circle`
+    const SlideTrackContainer = styledComponents.circle`
       animation: ${scrollAnimation};
     `;
 

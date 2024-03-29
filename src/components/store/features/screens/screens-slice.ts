@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ComponentType } from 'react';
 
 export type ScreenType =
   | 'barometer'
@@ -23,12 +22,14 @@ export type ScreenType =
   | 'connectWifiMenu'
   | 'selectWifi'
   | 'connectWifiViaApp'
-  | 'enterWifiPassword';
+  | 'enterWifiPassword'
+  | 'quick-settings'
+  | 'quick-preheat';
 
 interface ScreenState {
   value: ScreenType;
   prev: ScreenType;
-  bubbleDisplay: { visible: boolean; component: ComponentType | null };
+  bubbleDisplay: { visible: boolean; component: ScreenType | null };
 }
 
 const initialState: ScreenState = {
@@ -47,7 +48,7 @@ const screenSlice = createSlice({
     },
     setBubbleDisplay: (
       state: ScreenState,
-      action: PayloadAction<{ visible: boolean; component: ComponentType }>
+      action: PayloadAction<{ visible: boolean; component: ScreenType }>
     ) => {
       state.bubbleDisplay.visible = action.payload.visible;
       state.bubbleDisplay.component = action.payload.component;

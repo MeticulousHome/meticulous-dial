@@ -19,6 +19,8 @@ import { Notification } from '../components/Notification/Notification';
 import { getTitlePressets } from '../components/Pressets/TitlePressets';
 import { ConnectWifiViaApp } from '../components/Wifi/ConnetWifiViaApp';
 import { ConnectWifi } from '../components/Wifi/ConnectWifi';
+import { QuickSettings } from '../../src/components/QuickSettings/QuickSettings';
+import { QuickPreheat } from '../../src/components/Preheat/Preheat';
 
 interface Route {
   component: ComponentType;
@@ -33,21 +35,6 @@ interface Route {
 
 const selectActivePresetName = (state: RootState) =>
   state.presets.activePreset.name;
-
-const activePresset = (state: RootState) =>
-  state.presets.value[state.presets.activeIndexSwiper]
-    ? state.presets.value[state.presets.activeIndexSwiper].name
-    : '';
-
-// state.presets.value[state.presets.activeIndexSwiper]
-//   ? state.presets.value[state.presets.activeIndexSwiper].name
-//   : '';
-
-const selectPressetTitle = (state: RootState) =>
-  state.presets.option === 'HOME' ? state.presets.activePreset.name : 'Catalog';
-
-// const selectActivePresetNamePressetScreen = (state: RootState) =>
-//   state.presets.option === 'HOME' ? null : selectActivePresetName(state);
 
 // Profile from "start" event may not exist in LCD. Prefer using
 // that profile name over selected preset
@@ -183,5 +170,11 @@ export const routes: Record<ScreenType, Route> = {
   enterWifiPassword: {
     component: EnterWifiPassword,
     bottomStatusHidden: true
+  },
+  'quick-settings': {
+    component: QuickSettings
+  },
+  'quick-preheat': {
+    component: QuickPreheat
   }
 };

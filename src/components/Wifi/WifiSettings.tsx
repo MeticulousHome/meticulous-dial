@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-
 import './wifiSettings.css';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { saveConfig, updateConfig } from '../store/features/wifi/wifi-slice';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { WifiMode } from '../../types';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { QuickSettings } from '../QuickSettings/QuickSettings';
-import { WifiDetails } from './WifiDetails';
-import { ConnectWifiMenu } from './ConnectWifiMenu';
 import { marqueeIfNeeded } from '../shared/MarqueeValue';
 
 export const WifiSettings = (): JSX.Element => {
@@ -81,25 +77,27 @@ export const WifiSettings = (): JSX.Element => {
           break;
         }
         case 'details': {
-          dispatch(setBubbleDisplay({ visible: true, component: WifiDetails }));
+          dispatch(
+            setBubbleDisplay({ visible: true, component: 'wifiDetails' })
+          );
           break;
         }
         case 'save': {
           dispatch(saveConfig({ ...networkConfig }));
           dispatch(
-            setBubbleDisplay({ visible: true, component: QuickSettings })
+            setBubbleDisplay({ visible: true, component: 'quick-settings' })
           );
           break;
         }
         case 'back': {
           dispatch(
-            setBubbleDisplay({ visible: true, component: QuickSettings })
+            setBubbleDisplay({ visible: true, component: 'quick-settings' })
           );
           break;
         }
         case 'connect_new_network': {
           dispatch(
-            setBubbleDisplay({ visible: true, component: ConnectWifiMenu })
+            setBubbleDisplay({ visible: true, component: 'connectWifiMenu' })
           );
           break;
         }
