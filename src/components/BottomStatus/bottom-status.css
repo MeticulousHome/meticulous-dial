@@ -117,3 +117,11 @@
   animation-fill-mode: forwards;
   animation-duration: 1s;
 }
+
+.text-small {
+  position: absolute;
+  font-size: 14px;
+  right: -50px;
+  top: 0px;
+  color: #e0dcd0;
+}
