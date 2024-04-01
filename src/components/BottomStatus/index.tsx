@@ -6,6 +6,19 @@ const BottomStatus = ({ hidden }: { hidden: boolean }) => {
   const stats = useAppSelector((state) => state.stats);
   const { auto_preheat } = useAppSelector((state) => state.settings);
 
+  const renderPreheatValue = () => {
+    if (!stats.waterStatus || auto_preheat === 0) {
+      return <></>;
+    }
+
+    return (
+      <>
+        {'>'} {auto_preheat}
+        <div className="status-unit">°C</div>
+      </>
+    );
+  };
+
   return (
     <div className={`bottom-status bottom__${hidden ? 'fadeOut' : 'fadeIn'}`}>
       <div className="bottom-content">
@@ -16,10 +29,8 @@ const BottomStatus = ({ hidden }: { hidden: boolean }) => {
             } relative`}
           >
             {formatStatValue(stats.sensors.t, 1)}
-            <div className="status-unit status-temp-icon">°C</div>
-            <div className="text-small">
-              {auto_preheat > 0 ? `${auto_preheat} °C` : ''}
-            </div>
+            <div className="status-unit">°C</div>
+            {renderPreheatValue()}
           </div>
         </div>
         <div className="bottom-item">
