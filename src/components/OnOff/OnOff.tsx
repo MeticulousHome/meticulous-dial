@@ -38,13 +38,6 @@ export function OnOff({ type }: Props): JSX.Element {
       },
       click() {
         const value = options[activeIndex].toLowerCase();
-        console.log(
-          {
-            ...setting,
-            value
-          } as IPresetSetting,
-          '__DEV'
-        );
         dispatch(
           updatePresetSetting({
             ...setting,
