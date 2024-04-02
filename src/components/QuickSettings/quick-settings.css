@@ -40,12 +40,6 @@
   width: 100%;
 }
 
-.settings-text {
-  text-transform: none !important;
-  font-size: 20px;
-  align-self: center;
-}
-
 .active-setting {
   color: black;
   background: #f5c444;

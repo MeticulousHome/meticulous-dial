@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 import './pressetSettings.css';
-import { IPresetSetting } from '../../types';
+import { IPresetSetting, YesNoEnum } from '../../types';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { getPresetSettings } from '../../utils/preset';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
@@ -11,7 +11,8 @@ import {
   savePreset,
   discardSettings,
   setNextSettingOption,
-  setPrevSettingOption
+  setPrevSettingOption,
+  updatePresetSetting
 } from '../store/features/preset/preset-slice';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { FormatSetting } from './FormatSetting';
@@ -34,6 +35,13 @@ export function PressetSettings(): JSX.Element {
     IPresetSetting['key']
   >(settings[presets.activeSetting].key);
 
+  const updateYesOrNoValue = () => {
+    const mutableValue = { ...settings[presets.activeSetting] };
+    mutableValue.value =
+      mutableValue.value === YesNoEnum.Yes ? YesNoEnum.No : YesNoEnum.Yes;
+    dispatch(updatePresetSetting(mutableValue));
+  };
+
   useHandleGestures(
     {
       left() {
@@ -54,12 +62,12 @@ export function PressetSettings(): JSX.Element {
           dispatch(deletePreset());
         } else if (presetSettingIndex === 'name') {
           dispatch(setScreen('name'));
-        } else if (presetSettingIndex === 'pre-infusion') {
-          dispatch(setScreen('pre-infusion'));
         } else if (presetSettingIndex === 'purge') {
           dispatch(setScreen('purge'));
+        } else if (presetSettingIndex === 'pre-infusion') {
+          updateYesOrNoValue();
         } else if (presetSettingIndex === 'pre-heat') {
-          dispatch(setScreen('pre-heat'));
+          updateYesOrNoValue();
         } else if (presetSettingIndex === 'output') {
           dispatch(setScreen('output'));
         } else if (presetSettingIndex === 'pressure') {
