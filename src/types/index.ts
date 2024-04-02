@@ -247,3 +247,8 @@ export interface SettingsItem {
   value: any;
   visible: boolean;
 }
+
+export enum YesNoEnum {
+  Yes = 'yes',
+  No = 'no'
+}

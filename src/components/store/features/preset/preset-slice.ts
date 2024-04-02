@@ -452,6 +452,7 @@ const presetSlice = createSlice({
       state: Draft<typeof initialState>,
       action: PayloadAction<IPresetSetting>
     ) => {
+      console.log(action.payload, '__DEV');
       state.updatingSettings.settings = state.updatingSettings.settings.map(
         (setting) =>
           setting.id === action.payload.id ? action.payload : setting
