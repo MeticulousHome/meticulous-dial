@@ -125,3 +125,18 @@
   top: 0px;
   color: #e0dcd0;
 }
+
+.char {
+  font-size: 24px;
+  opacity: 0.9;
+  animation: opacityAnimation 0.6s linear infinite alternate-reverse;
+}
+
+.char:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+@keyframes opacityAnimation {
+  0% { opacity: 0.3; } 
+  100% { opacity: 1; }
+}

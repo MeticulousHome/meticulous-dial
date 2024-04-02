@@ -13,7 +13,11 @@ const BottomStatus = ({ hidden }: { hidden: boolean }) => {
 
     return (
       <>
-        {'>'} {auto_preheat}
+        <div className="char">{'>'}</div>
+        <div className="char" style={{ marginRight: 5 }}>
+          {'>'}
+        </div>{' '}
+        {auto_preheat}
         <div className="status-unit">°C</div>
       </>
     );
@@ -30,6 +34,7 @@ const BottomStatus = ({ hidden }: { hidden: boolean }) => {
           >
             {formatStatValue(stats.sensors.t, 1)}
             <div className="status-unit">°C</div>
+
             {renderPreheatValue()}
           </div>
         </div>
