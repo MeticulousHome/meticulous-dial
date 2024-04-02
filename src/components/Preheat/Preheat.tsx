@@ -8,13 +8,9 @@ import { roundPrecision } from '../../../src/utils';
 import { updateSettings } from '../store/features/settings/settings-slice';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { YesNoEnum } from '../../../src/types';
 
-enum OptionType {
-  yes = 'yes',
-  no = 'no'
-}
-
-const options: OptionType[] = [OptionType.yes, OptionType.no];
+const options: YesNoEnum[] = [YesNoEnum.Yes, YesNoEnum.No];
 
 const MAX_PREHEAT = 99;
 const MIN_PREHEAT = 25;
@@ -23,9 +19,7 @@ const INTERVAL_PREHEAT = 1;
 export function QuickPreheat(): JSX.Element {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState<number>(0);
-  const [optionSelected, setOptionSelected] = useState<OptionType>(
-    OptionType.no
-  );
+  const [optionSelected, setOptionSelected] = useState<YesNoEnum>(YesNoEnum.No);
   const [showGauge, setShowGauge] = useState<boolean>(false);
   const [total, setTotal] = useState<number>(MIN_PREHEAT);
   const { auto_preheat } = useAppSelector((state) => state.settings);
@@ -46,7 +40,7 @@ export function QuickPreheat(): JSX.Element {
   const updatePreheat = () => {
     dispatch(
       updateSettings({
-        auto_preheat: optionSelected === OptionType.yes ? total : 0
+        auto_preheat: optionSelected === YesNoEnum.Yes ? total : 0
       })
     );
   };
@@ -82,7 +76,7 @@ export function QuickPreheat(): JSX.Element {
 
       if (activeIndex === 0) {
         setOptionSelected(
-          optionSelected === OptionType.yes ? OptionType.no : OptionType.yes
+          optionSelected === YesNoEnum.Yes ? YesNoEnum.No : YesNoEnum.Yes
         );
       }
 
@@ -99,7 +93,7 @@ export function QuickPreheat(): JSX.Element {
   }, [activeIndex, swiper]);
 
   useEffect(() => {
-    setOptionSelected(auto_preheat === 0 ? OptionType.no : OptionType.yes);
+    setOptionSelected(auto_preheat === 0 ? YesNoEnum.No : YesNoEnum.Yes);
     setTotal(auto_preheat === 0 ? MIN_PREHEAT : auto_preheat);
   }, [auto_preheat]);
 
@@ -133,16 +127,7 @@ export function QuickPreheat(): JSX.Element {
               0 === activeIndex ? 'active-setting' : ''
             }`}
           >
-            <div style={{ height: '30px' }}>
-              <div className="settings-entry text-container">
-                <span
-                  className="settings-text"
-                  style={{ wordBreak: 'break-word' }}
-                >
-                  ENABLED: {optionSelected.toUpperCase()}
-                </span>
-              </div>
-            </div>
+            ENABLED: {optionSelected.toUpperCase()}
           </SwiperSlide>
           <SwiperSlide
             key={1}
@@ -150,7 +135,7 @@ export function QuickPreheat(): JSX.Element {
               1 === activeIndex ? 'active-setting' : ''
             }`}
           >
-            <div>VALUE: {total}°C</div>
+            VALUE: {total}°C
           </SwiperSlide>
           <SwiperSlide
             key={2}
@@ -158,7 +143,7 @@ export function QuickPreheat(): JSX.Element {
               2 === activeIndex ? 'active-setting' : ''
             }`}
           >
-            <div>BACK</div>
+            BACK
           </SwiperSlide>
         </Swiper>
       )}
