@@ -233,14 +233,6 @@ export interface IItalian {
   kind: ItalianProfile;
 }
 
-export interface GlobalSettings {
-  soundsEnabled: boolean;
-  disallowFirmware: boolean;
-  debugShotData: boolean;
-  profileAutoStart: boolean;
-  profileAutoPurge: boolean;
-}
-
 export interface SettingsItem {
   type: string;
   values?: any;

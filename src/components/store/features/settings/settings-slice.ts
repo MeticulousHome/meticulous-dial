@@ -1,30 +1,25 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
 
-import SettingsApi from '../../../../api/settings';
+import Api, { SettingsKey, SettingsType } from 'meticulous-api';
+import { Settings } from 'meticulous-api';
 
-export type UserSettingsKeys =
-  | 'sounds_enabled'
-  | 'disallow_firmware_flashing'
-  | 'debug_shot_data'
-  | 'auto_purge_after_shot'
-  | 'auto_start_shot'
-  | 'auto_preheat';
+const api = new Api();
 
-const initialState: Partial<Record<UserSettingsKeys, any>> = {
-  sounds_enabled: false,
+export const initialState: Settings = {
   disallow_firmware_flashing: false,
-  debug_shot_data: false,
   auto_purge_after_shot: false,
   auto_start_shot: false,
-  auto_preheat: 0
+  auto_preheat: 0,
+  enable_sounds: false,
+  save_debug_shot_data: false
 };
 
 export const fetchSettigns = createAsyncThunk(
   'settings/fetchSettings',
   async () => {
     try {
-      const { data } = await SettingsApi.get();
+      const { data } = await api.getSettings();
       return data;
     } catch (error) {
       if (isAxiosError(error)) return error.message;
@@ -35,9 +30,9 @@ export const fetchSettigns = createAsyncThunk(
 
 export const updateSettings = createAsyncThunk(
   'settings/updateSettings',
-  async (body: Record<string, any>) => {
+  async (body: Partial<Settings>) => {
     try {
-      const { data } = await SettingsApi.update(body);
+      const { data } = await api.updateSetting(body);
       return data;
     } catch (error) {
       if (isAxiosError(error)) return error.message;
@@ -50,8 +45,13 @@ const settingsSlice = createSlice({
   name: 'settings',
   initialState,
   reducers: {
-    updateItemSetting: (state: typeof initialState, action) => {
-      state[action.payload.key as UserSettingsKeys] = action.payload.value;
+    updateItemSetting: (state: Partial<Settings>, action) => {
+      console.log(state);
+      const key: SettingsKey = action.payload.key;
+      const value: SettingsType = action.payload.value;
+      // @ts-ignore
+      state[key] = value;
+      console.log(state);
     }
   },
   extraReducers(builder) {
