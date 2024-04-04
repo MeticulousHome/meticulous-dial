@@ -1,16 +1,17 @@
 import { IpcMainEvent } from 'electron';
 import axios from 'axios';
 import { NetworkConfig, PasswortConnect } from '../types';
+import Api, {
+  AcknowledgeNotificationRequest,
+  WiFiConfig,
+  WiFiConnectRequest
+} from 'meticulous-api';
 
-export const backendURL = process.env.SERVER_URL || 'http://localhost:8080';
-
-const axiosInstance = axios.create({
-  baseURL: backendURL
-});
+const api = new Api();
 
 export const getNetworkConfig = async () => {
   try {
-    const response = await axiosInstance.get('/wifi/config');
+    const response = await api.getWiFiConfig();
     return response.data;
   } catch (error) {
     console.error('getNetworkConfig error ', error);
@@ -19,7 +20,7 @@ export const getNetworkConfig = async () => {
 
 export const getWifiList = async () => {
   try {
-    const response = await axiosInstance.get('/wifi/list');
+    const response = await api.listAvailableWiFi();
     return response.data;
   } catch (error) {
     console.error('getWifiList error ', error);
@@ -31,11 +32,11 @@ export const connectToWifi = async (
   config: PasswortConnect
 ) => {
   try {
-    const payload = {
+    const payload: WiFiConnectRequest = {
       ssid: config.ssid,
       password: config.password
     };
-    const response = await axiosInstance.post('/wifi/connect', payload);
+    const response = await api.connectToWiFi(payload);
     console.log('Log ~ connect to wifi ~ response:', response);
     return response.data;
   } catch (error) {
@@ -45,10 +46,10 @@ export const connectToWifi = async (
 
 export const updateNetworkConfig = async (
   _event: IpcMainEvent,
-  newConfig: Partial<NetworkConfig>
+  newConfig: Partial<WiFiConfig>
 ) => {
   try {
-    const response = await axiosInstance.post('/wifi/config', newConfig);
+    const response = await api.setWiFiConfig(newConfig);
     console.log('Log ~ updateNetworkConfig ~ response:', response);
     return response.data;
   } catch (error) {
@@ -58,10 +59,13 @@ export const updateNetworkConfig = async (
 
 export const notificationFeedback = async (id: string, response: string) => {
   try {
-    const notification = await axiosInstance.post('/notifications', {
+    const notification_response: AcknowledgeNotificationRequest = {
       id,
       response
-    });
+    };
+    const notification = await api.acknowledgeNotification(
+      notification_response
+    );
     return notification;
   } catch (error) {
     console.log('notification feedback error', id);

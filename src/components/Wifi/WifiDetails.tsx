@@ -4,11 +4,13 @@ import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { getConfig as getWifiConfig } from '../store/features/wifi/wifi-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { backendURL } from '../../api/wifi';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { QrImage } from './QrImage';
 import './wifiDetails.css';
 import { marqueeIfNeeded } from '../shared/MarqueeValue';
+import Api from 'meticulous-api';
+
+const api = new Api();
 
 const items = [
   { key: 'network' },
@@ -184,7 +186,7 @@ export const WifiDetails = (): JSX.Element => {
           </div>
         </SwiperSlide>
         <SwiperSlide style={{ height: '300px' }}>
-          <QrImage src={`${backendURL}/wifi/config/qr.png`} />
+          <QrImage src={`${api.getWiFiQRURL()}`} />
         </SwiperSlide>
 
         <SwiperSlide></SwiperSlide>
