@@ -56,7 +56,7 @@ export function QuickSettings(): JSX.Element {
   const { auto_preheat } = useAppSelector((state) => state.settings);
   const [preheatValue, setPreheatValue] = useState<string>('');
   const [settings, setSettings] = useState(defaultSettings);
-  const pressets = useAppSelector((state) => state.presets);
+  const presets = useAppSelector((state) => state.presets);
   const currentScreen = useAppSelector((state) => state.screen.value);
 
   useHandleGestures(
@@ -130,10 +130,13 @@ export function QuickSettings(): JSX.Element {
   );
 
   useEffect(() => {
-    if (pressets.option !== 'HOME' || currentScreen === 'pressetSettings') {
+    if (
+      presets.option !== 'HOME' ||
+      presets.activeIndexSwiper === presets.value.length
+    ) {
       setSettings(defaultSettings.filter((item) => item.key !== 'edit'));
     }
-  }, [pressets, currentScreen]);
+  }, [presets, currentScreen]);
 
   useEffect(() => {
     if (swiper) {
