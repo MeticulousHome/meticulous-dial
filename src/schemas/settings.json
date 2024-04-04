@@ -1,31 +1,7 @@
 {
   "title": "Settings",
-  "description": "Items for user settings",
+  "description": "Visibility definition for user settings",
   "properties": {
-    "sounds_enabled": {
-      "type": "boolean",
-      "value": false
-    },
-    "disallow_firmware_flashing": {
-      "type": "boolean",
-      "value": false
-    },
-    "debug_shot_data": {
-      "type": "boolean",
-      "value": false
-    },
-    "auto_start_shot": {
-      "type": "boolean",
-      "value": false
-    },
-    "auto_purge_after_shot": {
-      "type": "boolean",
-      "value": false
-    },
-    "auto_preheat": {
-      "type": "number",
-      "value": 0
-    },
     "visible": ["auto_start_shot", "auto_purge_after_shot", "save", "back"]
   },
   "type": "object"

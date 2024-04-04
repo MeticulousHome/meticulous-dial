@@ -6,12 +6,13 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import {
-  UserSettingsKeys,
   updateItemSetting,
-  updateSettings
+  updateSettings,
+  initialState as initialSettingsState
 } from '../store/features/settings/settings-slice';
-import UserSettings from '../../schemas/settings.json';
+import SettingsVisibility from '../../schemas/settings.json';
 import { marqueeIfNeeded } from '../shared/MarqueeValue';
+import { SettingsKey, Settings as MachineSettings } from 'meticulous-api';
 
 export function Settings(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -21,12 +22,11 @@ export function Settings(): JSX.Element {
   const globalSettings = useAppSelector((state) => state.settings);
 
   const showValue = useCallback(
-    (isActive: boolean, item: UserSettingsKeys) => {
+    (isActive: boolean, item: SettingsKey) => {
       if (!item) return <></>;
-
       let val = item.split('_').join(' ').toUpperCase();
-      if (UserSettings && globalSettings) {
-        if (UserSettings.properties[item]?.type === 'boolean') {
+      if (globalSettings) {
+        if (typeof globalSettings[item as SettingsKey] === 'boolean') {
           val = globalSettings[item] ? val + ': ENABLED' : val + ': DISABLED';
         }
 
@@ -47,12 +47,11 @@ export function Settings(): JSX.Element {
       },
       right() {
         setActiveIndex((prev) =>
-          Math.min(prev + 1, UserSettings.properties.visible.length - 1)
+          Math.min(prev + 1, SettingsVisibility.properties.visible.length - 1)
         );
       },
       click() {
-        const activeItem = UserSettings.properties.visible[activeIndex];
-        const settingItem = UserSettings.properties;
+        const activeItem = SettingsVisibility.properties.visible[activeIndex];
         switch (activeItem) {
           case 'save': {
             dispatch(updateSettings(globalSettings));
@@ -68,12 +67,13 @@ export function Settings(): JSX.Element {
             break;
           default: {
             if (
-              settingItem[activeItem as UserSettingsKeys].type === 'boolean'
+              typeof globalSettings[activeItem as SettingsKey] === 'boolean'
             ) {
+              const new_value = !globalSettings[activeItem as SettingsKey];
               dispatch(
                 updateItemSetting({
                   key: activeItem,
-                  value: !globalSettings[activeItem as UserSettingsKeys]
+                  value: new_value
                 })
               );
             }
@@ -104,7 +104,7 @@ export function Settings(): JSX.Element {
         initialSlide={activeIndex}
         style={{ paddingLeft: '29px', top: '-4px' }}
       >
-        {UserSettings.properties.visible.map((item, index) => {
+        {SettingsVisibility.properties.visible.map((item, index: number) => {
           const isActive = index === activeIndex;
           return (
             <SwiperSlide
@@ -117,7 +117,7 @@ export function Settings(): JSX.Element {
                     className="settings-text"
                     style={{ wordBreak: 'break-word' }}
                   >
-                    {showValue(isActive, item as UserSettingsKeys)}
+                    {showValue(isActive, item as SettingsKey)}
                   </span>
                 </div>
               </div>
