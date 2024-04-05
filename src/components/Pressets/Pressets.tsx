@@ -67,7 +67,7 @@ const initialValue: AnimationData = {
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const socket = useSocket();
   const dispatch = useAppDispatch();
-  const { presets } = useAppSelector((state) => state);
+  const { presets, screen } = useAppSelector((state) => state);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
   const [pressetSwiper, setPressetsSwiper] = useState<SwiperS | null>(null);
   const [pressetTitleSwiper, setPressetTitleSwiper] = useState(null);
@@ -531,6 +531,17 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   useEffect(() => {
     dispatch(setWaitingForAction(false));
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (
+        presets.activeIndexSwiper === presets.value.length &&
+        screen.prev === 'pressets'
+      ) {
+        dispatch(setPrevPreset());
+      }
+    };
+  }, [presets.activeIndexSwiper, presets.value.length, screen.prev]);
 
   return (
     <div className="preset-wrapper">
