@@ -58,6 +58,7 @@ export function QuickSettings(): JSX.Element {
   const [settings, setSettings] = useState(defaultSettings);
   const presets = useAppSelector((state) => state.presets);
   const currentScreen = useAppSelector((state) => state.screen.value);
+  const [counterESGG, setCounterESGG] = useState(0);
 
   useHandleGestures(
     {
@@ -72,9 +73,13 @@ export function QuickSettings(): JSX.Element {
       },
       left() {
         setActiveIndex((prev) => Math.max(prev - 1, 0));
+        setCounterESGG(0);
       },
       right() {
         setActiveIndex((prev) => Math.min(prev + 1, settings.length - 1));
+        if (settings[activeIndex].key === 'exit') {
+          setCounterESGG(counterESGG + 1);
+        }
       },
       click() {
         switch (settings[activeIndex].key) {
@@ -147,6 +152,14 @@ export function QuickSettings(): JSX.Element {
   useEffect(() => {
     setPreheatValue(auto_preheat === 0 ? '' : `${auto_preheat}°C`);
   }, [auto_preheat]);
+
+  useEffect(() => {
+    if (counterESGG >= 15) {
+      console.log('Easter Egg on');
+      dispatch(setBubbleDisplay({ visible: false, component: null }));
+      dispatch(setScreen('snake'));
+    }
+  }, [counterESGG]);
 
   return (
     <div className="main-quick-settings">
