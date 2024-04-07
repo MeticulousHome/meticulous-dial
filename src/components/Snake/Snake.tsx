@@ -225,7 +225,7 @@ export const SnakeGame: React.FC = () => {
       const centerX = gameSize / 2;
       const centerY = gameSize / 2;
 
-      ctx.fillStyle = 'hotpink';
+      ctx.fillStyle = '#0A0A0A';
       ctx.fillRect(0, 0, gameSize, gameSize);
 
       // Draw the boundary circle
