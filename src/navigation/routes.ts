@@ -21,6 +21,7 @@ import { ConnectWifiViaApp } from '../components/Wifi/ConnetWifiViaApp';
 import { ConnectWifi } from '../components/Wifi/ConnectWifi';
 import { QuickSettings } from '../../src/components/QuickSettings/QuickSettings';
 import { QuickPreheat } from '../../src/components/Preheat/Preheat';
+import { SnakeGame } from '../../src/components/Snake/Snake';
 
 interface Route {
   component: ComponentType;
@@ -176,5 +177,8 @@ export const routes: Record<ScreenType, Route> = {
   },
   'quick-preheat': {
     component: QuickPreheat
+  },
+  snake: {
+    component: SnakeGame
   }
 };
