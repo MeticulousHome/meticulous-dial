@@ -154,7 +154,7 @@ export function QuickSettings(): JSX.Element {
   }, [auto_preheat]);
 
   useEffect(() => {
-    if (counterESGG >= 15) {
+    if (counterESGG >= 20) {
       console.log('Easter Egg on');
       dispatch(setBubbleDisplay({ visible: false, component: null }));
       dispatch(setScreen('snake'));

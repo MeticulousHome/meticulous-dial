@@ -220,6 +220,7 @@ export const SnakeGame: React.FC = () => {
 
   const drawSquareGame = () => {
     const canvas = canvasRef.current;
+    canvas.focus();
     const ctx = canvas?.getContext('2d');
     if (ctx) {
       const centerX = gameSize / 2;
