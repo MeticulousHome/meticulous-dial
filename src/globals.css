@@ -89,3 +89,7 @@ body {
 .caption_shake {
   animation: shakeAnimation 0.3s linear;
 }
+
+canvas {
+  outline: none;
+}
