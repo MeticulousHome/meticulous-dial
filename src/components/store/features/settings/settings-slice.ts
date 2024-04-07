@@ -41,16 +41,25 @@ export const updateSettings = createAsyncThunk(
   }
 );
 
+interface UpdateItemSettingAction {
+  payload: {
+    key: keyof Settings;
+    value: SettingsType;
+  };
+}
+
 const settingsSlice = createSlice({
   name: 'settings',
   initialState,
   reducers: {
-    updateItemSetting: (state: Partial<Settings>, action) => {
+    updateItemSetting: (
+      state: Partial<Settings>,
+      action: UpdateItemSettingAction
+    ) => {
       console.log(state);
-      const key: SettingsKey = action.payload.key;
+      const key: keyof Settings = action.payload.key;
       const value: SettingsType = action.payload.value;
-      // @ts-ignore
-      state[key] = value;
+      (state[key] as SettingsType) = value;
       console.log(state);
     }
   },

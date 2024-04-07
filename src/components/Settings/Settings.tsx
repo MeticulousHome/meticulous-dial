@@ -72,7 +72,7 @@ export function Settings(): JSX.Element {
               const new_value = !globalSettings[activeItem as SettingsKey];
               dispatch(
                 updateItemSetting({
-                  key: activeItem,
+                  key: activeItem as SettingsKey,
                   value: new_value
                 })
               );
