@@ -37,6 +37,7 @@ import { circumference, getDashArray } from '../SettingNumerical/Gauge';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
 import { Circle, radius, transform } from './Circle';
 import { TitleCircle } from './Title';
+import ProfileApi from '../../api/profile';
 
 interface AnimationData {
   circlekey: number;
@@ -493,6 +494,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       switch (presets.activePreset.kind) {
         case 'italian_1_0': {
           const preset = {
+            id: presets.activePreset.id,
             name: presets.activePreset.name,
             settings: (presets.activePreset?.settings || []).filter(
               (item) => item.id !== -1 && item.id !== -2

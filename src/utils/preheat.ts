@@ -19,8 +19,8 @@ export const generateSimplePayload = ({ presset }: PayloadProps) => {
   const simpelJson = {
     id: presset.id,
     name: presset.name,
-    temperature,
-    final_weight: output,
+    temperature: temperature.value,
+    final_weight: output.value,
     variables: [
       {
         name: 'Pressure',
@@ -58,7 +58,9 @@ export const generateSimplePayload = ({ presset }: PayloadProps) => {
             comparison: 'greater'
           }
         ],
-        limits: [{}]
+        //eslint-disable-next-line
+        //@ts-ignore
+        limits: []
       },
       {
         name: 'Infusion',
@@ -68,8 +70,12 @@ export const generateSimplePayload = ({ presset }: PayloadProps) => {
           over: 'time',
           interpolation: 'linear'
         },
-        exit_triggers: [{}],
-        limits: [{}]
+        //eslint-disable-next-line
+        //@ts-ignore
+        exit_triggers: [],
+        //eslint-disable-next-line
+        //@ts-ignore
+        limits: []
       }
     ]
   };

@@ -1,11 +1,6 @@
 import { AxiosResponse } from 'axios';
 
-import { GlobalSettings, IPreset } from '.';
-
-export interface SettingsImplementation {
-  get(): Promise<AxiosResponse>;
-  update(body: Partial<GlobalSettings>): Promise<AxiosResponse>;
-}
+import { IPreset } from '.';
 
 export interface ProfileImplementation {
   get: (id: number | string) => Promise<AxiosResponse>;
