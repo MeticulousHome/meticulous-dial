@@ -609,10 +609,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                 <SwiperSlide key={preset.id}>
                   {() => (
                     <div>
-                      <ProfileImage
-                        image={preset.image}
-                        borderColor={preset.borderColor}
-                      />
+                      <ProfileImage preset={preset} />
                     </div>
                   )}
                 </SwiperSlide>
