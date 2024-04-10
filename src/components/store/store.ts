@@ -7,6 +7,7 @@ import presetReducer from './features/preset/preset-slice';
 import notificationReducer from './features/notifications/notification-slice';
 import wifiReducer from './features/wifi/wifi-slice';
 import settingsReducer from './features/settings/settings-slice';
+import profileImageReducer from './features/images/images-slice';
 
 export const store = configureStore({
   reducer: {
@@ -15,7 +16,8 @@ export const store = configureStore({
     presets: presetReducer,
     notifications: notificationReducer,
     wifi: wifiReducer,
-    settings: settingsReducer
+    settings: settingsReducer,
+    images: profileImageReducer
   }
 });
 
