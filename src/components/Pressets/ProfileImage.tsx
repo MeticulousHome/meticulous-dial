@@ -1,5 +1,10 @@
-import { useAppSelector } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { IPreset } from '../../../src/types';
+import { useEffect } from 'react';
+import {
+  addNewImageProfile,
+  selectByProfileId
+} from '../store/features/images/images-slice';
 
 const colors: string[] = [
   '#FFFFFF',
@@ -31,20 +36,44 @@ const colors: string[] = [
 ];
 const cLength = colors.length - 1;
 export const ProfileImage = ({ preset }: { preset: IPreset }) => {
+  const pImage =
+    useAppSelector((state) => selectByProfileId(state, preset.id)) || null;
+  const dispatch = useAppDispatch();
   const { value: presets } = useAppSelector((state) => state.presets);
 
   const currentIndex = presets.findIndex((e) => preset.id === e.id) + 1;
   const presetIndex = currentIndex % cLength || cLength;
+  const image = preset.image
+    ? preset.image
+    : pImage !== null
+    ? pImage.image
+    : `assets/images/${presetIndex}.png`;
+  const borderStyle = preset.borderColor
+    ? preset.borderColor
+    : pImage !== null
+    ? pImage.borderColor
+    : colors[presetIndex];
+
+  useEffect(() => {
+    console.log(preset.id);
+    dispatch(
+      addNewImageProfile({
+        presetId: preset.id,
+        borderColor: borderStyle,
+        image: image
+      })
+    );
+  }, [preset.id]);
 
   return (
     <img
-      src={preset.image || `assets/images/${presetIndex}.png`}
+      src={image}
       alt="image-profile"
       width="164"
       height="164"
       className="profile-image"
       style={{
-        border: `7px solid ${preset.borderColor || colors[presetIndex]}`
+        border: `7px solid ${borderStyle}`
       }}
     />
   );
