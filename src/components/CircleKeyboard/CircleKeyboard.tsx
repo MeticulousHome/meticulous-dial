@@ -139,7 +139,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         });
       }
     },
-    click() {
+    pressDown() {
       if (caption.length >= inputLimit && mainLetter !== 'backspace') {
         if (mainLetter === 'ok') {
           onSubmit(caption.join('').trim());
