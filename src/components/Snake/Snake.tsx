@@ -1,4 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import {
+  setBubbleDisplay,
+  setScreen
+} from '../store/features/screens/screens-slice';
+import { useAppDispatch } from '../store/hooks';
 
 const gridSize = 20;
 const gameSize = 480;
@@ -58,10 +64,11 @@ const isOutsideCircle = (
   return pointsOutside >= 3;
 };
 
-const APPLE_IMAGE =
-  'https://meticuloushome.com/wp-content/uploads/2022/12/logo-meticulous-01.png';
+const APPLE_IMAGE = 'assets/images/logo.png';
 
 export const SnakeGame: React.FC = () => {
+  const dispatch = useAppDispatch();
+
   const [snake, setSnake] = useState<Point[]>(initialSnake);
   const [apple, setApple] = useState<Point>(getRandomPosition);
   const [directionQueue, setDirectionQueue] = useState<Point[]>([
@@ -69,11 +76,14 @@ export const SnakeGame: React.FC = () => {
   ]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const appleImageRef = useRef(new Image());
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
     const appleImage = appleImageRef.current;
     appleImage.src = APPLE_IMAGE;
-    // appleImage.onload = () => {};
+    appleImageRef.current.onload = () => {
+      setImageLoaded(true); // Set the image as loaded
+    };
   }, []);
 
   const moveSnake = useCallback(() => {
@@ -131,7 +141,7 @@ export const SnakeGame: React.FC = () => {
           .slice(1)
           .some((segment) => segment.x === newHead.x && segment.y === newHead.y)
       ) {
-        alert('Game Over');
+        // FIXME display game over
         return initialSnake; // Reset snake
       }
 
@@ -171,52 +181,40 @@ export const SnakeGame: React.FC = () => {
     }
   };
 
-  const handleKey = (e: React.KeyboardEvent<HTMLCanvasElement>) => {
-    let turnClockwise = 1;
-    switch (e.key) {
-      case 'ArrowUp':
-        handleDirectionChange({ x: 0, y: -1 });
-        break;
-      case 'ArrowRight':
-        handleDirectionChange({ x: 1, y: 0 });
-        break;
-      case 'ArrowDown':
-        handleDirectionChange({ x: 0, y: 1 });
-        break;
-      case 'ArrowLeft':
-        handleDirectionChange({ x: -1, y: 0 });
-        break;
-      case 'a': // fallthrough
-      case 'l': // counterclockwise
-        turnClockwise = -1;
-      // fallthrough
-      case 'd': // fallthrough
-      case 'r': {
-        // clockwise
-        if (!directionQueue || directionQueue.length == 0) return;
+  const handleTurn = (clockwise = false) => {
+    const turnClockwise = clockwise ? 1 : -1;
 
-        const lastDirection = directionQueue[directionQueue.length - 1];
+    if (!directionQueue || directionQueue.length == 0) return;
 
-        if (lastDirection.x === 0 && lastDirection.y === -1) {
-          // Up to Right
-          handleDirectionChange({ x: turnClockwise, y: 0 });
-        } else if (lastDirection.x === 1 && lastDirection.y === 0) {
-          // Right to Down
-          handleDirectionChange({ x: 0, y: turnClockwise });
-        } else if (lastDirection.x === 0 && lastDirection.y === 1) {
-          // Down to Left
-          handleDirectionChange({ x: 0 - turnClockwise, y: 0 });
-        } else if (lastDirection.x === -1 && lastDirection.y === 0) {
-          // Left to Up
-          handleDirectionChange({ x: 0, y: 0 - turnClockwise });
-        }
+    const lastDirection = directionQueue[directionQueue.length - 1];
 
-        break;
-      }
-      default:
-        break;
+    if (lastDirection.x === 0 && lastDirection.y === -1) {
+      // Up to Right
+      handleDirectionChange({ x: turnClockwise, y: 0 });
+    } else if (lastDirection.x === 1 && lastDirection.y === 0) {
+      // Right to Down
+      handleDirectionChange({ x: 0, y: turnClockwise });
+    } else if (lastDirection.x === 0 && lastDirection.y === 1) {
+      // Down to Left
+      handleDirectionChange({ x: 0 - turnClockwise, y: 0 });
+    } else if (lastDirection.x === -1 && lastDirection.y === 0) {
+      // Left to Up
+      handleDirectionChange({ x: 0, y: 0 - turnClockwise });
     }
   };
+
+  useHandleGestures({
+    left() {
+      handleTurn(false);
+    },
+    right() {
+      handleTurn(true);
+    },
+    doubleClick() {
+      dispatch(setBubbleDisplay({ visible: false, component: null }));
+      dispatch(setScreen('pressets'));
+    }
+  });
 
   const drawSquareGame = () => {
     const canvas = canvasRef.current;
@@ -260,7 +258,11 @@ export const SnakeGame: React.FC = () => {
         squareSize
       );
 
-      if (appleImageRef.current && appleImageRef.current.complete) {
+      if (
+        imageLoaded &&
+        appleImageRef.current &&
+        appleImageRef.current.complete
+      ) {
         ctx.drawImage(
           appleImageRef.current,
           apple.x * squareSize,
@@ -286,7 +288,6 @@ export const SnakeGame: React.FC = () => {
       ref={canvasRef}
       width={canvasSize}
       height={canvasSize}
-      onKeyDown={handleKey}
       tabIndex={0}
     ></canvas>
   );
