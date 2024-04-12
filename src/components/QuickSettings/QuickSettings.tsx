@@ -76,7 +76,7 @@ export function QuickSettings(): JSX.Element {
       right() {
         setActiveIndex((prev) => Math.min(prev + 1, settings.length - 1));
       },
-      click() {
+      pressDown() {
         switch (settings[activeIndex].key) {
           case 'home': {
             socket.emit('action', 'home');

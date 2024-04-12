@@ -85,7 +85,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
       right() {
         updateValue('right');
       },
-      click() {
+      pressDown() {
         dispatch(setScreen('pressetSettings'));
       }
     },

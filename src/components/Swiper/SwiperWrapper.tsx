@@ -43,7 +43,7 @@ export const SwiperWrapper = ({
         )
       );
     },
-    click() {
+    pressDown() {
       if (typeof onClick === 'function') {
         onClick(activeSlideId, activeIndex);
       }

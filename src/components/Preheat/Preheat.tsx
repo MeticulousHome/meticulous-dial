@@ -61,7 +61,7 @@ export function QuickPreheat(): JSX.Element {
       }
       setActiveIndex((prev) => Math.max(prev - 1, 0));
     },
-    click() {
+    pressDown() {
       if (activeIndex === 2) {
         dispatch(
           setBubbleDisplay({ visible: true, component: 'quick-settings' })
