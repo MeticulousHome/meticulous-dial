@@ -50,7 +50,7 @@ export function Settings(): JSX.Element {
           Math.min(prev + 1, SettingsVisibility.properties.visible.length - 1)
         );
       },
-      click() {
+      pressDown() {
         const activeItem = SettingsVisibility.properties.visible[activeIndex];
         switch (activeItem) {
           case 'save': {

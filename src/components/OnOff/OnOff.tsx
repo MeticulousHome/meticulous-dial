@@ -36,7 +36,7 @@ export function OnOff({ type }: Props): JSX.Element {
       right() {
         setActiveIndex((prev) => Math.max(prev - 1, 0));
       },
-      click() {
+      pressDown() {
         const value = options[activeIndex].toLowerCase();
         dispatch(
           updatePresetSetting({

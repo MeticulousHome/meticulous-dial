@@ -50,7 +50,7 @@ export function PressetSettings(): JSX.Element {
       right() {
         dispatch(setNextSettingOption());
       },
-      click() {
+      pressDown() {
         if (presetSettingIndex === 'save') {
           dispatch(savePreset());
           dispatch(setScreen('pressets'));

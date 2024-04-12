@@ -81,7 +81,7 @@ export function QuickSettings(): JSX.Element {
           setCounterESGG(counterESGG + 1);
         }
       },
-      click() {
+      pressDown() {
         switch (settings[activeIndex].key) {
           case 'home': {
             socket.emit('action', 'home');

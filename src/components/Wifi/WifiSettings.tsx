@@ -64,7 +64,7 @@ export const WifiSettings = (): JSX.Element => {
         )
       );
     },
-    click() {
+    pressDown() {
       const filter = wifiSettingItems.filter((item) => item.visible)[
         activeIndex
       ].key;

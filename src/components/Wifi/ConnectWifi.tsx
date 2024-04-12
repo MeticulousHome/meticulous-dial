@@ -18,7 +18,7 @@ export function ConnectWifi(): JSX.Element {
   );
 
   useHandleGestures({
-    click() {
+    pressDown() {
       if (!pending) {
         dispatch(setBubbleDisplay({ visible: false, component: null }));
         dispatch(setScreen('pressets'));

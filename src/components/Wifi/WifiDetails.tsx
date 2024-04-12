@@ -40,7 +40,7 @@ export const WifiDetails = (): JSX.Element => {
     right() {
       setActiveIndex((prev) => Math.min(prev + 1, items.length - 1));
     },
-    click() {
+    pressDown() {
       switch (items[activeIndex].key) {
         case 'back':
           dispatch(

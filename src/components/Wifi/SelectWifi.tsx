@@ -25,7 +25,7 @@ export const SelectWifi = (): JSX.Element => {
     right() {
       setActiveIndex((prev) => Math.min(prev + 1, wifiList.length));
     },
-    click() {
+    pressDown() {
       if (activeIndex >= wifiList.length) {
         dispatch(
           setBubbleDisplay({ visible: true, component: 'connectWifiMenu' })

@@ -38,7 +38,7 @@ export function Purge(): JSX.Element {
           setActiveIndex(activeIndex - 1);
         }
       },
-      click() {
+      pressDown() {
         dispatch(
           updatePresetSetting({
             ...setting,
