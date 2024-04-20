@@ -22,6 +22,7 @@ import { ConnectWifi } from '../components/Wifi/ConnectWifi';
 import { QuickSettings } from '../../src/components/QuickSettings/QuickSettings';
 import { QuickPreheat } from '../../src/components/Preheat/Preheat';
 import { SnakeGame } from '../../src/components/Snake/Snake';
+import { KnownWifi } from '../../src/components/Wifi/KnownWifi';
 
 interface Route {
   component: ComponentType;
@@ -146,6 +147,10 @@ export const routes: Record<ScreenType, Route> = {
   wifiDetails: {
     component: WifiDetails,
     title: 'wifi details',
+    bottomStatusHidden: true
+  },
+  KnownWifi: {
+    component: KnownWifi,
     bottomStatusHidden: true
   },
   connectWifiMenu: {
