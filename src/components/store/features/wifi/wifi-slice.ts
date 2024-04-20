@@ -16,6 +16,7 @@ interface WifiState {
   networkConfig: NetworkConfig;
   wifiStatus: WifiStatus;
   wifiList: Wifi[];
+  knownWifis: string[];
 }
 
 const initialState: WifiState = {
@@ -25,7 +26,8 @@ const initialState: WifiState = {
   error: false,
   networkConfig: null,
   wifiStatus: null,
-  wifiList: []
+  wifiList: [],
+  knownWifis: []
 };
 
 export const getConfig = createAsyncThunk('wifi/getConfig', async () => {
@@ -86,9 +88,12 @@ const wifiSlice = createSlice({
       .addCase(getConfig.fulfilled, (state, action) => {
         state.pending = false;
         if (action.payload) {
-          const { config, status } = action.payload;
+          const { config, status, known_wifis } = action.payload;
           state.networkConfig = config;
           state.wifiStatus = status;
+          state.knownWifis = Object.keys(known_wifis).map(
+            (key) => known_wifis[key]
+          );
         }
       })
       .addCase(getWifis.pending, (state) => {

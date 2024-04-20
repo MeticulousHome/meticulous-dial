@@ -36,6 +36,11 @@ export const WifiSettings = (): JSX.Element => {
       visible: isWifiConnected
     },
     {
+      key: 'known_wifis',
+      label: 'Known Wifis',
+      visible: true
+    },
+    {
       key: 'connect_new_network',
       label: 'Connect to a new network',
       visible: true
@@ -87,6 +92,10 @@ export const WifiSettings = (): JSX.Element => {
           dispatch(
             setBubbleDisplay({ visible: true, component: 'quick-settings' })
           );
+          break;
+        }
+        case 'known_wifis': {
+          dispatch(setBubbleDisplay({ visible: true, component: 'KnownWifi' }));
           break;
         }
         case 'back': {

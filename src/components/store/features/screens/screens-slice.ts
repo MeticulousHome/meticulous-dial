@@ -25,7 +25,8 @@ export type ScreenType =
   | 'enterWifiPassword'
   | 'quick-settings'
   | 'quick-preheat'
-  | 'snake';
+  | 'snake'
+  | 'KnownWifi';
 
 interface ScreenState {
   value: ScreenType;
