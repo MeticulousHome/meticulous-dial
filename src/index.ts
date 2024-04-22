@@ -7,7 +7,8 @@ import {
   getNetworkConfig,
   getWifiList,
   updateNetworkConfig,
-  connectToWifi
+  connectToWifi,
+  deleteKnowWifi
 } from './api/wifi';
 import { KIND_PROFILE } from './constants';
 import mockPreset from './data/mock_presets.json';
@@ -264,6 +265,7 @@ app.on('ready', () => {
   ipcMain.handle('getWifiList', getWifiList);
   ipcMain.handle('updateNetworkConfig', updateNetworkConfig);
   ipcMain.handle('connectToWifi', connectToWifi);
+  ipcMain.handle('deleteKnowWifi', deleteKnowWifi);
   createWindow();
 });
 
