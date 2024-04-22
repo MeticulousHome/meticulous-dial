@@ -2,10 +2,7 @@ import { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import {
-  getConfig as getWifiConfig,
-  getWifis
-} from '../store/features/wifi/wifi-slice';
+import { getConfig as getWifiConfig } from '../store/features/wifi/wifi-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { WifiIcon } from './WifiIcon';
@@ -16,8 +13,6 @@ export const KnownWifi = (): JSX.Element => {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const { pending, knownWifis = [] } = useAppSelector((state) => state.wifi);
-
-  console.log('knownWifis', knownWifis);
 
   useHandleGestures({
     left() {
@@ -32,14 +27,15 @@ export const KnownWifi = (): JSX.Element => {
           setBubbleDisplay({ visible: true, component: 'wifiSettings' })
         );
       } else {
-        dispatch(setBubbleDisplay({ visible: false, component: null }));
+        dispatch(
+          setBubbleDisplay({ visible: true, component: 'deleteKnowWifiMenu' })
+        );
       }
     }
   });
 
   useEffect(() => {
     dispatch(getWifiConfig());
-    dispatch(getWifis());
   }, []);
 
   useEffect(() => {

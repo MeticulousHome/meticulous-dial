@@ -23,6 +23,7 @@ import { QuickSettings } from '../../src/components/QuickSettings/QuickSettings'
 import { QuickPreheat } from '../../src/components/Preheat/Preheat';
 import { SnakeGame } from '../../src/components/Snake/Snake';
 import { KnownWifi } from '../../src/components/Wifi/KnownWifi';
+import { DeleteWifiMenu } from '../components/Wifi/DeleteWifiMenu';
 
 interface Route {
   component: ComponentType;
@@ -151,6 +152,11 @@ export const routes: Record<ScreenType, Route> = {
   },
   KnownWifi: {
     component: KnownWifi,
+    bottomStatusHidden: true
+  },
+  deleteKnowWifiMenu: {
+    component: DeleteWifiMenu,
+    title: 'delete',
     bottomStatusHidden: true
   },
   connectWifiMenu: {

@@ -26,7 +26,8 @@ export type ScreenType =
   | 'quick-settings'
   | 'quick-preheat'
   | 'snake'
-  | 'KnownWifi';
+  | 'KnownWifi'
+  | 'deleteKnowWifiMenu';
 
 interface ScreenState {
   value: ScreenType;
