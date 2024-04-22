@@ -71,3 +71,15 @@ export const notificationFeedback = async (id: string, response: string) => {
     console.log('notification feedback error', id);
   }
 };
+
+export const deleteKnowWifi = async (
+  _event: IpcMainEvent,
+  { ssid }: { ssid: string }
+) => {
+  try {
+    const response = await api.deleteWifi({ ssid });
+    return response.data;
+  } catch (error) {
+    console.log('deleteKnowWifi error: ', error);
+  }
+};

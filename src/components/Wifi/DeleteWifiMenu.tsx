@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
-import { useAppDispatch } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { deleteKnowWifiThunk } from '../store/features/wifi/wifi-slice';
 
 const items = [{ key: 'delete' }, { key: 'back' }];
 
@@ -11,6 +12,9 @@ export const DeleteWifiMenu = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const { pending, selectedWifiToDelete } = useAppSelector(
+    (state) => state.wifi
+  );
 
   useHandleGestures({
     left() {
@@ -22,7 +26,8 @@ export const DeleteWifiMenu = (): JSX.Element => {
     pressDown() {
       switch (items[activeIndex].key) {
         case 'delete': {
-          console.log('borrar...');
+          dispatch(deleteKnowWifiThunk({ ssid: selectedWifiToDelete }));
+          dispatch(setBubbleDisplay({ visible: true, component: 'KnownWifi' }));
           break;
         }
         case 'back': {

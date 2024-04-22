@@ -8,6 +8,7 @@ export interface MeticulousAPI {
   getWifiList: () => Promise<any>;
   updateNetworkConfig: (newConfig: Partial<NetworkConfig>) => Promise<any>;
   connectToWifi: (config: PasswortConnect) => Promise<any>;
+  deleteKnowWifi: ({ ssid }: { ssid: string }) => Promise<any>;
 }
 
 declare global {
