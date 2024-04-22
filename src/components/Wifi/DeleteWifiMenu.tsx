@@ -27,7 +27,9 @@ export const DeleteWifiMenu = (): JSX.Element => {
       switch (items[activeIndex].key) {
         case 'delete': {
           dispatch(deleteKnowWifiThunk({ ssid: selectedWifiToDelete }));
-          dispatch(setBubbleDisplay({ visible: true, component: 'KnownWifi' }));
+          dispatch(
+            setBubbleDisplay({ visible: true, component: 'deletedWifi' })
+          );
           break;
         }
         case 'back': {
