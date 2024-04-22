@@ -83,7 +83,7 @@ export const SocketProviderValue = () => {
 const keyGestureMap: Record<string, GestureType> = {
   ArrowLeft: 'left',
   ArrowRight: 'right',
-  Space: 'click',
+  Space: 'pressDown',
   Enter: 'context',
   KeyS: 'longTare',
   KeyE: 'longEncoder',
