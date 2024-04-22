@@ -11,6 +11,7 @@ interface WifiState {
   // TODO: update type when integrated with backend
   selectedWifi: string;
   selectedWifiToDelete: string;
+  deletedWifiResult: string;
   pending: boolean;
   connectionResult: string;
   error: boolean;
@@ -23,6 +24,7 @@ interface WifiState {
 const initialState: WifiState = {
   selectedWifi: null,
   selectedWifiToDelete: null,
+  deletedWifiResult: null,
   pending: false,
   connectionResult: null,
   error: false,
@@ -154,13 +156,24 @@ const wifiSlice = createSlice({
       .addCase(deleteKnowWifiThunk.rejected, (state) => {
         state.pending = false;
         state.error = true;
+        state.deletedWifiResult = 'Wifi deleted error';
       })
-      .addCase(deleteKnowWifiThunk.fulfilled, (state) => {
-        state.error = false;
+      .addCase(deleteKnowWifiThunk.fulfilled, (state, action) => {
         state.pending = false;
-        state.knownWifis = state.knownWifis.filter(
-          (wifi) => wifi.key !== state.selectedWifiToDelete
-        );
+        const status = action.payload;
+        if (!status || !status.status) {
+          state.deletedWifiResult = 'No response from machine backend';
+          state.error = true;
+        } else if (status.status === 'ok') {
+          state.error = false;
+          state.deletedWifiResult = 'Successfully deleted';
+          state.knownWifis = state.knownWifis.filter(
+            (wifi) => wifi.key !== state.selectedWifiToDelete
+          );
+        } else {
+          state.deletedWifiResult = status.error || 'An unknown error occured';
+          state.error = true;
+        }
       });
     // .addCase(updateConfig.rejected, (state, action) => {
     //   console.log('save error', action);
