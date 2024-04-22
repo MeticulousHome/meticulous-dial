@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { getConfig as getWifiConfig } from '../store/features/wifi/wifi-slice';
+import {
+  getConfig as getWifiConfig,
+  selectWifiToDelete
+} from '../store/features/wifi/wifi-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { WifiIcon } from './WifiIcon';
@@ -27,6 +30,7 @@ export const KnownWifi = (): JSX.Element => {
           setBubbleDisplay({ visible: true, component: 'wifiSettings' })
         );
       } else {
+        dispatch(selectWifiToDelete(knownWifis[activeIndex].key));
         dispatch(
           setBubbleDisplay({ visible: true, component: 'deleteKnowWifiMenu' })
         );
@@ -66,11 +70,11 @@ export const KnownWifi = (): JSX.Element => {
             const isActive = index === activeIndex;
             return (
               <SwiperSlide
-                key={network}
+                key={network.key}
                 className={`settings-item ${isActive ? 'active-setting' : ''}`}
               >
                 <div className="network-option">
-                  <span>{network}</span>
+                  <span>{network.label}</span>
                   <WifiIcon level={Math.min(knownWifis.length - index, 4)} />
                 </div>
               </SwiperSlide>

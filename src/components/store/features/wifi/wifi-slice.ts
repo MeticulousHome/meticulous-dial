@@ -10,17 +10,19 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 interface WifiState {
   // TODO: update type when integrated with backend
   selectedWifi: string;
+  selectedWifiToDelete: string;
   pending: boolean;
   connectionResult: string;
   error: boolean;
   networkConfig: NetworkConfig;
   wifiStatus: WifiStatus;
   wifiList: Wifi[];
-  knownWifis: string[];
+  knownWifis: { label: string; key: string }[];
 }
 
 const initialState: WifiState = {
   selectedWifi: null,
+  selectedWifiToDelete: null,
   pending: false,
   connectionResult: null,
   error: false,
@@ -62,12 +64,24 @@ export const connectToWifiThunk = createAsyncThunk(
   }
 );
 
+export const deleteKnowWifiThunk = createAsyncThunk(
+  'wifi/delete',
+  async ({ ssid }: { ssid: string }) => {
+    const response = await window.meticulousAPI.deleteKnowWifi({ ssid });
+
+    return response;
+  }
+);
+
 const wifiSlice = createSlice({
   name: 'wifi',
   initialState,
   reducers: {
     selectWifi: (state: WifiState, action: PayloadAction<string>) => {
       state.selectedWifi = action.payload;
+    },
+    selectWifiToDelete: (state: WifiState, action: PayloadAction<string>) => {
+      state.selectedWifiToDelete = action.payload;
     },
     updateConfig: (state: WifiState, action: PayloadAction<NetworkConfig>) => {
       state.networkConfig = {
@@ -91,9 +105,10 @@ const wifiSlice = createSlice({
           const { config, status, known_wifis } = action.payload;
           state.networkConfig = config;
           state.wifiStatus = status;
-          state.knownWifis = Object.keys(known_wifis).map(
-            (key) => known_wifis[key]
-          );
+          state.knownWifis = Object.keys(known_wifis).map((key) => ({
+            label: known_wifis[key],
+            key
+          }));
         }
       })
       .addCase(getWifis.pending, (state) => {
@@ -132,6 +147,20 @@ const wifiSlice = createSlice({
           state.connectionResult = status.error || 'An unknown error occured';
           state.error = true;
         }
+      })
+      .addCase(deleteKnowWifiThunk.pending, (state) => {
+        state.pending = true;
+      })
+      .addCase(deleteKnowWifiThunk.rejected, (state) => {
+        state.pending = false;
+        state.error = true;
+      })
+      .addCase(deleteKnowWifiThunk.fulfilled, (state) => {
+        state.error = false;
+        state.pending = false;
+        state.knownWifis = state.knownWifis.filter(
+          (wifi) => wifi.key !== state.selectedWifiToDelete
+        );
       });
     // .addCase(updateConfig.rejected, (state, action) => {
     //   console.log('save error', action);
@@ -139,5 +168,6 @@ const wifiSlice = createSlice({
   }
 });
 
-export const { selectWifi, updateConfig } = wifiSlice.actions;
+export const { selectWifi, updateConfig, selectWifiToDelete } =
+  wifiSlice.actions;
 export default wifiSlice.reducer;
