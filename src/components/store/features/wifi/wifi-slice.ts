@@ -18,7 +18,7 @@ interface WifiState {
   networkConfig: NetworkConfig;
   wifiStatus: WifiStatus;
   wifiList: Wifi[];
-  knownWifis: { label: string; key: string }[];
+  knownWifis: { password: string; ssid: string }[];
 }
 
 const initialState: WifiState = {
@@ -108,8 +108,8 @@ const wifiSlice = createSlice({
           state.networkConfig = config;
           state.wifiStatus = status;
           state.knownWifis = Object.keys(known_wifis).map((key) => ({
-            label: known_wifis[key],
-            key
+            password: known_wifis[key],
+            ssid: key
           }));
         }
       })
@@ -168,7 +168,7 @@ const wifiSlice = createSlice({
           state.error = false;
           state.deletedWifiResult = 'Successfully deleted';
           state.knownWifis = state.knownWifis.filter(
-            (wifi) => wifi.key !== state.selectedWifiToDelete
+            (wifi) => wifi.ssid !== state.selectedWifiToDelete
           );
         } else {
           state.deletedWifiResult = status.error || 'An unknown error occured';

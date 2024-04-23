@@ -12,6 +12,7 @@ import { AppDispatch } from '../store/store';
 
 export function EnterWifiPassword(): JSX.Element {
   const { wifi } = useAppSelector((state) => state);
+  const { bubbleDisplay } = useAppSelector((state) => state.screen);
   const screen = useAppSelector(
     (state) => state.screen,
     (prev, next) => prev === next
@@ -34,12 +35,27 @@ export function EnterWifiPassword(): JSX.Element {
 
   const onCancel = () => {
     dispatch(setScreen(screen.prev));
-    dispatch(setBubbleDisplay({ visible: true, component: 'selectWifi' }));
+    dispatch(
+      setBubbleDisplay({
+        visible: true,
+        component:
+          bubbleDisplay.previousComponent === 'deleteKnowWifiMenu'
+            ? 'deleteKnowWifiMenu'
+            : 'selectWifi'
+      })
+    );
   };
 
   return (
     <CircleKeyboard
       name={`password for ${wifi.selectedWifi}`}
+      defaultValue={
+        bubbleDisplay.previousComponent === 'deleteKnowWifiMenu'
+          ? wifi.knownWifis
+              .find((knownWifi) => knownWifi.ssid === wifi.selectedWifi)
+              ?.password.split('') ?? undefined
+          : undefined
+      }
       onSubmit={updateSetting}
       onCancel={onCancel}
     />
