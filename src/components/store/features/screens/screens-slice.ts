@@ -33,12 +33,16 @@ export type ScreenType =
 interface ScreenState {
   value: ScreenType;
   prev: ScreenType;
-  bubbleDisplay: { visible: boolean; component: ScreenType | null };
+  bubbleDisplay: {
+    visible: boolean;
+    component: ScreenType | null;
+    previousComponent: ScreenType | null;
+  };
 }
 
 const initialState: ScreenState = {
   prev: null,
-  bubbleDisplay: { visible: false, component: null },
+  bubbleDisplay: { visible: false, component: null, previousComponent: null },
   value: 'pressets'
 };
 
@@ -55,6 +59,7 @@ const screenSlice = createSlice({
       action: PayloadAction<{ visible: boolean; component: ScreenType }>
     ) => {
       state.bubbleDisplay.visible = action.payload.visible;
+      state.bubbleDisplay.previousComponent = state.bubbleDisplay.component;
       state.bubbleDisplay.component = action.payload.component;
     }
   }

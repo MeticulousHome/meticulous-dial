@@ -30,7 +30,7 @@ export const KnownWifi = (): JSX.Element => {
           setBubbleDisplay({ visible: true, component: 'wifiSettings' })
         );
       } else {
-        dispatch(selectWifiToDelete(knownWifis[activeIndex].key));
+        dispatch(selectWifiToDelete(knownWifis[activeIndex].ssid));
         dispatch(
           setBubbleDisplay({ visible: true, component: 'deleteKnowWifiMenu' })
         );
@@ -70,11 +70,11 @@ export const KnownWifi = (): JSX.Element => {
             const isActive = index === activeIndex;
             return (
               <SwiperSlide
-                key={network.key}
+                key={network.ssid}
                 className={`settings-item ${isActive ? 'active-setting' : ''}`}
               >
                 <div className="network-option">
-                  <span>{network.label}</span>
+                  <span>{network.ssid}</span>
                   <WifiIcon level={Math.min(knownWifis.length - index, 4)} />
                 </div>
               </SwiperSlide>
