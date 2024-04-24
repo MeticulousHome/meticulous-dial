@@ -133,6 +133,11 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
     },
     doubleClick() {
       if (mainLetter === 'capslock') {
+        if (capsLockActive.active && caption.length === 0) {
+          setCapsLockActive({ ...capsLockActive, keep: true });
+          return;
+        }
+
         setCapsLockActive({
           active: !capsLockActive.active,
           keep: !capsLockActive.keep
@@ -188,7 +193,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         case 'capslock':
           setCapsLockActive({
             active: !capsLockActive.active,
-            keep: !capsLockActive.keep
+            keep: capsLockActive.keep ? false : capsLockActive.keep
           });
           return;
         case 'keyboardType':
@@ -283,6 +288,10 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
 
   // Recalculate caption style when the caption changes length
   useEffect(() => {
+    if (caption.length === 0) {
+      setCapsLockActive({ ...capsLockActive, active: true });
+    }
+
     if (captionRef.current) {
       const computedStyle = getComputedStyle(captionRef.current);
       let baseFontSize = parseInt(computedStyle.fontSize, 10);
