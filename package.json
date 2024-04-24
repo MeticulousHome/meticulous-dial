@@ -95,6 +95,7 @@
     "axios": "^1.6.5",
     "classnames": "^2.5.1",
     "electron-squirrel-startup": "^1.0.0",
+    "lottie-web": "^5.12.2",
     "meticulous-api": "github:MeticulousHome/meticulous-typescript-api#dist",
     "meticulous-typescript-profile": "github:MeticulousHome/meticulous-typescript-profile#dist",
     "nanoevents": "^7.0.1",

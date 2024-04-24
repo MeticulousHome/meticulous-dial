@@ -1,0 +1,43 @@
+.piston-purge-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.values {
+  font-size: 40px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding-inline: 50px;
+}
+
+.value {
+  width: 4rem;
+  font-family: 'Abc_mono' I !important;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.value span {
+  font-family: 'Abc_mono' I !important;
+  font-size: 18px;
+  color: gray;
+  margin-top: 5px;
+}
+
+.lottie {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0px;
+  right: 0px;
+}
