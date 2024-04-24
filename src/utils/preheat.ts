@@ -16,7 +16,7 @@ export const generateSimplePayload = ({ presset }: PayloadProps) => {
   // const preheat = getKeyPresset(presset, 'pre-heat');
   // const purge = getKeyPresset(presset, 'purge');
 
-  const simpelJson = {
+  return {
     id: presset.id,
     name: presset.name,
     temperature: temperature.value,
@@ -43,19 +43,19 @@ export const generateSimplePayload = ({ presset }: PayloadProps) => {
             type: 'time',
             value: 30,
             relative: true,
-            comparison: 'greater'
+            comparison: '>='
           },
           {
             type: 'weight',
             value: 0.3,
             relative: true,
-            comparison: 'greater'
+            comparison: '>='
           },
           {
             type: 'pressure',
             value: '$pressure_1',
             relative: false,
-            comparison: 'greater'
+            comparison: '>='
           }
         ],
         //eslint-disable-next-line
@@ -79,19 +79,4 @@ export const generateSimplePayload = ({ presset }: PayloadProps) => {
       }
     ]
   };
-
-  return simpelJson;
-
-  // return {
-  //   action,
-  //   name: presset.name,
-  //   kind: KIND_PROFILE.ITALIAN,
-  //   automatic_purge: purge?.value === 'automatic',
-  //   temperature: Number(temperature.value),
-  //   preinfusion: preinfusion?.value === 'yes',
-  //   preheat: preheat?.value === 'yes',
-  //   pressure: Number(pressure.value),
-  //   out_weight: Number(output.value),
-  //   source: 'lcd'
-  // };
 };
