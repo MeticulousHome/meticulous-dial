@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import lottie, { AnimationItem } from 'lottie-web';
 import './piston.css';
-import piston from './piston-2.json';
+import piston from './piston.json';
 import { useAppSelector } from '../../store/hooks';
 import { formatStatValue } from '../../../utils';
 
@@ -20,16 +20,16 @@ export function PurgePiston(): JSX.Element {
     });
 
     pistonContainer.current.addEventListener('enterFrame', (e) => {
-      if (e.currentTime >= 52) {
+      if (e.currentTime >= 58.9) {
         pistonContainer.current.setDirection(-1);
       }
 
-      if (e.direction < 0 && e.currentTime <= 30) {
+      if (e.direction < 0 && e.currentTime <= 53) {
         pistonContainer.current.pause();
       }
     });
 
-    pistonContainer.current.setSpeed(0.06);
+    pistonContainer.current.setSpeed(0.058);
     pistonContainer.current.play();
   }, []);
 
