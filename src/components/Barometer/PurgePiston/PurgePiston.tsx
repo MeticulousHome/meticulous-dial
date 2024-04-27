@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import lottie, { AnimationItem, AnimationSegment } from 'lottie-web';
+import { useEffect, useRef, useState } from 'react';
+import lottie, { AnimationItem } from 'lottie-web';
 import './piston.css';
 import piston from './piston.json';
 import blink from './blink.json';
@@ -8,6 +8,7 @@ import { formatStatValue } from '../../../utils';
 
 const TOTAL_FRAMES = 59;
 const MAX_POSITION = 78.63;
+const TRANSITION_DURATION = 500;
 
 export function PurgePiston(): JSX.Element {
   const stats = useAppSelector((state) => state.stats);
@@ -16,6 +17,7 @@ export function PurgePiston(): JSX.Element {
   const pistonAnimator = useRef(null);
   const blinkContainer = useRef<AnimationItem | null>(null);
   const blinkAnimator = useRef(null);
+  const [currentPosition, setCurrentPosition] = useState(0);
 
   useEffect(() => {
     blinkContainer.current = lottie.loadAnimation({
@@ -41,13 +43,25 @@ export function PurgePiston(): JSX.Element {
   }, []);
 
   useEffect(() => {
-    const total = (actuators.m_pos / MAX_POSITION) * TOTAL_FRAMES;
-    const segments: AnimationSegment = [
-      total,
-      total > TOTAL_FRAMES ? TOTAL_FRAMES : total + 1
-    ];
+    const targetPosition = (actuators.m_pos / MAX_POSITION) * TOTAL_FRAMES;
+    const startPosition = currentPosition;
+    const startTime = performance.now();
 
-    pistonContainer.current.playSegments(segments, true);
+    const animate = (currentTime: number) => {
+      const elapsedTime = currentTime - startTime;
+      const progress = Math.min(elapsedTime / TRANSITION_DURATION, 1);
+      const interpolatedPosition =
+        startPosition + (targetPosition - startPosition) * progress;
+
+      pistonContainer.current.goToAndStop(interpolatedPosition, true);
+      setCurrentPosition(interpolatedPosition);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
   }, [actuators]);
 
   return (
