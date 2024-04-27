@@ -28,7 +28,7 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
   }, [stats.name]);
 
   const renderOption = () => {
-    if (stats.name === 'purge') {
+    if (stats.name === 'purge' || stats.name === 'home') {
       return (
         <div className="barometer-container">
           <PurgePiston />

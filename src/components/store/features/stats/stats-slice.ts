@@ -12,7 +12,8 @@ const initialState: ISensorData = {
   },
   time: '0',
   profile: undefined,
-  waterStatus: false
+  waterStatus: false,
+  actuators: { m_pos: 0 }
 };
 
 const statsSlice = createSlice({
@@ -26,8 +27,16 @@ const statsSlice = createSlice({
       state = {
         ...action.payload,
         waterStatus: state.waterStatus,
-        waitingForActionAlreadySent: state.waitingForActionAlreadySent
+        waitingForActionAlreadySent: state.waitingForActionAlreadySent,
+        actuators: state.actuators
       };
+      return state;
+    },
+    setPistonPosition: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<number>
+    ) => {
+      state.actuators = { ...state.actuators, m_pos: action.payload };
       return state;
     },
     setWaterStatus: (
@@ -47,7 +56,11 @@ const statsSlice = createSlice({
   }
 });
 
-export const { setStats, setWaterStatus, setWaitingForAction } =
-  statsSlice.actions;
+export const {
+  setStats,
+  setWaterStatus,
+  setWaitingForAction,
+  setPistonPosition
+} = statsSlice.actions;
 
 export default statsSlice.reducer;

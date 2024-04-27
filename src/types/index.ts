@@ -60,6 +60,7 @@ export interface ISensorData {
   };
   profile: string;
   waterStatus: boolean;
+  actuators: { m_pos: number };
 }
 
 export interface IPreset {

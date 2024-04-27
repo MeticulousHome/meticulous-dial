@@ -1,14 +1,31 @@
 import { useEffect, useRef } from 'react';
-import lottie, { AnimationItem } from 'lottie-web';
+import lottie, { AnimationItem, AnimationSegment } from 'lottie-web';
 import './piston.css';
 import piston from './piston.json';
+import blink from './blink.json';
 import { useAppSelector } from '../../store/hooks';
 import { formatStatValue } from '../../../utils';
 
+const TOTAL_FRAMES = 59;
+const MAX_POSITION = 78.63;
+
 export function PurgePiston(): JSX.Element {
   const stats = useAppSelector((state) => state.stats);
+  const { actuators } = stats;
   const pistonContainer = useRef<AnimationItem | null>(null);
   const pistonAnimator = useRef(null);
+  const blinkContainer = useRef<AnimationItem | null>(null);
+  const blinkAnimator = useRef(null);
+
+  useEffect(() => {
+    blinkContainer.current = lottie.loadAnimation({
+      container: blinkAnimator.current,
+      animationData: blink,
+      renderer: 'svg',
+      loop: true,
+      autoplay: true
+    });
+  }, []);
 
   useEffect(() => {
     pistonContainer.current = lottie.loadAnimation({
@@ -16,22 +33,22 @@ export function PurgePiston(): JSX.Element {
       animationData: piston,
       renderer: 'svg',
       loop: false,
-      autoplay: false
-    });
-
-    pistonContainer.current.addEventListener('enterFrame', (e) => {
-      if (e.currentTime >= 58.9) {
-        pistonContainer.current.setDirection(-1);
-      }
-
-      if (e.direction < 0 && e.currentTime <= 53) {
-        pistonContainer.current.pause();
+      autoplay: false,
+      rendererSettings: {
+        progressiveLoad: true
       }
     });
-
-    pistonContainer.current.setSpeed(0.058);
-    pistonContainer.current.play();
   }, []);
+
+  useEffect(() => {
+    const total = (actuators.m_pos / MAX_POSITION) * TOTAL_FRAMES;
+    const segments: AnimationSegment = [
+      total,
+      total > TOTAL_FRAMES ? TOTAL_FRAMES : total + 1
+    ];
+
+    pistonContainer.current.playSegments(segments, true);
+  }, [actuators]);
 
   return (
     <div className="piston-purge-container center">
@@ -40,10 +57,19 @@ export function PurgePiston(): JSX.Element {
           {formatStatValue(stats.sensors.p, 1)}
           <span>bar</span>
         </div>
+        <div
+          id="blink"
+          ref={blinkAnimator}
+          className="lottie"
+          style={{ top: -3 }}
+        />
         <div id="piston" ref={pistonAnimator} className="lottie" />
         <div className="value">
           {formatStatValue(stats.sensors.f, 1)}
           <span>ml/s</span>
+        </div>
+        <div style={{ position: 'absolute', bottom: 10, color: 'red' }}>
+          {stats.actuators.m_pos}
         </div>
       </div>
     </div>

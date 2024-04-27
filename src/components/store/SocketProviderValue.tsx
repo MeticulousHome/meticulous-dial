@@ -3,7 +3,11 @@ import { io, Socket } from 'socket.io-client';
 
 import { GestureType, ISensorData } from '../../types/index';
 import { useAppDispatch } from './hooks';
-import { setStats, setWaterStatus } from './features/stats/stats-slice';
+import {
+  setPistonPosition,
+  setStats,
+  setWaterStatus
+} from './features/stats/stats-slice';
 import { setScreen } from './features/screens/screens-slice';
 import { addPresetFromDashboard } from './features/preset/preset-slice';
 import { handleEvents } from '../../HandleEvents';
@@ -51,6 +55,10 @@ export const SocketProviderValue = () => {
           profile: JSON.parse(data)
         })
       );
+    });
+
+    socket.on('actuators', (data: { m_pos: number }) => {
+      dispatch(setPistonPosition(data.m_pos));
     });
 
     socket.on('button', (data: { type: string }) => {
