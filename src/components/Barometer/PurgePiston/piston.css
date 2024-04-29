@@ -1,3 +1,11 @@
+.piston-container {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  z-index: 10;
+  border-radius: 999px;
+}
+
 .piston-purge-container {
   width: 100%;
   height: 100%;

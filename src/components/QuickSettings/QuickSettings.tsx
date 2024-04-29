@@ -83,19 +83,20 @@ export function QuickSettings(): JSX.Element {
       },
       pressDown() {
         switch (settings[activeIndex].key) {
-          case 'home': {
-            socket.emit('action', 'home');
-            dispatch(setScreen('pressets'));
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
-            break;
-          }
           case 'edit': {
             dispatch(resetActiveSetting());
             dispatch(setScreen('pressetSettings'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
+          case 'home': {
+            dispatch(setScreen('home'));
+            socket.emit('action', 'home');
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
           case 'purge': {
+            dispatch(setScreen('purge'));
             socket.emit('action', 'purge');
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;

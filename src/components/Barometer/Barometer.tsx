@@ -5,7 +5,6 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { Meter } from './Meter';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
-import { PurgePiston } from './PurgePiston/PurgePiston';
 
 export interface IBarometerProps {
   maxValue?: number;
@@ -27,69 +26,57 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
     }
   }, [stats.name]);
 
-  const renderOption = () => {
-    if (stats.name === 'purge' || stats.name === 'home') {
-      return (
-        <div className="barometer-container">
-          <PurgePiston />
+  return (
+    <div className="barometer-container">
+      <Meter
+        min={0}
+        max={maxValue}
+        step={1}
+        value={Number.parseFloat(stats.sensors.p)}
+        className="meter"
+      />
+      <div className="bar-needle__content">
+        <div className="pressure">Pressure</div>
+        <div className="bar-needle__legend">
+          <span className="bar-needle__value">
+            {formatStatValue(stats.sensors.p, 1)}
+          </span>
+          <span className="bar-label">bar</span>
         </div>
-      );
-    } else {
-      return (
-        <div className="barometer-container">
-          <Meter
-            min={0}
-            max={maxValue}
-            step={1}
-            value={Number.parseFloat(stats.sensors.p)}
-            className="meter"
-          />
-          <div className="bar-needle__content">
-            <div className="pressure">Pressure</div>
-            <div className="bar-needle__legend">
-              <span className="bar-needle__value">
-                {formatStatValue(stats.sensors.p, 1)}
-              </span>
-              <span className="bar-label">bar</span>
-            </div>
 
-            <div className="columns-grid">
-              <div className="column-item">
-                <div className="column-label">Temp</div>
-                <div className="column-value">
-                  {formatStatValue(stats.sensors.t, 1)}
-                  <div className="column-unit">°C</div>
-                </div>
-              </div>
-              <div className="column-item">
-                <div className="column-label">Weight</div>
-                <div className="column-value">
-                  {formatStatValue(stats.sensors.w, 1)}
-                  <div className="column-unit">gr</div>
-                </div>
-              </div>
-              <div className="column-item">
-                <div className="column-label">Time</div>
-                <div className="column-value">
-                  {formatStatValue(stats.time, 1, 1000)}
-                  <div className="column-unit">sec</div>
-                </div>
-              </div>
-              <div className="column-item">
-                <div className="column-label">Flow</div>
-                <div className="column-value">
-                  {formatStatValue(stats.sensors.f, 1)}
-                  <div className="column-unit">ml/s</div>
-                </div>
-              </div>
+        <div className="columns-grid">
+          <div className="column-item">
+            <div className="column-label">Temp</div>
+            <div className="column-value">
+              {formatStatValue(stats.sensors.t, 1)}
+              <div className="column-unit">°C</div>
             </div>
-
-            <div className="bar-needle__status">{stats.name}</div>
+          </div>
+          <div className="column-item">
+            <div className="column-label">Weight</div>
+            <div className="column-value">
+              {formatStatValue(stats.sensors.w, 1)}
+              <div className="column-unit">gr</div>
+            </div>
+          </div>
+          <div className="column-item">
+            <div className="column-label">Time</div>
+            <div className="column-value">
+              {formatStatValue(stats.time, 1, 1000)}
+              <div className="column-unit">sec</div>
+            </div>
+          </div>
+          <div className="column-item">
+            <div className="column-label">Flow</div>
+            <div className="column-value">
+              {formatStatValue(stats.sensors.f, 1)}
+              <div className="column-unit">ml/s</div>
+            </div>
           </div>
         </div>
-      );
-    }
-  };
 
-  return renderOption();
+        <div className="bar-needle__status">{stats.name}</div>
+      </div>
+    </div>
+  );
 }

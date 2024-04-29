@@ -5,7 +5,6 @@ import { Scale } from '../components/Scale/Scale';
 import { PressetSettings } from '../components/PressetSettings/PressetSettings';
 import { SettingNumerical } from '../components/SettingNumerical/SettingNumerical';
 import { OnOff } from '../components/OnOff/OnOff';
-import { Purge } from '../components/Purge/Purge';
 import { Settings } from '../components/Settings/Settings';
 import { ScreenType } from '../components/store/features/screens/screens-slice';
 import { EditNameScreen } from '../components/EditNameScreen/EditNameScreen';
@@ -25,6 +24,7 @@ import { SnakeGame } from '../../src/components/Snake/Snake';
 import { KnownWifi } from '../../src/components/Wifi/KnownWifi';
 import { DeleteWifiMenu } from '../components/Wifi/DeleteWifiMenu';
 import { DeletedWifi } from '../components/Wifi/DeletedWifi';
+import { PurgePiston } from '../components/Barometer/PurgePiston/PurgePiston';
 
 interface Route {
   component: ComponentType;
@@ -105,8 +105,10 @@ export const routes: Record<ScreenType, Route> = {
     bottomStatusHidden: true
   },
   purge: {
-    component: Purge,
-    title: selectActivePresetName
+    component: PurgePiston
+  },
+  home: {
+    component: PurgePiston
   },
   dose: {
     component: () => null, // Multiple choice to be implemented

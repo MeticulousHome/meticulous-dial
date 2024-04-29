@@ -8,7 +8,6 @@ import {
   setStats,
   setWaterStatus
 } from './features/stats/stats-slice';
-import { setScreen } from './features/screens/screens-slice';
 import { addPresetFromDashboard } from './features/preset/preset-slice';
 import { handleEvents } from '../../HandleEvents';
 import {
@@ -17,6 +16,7 @@ import {
 } from './features/notifications/notification-slice';
 
 const SERVER_URL: string = process.env.SERVER_URL ?? 'http://localhost:8080';
+// const SERVER_URL = 'http://192.168.0.37:8080';
 const socket: Socket | null = io(SERVER_URL);
 
 export const SocketProviderValue = () => {
@@ -35,11 +35,9 @@ export const SocketProviderValue = () => {
 
     socket.on('status', (data: ISensorData) => {
       dispatch(setStats(data));
-
-      // When stat is not in idle, lock the screen at Barometer
-      if (data?.name !== 'idle') {
-        dispatch(setScreen('barometer'));
-      }
+      // if (data?.name !== 'idle') {
+      //   dispatch(setScreen('barometer'));
+      // }
     });
 
     socket.on('water_status', (data: boolean) => {
@@ -58,12 +56,13 @@ export const SocketProviderValue = () => {
     });
 
     socket.on('actuators', (data: { m_pos: number }) => {
+      if (data.m_pos < 0) {
+        return;
+      }
       dispatch(setPistonPosition(data.m_pos));
     });
 
     socket.on('button', (data: { type: string }) => {
-      console.log('Receive: button', data);
-
       const eventGestureMap: Record<string, GestureType> = {
         ENCODER_CLOCKWISE: 'right',
         ENCODER_COUNTERCLOCKWISE: 'left',
@@ -79,7 +78,6 @@ export const SocketProviderValue = () => {
 
       const gesture = eventGestureMap[data.type];
       if (gesture) {
-        console.log('gesture:', gesture);
         handleEvents.emit('gesture', gesture);
       }
     });
@@ -98,7 +96,8 @@ const keyGestureMap: Record<string, GestureType> = {
   KeyD: 'doubleTare',
   KeyX: 'doubleClick',
   KeyB: 'pressDown',
-  KeyN: 'pressUp'
+  KeyN: 'pressUp',
+  KeyA: 'click'
 };
 
 export const useSocketKeyboardListeners = () => {

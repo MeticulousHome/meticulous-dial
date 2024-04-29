@@ -55,7 +55,6 @@ export const ProfileImage = ({ preset }: { preset: IPreset }) => {
     : colors[presetIndex];
 
   useEffect(() => {
-    console.log(preset.id);
     dispatch(
       addNewImageProfile({
         presetId: preset.id,
