@@ -7,7 +7,7 @@ import { useAppSelector } from '../../store/hooks';
 import { formatStatValue } from '../../../utils';
 
 const TOTAL_FRAMES = 59;
-const MAX_POSITION = 78.63;
+const MAX_POSITION = 83.03;
 const TRANSITION_DURATION = 500;
 
 export function PurgePiston(): JSX.Element {
@@ -81,9 +81,6 @@ export function PurgePiston(): JSX.Element {
         <div className="value">
           {formatStatValue(stats.sensors.f, 1)}
           <span>ml/s</span>
-        </div>
-        <div style={{ position: 'absolute', bottom: 10, color: 'red' }}>
-          {stats.actuators.m_pos}
         </div>
       </div>
     </div>
