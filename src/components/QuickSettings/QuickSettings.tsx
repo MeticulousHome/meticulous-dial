@@ -140,6 +140,8 @@ export function QuickSettings(): JSX.Element {
       presets.activeIndexSwiper === presets.value.length
     ) {
       setSettings(defaultSettings.filter((item) => item.key !== 'edit'));
+    } else {
+      setSettings(defaultSettings);
     }
   }, [presets, currentScreen]);
 
