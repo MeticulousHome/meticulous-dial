@@ -141,6 +141,7 @@ export const WifiDetails = (): JSX.Element => {
         </SwiperSlide>
         <SwiperSlide
           key="ap_password"
+          style={{ textTransform: 'unset' }}
           className={`settings-item ${
             items[activeIndex].key === 'ap_password' ? 'active-setting' : ''
           }`}

@@ -3,11 +3,7 @@ import { io, Socket } from 'socket.io-client';
 
 import { GestureType, ISensorData } from '../../types/index';
 import { useAppDispatch } from './hooks';
-import {
-  setPistonPosition,
-  setStats,
-  setWaterStatus
-} from './features/stats/stats-slice';
+import { setStats, setWaterStatus } from './features/stats/stats-slice';
 import { addPresetFromDashboard } from './features/preset/preset-slice';
 import { handleEvents } from '../../HandleEvents';
 import {
@@ -16,7 +12,6 @@ import {
 } from './features/notifications/notification-slice';
 
 const SERVER_URL: string = process.env.SERVER_URL ?? 'http://localhost:8080';
-// const SERVER_URL = 'http://192.168.0.37:8080';
 const socket: Socket | null = io(SERVER_URL);
 
 export const SocketProviderValue = () => {
@@ -35,9 +30,6 @@ export const SocketProviderValue = () => {
 
     socket.on('status', (data: ISensorData) => {
       dispatch(setStats(data));
-      // if (data?.name !== 'idle') {
-      //   dispatch(setScreen('barometer'));
-      // }
     });
 
     socket.on('water_status', (data: boolean) => {
@@ -53,13 +45,6 @@ export const SocketProviderValue = () => {
           profile: JSON.parse(data)
         })
       );
-    });
-
-    socket.on('actuators', (data: { m_pos: number }) => {
-      if (data.m_pos < 0) {
-        return;
-      }
-      dispatch(setPistonPosition(data.m_pos));
     });
 
     socket.on('button', (data: { type: string }) => {
