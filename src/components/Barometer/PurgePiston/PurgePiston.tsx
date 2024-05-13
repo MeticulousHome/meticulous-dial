@@ -103,21 +103,6 @@ export function PurgePiston(): JSX.Element {
 
     let myPosition = position;
 
-    if (myPosition <= 0) {
-      statusFirstName.current = false;
-      intervalRef.current = setInterval(() => {
-        if (pistonContainer.current) {
-          clearInterval(intervalRef.current);
-        }
-
-        if (!pistonContainer.current) {
-          initAnimation(0);
-        }
-      }, 100);
-
-      return;
-    }
-
     if (myPosition > MAX_POSITION) {
       myPosition = MAX_POSITION;
     }

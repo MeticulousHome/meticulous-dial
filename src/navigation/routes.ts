@@ -105,10 +105,12 @@ export const routes: Record<ScreenType, Route> = {
     bottomStatusHidden: true
   },
   purge: {
-    component: PurgePiston
+    component: PurgePiston,
+    bottomStatusHidden: true
   },
   home: {
-    component: PurgePiston
+    component: PurgePiston,
+    bottomStatusHidden: true
   },
   dose: {
     component: () => null, // Multiple choice to be implemented
