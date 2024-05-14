@@ -92,13 +92,17 @@ export function QuickSettings(): JSX.Element {
           case 'home': {
             dispatch(setScreen('home'));
             socket.emit('action', 'home');
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            setTimeout(() => {
+              dispatch(setBubbleDisplay({ visible: false, component: null }));
+            }, 100);
             break;
           }
           case 'purge': {
-            dispatch(setScreen('purge'));
+            dispatch(setScreen('manual-purge'));
             socket.emit('action', 'purge');
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            setTimeout(() => {
+              dispatch(setBubbleDisplay({ visible: false, component: null }));
+            }, 100);
             break;
           }
           case 'preheat': {

@@ -25,6 +25,7 @@ import { KnownWifi } from '../../src/components/Wifi/KnownWifi';
 import { DeleteWifiMenu } from '../components/Wifi/DeleteWifiMenu';
 import { DeletedWifi } from '../components/Wifi/DeletedWifi';
 import { PurgePiston } from '../components/Barometer/PurgePiston/PurgePiston';
+import { Purge } from '../components/Purge/Purge';
 
 interface Route {
   component: ComponentType;
@@ -105,6 +106,10 @@ export const routes: Record<ScreenType, Route> = {
     bottomStatusHidden: true
   },
   purge: {
+    component: Purge,
+    title: selectActivePresetName
+  },
+  'manual-purge': {
     component: PurgePiston,
     bottomStatusHidden: true
   },

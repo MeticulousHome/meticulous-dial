@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import lottie, { AnimationItem } from 'lottie-web-light';
+import lottie, { AnimationItem } from 'lottie-web';
 import './piston.css';
 import piston from './piston.json';
 import blink from './blink.json';
@@ -72,6 +72,10 @@ export function PurgePiston(): JSX.Element {
       autoplay: true
     });
 
+    if (stats.name === 'home') {
+      blinkAnimator.current.style.transform = 'rotate(180deg)';
+    }
+
     socket.on('actuators', (data: { m_pos: number }) => {
       if (data.m_pos < 0) {
         return;
@@ -85,7 +89,7 @@ export function PurgePiston(): JSX.Element {
     pistonContainer.current = lottie.loadAnimation({
       container: pistonAnimator.current,
       animationData: piston,
-      renderer: 'svg',
+      renderer: 'canvas',
       loop: false,
       autoplay: false
     });
@@ -143,6 +147,18 @@ export function PurgePiston(): JSX.Element {
       prevStatus.current = stats.name;
     }
   }, [stats.name]);
+
+  useEffect(() => {
+    intervalRef.current = setInterval(() => {
+      if (position === -1) {
+        dispatch(setScreen('pressets'));
+      }
+    }, 2000);
+
+    return () => {
+      clearInterval(intervalRef.current);
+    };
+  }, [position]);
 
   return (
     <div className="piston-container">

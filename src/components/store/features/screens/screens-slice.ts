@@ -29,7 +29,8 @@ export type ScreenType =
   | 'KnownWifi'
   | 'deleteKnowWifiMenu'
   | 'deletedWifi'
-  | 'home';
+  | 'home'
+  | 'manual-purge';
 
 interface ScreenState {
   value: ScreenType;
