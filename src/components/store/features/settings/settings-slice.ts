@@ -1,8 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
 
-import Api, { SettingsKey, SettingsType } from 'meticulous-api';
-import { Settings } from 'meticulous-api';
+import Api, { SettingsType, Settings } from 'meticulous-api';
 
 const api = new Api();
 
