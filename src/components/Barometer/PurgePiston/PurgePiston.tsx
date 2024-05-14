@@ -14,6 +14,7 @@ const NO_FRAMES = 1000;
 
 export function PurgePiston(): JSX.Element {
   const stats = useAppSelector((state) => state.stats);
+  const screen = useAppSelector((state) => state.screen.value);
   const socket = useSocket();
   const pistonContainer = useRef<AnimationItem | null>(null);
   const pistonAnimator = useRef(null);
@@ -72,8 +73,8 @@ export function PurgePiston(): JSX.Element {
       autoplay: true
     });
 
-    if (stats.name === 'home') {
-      blinkAnimator.current.style.transform = 'rotate(180deg)';
+    if (screen === 'home') {
+      blinkAnimator.current.style.top = '-206.5px';
     }
 
     socket.on('actuators', (data: { m_pos: number }) => {
