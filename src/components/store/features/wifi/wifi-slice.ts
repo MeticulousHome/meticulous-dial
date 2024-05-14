@@ -1,4 +1,3 @@
-import { AxiosResponse } from 'axios';
 import {
   NetworkConfig,
   PasswortConnect,
@@ -107,10 +106,12 @@ const wifiSlice = createSlice({
           const { config, status, known_wifis } = action.payload;
           state.networkConfig = config;
           state.wifiStatus = status;
-          state.knownWifis = Object.keys(known_wifis).map((key) => ({
-            password: known_wifis[key],
-            ssid: key
-          }));
+          if (known_wifis) {
+            state.knownWifis = Object.keys(known_wifis).map((key) => ({
+              password: known_wifis[key],
+              ssid: key
+            }));
+          }
         }
       })
       .addCase(getWifis.pending, (state) => {

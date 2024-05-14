@@ -63,7 +63,7 @@ export interface ISensorData {
 }
 
 export interface IPreset {
-  id: string | number;
+  id: string;
   name: string;
   kind?: ItalianProfile | DashboardProfile;
   isDefault?: boolean;
@@ -80,7 +80,7 @@ export interface IBasePresset {
 }
 export type NameKey = 'name';
 
-export type PressureKey = 'pressure';
+export type PressureKey = 'pressure' | 'pressure_1' | 'pressure_2';
 
 export type TemperatureKey = 'temperature';
 
@@ -212,11 +212,11 @@ export type ISettingType =
   | PreHeatKey
   | PreInfusionKey;
 
-type SettingsKeys = 'key' | 'value';
+// type SettingsKeys = 'key' | 'value';
 export interface PressetSettings {
   id: string;
   name: string;
-  settings: Record<SettingsKeys, string | number>[];
+  settings: IPresetSetting[];
 }
 
 export type Actions = 'to_play';

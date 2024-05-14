@@ -37,7 +37,8 @@ import { circumference, getDashArray } from '../SettingNumerical/Gauge';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
 import { Circle, radius, transform } from './Circle';
 import { TitleCircle } from './Title';
-import ProfileApi from '../../api/profile';
+import { loadProfileData, startProfile } from '../../api/profile';
+import { Profile } from 'meticulous-typescript-profile';
 
 interface AnimationData {
   circlekey: number;
@@ -144,9 +145,9 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     }
   }, []);
 
-  const loadProfile = useCallback(async (payload: Record<string, any>) => {
-    const res = await ProfileApi.loadDataProfile(payload);
-    if (res?.data) await ProfileApi.start();
+  const loadProfile = useCallback(async (payload: Profile) => {
+    const data = await loadProfileData(payload);
+    if (data) await startProfile();
   }, []);
 
   useHandleGestures(
@@ -510,6 +511,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           console.log(`${KIND_PROFILE.ITALIAN}:> ${JSON.stringify(payload)}`);
 
           // socket.emit(LCD_EVENT_EMIT.FEED_PROFILE, JSON.stringify(payload));
+          // TODO: parse payload to PROFILE Type
           loadProfile(payload);
           break;
         }

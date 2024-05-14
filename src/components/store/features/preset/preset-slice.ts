@@ -7,7 +7,6 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 import { settingsDefaultNewPreset } from '../../../../utils/mock';
-
 import {
   IPreset,
   IPresetSetting,
@@ -18,7 +17,13 @@ import { DEFAULT_SETTING } from '../../../../constants/setting';
 import { setPresetsData } from '../../../../data/presets';
 import { setScreen } from '../screens/screens-slice';
 import { KIND_PROFILE } from '../../../../constants';
-import Profile from '../../../../api/profile';
+import {
+  deleteProfile,
+  saveProfile,
+  getProfiles
+} from '../../../../api/profile';
+import { Profile } from 'meticulous-typescript-profile';
+import { getKeyPresset } from '../../../../utils/preheat';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -256,17 +261,16 @@ export const deletePreset = createAsyncThunk(
       }));
     }
 
-    await Profile.delete(presetState.activePreset.id);
-
     presetState.activeIndexSwiper = newSwiperIndex;
     presetState.activePreset = newDefaultPreset;
     presetState.activeSetting = 0;
     presetState.value = newListPresets.filter((item) => item.id !== -1);
-
     presetState.updatingSettings = {
       presetId: presetState.activePreset.id.toString(),
       settings: presetState.activePreset.settings ?? []
     };
+
+    await deleteProfile(presetState.activePreset.id);
 
     dispatch(
       setPresetState({
@@ -395,7 +399,34 @@ export const savePreset = createAsyncThunk(
     };
     presetState.value = [...copyListPresets];
 
-    await Profile.save(presetState.activePreset);
+    const temperature = getKeyPresset(
+      {
+        id: presetState.activePreset.id,
+        name: presetState.activePreset.name,
+        settings: presetState.activePreset.settings
+      },
+      'temperature'
+    ).value as number;
+    const output = getKeyPresset(
+      {
+        id: presetState.activePreset.id,
+        name: presetState.activePreset.name,
+        settings: presetState.activePreset.settings
+      },
+      'output'
+    ).value as number;
+
+    const body: Omit<Profile, 'variables' | 'stages'> = {
+      name: presetState.activePreset.name,
+      id: presetState.activePreset.id,
+      author: '',
+      author_id: '',
+      previous_authors: [{ name: '', author_id: '', profile_id: '' }],
+      temperature,
+      final_weight: output
+    };
+
+    await saveProfile(body);
 
     dispatch(
       setPresetState({
@@ -408,9 +439,9 @@ export const savePreset = createAsyncThunk(
 export const getPresets = createAsyncThunk(
   'presetData/getData',
   async (_, { dispatch }) => {
-    const { data } = await Profile.getAll();
+    const data = await getProfiles();
 
-    if (data.length === 0) {
+    if (Array.isArray(data) && data.length === 0) {
       dispatch(setScreen('pressets'));
     }
 
@@ -474,6 +505,8 @@ const presetSlice = createSlice({
         state.pending = true;
       })
       .addCase(getPresets.fulfilled, (state, action) => {
+        if (!Array.isArray(action.payload)) return;
+
         state.pending = false;
         state.value = action.payload;
         if (action.payload.length) {
@@ -486,6 +519,7 @@ const presetSlice = createSlice({
               presetId: preset.id.toString(),
               settings: preset?.settings || []
             }));
+
             state.activePreset = action.payload[defaultIndex];
             state.updatingSettings = {
               presetId: action.payload[defaultIndex].id.toString(),

@@ -4,17 +4,15 @@ interface PayloadProps {
   presset: PressetSettings;
 }
 
-const getKeyPresset = (presset: PressetSettings, key: string) => {
+export const getKeyPresset = (presset: PressetSettings, key: string) => {
   return presset.settings.find((item) => item.key === key);
 };
 
 export const generateSimplePayload = ({ presset }: PayloadProps) => {
   const temperature = getKeyPresset(presset, 'temperature');
-  const pressure = getKeyPresset(presset, 'pressure');
+  const startPressure = getKeyPresset(presset, 'pressure_1');
+  const endPressure = getKeyPresset(presset, 'pressure_2');
   const output = getKeyPresset(presset, 'output');
-  // const preinfusion = getKeyPresset(presset, 'pre-infusion');
-  // const preheat = getKeyPresset(presset, 'pre-heat');
-  // const purge = getKeyPresset(presset, 'purge');
 
   return {
     id: presset.id,
@@ -23,10 +21,16 @@ export const generateSimplePayload = ({ presset }: PayloadProps) => {
     final_weight: output.value,
     variables: [
       {
-        name: 'Pressure',
+        name: 'Start Pressure',
         key: 'pressure_1',
         type: 'pressure',
-        value: pressure
+        value: startPressure.value
+      },
+      {
+        name: 'End Pressure',
+        key: 'pressure_2',
+        type: 'pressure',
+        value: endPressure.value
       }
     ],
     stages: [
