@@ -92,6 +92,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.9.1",
+    "@rive-app/react-canvas": "^4.9.5",
     "axios": "^1.6.5",
     "classnames": "^2.5.1",
     "electron-squirrel-startup": "^1.0.0",
