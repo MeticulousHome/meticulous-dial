@@ -28,7 +28,8 @@ export type ScreenType =
   | 'snake'
   | 'KnownWifi'
   | 'deleteKnowWifiMenu'
-  | 'deletedWifi';
+  | 'deletedWifi'
+  | 'wifiSettingsSave';
 
 interface ScreenState {
   value: ScreenType;

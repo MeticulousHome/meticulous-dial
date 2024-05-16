@@ -25,6 +25,7 @@ import { SnakeGame } from '../../src/components/Snake/Snake';
 import { KnownWifi } from '../../src/components/Wifi/KnownWifi';
 import { DeleteWifiMenu } from '../components/Wifi/DeleteWifiMenu';
 import { DeletedWifi } from '../components/Wifi/DeletedWifi';
+import { WifiSettingsSave } from '../components/Wifi/WifiSettingsSave';
 
 interface Route {
   component: ComponentType;
@@ -161,6 +162,10 @@ export const routes: Record<ScreenType, Route> = {
   },
   deletedWifi: {
     component: DeletedWifi,
+    bottomStatusHidden: true
+  },
+  wifiSettingsSave: {
+    component: WifiSettingsSave,
     bottomStatusHidden: true
   },
   connectWifiMenu: {
