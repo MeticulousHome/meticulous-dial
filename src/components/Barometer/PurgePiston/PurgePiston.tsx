@@ -186,6 +186,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSocket } from '../../../../src/components/store/SocketManager';
 import { useAppDispatch } from '../../../../src/components/store/hooks';
 import { setScreen } from '../../../../src/components/store/features/screens/screens-slice';
+import './piston.css';
 const TOTAL_LEVEL = 85.0;
 
 export function PurgePiston(): JSX.Element {
@@ -279,5 +280,11 @@ export function PurgePiston(): JSX.Element {
     }
   }, [position, animateToPosition, initialPosition, rive]);
 
-  return <RiveComponent />;
+  return (
+    <div className="piston-container">
+      <div className="piston-purge-container center">
+        <RiveComponent style={{ width: 480, height: 480 }} />
+      </div>
+    </div>
+  );
 }
