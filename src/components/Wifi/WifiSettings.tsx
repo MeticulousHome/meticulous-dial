@@ -15,7 +15,10 @@ export const WifiSettings = (): JSX.Element => {
   const [activeIndex, setActiveIndex] = useState(0);
   const { wifiStatus, networkConfig } = useAppSelector((state) => state.wifi);
   const isWifiConnected = wifiStatus?.connected;
-  const isApMode = isWifiConnected && networkConfig?.mode === WifiMode.AP;
+  const [networkConfigMode, setNetworkConfigMode] = useState(
+    networkConfig.mode
+  );
+  const isApMode = isWifiConnected && networkConfigMode === WifiMode.AP;
 
   const wifiSettingItems = [
     {
@@ -76,8 +79,8 @@ export const WifiSettings = (): JSX.Element => {
       switch (filter) {
         case 'network_mode': {
           const mode =
-            networkConfig.mode === WifiMode.AP ? WifiMode.CLIENT : WifiMode.AP;
-          dispatch(updateConfig({ ...networkConfig, mode }));
+            networkConfigMode === WifiMode.AP ? WifiMode.CLIENT : WifiMode.AP;
+          setNetworkConfigMode(mode);
           setUserWifiMode(mode);
           break;
         }
@@ -88,9 +91,14 @@ export const WifiSettings = (): JSX.Element => {
           break;
         }
         case 'save': {
-          dispatch(saveConfig({ ...networkConfig }));
           dispatch(
-            setBubbleDisplay({ visible: true, component: 'quick-settings' })
+            saveConfig({
+              ...networkConfig,
+              mode: networkConfigMode ?? networkConfig.mode
+            })
+          );
+          dispatch(
+            setBubbleDisplay({ visible: true, component: 'wifiSettingsSave' })
           );
           break;
         }

@@ -11,6 +11,7 @@ interface WifiState {
   // TODO: update type when integrated with backend
   selectedWifi: string;
   selectedWifiToDelete: string;
+  saveConfigResult: string;
   deletedWifiResult: string;
   pending: boolean;
   connectionResult: string;
@@ -25,6 +26,7 @@ const initialState: WifiState = {
   selectedWifi: null,
   selectedWifiToDelete: null,
   deletedWifiResult: null,
+  saveConfigResult: null,
   pending: false,
   connectionResult: null,
   error: false,
@@ -173,6 +175,32 @@ const wifiSlice = createSlice({
         } else {
           state.deletedWifiResult = status.error || 'An unknown error occured';
           state.error = true;
+        }
+      })
+      .addCase(saveConfig.pending, (state) => {
+        state.pending = true;
+      })
+      .addCase(saveConfig.rejected, (state) => {
+        state.pending = false;
+        state.error = true;
+      })
+      .addCase(saveConfig.fulfilled, (state, action) => {
+        state.pending = false;
+        const status = action.payload;
+        if (!status) {
+          state.saveConfigResult = 'No response from machine backend';
+          state.error = true;
+        } else {
+          state.error = false;
+          state.saveConfigResult = 'Mode switch is successful.';
+          state.wifiStatus = action.payload.status;
+          state.networkConfig = action.payload.config;
+          state.knownWifis = Object.keys(action.payload.known_wifis).map(
+            (key) => ({
+              password: action.payload.known_wifis[key],
+              ssid: key
+            })
+          );
         }
       });
     // .addCase(updateConfig.rejected, (state, action) => {
