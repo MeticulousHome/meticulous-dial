@@ -9,7 +9,7 @@ export const TitlePressets = () => {
   return (
     <div className="pressets-title">
       <div id="pressets-title-content">
-        <div>Catalog</div>
+        <div>Catalogo</div>
         <div>{presets.activePreset.name}</div>
       </div>
     </div>

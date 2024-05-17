@@ -15,6 +15,9 @@ contextBridge.exposeInMainWorld('meticulousAPI', {
   connectToWifi: (ssid: string, password: string) =>
     ipcRenderer.invoke('connectToWifi', ssid, password),
   deleteKnowWifi: ({ ssid }: { ssid: string }) =>
-    ipcRenderer.invoke('deleteKnowWifi', { ssid })
+    ipcRenderer.invoke('deleteKnowWifi', { ssid }),
   // we can also expose variables, not just functions
+  saveProfileIndex: (filename: string, index: string) =>
+    ipcRenderer.invoke('saveProfileIndex', filename, index),
+  getProfileIndex: () => ipcRenderer.invoke('getProfileIndex')
 });
