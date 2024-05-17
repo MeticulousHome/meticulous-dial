@@ -4,18 +4,18 @@ import {
   Draft,
   PayloadAction
 } from '@reduxjs/toolkit';
-import { settingsDefaultNewPreset } from '../../../../utils/mock';
+import { v4 as uuidv4 } from 'uuid';
+import { Profile } from 'meticulous-typescript-profile';
+import { UUID } from 'meticulous-typescript-profile/dist/uuid';
 
-import {
-  IPreset,
-  IPresetSetting,
-  IPresetsSettingData
-} from '../../../../types/index';
+import { settingsDefaultNewPreset } from '../../../../utils/mock';
+import { simpleJson } from '../../../../utils/preheat';
+import { IPresetSetting, IPresetsSettingData } from '../../../../types/index';
 import { RootState } from '../../store';
 import { DEFAULT_SETTING } from '../../../../constants/setting';
-import { getPresetsData, setPresetsData } from '../../../../data/presets';
 import { setScreen } from '../screens/screens-slice';
 import { KIND_PROFILE } from '../../../../constants';
+import { saveProfile, getProfiles } from '../../../../api/profile';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -26,11 +26,17 @@ export interface PresetSettingInterface {
   allSettings: IPresetsSettingData[];
 }
 
+type ProfileValue = Profile & {
+  settings: IPresetSetting[];
+  kind?: string;
+  isDefault?: boolean;
+};
+
 export interface PresetsState extends PresetSettingInterface {
-  value: IPreset[];
+  value: Array<ProfileValue>;
   defaultPresetIndex: number;
   activeIndexSwiper: number;
-  activePreset: IPreset;
+  activePreset: ProfileValue;
   pending: boolean;
   error: boolean;
   option: 'HOME' | 'PRESSETS';
@@ -41,18 +47,20 @@ export const addPresetFromDashboard = createAsyncThunk(
   async (payload: any, { getState, dispatch }) => {
     try {
       const state = getState() as RootState;
-      const presetState = { ...state.presets } as PresetsState;
+      const presetState = { ...state.presets };
 
       const presetList = presetState.value.map((preset) => ({
         ...preset,
         isDefault: false
       }));
 
-      const presetId = new Date().getTime();
+      // eslint-disable-next-line
+      //@ts-ignore
+      const _UUID = new UUID(uuidv4().toString()).value;
 
       const settings = payload.profile;
       presetList.push({
-        id: presetId,
+        id: _UUID,
         name: payload?.profile?.name,
         isDefault: true,
         kind: payload?.profile?.kind ?? KIND_PROFILE.DASHBOARD,
@@ -79,7 +87,10 @@ export const addPresetFromDashboard = createAsyncThunk(
         settings: presetState.activePreset.settings
       };
 
-      await setPresetsData(presetList);
+      const body = { ...presetState.activePreset };
+      delete body.settings;
+
+      await saveProfile(body);
 
       dispatch(
         setPresetState({
@@ -96,24 +107,33 @@ export const addPresetNewOne = createAsyncThunk(
   'presetData/addNewOne',
   async (_, { getState, dispatch }) => {
     const state = getState() as RootState;
-    const presetState = { ...state.presets } as PresetsState;
+    const presetState = { ...state.presets };
 
     const presetList = presetState.value.map((preset) => ({
       ...preset,
       isDefault: false
     }));
 
-    const presetId = new Date().getTime();
+    // TODO: update in backend isDefault for all presets
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    const _UUID = new UUID(uuidv4().toString()).value;
 
     presetList.push({
-      id: presetId,
-      name: 'New Preset',
+      ...simpleJson,
+      id: _UUID,
       isDefault: true,
       settings: settingsDefaultNewPreset,
       kind: KIND_PROFILE.ITALIAN
     });
+
     presetState.value = presetList;
     presetState.activeIndexSwiper = presetState.value.length - 1;
+
+    console.log('Index presetList => ', presetList.length - 1);
+    console.log('Index presetState.value => ', presetState.value.length - 1);
+
     presetState.activePreset = presetState.value[presetState.activeIndexSwiper];
 
     presetState.updatingSettings = {
@@ -121,7 +141,12 @@ export const addPresetNewOne = createAsyncThunk(
       settings: presetState.activePreset.settings
     };
 
-    await setPresetsData(presetList);
+    const body = { ...presetState.activePreset };
+
+    body.settings = undefined;
+    body.isDefault = undefined;
+
+    await saveProfile(body);
 
     dispatch(
       setPresetState({
@@ -135,7 +160,7 @@ export const setPrevPreset = createAsyncThunk(
   'presetData/setPrevPreset',
   async (_, { getState, dispatch }) => {
     const state = getState() as RootState;
-    const presetState = { ...state.presets } as PresetsState;
+    const presetState = { ...state.presets };
     const currentActiveIndex =
       presetState.activeIndexSwiper > -1
         ? presetState.activeIndexSwiper
@@ -162,7 +187,7 @@ export const setPrevPreset = createAsyncThunk(
         presetId: presetList[newActivePresetIndex].id.toString(),
         settings: presetList[newActivePresetIndex].settings
       };
-      await setPresetsData(presetList);
+
       dispatch(
         setPresetState({
           ...presetState
@@ -211,9 +236,8 @@ export const setNextPreset = createAsyncThunk(
         settings: presetList[newActivePresetIndex].settings
       };
       presetState.value = presetList;
-
-      await setPresetsData(presetList);
     }
+
     dispatch(
       setPresetState({
         ...presetState
@@ -221,25 +245,28 @@ export const setNextPreset = createAsyncThunk(
     );
   }
 );
+
 export const deletePreset = createAsyncThunk(
   'presetData/deletePreset',
   async (_, { getState, dispatch }) => {
     const state = getState() as RootState;
-    const presetState = { ...state.presets } as PresetsState;
+    const presetState = { ...state.presets };
     const presets = [...presetState.value];
     let newSwiperIndex = presetState.activeIndexSwiper;
     let newDefaultPreset = { ...presetState.activePreset };
 
-    let newListPresets: IPreset[] = presets.filter(
+    let newListPresets: ProfileValue[] = presets.filter(
       (preset) => preset.id !== presetState.activePreset.id
     );
+
+    console.log('Delete preset: ', presetState.activePreset.id);
 
     if (newListPresets.length < presets.length) {
       newDefaultPreset =
         newListPresets.length > 0
           ? newListPresets[0]
           : {
-              id: -1,
+              ...simpleJson,
               name: 'Default',
               isDefault: false,
               settings: []
@@ -253,12 +280,13 @@ export const deletePreset = createAsyncThunk(
       }));
     }
 
-    await setPresetsData(newListPresets);
+    //TODO: add delete method
 
     presetState.activeIndexSwiper = newSwiperIndex;
     presetState.activePreset = newDefaultPreset;
     presetState.activeSetting = 0;
-    presetState.value = newListPresets.filter((item) => item.id !== -1);
+    // TODO: check this filter
+    presetState.value = newListPresets.filter((item) => item.id);
 
     presetState.updatingSettings = {
       presetId: presetState.activePreset.id.toString(),
@@ -274,6 +302,7 @@ export const deletePreset = createAsyncThunk(
     dispatch(setScreen('pressets'));
   }
 );
+
 export const setActiveIndexSwiper = createAsyncThunk(
   'presetData/setActiveIndexSwiper',
   async (payload: number, { getState, dispatch }) => {
@@ -371,16 +400,27 @@ export const savePreset = createAsyncThunk(
   'presetData/savePreset',
   async (_, { getState, dispatch }) => {
     const state = getState() as RootState;
-    const presetState = { ...state.presets } as PresetsState;
+    const presetState = { ...state.presets };
     const updateSetting = presetState.updatingSettings;
     const nameSetting = updateSetting.settings.find(
       (setting) => setting.key === 'name'
     );
+    const temperatureSetting = updateSetting.settings.find(
+      (setting) => setting.key === 'temperature'
+    );
+    const pressureSetting = updateSetting.settings.find(
+      (setting) => setting.key === 'pressure'
+    );
+    const weight = updateSetting.settings.find(
+      (setting) => setting.key === 'output'
+    );
+
     const activePreset = {
       ...presetState.activePreset,
       settings: [...updateSetting.settings],
       name: nameSetting.value as string
     };
+
     presetState.activePreset = { ...activePreset };
 
     const activeIndex = presetState.activeIndexSwiper;
@@ -391,8 +431,25 @@ export const savePreset = createAsyncThunk(
       settings: [...updateSetting.settings]
     };
     presetState.value = [...copyListPresets];
-    console.log('run', presetState.value);
-    await setPresetsData(presetState.value);
+
+    const body = {
+      ...presetState.activePreset,
+      temperature: temperatureSetting.value as number,
+      final_weight: weight.value as number,
+      stages: presetState.activePreset.stages,
+      variables: [
+        {
+          name: 'Pressure',
+          key: 'pressure_1',
+          type: 'pressure',
+          value: pressureSetting.value as number
+        }
+      ]
+    };
+
+    body.settings = undefined;
+    body.isDefault = undefined;
+    await saveProfile(body);
 
     dispatch(
       setPresetState({
@@ -405,13 +462,13 @@ export const savePreset = createAsyncThunk(
 export const getPresets = createAsyncThunk(
   'presetData/getData',
   async (_, { dispatch }) => {
-    const presetsData = await getPresetsData();
-    const presets = JSON.parse(presetsData) as IPreset[];
+    const data = await getProfiles();
 
-    if (presets.length === 0) {
+    if (Array.isArray(data) && data.length === 0) {
       dispatch(setScreen('pressets'));
     }
-    return presets;
+
+    return data;
   }
 );
 
@@ -421,7 +478,7 @@ const initialState: PresetsState = {
   defaultPresetIndex: -1,
   activeIndexSwiper: 0,
   activePreset: {
-    name: '',
+    name: 'New Preset',
     id: -1
   },
   activeSetting: 0,
@@ -472,24 +529,57 @@ const presetSlice = createSlice({
       })
       .addCase(getPresets.fulfilled, (state, action) => {
         state.pending = false;
-        state.value = action.payload;
+
+        if (!Array.isArray(action.payload)) {
+          console.log('Error: Invalid payload');
+          return;
+        }
+        const payload = action.payload as ProfileValue[];
+
+        state.value = payload;
+
         if (action.payload.length) {
-          const defaultIndex = action.payload.findIndex(
-            (preset) => preset.isDefault
-          );
+          const defaultIndex = payload.findIndex((preset) => preset.isDefault);
+
           if (defaultIndex !== -1) {
             state.defaultPresetIndex = defaultIndex;
-            state.allSettings = action.payload.map((preset) => ({
-              presetId: preset.id.toString(),
-              settings: preset?.settings || []
-            }));
-            state.activePreset = action.payload[defaultIndex];
+
+            state.allSettings = payload.map((preset) => {
+              const settings = [...settingsDefaultNewPreset];
+
+              const tempSetting = settings.find(
+                (setting) => setting.key === 'temperature'
+              );
+              const pressureSetting = settings.find(
+                (setting) => setting.key === 'pressure'
+              );
+              const outputSettings = settings.find(
+                (setting) => setting.key === 'output'
+              );
+
+              tempSetting.value = preset.temperature;
+              pressureSetting.value = preset.variables.find(
+                (variable) => variable.key === 'pressure_1'
+              ).value;
+              outputSettings.value = preset.final_weight;
+
+              return {
+                presetId: preset.id.toString(),
+                settings
+              };
+            });
+
+            state.activePreset = payload[defaultIndex];
             state.updatingSettings = {
-              presetId: action.payload[defaultIndex].id.toString(),
-              settings: action.payload[defaultIndex]?.settings || []
+              presetId: payload[defaultIndex].id.toString(),
+              settings:
+                payload[defaultIndex]?.settings || settingsDefaultNewPreset
             };
             state.activeIndexSwiper = defaultIndex;
             // state.activePresetIndex = defaultIndex;
+          } else {
+            state.defaultPresetIndex = 0;
+            state.activeIndexSwiper = 0;
           }
         } else {
           state.defaultPresetIndex = 0;

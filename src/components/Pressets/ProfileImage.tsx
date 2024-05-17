@@ -1,10 +1,11 @@
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { IPreset } from '../../../src/types';
 import { useEffect } from 'react';
+import { Profile } from 'meticulous-typescript-profile';
+
 import {
   addNewImageProfile,
   selectByProfileId
 } from '../store/features/images/images-slice';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 
 const colors: string[] = [
   '#FFFFFF',
@@ -35,9 +36,13 @@ const colors: string[] = [
   '#9CAEA0'
 ];
 const cLength = colors.length - 1;
-export const ProfileImage = ({ preset }: { preset: IPreset }) => {
+
+type IProfileImage = Profile & Partial<{ borderColor: string; image: string }>;
+
+export const ProfileImage = ({ preset }: { preset: IProfileImage }) => {
   const pImage =
-    useAppSelector((state) => selectByProfileId(state, preset.id)) || null;
+    useAppSelector((state) => selectByProfileId(state, preset.id.toString())) ||
+    null;
   const dispatch = useAppDispatch();
   const { value: presets } = useAppSelector((state) => state.presets);
 
@@ -55,10 +60,9 @@ export const ProfileImage = ({ preset }: { preset: IPreset }) => {
     : colors[presetIndex];
 
   useEffect(() => {
-    console.log(preset.id);
     dispatch(
       addNewImageProfile({
-        presetId: preset.id,
+        presetId: preset.id.toString(),
         borderColor: borderStyle,
         image: image
       })

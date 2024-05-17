@@ -608,7 +608,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           >
             {presets.value.length &&
               presets.value.map((preset) => (
-                <SwiperSlide key={preset.id}>
+                <SwiperSlide key={preset.id.toString()}>
                   {() => (
                     <div>
                       <ProfileImage preset={preset} />
@@ -660,7 +660,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           >
             {presets.value.length &&
               presets.value.map((preset) => (
-                <SwiperSlide key={preset.id}>
+                <SwiperSlide key={preset.id.toString()}>
                   {() => (
                     <Title customClass="presset-title-top">{preset.name}</Title>
                   )}
