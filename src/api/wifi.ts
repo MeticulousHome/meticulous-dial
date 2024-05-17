@@ -1,6 +1,5 @@
 import { IpcMainEvent } from 'electron';
-import axios from 'axios';
-import { NetworkConfig, PasswortConnect } from '../types';
+import { PasswortConnect } from '../types';
 import Api, {
   AcknowledgeNotificationRequest,
   WiFiConfig,
