@@ -2,7 +2,7 @@ import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../store';
 
 export interface ProfileImageItem {
-  presetId: number;
+  presetId: string;
   image: string;
   borderColor: string;
 }

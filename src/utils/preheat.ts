@@ -1,5 +1,8 @@
-import { KIND_PROFILE } from '../constants';
-import { IItalian, Actions, PressetSettings } from '../types/index';
+import { v4 as uuidv4 } from 'uuid';
+import { Profile } from 'meticulous-typescript-profile';
+
+import { Actions, PressetSettings } from '../types/index';
+import { UUID } from 'meticulous-typescript-profile/dist/uuid';
 
 interface PayloadProps {
   presset: PressetSettings;
@@ -10,27 +13,91 @@ const getKeyPresset = (presset: PressetSettings, key: string) => {
   return presset.settings.find((item) => item.key === key);
 };
 
-export const generateSimplePayload = ({
-  presset,
-  action
-}: PayloadProps): IItalian => {
+// eslint-disable-next-line
+// @ts-ignore
+const _UUID = new UUID(uuidv4().toString()).value;
+
+export const simpleJson: Profile = {
+  id: _UUID,
+  name: 'New Preset',
+  author: '',
+  author_id: _UUID,
+  previous_authors: [{ name: '', author_id: _UUID, profile_id: _UUID }],
+  temperature: 88,
+  final_weight: 36,
+  variables: [
+    {
+      name: 'Pressure',
+      key: 'pressure_1',
+      type: 'pressure',
+      value: 8
+    }
+  ],
+  stages: [
+    {
+      key: '',
+      name: 'Preinfusion',
+      type: 'flow',
+      dynamics: {
+        points: [[0, 4]],
+        over: 'time',
+        interpolation: 'linear'
+      },
+      exit_triggers: [
+        {
+          type: 'time',
+          value: 30,
+          relative: true,
+          comparison: '>='
+        },
+        {
+          type: 'weight',
+          value: 0.3,
+          relative: true,
+          comparison: '>='
+        },
+        {
+          type: 'pressure',
+          value: '$pressure_1',
+          relative: false,
+          comparison: '>='
+        }
+      ],
+      limits: []
+    },
+    {
+      key: '',
+      name: 'Infusion',
+      type: 'pressure',
+      dynamics: {
+        points: [[0, '$pressure_1']],
+        over: 'time',
+        interpolation: 'linear'
+      },
+      exit_triggers: [],
+      limits: []
+    }
+  ]
+};
+
+export const generateSimplePayload = ({ presset }: PayloadProps): Profile => {
+  const name = presset.name;
   const temperature = getKeyPresset(presset, 'temperature');
-  const preinfusion = getKeyPresset(presset, 'pre-infusion');
-  const preheat = getKeyPresset(presset, 'pre-heat');
-  const pressure = getKeyPresset(presset, 'pressure');
-  const purge = getKeyPresset(presset, 'purge');
+  const pressure = getKeyPresset(presset, 'pressure_1');
   const output = getKeyPresset(presset, 'output');
 
   return {
-    action,
-    name: presset.name,
-    kind: KIND_PROFILE.ITALIAN,
-    automatic_purge: purge?.value === 'automatic',
+    ...simpleJson,
+    name,
     temperature: Number(temperature.value),
-    preinfusion: preinfusion?.value === 'yes',
-    preheat: preheat?.value === 'yes',
-    pressure: Number(pressure.value),
-    out_weight: Number(output.value),
-    source: 'lcd'
+    final_weight: Number(output.value),
+    variables: [
+      {
+        name: 'Pressure',
+        key: 'pressure_1',
+        type: 'pressure',
+        value: Number(pressure.value)
+      }
+    ]
   };
 };
