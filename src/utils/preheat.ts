@@ -16,13 +16,16 @@ const getKeyPresset = (presset: PressetSettings, key: string) => {
 // eslint-disable-next-line
 // @ts-ignore
 const _UUID = new UUID(uuidv4().toString()).value;
+// eslint-disable-next-line
+// @ts-ignore
+const _AUTHOR_ID = new UUID(uuidv4().toString()).value;
 
 export const simpleJson: Profile = {
   id: _UUID,
   name: 'New Preset',
   author: '',
-  author_id: _UUID,
-  previous_authors: [{ name: '', author_id: _UUID, profile_id: _UUID }],
+  author_id: _AUTHOR_ID,
+  previous_authors: [{ name: '', author_id: _AUTHOR_ID, profile_id: _UUID }],
   temperature: 88,
   final_weight: 36,
   variables: [

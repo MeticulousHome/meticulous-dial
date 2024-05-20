@@ -15,7 +15,11 @@ import { RootState } from '../../store';
 import { DEFAULT_SETTING } from '../../../../constants/setting';
 import { setScreen } from '../screens/screens-slice';
 import { KIND_PROFILE } from '../../../../constants';
-import { saveProfile, getProfiles } from '../../../../api/profile';
+import {
+  saveProfile,
+  getProfiles,
+  deleteProfile
+} from '../../../../api/profile';
 import { getProfileIndex, saveProfileIndex } from '../../../../data/presets';
 
 export interface PresetSettingInterface {
@@ -169,7 +173,7 @@ export const setPrevPreset = createAsyncThunk(
     if (presetState.activeIndexSwiper === presetState.value.length) return;
     if (currentActiveIndex > 0) {
       const newActivePresetIndex = currentActiveIndex - 1;
-      await saveProfileIndex(newActivePresetIndex);
+      // await saveProfileIndex(newActivePresetIndex);
 
       const presetList = [...presetState.value].map((i) => {
         return {
@@ -219,7 +223,7 @@ export const setNextPreset = createAsyncThunk(
     if (currentActiveIndex < presetState.value.length - 1) {
       const newActivePresetIndex = currentActiveIndex + 1;
 
-      await saveProfileIndex(newActivePresetIndex);
+      // await saveProfileIndex(newActivePresetIndex);
 
       const presetList = [...presetState.value].map((i) => {
         return {
@@ -282,13 +286,12 @@ export const deletePreset = createAsyncThunk(
       }));
     }
 
-    //TODO: add delete method
+    await deleteProfile(presetState.activePreset.id.toString());
 
     presetState.activeIndexSwiper = newSwiperIndex;
     presetState.activePreset = newDefaultPreset;
     presetState.activeSetting = 0;
-    // TODO: check this filter
-    presetState.value = newListPresets.filter((item) => item.id);
+    presetState.value = newListPresets;
 
     presetState.updatingSettings = {
       presetId: presetState.activePreset.id.toString(),
@@ -439,7 +442,6 @@ export const savePreset = createAsyncThunk(
       ...presetState.activePreset,
       temperature: temperatureSetting.value as number,
       final_weight: weight.value as number,
-      stages: presetState.activePreset.stages,
       variables: [
         {
           name: 'Pressure',
@@ -464,27 +466,23 @@ export const savePreset = createAsyncThunk(
 
 export const getPresets = createAsyncThunk(
   'presetData/getData',
-  async (_, { getState, dispatch }) => {
-    const state = getState() as RootState;
-    const presetState = { ...state.presets };
+  async (_, { dispatch }) => {
     let defaultIndex = (await getProfileIndex()) || 0;
 
     const data = await getProfiles();
 
-    if (Array.isArray(data) && data.length === 0) {
+    if (Array.isArray(data)) {
       if (data.length === 0) dispatch(setScreen('pressets'));
-      if (defaultIndex > data.length) defaultIndex = data.length - 1;
+      if (Number(defaultIndex) > data.length - 1) {
+        defaultIndex = data.length - 1;
+        await saveProfileIndex(data.length - 1);
+      }
     }
 
-    presetState.defaultPresetIndex = Number(defaultIndex);
-
-    dispatch(
-      setPresetState({
-        ...presetState
-      })
-    );
-
-    return data;
+    return {
+      data,
+      defaultIndex
+    };
   }
 );
 
@@ -546,53 +544,89 @@ const presetSlice = createSlice({
       .addCase(getPresets.fulfilled, (state, action) => {
         state.pending = false;
 
-        if (!Array.isArray(action.payload)) {
+        const payload = action.payload.data as ProfileValue[];
+
+        if (!Array.isArray(payload)) {
           console.log('Error: Invalid payload');
           return;
         }
-        const payload = action.payload as ProfileValue[];
 
         state.value = payload;
 
-        if (action.payload.length) {
-          const defaultIndex = state.defaultPresetIndex;
+        if (payload.length) {
+          const defaultIndex = Number(action.payload.defaultIndex);
 
           if (defaultIndex !== -1) {
             state.defaultPresetIndex = defaultIndex;
 
             state.allSettings = payload.map((preset) => {
-              const settings = [...settingsDefaultNewPreset];
-
-              const tempSetting = settings.find(
-                (setting) => setting.key === 'temperature'
-              );
-              const pressureSetting = settings.find(
-                (setting) => setting.key === 'pressure'
-              );
-              const outputSettings = settings.find(
-                (setting) => setting.key === 'output'
-              );
-              const nameSetting = settings.find(
-                (setting) => setting.key === 'name'
-              );
-
-              nameSetting.value = preset.name;
-              tempSetting.value = preset.temperature;
-              pressureSetting.value = preset.variables.find(
-                (variable) => variable.key === 'pressure_1'
-              ).value;
-              outputSettings.value = preset.final_weight;
-              preset.settings = settings;
+              preset.settings = [
+                {
+                  id: 1,
+                  type: 'text',
+                  key: 'name',
+                  label: `name`,
+                  value: preset.name
+                },
+                {
+                  id: 2,
+                  type: 'numerical',
+                  key: 'pressure',
+                  label: 'pressure',
+                  value:
+                    preset.variables.find(
+                      (variable) => variable.key === 'pressure_1'
+                    ).value || 8,
+                  unit: 'bar'
+                },
+                {
+                  id: 3,
+                  type: 'numerical',
+                  key: 'temperature',
+                  label: 'temperature',
+                  value: preset.temperature || 85,
+                  unit: '°c'
+                },
+                {
+                  id: 4,
+                  type: 'on-off',
+                  key: 'pre-infusion',
+                  label: 'pre-infusion',
+                  value: 'yes'
+                },
+                {
+                  id: 5,
+                  type: 'on-off',
+                  key: 'pre-heat',
+                  label: 'pre-heat',
+                  value: 'yes'
+                },
+                {
+                  id: 6,
+                  type: 'numerical',
+                  key: 'output',
+                  label: 'output',
+                  value: preset.final_weight || 36,
+                  unit: 'g'
+                },
+                {
+                  id: 7,
+                  type: 'multiple-option',
+                  key: 'purge',
+                  label: 'purge',
+                  value: 'automatic'
+                }
+              ];
 
               return {
                 presetId: preset.id.toString(),
-                settings
+                settings: preset.settings
               };
             });
 
             state.activePreset = payload[defaultIndex];
             const { settings } = state.allSettings.find(
-              (item) => item.presetId === state.activePreset.id
+              (item) => item.presetId === payload[defaultIndex].id.toString()
             );
             state.updatingSettings = {
               presetId: payload[defaultIndex].id.toString(),
