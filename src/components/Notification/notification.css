@@ -77,7 +77,7 @@
   justify-self: center;
 }
 
-.buttons {
+.n-buttons {
   display: flex;
   flex-direction: column;
   justify-content: center;
