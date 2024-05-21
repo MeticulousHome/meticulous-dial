@@ -441,6 +441,7 @@ export const savePreset = createAsyncThunk(
     const body = {
       ...presetState.activePreset,
       temperature: temperatureSetting.value as number,
+      stages: presetState.activePreset.stages ?? simpleJson.stages,
       final_weight: weight.value as number,
       variables: [
         {
