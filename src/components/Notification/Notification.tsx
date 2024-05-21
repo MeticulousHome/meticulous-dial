@@ -7,7 +7,6 @@ import {
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useRef, useState } from 'react';
-import { useSocket } from '../store/SocketManager';
 import { notificationFeedback } from '../../../src/api/wifi';
 
 const SCROLL_VALUE = 50;
@@ -15,7 +14,6 @@ const SCROLL_VALUE = 50;
 export function Notification(): JSX.Element {
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const socket = useSocket();
   const [activeButton, setActivebutton] = useState<HTMLButtonElement | null>(
     null
   );
@@ -33,7 +31,7 @@ export function Notification(): JSX.Element {
         mainContainerScroll(false);
         moveBButtons(false);
       },
-      click: async () => {
+      pressDown: async () => {
         if (activeButton !== null) {
           setAllowScroll(true);
           activeButton.classList.remove('focused-button');
@@ -123,7 +121,7 @@ export function Notification(): JSX.Element {
                 <div className="image-container">
                   <img src={image} />
                 </div>
-                <div className="buttons">
+                <div className="n-buttons">
                   {responses.map((response, index) => {
                     return (
                       <button
