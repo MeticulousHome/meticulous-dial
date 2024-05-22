@@ -3,6 +3,7 @@ import { Profile } from 'meticulous-typescript-profile';
 
 import { Actions, PressetSettings } from '../types/index';
 import { UUID } from 'meticulous-typescript-profile/dist/uuid';
+import { KIND_PROFILE } from '../constants';
 
 interface PayloadProps {
   presset: PressetSettings;
@@ -83,15 +84,16 @@ export const simpleJson: Profile = {
   ]
 };
 
-export const generateSimplePayload = ({ presset }: PayloadProps): Profile => {
+export const generateSimplePayload = ({ presset }: PayloadProps) => {
   const name = presset.name;
   const temperature = getKeyPresset(presset, 'temperature');
-  const pressure = getKeyPresset(presset, 'pressure_1');
+  const pressure = getKeyPresset(presset, 'pressure');
   const output = getKeyPresset(presset, 'output');
 
   return {
     ...simpleJson,
     name,
+    kind: KIND_PROFILE.ITALIAN,
     temperature: Number(temperature.value),
     final_weight: Number(output.value),
     variables: [
