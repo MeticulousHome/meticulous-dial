@@ -4,7 +4,6 @@ import Swiper from 'swiper';
 import { IPresetSetting } from '../types';
 import { DEFAULT_SETTING } from '../constants/setting';
 import { PresetsState } from '../components/store/features/preset/preset-slice';
-import { KIND_PROFILE } from '../constants';
 
 export const handleRemovePresetsAnimation = (swiper: Swiper) => {
   if (swiper && swiper.slides)
@@ -299,23 +298,11 @@ export const getPresetSettings = (presets: PresetsState): IPresetSetting[] => {
       presetsLength
     ).flat() as IPresetSetting[];
 
-    if (
-      presets.activePreset.kind &&
-      presets.activePreset.kind !== KIND_PROFILE.ITALIAN
-    ) {
-      return [
-        ...presets.updatingSettings.settings.filter(
-          (setting) => setting.key === 'name'
-        ),
-        ...defaultSettings
-      ];
-    } else {
-      return [
-        ...(presets.updatingSettings.settings || []).filter(
-          (setting) => !setting.hidden
-        ),
-        ...defaultSettings
-      ];
-    }
+    return [
+      ...presets.updatingSettings.settings.filter(
+        (setting) => setting.key === 'name'
+      ),
+      ...defaultSettings
+    ];
   }
 };

@@ -14,7 +14,6 @@ import { IPresetSetting, IPresetsSettingData } from '../../../../types/index';
 import { RootState } from '../../store';
 import { DEFAULT_SETTING } from '../../../../constants/setting';
 import { setScreen } from '../screens/screens-slice';
-import { KIND_PROFILE } from '../../../../constants';
 import {
   saveProfile,
   getProfiles,
@@ -33,7 +32,6 @@ export interface PresetSettingInterface {
 
 type ProfileValue = Profile & {
   settings: IPresetSetting[];
-  kind?: string;
   isDefault?: boolean;
 };
 
@@ -68,7 +66,6 @@ export const addPresetFromDashboard = createAsyncThunk(
         id: _UUID,
         name: payload?.profile?.name,
         isDefault: true,
-        kind: payload?.profile?.kind ?? KIND_PROFILE.DASHBOARD,
         settings: [
           {
             id: 1,
@@ -128,8 +125,7 @@ export const addPresetNewOne = createAsyncThunk(
       ...simpleJson,
       id: _UUID,
       isDefault: true,
-      settings: settingsDefaultNewPreset,
-      kind: KIND_PROFILE.ITALIAN
+      settings: settingsDefaultNewPreset
     });
 
     presetState.value = presetList;
@@ -494,6 +490,8 @@ const initialState: PresetsState = {
   activeIndexSwiper: 0,
   activePreset: {
     name: 'New Preset',
+    //eslint-disable-next-line
+    //@ts-ignore
     id: -1
   },
   activeSetting: 0,
