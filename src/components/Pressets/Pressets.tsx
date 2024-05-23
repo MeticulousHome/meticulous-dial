@@ -32,12 +32,13 @@ import { ProfileImage } from './ProfileImage';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { generateSimplePayload } from '../../utils/preheat';
 import { useSocket } from '../store/SocketManager';
-import { KIND_PROFILE, LCD_EVENT_EMIT } from '../../constants';
 import { circumference, getDashArray } from '../SettingNumerical/Gauge';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
 import { Circle, radius, transform } from './Circle';
 import { TitleCircle } from './Title';
 import { getDeviceInfo } from '../store/features/settings/settings-slice';
+import { loadProfileData, startProfile } from '../../api/profile';
+import { Profile } from 'meticulous-typescript-profile';
 
 interface AnimationData {
   circlekey: number;
@@ -483,50 +484,33 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   }, [percentaje]);
 
   useEffect(() => {
-    if (startCoffe) {
-      ready.current = true;
-      dispatch(setWaitingForAction(true));
-      switch (presets.activePreset.kind) {
-        case 'italian_1_0': {
-          const preset = {
-            name: presets.activePreset.name,
-            settings: (presets.activePreset?.settings || []).filter(
-              (item) => item.id !== -1 && item.id !== -2
-            )
-          };
+    const start = async () => {
+      if (startCoffe) {
+        ready.current = true;
+        dispatch(setWaitingForAction(true));
+        const preset = {
+          name: presets.activePreset.name,
+          settings: (presets.activePreset?.settings || []).filter(
+            (item) => item.id !== -1 && item.id !== -2
+          )
+        };
 
-          if (preset.settings.length === 0) return;
+        if (preset.settings.length === 0) return;
 
-          const payload = generateSimplePayload({
-            presset: preset as any,
-            action: 'to_play'
-          });
+        const payload = generateSimplePayload({
+          presset: preset as any,
+          action: 'to_play'
+        });
 
-          console.log(`${KIND_PROFILE.ITALIAN}:> ${JSON.stringify(payload)}`);
+        const data = await loadProfileData(payload as Profile);
 
-          socket.emit(LCD_EVENT_EMIT.FEED_PROFILE, JSON.stringify(payload));
-          break;
-        }
-        case 'dashboard_1_0': {
-          const preset = {
-            ...(presets.activePreset as any).dashboard,
-            name: presets.activePreset.name,
-            source: 'lcd'
-          };
+        if (data) await startProfile();
 
-          const payload = {
-            ...preset,
-            action: 'to_play'
-          };
-
-          console.log(`${KIND_PROFILE.DASHBOARD}:> ${JSON.stringify(payload)}`);
-
-          socket.emit(LCD_EVENT_EMIT.FEED_PROFILE, JSON.stringify(payload));
-          break;
-        }
+        dispatch(setScreen('barometer'));
       }
-      dispatch(setScreen('barometer'));
-    }
+    };
+
+    start();
   }, [startCoffe]);
 
   useEffect(() => {
