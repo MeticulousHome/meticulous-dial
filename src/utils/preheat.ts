@@ -1,8 +1,6 @@
-import { v4 as uuidv4 } from 'uuid';
 import { Profile } from 'meticulous-typescript-profile';
 
 import { Actions, PressetSettings } from '../types/index';
-import { UUID } from 'meticulous-typescript-profile/dist/uuid';
 
 interface PayloadProps {
   presset: PressetSettings;
@@ -13,21 +11,17 @@ const getKeyPresset = (presset: PressetSettings, key: string) => {
   return presset.settings.find((item) => item.key === key);
 };
 
-// eslint-disable-next-line
-// @ts-ignore
-const _UUID = new UUID(uuidv4().toString()).value;
-// eslint-disable-next-line
-// @ts-ignore
-const _AUTHOR_ID = new UUID(uuidv4().toString()).value;
-
 export const simpleJson: Profile = {
-  id: _UUID,
+  id: '',
   name: 'New Preset',
   author: '',
-  author_id: _AUTHOR_ID,
-  previous_authors: [{ name: '', author_id: _AUTHOR_ID, profile_id: _UUID }],
+  author_id: '',
+  previous_authors: [{ name: '', author_id: '', profile_id: '' }],
   temperature: 88,
   final_weight: 36,
+  display: {
+    image: ''
+  },
   variables: [
     {
       name: 'Pressure',

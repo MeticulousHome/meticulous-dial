@@ -107,6 +107,7 @@ const saveProfileIndex = async (
   index: string
 ) => {
   try {
+    if (isNaN(Number(index))) index = '0';
     const path = app.getPath(DEFAULT_USER_PATHNAME);
     return await fs.writeFile(`${path}/${filename}`, index.toString());
   } catch (error) {
@@ -119,6 +120,7 @@ const getProfileIndex = async () => {
   const profileIndexPath = `${path}/defaultPresetIndex.txt`;
   try {
     const index = await fs.readFile(profileIndexPath, 'utf-8');
+    if (isNaN(Number(index))) return '0';
     if (index) return index;
   } catch (error) {
     console.error('ERROR >>> ', error);

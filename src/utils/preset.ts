@@ -299,8 +299,8 @@ export const getPresetSettings = (presets: PresetsState): IPresetSetting[] => {
     ).flat() as IPresetSetting[];
 
     return [
-      ...presets.updatingSettings.settings.filter(
-        (setting) => setting.key === 'name'
+      ...(presets.updatingSettings.settings || []).filter(
+        (setting) => !setting.hidden
       ),
       ...defaultSettings
     ];
