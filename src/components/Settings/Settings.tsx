@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { SettingsKey } from 'meticulous-api';
+
 import './settings.css';
 import '../PressetSettings/pressetSettings.css';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
+
+import SettingsVisibility from '../../schemas/settings.json';
+import { marqueeIfNeeded } from '../shared/MarqueeValue';
 import {
   updateItemSetting,
   updateSettings
 } from '../store/features/settings/settings-slice';
-import SettingsVisibility from '../../schemas/settings.json';
-import { marqueeIfNeeded } from '../shared/MarqueeValue';
-import { SettingsKey } from 'meticulous-api';
 
 export function Settings(): JSX.Element {
   const dispatch = useAppDispatch();
