@@ -26,12 +26,10 @@ import {
   setPrevPreset
 } from '../store/features/preset/preset-slice';
 import { Title, RouteProps } from '../../navigation';
-// import { Pagination } from './Pagination';
 import '../../navigation/navigation.less';
 import { ProfileImage } from './ProfileImage';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { generateSimplePayload } from '../../utils/preheat';
-import { useSocket } from '../store/SocketManager';
 import { circumference, getDashArray } from '../SettingNumerical/Gauge';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
 import { Circle, radius, transform } from './Circle';
@@ -67,9 +65,8 @@ const initialValue: AnimationData = {
 };
 
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
-  const socket = useSocket();
   const dispatch = useAppDispatch();
-  const { presets, screen } = useAppSelector((state) => state);
+  const { presets } = useAppSelector((state) => state);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
   const [pressetSwiper, setPressetsSwiper] = useState<SwiperS | null>(null);
   const [pressetTitleSwiper, setPressetTitleSwiper] = useState(null);
@@ -134,15 +131,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     }
 
     return true;
-  }, []);
-
-  const slideTo = useCallback((index: number) => {
-    try {
-      presetSwiperRef.current?.swiper.slideTo(index);
-      titleSwiperRef.current?.swiper.slideTo(index);
-    } catch (error) {
-      console.log({ error, location: 'Pressets' });
-    }
   }, []);
 
   useHandleGestures(
@@ -252,6 +240,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               if (navigationTitleExistValidation()) {
                 navigationTitleRef.current.classList.add('title-bottom');
               }
+
               return dispatch(addPresetNewOne());
             }
 
@@ -424,8 +413,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   );
 
   useEffect(() => {
-    slideTo(presets.activeIndexSwiper);
-  }, [presets.activeIndexSwiper, slideTo]);
+    const index = presets.activeIndexSwiper;
+    presetSwiperRef.current?.swiper.slideTo(index);
+    titleSwiperRef.current?.swiper.slideTo(index);
+  }, [presets.activeIndexSwiper]);
 
   useEffect(() => {
     if (pressetTitleSwiper && pressetSwiper) {
@@ -517,17 +508,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     dispatch(setWaitingForAction(false));
     dispatch(getDeviceInfo());
   }, []);
-
-  useEffect(() => {
-    return () => {
-      if (
-        presets.activeIndexSwiper === presets.value.length &&
-        screen.prev === 'pressets'
-      ) {
-        dispatch(setPrevPreset());
-      }
-    };
-  }, [presets.activeIndexSwiper, presets.value.length, screen.prev]);
 
   return (
     <div className="preset-wrapper">

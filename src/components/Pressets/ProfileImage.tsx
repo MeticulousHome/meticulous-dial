@@ -40,6 +40,7 @@ const cLength = colors.length - 1;
 type IProfileImage = Profile & Partial<{ borderColor: string; image: string }>;
 
 export const ProfileImage = ({ preset }: { preset: IProfileImage }) => {
+  const API_URL = process.env.SERVER_URL || 'http://localhost:8080';
   const pImage =
     useAppSelector((state) => selectByProfileId(state, preset.id.toString())) ||
     null;
@@ -48,23 +49,19 @@ export const ProfileImage = ({ preset }: { preset: IProfileImage }) => {
 
   const currentIndex = presets.findIndex((e) => preset.id === e.id) + 1;
   const presetIndex = currentIndex % cLength || cLength;
-  const image = preset.image
-    ? preset.image
-    : pImage !== null
-    ? pImage.image
-    : `assets/images/${presetIndex}.png`;
-  const borderStyle = preset.borderColor
-    ? preset.borderColor
-    : pImage !== null
-    ? pImage.borderColor
-    : colors[presetIndex];
+  const image =
+    API_URL + preset.display.image ??
+    pImage?.image ??
+    `assets/images/${presetIndex}.png`;
+  const borderStyle =
+    preset.borderColor ?? pImage?.borderColor ?? colors[presetIndex];
 
   useEffect(() => {
     dispatch(
       addNewImageProfile({
         presetId: preset.id.toString(),
         borderColor: borderStyle,
-        image: image
+        image
       })
     );
   }, [preset.id]);
