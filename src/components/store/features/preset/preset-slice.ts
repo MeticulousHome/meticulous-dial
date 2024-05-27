@@ -4,9 +4,7 @@ import {
   Draft,
   PayloadAction
 } from '@reduxjs/toolkit';
-import { v4 as uuidv4 } from 'uuid';
 import { Profile } from 'meticulous-typescript-profile';
-import { UUID } from 'meticulous-typescript-profile/dist/uuid';
 
 import { settingsDefaultNewPreset } from '../../../../utils/mock';
 import { simpleJson } from '../../../../utils/preheat';
@@ -57,13 +55,9 @@ export const addPresetFromDashboard = createAsyncThunk(
         isDefault: false
       }));
 
-      // eslint-disable-next-line
-      //@ts-ignore
-      const _UUID = new UUID(uuidv4().toString()).value;
-
       const settings = payload.profile;
       presetList.push({
-        id: _UUID,
+        id: '',
         name: payload?.profile?.name,
         isDefault: true,
         settings: [
@@ -108,49 +102,12 @@ export const addPresetFromDashboard = createAsyncThunk(
 
 export const addPresetNewOne = createAsyncThunk(
   'presetData/addNewOne',
-  async (_, { getState, dispatch }) => {
-    const state = getState() as RootState;
-    const presetState = { ...state.presets };
-
-    const presetList = presetState.value.map((preset) => ({
-      ...preset,
-      isDefault: false
-    }));
-
-    // eslint-disable-next-line
-    // @ts-ignore
-    const _UUID = new UUID(uuidv4().toString()).value;
-
-    presetList.push({
-      ...simpleJson,
-      id: _UUID,
-      isDefault: true,
-      settings: settingsDefaultNewPreset
-    });
-
-    presetState.value = presetList;
-    presetState.activeIndexSwiper = presetState.value.length - 1;
-    await saveProfileIndex(presetState.activeIndexSwiper);
-
-    presetState.activePreset = presetState.value[presetState.activeIndexSwiper];
-
-    presetState.updatingSettings = {
-      presetId: presetState.activePreset.id.toString(),
-      settings: presetState.activePreset.settings
+  async () => {
+    const newProfileBody = {
+      ...simpleJson
     };
 
-    const body = { ...presetState.activePreset };
-
-    body.settings = undefined;
-    body.isDefault = undefined;
-
-    await saveProfile(body);
-
-    dispatch(
-      setPresetState({
-        ...presetState
-      })
-    );
+    return await saveProfile(newProfileBody);
   }
 );
 
@@ -516,8 +473,6 @@ const presetSlice = createSlice({
     ) => {
       return { ...action.payload };
     },
-
-    // setting
     updatePresetSetting: (
       state: Draft<typeof initialState>,
       action: PayloadAction<IPresetSetting>
@@ -537,6 +492,23 @@ const presetSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(addPresetNewOne.fulfilled, (state, action) => {
+        state.value.push({
+          // eslint-disable-next-line
+          // @ts-ignore
+          ...action.payload.profile,
+          settings: settingsDefaultNewPreset
+        });
+        state.activeIndexSwiper = state.value.length - 1;
+        state.activePreset = state.value[state.value.length - 1];
+        state.updatingSettings = {
+          presetId: state.activePreset.id.toString(),
+          settings: state.activePreset.settings
+        };
+        saveProfileIndex(state.activeIndexSwiper)
+          .then(() => 'Active index saved')
+          .catch(() => console.log('Cannot save profile index'));
+      })
       .addCase(getPresets.pending, (state) => {
         state.pending = true;
       })
@@ -557,14 +529,13 @@ const presetSlice = createSlice({
 
           if (defaultIndex !== -1) {
             state.defaultPresetIndex = defaultIndex;
-
             state.allSettings = payload.map((preset) => {
               preset.settings = [
                 {
                   id: 1,
                   type: 'text',
                   key: 'name',
-                  label: `name`,
+                  label: 'name',
                   value: preset.name
                 },
                 {
