@@ -1,12 +1,11 @@
 import { IpcMainEvent } from 'electron';
 import { PasswortConnect } from '../types';
-import Api, {
+import {
   AcknowledgeNotificationRequest,
   WiFiConfig,
   WiFiConnectRequest
 } from 'meticulous-api';
-
-const api = new Api();
+import { api } from './api';
 
 export const getNetworkConfig = async () => {
   try {

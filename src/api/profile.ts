@@ -1,7 +1,6 @@
-import Api, { APIError } from 'meticulous-api';
+import { APIError } from 'meticulous-api';
 import { Profile } from 'meticulous-typescript-profile';
-
-const api = new Api();
+import { api } from './api';
 
 export const getProfiles = async () => {
   try {
