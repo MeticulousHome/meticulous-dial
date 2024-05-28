@@ -49,10 +49,9 @@ export const ProfileImage = ({ preset }: { preset: IProfileImage }) => {
 
   const currentIndex = presets.findIndex((e) => preset.id === e.id) + 1;
   const presetIndex = currentIndex % cLength || cLength;
-  const image =
-    API_URL + preset.display.image ??
-    pImage?.image ??
-    `assets/images/${presetIndex}.png`;
+  const image = preset.display?.image
+    ? `${API_URL}${preset.display.image}`
+    : pImage?.image ?? `assets/images/${presetIndex}.png`;
   const borderStyle =
     preset.borderColor ?? pImage?.borderColor ?? colors[presetIndex];
 
