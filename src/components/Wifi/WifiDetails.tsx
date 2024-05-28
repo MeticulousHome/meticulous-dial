@@ -8,9 +8,7 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { QrImage } from './QrImage';
 import './wifiDetails.css';
 import { marqueeIfNeeded } from '../shared/MarqueeValue';
-import Api from 'meticulous-api';
-
-const api = new Api();
+import { api } from '../../api/api';
 
 const items = [
   { key: 'network' },
