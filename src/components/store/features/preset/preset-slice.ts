@@ -559,32 +559,11 @@ const presetSlice = createSlice({
                 },
                 {
                   id: 4,
-                  type: 'on-off',
-                  key: 'pre-infusion',
-                  label: 'pre-infusion',
-                  value: 'yes'
-                },
-                {
-                  id: 5,
-                  type: 'on-off',
-                  key: 'pre-heat',
-                  label: 'pre-heat',
-                  value: 'yes'
-                },
-                {
-                  id: 6,
                   type: 'numerical',
                   key: 'output',
                   label: 'output',
                   value: preset.final_weight || 36,
                   unit: 'g'
-                },
-                {
-                  id: 7,
-                  type: 'multiple-option',
-                  key: 'purge',
-                  label: 'purge',
-                  value: 'automatic'
                 }
               ];
 
