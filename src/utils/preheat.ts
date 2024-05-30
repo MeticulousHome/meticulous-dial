@@ -1,13 +1,9 @@
 import { Profile } from 'meticulous-typescript-profile';
 
-import { Actions, PressetSettings } from '../types/index';
+import { ProfileValue } from '../components/store/features/preset/preset-slice';
 
-interface PayloadProps {
-  presset: PressetSettings;
-  action: Actions;
-}
-
-const getKeyPresset = (presset: PressetSettings, key: string) => {
+const getKeyPresset = (presset: ProfileValue, key: string) => {
+  if (!presset.settings) return;
   return presset.settings.find((item) => item.key === key);
 };
 
@@ -77,14 +73,16 @@ export const simpleJson: Profile = {
   ]
 };
 
-export const generateSimplePayload = ({ presset }: PayloadProps) => {
-  const name = presset.name;
-  const temperature = getKeyPresset(presset, 'temperature');
-  const pressure = getKeyPresset(presset, 'pressure');
-  const output = getKeyPresset(presset, 'output');
+export const generateSimplePayload = (profile: ProfileValue) => {
+  const name = profile.name;
+  const id = profile.id;
+  const temperature = getKeyPresset(profile, 'temperature');
+  const pressure = getKeyPresset(profile, 'pressure');
+  const output = getKeyPresset(profile, 'output');
 
   return {
     ...simpleJson,
+    id,
     name,
     temperature: Number(temperature.value),
     final_weight: Number(output.value),

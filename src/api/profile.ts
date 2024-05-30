@@ -1,4 +1,4 @@
-import { APIError } from 'meticulous-api';
+import { APIError, LastProfileIdent } from 'meticulous-api';
 import { Profile } from 'meticulous-typescript-profile';
 import { api } from './api';
 
@@ -44,5 +44,14 @@ export const startProfile = async () => {
     return data;
   } catch (error) {
     console.error('Start profile error: ', error);
+  }
+};
+
+export const getLastProfile = async () => {
+  try {
+    const { data } = await api.getLastProfile();
+    return data as LastProfileIdent;
+  } catch (error) {
+    console.error('Get last Profile error: ', error);
   }
 };

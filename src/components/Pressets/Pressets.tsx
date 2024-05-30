@@ -479,25 +479,16 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       if (startCoffe) {
         ready.current = true;
         dispatch(setWaitingForAction(true));
-        const preset = {
-          name: presets.activePreset.name,
-          settings: (presets.activePreset?.settings || []).filter(
-            (item) => item.id !== -1 && item.id !== -2
-          )
-        };
+        const profile = presets.activePreset;
 
-        if (preset.settings.length === 0) return;
+        if (profile.settings.length === 0) return;
 
-        const payload = generateSimplePayload({
-          presset: preset as any,
-          action: 'to_play'
-        });
-
+        const payload = generateSimplePayload(profile);
         const data = await loadProfileData(payload as Profile);
-
-        if (data) await startProfile();
-
-        dispatch(setScreen('barometer'));
+        if (data) {
+          const started = await startProfile();
+          if (started) dispatch(setScreen('barometer'));
+        }
       }
     };
 
