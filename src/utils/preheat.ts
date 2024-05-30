@@ -32,7 +32,7 @@ export const simpleJson: Profile = {
   ],
   stages: [
     {
-      key: '',
+      key: 'pre_infusion',
       name: 'Preinfusion',
       type: 'flow',
       dynamics: {
@@ -63,7 +63,7 @@ export const simpleJson: Profile = {
       limits: []
     },
     {
-      key: '',
+      key: 'infusion',
       name: 'Infusion',
       type: 'pressure',
       dynamics: {
