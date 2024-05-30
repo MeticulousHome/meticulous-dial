@@ -101,34 +101,6 @@ const removePresetSettingFile = async () => {
   }
 };
 
-const saveProfileIndex = async (
-  _event: IpcMainEvent,
-  filename: string,
-  index: string
-) => {
-  try {
-    if (isNaN(Number(index))) index = '0';
-    const path = app.getPath(DEFAULT_USER_PATHNAME);
-    return await fs.writeFile(`${path}/${filename}`, index.toString());
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-const getProfileIndex = async () => {
-  const path = app.getPath(DEFAULT_USER_PATHNAME);
-  const profileIndexPath = `${path}/defaultPresetIndex.txt`;
-  try {
-    const index = await fs.readFile(profileIndexPath, 'utf-8');
-    if (isNaN(Number(index))) return '0';
-    if (index) return index;
-  } catch (error) {
-    console.error('ERROR >>> ', error);
-    await fs.writeFile(profileIndexPath, '0');
-    return 0;
-  }
-};
-
 const getUpdatedKeys = (
   oldData: IPresetSetting[],
   newData: IPresetSetting[]
@@ -288,8 +260,6 @@ const getPresetData = async () => {
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
   ipcMain.handle('saveFile', saveFile);
-  ipcMain.handle('saveProfileIndex', saveProfileIndex);
-  ipcMain.handle('getProfileIndex', getProfileIndex);
   ipcMain.handle('getPresetData', getPresetData);
   ipcMain.handle('getNetworkConfig', getNetworkConfig);
   ipcMain.handle('getWifiList', getWifiList);
