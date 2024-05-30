@@ -15,9 +15,9 @@ import { setScreen } from '../screens/screens-slice';
 import {
   saveProfile,
   getProfiles,
-  deleteProfile
+  deleteProfile,
+  getLastProfile
 } from '../../../../api/profile';
-import { getProfileIndex, saveProfileIndex } from '../../../../data/presets';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -28,7 +28,7 @@ export interface PresetSettingInterface {
   allSettings: IPresetsSettingData[];
 }
 
-type ProfileValue = Profile & {
+export type ProfileValue = Profile & {
   settings: IPresetSetting[];
   isDefault?: boolean;
 };
@@ -126,7 +126,6 @@ export const setPrevPreset = createAsyncThunk(
     if (presetState.activeIndexSwiper === presetState.value.length) return;
     if (currentActiveIndex > 0) {
       const newActivePresetIndex = currentActiveIndex - 1;
-      // await saveProfileIndex(newActivePresetIndex);
 
       const presetList = [...presetState.value].map((i) => {
         return {
@@ -175,9 +174,6 @@ export const setNextPreset = createAsyncThunk(
 
     if (currentActiveIndex < presetState.value.length - 1) {
       const newActivePresetIndex = currentActiveIndex + 1;
-
-      // await saveProfileIndex(newActivePresetIndex);
-
       const presetList = [...presetState.value].map((i) => {
         return {
           ...i,
@@ -421,15 +417,18 @@ export const savePreset = createAsyncThunk(
 export const getPresets = createAsyncThunk(
   'presetData/getData',
   async (_, { dispatch }) => {
-    let defaultIndex = (await getProfileIndex()) || 0;
+    let defaultIndex = 0;
 
     const data = await getProfiles();
+    const lastProfile = await getLastProfile();
 
     if (Array.isArray(data)) {
       if (data.length === 0) dispatch(setScreen('pressets'));
-      if (Number(defaultIndex) > data.length - 1) {
-        defaultIndex = data.length - 1;
-        await saveProfileIndex(data.length - 1);
+
+      if (lastProfile?.profile?.id) {
+        defaultIndex =
+          data.findIndex((profile) => profile.id === lastProfile.profile.id) ||
+          0;
       }
     }
 
@@ -493,6 +492,7 @@ const presetSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(addPresetNewOne.fulfilled, (state, action) => {
+        console.log('Add new preset -> ', action.payload);
         state.value.push({
           // eslint-disable-next-line
           // @ts-ignore
@@ -505,9 +505,6 @@ const presetSlice = createSlice({
           presetId: state.activePreset.id.toString(),
           settings: state.activePreset.settings
         };
-        saveProfileIndex(state.activeIndexSwiper)
-          .then(() => 'Active index saved')
-          .catch(() => console.log('Cannot save profile index'));
       })
       .addCase(getPresets.pending, (state) => {
         state.pending = true;
