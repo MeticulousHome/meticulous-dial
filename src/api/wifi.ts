@@ -12,7 +12,7 @@ export const getNetworkConfig = async () => {
     const response = await api.getWiFiConfig();
     return response.data;
   } catch (error) {
-    console.error('getNetworkConfig error ', error);
+    console.error('getNetworkConfig error ', error.message);
   }
 };
 
@@ -21,7 +21,7 @@ export const getWifiList = async () => {
     const response = await api.listAvailableWiFi();
     return response.data;
   } catch (error) {
-    console.error('getWifiList error ', error);
+    console.error('getWifiList error ', error.message);
   }
 };
 
@@ -38,7 +38,7 @@ export const connectToWifi = async (
     console.log('Log ~ connect to wifi ~ response:', response);
     return response.data;
   } catch (error) {
-    console.error('connectToWifi error ', error);
+    console.error('connectToWifi error ', error.message);
   }
 };
 
@@ -51,7 +51,7 @@ export const updateNetworkConfig = async (
     console.log('Log ~ updateNetworkConfig ~ response:', response);
     return response.data;
   } catch (error) {
-    console.error('getNetworkConfig error ', error);
+    console.error('getNetworkConfig error ', error.message);
   }
 };
 
@@ -78,6 +78,6 @@ export const deleteKnowWifi = async (
     const response = await api.deleteWifi({ ssid });
     return response.data;
   } catch (error) {
-    console.log('deleteKnowWifi error: ', error);
+    console.log('deleteKnowWifi error: ', error.message);
   }
 };

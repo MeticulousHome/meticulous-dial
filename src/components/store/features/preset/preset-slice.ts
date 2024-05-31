@@ -492,7 +492,6 @@ const presetSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(addPresetNewOne.fulfilled, (state, action) => {
-        console.log('Add new preset -> ', action.payload);
         state.value.push({
           // eslint-disable-next-line
           // @ts-ignore
@@ -515,7 +514,6 @@ const presetSlice = createSlice({
         const payload = action.payload.data as ProfileValue[];
 
         if (!Array.isArray(payload)) {
-          console.log('Error: Invalid payload');
           return;
         }
 
