@@ -18,6 +18,7 @@ import {
   deleteProfile,
   getLastProfile
 } from '../../../../api/profile';
+import { addVariablesToSettings } from '../../../../utils/preset';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -363,9 +364,11 @@ export const savePreset = createAsyncThunk(
     const temperatureSetting = updateSetting.settings.find(
       (setting) => setting.key === 'temperature'
     );
-    const pressureSetting = updateSetting.settings.find(
-      (setting) => setting.key === 'pressure'
+
+    const pressureSettings = updateSetting.settings.filter((setting) =>
+      setting.key.includes('pressure')
     );
+
     const weight = updateSetting.settings.find(
       (setting) => setting.key === 'output'
     );
@@ -392,18 +395,13 @@ export const savePreset = createAsyncThunk(
       temperature: temperatureSetting.value as number,
       stages: presetState.activePreset.stages ?? simpleJson.stages,
       final_weight: weight.value as number,
-      variables: [
-        {
-          name: 'Pressure',
-          key: 'pressure_1',
-          type: 'pressure',
-          value: pressureSetting.value as number
-        }
-      ]
+      variables: pressureSettings.map((p) => ({
+        name: p.label,
+        key: p.key,
+        type: 'pressure',
+        value: p.value
+      }))
     };
-
-    body.settings = undefined;
-    body.isDefault = undefined;
     await saveProfile(body);
 
     dispatch(
@@ -476,7 +474,6 @@ const presetSlice = createSlice({
       state: Draft<typeof initialState>,
       action: PayloadAction<IPresetSetting>
     ) => {
-      console.log(action.payload, '__DEV');
       state.updatingSettings.settings = state.updatingSettings.settings.map(
         (setting) =>
           setting.id === action.payload.id ? action.payload : setting
@@ -536,30 +533,25 @@ const presetSlice = createSlice({
                 {
                   id: 2,
                   type: 'numerical',
-                  key: 'pressure',
-                  label: 'pressure',
-                  value:
-                    preset.variables.find(
-                      (variable) => variable.key === 'pressure_1'
-                    ).value || 8,
-                  unit: 'bar'
-                },
-                {
-                  id: 3,
-                  type: 'numerical',
                   key: 'temperature',
                   label: 'temperature',
                   value: preset.temperature || 85,
                   unit: '°c'
                 },
                 {
-                  id: 4,
+                  id: 3,
                   type: 'numerical',
                   key: 'output',
                   label: 'output',
                   value: preset.final_weight || 36,
                   unit: 'g'
-                }
+                },
+                // eslint-disable-next-line
+                // @ts-ignore
+                ...addVariablesToSettings({
+                  variables: preset.variables,
+                  nextId: 4
+                })
               ];
 
               return {
