@@ -58,7 +58,6 @@ export function PressetSettings(): JSX.Element {
           dispatch(discardSettings());
           dispatch(setScreen('pressets'));
         } else if (presetSettingIndex === 'delete') {
-          console.log('Delete preset');
           dispatch(deletePreset());
         } else if (presetSettingIndex === 'name') {
           dispatch(setScreen('name'));
@@ -70,7 +69,7 @@ export function PressetSettings(): JSX.Element {
           updateYesOrNoValue();
         } else if (presetSettingIndex === 'output') {
           dispatch(setScreen('output'));
-        } else if (presetSettingIndex === 'pressure') {
+        } else if (presetSettingIndex.includes('pressure')) {
           dispatch(setScreen('pressure'));
         } else if (presetSettingIndex === 'temperature') {
           dispatch(setScreen('temperature'));

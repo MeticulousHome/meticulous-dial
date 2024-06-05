@@ -4,6 +4,7 @@ import Swiper from 'swiper';
 import { IPresetSetting } from '../types';
 import { DEFAULT_SETTING } from '../constants/setting';
 import { PresetsState } from '../components/store/features/preset/preset-slice';
+import { Variable } from 'meticulous-typescript-profile';
 
 export const handleRemovePresetsAnimation = (swiper: Swiper) => {
   if (swiper && swiper.slides)
@@ -305,4 +306,22 @@ export const getPresetSettings = (presets: PresetsState): IPresetSetting[] => {
       ...defaultSettings
     ];
   }
+};
+
+export const addVariablesToSettings = ({
+  variables,
+  nextId
+}: {
+  variables: Variable[];
+  nextId: number;
+}) => {
+  const settings = variables.map((variable, index) => ({
+    id: index + nextId,
+    type: 'numerical',
+    key: variable.key,
+    label: variable.name,
+    value: variable.value
+  }));
+
+  return settings;
 };
