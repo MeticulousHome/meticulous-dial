@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { Profile } from 'meticulous-typescript-profile';
 
 import { ProfileValue } from '../components/store/features/preset/preset-slice';
@@ -28,7 +29,7 @@ export const simpleJson: Profile = {
   ],
   stages: [
     {
-      key: 'pre_infusion',
+      key: uuidv4(),
       name: 'Preinfusion',
       type: 'flow',
       dynamics: {
@@ -59,7 +60,7 @@ export const simpleJson: Profile = {
       limits: []
     },
     {
-      key: 'infusion',
+      key: uuidv4(),
       name: 'Infusion',
       type: 'pressure',
       dynamics: {
@@ -77,7 +78,7 @@ export const generateSimplePayload = (profile: ProfileValue) => {
   const name = profile.name;
   const id = profile.id;
   const temperature = getKeyPresset(profile, 'temperature');
-  const pressure = getKeyPresset(profile, 'pressure');
+  const pressure = getKeyPresset(profile, 'variables');
   const output = getKeyPresset(profile, 'output');
 
   return {

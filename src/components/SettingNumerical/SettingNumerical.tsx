@@ -43,13 +43,13 @@ interface Props {
 }
 
 export function SettingNumerical({ type }: Props): JSX.Element {
-  const setting = useReduxSelector((state) =>
-    state.presets.updatingSettings.settings.find(
-      (setting) => setting.key === type
-    )
+  const setting = useReduxSelector(
+    (state) =>
+      state.presets.updatingSettings.settings[state.presets.activeSetting]
   );
+
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const total = Number(setting.value);
+  const total = Number(setting?.value || 0);
   const { interval, maxValue, unit } = unitSettingConfigMap[
     type as NumericalSettingType
   ] ?? {

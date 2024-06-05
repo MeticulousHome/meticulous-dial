@@ -32,7 +32,7 @@ export function EditNameScreen(): JSX.Element {
   return (
     <CircleKeyboard
       name="name"
-      defaultValue={setting.value.split('')}
+      defaultValue={setting.value.toString().split('')}
       onSubmit={updateSetting}
       onCancel={onCancel}
     />
