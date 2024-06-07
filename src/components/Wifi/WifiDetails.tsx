@@ -18,6 +18,7 @@ const items = [
   { key: 'ap_name' },
   { key: 'ap_password' },
   { key: 'ips' },
+  { key: 'mac' },
   { key: 'back' }
 ];
 
@@ -181,6 +182,29 @@ export const WifiDetails = (): JSX.Element => {
               {marqueeIfNeeded({
                 enabled: items[activeIndex].key === 'ips',
                 val: 'IP:' + wifiStatus?.ips[0]
+              })}
+            </span>
+          </div>
+        </SwiperSlide>
+        <SwiperSlide
+          key="mac"
+          style={{ height: '30px' }}
+          className={`settings-item ${
+            items[activeIndex].key === 'mac' ? 'active-setting' : ''
+          }`}
+        >
+          <div className="settings-entry text-container">
+            <span
+              className="settings-text"
+              style={{
+                fontSize: `${
+                  wifiStatus?.hostname.length > 14 ? '18px' : undefined
+                }`
+              }}
+            >
+              {marqueeIfNeeded({
+                enabled: items[activeIndex].key === 'mac',
+                val: 'MAC:' + wifiStatus?.mac
               })}
             </span>
           </div>
