@@ -2,7 +2,13 @@
   "title": "Settings",
   "description": "Visibility definition for user settings",
   "properties": {
-    "visible": ["auto_start_shot", "auto_purge_after_shot", "save", "back"]
+    "visible": [
+      "auto_start_shot",
+      "auto_purge_after_shot",
+      "advanced",
+      "save",
+      "back"
+    ]
   },
   "type": "object"
 }
