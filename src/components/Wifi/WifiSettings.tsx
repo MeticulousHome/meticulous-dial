@@ -2,7 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import './wifiSettings.css';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { saveConfig } from '../store/features/wifi/wifi-slice';
+import {
+  saveConfig,
+  getConfig as getWifiConfig
+} from '../store/features/wifi/wifi-slice';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { WifiMode } from '../../types';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
@@ -123,6 +126,10 @@ export const WifiSettings = (): JSX.Element => {
       }
     }
   });
+
+  useEffect(() => {
+    dispatch(getWifiConfig());
+  }, []);
 
   useEffect(() => {
     if (swiper) {
