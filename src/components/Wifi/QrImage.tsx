@@ -5,12 +5,30 @@ export const QrImage = ({ src }: { src: string }) => {
   }
 
   return (
-    <img
-      width={140}
-      height={140}
-      src={src}
-      alt="qr-image"
-      style={{ marginTop: '70px' }}
-    />
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'column',
+        marginTop: '160px',
+        marginBottom: '40px'
+      }}
+    >
+      <img
+        width={200}
+        height={200}
+        src={src}
+        alt="qr-image"
+        style={{ display: 'block' }}
+      />
+      <span
+        style={{
+          fontSize: '12px'
+        }}
+      >
+        Scan with meticulous App to connect to machine
+      </span>
+    </div>
   );
 };
