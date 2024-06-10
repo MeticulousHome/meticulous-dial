@@ -26,6 +26,7 @@ import { KnownWifi } from '../../src/components/Wifi/KnownWifi';
 import { DeleteWifiMenu } from '../components/Wifi/DeleteWifiMenu';
 import { DeletedWifi } from '../components/Wifi/DeletedWifi';
 import { WifiSettingsSave } from '../components/Wifi/WifiSettingsSave';
+import { AdvancedSettings } from '../components/Settings/Advanced';
 
 interface Route {
   component: ComponentType;
@@ -200,5 +201,8 @@ export const routes: Record<ScreenType, Route> = {
   },
   snake: {
     component: SnakeGame
+  },
+  advancedSettings: {
+    component: AdvancedSettings
   }
 };

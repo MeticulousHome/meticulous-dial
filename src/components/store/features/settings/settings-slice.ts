@@ -1,18 +1,19 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { isAxiosError } from 'axios';
+import { api } from '../../../../api/api';
 
-import Api, { SettingsKey, SettingsType } from 'meticulous-api';
-import { Settings } from 'meticulous-api';
+import { Settings, SettingsType, DeviceInfo } from 'meticulous-api';
 
-const api = new Api();
+type InitialSettings = Settings & { deviceInfo?: DeviceInfo };
 
-export const initialState: Settings = {
+export const initialState: InitialSettings = {
   disallow_firmware_flashing: false,
   auto_purge_after_shot: false,
   auto_start_shot: false,
   auto_preheat: 0,
   enable_sounds: false,
-  save_debug_shot_data: false
+  save_debug_shot_data: false,
+  deviceInfo: null
 };
 
 export const fetchSettigns = createAsyncThunk(
@@ -33,6 +34,19 @@ export const updateSettings = createAsyncThunk(
   async (body: Partial<Settings>) => {
     try {
       const { data } = await api.updateSetting(body);
+      return data;
+    } catch (error) {
+      if (isAxiosError(error)) return error.message;
+      return error;
+    }
+  }
+);
+
+export const getDeviceInfo = createAsyncThunk(
+  'settings/getDeviceInfo',
+  async () => {
+    try {
+      const { data } = await api.getDeviceInfo();
       return data;
     } catch (error) {
       if (isAxiosError(error)) return error.message;
@@ -70,6 +84,9 @@ const settingsSlice = createSlice({
       })
       .addCase(updateSettings.fulfilled, (state, action) => {
         return action.payload;
+      })
+      .addCase(getDeviceInfo.fulfilled, (state, action) => {
+        state.deviceInfo = action.payload;
       });
   }
 });

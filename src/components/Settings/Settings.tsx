@@ -7,12 +7,11 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import {
   updateItemSetting,
-  updateSettings,
-  initialState as initialSettingsState
+  updateSettings
 } from '../store/features/settings/settings-slice';
 import SettingsVisibility from '../../schemas/settings.json';
 import { marqueeIfNeeded } from '../shared/MarqueeValue';
-import { SettingsKey, Settings as MachineSettings } from 'meticulous-api';
+import { SettingsKey } from 'meticulous-api';
 
 export function Settings(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -53,6 +52,12 @@ export function Settings(): JSX.Element {
       pressDown() {
         const activeItem = SettingsVisibility.properties.visible[activeIndex];
         switch (activeItem) {
+          case 'advanced': {
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'advancedSettings' })
+            );
+            break;
+          }
           case 'save': {
             dispatch(updateSettings(globalSettings));
             dispatch(
@@ -90,6 +95,18 @@ export function Settings(): JSX.Element {
       swiper.slideTo(activeIndex, 0, false);
     }
   }, [activeIndex, swiper]);
+
+  useEffect(() => {
+    if (
+      !globalSettings.deviceInfo ||
+      Object.keys(globalSettings.deviceInfo).length === 0
+    ) {
+      SettingsVisibility.properties.visible =
+        SettingsVisibility.properties.visible.filter(
+          (item) => item !== 'advanced'
+        );
+    }
+  }, [globalSettings]);
 
   return (
     <div className="main-quick-settings">

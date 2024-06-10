@@ -37,6 +37,7 @@ import { circumference, getDashArray } from '../SettingNumerical/Gauge';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
 import { Circle, radius, transform } from './Circle';
 import { TitleCircle } from './Title';
+import { getDeviceInfo } from '../store/features/settings/settings-slice';
 
 interface AnimationData {
   circlekey: number;
@@ -530,6 +531,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
   useEffect(() => {
     dispatch(setWaitingForAction(false));
+    dispatch(getDeviceInfo());
   }, []);
 
   useEffect(() => {
