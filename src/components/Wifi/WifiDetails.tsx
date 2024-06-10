@@ -186,14 +186,13 @@ export const WifiDetails = (): JSX.Element => {
             </span>
           </div>
         </SwiperSlide>
-        <SwiperSlide
-          key="mac"
-          style={{ height: '30px' }}
-          className={`settings-item ${
-            items[activeIndex].key === 'mac' ? 'active-setting' : ''
-          }`}
-        >
-          <div className="settings-entry text-container">
+        <SwiperSlide key="mac" style={{ paddingBottom: '20px' }}>
+          <div
+            style={{ height: '100%', display: 'flex', alignItems: 'center' }}
+            className={`settings-entry text-container settings-item ${
+              items[activeIndex].key === 'mac' ? 'active-setting' : ''
+            }`}
+          >
             <span
               className="settings-text"
               style={{
@@ -214,6 +213,8 @@ export const WifiDetails = (): JSX.Element => {
         </SwiperSlide>
 
         <SwiperSlide></SwiperSlide>
+        <SwiperSlide></SwiperSlide>
+
         <SwiperSlide
           key="back"
           className={`settings-item ${
