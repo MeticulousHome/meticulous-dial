@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import './wifiSettings.css';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { saveConfig, updateConfig } from '../store/features/wifi/wifi-slice';
+import { saveConfig } from '../store/features/wifi/wifi-slice';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { WifiMode } from '../../types';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
@@ -16,7 +16,7 @@ export const WifiSettings = (): JSX.Element => {
   const { wifiStatus, networkConfig } = useAppSelector((state) => state.wifi);
   const isWifiConnected = wifiStatus?.connected;
   const [networkConfigMode, setNetworkConfigMode] = useState(
-    networkConfig.mode
+    networkConfig?.mode
   );
   const isApMode = isWifiConnected && networkConfigMode === WifiMode.AP;
 
