@@ -55,7 +55,7 @@ export const ProfileImage = ({ preset }: { preset: IProfileImage }) => {
   );
   const borderStyle = preset.display?.accentColor
     ? `7px solid ${preset.display?.accentColor}`
-    : `7px solid ##e0dcd0`;
+    : `7px solid #e0dcd0`;
 
   useEffect(() => {
     dispatch(
