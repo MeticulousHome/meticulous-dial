@@ -80,13 +80,39 @@ export const routes: Record<ScreenType, Route> = {
     component: SettingNumerical,
     title: selectActivePresetName,
     bottomTitle: 'pressure',
-    // parent: 'pressetSettings',
-    // parentTitle: null,
     props: {
       type: 'pressure'
     },
     bottomStatusHidden: true
   },
+  time: {
+    component: SettingNumerical,
+    title: selectActivePresetName,
+    bottomTitle: 'time',
+    props: {
+      type: 'time'
+    },
+    bottomStatusHidden: true
+  },
+  weight: {
+    component: SettingNumerical,
+    title: selectActivePresetName,
+    bottomTitle: 'weight',
+    props: {
+      type: 'weight'
+    },
+    bottomStatusHidden: true
+  },
+  flow: {
+    component: SettingNumerical,
+    title: selectActivePresetName,
+    bottomTitle: 'flow',
+    props: {
+      type: 'flow'
+    },
+    bottomStatusHidden: true
+  },
+
   temperature: {
     component: SettingNumerical,
     title: selectActivePresetName,
