@@ -80,7 +80,7 @@ export const SocketProviderValue = () => {
   return socket;
 };
 
-const keyGestureMap: Record<string, GestureType> = {
+const keyDownGestureMap: Record<string, GestureType> = {
   ArrowLeft: 'left',
   ArrowRight: 'right',
   Space: 'pressDown',
@@ -93,20 +93,34 @@ const keyGestureMap: Record<string, GestureType> = {
   KeyN: 'pressUp'
 };
 
+const keyUpGestureMap: Record<string, GestureType[]> = {
+  Space: ['pressUp', 'click']
+};
+
 export const useSocketKeyboardListeners = () => {
   useEffect(() => {
-    const listener = (e: KeyboardEvent) => {
-      const gesture = keyGestureMap[e.code];
+    const keyDownListener = (e: KeyboardEvent) => {
+      const gesture = keyDownGestureMap[e.code];
       if (gesture) {
         console.log(gesture);
         handleEvents.emit('gesture', gesture);
       }
     };
 
-    window.addEventListener('keydown', listener);
+    const keyUpListener = (e: KeyboardEvent) => {
+      const gesture = keyUpGestureMap[e.code];
+      gesture?.forEach((gesture) => {
+        console.log(gesture);
+        handleEvents.emit('gesture', gesture);
+      });
+    };
+
+    window.addEventListener('keydown', keyDownListener);
+    window.addEventListener('keyup', keyUpListener);
 
     return () => {
-      window.removeEventListener('keydown', listener);
+      window.removeEventListener('keydown', keyDownListener);
+      window.addEventListener('keyup', keyUpListener);
     };
   }, []);
 };
