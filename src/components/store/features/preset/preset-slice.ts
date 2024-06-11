@@ -19,6 +19,7 @@ import {
   getLastProfile
 } from '../../../../api/profile';
 import { addVariablesToSettings } from '../../../../utils/preset';
+import equal from 'fast-deep-equal';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -453,20 +454,40 @@ export const getPresets = createAsyncThunk(
 
     const data = await getProfiles();
     const lastProfile = await getLastProfile();
+    var lastProfileKnown = false;
 
     if (Array.isArray(data)) {
       if (data.length === 0) dispatch(setScreen('pressets'));
 
-      if (lastProfile?.profile?.id) {
-        defaultIndex =
-          data.findIndex((profile) => profile.id === lastProfile.profile.id) ||
-          0;
+      try {
+        if (lastProfile?.profile?.id) {
+          const lastProfilePotentialIndex = data.findIndex(
+            (profile) => profile.id === lastProfile.profile.id
+          );
+          console.log('last profile id: ' + lastProfile?.profile?.id);
+          if (lastProfilePotentialIndex >= 0) {
+            lastProfileKnown = equal(
+              data[lastProfilePotentialIndex],
+              lastProfile.profile
+            );
+            if (lastProfileKnown) {
+              defaultIndex = lastProfilePotentialIndex;
+              console.log('the last profile is a known one');
+            }
+          }
+        }
+      } catch (e) {
+        console.log(
+          'Error getting last profile and comparing comparison: ' + e
+        );
       }
     }
 
     return {
       data,
-      defaultIndex
+      defaultIndex,
+      lastProfile,
+      lastProfileKnown
     };
   }
 );
@@ -544,6 +565,11 @@ const presetSlice = createSlice({
         state.pending = false;
 
         const payload = action.payload.data as ProfileValue[];
+        const lastProfile = action.payload.lastProfile;
+        const lastProfileKnown = action.payload.lastProfileKnown;
+
+        // FIXME add the lastProfile to the profile rotation if it is NOT known,
+        // else mark the last run profile with a tiny "last" which we can later replace with an icon
 
         if (!Array.isArray(payload)) {
           return;
