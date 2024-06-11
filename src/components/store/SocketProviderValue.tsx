@@ -5,7 +5,10 @@ import { GestureType, ISensorData } from '../../types/index';
 import { useAppDispatch } from './hooks';
 import { setStats, setWaterStatus } from './features/stats/stats-slice';
 import { setScreen } from './features/screens/screens-slice';
-import { addPresetFromDashboard } from './features/preset/preset-slice';
+import {
+  addPresetFromDashboard,
+  getPresets
+} from './features/preset/preset-slice';
 import { handleEvents } from '../../HandleEvents';
 import {
   addOneNotification,
@@ -52,6 +55,14 @@ export const SocketProviderValue = () => {
         })
       );
     });
+
+    socket.on(
+      'profile',
+      (data: { change: string; change_id: string; profile_id: string }) => {
+        console.log(`Profile ${data.change} - id: ${data.profile_id}`);
+        dispatch(getPresets());
+      }
+    );
 
     socket.on('button', (data: { type: string }) => {
       console.log('Receive: button', data);
