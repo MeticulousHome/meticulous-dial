@@ -578,6 +578,9 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                   {() => (
                     <div>
                       <ProfileImage preset={preset} />
+                      {preset.isLast ? (
+                        <div style={{ fontSize: '10px' }}>last</div>
+                      ) : null}
                     </div>
                   )}
                 </SwiperSlide>
