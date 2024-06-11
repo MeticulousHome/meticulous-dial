@@ -7,7 +7,8 @@ import { setStats, setWaterStatus } from './features/stats/stats-slice';
 import { setScreen } from './features/screens/screens-slice';
 import {
   addPresetFromDashboard,
-  getPresets
+  getPresets,
+  ProfileCause
 } from './features/preset/preset-slice';
 import { handleEvents } from '../../HandleEvents';
 import {
@@ -58,7 +59,11 @@ export const SocketProviderValue = () => {
 
     socket.on(
       'profile',
-      (data: { change: string; change_id: string; profile_id: string }) => {
+      (data: {
+        change: ProfileCause;
+        change_id: string;
+        profile_id: string;
+      }) => {
         console.log(`Profile ${data.change} - id: ${data.profile_id}`);
         dispatch(getPresets(data.change));
       }
