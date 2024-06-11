@@ -5,10 +5,15 @@ import {
   PayloadAction
 } from '@reduxjs/toolkit';
 import { Profile } from 'meticulous-typescript-profile';
+import equal from 'fast-deep-equal';
 
 import { settingsDefaultNewPreset } from '../../../../utils/mock';
 import { simpleJson } from '../../../../utils/preheat';
-import { IPresetSetting, IPresetsSettingData } from '../../../../types/index';
+import {
+  IPresetSetting,
+  IPresetsSettingData,
+  ProfileCause
+} from '../../../../types/index';
 import { RootState } from '../../store';
 import { DEFAULT_SETTING } from '../../../../constants/setting';
 import { setScreen } from '../screens/screens-slice';
@@ -19,7 +24,6 @@ import {
   getLastProfile
 } from '../../../../api/profile';
 import { addVariablesToSettings } from '../../../../utils/preset';
-import equal from 'fast-deep-equal';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -33,6 +37,7 @@ export interface PresetSettingInterface {
 export type ProfileValue = Profile & {
   settings: IPresetSetting[];
   isDefault?: boolean;
+  isLast?: boolean;
 };
 
 export interface PresetsState extends PresetSettingInterface {
@@ -446,8 +451,6 @@ export const savePreset = createAsyncThunk(
   }
 );
 
-type ProfileCause = 'create' | 'update' | 'delete' | 'full_reload' | 'load';
-
 export const getPresets = createAsyncThunk(
   'presetData/getData',
   async (cause: ProfileCause | null = null, { dispatch }) => {
@@ -456,7 +459,7 @@ export const getPresets = createAsyncThunk(
 
     const data = await getProfiles();
     const lastProfile = await getLastProfile();
-    var lastProfileKnown = false;
+    let isLastProfileKnown = false;
 
     if (Array.isArray(data)) {
       if (data.length === 0) dispatch(setScreen('pressets'));
@@ -468,12 +471,17 @@ export const getPresets = createAsyncThunk(
           );
           console.log('last profile id: ' + lastProfile?.profile?.id);
           if (lastProfilePotentialIndex >= 0) {
-            lastProfileKnown = equal(
+            delete lastProfile.profile.isDefault;
+            delete lastProfile.profile.settings;
+
+            isLastProfileKnown = equal(
               data[lastProfilePotentialIndex],
               lastProfile.profile
             );
-            if (lastProfileKnown) {
+
+            if (isLastProfileKnown) {
               defaultIndex = lastProfilePotentialIndex;
+              data[lastProfilePotentialIndex].isLast = true;
               console.log('the last profile is a known one');
             }
           }
@@ -489,7 +497,7 @@ export const getPresets = createAsyncThunk(
       data,
       defaultIndex,
       lastProfile,
-      lastProfileKnown,
+      isLastProfileKnown,
       cause
     };
   }
@@ -568,12 +576,8 @@ const presetSlice = createSlice({
         state.pending = false;
 
         const payload = action.payload.data as ProfileValue[];
-        const lastProfile = action.payload.lastProfile;
-        const lastProfileKnown = action.payload.lastProfileKnown;
+        const { lastProfile, isLastProfileKnown } = action.payload;
         const reloadCause = action.payload.cause;
-
-        // FIXME add the lastProfile to the profile rotation if it is NOT known,
-        // else mark the last run profile with a tiny "last" which we can later replace with an icon
 
         if (!Array.isArray(payload)) {
           return;
@@ -587,17 +591,14 @@ const presetSlice = createSlice({
               defaultIndex = payload.length - 1;
               break;
 
-            case 'delete':
+            case 'delete': {
               // Does the last selected profile still exist? Follow it
               const lastSelectedProfileSpot = payload.findIndex(
                 (profile) => profile.id === state.activePreset.id
               );
               if (lastSelectedProfileSpot !== -1) {
                 console.log(
-                  'Profile ' +
-                    state.activePreset.id +
-                    ' still exists in stop ' +
-                    lastSelectedProfileSpot
+                  `Profile ${state.activePreset.id} still exists in stop ${lastSelectedProfileSpot}`
                 );
                 defaultIndex = lastSelectedProfileSpot;
               } else {
@@ -608,10 +609,14 @@ const presetSlice = createSlice({
                 );
               }
               break;
-
-            case 'load':
-              //FIXME handle unknown last profile here
+            }
+            case 'load': {
+              if (!isLastProfileKnown) {
+                payload.concat(lastProfile);
+                defaultIndex = payload.length - 1;
+              }
               break;
+            }
           }
         }
 

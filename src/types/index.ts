@@ -244,3 +244,10 @@ export enum YesNoEnum {
   Yes = 'yes',
   No = 'no'
 }
+
+export type ProfileCause =
+  | 'create'
+  | 'update'
+  | 'delete'
+  | 'full_reload'
+  | 'load';

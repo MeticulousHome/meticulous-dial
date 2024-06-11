@@ -315,6 +315,8 @@ export const addVariablesToSettings = ({
   variables: Variable[];
   nextId: number;
 }) => {
+  if (!variables.length) return;
+
   const settings = variables.map((variable, index) => ({
     id: index + nextId,
     type: 'numerical',
