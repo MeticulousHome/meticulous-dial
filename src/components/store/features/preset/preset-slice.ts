@@ -446,9 +446,11 @@ export const savePreset = createAsyncThunk(
   }
 );
 
+type ProfileCause = 'create' | 'update' | 'delete' | 'full_reload' | 'load';
+
 export const getPresets = createAsyncThunk(
   'presetData/getData',
-  async (_, { dispatch }) => {
+  async (cause: ProfileCause | null = null, { dispatch }) => {
     console.log('Fetching presets');
     let defaultIndex = 0;
 
@@ -487,7 +489,8 @@ export const getPresets = createAsyncThunk(
       data,
       defaultIndex,
       lastProfile,
-      lastProfileKnown
+      lastProfileKnown,
+      cause
     };
   }
 );
@@ -567,6 +570,7 @@ const presetSlice = createSlice({
         const payload = action.payload.data as ProfileValue[];
         const lastProfile = action.payload.lastProfile;
         const lastProfileKnown = action.payload.lastProfileKnown;
+        const reloadCause = action.payload.cause;
 
         // FIXME add the lastProfile to the profile rotation if it is NOT known,
         // else mark the last run profile with a tiny "last" which we can later replace with an icon
@@ -575,15 +579,45 @@ const presetSlice = createSlice({
           return;
         }
 
+        let defaultIndex = Number(action.payload.defaultIndex);
+        // A new profile was added
+        if (reloadCause) {
+          switch (reloadCause) {
+            case 'create':
+              defaultIndex = payload.length - 1;
+              break;
+
+            case 'delete':
+              // Does the last selected profile still exist? Follow it
+              const lastSelectedProfileSpot = payload.findIndex(
+                (profile) => profile.id === state.activePreset.id
+              );
+              if (lastSelectedProfileSpot !== -1) {
+                console.log(
+                  'Profile ' +
+                    state.activePreset.id +
+                    ' still exists in stop ' +
+                    lastSelectedProfileSpot
+                );
+                defaultIndex = lastSelectedProfileSpot;
+              } else {
+                // The last selected profile was deleted, select the next one
+                defaultIndex = Math.min(
+                  payload.length - 1,
+                  state.activeIndexSwiper + 1
+                );
+              }
+              break;
+
+            case 'load':
+              //FIXME handle unknown last profile here
+              break;
+          }
+        }
+
         state.value = payload;
 
-        if (payload.length) {
-          let defaultIndex = Number(action.payload.defaultIndex);
-
-          if (state.activeIndexSwiper === state.value.length - 1) {
-            defaultIndex = state.activeIndexSwiper;
-          }
-
+        if (state.value.length) {
           if (defaultIndex !== -1) {
             state.defaultPresetIndex = defaultIndex;
             state.allSettings = payload.map((preset) => {
