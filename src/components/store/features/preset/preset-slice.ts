@@ -448,6 +448,7 @@ export const savePreset = createAsyncThunk(
 export const getPresets = createAsyncThunk(
   'presetData/getData',
   async (_, { dispatch }) => {
+    console.log('Fetching presets');
     let defaultIndex = 0;
 
     const data = await getProfiles();
