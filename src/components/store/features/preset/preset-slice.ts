@@ -224,16 +224,17 @@ export const deletePreset = createAsyncThunk(
     console.log('Delete preset: ', presetState.activePreset.id);
 
     if (newListPresets.length < presets.length) {
+      newSwiperIndex = Math.min(newSwiperIndex + 1, newListPresets.length - 1);
+
       newDefaultPreset =
         newListPresets.length > 0
-          ? newListPresets[0]
+          ? newListPresets[newSwiperIndex]
           : {
               ...simpleJson,
               name: 'Default',
               isDefault: false,
               settings: []
             };
-      newSwiperIndex = Math.min(newSwiperIndex + 1, newListPresets.length - 1);
       newListPresets =
         newListPresets.length > 0 ? newListPresets : [newDefaultPreset];
       newListPresets = newListPresets.map((preset) => ({
