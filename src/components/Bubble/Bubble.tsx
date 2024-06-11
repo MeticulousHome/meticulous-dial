@@ -18,7 +18,7 @@ export default function Bubble() {
       dispatch(
         setBubbleDisplay({
           visible: !bubbleDisplay.visible,
-          component: 'quick-settings'
+          component: !bubbleDisplay.visible ? 'quick-settings' : null
         })
       );
       bubbleDisplay.visible;
