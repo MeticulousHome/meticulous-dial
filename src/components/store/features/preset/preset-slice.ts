@@ -531,6 +531,7 @@ const presetSlice = createSlice({
         });
         state.activeIndexSwiper = state.value.length - 1;
         state.activePreset = state.value[state.value.length - 1];
+        state.defaultPresetIndex = state.value.length - 1;
         state.updatingSettings = {
           presetId: state.activePreset.id.toString(),
           settings: state.activePreset.settings
@@ -551,7 +552,11 @@ const presetSlice = createSlice({
         state.value = payload;
 
         if (payload.length) {
-          const defaultIndex = Number(action.payload.defaultIndex);
+          let defaultIndex = Number(action.payload.defaultIndex);
+
+          if (state.activeIndexSwiper === state.value.length - 1) {
+            defaultIndex = state.activeIndexSwiper;
+          }
 
           if (defaultIndex !== -1) {
             state.defaultPresetIndex = defaultIndex;
