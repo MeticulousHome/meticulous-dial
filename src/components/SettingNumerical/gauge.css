@@ -69,6 +69,10 @@
   margin-left: 88px;
 }
 
+.scale-time .scale-level {
+  margin-left: 100px;
+}
+
 .scale-flow .scale-level {
   margin-left: 70px;
   margin-right: 4px;

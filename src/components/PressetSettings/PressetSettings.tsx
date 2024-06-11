@@ -71,6 +71,12 @@ export function PressetSettings(): JSX.Element {
           dispatch(setScreen('output'));
         } else if (presetSettingIndex.includes('pressure')) {
           dispatch(setScreen('pressure'));
+        } else if (presetSettingIndex.includes('time')) {
+          dispatch(setScreen('time'));
+        } else if (presetSettingIndex.includes('weight')) {
+          dispatch(setScreen('weight'));
+        } else if (presetSettingIndex.includes('flow')) {
+          dispatch(setScreen('flow'));
         } else if (presetSettingIndex === 'temperature') {
           dispatch(setScreen('temperature'));
         } else if (presetSettingIndex === 'ratio') {

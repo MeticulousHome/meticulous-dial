@@ -365,9 +365,22 @@ export const savePreset = createAsyncThunk(
       (setting) => setting.key === 'temperature'
     );
 
-    const pressureSettings = updateSetting.settings.filter((setting) =>
-      setting.key.includes('pressure')
-    );
+    const pressureSettings =
+      updateSetting.settings.filter((setting) =>
+        setting.key.includes('pressure')
+      ) || [];
+    const flowSettings =
+      updateSetting.settings.filter((setting) =>
+        setting.key.includes('flow')
+      ) || [];
+    const timeSettings =
+      updateSetting.settings.filter((setting) =>
+        setting.key.includes('time')
+      ) || [];
+    const weightSettings =
+      updateSetting.settings.filter((setting) =>
+        setting.key.includes('weight')
+      ) || [];
 
     const weight = updateSetting.settings.find(
       (setting) => setting.key === 'output'
@@ -395,12 +408,32 @@ export const savePreset = createAsyncThunk(
       temperature: temperatureSetting.value as number,
       stages: presetState.activePreset.stages ?? simpleJson.stages,
       final_weight: weight.value as number,
-      variables: pressureSettings.map((p) => ({
-        name: p.label,
-        key: p.key,
-        type: 'pressure',
-        value: p.value
-      }))
+      variables: [
+        ...pressureSettings.map((p) => ({
+          name: p.label,
+          key: p.key,
+          type: 'pressure',
+          value: p.value
+        })),
+        ...flowSettings.map((p) => ({
+          name: p.label,
+          key: p.key,
+          type: 'flow',
+          value: p.value
+        })),
+        ...timeSettings.map((p) => ({
+          name: p.label,
+          key: p.key,
+          type: 'time',
+          value: p.value
+        })),
+        ...weightSettings.map((p) => ({
+          name: p.label,
+          key: p.key,
+          type: 'weight',
+          value: p.value
+        }))
+      ]
     };
     await saveProfile(body);
 

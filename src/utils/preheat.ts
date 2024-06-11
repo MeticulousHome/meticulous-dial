@@ -78,7 +78,7 @@ export const generateSimplePayload = (profile: ProfileValue) => {
   const name = profile.name;
   const id = profile.id;
   const temperature = getKeyPresset(profile, 'temperature');
-  const pressure = getKeyPresset(profile, 'variables');
+  const variables = profile.variables;
   const output = getKeyPresset(profile, 'output');
 
   return {
@@ -87,13 +87,6 @@ export const generateSimplePayload = (profile: ProfileValue) => {
     name,
     temperature: Number(temperature.value),
     final_weight: Number(output.value),
-    variables: [
-      {
-        name: 'Pressure',
-        key: 'pressure_1',
-        type: 'pressure',
-        value: Number(pressure.value)
-      }
-    ]
+    variables
   };
 };
