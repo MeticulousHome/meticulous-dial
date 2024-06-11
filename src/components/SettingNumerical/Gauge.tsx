@@ -7,18 +7,20 @@ export const circumference = radius * 2 * Math.PI;
 const transform = `rotate(90, ${radius}, ${radius})`;
 const minDigits = 3;
 
-export type Unit = 'bar' | 'celcius' | 'gram';
+export type Unit = 'bar' | 'celcius' | 'gram' | 'sec';
 
 const unitNameMap: Record<Unit, string> = {
   bar: 'bar',
   celcius: '°C',
-  gram: 'g'
+  gram: 'g',
+  sec: 's'
 };
 
 const unitClassNameMap: Record<Unit, string> = {
   bar: 'scale-pressure',
   celcius: 'scale-temp',
-  gram: 'scale-weight-limit'
+  gram: 'scale-weight-limit',
+  sec: 'scale-time'
 };
 
 const formatValue = (value: number, precision: number) => {

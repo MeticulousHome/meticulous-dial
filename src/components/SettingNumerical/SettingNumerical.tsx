@@ -19,7 +19,13 @@ interface ISettingConfig {
   unit: Unit;
   maxValue: number;
 }
-type NumericalSettingType = 'pressure' | 'temperature' | 'output';
+type NumericalSettingType =
+  | 'pressure'
+  | 'temperature'
+  | 'output'
+  | 'flow'
+  | 'time'
+  | 'weight';
 const unitSettingConfigMap: Record<NumericalSettingType, ISettingConfig> = {
   pressure: {
     interval: 0.1,
@@ -35,6 +41,21 @@ const unitSettingConfigMap: Record<NumericalSettingType, ISettingConfig> = {
     interval: 1,
     unit: 'gram',
     maxValue: 100
+  },
+  flow: {
+    interval: 0.1,
+    unit: 'bar',
+    maxValue: 12
+  },
+  time: {
+    interval: 0.1,
+    unit: 'sec',
+    maxValue: 180
+  },
+  weight: {
+    interval: 0.1,
+    unit: 'gram',
+    maxValue: 2000
   }
 };
 
