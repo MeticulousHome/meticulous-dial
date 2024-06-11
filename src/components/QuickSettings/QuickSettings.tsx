@@ -67,7 +67,7 @@ export function QuickSettings(): JSX.Element {
         dispatch(
           setBubbleDisplay({
             visible: !bubbleDisplay.visible,
-            component: 'quick-settings'
+            component: !bubbleDisplay.visible ? 'quick-settings' : null
           })
         );
       },
