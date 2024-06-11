@@ -4,7 +4,7 @@ import { api } from './api';
 
 export const getProfiles = async () => {
   try {
-    const { data } = await api.listProfiles();
+    const { data } = await api.fetchAllProfiles();
     return data as Profile[] | APIError;
   } catch (error) {
     console.error('GetProfiles error: ', error);
