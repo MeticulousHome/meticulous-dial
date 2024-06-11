@@ -491,9 +491,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       if (startCoffe) {
         ready.current = true;
         dispatch(setWaitingForAction(true));
-        const profile = presets.activePreset;
+        var profile = { ...presets.activePreset };
 
-        if (profile.settings.length === 0) return;
+        delete profile.isDefault;
+        delete profile.settings;
 
         const data = await loadProfileData(profile);
         if (data) {
