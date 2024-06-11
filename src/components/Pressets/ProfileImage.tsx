@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Profile } from 'meticulous-typescript-profile';
 
 import {
@@ -46,14 +46,16 @@ export const ProfileImage = ({ preset }: { preset: IProfileImage }) => {
     null;
   const dispatch = useAppDispatch();
   const { value: presets } = useAppSelector((state) => state.presets);
-
   const currentIndex = presets.findIndex((e) => preset.id === e.id) + 1;
   const presetIndex = currentIndex % cLength || cLength;
-  const image = preset.display?.image
-    ? `${API_URL}${preset.display.image}`
-    : pImage?.image ?? `assets/images/${presetIndex}.png`;
-  const borderStyle =
-    preset.borderColor ?? pImage?.borderColor ?? colors[presetIndex];
+  const [image, setImage] = useState(
+    preset.display?.image
+      ? `${API_URL}${preset.display.image}`
+      : pImage?.image ?? `assets/images/${presetIndex}.png`
+  );
+  const borderStyle = preset.display?.accentColor
+    ? `7px solid ${preset.display?.accentColor}`
+    : `7px solid ##e0dcd0`;
 
   useEffect(() => {
     dispatch(
@@ -68,13 +70,12 @@ export const ProfileImage = ({ preset }: { preset: IProfileImage }) => {
   return (
     <img
       src={image}
-      alt="image-profile"
+      alt="No image"
       width="164"
       height="164"
       className="profile-image"
-      style={{
-        border: `7px solid ${borderStyle}`
-      }}
+      onError={() => setImage(`assets/images/${presetIndex}.png`)}
+      style={{ border: borderStyle }}
     />
   );
 };
