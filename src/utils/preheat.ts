@@ -75,18 +75,14 @@ export const simpleJson: Profile = {
 };
 
 export const generateSimplePayload = (profile: ProfileValue) => {
-  const name = profile.name;
-  const id = profile.id;
   const temperature = getKeyPresset(profile, 'temperature');
   const variables = profile.variables;
   const output = getKeyPresset(profile, 'output');
 
   return {
-    ...simpleJson,
-    id,
-    name,
+    ...profile,
+    variables,
     temperature: Number(temperature.value),
-    final_weight: Number(output.value),
-    variables
+    final_weight: Number(output.value)
   };
 };
