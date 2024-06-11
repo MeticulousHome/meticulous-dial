@@ -244,6 +244,11 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               return dispatch(addPresetNewOne());
             }
 
+            if (!pressetSwiper && !pressetTitleSwiper) {
+              console.log('No swiper loaded, aborting gesture!');
+              return;
+            }
+
             if (
               pressetSwiper &&
               pressetSwiper.pagination &&
@@ -301,6 +306,11 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             setPercentaje(0);
             animationInProgress.current = false;
 
+            if (!pressetSwiper && !pressetTitleSwiper) {
+              console.log('No swiper loaded, aborting gesture!');
+              return;
+            }
+
             if (
               pressetSwiper &&
               pressetSwiper.pagination &&
@@ -356,6 +366,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             setPercentaje(0);
             animationInProgress.current = false;
 
+            if (!pressetSwiper && !pressetTitleSwiper) {
+              console.log('No swiper loaded, aborting gesture!');
+              return;
+            }
             if (
               pressetSwiper &&
               pressetSwiper.pagination &&
