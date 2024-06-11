@@ -233,7 +233,7 @@ export const deletePreset = createAsyncThunk(
               isDefault: false,
               settings: []
             };
-      newSwiperIndex = 0;
+      newSwiperIndex = Math.min(newSwiperIndex + 1, newListPresets.length - 1);
       newListPresets =
         newListPresets.length > 0 ? newListPresets : [newDefaultPreset];
       newListPresets = newListPresets.map((preset) => ({
@@ -450,6 +450,13 @@ export const savePreset = createAsyncThunk(
     );
   }
 );
+
+export type ProfileCause =
+  | 'create'
+  | 'update'
+  | 'delete'
+  | 'full_reload'
+  | 'load';
 
 export const getPresets = createAsyncThunk(
   'presetData/getData',
