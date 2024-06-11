@@ -29,14 +29,12 @@ import { Title, RouteProps } from '../../navigation';
 import '../../navigation/navigation.less';
 import { ProfileImage } from './ProfileImage';
 import { setScreen } from '../store/features/screens/screens-slice';
-import { generateSimplePayload } from '../../utils/preheat';
 import { circumference, getDashArray } from '../SettingNumerical/Gauge';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
 import { Circle, radius, transform } from './Circle';
 import { TitleCircle } from './Title';
 import { getDeviceInfo } from '../store/features/settings/settings-slice';
 import { loadProfileData, startProfile } from '../../api/profile';
-import { Profile } from 'meticulous-typescript-profile';
 
 interface AnimationData {
   circlekey: number;
@@ -497,8 +495,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
         if (profile.settings.length === 0) return;
 
-        const payload = generateSimplePayload(profile);
-        const data = await loadProfileData(payload as Profile);
+        const data = await loadProfileData(profile);
         if (data) {
           const started = await startProfile();
           if (started) dispatch(setScreen('barometer'));

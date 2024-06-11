@@ -1,13 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Profile } from 'meticulous-typescript-profile';
 
-import { ProfileValue } from '../components/store/features/preset/preset-slice';
-
-const getKeyPresset = (presset: ProfileValue, key: string) => {
-  if (!presset.settings) return;
-  return presset.settings.find((item) => item.key === key);
-};
-
 export const simpleJson: Profile = {
   id: '',
   name: 'New Preset',
@@ -72,17 +65,4 @@ export const simpleJson: Profile = {
       limits: []
     }
   ]
-};
-
-export const generateSimplePayload = (profile: ProfileValue) => {
-  const temperature = getKeyPresset(profile, 'temperature');
-  const variables = profile.variables;
-  const output = getKeyPresset(profile, 'output');
-
-  return {
-    ...profile,
-    variables,
-    temperature: Number(temperature.value),
-    final_weight: Number(output.value)
-  };
 };
