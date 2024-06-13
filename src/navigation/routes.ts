@@ -27,6 +27,7 @@ import { DeleteWifiMenu } from '../components/Wifi/DeleteWifiMenu';
 import { DeletedWifi } from '../components/Wifi/DeletedWifi';
 import { WifiSettingsSave } from '../components/Wifi/WifiSettingsSave';
 import { AdvancedSettings } from '../components/Settings/Advanced';
+import { WifiQrMenu } from '../../src/components/Wifi/WifiQrMenu';
 
 interface Route {
   component: ComponentType;
@@ -146,6 +147,11 @@ export const routes: Record<ScreenType, Route> = {
   wifiSettings: {
     component: WifiSettings,
     title: 'wifi settings',
+    bottomStatusHidden: true
+  },
+  wifiQrMenu: {
+    component: WifiQrMenu,
+    title: 'show connection code',
     bottomStatusHidden: true
   },
   wifiDetails: {

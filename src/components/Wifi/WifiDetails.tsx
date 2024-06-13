@@ -5,12 +5,8 @@ import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { getConfig as getWifiConfig } from '../store/features/wifi/wifi-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { QrImage } from './QrImage';
 import './wifiDetails.css';
 import { marqueeIfNeeded } from '../shared/MarqueeValue';
-import Api from 'meticulous-api';
-
-const api = new Api();
 
 const items = [
   { key: 'network' },
@@ -208,13 +204,6 @@ export const WifiDetails = (): JSX.Element => {
             </span>
           </div>
         </SwiperSlide>
-        <SwiperSlide style={{ height: '300px' }}>
-          <QrImage src={`${api.getWiFiQRURL()}`} />
-        </SwiperSlide>
-
-        <SwiperSlide></SwiperSlide>
-        <SwiperSlide></SwiperSlide>
-
         <SwiperSlide
           key="back"
           className={`settings-item ${

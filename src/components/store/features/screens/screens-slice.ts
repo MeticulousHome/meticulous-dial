@@ -17,6 +17,7 @@ export type ScreenType =
   | 'purge'
   | 'notifications'
   | 'wifiSettings'
+  | 'wifiQrMenu'
   | 'wifiDetails'
   | 'connectWifi'
   | 'connectWifiMenu'
