@@ -28,7 +28,7 @@ export const WifiSettings = (): JSX.Element => {
       key: 'status',
       label: 'Status',
       value: isWifiConnected ? 'CONNECTED' : 'NOT CONNECTED',
-      visible: isWifiConnected
+      visible: true
     },
     {
       key: 'details',
@@ -39,7 +39,7 @@ export const WifiSettings = (): JSX.Element => {
       key: 'network_mode',
       label: 'Network mode',
       value: isApMode ? 'AP' : 'CLIENT',
-      visible: isWifiConnected
+      visible: true
     },
     {
       key: 'known_wifis',
