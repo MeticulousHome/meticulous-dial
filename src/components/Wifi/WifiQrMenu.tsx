@@ -6,9 +6,7 @@ import { useAppDispatch } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { QrImage } from './QrImage';
 import './wifiDetails.css';
-import Api from 'meticulous-api';
-
-const api = new Api();
+import { api } from '../../api/api';
 
 const items = [{ key: 'back' }];
 

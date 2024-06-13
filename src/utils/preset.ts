@@ -332,7 +332,8 @@ export const addVariablesToSettings = ({
   variables: Variable[];
   nextId: number;
 }) => {
-  if (!variables.length) return;
+  if (!variables) return [];
+  if (!variables.length) return [];
 
   const settings: IPresetBaseNumerical[] = variables.map((variable, index) => ({
     id: index + nextId,
