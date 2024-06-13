@@ -59,10 +59,10 @@ export const WifiQrMenu = (): JSX.Element => {
         centeredSlides={true}
         style={{ paddingLeft: '29px', top: '-20px' }}
       >
-        <SwiperSlide key="qr" style={{ paddingBottom: '160px' }}>
+        <SwiperSlide key="qr" style={{ paddingBottom: '130px' }}>
           <QrImage
             src={`${api.getWiFiQRURL()}`}
-            size={320}
+            size={280}
             style={{ paddingRight: '30px' }}
             description="Scan with meticulous App to connect to the machine"
           />
