@@ -577,9 +577,20 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                   {() => (
                     <div>
                       <ProfileImage preset={preset} />
-                      {preset.isLast ? (
-                        <div style={{ fontSize: '10px' }}>last</div>
-                      ) : null}
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'row',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        {preset.isLast ? (
+                          <div style={{ fontSize: '10px' }}>last</div>
+                        ) : null}
+                        {preset.isTemporary ? (
+                          <div style={{ fontSize: '10px' }}>temporary</div>
+                        ) : null}
+                      </div>
                     </div>
                   )}
                 </SwiperSlide>
@@ -627,13 +638,23 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             className={`title-swiper ${transitioning ? 'transitioning' : ''}`}
           >
             {presets.value.length &&
-              presets.value.map((preset) => (
-                <SwiperSlide key={preset.id.toString()}>
-                  {() => (
-                    <Title customClass="presset-title-top">{preset.name}</Title>
-                  )}
-                </SwiperSlide>
-              ))}
+              presets.value.map((preset) => {
+                return (
+                  <SwiperSlide
+                    key={preset.isTemporary ? 'temp' : preset.id.toString()}
+                  >
+                    {() => (
+                      <Title
+                        customClass={`presset-title-top ${
+                          (preset.isTemporary || false) && 'presset-title-temp'
+                        }`}
+                      >
+                        {preset.name}
+                      </Title>
+                    )}
+                  </SwiperSlide>
+                );
+              })}
             <SwiperSlide key="new">
               {() => <Title customClass="presset-title-top">New</Title>}
             </SwiperSlide>
