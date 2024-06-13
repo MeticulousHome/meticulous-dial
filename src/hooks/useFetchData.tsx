@@ -7,7 +7,7 @@ export function useFetchData() {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    dispatch(getPresets());
+    dispatch(getPresets({}));
     dispatch(getWifiConfig());
   }, []);
 }

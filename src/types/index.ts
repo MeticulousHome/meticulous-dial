@@ -1,6 +1,7 @@
 export * from './wifi';
 
 import { DashboardProfile, ItalianProfile } from '../constants';
+import { VariableType } from 'meticulous-typescript-profile';
 
 interface JSONObject {
   [x: string]: JSONValue;
@@ -75,6 +76,8 @@ export interface IPreset {
 
 export interface IBasePresset {
   id: number;
+  isInternal: boolean;
+  externalType?: VariableType;
   label: string;
   hidden?: boolean;
 }
