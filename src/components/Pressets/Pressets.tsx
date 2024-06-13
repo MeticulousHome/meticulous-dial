@@ -573,7 +573,9 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           >
             {presets.value.length &&
               presets.value.map((preset) => (
-                <SwiperSlide key={preset.id.toString()}>
+                <SwiperSlide
+                  key={preset.isTemporary ? 'temp' : preset.id.toString()}
+                >
                   {() => (
                     <div>
                       <ProfileImage preset={preset} />
@@ -583,12 +585,20 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                           flexDirection: 'row',
                           justifyContent: 'space-between'
                         }}
+                        key="labels"
                       >
                         {preset.isLast ? (
-                          <div style={{ fontSize: '10px' }}>last</div>
+                          <div key="last_label" style={{ fontSize: '10px' }}>
+                            last
+                          </div>
                         ) : null}
                         {preset.isTemporary ? (
-                          <div style={{ fontSize: '10px' }}>temporary</div>
+                          <div
+                            key="temporary_label"
+                            style={{ fontSize: '10px' }}
+                          >
+                            temporary
+                          </div>
                         ) : null}
                       </div>
                     </div>
