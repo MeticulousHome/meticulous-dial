@@ -1,14 +1,13 @@
 import { useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-import { GestureType, ISensorData } from '../../types/index';
+import { GestureType, ISensorData, ProfileCause } from '../../types/index';
 import { useAppDispatch } from './hooks';
 import { setStats, setWaterStatus } from './features/stats/stats-slice';
 import { setScreen } from './features/screens/screens-slice';
 import {
   addPresetFromDashboard,
-  getPresets,
-  ProfileCause
+  getPresets
 } from './features/preset/preset-slice';
 import { handleEvents } from '../../HandleEvents';
 import {
@@ -65,7 +64,7 @@ export const SocketProviderValue = () => {
         profile_id: string;
       }) => {
         console.log(`Profile ${data.change} - id: ${data.profile_id}`);
-        dispatch(getPresets(data.change));
+        dispatch(getPresets({ cause: data.change }));
       }
     );
 

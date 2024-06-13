@@ -15,7 +15,10 @@ import {
   ProfileCause
 } from '../../../../types/index';
 import { RootState } from '../../store';
-import { DEFAULT_SETTING } from '../../../../constants/setting';
+import {
+  DEFAULT_SETTING,
+  TEMPORARY_SETTINGS
+} from '../../../../constants/setting';
 import { setScreen } from '../screens/screens-slice';
 import {
   saveProfile,
@@ -35,10 +38,23 @@ export interface PresetSettingInterface {
 }
 
 export type ProfileValue = Profile & {
+  // When adding something here make sure to also add to the deletion below
   settings: IPresetSetting[];
   isDefault?: boolean;
   isLast?: boolean;
+  isTemporary?: boolean;
 };
+
+export function cleanupInternalProfile(profile: ProfileValue) {
+  const copy = { ...profile };
+
+  delete copy.settings;
+  delete copy.isDefault;
+  delete copy.isLast;
+  delete copy.isTemporary;
+
+  return copy;
+}
 
 export interface PresetsState extends PresetSettingInterface {
   value: Array<ProfileValue>;
@@ -90,9 +106,7 @@ export const addPresetFromDashboard = createAsyncThunk(
         settings: presetState.activePreset.settings
       };
 
-      const body = { ...presetState.activePreset };
-      delete body.settings;
-      delete body.isDefault;
+      const body = cleanupInternalProfile({ ...presetState.activePreset });
 
       await saveProfile(body);
 
@@ -224,14 +238,14 @@ export const deletePreset = createAsyncThunk(
     console.log('Delete preset: ', presetState.activePreset.id);
 
     if (newListPresets.length < presets.length) {
-      newSwiperIndex = Math.min(newSwiperIndex + 1, newListPresets.length - 1);
+      newSwiperIndex = Math.min(newSwiperIndex, newListPresets.length);
 
       newDefaultPreset =
         newListPresets.length > 0
           ? newListPresets[newSwiperIndex]
           : {
               ...simpleJson,
-              name: 'Default',
+              name: 'waiting for deletion',
               isDefault: false,
               settings: []
             };
@@ -288,10 +302,12 @@ export const setNextSettingOption = createAsyncThunk(
     const state = getState() as RootState;
     const presetState = { ...state.presets } as PresetsState;
     const nextActiveSetting = presetState.activeSetting + 1;
+    const actionSettings = presetState.activePreset.isTemporary
+      ? TEMPORARY_SETTINGS
+      : DEFAULT_SETTING;
     const endIndex =
       presetState.activePreset.settings.filter(({ hidden }) => !hidden).length +
-      DEFAULT_SETTING.length -
-      1;
+      (actionSettings.length - 1);
 
     if (nextActiveSetting > endIndex) {
       return;
@@ -366,32 +382,17 @@ export const savePreset = createAsyncThunk(
     const presetState = { ...state.presets };
     const updateSetting = presetState.updatingSettings;
     const nameSetting = updateSetting.settings.find(
-      (setting) => setting.key === 'name'
+      (setting) => setting.key === 'name' && setting.isInternal
     );
     const temperatureSetting = updateSetting.settings.find(
-      (setting) => setting.key === 'temperature'
+      (setting) => setting.key === 'temperature' && setting.isInternal
     );
-
-    const pressureSettings =
-      updateSetting.settings.filter((setting) =>
-        setting.key.includes('pressure')
-      ) || [];
-    const flowSettings =
-      updateSetting.settings.filter((setting) =>
-        setting.key.includes('flow')
-      ) || [];
-    const timeSettings =
-      updateSetting.settings.filter((setting) =>
-        setting.key.includes('time')
-      ) || [];
-    const weightSettings =
-      updateSetting.settings.filter((setting) =>
-        setting.key.includes('weight')
-      ) || [];
-
     const weight = updateSetting.settings.find(
-      (setting) => setting.key === 'output'
+      (setting) => setting.key === 'output' && setting.isInternal
     );
+
+    const profileSettings =
+      updateSetting.settings.filter((setting) => !setting.isInternal) || [];
 
     const activePreset = {
       ...presetState.activePreset,
@@ -410,38 +411,19 @@ export const savePreset = createAsyncThunk(
     };
     presetState.value = [...copyListPresets];
 
-    const body = {
+    const body = cleanupInternalProfile({
       ...presetState.activePreset,
       temperature: temperatureSetting.value as number,
       stages: presetState.activePreset.stages ?? simpleJson.stages,
       final_weight: weight.value as number,
-      variables: [
-        ...pressureSettings.map((p) => ({
-          name: p.label,
-          key: p.key,
-          type: 'pressure',
-          value: p.value
-        })),
-        ...flowSettings.map((p) => ({
-          name: p.label,
-          key: p.key,
-          type: 'flow',
-          value: p.value
-        })),
-        ...timeSettings.map((p) => ({
-          name: p.label,
-          key: p.key,
-          type: 'time',
-          value: p.value
-        })),
-        ...weightSettings.map((p) => ({
-          name: p.label,
-          key: p.key,
-          type: 'weight',
-          value: p.value
-        }))
-      ]
-    };
+      variables: profileSettings.map((p) => ({
+        name: p.label,
+        key: p.key,
+        type: p.externalType,
+        value: p.value as number
+      }))
+    });
+
     await saveProfile(body);
 
     dispatch(
@@ -452,21 +434,15 @@ export const savePreset = createAsyncThunk(
   }
 );
 
-export type ProfileCause =
-  | 'create'
-  | 'update'
-  | 'delete'
-  | 'full_reload'
-  | 'load';
-
 export const getPresets = createAsyncThunk(
   'presetData/getData',
-  async (cause: ProfileCause | null = null, { dispatch }) => {
+  async (params: { cause?: ProfileCause }, { dispatch }) => {
     console.log('Fetching presets');
     let defaultIndex = 0;
 
     const data = await getProfiles();
     const lastProfile = await getLastProfile();
+    const cause = params.cause;
     let isLastProfileKnown = false;
 
     if (Array.isArray(data)) {
@@ -479,9 +455,6 @@ export const getPresets = createAsyncThunk(
           );
           console.log('last profile id: ' + lastProfile?.profile?.id);
           if (lastProfilePotentialIndex >= 0) {
-            delete lastProfile.profile.isDefault;
-            delete lastProfile.profile.settings;
-
             isLastProfileKnown = equal(
               data[lastProfilePotentialIndex],
               lastProfile.profile
@@ -489,7 +462,6 @@ export const getPresets = createAsyncThunk(
 
             if (isLastProfileKnown) {
               defaultIndex = lastProfilePotentialIndex;
-              data[lastProfilePotentialIndex].isLast = true;
               console.log('the last profile is a known one');
             }
           }
@@ -583,15 +555,35 @@ const presetSlice = createSlice({
       .addCase(getPresets.fulfilled, (state, action) => {
         state.pending = false;
 
-        const payload = action.payload.data as ProfileValue[];
-        const { lastProfile, isLastProfileKnown } = action.payload;
-        const reloadCause = action.payload.cause;
-
-        if (!Array.isArray(payload)) {
+        if (!Array.isArray(action.payload.data)) {
           return;
         }
 
+        const payload: ProfileValue[] = action.payload.data.map(
+          (preset: ProfileValue) => {
+            return { settings: [], ...preset };
+          }
+        );
+        const { lastProfile, isLastProfileKnown } = action.payload;
+        const lastProfileData: ProfileValue = {
+          settings: [],
+          ...lastProfile.profile
+        };
+        const reloadCause = action.payload.cause;
+
         let defaultIndex = Number(action.payload.defaultIndex);
+
+        if (isLastProfileKnown) {
+          console.log('last profile is know');
+          payload[defaultIndex].isLast = true;
+        } else {
+          console.log('last profile is NOT know');
+          console.log(JSON.stringify(lastProfileData));
+          lastProfileData.isTemporary = true;
+          lastProfileData.isLast = true;
+          payload.push(lastProfileData);
+        }
+
         // A new profile was added
         if (reloadCause) {
           switch (reloadCause) {
@@ -604,6 +596,7 @@ const presetSlice = createSlice({
               const lastSelectedProfileSpot = payload.findIndex(
                 (profile) => profile.id === state.activePreset.id
               );
+              // Another profile was deleted
               if (lastSelectedProfileSpot !== -1) {
                 console.log(
                   `Profile ${state.activePreset.id} still exists in stop ${lastSelectedProfileSpot}`
@@ -620,7 +613,6 @@ const presetSlice = createSlice({
             }
             case 'load': {
               if (!isLastProfileKnown) {
-                payload.concat(lastProfile);
                 defaultIndex = payload.length - 1;
               }
               break;
@@ -640,7 +632,8 @@ const presetSlice = createSlice({
                   type: 'text',
                   key: 'name',
                   label: 'name',
-                  value: preset.name
+                  value: preset.name,
+                  isInternal: true
                 },
                 {
                   id: 2,
@@ -648,7 +641,8 @@ const presetSlice = createSlice({
                   key: 'temperature',
                   label: 'temperature',
                   value: preset.temperature || 85,
-                  unit: '°c'
+                  unit: '°c',
+                  isInternal: true
                 },
                 {
                   id: 3,
@@ -656,7 +650,8 @@ const presetSlice = createSlice({
                   key: 'output',
                   label: 'output',
                   value: preset.final_weight || 36,
-                  unit: 'g'
+                  unit: 'g',
+                  isInternal: true
                 },
                 // eslint-disable-next-line
                 // @ts-ignore

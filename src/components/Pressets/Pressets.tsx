@@ -20,6 +20,7 @@ import './pressets.less';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import {
   addPresetNewOne,
+  cleanupInternalProfile,
   resetActiveSetting,
   setNextPreset,
   setOptionPressets,
@@ -491,10 +492,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       if (startCoffe) {
         ready.current = true;
         dispatch(setWaitingForAction(true));
-        var profile = { ...presets.activePreset };
-
-        delete profile.isDefault;
-        delete profile.settings;
+        const profile = cleanupInternalProfile({ ...presets.activePreset });
 
         const data = await loadProfileData(profile);
         if (data) {

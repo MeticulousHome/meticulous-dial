@@ -23,7 +23,8 @@ export const settingsDefaultNewPreset: IPresetSetting[] = [
     type: 'text',
     key: 'name',
     label: `name`,
-    value: 'New Preset'
+    value: 'New Preset',
+    isInternal: true
   },
   {
     id: 2,
@@ -31,7 +32,9 @@ export const settingsDefaultNewPreset: IPresetSetting[] = [
     key: 'pressure',
     label: 'pressure',
     value: 8,
-    unit: 'bar'
+    unit: 'bar',
+    isInternal: false,
+    externalType: 'pressure'
   },
   {
     id: 3,
@@ -39,7 +42,8 @@ export const settingsDefaultNewPreset: IPresetSetting[] = [
     key: 'temperature',
     label: 'temperature',
     value: 85,
-    unit: '°c'
+    unit: '°c',
+    isInternal: true
   },
   {
     id: 4,
@@ -47,6 +51,7 @@ export const settingsDefaultNewPreset: IPresetSetting[] = [
     key: 'output',
     label: 'output',
     value: 36,
-    unit: 'g'
+    unit: 'g',
+    isInternal: true
   }
 ];
