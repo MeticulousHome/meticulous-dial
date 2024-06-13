@@ -27,6 +27,7 @@ const App = (): JSX.Element => {
   const stats = useAppSelector((state) => state.stats);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const notifications = useSelector(notificationSelector.selectAll);
+  const wifiStatus = useAppSelector((state) => state.wifi.wifiStatus);
 
   useEffect(() => {
     if (notifications.length > 0 && screen.value !== 'notifications') {
@@ -73,10 +74,15 @@ const App = (): JSX.Element => {
         );
       }
     },
-    stats?.name !== 'idle' || bubbleDisplay.visible
+    stats?.name !== 'idle' ||
+      bubbleDisplay.visible ||
+      !wifiStatus ||
+      !wifiStatus.connected
   );
 
   if (loadingPressets) return <></>;
+
+  if (!wifiStatus || !wifiStatus.connected) return <h1>No connected</h1>;
 
   return <Router currentScreen={screen.value} previousScreen={screen.prev} />;
   // return <Router currentScreen={'wifiSettings'} previousScreen={screen.prev} />;
