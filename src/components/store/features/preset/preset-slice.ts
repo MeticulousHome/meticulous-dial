@@ -227,53 +227,10 @@ export const deletePreset = createAsyncThunk(
   async (_, { getState, dispatch }) => {
     const state = getState() as RootState;
     const presetState = { ...state.presets };
-    const presets = [...presetState.value];
-    let newSwiperIndex = presetState.activeIndexSwiper;
-    let newDefaultPreset = { ...presetState.activePreset };
-
-    let newListPresets: ProfileValue[] = presets.filter(
-      (preset) => preset.id !== presetState.activePreset.id
-    );
 
     console.log('Delete preset: ', presetState.activePreset.id);
 
-    if (newListPresets.length < presets.length) {
-      newSwiperIndex = Math.min(newSwiperIndex, newListPresets.length);
-
-      newDefaultPreset =
-        newListPresets.length > 0
-          ? newListPresets[newSwiperIndex]
-          : {
-              ...simpleJson,
-              name: 'waiting for deletion',
-              isDefault: false,
-              settings: []
-            };
-      newListPresets =
-        newListPresets.length > 0 ? newListPresets : [newDefaultPreset];
-      newListPresets = newListPresets.map((preset) => ({
-        ...preset,
-        isDefault: preset.id === newDefaultPreset.id
-      }));
-    }
-
     await deleteProfile(presetState.activePreset.id.toString());
-
-    presetState.activeIndexSwiper = newSwiperIndex;
-    presetState.activePreset = newDefaultPreset;
-    presetState.activeSetting = 0;
-    presetState.value = newListPresets;
-
-    presetState.updatingSettings = {
-      presetId: presetState.activePreset.id.toString(),
-      settings: presetState.activePreset.settings ?? []
-    };
-
-    dispatch(
-      setPresetState({
-        ...presetState
-      })
-    );
 
     dispatch(setScreen('pressets'));
   }
@@ -564,21 +521,19 @@ const presetSlice = createSlice({
             return { settings: [], ...preset };
           }
         );
+        const profileCount = payload.length;
         const { lastProfile, isLastProfileKnown } = action.payload;
         const lastProfileData: ProfileValue = {
           settings: [],
-          ...lastProfile.profile
+          ...lastProfile?.profile
         };
         const reloadCause = action.payload.cause;
 
         let defaultIndex = Number(action.payload.defaultIndex);
 
         if (isLastProfileKnown) {
-          console.log('last profile is know');
           payload[defaultIndex].isLast = true;
-        } else {
-          console.log('last profile is NOT know');
-          console.log(JSON.stringify(lastProfileData));
+        } else if (lastProfileData) {
           lastProfileData.isTemporary = true;
           lastProfileData.isLast = true;
           payload.push(lastProfileData);
@@ -588,13 +543,15 @@ const presetSlice = createSlice({
         if (reloadCause) {
           switch (reloadCause) {
             case 'create':
-              defaultIndex = payload.length - 1;
+              defaultIndex = profileCount - 1;
               break;
 
             case 'delete': {
               // Does the last selected profile still exist? Follow it
               const lastSelectedProfileSpot = payload.findIndex(
-                (profile) => profile.id === state.activePreset.id
+                (profile) =>
+                  profile.id === state.activePreset.id &&
+                  state.activePreset.isTemporary === profile.isTemporary
               );
               // Another profile was deleted
               if (lastSelectedProfileSpot !== -1) {
@@ -604,8 +561,9 @@ const presetSlice = createSlice({
                 defaultIndex = lastSelectedProfileSpot;
               } else {
                 // The last selected profile was deleted, select the next one
+                // Dont select the temporary profile untill absolutely necessary
                 defaultIndex = Math.min(
-                  payload.length - 1,
+                  profileCount > 0 ? profileCount - 1 : payload.length - 1,
                   state.activeIndexSwiper + 1
                 );
               }
