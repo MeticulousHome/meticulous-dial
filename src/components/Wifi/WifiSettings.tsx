@@ -31,6 +31,11 @@ export const WifiSettings = (): JSX.Element => {
       visible: true
     },
     {
+      key: 'qr_code',
+      label: 'Show connection code',
+      visible: isWifiConnected
+    },
+    {
       key: 'details',
       label: 'See network details',
       visible: true
@@ -85,6 +90,12 @@ export const WifiSettings = (): JSX.Element => {
             networkConfigMode === WifiMode.AP ? WifiMode.CLIENT : WifiMode.AP;
           setNetworkConfigMode(mode);
           setUserWifiMode(mode);
+          break;
+        }
+        case 'qr_code': {
+          dispatch(
+            setBubbleDisplay({ visible: true, component: 'wifiQrMenu' })
+          );
           break;
         }
         case 'details': {

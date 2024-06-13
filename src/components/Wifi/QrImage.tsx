@@ -1,4 +1,14 @@
-export const QrImage = ({ src }: { src: string }) => {
+export const QrImage = ({
+  src,
+  size,
+  description,
+  style
+}: {
+  src: string;
+  size: number;
+  description?: string | undefined;
+  style?: React.CSSProperties | undefined;
+}) => {
   if (!src) {
     src =
       'https://www.shutterstock.com/image-vector/sample-qr-code-260nw-1712468050.jpg';
@@ -11,24 +21,26 @@ export const QrImage = ({ src }: { src: string }) => {
         justifyContent: 'center',
         alignItems: 'center',
         flexDirection: 'column',
-        marginTop: '160px',
-        marginBottom: '40px'
+        ...style
       }}
     >
       <img
-        width={200}
-        height={200}
+        width={size}
+        height={size}
         src={src}
         alt="qr-image"
         style={{ display: 'block' }}
       />
-      <span
-        style={{
-          fontSize: '12px'
-        }}
-      >
-        Scan with meticulous App to connect to machine
-      </span>
+      {description && (
+        <span
+          style={{
+            paddingTop: '5px',
+            fontSize: '16px'
+          }}
+        >
+          {description}
+        </span>
+      )}
     </div>
   );
 };
