@@ -69,7 +69,25 @@
   }
 }
 
+@keyframes bigleftright {
+  0%,
+  20% {
+    transform: translateX(0%);
+    left: 0%;
+  }
+  80%,
+  100% {
+    transform: translateX(50%);
+    left: -50%;
+  }
+}
+
 .animate {
   position: relative;
   animation: leftright 6s infinite alternate ease-in-out;
+}
+
+.animate-marquee-big {
+  position: relative;
+  animation: bigleftright 6s infinite alternate ease-in-out;
 }

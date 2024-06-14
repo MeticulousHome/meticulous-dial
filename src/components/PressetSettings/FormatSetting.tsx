@@ -19,12 +19,21 @@ export const FormatSetting = ({ setting, isActive }: FormatSettingProps) => {
 
   if (label === 'delete profile') activeClass = '';
 
-  const animateClass = mValue.length > 11 && activeClass;
+  const animateClass = mValue.length > 11 && mValue.length < 21 && activeClass;
+  const bigAnimateClass = mValue.length > 20 && activeClass;
 
   return (
     <div className="text-container">
       <span>
-        <span className={animateClass ? 'animate' : ''}>
+        <span
+          className={
+            animateClass
+              ? 'animate'
+              : bigAnimateClass
+              ? 'animate-marquee-big'
+              : ''
+          }
+        >
           <span className={`capitalize presset-option-label ${activeClass}`}>
             {mLabel}
           </span>
