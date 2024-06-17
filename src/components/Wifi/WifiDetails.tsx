@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import './wifiDetails.css';
 import { marqueeIfNeeded } from '../shared/MarqueeValue';
+import { useNotConnectedMessage } from '../../../src/hooks/useNotConnectedMessage';
 
 const items = [
   { key: 'network' },
@@ -25,6 +26,7 @@ export const WifiDetails = (): JSX.Element => {
   const { wifiStatus, pending, networkConfig } = useAppSelector(
     (state) => state.wifi
   );
+  const { getMessageIfIsConnected } = useNotConnectedMessage();
 
   useEffect(() => {
     dispatch(getWifiConfig());
@@ -83,7 +85,11 @@ export const WifiDetails = (): JSX.Element => {
             <span className="settings-text">
               {marqueeIfNeeded({
                 enabled: items[activeIndex].key === 'network',
-                val: 'NETWORK:' + wifiStatus?.connection_name
+                val:
+                  'NETWORK:' +
+                  getMessageIfIsConnected({
+                    messageValue: wifiStatus?.connection_name
+                  })
               })}
             </span>
           </div>
@@ -107,7 +113,11 @@ export const WifiDetails = (): JSX.Element => {
             >
               {marqueeIfNeeded({
                 enabled: items[activeIndex].key === 'hostname',
-                val: 'HOSTNAME:' + wifiStatus?.hostname
+                val:
+                  'HOSTNAME:' +
+                  getMessageIfIsConnected({
+                    messageValue: wifiStatus?.hostname
+                  })
               })}
             </span>
           </div>
@@ -131,7 +141,11 @@ export const WifiDetails = (): JSX.Element => {
             >
               {marqueeIfNeeded({
                 enabled: items[activeIndex].key === 'ap_name',
-                val: 'AP NAME:' + networkConfig?.apName
+                val:
+                  'AP NAME:' +
+                  getMessageIfIsConnected({
+                    messageValue: networkConfig?.apName
+                  })
               })}
             </span>
           </div>
@@ -153,7 +167,11 @@ export const WifiDetails = (): JSX.Element => {
             >
               {marqueeIfNeeded({
                 enabled: items[activeIndex].key === 'ap_password',
-                val: 'AP PASSWORD:' + networkConfig?.apPassword
+                val:
+                  'AP PASSWORD:' +
+                  getMessageIfIsConnected({
+                    messageValue: networkConfig?.apPassword
+                  })
               })}
             </span>
           </div>
@@ -177,7 +195,9 @@ export const WifiDetails = (): JSX.Element => {
             >
               {marqueeIfNeeded({
                 enabled: items[activeIndex].key === 'ips',
-                val: 'IP:' + wifiStatus?.ips[0]
+                val:
+                  'IP:' +
+                  getMessageIfIsConnected({ messageValue: wifiStatus?.ips[0] })
               })}
             </span>
           </div>
@@ -199,7 +219,9 @@ export const WifiDetails = (): JSX.Element => {
             >
               {marqueeIfNeeded({
                 enabled: items[activeIndex].key === 'mac',
-                val: 'MAC:' + wifiStatus?.mac
+                val:
+                  'MAC:' +
+                  getMessageIfIsConnected({ messageValue: wifiStatus?.mac })
               })}
             </span>
           </div>

@@ -15,6 +15,7 @@ import {
   setDefaultProfileSelected,
   setOptionPressets
 } from '../store/features/preset/preset-slice';
+import { useNotConnectedMessage } from '../../../src/hooks/useNotConnectedMessage';
 
 interface QuickSettingOption {
   key: string;
@@ -98,6 +99,7 @@ export function QuickSettings(): JSX.Element {
       }
     }
   };
+  const { getMessageIfIsConnected } = useNotConnectedMessage();
 
   useHandleGestures(
     {
@@ -280,19 +282,18 @@ export function QuickSettings(): JSX.Element {
         {settings.map((setting, index: number) => {
           const isActive = index === activeIndex;
           return (
-            <>
-              <SwiperSlide
-                className={getSettingClasses(isActive)}
-                key={`default_option-${index}`}
-                onAnimationEnd={handleAnimationEnd}
-              >
-                {setting.label} {setting.key === 'preheat' && preheatValue}
-              </SwiperSlide>
-
-              {indexSeparator === index && (
-                <SwiperSlide key="seperator" className="separator" />
-              )}
-            </>
+            <SwiperSlide
+              className={`settings-item ${isActive ? 'active-setting' : ''}`}
+              key={`option-${index}`}
+            >
+              {setting.label}{' '}
+              {setting.key === 'preheat' &&
+                `${getMessageIfIsConnected({
+                  messageValue: isNaN(parseInt(preheatValue))
+                    ? undefined
+                    : preheatValue
+                })}`}
+            </SwiperSlide>
           );
         })}
       </Swiper>
