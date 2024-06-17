@@ -154,7 +154,7 @@ export const setNextPreset = createAsyncThunk(
       presetState.activePreset = presetList[newActivePresetIndex];
       presetState.updatingSettings = {
         presetId: presetList[newActivePresetIndex].id.toString(),
-        settings: presetList[newActivePresetIndex].settings
+        settings: presetList[newActivePresetIndex].settings || []
       };
       presetState.value = presetList;
     }
@@ -437,6 +437,9 @@ const presetSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(addPresetNewOne.fulfilled, (state, action) => {
+        // FIXME show an error notification here
+        if (!action.payload) return;
+
         state.value.push({
           // eslint-disable-next-line
           // @ts-ignore
@@ -475,14 +478,16 @@ const presetSlice = createSlice({
         const reloadCause = action.payload.cause;
 
         let defaultIndex = Number(action.payload.defaultIndex);
-
         if (isLastProfileKnown) {
           payload[defaultIndex].isLast = true;
-        } else if (lastProfileData) {
-          lastProfileData.isTemporary = true;
-          lastProfileData.isLast = true;
-          payload.push(lastProfileData);
         }
+        // if (!isLastProfileKnown && lastProfile) {
+        //   // FIXME: if a temporary profile should be shown should be a config option in the backend
+        //   // This is currently causing sync/caching issues on real hardware while it works on desktop
+        //   lastProfileData.isTemporary = true;
+        //   lastProfileData.isLast = true;
+        //   payload.push(lastProfileData);
+        // }
 
         // A new profile was added
         if (reloadCause) {
@@ -575,7 +580,7 @@ const presetSlice = createSlice({
               (item) => item.presetId === payload[defaultIndex].id.toString()
             );
             state.updatingSettings = {
-              presetId: payload[defaultIndex].id.toString(),
+              presetId: payload[defaultIndex]?.id.toString(),
               settings: settings || [...settingsDefaultNewPreset]
             };
             state.activeIndexSwiper = defaultIndex;
