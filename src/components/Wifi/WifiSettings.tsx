@@ -22,6 +22,8 @@ export const WifiSettings = (): JSX.Element => {
     networkConfig?.mode
   );
   const isApMode = isWifiConnected && networkConfigMode === WifiMode.AP;
+  const APModeDescription = 'Create standalone wifi';
+  const ClientModeDescription = 'Machine joins existing wifi';
 
   const wifiSettingItems = [
     {
@@ -42,8 +44,8 @@ export const WifiSettings = (): JSX.Element => {
     },
     {
       key: 'network_mode',
-      label: 'Network mode',
-      value: isApMode ? 'AP' : 'CLIENT',
+      label: 'Wifi mode',
+      value: isApMode ? APModeDescription : ClientModeDescription,
       visible: true
     },
     {
