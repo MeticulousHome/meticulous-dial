@@ -184,56 +184,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
             break;
           }
-
-          default:
-            break;
-        }
-      },
-      pressUp() {
-        switch (option.screen) {
-          case 'HOME': {
-            if (ready.current) return;
-
-            circleOne.current = document.getElementById(
-              'bar'
-            ) as unknown as SVGCircleElement;
-
-            setStartCoffe(false);
-
-            const currentStrokeDashValue = Math.round(
-              (+getComputedStyle(circleOne.current)
-                .strokeDasharray.split(',')[0]
-                .replace('px', '') /
-                circumference) *
-                100
-            );
-
-            setPercentaje(() => {
-              if (animationInProgress.current) {
-                setAnimation((prev) => ({
-                  circlekey: prev.circlekey + 1 > 10 ? 0 : prev.circlekey + 1,
-                  titlekey: prev.titlekey + 1 > 30 ? 20 : prev.titlekey + 1,
-                  strokeDashValueInitial: currentStrokeDashValue,
-                  strokeDashValueEnd: 0,
-                  fillInitial: currentStrokeDashValue / 100,
-                  fillEnd: 0.0,
-                  titleOpacityInitial: 1,
-                  titleOpacityEnd: 0,
-                  timeFunc: 'ease-in',
-                  extraDelay: 100
-                }));
-
-                animationInProgress.current = false;
-              }
-
-              return 0;
-            });
-            break;
-          }
-        }
-      },
-      click() {
-        switch (option.screen) {
           case 'PRESSETS': {
             if (presets.activeIndexSwiper === presets.value.length) {
               if (navigationTitleExistValidation()) {
@@ -294,6 +244,49 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           }
           default:
             break;
+        }
+      },
+      pressUp() {
+        switch (option.screen) {
+          case 'HOME': {
+            if (ready.current) return;
+
+            circleOne.current = document.getElementById(
+              'bar'
+            ) as unknown as SVGCircleElement;
+
+            setStartCoffe(false);
+
+            const currentStrokeDashValue = Math.round(
+              (+getComputedStyle(circleOne.current)
+                .strokeDasharray.split(',')[0]
+                .replace('px', '') /
+                circumference) *
+                100
+            );
+
+            setPercentaje(() => {
+              if (animationInProgress.current) {
+                setAnimation((prev) => ({
+                  circlekey: prev.circlekey + 1 > 10 ? 0 : prev.circlekey + 1,
+                  titlekey: prev.titlekey + 1 > 30 ? 20 : prev.titlekey + 1,
+                  strokeDashValueInitial: currentStrokeDashValue,
+                  strokeDashValueEnd: 0,
+                  fillInitial: currentStrokeDashValue / 100,
+                  fillEnd: 0.0,
+                  titleOpacityInitial: 1,
+                  titleOpacityEnd: 0,
+                  timeFunc: 'ease-in',
+                  extraDelay: 100
+                }));
+
+                animationInProgress.current = false;
+              }
+
+              return 0;
+            });
+            break;
+          }
         }
       },
       left() {
