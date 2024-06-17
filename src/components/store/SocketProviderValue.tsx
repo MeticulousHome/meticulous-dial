@@ -5,10 +5,7 @@ import { GestureType, ISensorData, ProfileCause } from '../../types/index';
 import { useAppDispatch } from './hooks';
 import { setStats, setWaterStatus } from './features/stats/stats-slice';
 import { setScreen } from './features/screens/screens-slice';
-import {
-  addPresetFromDashboard,
-  getPresets
-} from './features/preset/preset-slice';
+import { getPresets } from './features/preset/preset-slice';
 import { handleEvents } from '../../HandleEvents';
 import {
   addOneNotification,
@@ -43,17 +40,6 @@ export const SocketProviderValue = () => {
 
     socket.on('water_status', (data: boolean) => {
       dispatch(setWaterStatus(data));
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    socket.on('save_in_dial', (data: any) => {
-      console.log('Receive: save_in_dial');
-
-      dispatch(
-        addPresetFromDashboard({
-          profile: JSON.parse(data)
-        })
-      );
     });
 
     socket.on(

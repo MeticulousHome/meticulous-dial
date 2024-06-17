@@ -66,61 +66,6 @@ export interface PresetsState extends PresetSettingInterface {
   option: 'HOME' | 'PRESSETS';
 }
 
-export const addPresetFromDashboard = createAsyncThunk(
-  'presetData/addPresetFromDashboard',
-  async (payload: any, { getState, dispatch }) => {
-    try {
-      const state = getState() as RootState;
-      const presetState = { ...state.presets };
-
-      const presetList = presetState.value.map((preset) => ({
-        ...preset,
-        isDefault: false
-      }));
-
-      const settings = payload.profile;
-      presetList.push({
-        id: '',
-        name: payload?.profile?.name,
-        isDefault: true,
-        settings: [
-          {
-            id: 1,
-            type: 'text',
-            key: 'name',
-            label: 'name',
-            value: payload?.profile?.name
-          }
-        ],
-        dashboard: {
-          ...settings
-        }
-      } as any);
-
-      presetState.value = presetList;
-      presetState.activeIndexSwiper = presetState.value.length - 1;
-      presetState.activePreset =
-        presetState.value[presetState.activeIndexSwiper];
-      presetState.updatingSettings = {
-        presetId: presetState.activePreset.id.toString(),
-        settings: presetState.activePreset.settings
-      };
-
-      const body = cleanupInternalProfile({ ...presetState.activePreset });
-
-      await saveProfile(body);
-
-      dispatch(
-        setPresetState({
-          ...presetState
-        })
-      );
-    } catch (e) {
-      console.log('ERROR:> ', e);
-    }
-  }
-);
-
 export const addPresetNewOne = createAsyncThunk(
   'presetData/addNewOne',
   async () => {
