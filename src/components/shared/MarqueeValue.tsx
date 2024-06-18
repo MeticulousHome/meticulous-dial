@@ -4,10 +4,10 @@ interface Props {
   len?: number;
 }
 
-export const marqueeIfNeeded = ({ enabled, val, len = 23 }: Props) => {
+export const marqueeIfNeeded = ({ enabled, val, len = 24 }: Props) => {
   if (enabled && val.length > len) {
-    return <span className="animate">{val}</span>;
+    return <span className="animate-marquee">{val}</span>;
   }
 
-  return <>{val}</>;
+  return val;
 };

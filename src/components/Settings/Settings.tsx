@@ -31,11 +31,7 @@ export function Settings(): JSX.Element {
           val = globalSettings[item] ? val + ': ENABLED' : val + ': DISABLED';
         }
 
-        if (item.length > 15) {
-          return marqueeIfNeeded({ enabled: isActive, val, len: 0 });
-        }
-
-        return val;
+        return marqueeIfNeeded({ enabled: isActive, val });
       }
     },
     [globalSettings]
