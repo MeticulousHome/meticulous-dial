@@ -54,8 +54,7 @@ export const SocketProviderValue = () => {
         change_id: string;
         profile_id: string;
       }) => {
-        console.log(`Profile ${data.change} - id: ${data.profile_id}`);
-        dispatch(getPresets({ cause: data.change }));
+        dispatch(getPresets({ ...data, cause: data.change }));
       }
     );
 
