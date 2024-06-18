@@ -338,17 +338,35 @@ export const savePreset = createAsyncThunk(
 
 export const getPresets = createAsyncThunk(
   'presetData/getData',
-  async (params: { cause?: ProfileCause }, { dispatch }) => {
-    console.log('Fetching presets');
+  async (
+    params: {
+      cause?: ProfileCause;
+      change_id?: string;
+      profile_id?: string;
+    },
+    { dispatch, getState }
+  ) => {
     let defaultIndex = 0;
 
     const data = await getProfiles();
     const lastProfile = await getLastProfile();
+
     const cause = params.cause;
+    const profileId = params.profile_id;
+
     let isLastProfileKnown = false;
 
+    let currentProfileWasModified = false;
+
     if (Array.isArray(data)) {
-      if (data.length === 0) dispatch(setScreen('pressets'));
+      if (profileId && cause) {
+        currentProfileWasModified =
+          (getState() as RootState).presets.activePreset.id === profileId &&
+          (cause === 'delete' || cause === 'update');
+      }
+
+      if (data.length === 0 || currentProfileWasModified)
+        dispatch(setScreen('pressets'));
 
       try {
         if (lastProfile?.profile?.id) {
@@ -380,7 +398,8 @@ export const getPresets = createAsyncThunk(
       defaultIndex,
       lastProfile,
       isLastProfileKnown,
-      cause
+      cause,
+      currentProfileWasModified
     };
   }
 );
@@ -503,6 +522,7 @@ const presetSlice = createSlice({
                   profile.id === state.activePreset.id &&
                   state.activePreset.isTemporary === profile.isTemporary
               );
+
               // Another profile was deleted
               if (lastSelectedProfileSpot !== -1) {
                 console.log(
