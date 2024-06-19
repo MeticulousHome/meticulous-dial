@@ -19,7 +19,7 @@ const notificationSlice = createSlice({
   name: 'notifications',
   initialState: notificationAdapter.getInitialState(),
   reducers: {
-    addOneNotification: notificationAdapter.addOne,
+    addOneNotification: notificationAdapter.upsertOne,
     removeOneNotification: notificationAdapter.removeOne,
     removeAllNotications: notificationAdapter.removeAll
   }
