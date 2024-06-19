@@ -59,14 +59,13 @@
 @keyframes leftright {
   0% {
     transform: translateX(0%);
-    left: 0%;
   }
   100% {
-    transform: translateX(70%);
-    left: -70%;
+    transform: translateX(calc(320px - 100%));
   }
 }
 .animate-marquee {
   position: relative;
-  animation: leftright 9s infinite alternate ease-in-out;
+  display: inline-block;
+  animation: leftright 6s infinite alternate ease-in-out;
 }
