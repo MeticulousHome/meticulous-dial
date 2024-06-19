@@ -9,7 +9,8 @@ import { getPresets } from './features/preset/preset-slice';
 import { handleEvents } from '../../HandleEvents';
 import {
   addOneNotification,
-  NotificationItem
+  NotificationItem,
+  removeOneNotification
 } from './features/notifications/notification-slice';
 
 const SERVER_URL: string = process.env.SERVER_URL ?? 'http://localhost:8080';
@@ -26,7 +27,11 @@ export const SocketProviderValue = () => {
         return;
       }
 
-      dispatch(addOneNotification(oNotification));
+      if (!oNotification.message) {
+        dispatch(removeOneNotification(oNotification.id));
+      } else {
+        dispatch(addOneNotification(oNotification));
+      }
     });
 
     socket.on('status', (data: ISensorData) => {
