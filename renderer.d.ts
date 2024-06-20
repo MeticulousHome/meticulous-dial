@@ -3,7 +3,6 @@ import { PasswortConnect } from './src/types';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface MeticulousAPI {
   saveFile: (filename: string, data: string) => Promise<any>;
-  getPresetData: () => Promise<any>;
   getNetworkConfig: () => Promise<any>;
   getWifiList: () => Promise<any>;
   updateNetworkConfig: (newConfig: Partial<NetworkConfig>) => Promise<any>;
