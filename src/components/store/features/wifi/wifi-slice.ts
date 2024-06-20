@@ -1,4 +1,3 @@
-import { AxiosResponse } from 'axios';
 import {
   NetworkConfig,
   PasswortConnect,
@@ -205,9 +204,6 @@ const wifiSlice = createSlice({
           );
         }
       });
-    // .addCase(updateConfig.rejected, (state, action) => {
-    //   console.log('save error', action);
-    // });
   }
 });
 

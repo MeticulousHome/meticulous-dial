@@ -18,9 +18,7 @@ export const DeleteWifiMenu = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const { pending, selectedWifiToDelete } = useAppSelector(
-    (state) => state.wifi
-  );
+  const { selectedWifiToDelete } = useAppSelector((state) => state.wifi);
 
   useHandleGestures({
     left() {
