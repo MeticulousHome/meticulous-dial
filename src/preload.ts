@@ -7,7 +7,6 @@ contextBridge.exposeInMainWorld('meticulousAPI', {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   saveFile: (filename: string, data: any) =>
     ipcRenderer.invoke('saveFile', filename, data),
-  getPresetData: () => ipcRenderer.invoke('getPresetData'),
   getNetworkConfig: () => ipcRenderer.invoke('getNetworkConfig'),
   getWifiList: () => ipcRenderer.invoke('getWifiList'),
   updateNetworkConfig: (newConfig: Partial<NetworkConfig>) =>
