@@ -55,3 +55,22 @@ export const getLastProfile = async () => {
     console.error('Get last Profile error: ', error);
   }
 };
+
+export const getProfileDefaultImages = async (): Promise<string[]> => {
+  try {
+    const { data } = await api.getProfileDefaultImages();
+    return data as string[];
+  } catch (error) {
+    console.error('Get Profile Default Images error: ', error);
+    return [];
+  }
+};
+
+export const getProfileImage = async (imageId: string) => {
+  try {
+    const { data } = await api.getProfileImage(imageId);
+    return data;
+  } catch (error) {
+    console.error('Get Profile Default Images error: ', error);
+  }
+};
