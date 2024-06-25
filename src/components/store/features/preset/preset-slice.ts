@@ -293,6 +293,10 @@ export const savePreset = createAsyncThunk(
       (setting) => setting.key === 'output' && setting.isInternal
     );
 
+    const display = updateSetting.settings.find(
+      (setting) => setting.key === 'image' && setting.isInternal
+    );
+
     const profileSettings =
       updateSetting.settings.filter((setting) => !setting.isInternal) || [];
 
@@ -315,6 +319,12 @@ export const savePreset = createAsyncThunk(
 
     const body = cleanupInternalProfile({
       ...presetState.activePreset,
+      display: {
+        ...presetState.activePreset.display,
+        image: display
+          ? `${display.value}`
+          : presetState.activePreset.display.image
+      },
       temperature: temperatureSetting.value as number,
       stages: presetState.activePreset.stages ?? simpleJson.stages,
       final_weight: weight.value as number,

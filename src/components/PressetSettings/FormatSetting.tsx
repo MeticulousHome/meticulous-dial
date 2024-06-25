@@ -59,7 +59,11 @@ export const FormatSetting = ({ setting, isActive }: FormatSettingProps) => {
               }}
             >
               <img
-                src={`${API_URL}/api/v1/profile/image/${setting.value}`}
+                src={`${API_URL}${
+                  setting.value.includes('/api/v1/profile/image/')
+                    ? setting.value
+                    : `/api/v1/profile/image/${setting.value}`
+                }`}
                 alt="No image"
                 width="50"
                 height="50"

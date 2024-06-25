@@ -63,7 +63,7 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
   const updateSetting = (updatedText: string) => {
     const updatedSetting = {
       ...setting,
-      value: updatedText
+      value: updatedText.replace('/api/v1/profile/image/', '')
     } as IPresetSetting;
     dispatch(updatePresetSetting(updatedSetting));
     dispatch(setScreen('pressetSettings'));
@@ -136,7 +136,11 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
               {() => (
                 <div>
                   <img
-                    src={`${API_URL}/api/v1/profile/image/${image}`}
+                    src={`${API_URL}${
+                      image.includes('/api/v1/profile/image/')
+                        ? image
+                        : `/api/v1/profile/image/${image}`
+                    }`}
                     alt="No image"
                     width="164"
                     height="164"
