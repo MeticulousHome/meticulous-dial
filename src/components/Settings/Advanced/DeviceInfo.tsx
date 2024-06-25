@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { setBubbleDisplay } from '../store/features/screens/screens-slice';
-import { marqueeIfNeeded } from '../shared/MarqueeValue';
+import { useHandleGestures } from '../../../hooks/useHandleGestures';
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
+import { marqueeIfNeeded } from '../../shared/MarqueeValue';
 
-export const AdvancedSettings = () => {
+export const DeviceInfo = () => {
   const dispatch = useAppDispatch();
   const globalSettings = useAppSelector((state) => state.settings);
   const [swiper, setSwiper] = useState(null);
@@ -27,7 +27,7 @@ export const AdvancedSettings = () => {
         switch (activeItem) {
           case 'back':
             dispatch(
-              setBubbleDisplay({ visible: true, component: 'settings' })
+              setBubbleDisplay({ visible: true, component: 'advancedSettings' })
             );
             break;
           default: {

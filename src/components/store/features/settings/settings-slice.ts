@@ -70,23 +70,30 @@ const settingsSlice = createSlice({
       state: Partial<Settings>,
       action: UpdateItemSettingAction
     ) => {
-      console.log(state);
       const key: keyof Settings = action.payload.key;
       const value: SettingsType = action.payload.value;
       (state[key] as SettingsType) = value;
-      console.log(state);
     }
   },
   extraReducers(builder) {
     builder
       .addCase(fetchSettigns.fulfilled, (state, action) => {
-        return action.payload;
+        return {
+          ...state,
+          ...action.payload
+        };
       })
       .addCase(updateSettings.fulfilled, (state, action) => {
-        return action.payload;
+        return {
+          ...state,
+          ...action.payload
+        };
       })
       .addCase(getDeviceInfo.fulfilled, (state, action) => {
-        state.deviceInfo = action.payload;
+        return {
+          ...state,
+          deviceInfo: action.payload
+        };
       });
   }
 });

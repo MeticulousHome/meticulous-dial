@@ -26,9 +26,10 @@ import { KnownWifi } from '../../src/components/Wifi/KnownWifi';
 import { DeleteWifiMenu } from '../components/Wifi/DeleteWifiMenu';
 import { DeletedWifi } from '../components/Wifi/DeletedWifi';
 import { WifiSettingsSave } from '../components/Wifi/WifiSettingsSave';
-import { AdvancedSettings } from '../components/Settings/Advanced';
+import { AdvancedSettings } from '../components/Settings/Advanced/Advanced';
 import { WifiQrMenu } from '../../src/components/Wifi/WifiQrMenu';
 import { PressetProfileImage } from '../../src/components/Pressets/PressetProfileImage';
+import { DeviceInfo } from '../../src/components/Settings/Advanced/DeviceInfo';
 
 interface Route {
   component: ComponentType;
@@ -241,5 +242,8 @@ export const routes: Record<ScreenType, Route> = {
   pressetProfileImage: {
     component: PressetProfileImage,
     title: selectActivePresetName
+  },
+  deviceInfo: {
+    component: DeviceInfo
   }
 };

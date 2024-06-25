@@ -94,18 +94,6 @@ export function Settings(): JSX.Element {
     }
   }, [activeIndex, swiper]);
 
-  useEffect(() => {
-    if (
-      !globalSettings.deviceInfo ||
-      Object.keys(globalSettings.deviceInfo).length === 0
-    ) {
-      SettingsVisibility.properties.visible =
-        SettingsVisibility.properties.visible.filter(
-          (item) => item !== 'advanced'
-        );
-    }
-  }, [globalSettings]);
-
   return (
     <div className="main-quick-settings">
       <Swiper
