@@ -563,10 +563,13 @@ const presetSlice = createSlice({
                 },
                 {
                   id: 4,
-                  type: 'text',
+                  type: 'image',
                   key: 'image',
-                  label: 'image',
-                  value: 'Select image',
+                  label: 'Select image',
+                  value: preset.display.image.replace(
+                    '/api/v1/profile/image/',
+                    ''
+                  ),
                   isInternal: true
                 },
                 // eslint-disable-next-line

@@ -107,10 +107,16 @@ export type IPresetText = {
   type: 'text';
   value: string;
 };
+
+export type IPresetImage = {
+  type: 'image';
+  value: string;
+};
+
 export type PresetName = IPresetText & { key: NameKey };
-export type PresetImage = IPresetText & { key: ImageKey };
+export type PresetImage = IPresetImage & { key: ImageKey };
 export interface IPresetName extends IBasePresset, PresetName {}
-export interface IPresetImage extends IBasePresset, PresetImage {}
+export interface IProfilePresetImage extends IBasePresset, PresetImage {}
 
 export type IPresetBaseNumerical = {
   type: 'numerical';
@@ -194,7 +200,7 @@ export type IPresetSetting =
   | IPresetOnOffPreinfusion
   | IPresetOnOffPreheat
   | IPresetAction
-  | IPresetImage;
+  | IProfilePresetImage;
 
 export interface IPresetsSettingData {
   presetId: string;
