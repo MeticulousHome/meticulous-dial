@@ -83,6 +83,8 @@ export interface IBasePresset {
 }
 export type NameKey = 'name';
 
+export type ImageKey = 'image';
+
 export type PressureKey = 'pressure';
 
 export type TemperatureKey = 'temperature';
@@ -106,7 +108,9 @@ export type IPresetText = {
   value: string;
 };
 export type PresetName = IPresetText & { key: NameKey };
+export type PresetImage = IPresetText & { key: ImageKey };
 export interface IPresetName extends IBasePresset, PresetName {}
+export interface IPresetImage extends IBasePresset, PresetImage {}
 
 export type IPresetBaseNumerical = {
   type: 'numerical';
@@ -189,7 +193,8 @@ export type IPresetSetting =
   | IPresetMultipleOptionPurge
   | IPresetOnOffPreinfusion
   | IPresetOnOffPreheat
-  | IPresetAction;
+  | IPresetAction
+  | IPresetImage;
 
 export interface IPresetsSettingData {
   presetId: string;

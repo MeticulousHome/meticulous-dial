@@ -561,11 +561,19 @@ const presetSlice = createSlice({
                   unit: 'g',
                   isInternal: true
                 },
+                {
+                  id: 4,
+                  type: 'text',
+                  key: 'image',
+                  label: 'image',
+                  value: 'Select image',
+                  isInternal: true
+                },
                 // eslint-disable-next-line
                 // @ts-ignore
                 ...addVariablesToSettings({
                   variables: preset.variables,
-                  nextId: 4
+                  nextId: 5
                 })
               ];
 

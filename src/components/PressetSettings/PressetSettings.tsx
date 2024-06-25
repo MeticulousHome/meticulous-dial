@@ -81,6 +81,8 @@ export function PressetSettings(): JSX.Element {
           dispatch(setScreen('temperature'));
         } else if (presetSettingIndex === 'ratio') {
           dispatch(setScreen('ratio'));
+        } else if (presetSettingIndex === 'image') {
+          dispatch(setScreen('pressetProfileImage'));
         }
       }
     },

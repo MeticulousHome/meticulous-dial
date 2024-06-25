@@ -34,7 +34,8 @@ export type ScreenType =
   | 'deleteKnowWifiMenu'
   | 'deletedWifi'
   | 'wifiSettingsSave'
-  | 'advancedSettings';
+  | 'advancedSettings'
+  | 'pressetProfileImage';
 
 interface ScreenState {
   value: ScreenType;
