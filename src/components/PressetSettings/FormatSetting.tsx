@@ -56,7 +56,8 @@ export const FormatSetting = ({ setting, isActive }: FormatSettingProps) => {
                 width: 70,
                 height: 70,
                 marginLeft: 10,
-                position: 'relative'
+                position: 'relative',
+                visibility: isActive ? 'visible' : 'hidden'
               }}
             >
               <img
