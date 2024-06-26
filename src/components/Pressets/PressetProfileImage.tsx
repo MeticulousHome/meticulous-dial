@@ -1,53 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
-import SwiperS, { Pagination as PaginationSwiper } from 'swiper';
+import { Pagination as PaginationSwiper } from 'swiper';
 
 import { getProfileDefaultImages } from '../../api/profile';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { clearSlides, handlePresetSlideChange } from '../../utils/preset';
-// import { ProfileImage } from "./ProfileImage";
 import { RouteProps } from '../../navigation';
 import { useAppSelector } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { IPresetImage, IPresetSetting } from '../../types';
 import { useDispatch } from 'react-redux';
 import { updatePresetSetting } from '../store/features/preset/preset-slice';
+import { api } from '../../api/api';
 
 const API_URL = process.env.SERVER_URL || 'http://localhost:8080';
-
-// const colors: string[] = [
-//     '#FFFFFF',
-//     '#7E9970',
-//     '#FF5E5E',
-//     '#2F3C61',
-//     '#FC5217',
-//     '#3D1E2E',
-//     '#74AFD3',
-//     '#212630',
-//     '#9A9EAD',
-//     '#7B6B85',
-//     '#281E35',
-//     '#A6C8C6',
-//     '#81B5A9',
-//     '#8D7D5C',
-//     '#547D98',
-//     '#485434',
-//     '#1F254F',
-//     '#86C4B5',
-//     '#AA7A55',
-//     '#8CC4DB',
-//     '#5FAD92',
-//     '#313E38',
-//     '#ADC1D3',
-//     '#A7A27A',
-//     '#FA8888',
-//     '#9CAEA0'
-// ];
-// const cLength = colors.length - 1;
 
 export const PressetProfileImage = ({ transitioning }: RouteProps) => {
   const dispatch = useDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const { value: currentScreen } = useAppSelector((state) => state.screen);
   const presets = useAppSelector((state) => state.presets);
   const setting = presets.updatingSettings.settings[
     presets.activeSetting
@@ -55,10 +26,8 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
 
   const [isLoadingImages, setIsLoadingImages] = useState(true);
   const [images, setImages] = useState<string[]>([]);
-  // const [pressetSwiper, setPressetsSwiper] = useState<SwiperS | null>(null);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const imagesStore = useAppSelector((state) => state.images);
 
   const updateSetting = (updatedText: string) => {
     const updatedSetting = {
@@ -102,6 +71,12 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
   }, []);
 
   useEffect(() => {
+    if (currentScreen !== 'pressetProfileImage') {
+      setActiveIndex(0);
+    }
+  }, [currentScreen]);
+
+  useEffect(() => {
     presetSwiperRef.current?.swiper.slideTo(activeIndex);
   }, [activeIndex]);
 
@@ -112,7 +87,6 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
   return (
     <div className="preset-wrapper">
       <Swiper
-        // onSwiper={setPressetsSwiper}
         slidesPerView={2.15}
         spaceBetween={79}
         initialSlide={activeIndex}
@@ -136,11 +110,9 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
               {() => (
                 <div>
                   <img
-                    src={`${API_URL}${
-                      image.includes('/api/v1/profile/image/')
-                        ? image
-                        : `/api/v1/profile/image/${image}`
-                    }`}
+                    src={`
+                      ${API_URL}${api.getProfileImageUrl(image)}
+                      `}
                     alt="No image"
                     width="164"
                     height="164"
