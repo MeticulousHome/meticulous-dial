@@ -65,7 +65,7 @@ const initialValue: AnimationData = {
 
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const dispatch = useAppDispatch();
-  const { presets } = useAppSelector((state) => state);
+  const presets = useAppSelector((state) => state.presets);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
   const [pressetSwiper, setPressetsSwiper] = useState<SwiperS | null>(null);
   const [pressetTitleSwiper, setPressetTitleSwiper] = useState(null);

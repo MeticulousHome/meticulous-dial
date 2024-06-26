@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Profile } from 'meticulous-typescript-profile';
+import { api } from '../../api/api';
 
 import {
   addNewImageProfile,
@@ -50,11 +51,7 @@ export const ProfileImage = ({ preset }: { preset: IProfileImage }) => {
   const presetIndex = currentIndex % cLength || cLength;
   const [image, setImage] = useState(
     preset.display?.image
-      ? `${API_URL}${
-          preset.display.image.includes('/api/v1/profile/image/')
-            ? preset.display.image
-            : `/api/v1/profile/image/${preset.display.image}`
-        }`
+      ? `${API_URL}${api.getProfileImageUrl(preset.display.image)}`
       : pImage?.image ?? `assets/images/${presetIndex}.png`
   );
 

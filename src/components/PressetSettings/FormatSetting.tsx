@@ -1,4 +1,5 @@
 import { IPresetSetting } from '../../types';
+import { api } from '../../api/api';
 
 interface FormatSettingProps {
   setting: IPresetSetting;
@@ -59,11 +60,7 @@ export const FormatSetting = ({ setting, isActive }: FormatSettingProps) => {
               }}
             >
               <img
-                src={`${API_URL}${
-                  setting.value.includes('/api/v1/profile/image/')
-                    ? setting.value
-                    : `/api/v1/profile/image/${setting.value}`
-                }`}
+                src={`${API_URL}${api.getProfileImageUrl(setting.value)}`}
                 alt="No image"
                 width="50"
                 height="50"
