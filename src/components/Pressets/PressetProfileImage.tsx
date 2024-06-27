@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
-import { Pagination as PaginationSwiper } from 'swiper';
+import { Pagination as PaginationSwiper, EffectCoverflow } from 'swiper';
 
 import { getProfileDefaultImages } from '../../api/profile';
 import { setScreen } from '../store/features/screens/screens-slice';
@@ -87,10 +87,19 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
   }
 
   return (
-    <div className="preset-wrapper">
+    <div className="image-swiper">
       <Swiper
-        slidesPerView={2.15}
-        spaceBetween={79}
+        effect={'coverflow'}
+        coverflowEffect={{
+          rotate: 20,
+          stretch: -50,
+          scale: 1.1,
+          depth: 200,
+          modifier: 1.0,
+          slideShadows: false
+        }}
+        slidesPerView={8}
+        spaceBetween={20}
         initialSlide={activeIndex}
         centeredSlides={true}
         allowTouchMove={false}
@@ -99,11 +108,9 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
           clearSlides(e);
           handlePresetSlideChange(e);
         }}
-        modules={[PaginationSwiper]}
+        modules={[PaginationSwiper, EffectCoverflow]}
         pagination={{
-          dynamicBullets: images.length > 5,
-          bulletActiveClass: 'swiper-pagination-bullet-active',
-          bulletClass: 'swiper-pagination-bullet'
+          type: 'fraction'
         }}
       >
         {images.length &&

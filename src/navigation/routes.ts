@@ -241,7 +241,8 @@ export const routes: Record<ScreenType, Route> = {
   },
   pressetProfileImage: {
     component: PressetProfileImage,
-    title: selectActivePresetName
+    title: selectActivePresetName,
+    bottomStatusHidden: true
   },
   deviceInfo: {
     component: DeviceInfo

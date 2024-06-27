@@ -89,6 +89,16 @@
   position: absolute;
 }
 
+.image-swiper {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+}
+
+.image-swiper .swiper-horizontal .swiper-slide {
+  opacity: 1;
+}
+
 .swiper-horizontal .swiper-slide {
   opacity: 0.15;
 }
@@ -97,9 +107,9 @@
   opacity: 1;
 }
 
-.swiper-horizontal .swiper-slide-prev,
-.swiper-horizontal .swiper-slide-next,
-.swiper-horizontal .swiper-slide-active {
+.preset-wrapper .swiper-horizontal .swiper-slide-prev,
+.preset-wrapper .swiper-horizontal .swiper-slide-next,
+.preset-wrapper .swiper-horizontal .swiper-slide-active {
   transition: opacity 0.4s ease;
 }
 
@@ -170,6 +180,11 @@
 
 .animation-bounce-left {
   animation: bounce-left 500ms ease-out;
+}
+
+.image-swiper .animation-bounce-right,
+.image-swiper .animation-bounce-left {
+  animation: none !important;
 }
 
 @keyframes pressets-left-leave {
