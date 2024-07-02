@@ -23,34 +23,37 @@ export const fetchSettigns = createAsyncThunk(
       const { data } = await api.getSettings();
       return data;
     } catch (error) {
-      if (isAxiosError(error)) return error.message;
-      return error;
+      throw new Error(error);
     }
   }
 );
 
 export const updateSettings = createAsyncThunk(
   'settings/updateSettings',
-  async (body: Partial<Settings>) => {
+  async (body: Partial<Settings>, { rejectWithValue }) => {
     try {
       const { data } = await api.updateSetting(body);
+
+      if (!data) rejectWithValue('Error updating settings');
+
       return data;
     } catch (error) {
-      if (isAxiosError(error)) return error.message;
-      return error;
+      throw new Error(error);
     }
   }
 );
 
 export const getDeviceInfo = createAsyncThunk(
   'settings/getDeviceInfo',
-  async () => {
+  async (_, { rejectWithValue }) => {
     try {
       const { data } = await api.getDeviceInfo();
+
+      if (!data) rejectWithValue('Error getting device info');
+
       return data;
     } catch (error) {
-      if (isAxiosError(error)) return error.message;
-      return error;
+      throw new Error(error);
     }
   }
 );
@@ -89,11 +92,17 @@ const settingsSlice = createSlice({
           ...action.payload
         };
       })
+      .addCase(updateSettings.rejected, (state) => {
+        return { ...initialState, deviceInfo: state.deviceInfo };
+      })
       .addCase(getDeviceInfo.fulfilled, (state, action) => {
         return {
           ...state,
-          deviceInfo: action.payload
+          deviceInfo: action.payload as DeviceInfo
         };
+      })
+      .addCase(getDeviceInfo.rejected, (state) => {
+        return { ...state, deviceInfo: null };
       });
   }
 });
