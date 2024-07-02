@@ -53,7 +53,6 @@ export const AdvancedSettings = () => {
       let val = item.label.toUpperCase();
       if (globalSettings) {
         if (typeof globalSettings[item.key as SettingsKey] === 'boolean') {
-          console.log(item.key, globalSettings[item.key as SettingsKey]);
           val = globalSettings[item.key as SettingsKey]
             ? val + ': ENABLED'
             : val + ': DISABLED';
