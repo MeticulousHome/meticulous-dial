@@ -356,8 +356,16 @@ export const getPresets = createAsyncThunk(
     },
     { dispatch, getState }
   ) => {
-    let defaultIndex = 0;
     const state = getState() as RootState;
+
+    let defaultIndex =
+      state.screen.value !== 'pressets' &&
+      params.cause !== 'delete' &&
+      params.cause !== 'create' &&
+      params.cause !== 'load'
+        ? state.presets.activeIndexSwiper
+        : 0;
+
     const data = await getProfiles();
     const lastProfile = await getLastProfile();
     const { cause, profile_id: profileId } = params;
@@ -371,7 +379,11 @@ export const getPresets = createAsyncThunk(
           (cause === 'delete' || cause === 'update');
       }
 
-      if (data.length === 0 || currentProfileWasModified)
+      if (
+        data.length === 0 ||
+        currentProfileWasModified ||
+        params.cause === 'load'
+      )
         dispatch(setScreen('pressets'));
 
       try {
@@ -412,7 +424,8 @@ export const getPresets = createAsyncThunk(
       lastProfile,
       isLastProfileKnown,
       cause,
-      currentProfileWasModified
+      currentProfileWasModified,
+      profileId
     };
   }
 );
@@ -619,14 +632,18 @@ const presetSlice = createSlice({
               };
             });
 
+            const id = state.activePreset;
+            const discard = state.activePreset.id === action.payload.profileId;
             state.activePreset = payload[defaultIndex];
             const { settings } = state.allSettings.find(
               (item) => item.presetId === payload[defaultIndex].id.toString()
             );
-            state.updatingSettings = {
-              presetId: payload[defaultIndex]?.id.toString(),
-              settings: settings || [...settingsDefaultNewPreset]
-            };
+            if (discard) {
+              state.updatingSettings = {
+                presetId: payload[defaultIndex]?.id.toString(),
+                settings: settings || [...settingsDefaultNewPreset]
+              };
+            }
             state.activeIndexSwiper = defaultIndex;
             // state.activePresetIndex = defaultIndex;
           }
