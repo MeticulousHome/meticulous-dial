@@ -13,6 +13,7 @@ export function EditNameScreen(): JSX.Element {
   const setting = presets.updatingSettings.settings[
     presets.activeSetting
   ] as IPresetName;
+  const originalName = presets.activePreset.name;
 
   const dispatch = useDispatch();
 
@@ -26,6 +27,11 @@ export function EditNameScreen(): JSX.Element {
   };
 
   const onCancel = () => {
+    const updatedSetting = {
+      ...setting,
+      value: originalName
+    } as IPresetSetting;
+    dispatch(updatePresetSetting(updatedSetting));
     dispatch(setScreen('pressetSettings'));
   };
 
@@ -35,6 +41,13 @@ export function EditNameScreen(): JSX.Element {
       defaultValue={setting.value.toString().split('')}
       onSubmit={updateSetting}
       onCancel={onCancel}
+      onChange={(text: string) => {
+        const updatedSetting = {
+          ...setting,
+          value: text
+        } as IPresetSetting;
+        dispatch(updatePresetSetting(updatedSetting));
+      }}
     />
   );
 }

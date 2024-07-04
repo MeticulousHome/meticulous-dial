@@ -23,6 +23,7 @@ interface IKeyboardProps {
   defaultValue?: string[];
   onSubmit: (text: string) => void;
   onCancel: () => void;
+  onChange?: (text: string) => void;
 }
 
 export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
@@ -58,7 +59,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       ? SMALL_ACCENT_CHARACTERS[0]
       : SPECIAL_CHARACTERS[0];
 
-  const { name, defaultValue, onSubmit, onCancel } = props;
+  const { name, defaultValue, onSubmit, onCancel, onChange } = props;
   const inputLimit = 64;
 
   const captionRef = useRef<HTMLDivElement>(null);
@@ -173,7 +174,9 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
             addAnimation();
             return;
           }
-          setCaption(caption.concat(' '));
+          const captioValue = caption.concat(' ');
+          setCaption(captioValue);
+          onChange && onChange(captioValue.join(''));
           return;
         case 'ok':
           if (caption.length === 0 || caption.join('').trim().length === 0) {
@@ -184,7 +187,9 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
           return;
         case 'backspace':
           if (caption.length > 0) {
-            setCaption(caption.slice(0, -1));
+            const captionValue = caption.slice(0, -1);
+            setCaption(captionValue);
+            onChange && onChange(captionValue.join(''));
           }
           return;
         case 'cancel':
@@ -236,7 +241,9 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
           }
           return;
         default:
-          setCaption(caption.concat(mainLetter));
+          const captionValue = caption.concat(mainLetter);
+          setCaption(captionValue);
+          onChange && onChange(captionValue.join(''));
           if (!/^[A-Za-z]$/.test(mainLetter) && capsLockActive.active) {
             return;
           }
