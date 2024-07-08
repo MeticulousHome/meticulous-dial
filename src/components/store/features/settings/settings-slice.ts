@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { isAxiosError } from 'axios';
 import { api } from '../../../../api/api';
 
 import { Settings, SettingsType, DeviceInfo } from 'meticulous-api';
@@ -30,8 +29,10 @@ export const fetchSettigns = createAsyncThunk(
 
 export const updateSettings = createAsyncThunk(
   'settings/updateSettings',
-  async (body: Partial<Settings>, { rejectWithValue }) => {
+  async (body: Partial<InitialSettings>, { rejectWithValue }) => {
     try {
+      if (body.deviceInfo) body.deviceInfo = undefined;
+
       const { data } = await api.updateSetting(body);
 
       if (!data) rejectWithValue('Error updating settings');

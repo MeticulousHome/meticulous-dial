@@ -34,7 +34,10 @@ export function QuickPreheat(): JSX.Element {
     }
     const mTotal =
       total + (gesture === 'left' ? -INTERVAL_PREHEAT : +INTERVAL_PREHEAT);
-    setTotal(mTotal <= MIN_PREHEAT ? MIN_PREHEAT : roundPrecision(mTotal, 1));
+    const mTotalValue =
+      mTotal <= MIN_PREHEAT ? MIN_PREHEAT : roundPrecision(mTotal, 1);
+
+    setTotal(mTotalValue || 0);
   };
 
   const updatePreheat = () => {
