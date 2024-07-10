@@ -347,21 +347,17 @@ export const getPresets = createAsyncThunk(
     { dispatch, getState }
   ) => {
     let defaultIndex = 0;
-
+    const state = getState() as RootState;
     const data = await getProfiles();
     const lastProfile = await getLastProfile();
-
-    const cause = params.cause;
-    const profileId = params.profile_id;
-
+    const { cause, profile_id: profileId } = params;
     let isLastProfileKnown = false;
-
     let currentProfileWasModified = false;
 
     if (Array.isArray(data)) {
       if (profileId && cause) {
         currentProfileWasModified =
-          (getState() as RootState).presets.activePreset.id === profileId &&
+          state.presets.activePreset.id === profileId &&
           (cause === 'delete' || cause === 'update');
       }
 
@@ -385,6 +381,13 @@ export const getPresets = createAsyncThunk(
               console.log('the last profile is a known one');
             }
           }
+        } else {
+          const lastProfilePotentialIndex = data.findIndex(
+            (profile) => profile.id === profileId
+          );
+
+          if (lastProfilePotentialIndex >= 0)
+            defaultIndex = lastProfilePotentialIndex;
         }
       } catch (e) {
         console.log(
@@ -431,10 +434,7 @@ const presetSlice = createSlice({
   name: 'presets',
   initialState,
   reducers: {
-    setPresetState: (
-      state: Draft<typeof initialState>,
-      action: PayloadAction<PresetsState>
-    ) => {
+    setPresetState: (_, action: PayloadAction<PresetsState>) => {
       return { ...action.payload };
     },
     updatePresetSetting: (
@@ -489,11 +489,12 @@ const presetSlice = createSlice({
           }
         );
         const profileCount = payload.length;
-        const { lastProfile, isLastProfileKnown } = action.payload;
-        const lastProfileData: ProfileValue = {
-          settings: [],
-          ...lastProfile?.profile
-        };
+        const { isLastProfileKnown } = action.payload;
+        // const lastProfileData: ProfileValue = {
+        //   settings: [],
+        //   ...lastProfile?.profile
+        // };
+
         const reloadCause = action.payload.cause;
 
         let defaultIndex = Number(action.payload.defaultIndex);
@@ -545,6 +546,8 @@ const presetSlice = createSlice({
               }
               break;
             }
+            default:
+              break;
           }
         }
 
