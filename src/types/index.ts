@@ -69,7 +69,6 @@ export interface IPreset {
   kind?: ItalianProfile | DashboardProfile;
   isDefault?: boolean;
   settings?: IPresetSetting[];
-  dashboard?: any;
   image?: string;
   borderColor?: string;
 }
@@ -248,10 +247,10 @@ export interface IItalian {
 }
 
 export interface SettingsItem {
-  type: string;
-  values?: any;
-  value: any;
-  visible: boolean;
+  value?: string | boolean;
+  key: string;
+  label?: string;
+  visible?: boolean;
 }
 
 export enum YesNoEnum {

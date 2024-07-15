@@ -10,6 +10,7 @@ import {
   updateItemSetting,
   updateSettings
 } from '../../../../src/components/store/features/settings/settings-slice';
+import { SettingsItem } from '../../../types';
 
 export const AdvancedSettings = () => {
   const dispatch = useAppDispatch();
@@ -17,7 +18,7 @@ export const AdvancedSettings = () => {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const settings = [
+  const settings: SettingsItem[] = [
     {
       key: 'device_info',
       label: 'Device Info',
@@ -48,7 +49,7 @@ export const AdvancedSettings = () => {
   ];
 
   const showValue = useCallback(
-    (isActive: boolean, item: any) => {
+    (isActive: boolean, item: SettingsItem) => {
       if (!item) return <></>;
       let val = item.label.toUpperCase();
       if (globalSettings) {

@@ -161,7 +161,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         captionRef.current.classList.remove('caption_shake');
       }
       switch (mainLetter) {
-        case 'space':
+        case 'space': {
           if (caption.length >= inputLimit - 1) {
             addAnimation();
             return;
@@ -178,6 +178,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
           setCaption(captioValue);
           onChange && onChange(captioValue.join(''));
           return;
+        }
         case 'ok':
           if (caption.length === 0 || caption.join('').trim().length === 0) {
             addAnimation();
@@ -240,7 +241,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
             setRotate(423);
           }
           return;
-        default:
+        default: {
           const captionValue = caption.concat(mainLetter);
           setCaption(captionValue);
           onChange && onChange(captionValue.join(''));
@@ -253,6 +254,8 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
               active: false
             });
           }
+          break;
+        }
       }
     }
   });

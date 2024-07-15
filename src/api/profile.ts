@@ -11,7 +11,7 @@ export const getProfiles = async () => {
   }
 };
 
-export const saveProfile = async (body: any) => {
+export const saveProfile = async (body: Profile) => {
   try {
     const { data } = await api.saveProfile(body);
     return data;

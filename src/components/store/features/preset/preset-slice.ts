@@ -632,7 +632,6 @@ const presetSlice = createSlice({
               };
             });
 
-            const id = state.activePreset;
             const discard = state.activePreset.id === action.payload.profileId;
             state.activePreset = payload[defaultIndex];
             const { settings } = state.allSettings.find(
