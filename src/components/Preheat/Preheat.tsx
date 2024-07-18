@@ -37,7 +37,7 @@ export function QuickPreheat(): JSX.Element {
     const mTotalValue =
       mTotal <= MIN_PREHEAT ? MIN_PREHEAT : roundPrecision(mTotal, 1);
 
-    setTotal(mTotalValue || 0);
+    setTotal(mTotalValue || MIN_PREHEAT);
   };
 
   const updatePreheat = () => {
@@ -105,7 +105,7 @@ export function QuickPreheat(): JSX.Element {
       {showGauge && (
         <div className="g-container">
           <Gauge
-            value={total}
+            value={total || MIN_PREHEAT}
             maxValue={MAX_PREHEAT}
             precision={1}
             unit="celcius"
@@ -138,7 +138,7 @@ export function QuickPreheat(): JSX.Element {
               1 === activeIndex ? 'active-setting' : ''
             }`}
           >
-            VALUE: {total}°C
+            VALUE: {total || MIN_PREHEAT}°C
           </SwiperSlide>
           <SwiperSlide
             key={2}
