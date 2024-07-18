@@ -30,6 +30,7 @@ import { AdvancedSettings } from '../components/Settings/Advanced/Advanced';
 import { WifiQrMenu } from '../../src/components/Wifi/WifiQrMenu';
 import { PressetProfileImage } from '../../src/components/Pressets/PressetProfileImage';
 import { DeviceInfo } from '../../src/components/Settings/Advanced/DeviceInfo';
+import { PressetsDefaultProfiles } from '../../src/components/Pressets/PressetsDefaultProfiles';
 
 interface Route {
   component: ComponentType;
@@ -246,5 +247,9 @@ export const routes: Record<ScreenType, Route> = {
   },
   deviceInfo: {
     component: DeviceInfo
+  },
+  defaultProfiles: {
+    component: PressetsDefaultProfiles,
+    title: 'Choose a profile'
   }
 };

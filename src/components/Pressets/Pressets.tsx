@@ -193,7 +193,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                 navigationTitleRef.current.classList.add('title-bottom');
               }
 
-              return dispatch(addPresetNewOne());
+              return dispatch(setScreen('defaultProfiles'));
             }
 
             if (!pressetSwiper && !pressetTitleSwiper) {
