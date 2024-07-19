@@ -19,7 +19,6 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import './pressets.less';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import {
-  addPresetNewOne,
   cleanupInternalProfile,
   resetActiveSetting,
   setNextPreset,
