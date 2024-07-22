@@ -24,7 +24,8 @@ import {
   saveProfile,
   getProfiles,
   deleteProfile,
-  getLastProfile
+  getLastProfile,
+  getDefaultProfiles
 } from '../../../../api/profile';
 import { addVariablesToSettings } from '../../../../utils/preset';
 
@@ -58,6 +59,7 @@ export function cleanupInternalProfile(profile: ProfileValue) {
 
 export interface PresetsState extends PresetSettingInterface {
   value: Array<ProfileValue>;
+  defaultProfiles: Array<ProfileValue>;
   defaultPresetIndex: number;
   activeIndexSwiper: number;
   activePreset: ProfileValue;
@@ -65,12 +67,19 @@ export interface PresetsState extends PresetSettingInterface {
   option: 'HOME' | 'PRESSETS';
 }
 
+export const loadDefaultProfiles = createAsyncThunk(
+  'presetData/loadDefaultProfiles',
+  async () => await getDefaultProfiles()
+);
+
 export const addPresetNewOne = createAsyncThunk(
   'presetData/addNewOne',
-  async () => {
-    const newProfileBody = {
-      ...simpleJson
-    };
+  async ({ profile }: { profile: Profile }) => {
+    const newProfileBody = profile
+      ? profile
+      : {
+          ...simpleJson
+        };
 
     return await saveProfile(newProfileBody);
   }
@@ -436,6 +445,7 @@ export const getPresets = createAsyncThunk(
 
 const initialState: PresetsState = {
   value: [],
+  defaultProfiles: [],
   option: 'HOME',
   defaultPresetIndex: -1,
   activeIndexSwiper: 0,
@@ -663,6 +673,17 @@ const presetSlice = createSlice({
       })
       .addCase(savePreset.rejected, (state, action) => {
         console.log('save error', action);
+      })
+      .addCase(loadDefaultProfiles.pending, (state, action) => {
+        state.pending = true;
+      })
+      .addCase(loadDefaultProfiles.fulfilled, (state, action) => {
+        state.pending = false;
+        state.defaultProfiles = action.payload;
+      })
+      .addCase(loadDefaultProfiles.rejected, (state, action) => {
+        state.pending = false;
+        state.error = true;
       });
   }
 });
