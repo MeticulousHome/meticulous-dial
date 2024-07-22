@@ -195,6 +195,14 @@ export function QuickSettings(): JSX.Element {
   }, [presets, currentScreen]);
 
   useEffect(() => {
+    if (currentScreen === 'defaultProfiles') {
+      setSettings((prev) =>
+        [{ key: 'details', label: 'Show details' }].concat(prev)
+      );
+    }
+  }, [currentScreen]);
+
+  useEffect(() => {
     if (swiper) {
       swiper.slideTo(activeIndex, 0, false);
     }
