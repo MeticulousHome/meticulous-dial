@@ -31,9 +31,10 @@ export const updateSettings = createAsyncThunk(
   'settings/updateSettings',
   async (body: Partial<InitialSettings>, { rejectWithValue }) => {
     try {
-      if (body.deviceInfo) body.deviceInfo = undefined;
+      const payload = { ...body };
+      if (payload.deviceInfo) payload.deviceInfo = undefined;
 
-      const { data } = await api.updateSetting(body);
+      const { data } = await api.updateSetting(payload);
 
       if (!data) rejectWithValue('Error updating settings');
 
