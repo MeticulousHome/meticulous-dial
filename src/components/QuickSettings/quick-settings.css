@@ -41,9 +41,43 @@
 }
 
 .active-setting {
-  color: black;
+  color: #1d1d1d;
   background: #f5c444;
+  background: #f5c444;
+  background: linear-gradient(
+    90deg,
+    #1d1d1d 0%,
+    #1d1d1d 50%,
+    #f5c444 50%,
+    #f5c444 100%
+  );
+  background-size: 200% 100%;
+  background-position: 100% 100%;
   overflow: hidden;
+}
+
+.animated-setting {
+  animation: ActiveBackground 1s ease normal;
+}
+
+@keyframes ActiveBackground {
+  0% {
+    background-position: 100% 100%;
+  }
+
+  100% {
+    background-position: 0% 100%;
+    color: #ffffff;
+  }
+}
+
+.separator {
+  height: 2px !important;
+  margin-bottom: 20px !important;
+  margin-top: -5px;
+  margin-left: 10px;
+  border-top: 2px dashed #f5c44480;
+  width: 80%;
 }
 
 .text-container {
@@ -64,6 +98,7 @@
     transform: translateX(calc(320px - 100%));
   }
 }
+
 .animate-marquee {
   position: relative;
   display: inline-block;

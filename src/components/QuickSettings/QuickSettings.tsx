@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import './quick-settings.css';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
@@ -11,6 +11,13 @@ import { useSocket } from '../store/SocketManager';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { resetActiveSetting } from '../store/features/preset/preset-slice';
 
+interface QuickSettingOption {
+  key: string;
+  label: string;
+  longpress?: boolean;
+}
+
+const profileContextSettings: QuickSettingOption[] = [];
 const defaultSettings = [
   {
     key: 'edit',
@@ -46,6 +53,8 @@ const defaultSettings = [
   }
 ];
 
+type holdAnimationState = 'stopped' | 'running' | 'finished';
+
 export function QuickSettings(): JSX.Element {
   const socket = useSocket();
   const dispatch = useAppDispatch();
@@ -56,9 +65,18 @@ export function QuickSettings(): JSX.Element {
   const { auto_preheat } = useAppSelector((state) => state.settings);
   const [preheatValue, setPreheatValue] = useState<string>('');
   const [settings, setSettings] = useState(defaultSettings);
+  const [contextSettings, setContextSettings] = useState<QuickSettingOption[]>(
+    []
+  );
   const presets = useAppSelector((state) => state.presets);
   const currentScreen = useAppSelector((state) => state.screen.value);
   const [counterESGG, setCounterESGG] = useState(0);
+  const [holdAnimation, setHoldAnimation] =
+    useState<holdAnimationState>('stopped');
+
+  const handleAnimationEnd = () => {
+    setHoldAnimation('finished');
+  };
 
   useHandleGestures(
     {
@@ -81,7 +99,18 @@ export function QuickSettings(): JSX.Element {
           setCounterESGG(counterESGG + 1);
         }
       },
+      pressUp() {
+        if (holdAnimation == 'finished') {
+          dispatch(setScreen('pressets'));
+          dispatch(setBubbleDisplay({ visible: false, component: null }));
+        }
+        setHoldAnimation('stopped');
+      },
       pressDown() {
+        if (settings[activeIndex].longpress) {
+          setHoldAnimation('running');
+          return;
+        }
         switch (settings[activeIndex].key) {
           case 'home': {
             socket.emit('action', 'home');
@@ -135,14 +164,15 @@ export function QuickSettings(): JSX.Element {
   );
 
   useEffect(() => {
+    let context: QuickSettingOption[] = [];
     if (
-      presets.option !== 'HOME' ||
+      presets.option === 'HOME' ||
       presets.activeIndexSwiper === presets.value.length
     ) {
-      setSettings(defaultSettings.filter((item) => item.key !== 'edit'));
-    } else {
-      setSettings(defaultSettings);
+      context = profileContextSettings;
     }
+    setContextSettings(context);
+    setSettings([...profileContextSettings, ...defaultSettings]);
   }, [presets, currentScreen]);
 
   useEffect(() => {
@@ -163,6 +193,15 @@ export function QuickSettings(): JSX.Element {
     }
   }, [counterESGG]);
 
+  const getSettingClasses = useCallback(
+    (isActive: boolean) => {
+      return `settings-item ${isActive ? 'active-setting' : ''} ${
+        isActive && holdAnimation === 'running' ? 'animated-setting' : ''
+      }`;
+    },
+    [holdAnimation]
+  );
+
   return (
     <div className="main-quick-settings">
       <Swiper
@@ -176,12 +215,27 @@ export function QuickSettings(): JSX.Element {
         initialSlide={activeIndex}
         style={{ paddingLeft: '29px', top: '-4px' }}
       >
-        {settings.map((setting, index: number) => {
+        {contextSettings.map((setting, index: number) => {
           const isActive = index === activeIndex;
+
           return (
             <SwiperSlide
-              className={`settings-item ${isActive ? 'active-setting' : ''}`}
+              className={getSettingClasses(isActive)}
               key={`option-${index}`}
+              onAnimationEnd={handleAnimationEnd}
+            >
+              {setting.label} {setting.key === 'preheat' && preheatValue}
+            </SwiperSlide>
+          );
+        })}
+        <SwiperSlide className="separator" />
+        {defaultSettings.map((setting, index: number) => {
+          const isActive = index === activeIndex - contextSettings.length;
+          return (
+            <SwiperSlide
+              className={getSettingClasses(isActive)}
+              key={`option-${index}`}
+              onAnimationEnd={handleAnimationEnd}
             >
               {setting.label} {setting.key === 'preheat' && preheatValue}
             </SwiperSlide>
