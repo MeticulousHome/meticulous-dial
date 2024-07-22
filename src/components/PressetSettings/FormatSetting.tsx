@@ -20,8 +20,6 @@ export const FormatSetting = ({ setting, isActive }: FormatSettingProps) => {
     mValue = `${value || 0}`;
   }
 
-  if (label === 'delete profile') activeClass = '';
-
   const animateClass = mValue.length > 11 && activeClass;
 
   return (

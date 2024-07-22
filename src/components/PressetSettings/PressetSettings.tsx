@@ -7,7 +7,6 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { getPresetSettings } from '../../utils/preset';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import {
-  deletePreset,
   savePreset,
   discardSettings,
   setNextSettingOption,
@@ -57,8 +56,6 @@ export function PressetSettings(): JSX.Element {
         } else if (presetSettingIndex == 'discard') {
           dispatch(discardSettings());
           dispatch(setScreen('pressets'));
-        } else if (presetSettingIndex === 'delete') {
-          dispatch(deletePreset());
         } else if (presetSettingIndex === 'name') {
           dispatch(setScreen('name'));
         } else if (presetSettingIndex === 'purge') {
