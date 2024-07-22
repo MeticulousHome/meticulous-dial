@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { ProfileValue } from '../components/store/features/preset/preset-slice';
 
 export const profiles: Array<ProfileValue> = [
@@ -48,7 +49,7 @@ export const profiles: Array<ProfileValue> = [
         unit: 'bar'
       }
     ],
-    id: '57bf333f-3687-4800-93b4-6dd78c7d51ee',
+    id: uuidv4(),
     name: 'Pp',
     author: '',
     author_id: '00000000-0000-0000-0000-000000000000',
@@ -157,7 +158,7 @@ export const profiles: Array<ProfileValue> = [
         unit: 'bar'
       }
     ],
-    id: '9b8ce4a2-4a07-4777-9866-d34e20309f32',
+    id: uuidv4(),
     name: 'New Preset',
     author: '',
     author_id: '00000000-0000-0000-0000-000000000000',
@@ -266,7 +267,7 @@ export const profiles: Array<ProfileValue> = [
         unit: 'bar'
       }
     ],
-    id: 'c12a4f2d-9d5b-4a2b-a159-6e160dd08040',
+    id: uuidv4(),
     name: '1',
     author: '',
     author_id: '00000000-0000-0000-0000-000000000000',
@@ -375,7 +376,7 @@ export const profiles: Array<ProfileValue> = [
         unit: 'bar'
       }
     ],
-    id: '37c333e6-a107-4429-8ed4-b7927c98e3e7',
+    id: uuidv4(),
     name: 'New Preset',
     author: '',
     author_id: '',

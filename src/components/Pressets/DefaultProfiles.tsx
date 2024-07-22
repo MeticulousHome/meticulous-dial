@@ -2,19 +2,24 @@ import { useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
 import { Pagination as PaginationSwiper } from 'swiper';
 
-import { profiles } from '../../data/defaultProfiles';
 import { clearSlides, handlePresetSlideChange } from '../../utils/preset';
-import { ProfileValue } from '../store/features/preset/preset-slice';
 import { ProfileImage } from './ProfileImage';
 import { RouteProps, Title } from '../../navigation';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { useAppSelector } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { setScreen } from '../store/features/screens/screens-slice';
+import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
+import { addPresetNewOne } from '../store/features/preset/preset-slice';
 
 export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const isLoading = useAppSelector((state) => state.presets.pending);
+  const defaultProfiles = useAppSelector(
+    (state) => state.presets.defaultProfiles
+  );
+  const dispatch = useAppDispatch();
 
   const [activeIndex, setActiveIndex] = useState(0);
-  const [defaultProfiles] = useState<Array<ProfileValue>>(profiles);
 
   const presetSwiperRef = useRef<SwiperRef | null>(null);
   const titleSwiperRef = useRef<SwiperRef | null>(null);
@@ -22,7 +27,10 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
   useHandleGestures(
     {
       pressDown() {
-        console.log('Selecting....');
+        if (!transitioning && defaultProfiles && defaultProfiles[activeIndex]) {
+          dispatch(addPresetNewOne({ profile: defaultProfiles[activeIndex] }));
+          dispatch(setScreen('pressets'));
+        }
       },
       left() {
         if (!transitioning) {
@@ -44,6 +52,16 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
     presetSwiperRef.current?.swiper.slideTo(activeIndex);
     titleSwiperRef.current?.swiper.slideTo(activeIndex);
   }, [activeIndex]);
+
+  useEffect(() => {
+    if (!isLoading && defaultProfiles.length === 0) {
+      setScreen('pressetSettings');
+    }
+  }, [isLoading, defaultProfiles]);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="preset-wrapper">
