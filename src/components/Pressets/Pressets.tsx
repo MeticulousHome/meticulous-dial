@@ -192,6 +192,8 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                 navigationTitleRef.current.classList.add('title-bottom');
               }
 
+              dispatch(setPrevPreset());
+
               return dispatch(setScreen('defaultProfiles'));
             }
 
