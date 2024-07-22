@@ -9,7 +9,10 @@ import {
 } from '../store/features/screens/screens-slice';
 import { useSocket } from '../store/SocketManager';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { resetActiveSetting } from '../store/features/preset/preset-slice';
+import {
+  deletePreset,
+  resetActiveSetting
+} from '../store/features/preset/preset-slice';
 
 interface QuickSettingOption {
   key: string;
@@ -17,12 +20,19 @@ interface QuickSettingOption {
   longpress?: boolean;
 }
 
-const profileContextSettings: QuickSettingOption[] = [];
-const defaultSettings = [
+const profileContextSettings: QuickSettingOption[] = [
   {
     key: 'edit',
     label: 'Edit profile'
   },
+  {
+    key: 'delete',
+    label: 'Hold to delete profile',
+    longpress: true
+  }
+];
+
+const defaultSettings: QuickSettingOption[] = [
   {
     key: 'home',
     label: 'home'
@@ -76,6 +86,11 @@ export function QuickSettings(): JSX.Element {
 
   const handleAnimationEnd = () => {
     setHoldAnimation('finished');
+    switch (settings[activeIndex].key) {
+      case 'delete': {
+        dispatch(deletePreset());
+      }
+    }
   };
 
   useHandleGestures(

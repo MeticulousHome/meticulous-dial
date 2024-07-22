@@ -16,11 +16,6 @@ export const DEFAULT_SETTING: StaticAction[] = [
     type: 'action',
     key: 'discard',
     label: 'discard'
-  },
-  {
-    type: 'action',
-    key: 'delete',
-    label: 'delete profile'
   }
 ];
 
