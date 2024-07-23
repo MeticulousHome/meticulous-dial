@@ -61,8 +61,7 @@ export interface PresetsState extends PresetSettingInterface {
   defaultPresetIndex: number;
   activeIndexSwiper: number;
   activePreset: ProfileValue;
-  pending: boolean;
-  error: boolean;
+  status: 'ready' | 'pending' | 'failed';
   option: 'HOME' | 'PRESSETS';
 }
 
@@ -354,7 +353,7 @@ export const getPresets = createAsyncThunk(
       change_id?: string;
       profile_id?: string;
     },
-    { dispatch, getState }
+    { dispatch, getState, rejectWithValue }
   ) => {
     const state = getState() as RootState;
 
@@ -367,6 +366,9 @@ export const getPresets = createAsyncThunk(
         : 0;
 
     const data = await getProfiles();
+    if (data === undefined) {
+      return rejectWithValue('Profile loading failed');
+    }
     const lastProfile = await getLastProfile();
     const { cause, profile_id: profileId } = params;
     let isLastProfileKnown = false;
@@ -497,12 +499,13 @@ const presetSlice = createSlice({
         };
       })
       .addCase(getPresets.pending, (state) => {
-        state.pending = true;
+        state.status = 'pending';
       })
       .addCase(getPresets.fulfilled, (state, action) => {
-        state.pending = false;
+        state.status = 'ready';
 
-        if (!Array.isArray(action.payload.data)) {
+        if (!action.payload || !Array.isArray(action.payload.data)) {
+          state.status = 'failed';
           return;
         }
 
@@ -651,9 +654,8 @@ const presetSlice = createSlice({
           state.activeIndexSwiper = 0;
         }
       })
-      .addCase(getPresets.rejected, (state) => {
-        state.pending = false;
-        state.error = true;
+      .addCase(getPresets.rejected, (state, action) => {
+        state.status = 'failed';
       })
       .addCase(setNextPreset.rejected, (state, action) => {
         console.log(action);
