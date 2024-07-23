@@ -38,7 +38,8 @@ export type ScreenType =
   | 'advancedSettings'
   | 'pressetProfileImage'
   | 'deviceInfo'
-  | 'defaultProfiles';
+  | 'defaultProfiles'
+  | 'defaultProfileDetails';
 
 interface ScreenState {
   value: ScreenType;

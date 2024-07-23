@@ -60,6 +60,8 @@ export function cleanupInternalProfile(profile: ProfileValue) {
 export interface PresetsState extends PresetSettingInterface {
   value: Array<ProfileValue>;
   defaultProfiles: Array<ProfileValue>;
+  defaultProfileSelected?: ProfileValue;
+  defaultProfileActiveIndexSwiper: number;
   defaultPresetIndex: number;
   activeIndexSwiper: number;
   activePreset: ProfileValue;
@@ -445,7 +447,10 @@ export const getPresets = createAsyncThunk(
 
 const initialState: PresetsState = {
   value: [],
+  // default profiles
   defaultProfiles: [],
+  defaultProfileActiveIndexSwiper: 0,
+  // end default profiles
   option: 'HOME',
   defaultPresetIndex: -1,
   activeIndexSwiper: 0,
@@ -470,6 +475,24 @@ const presetSlice = createSlice({
   name: 'presets',
   initialState,
   reducers: {
+    setNextDefaultProfileOption: (state) => {
+      state.defaultProfileActiveIndexSwiper = Math.min(
+        state.defaultProfileActiveIndexSwiper + 1,
+        state.defaultProfiles.length - 1
+      );
+    },
+    setPrevDefaultProfileOption: (state) => {
+      state.defaultProfileActiveIndexSwiper = Math.max(
+        state.defaultProfileActiveIndexSwiper - 1,
+        0
+      );
+    },
+    setDefaultProfileSelected: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<ProfileValue>
+    ) => {
+      state.defaultProfileSelected = action.payload;
+    },
     setPresetState: (_, action: PayloadAction<PresetsState>) => {
       return { ...action.payload };
     },
@@ -688,6 +711,12 @@ const presetSlice = createSlice({
   }
 });
 
-export const { updatePresetSetting, setPresetState, setOptionPressets } =
-  presetSlice.actions;
+export const {
+  updatePresetSetting,
+  setPresetState,
+  setOptionPressets,
+  setDefaultProfileSelected,
+  setNextDefaultProfileOption,
+  setPrevDefaultProfileOption
+} = presetSlice.actions;
 export default presetSlice.reducer;
