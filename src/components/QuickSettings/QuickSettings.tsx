@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import './quick-settings.css';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
@@ -89,6 +89,8 @@ export function QuickSettings(): JSX.Element {
     switch (settings[activeIndex].key) {
       case 'delete': {
         dispatch(deletePreset());
+        dispatch(setScreen('pressets'));
+        dispatch(setBubbleDisplay({ visible: false, component: null }));
       }
     }
   };
@@ -187,7 +189,7 @@ export function QuickSettings(): JSX.Element {
       context = profileContextSettings;
     }
     setContextSettings(context);
-    setSettings([...profileContextSettings, ...defaultSettings]);
+    setSettings([...context, ...defaultSettings]);
   }, [presets, currentScreen]);
 
   useEffect(() => {
@@ -236,20 +238,22 @@ export function QuickSettings(): JSX.Element {
           return (
             <SwiperSlide
               className={getSettingClasses(isActive)}
-              key={`option-${index}`}
+              key={`context_option-${index}`}
               onAnimationEnd={handleAnimationEnd}
             >
               {setting.label} {setting.key === 'preheat' && preheatValue}
             </SwiperSlide>
           );
         })}
-        <SwiperSlide className="separator" />
+        {contextSettings.length > 0 && (
+          <SwiperSlide key="seperator" className="separator" />
+        )}
         {defaultSettings.map((setting, index: number) => {
           const isActive = index === activeIndex - contextSettings.length;
           return (
             <SwiperSlide
               className={getSettingClasses(isActive)}
-              key={`option-${index}`}
+              key={`default_option-${index}`}
               onAnimationEnd={handleAnimationEnd}
             >
               {setting.label} {setting.key === 'preheat' && preheatValue}
