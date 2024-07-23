@@ -1,7 +1,4 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
-// eslint-disable-next-line import/no-unresolved
-import { IpcMainEvent } from 'electron/main';
-import { promises as fs } from 'fs';
 import {
   getNetworkConfig,
   getWifiList,
@@ -16,7 +13,6 @@ import {
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
-const DEFAULT_USER_PATHNAME = 'userData';
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
   app.quit();
@@ -61,28 +57,17 @@ const createWindow = (): void => {
   }
 };
 
-const saveFile = async (
-  _event: IpcMainEvent,
-  filename: string,
-  content: string
-) => {
-  const path = app.getPath(DEFAULT_USER_PATHNAME);
-  // const path = './';
-  const filePath = `${path}/${filename}`;
-  return await fs.writeFile(filePath, content);
-};
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
-  ipcMain.handle('saveFile', saveFile);
+  createWindow();
+
   ipcMain.handle('getNetworkConfig', getNetworkConfig);
   ipcMain.handle('getWifiList', getWifiList);
   ipcMain.handle('updateNetworkConfig', updateNetworkConfig);
   ipcMain.handle('connectToWifi', connectToWifi);
   ipcMain.handle('deleteKnowWifi', deleteKnowWifi);
-  createWindow();
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
