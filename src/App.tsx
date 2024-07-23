@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider, useSelector } from 'react-redux';
 import 'swiper/swiper-bundle.min.css';
@@ -16,6 +16,7 @@ import { Router } from './navigation/Router';
 import { notificationSelector } from './components/store/features/notifications/notification-slice';
 import { durationAnimation } from './navigation/Transitioner';
 import { useSocketKeyboardListeners } from './components/store/SocketProviderValue';
+import { Splash } from './components/Splash/Splash';
 
 const App = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -23,10 +24,11 @@ const App = (): JSX.Element => {
     (state) => state.screen,
     (prev, next) => prev === next
   );
-  const loadingPressets = useAppSelector((state) => state.presets.pending);
+  const presetsStatus = useAppSelector((state) => state.presets.status);
   const stats = useAppSelector((state) => state.stats);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const notifications = useSelector(notificationSelector.selectAll);
+  const [splashAnimationLooping, setSplashAnimationLooping] = useState(false);
 
   useEffect(() => {
     if (notifications.length > 0 && screen.value !== 'notifications') {
@@ -76,17 +78,23 @@ const App = (): JSX.Element => {
     stats?.name !== 'idle' || bubbleDisplay.visible
   );
 
-  if (loadingPressets) return <></>;
-
-  return <Router currentScreen={screen.value} previousScreen={screen.prev} />;
-  // return <Router currentScreen={'wifiSettings'} previousScreen={screen.prev} />;
+  return presetsStatus === 'ready' && splashAnimationLooping ? (
+    <SocketManager>
+      <Router currentScreen={screen.value} previousScreen={screen.prev} />
+    </SocketManager>
+  ) : (
+    <Splash
+      onAnimationFinished={() => {
+        setSplashAnimationLooping(true);
+        return presetsStatus !== 'ready';
+      }}
+    />
+  );
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <Provider store={store}>
-    <SocketManager>
-      <App />
-    </SocketManager>
+    <App />
   </Provider>
 );

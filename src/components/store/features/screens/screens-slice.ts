@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+// The 'splash' screen is injected in App.tsx instead to reduce loading times
 export type ScreenType =
   | 'barometer'
   | 'pressets'
