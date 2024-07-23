@@ -383,33 +383,35 @@ export const getPresets = createAsyncThunk(
         data.length === 0 ||
         currentProfileWasModified ||
         params.cause === 'load'
-      )
+      ) {
         dispatch(setScreen('pressets'));
+      }
 
       try {
         if (lastProfile?.profile?.id) {
-          const lastProfilePotentialIndex = data.findIndex(
-            (profile) => profile.id === lastProfile.profile.id
-          );
-          console.log('last profile id: ' + lastProfile?.profile?.id);
+          const lastProfilePotentialIndex = data.findIndex((p) => {
+            let idToCompare = lastProfile.profile.id;
+            if (profileId) idToCompare = profileId;
+            return p.id === idToCompare;
+          });
+
           if (lastProfilePotentialIndex >= 0) {
             isLastProfileKnown = equal(
               data[lastProfilePotentialIndex],
               lastProfile.profile
             );
 
-            if (isLastProfileKnown) {
-              defaultIndex = lastProfilePotentialIndex;
-              console.log('the last profile is a known one');
-            }
+            defaultIndex = lastProfilePotentialIndex;
           }
         } else {
+          // There's no last profile
           const lastProfilePotentialIndex = data.findIndex(
             (profile) => profile.id === profileId
           );
 
-          if (lastProfilePotentialIndex >= 0)
+          if (lastProfilePotentialIndex >= 0) {
             defaultIndex = lastProfilePotentialIndex;
+          }
         }
       } catch (e) {
         console.log(
