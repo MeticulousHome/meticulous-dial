@@ -25,6 +25,10 @@ const App = (): JSX.Element => {
     (prev, next) => prev === next
   );
   const presetsStatus = useAppSelector((state) => state.presets.status);
+  const presetID = useAppSelector(
+    (state) => state.presets.activePreset?.id || -1
+  );
+
   const stats = useAppSelector((state) => state.stats);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const notifications = useSelector(notificationSelector.selectAll);
@@ -78,7 +82,9 @@ const App = (): JSX.Element => {
     stats?.name !== 'idle' || bubbleDisplay.visible
   );
 
-  return presetsStatus === 'ready' && splashAnimationLooping ? (
+  const isReady =
+    (presetID != -1 || presetsStatus === 'ready') && splashAnimationLooping;
+  return isReady ? (
     <SocketManager>
       <Router currentScreen={screen.value} previousScreen={screen.prev} />
     </SocketManager>

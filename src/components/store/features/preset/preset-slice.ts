@@ -451,8 +451,7 @@ const initialState: PresetsState = {
     settings: []
   },
   allSettings: [],
-  pending: true,
-  error: false
+  status: 'pending'
 };
 
 const presetSlice = createSlice({
