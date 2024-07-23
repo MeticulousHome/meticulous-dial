@@ -11,7 +11,8 @@ import { useSocket } from '../store/SocketManager';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import {
   deletePreset,
-  resetActiveSetting
+  resetActiveSetting,
+  setDefaultProfileSelected
 } from '../store/features/preset/preset-slice';
 
 interface QuickSettingOption {
@@ -69,6 +70,9 @@ export function QuickSettings(): JSX.Element {
   const socket = useSocket();
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const { defaultProfileActiveIndexSwiper, defaultProfiles } = useAppSelector(
+    (state) => state.presets
+  );
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const stats = useAppSelector((state) => state.stats);
@@ -133,6 +137,20 @@ export function QuickSettings(): JSX.Element {
             socket.emit('action', 'home');
             dispatch(setScreen('pressets'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
+          case 'details': {
+            dispatch(
+              setDefaultProfileSelected(
+                defaultProfiles[defaultProfileActiveIndexSwiper]
+              )
+            );
+            dispatch(
+              setBubbleDisplay({
+                visible: true,
+                component: 'defaultProfileDetails'
+              })
+            );
             break;
           }
           case 'edit': {

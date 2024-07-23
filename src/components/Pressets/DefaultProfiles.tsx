@@ -9,17 +9,22 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
-import { addPresetNewOne } from '../store/features/preset/preset-slice';
+import {
+  addPresetNewOne,
+  setNextDefaultProfileOption,
+  setPrevDefaultProfileOption
+} from '../store/features/preset/preset-slice';
 
 export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
+  const activeIndex = useAppSelector(
+    (state) => state.presets.defaultProfileActiveIndexSwiper
+  );
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const isLoading = useAppSelector((state) => state.presets.pending);
   const defaultProfiles = useAppSelector(
     (state) => state.presets.defaultProfiles
   );
   const dispatch = useAppDispatch();
-
-  const [activeIndex, setActiveIndex] = useState(0);
 
   const presetSwiperRef = useRef<SwiperRef | null>(null);
   const titleSwiperRef = useRef<SwiperRef | null>(null);
@@ -34,14 +39,12 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
       },
       left() {
         if (!transitioning) {
-          setActiveIndex((prev) =>
-            Math.min(prev + 1, defaultProfiles.length - 1)
-          );
+          dispatch(setNextDefaultProfileOption());
         }
       },
       right() {
         if (!transitioning) {
-          setActiveIndex((prev) => Math.max(prev - 1, 0));
+          dispatch(setPrevDefaultProfileOption());
         }
       }
     },
