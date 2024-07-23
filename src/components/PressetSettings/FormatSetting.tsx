@@ -12,7 +12,7 @@ export const FormatSetting = ({ setting, isActive }: FormatSettingProps) => {
   const { label, value } = setting;
   let mValue = '';
   let mLabel = label;
-  let activeClass = isActive ? 'active' : '';
+  const activeClass = isActive ? 'active' : '';
   const isValidType = typeof value === 'number' || typeof value === 'string';
 
   if ((value || label) && isValidType) {
