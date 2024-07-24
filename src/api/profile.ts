@@ -2,9 +2,9 @@ import { APIError, LastProfileIdent } from 'meticulous-api';
 import { Profile } from 'meticulous-typescript-profile';
 import { api } from './api';
 import { profiles } from '../../src/data/defaultProfiles';
-import { ProfileValue } from '../../src/components/store/features/preset/preset-slice';
+import { DefaultProfileValue } from '../../src/components/store/features/preset/preset-slice';
 
-const loadDefaultProfilesMock = (): Promise<ProfileValue[]> =>
+const loadDefaultProfilesMock = (): Promise<DefaultProfileValue[]> =>
   new Promise((resolve) => {
     setTimeout(() => {
       resolve(profiles);

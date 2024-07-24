@@ -1,11 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
-import { useAppSelector } from '../store/hooks';
-import { FormatSetting } from '../PressetSettings/FormatSetting';
-// import { marqueeIfNeeded } from '../shared/MarqueeValue';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { api } from '../../api/api';
+import { setBubbleDisplay } from '../store/features/screens/screens-slice';
+
+const API_URL = process.env.SERVER_URL || 'http://localhost:8080';
+const items = [{ key: 'content' }, { key: 'back' }];
 
 export const DefaultProfileDetails = () => {
+  const dispatch = useAppDispatch();
+
   const [activeIndex, setActiveIndex] = useState(0);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
 
@@ -13,20 +18,33 @@ export const DefaultProfileDetails = () => {
     (state) => state.presets.defaultProfileSelected
   );
 
-  useHandleGestures(
-    {
-      left() {
-        setActiveIndex((prev) =>
-          Math.min(prev + 1, defaultProfile.settings.length - 1)
-        );
-      },
-      right() {
-        setActiveIndex((prev) => Math.max(prev - 1, 0));
-      },
-      pressDown() {}
+  useHandleGestures({
+    left() {
+      setActiveIndex((prev) => Math.min(prev + 1, items.length - 1));
+    },
+    right() {
+      setActiveIndex((prev) => Math.max(prev - 1, 0));
+    },
+    pressDown() {
+      switch (items[activeIndex].key) {
+        case 'back':
+          dispatch(
+            setBubbleDisplay({ visible: true, component: 'quick-settings' })
+          );
+          break;
+
+        default:
+          break;
+      }
     }
-    // bubbleDisplay.visible
-  );
+  });
+
+  const imageUrl = useMemo(() => {
+    const image = defaultProfile.settings.find((item) => item.key === 'image');
+    if (image) return image.value;
+
+    return '';
+  }, [defaultProfile.settings]);
 
   useEffect(() => {
     presetSwiperRef.current?.swiper.slideTo(activeIndex);
@@ -41,34 +59,58 @@ export const DefaultProfileDetails = () => {
         direction="vertical"
         spaceBetween={25}
         autoHeight={false}
-        centeredSlides={true}
         initialSlide={activeIndex}
+        centeredSlides={true}
         style={{ paddingLeft: '29px', top: '-4px' }}
       >
-        {defaultProfile.settings.map((setting, index: number) => {
-          const isActive = index === activeIndex;
-
-          return (
-            <SwiperSlide
-              key={`option-${index}`}
-              className={`settings-item ${isActive ? 'active-setting' : ''}`}
+        <SwiperSlide key="content">
+          <div
+            style={{
+              width: '100%'
+            }}
+          >
+            <div
+              style={{
+                transform: 'translateX(-7%)'
+              }}
             >
               <div
-                className={` ${
-                  setting.key === 'delete' ? 'delete-option-item' : ''
-                }`}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}
               >
-                <FormatSetting
-                  customActiveClass="defaultProfileActive"
-                  setting={setting}
-                  isActive={
-                    defaultProfile.settings[activeIndex].label === setting.label
-                  }
+                <img
+                  src={`${API_URL}${api.getProfileImageUrl(imageUrl)}`}
+                  alt="No image"
+                  width="50"
+                  height="50"
+                  className="profile-image image-prev"
+                  style={{
+                    border: '7px solid #e0dcd0',
+                    display: 'block',
+                    position: 'relative'
+                  }}
                 />
               </div>
-            </SwiperSlide>
-          );
-        })}
+              <p>{defaultProfile.name}</p>
+              <p>{defaultProfile.description}</p>
+            </div>
+          </div>
+        </SwiperSlide>
+        <SwiperSlide></SwiperSlide>
+
+        <SwiperSlide
+          key="back"
+          className={`settings-item ${
+            items[activeIndex].key === 'back' ? 'active-setting' : ''
+          }`}
+        >
+          <div className="settings-entry">
+            <span>Back</span>
+          </div>
+        </SwiperSlide>
       </Swiper>
     </div>
   );

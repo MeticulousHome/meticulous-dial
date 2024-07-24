@@ -1,7 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ProfileValue } from '../components/store/features/preset/preset-slice';
+import {
+  DefaultProfileValue,
+  ProfileValue
+} from '../components/store/features/preset/preset-slice';
 
-export const profiles: Array<ProfileValue> = [
+export const profiles: Array<DefaultProfileValue> = [
   {
     settings: [
       {
@@ -109,7 +112,8 @@ export const profiles: Array<ProfileValue> = [
         exit_triggers: [],
         limits: []
       }
-    ]
+    ],
+    description: 'I really like this coffe!'
   },
   {
     settings: [
@@ -218,7 +222,8 @@ export const profiles: Array<ProfileValue> = [
         exit_triggers: [],
         limits: []
       }
-    ]
+    ],
+    description: 'this is a secret recipe'
   },
   {
     settings: [
@@ -327,7 +332,8 @@ export const profiles: Array<ProfileValue> = [
         exit_triggers: [],
         limits: []
       }
-    ]
+    ],
+    description: 'This profile is cool!!'
   },
   {
     settings: [
@@ -438,6 +444,7 @@ export const profiles: Array<ProfileValue> = [
         exit_triggers: [],
         limits: []
       }
-    ]
+    ],
+    description: 'This profile is a test'
   }
 ];
