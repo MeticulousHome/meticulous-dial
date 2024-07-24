@@ -14,6 +14,7 @@ import {
   setNextDefaultProfileOption,
   setPrevDefaultProfileOption
 } from '../store/features/preset/preset-slice';
+import './defaultProfile.css';
 
 export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
   const activeIndex = useAppSelector(
@@ -67,7 +68,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
   }
 
   return (
-    <div className="preset-wrapper">
+    <div id="default-profile-container" className="preset-wrapper">
       <Swiper
         slidesPerView={2.15}
         spaceBetween={79}
@@ -75,9 +76,10 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
         centeredSlides={true}
         allowTouchMove={false}
         ref={presetSwiperRef}
+        direction="vertical"
         onSlideChange={(e) => {
           clearSlides(e);
-          handlePresetSlideChange(e);
+          handlePresetSlideChange(e, 'vertical');
         }}
         modules={[PaginationSwiper]}
         pagination={{
@@ -98,6 +100,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
       </Swiper>
       <Swiper
         slidesPerView={2.15}
+        direction="vertical"
         spaceBetween={79}
         centeredSlides={true}
         initialSlide={activeIndex}
@@ -105,7 +108,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
         ref={titleSwiperRef}
         onSlideChange={(e) => {
           clearSlides(e);
-          handlePresetSlideChange(e);
+          handlePresetSlideChange(e, 'vertical');
         }}
         className={`title-swiper ${transitioning ? 'transitioning' : ''}`}
       >
@@ -117,7 +120,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
               >
                 {() => (
                   <Title
-                    customClass={`presset-title-top ${
+                    customClass={`presset-title-top presset-title-top--vertical ${
                       (preset.isTemporary || false) && 'presset-title-temp'
                     }`}
                   >

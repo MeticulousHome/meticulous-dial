@@ -157,6 +157,36 @@
   }
 }
 
+@keyframes bounce-top {
+  0% {
+    transform: translateX(0) translateY(2px);
+  }
+  40% {
+    transform: translateX(0px) translateY(22px);
+  }
+  70% {
+    transform: translateX(0px) translateY(-4px);
+  }
+  100% {
+    transform: translateX(0) translateY(2px);
+  }
+}
+
+@keyframes bounce-bottom {
+  0% {
+    transform: translateX(0) translateY(2px);
+  }
+  40% {
+    transform: translateX(0px) translateY(-22px);
+  }
+  70% {
+    transform: translateX(0px) translateY(4px);
+  }
+  100% {
+    transform: translateX(0) translateY(2px);
+  }
+}
+
 /* animation scroll to the left spring and bounce back */
 @keyframes bounce-left {
   0% {
@@ -185,6 +215,16 @@
 .image-swiper .animation-bounce-right,
 .image-swiper .animation-bounce-left {
   animation: none !important;
+}
+
+.animation-bounce-top {
+  animation: bounce-top 500ms ease-out;
+
+}
+
+.animation-bounce-bottom {
+  animation: bounce-bottom 500ms ease-out;
+
 }
 
 @keyframes pressets-left-leave {

@@ -15,21 +15,39 @@ import {
 import { PresetsState } from '../components/store/features/preset/preset-slice';
 import { Variable } from 'meticulous-typescript-profile';
 
-export const handleRemovePresetsAnimation = (swiper: Swiper) => {
+export const handleRemovePresetsAnimation = (
+  swiper: Swiper,
+  orientation: 'horizontal' | 'vertical' = 'horizontal'
+) => {
   if (swiper && swiper.slides)
     swiper.slides.forEach((slide) => {
       slide
         ?.querySelector('div')
-        .classList.remove('animation-bounce-left', 'animation-bounce-right');
+        .classList.remove(
+          `animation-bounce-${
+            orientation === 'horizontal' ? 'left' : 'bottom'
+          }`,
+          `animation-bounce-${orientation === 'horizontal' ? 'right' : 'top'}`
+        );
     });
 };
 
-export const handleAddPresetAnimation = (swiper: Swiper) => {
+export const handleAddPresetAnimation = (
+  swiper: Swiper,
+  orientation: 'horizontal' | 'vertical' = 'horizontal'
+) => {
   if (!swiper?.slides) return;
 
   const { previousIndex, activeIndex, slides } = swiper;
 
-  const animation = activeIndex > previousIndex ? 'left' : 'right';
+  const animation =
+    activeIndex > previousIndex
+      ? orientation === 'horizontal'
+        ? 'left'
+        : 'bottom'
+      : orientation === 'horizontal'
+      ? 'right'
+      : 'top';
 
   if (swiper.slides[activeIndex]) {
     swiper.slides[activeIndex]
@@ -273,12 +291,13 @@ export const handleSlidesEnter = (
 };
 
 export const handlePresetSlideChange = (
-  swiper: Swiper & { initialized?: boolean }
+  swiper: Swiper & { initialized?: boolean },
+  orientation: 'horizontal' | 'vertical' = 'horizontal'
 ) => {
   if (swiper.initialized) {
-    handleRemovePresetsAnimation(swiper);
+    handleRemovePresetsAnimation(swiper, orientation);
     setTimeout(() => {
-      handleAddPresetAnimation(swiper);
+      handleAddPresetAnimation(swiper, orientation);
     }, 20);
   }
 };
