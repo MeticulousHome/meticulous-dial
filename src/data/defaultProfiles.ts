@@ -6,52 +6,6 @@ import {
 
 export const profiles: Array<DefaultProfileValue> = [
   {
-    settings: [
-      {
-        id: 1,
-        type: 'text',
-        key: 'name',
-        label: 'name',
-        value: 'Pp',
-        isInternal: true
-      },
-      {
-        id: 2,
-        type: 'numerical',
-        key: 'temperature',
-        label: 'temperature',
-        value: 94,
-        unit: '°c',
-        isInternal: true
-      },
-      {
-        id: 3,
-        type: 'numerical',
-        key: 'output',
-        label: 'output',
-        value: 36,
-        unit: 'g',
-        isInternal: true
-      },
-      {
-        id: 4,
-        type: 'image',
-        key: 'image',
-        label: 'Select image',
-        value: 'f9e16abcc19c1a34deaa9c2ac3bc7653.png',
-        isInternal: true
-      },
-      {
-        id: 5,
-        type: 'numerical',
-        isInternal: false,
-        externalType: 'pressure',
-        key: 'pressure',
-        label: 'Pressure',
-        value: 8,
-        unit: 'bar'
-      }
-    ],
     id: uuidv4(),
     name: 'Pp',
     author: '',
@@ -116,52 +70,6 @@ export const profiles: Array<DefaultProfileValue> = [
     description: 'I really like this coffe!'
   },
   {
-    settings: [
-      {
-        id: 1,
-        type: 'text',
-        key: 'name',
-        label: 'name',
-        value: 'New Preset',
-        isInternal: true
-      },
-      {
-        id: 2,
-        type: 'numerical',
-        key: 'temperature',
-        label: 'temperature',
-        value: 88,
-        unit: '°c',
-        isInternal: true
-      },
-      {
-        id: 3,
-        type: 'numerical',
-        key: 'output',
-        label: 'output',
-        value: 36,
-        unit: 'g',
-        isInternal: true
-      },
-      {
-        id: 4,
-        type: 'image',
-        key: 'image',
-        label: 'Select image',
-        value: 'ead0615ce86b2596e9c310494c4cd542.png',
-        isInternal: true
-      },
-      {
-        id: 5,
-        type: 'numerical',
-        isInternal: false,
-        externalType: 'pressure',
-        key: 'pressure',
-        label: 'Pressure',
-        value: 8,
-        unit: 'bar'
-      }
-    ],
     id: uuidv4(),
     name: 'New Preset',
     author: '',
@@ -226,52 +134,6 @@ export const profiles: Array<DefaultProfileValue> = [
     description: 'this is a secret recipe'
   },
   {
-    settings: [
-      {
-        id: 1,
-        type: 'text',
-        key: 'name',
-        label: 'name',
-        value: '1',
-        isInternal: true
-      },
-      {
-        id: 2,
-        type: 'numerical',
-        key: 'temperature',
-        label: 'temperature',
-        value: 88,
-        unit: '°c',
-        isInternal: true
-      },
-      {
-        id: 3,
-        type: 'numerical',
-        key: 'output',
-        label: 'output',
-        value: 36,
-        unit: 'g',
-        isInternal: true
-      },
-      {
-        id: 4,
-        type: 'image',
-        key: 'image',
-        label: 'Select image',
-        value: 'de720f6570d8215252eaf583fb9f3fc2.png',
-        isInternal: true
-      },
-      {
-        id: 5,
-        type: 'numerical',
-        isInternal: false,
-        externalType: 'pressure',
-        key: 'pressure',
-        label: 'Pressure',
-        value: 8,
-        unit: 'bar'
-      }
-    ],
     id: uuidv4(),
     name: '1',
     author: '',
@@ -336,52 +198,6 @@ export const profiles: Array<DefaultProfileValue> = [
     description: 'This profile is cool!!'
   },
   {
-    settings: [
-      {
-        id: 1,
-        type: 'text',
-        key: 'name',
-        label: 'name',
-        value: 'New Preset',
-        isInternal: true
-      },
-      {
-        id: 2,
-        type: 'numerical',
-        key: 'temperature',
-        label: 'temperature',
-        value: 88,
-        unit: '°c',
-        isInternal: true
-      },
-      {
-        id: 3,
-        type: 'numerical',
-        key: 'output',
-        label: 'output',
-        value: 36,
-        unit: 'g',
-        isInternal: true
-      },
-      {
-        id: 4,
-        type: 'image',
-        key: 'image',
-        label: 'Select image',
-        value: '0acc9eec8455a96de1c83250eca6d7f3.png',
-        isInternal: true
-      },
-      {
-        id: 5,
-        type: 'numerical',
-        isInternal: false,
-        externalType: 'pressure',
-        key: 'pressure',
-        label: 'Pressure',
-        value: 8,
-        unit: 'bar'
-      }
-    ],
     id: uuidv4(),
     name: 'New Preset',
     author: '',

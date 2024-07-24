@@ -46,7 +46,9 @@ export type ProfileValue = Profile & {
   isTemporary?: boolean;
 };
 
-export type DefaultProfileValue = ProfileValue & { description: string };
+export type DefaultProfileValue = Omit<ProfileValue, 'settings'> & {
+  description: string;
+};
 
 export function cleanupInternalProfile(profile: ProfileValue) {
   const copy = { ...profile };
