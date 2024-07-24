@@ -251,7 +251,8 @@ export const routes: Record<ScreenType, Route> = {
   },
   defaultProfiles: {
     component: DefaultProfiles,
-    title: 'Choose a profile'
+    title: 'Choose a profile',
+    bottomStatusHidden: true
   },
   defaultProfileDetails: {
     component: DefaultProfileDetails,
