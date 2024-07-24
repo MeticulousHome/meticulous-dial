@@ -46,6 +46,8 @@ export type ProfileValue = Profile & {
   isTemporary?: boolean;
 };
 
+export type DefaultProfileValue = ProfileValue & { description: string };
+
 export function cleanupInternalProfile(profile: ProfileValue) {
   const copy = { ...profile };
 
@@ -59,8 +61,8 @@ export function cleanupInternalProfile(profile: ProfileValue) {
 
 export interface PresetsState extends PresetSettingInterface {
   value: Array<ProfileValue>;
-  defaultProfiles: Array<ProfileValue>;
-  defaultProfileSelected?: ProfileValue;
+  defaultProfiles: Array<DefaultProfileValue>;
+  defaultProfileSelected?: DefaultProfileValue;
   defaultProfileActiveIndexSwiper: number;
   defaultPresetIndex: number;
   activeIndexSwiper: number;
@@ -489,7 +491,7 @@ const presetSlice = createSlice({
     },
     setDefaultProfileSelected: (
       state: Draft<typeof initialState>,
-      action: PayloadAction<ProfileValue>
+      action: PayloadAction<DefaultProfileValue>
     ) => {
       state.defaultProfileSelected = action.payload;
     },
