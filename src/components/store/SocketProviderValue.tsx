@@ -27,7 +27,7 @@ export const SocketProviderValue = () => {
         return;
       }
 
-      if (!oNotification.message) {
+      if (!oNotification.message && !oNotification.image) {
         dispatch(removeOneNotification(oNotification.id));
       } else {
         dispatch(addOneNotification(oNotification));
