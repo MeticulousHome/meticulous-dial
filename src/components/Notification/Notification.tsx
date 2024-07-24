@@ -37,14 +37,12 @@ export function Notification(): JSX.Element {
           activeButton.classList.remove('focused-button');
           setActivebutton(null);
 
-          const myNotification = await notificationFeedback(
+          await notificationFeedback(
             id,
             activeButton.getAttribute('data-value')
           );
-          if (myNotification.status === 200) {
-            mainContainerRef.current.scrollTop = 0;
-            dispatch(removeOneNotification(id));
-          }
+          mainContainerRef.current.scrollTop = 0;
+          dispatch(removeOneNotification(id));
         }
       }
     },
