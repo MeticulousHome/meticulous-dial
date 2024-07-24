@@ -26,8 +26,19 @@
   letter-spacing: -0.5px;
 }
 
+.presset-option-value.defaultProfileActive {
+  color: black !important;
+  visibility: visible;
+  font-family: 'Abc_mono';
+  letter-spacing: -0.5px;
+}
+
 .presset-option-label.active {
   color: white;
+}
+
+.presset-option-label.defaultProfileActive {
+  color: black !important;
 }
 
 .delete-option-item {
