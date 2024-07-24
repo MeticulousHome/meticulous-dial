@@ -55,18 +55,43 @@ export const handleAddPresetAnimation = (
       .classList.add(`animation-bounce-${animation}`);
 
     if (slides.length < 2) return;
-    if (activeIndex === 0 || activeIndex === slides.length - 1) {
-      slides[previousIndex]
-        ?.querySelector('div')
-        .classList.add(`animation-bounce-${animation}`);
-    } else {
-      slides[previousIndex]
-        ?.querySelector('div')
-        .classList.add(`animation-bounce-${animation}`);
 
-      slides[activeIndex > previousIndex ? activeIndex + 1 : activeIndex - 1]
-        ?.querySelector('div')
-        .classList.add(`animation-bounce-${animation}`);
+    if (orientation === 'vertical') {
+      // we are currently showing 4 items when is vertical so we are animation 4 elements
+      if (slides[activeIndex + 1]) {
+        slides[activeIndex + 1]
+          ?.querySelector('div')
+          .classList.add(`animation-bounce-${animation}`);
+      }
+      if (slides[activeIndex + 2]) {
+        slides[activeIndex + 2]
+          ?.querySelector('div')
+          .classList.add(`animation-bounce-${animation}`);
+      }
+      if (slides[activeIndex - 1]) {
+        slides[activeIndex - 1]
+          ?.querySelector('div')
+          .classList.add(`animation-bounce-${animation}`);
+      }
+      if (slides[activeIndex - 2]) {
+        slides[activeIndex - 2]
+          ?.querySelector('div')
+          .classList.add(`animation-bounce-${animation}`);
+      }
+    } else {
+      if (activeIndex === 0 || activeIndex === slides.length - 1) {
+        slides[previousIndex]
+          ?.querySelector('div')
+          .classList.add(`animation-bounce-${animation}`);
+      } else {
+        slides[previousIndex]
+          ?.querySelector('div')
+          .classList.add(`animation-bounce-${animation}`);
+
+        slides[activeIndex > previousIndex ? activeIndex + 1 : activeIndex - 1]
+          ?.querySelector('div')
+          .classList.add(`animation-bounce-${animation}`);
+      }
     }
   }
 };

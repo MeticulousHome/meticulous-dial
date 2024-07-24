@@ -70,7 +70,6 @@ export const DefaultProfileDetails = () => {
               <div
                 style={{
                   display: 'flex',
-                  flexDirection: 'row',
                   justifyContent: 'center',
                   alignItems: 'center'
                 }}
@@ -91,16 +90,8 @@ export const DefaultProfileDetails = () => {
                     position: 'relative'
                   }}
                 />
-                <p
-                  style={{
-                    margin: '0px',
-                    marginLeft: '10px'
-                  }}
-                >
-                  {defaultProfile.name}
-                </p>
               </div>
-
+              <p>{defaultProfile.name}</p>
               <p>{defaultProfile.description}</p>
             </div>
           </div>
