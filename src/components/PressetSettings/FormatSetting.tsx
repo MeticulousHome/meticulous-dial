@@ -8,7 +8,10 @@ interface FormatSettingProps {
 
 const API_URL = process.env.SERVER_URL || 'http://localhost:8080';
 
-export const FormatSetting = ({ setting, isActive }: FormatSettingProps) => {
+export const FormatSetting = ({
+  setting,
+  isActive,
+}: FormatSettingProps) => {
   const { label, value } = setting;
   let mValue = '';
   let mLabel = label;
