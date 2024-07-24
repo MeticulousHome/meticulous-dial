@@ -39,13 +39,6 @@ export const DefaultProfileDetails = () => {
     }
   });
 
-  const imageUrl = useMemo(() => {
-    const image = defaultProfile.settings.find((item) => item.key === 'image');
-    if (image) return image.value;
-
-    return '';
-  }, [defaultProfile.settings]);
-
   useEffect(() => {
     presetSwiperRef.current?.swiper.slideTo(activeIndex);
   }, [activeIndex]);
@@ -77,24 +70,37 @@ export const DefaultProfileDetails = () => {
               <div
                 style={{
                   display: 'flex',
+                  flexDirection: 'row',
                   justifyContent: 'center',
                   alignItems: 'center'
                 }}
               >
                 <img
-                  src={`${API_URL}${api.getProfileImageUrl(imageUrl)}`}
+                  src={`${API_URL}${api.getProfileImageUrl(
+                    defaultProfile.display.image
+                  )}`}
                   alt="No image"
                   width="50"
                   height="50"
                   className="profile-image image-prev"
                   style={{
-                    border: '7px solid #e0dcd0',
+                    border: `7px solid ${
+                      defaultProfile.display.accentColor ?? '#e0dcd0'
+                    }`,
                     display: 'block',
                     position: 'relative'
                   }}
                 />
+                <p
+                  style={{
+                    margin: '0px',
+                    marginLeft: '10px'
+                  }}
+                >
+                  {defaultProfile.name}
+                </p>
               </div>
-              <p>{defaultProfile.name}</p>
+
               <p>{defaultProfile.description}</p>
             </div>
           </div>
