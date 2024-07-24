@@ -114,7 +114,7 @@ export function Notification(): JSX.Element {
             <div className="circle" id="main-circle" ref={mainContainerRef}>
               <div className="cicle limit-left" />
               <div className="cicle limit-right" />
-              <p>
+              <div className="notification-content">
                 {message}
                 <div className="image-container">
                   <img src={image} />
@@ -134,7 +134,7 @@ export function Notification(): JSX.Element {
                     );
                   })}
                 </div>
-              </p>
+              </div>
             </div>
           </div>
         </div>
