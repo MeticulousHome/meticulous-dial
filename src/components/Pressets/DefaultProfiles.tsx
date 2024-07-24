@@ -15,6 +15,9 @@ import {
   setPrevDefaultProfileOption
 } from '../store/features/preset/preset-slice';
 import './defaultProfile.css';
+import { api } from '../../api/api';
+
+const API_URL = process.env.SERVER_URL || 'http://localhost:8080';
 
 export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
   const activeIndex = useAppSelector(
@@ -70,8 +73,8 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
   return (
     <div id="default-profile-container" className="preset-wrapper">
       <Swiper
-        slidesPerView={2.15}
-        spaceBetween={79}
+        slidesPerView={4}
+        spaceBetween={0}
         initialSlide={activeIndex}
         centeredSlides={true}
         allowTouchMove={false}
@@ -92,44 +95,63 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
           <SwiperSlide key={preset.isTemporary ? 'temp' : preset.id.toString()}>
             {() => (
               <div>
-                <ProfileImage preset={preset} />
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }}
+                >
+                  <img
+                    src={`${API_URL}${api.getProfileImageUrl(
+                      preset.display.image
+                    )}`}
+                    alt="No image"
+                    width="50"
+                    height="50"
+                    className="profile-image image-prev"
+                    style={{
+                      border: `7px solid ${
+                        preset.display.accentColor ?? '#e0dcd0'
+                      }`,
+                      display: 'block',
+                      position: 'relative'
+                    }}
+                  />
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'flex-start',
+                      marginLeft: '10px'
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: 'block',
+                        textAlign: 'left',
+                        marginBottom: '10px'
+                      }}
+                    >
+                      {preset.name}
+                    </span>
+                    <span
+                      style={{
+                        display: 'block',
+                        textAlign: 'left',
+                        maxWidth: '155px',
+                        wordBreak: 'break-all'
+                      }}
+                    >
+                      {preset.description}
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
           </SwiperSlide>
         ))}
-      </Swiper>
-      <Swiper
-        slidesPerView={2.15}
-        direction="vertical"
-        spaceBetween={79}
-        centeredSlides={true}
-        initialSlide={activeIndex}
-        allowTouchMove={false}
-        ref={titleSwiperRef}
-        onSlideChange={(e) => {
-          clearSlides(e);
-          handlePresetSlideChange(e, 'vertical');
-        }}
-        className={`title-swiper ${transitioning ? 'transitioning' : ''}`}
-      >
-        {defaultProfiles.length &&
-          defaultProfiles.map((preset) => {
-            return (
-              <SwiperSlide
-                key={preset.isTemporary ? 'temp' : preset.id.toString()}
-              >
-                {() => (
-                  <Title
-                    customClass={`presset-title-top presset-title-top--vertical ${
-                      (preset.isTemporary || false) && 'presset-title-temp'
-                    }`}
-                  >
-                    {preset.name}
-                  </Title>
-                )}
-              </SwiperSlide>
-            );
-          })}
       </Swiper>
     </div>
   );
