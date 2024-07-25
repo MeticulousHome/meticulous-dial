@@ -479,6 +479,10 @@ const presetSlice = createSlice({
   name: 'presets',
   initialState,
   reducers: {
+    resetDefaultProfileConfig: (state) => {
+      state.defaultProfileActiveIndexSwiper = 0;
+      state.defaultProfileSelected = null;
+    },
     setNextDefaultProfileOption: (state) => {
       state.defaultProfileActiveIndexSwiper = Math.min(
         state.defaultProfileActiveIndexSwiper + 1,
@@ -721,6 +725,7 @@ export const {
   setOptionPressets,
   setDefaultProfileSelected,
   setNextDefaultProfileOption,
-  setPrevDefaultProfileOption
+  setPrevDefaultProfileOption,
+  resetDefaultProfileConfig
 } = presetSlice.actions;
 export default presetSlice.reducer;

@@ -11,6 +11,7 @@ import { setScreen } from '../store/features/screens/screens-slice';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import {
   addPresetNewOne,
+  resetDefaultProfileConfig,
   setNextDefaultProfileOption,
   setPrevDefaultProfileOption
 } from '../store/features/preset/preset-slice';
@@ -65,6 +66,10 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
       setScreen('pressetSettings');
     }
   }, [isLoading, defaultProfiles]);
+
+  useEffect(() => {
+    dispatch(resetDefaultProfileConfig());
+  }, []);
 
   if (isLoading) {
     return <LoadingScreen />;
