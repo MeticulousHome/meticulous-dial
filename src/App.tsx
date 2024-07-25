@@ -33,6 +33,7 @@ const App = (): JSX.Element => {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const notifications = useSelector(notificationSelector.selectAll);
   const [splashAnimationLooping, setSplashAnimationLooping] = useState(false);
+  const [backendReady, setBackendReady] = useState(false);
 
   useEffect(() => {
     if (notifications.length > 0 && screen.value !== 'notifications') {
@@ -48,7 +49,7 @@ const App = (): JSX.Element => {
 
   // For development purpose
   useSocketKeyboardListeners();
-  useFetchData();
+  useFetchData(() => setBackendReady(true));
   useHandleGestures(
     {
       doubleTare() {
@@ -82,9 +83,7 @@ const App = (): JSX.Element => {
     stats?.name !== 'idle' || bubbleDisplay.visible
   );
 
-  const isReady =
-    (presetID != -1 || presetsStatus === 'ready') && splashAnimationLooping;
-  return isReady ? (
+  return backendReady && splashAnimationLooping ? (
     <SocketManager>
       <Router currentScreen={screen.value} previousScreen={screen.prev} />
     </SocketManager>
