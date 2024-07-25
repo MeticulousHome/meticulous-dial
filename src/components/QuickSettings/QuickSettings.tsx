@@ -276,18 +276,22 @@ export function QuickSettings(): JSX.Element {
         {contextSettings.length > 0 && (
           <SwiperSlide key="seperator" className="separator" />
         )}
-        {defaultSettings.map((setting, index: number) => {
-          const isActive = index === activeIndex - contextSettings.length;
-          return (
-            <SwiperSlide
-              className={getSettingClasses(isActive)}
-              key={`default_option-${index}`}
-              onAnimationEnd={handleAnimationEnd}
-            >
-              {setting.label} {setting.key === 'preheat' && preheatValue}
-            </SwiperSlide>
-          );
-        })}
+        {settings
+          .filter(
+            (item) => !contextSettings.map((cx) => cx.key).includes(item.key)
+          )
+          .map((setting, index: number) => {
+            const isActive = index === activeIndex - contextSettings.length;
+            return (
+              <SwiperSlide
+                className={getSettingClasses(isActive)}
+                key={`default_option-${index}`}
+                onAnimationEnd={handleAnimationEnd}
+              >
+                {setting.label} {setting.key === 'preheat' && preheatValue}
+              </SwiperSlide>
+            );
+          })}
       </Swiper>
     </div>
   );
