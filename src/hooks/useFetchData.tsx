@@ -1,11 +1,20 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getPresets } from '../components/store/features/preset/preset-slice';
 import { getConfig as getWifiConfig } from '../components/store/features/wifi/wifi-slice';
 import { useAppDispatch, useAppSelector } from '../components/store/hooks';
+import { api } from '../api/api';
 
-export function useFetchData() {
+const API_URL = process.env.SERVER_URL || 'http://localhost:8080';
+
+export function useFetchData(onReady?: () => void) {
   const dispatch = useAppDispatch();
   const presetsState = useAppSelector((state) => state.presets.status);
+  const activePreset = useAppSelector((state) => state.presets.activePreset);
+
+  const presetID = useAppSelector(
+    (state) => state.presets.activePreset?.id || -1
+  );
+  const [profileImageReady, setProfileImageReady] = useState(false);
 
   useEffect(() => {
     dispatch(getPresets({}));
@@ -19,4 +28,25 @@ export function useFetchData() {
       }, 1000);
     }
   }, [presetsState]);
+
+  useEffect(() => {
+    if (!onReady) {
+      return;
+    }
+    if (presetID != -1 || presetsState === 'ready') {
+      if (activePreset?.display?.image && !profileImageReady) {
+        const img = new Image();
+        img.onload = () => {
+          setProfileImageReady(true);
+        };
+        // Just in case the image URL is bad we dont want to get stuck!
+        img.onerror = img.onload;
+        img.src = `${API_URL}${api.getProfileImageUrl(
+          activePreset.display.image
+        )}`;
+      } else {
+        onReady();
+      }
+    }
+  }, [activePreset, presetsState, presetID, profileImageReady]);
 }
