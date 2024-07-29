@@ -65,7 +65,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
   const captionRef = useRef<HTMLDivElement>(null);
   const [caption, setCaption] = useState(defaultValue || []);
 
-  const moveElements = (right: boolean) => {
+  const moveElements = (right: boolean, speed: number) => {
     const newAlphabet = [...alphabet];
     const i = alphabet.findIndex((element) => {
       return element.toLowerCase() === mainLetter.toLowerCase();
@@ -97,8 +97,8 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       const jumpRotate = getJumpRotate(keyboardType);
       setRotate(
         !right
-          ? rotate + ROTATE_VALUE + jumpRotate
-          : rotate - ROTATE_VALUE - jumpRotate
+          ? rotate + ROTATE_VALUE * speed + jumpRotate
+          : rotate - ROTATE_VALUE * speed - jumpRotate
       );
       return;
     }
@@ -126,11 +126,19 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
   };
 
   useHandleGestures({
-    left() {
-      moveElements(true);
+    left(speed) {
+      let rotation = 1.0;
+      if (speed < 90) {
+        rotation *= 3 - speed / 45;
+      }
+      moveElements(true, rotation);
     },
-    right() {
-      moveElements(false);
+    right(speed) {
+      let rotation = 1.0;
+      if (speed < 90) {
+        rotation *= 3 - speed / 45;
+      }
+      moveElements(false, rotation);
     },
     doubleClick() {
       if (mainLetter === 'capslock') {
