@@ -47,6 +47,11 @@ export type GestureType =
   | 'pressDown'
   | 'pressUp';
 
+export interface Gesture {
+  type: GestureType;
+  timeSinceLastEvent: number;
+}
+
 export type IPresetSettings = string[];
 
 export interface ISensorData {

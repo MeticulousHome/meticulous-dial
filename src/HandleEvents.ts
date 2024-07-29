@@ -1,8 +1,8 @@
 import { createNanoEvents } from 'nanoevents';
-import { GestureType } from './types';
+import { Gesture } from './types';
 
 export interface HandleEvents {
-  gesture: (gesture: GestureType) => void;
+  gesture: (gesture: Gesture) => void;
 }
 
 export const handleEvents = createNanoEvents<HandleEvents>();
