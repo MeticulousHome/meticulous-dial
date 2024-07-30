@@ -66,7 +66,7 @@ const initialValue: AnimationData = {
   extraDelay: 500
 };
 
-export function Pressets({ transitioning }: RouteProps): JSX.Element {
+export function PressetsContent({ transitioning }: RouteProps): JSX.Element {
   const dispatch = useAppDispatch();
   const presets = useAppSelector((state) => state.presets);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
@@ -676,4 +676,24 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       )}
     </div>
   );
+}
+
+export function Pressets(props: RouteProps) {
+  const presets = useAppSelector((state) => state.presets);
+  const [previousPressetsLength, setPreviousPressetsLength] = useState(
+    presets.value.length
+  );
+
+  // This key will be used to mount and unmount the component to reset all vars.
+  // The key value will change just when a presset is deleted.
+  const [key, setKey] = useState(`pressets-content-${previousPressetsLength}`);
+
+  useEffect(() => {
+    if (presets.value.length < previousPressetsLength) {
+      setKey(`pressets-content-${presets.value.length}`);
+    }
+    setPreviousPressetsLength(presets.value.length);
+  }, [presets.value.length]);
+
+  return <PressetsContent key={key} {...props} />;
 }

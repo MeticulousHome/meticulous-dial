@@ -562,7 +562,7 @@ const presetSlice = createSlice({
                 // Dont select the temporary profile untill absolutely necessary
                 defaultIndex = Math.min(
                   profileCount > 0 ? profileCount - 1 : payload.length - 1,
-                  state.activeIndexSwiper + 1
+                  state.activeIndexSwiper - 1
                 );
               }
               break;
