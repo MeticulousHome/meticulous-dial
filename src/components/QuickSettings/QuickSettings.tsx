@@ -181,13 +181,15 @@ export function QuickSettings(): JSX.Element {
   );
 
   useEffect(() => {
-    let context: QuickSettingOption[] = [];
     if (
-      presets.option === 'HOME' ||
-      presets.activeIndexSwiper === presets.value.length
+      presets.value.length === 0 ||
+      presets.activeIndexSwiper === presets.value.length ||
+      (presets.option !== 'HOME' && presets.option !== 'PRESSETS')
     ) {
-      context = profileContextSettings;
+      return;
     }
+
+    const context: QuickSettingOption[] = profileContextSettings;
     setContextSettings(context);
     setSettings([...context, ...defaultSettings]);
   }, [presets, currentScreen]);
