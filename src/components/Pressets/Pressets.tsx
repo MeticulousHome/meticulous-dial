@@ -21,6 +21,7 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import {
   cleanupInternalProfile,
   resetActiveSetting,
+  setActiveIndexSwiper,
   setNextPreset,
   setOptionPressets,
   setPrevPreset
@@ -38,6 +39,7 @@ import {
   getDeviceInfo
 } from '../store/features/settings/settings-slice';
 import { loadProfileData, startProfile } from '../../api/profile';
+import { useSocket } from '../store/SocketManager';
 
 interface AnimationData {
   circlekey: number;
@@ -74,6 +76,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const titleSwiperRef = useRef<SwiperRef | null>(null);
   const circleOne = useRef<SVGCircleElement>(null);
   const animationInProgress = useRef(false);
+  const socket = useSocket();
 
   const [animation, setAnimation] = useState<AnimationData>(initialValue);
 
@@ -133,6 +136,15 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
     return true;
   }, []);
+
+  const sendCurrentPressetId = (index: number) => {
+    const mPresset = presets.value[index];
+    if (mPresset === undefined) {
+      return;
+    }
+
+    socket.emit('profileHover', { id: mPresset.id, from: 'dial' });
+  };
 
   useHandleGestures(
     {
@@ -297,6 +309,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
         if (!transitioning) {
           if (!option.animating && option.screen === 'PRESSETS') {
             dispatch(setNextPreset());
+            sendCurrentPressetId(presets.activeIndexSwiper + 1);
           } else {
             setAnimation(initialValue);
             setPercentaje(0);
@@ -357,6 +370,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
         if (!transitioning) {
           if (!option.animating && option.screen === 'PRESSETS') {
             dispatch(setPrevPreset());
+            sendCurrentPressetId(presets.activeIndexSwiper - 1);
           } else {
             setAnimation(initialValue);
             setPercentaje(0);
@@ -506,6 +520,20 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     dispatch(setWaitingForAction(false));
     dispatch(fetchSettigns());
     dispatch(getDeviceInfo());
+  }, []);
+
+  useEffect(() => {
+    socket.on('profileHover', (data: { id: string; from: string }) => {
+      if (data.from === 'dial') {
+        return;
+      }
+      setOption((prev) => ({ ...prev, animating: false }));
+      const myIndex = presets.value.findIndex((e) => e.id === data.id);
+      presetSwiperRef.current.swiper.slideTo(myIndex);
+      titleSwiperRef.current.swiper.slideTo(myIndex);
+      dispatch(setActiveIndexSwiper(myIndex));
+      setOption({ screen: 'PRESSETS', animating: false });
+    });
   }, []);
 
   return (
