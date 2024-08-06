@@ -8,6 +8,27 @@
 }
 
 #default-profile-container .swiper-slide {
-  left: 30%;
   justify-content: flex-start;
+}
+.default-profile-container {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-auto-flow: row dense;
+}
+.default-profile-container__content {
+  grid-column: span 3 / span 3;
+}
+.default-profile-container__content__info {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.default-profile-container__content__info__text {
+  display: block;
+  text-align: left;
+  word-break: break-all;
+}
+.default-profile-container__content__info__text--mb-10 {
+  margin-bottom: 10px;
 }
