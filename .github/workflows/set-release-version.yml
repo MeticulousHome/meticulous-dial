@@ -43,4 +43,3 @@ jobs:
           access_token: ${{ secrets.GH_TOKEN }}
           branch: ${{ github.ref_name }}
           enforce_admins: ${{ steps.disable_include_admins.outputs.initial_status }}
-
