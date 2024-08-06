@@ -1,12 +1,8 @@
-import { v4 as uuidv4 } from 'uuid';
-import {
-  DefaultProfileValue,
-  ProfileValue
-} from '../components/store/features/preset/preset-slice';
+import { DefaultProfile } from 'meticulous-typescript-profile';
 
-export const profiles: Array<DefaultProfileValue> = [
+export const profiles: Array<DefaultProfile> = [
   {
-    id: uuidv4(),
+    id: '1',
     name: 'Pp',
     author: '',
     author_id: '00000000-0000-0000-0000-000000000000',
@@ -70,7 +66,7 @@ export const profiles: Array<DefaultProfileValue> = [
     description: 'I really like this coffe!'
   },
   {
-    id: uuidv4(),
+    id: '2',
     name: 'New Preset',
     author: '',
     author_id: '00000000-0000-0000-0000-000000000000',
@@ -134,7 +130,7 @@ export const profiles: Array<DefaultProfileValue> = [
     description: 'this is a secret recipe'
   },
   {
-    id: uuidv4(),
+    id: '3',
     name: '1',
     author: '',
     author_id: '00000000-0000-0000-0000-000000000000',
@@ -198,7 +194,7 @@ export const profiles: Array<DefaultProfileValue> = [
     description: 'This profile is cool!!'
   },
   {
-    id: uuidv4(),
+    id: '4',
     name: 'New Preset',
     author: '',
     author_id: '',
