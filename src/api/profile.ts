@@ -1,11 +1,11 @@
 import { APIError, LastProfileIdent } from 'meticulous-api';
-import { DefaultProfile, Profile } from 'meticulous-typescript-profile';
+import { Profile } from 'meticulous-typescript-profile';
 import { api } from './api';
 
-export const getDefaultProfiles = async (): Promise<DefaultProfile[]> => {
+export const getDefaultProfiles = async (): Promise<Profile[]> => {
   try {
     const { data } = await api.getDefaultProfiles();
-    return data as DefaultProfile[];
+    return data as Profile[];
   } catch (error) {
     console.error('GetProfiles error: ', error);
     return [];

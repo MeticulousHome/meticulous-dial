@@ -4,7 +4,7 @@ import {
   Draft,
   PayloadAction
 } from '@reduxjs/toolkit';
-import { Profile, DefaultProfile } from 'meticulous-typescript-profile';
+import { Profile } from 'meticulous-typescript-profile';
 import equal from 'fast-deep-equal';
 
 import { settingsDefaultNewPreset } from '../../../../utils/mock';
@@ -60,8 +60,8 @@ export function cleanupInternalProfile(profile: ProfileValue) {
 
 export interface PresetsState extends PresetSettingInterface {
   value: Array<ProfileValue>;
-  defaultProfiles: Array<DefaultProfile>;
-  defaultProfileSelected?: DefaultProfile;
+  defaultProfiles: Array<Profile>;
+  defaultProfileSelected?: Profile;
   defaultProfileActiveIndexSwiper: number;
   defaultPresetIndex: number;
   activeIndexSwiper: number;
@@ -512,7 +512,7 @@ const presetSlice = createSlice({
     },
     setDefaultProfileSelected: (
       state: Draft<typeof initialState>,
-      action: PayloadAction<DefaultProfile>
+      action: PayloadAction<Profile>
     ) => {
       state.defaultProfileSelected = action.payload;
     },

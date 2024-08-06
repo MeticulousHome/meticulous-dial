@@ -1,6 +1,6 @@
-import { DefaultProfile } from 'meticulous-typescript-profile';
+import { Profile } from 'meticulous-typescript-profile';
 
-export const profiles: Array<DefaultProfile> = [
+export const profiles: Array<Profile> = [
   {
     id: '1',
     name: 'Pp',
@@ -62,8 +62,7 @@ export const profiles: Array<DefaultProfile> = [
         exit_triggers: [],
         limits: []
       }
-    ],
-    description: 'I really like this coffe!'
+    ]
   },
   {
     id: '2',
@@ -126,8 +125,7 @@ export const profiles: Array<DefaultProfile> = [
         exit_triggers: [],
         limits: []
       }
-    ],
-    description: 'this is a secret recipe'
+    ]
   },
   {
     id: '3',
@@ -190,8 +188,7 @@ export const profiles: Array<DefaultProfile> = [
         exit_triggers: [],
         limits: []
       }
-    ],
-    description: 'This profile is cool!!'
+    ]
   },
   {
     id: '4',
@@ -256,7 +253,6 @@ export const profiles: Array<DefaultProfile> = [
         exit_triggers: [],
         limits: []
       }
-    ],
-    description: 'This profile is a test'
+    ]
   }
 ];
