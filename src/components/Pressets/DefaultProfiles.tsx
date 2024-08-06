@@ -38,9 +38,19 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
     {
       pressDown() {
         if (!transitioning && defaultProfiles && defaultProfiles[activeIndex]) {
-          const { id, ...profileSelected } = defaultProfiles[activeIndex];
+          const { id, ...profileSelected } = defaultProfiles[
+            activeIndex
+          ] as Profile;
           dispatch(
-            addPresetNewOne({ profile: profileSelected as unknown as Profile })
+            addPresetNewOne({
+              profile: {
+                ...profileSelected,
+                display: {
+                  shortDescription: profileSelected.display.shortDescription,
+                  description: profileSelected.display.description
+                }
+              } as unknown as Profile
+            })
           );
           dispatch(setScreen('pressets'));
         }
