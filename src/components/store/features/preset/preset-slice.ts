@@ -4,7 +4,7 @@ import {
   Draft,
   PayloadAction
 } from '@reduxjs/toolkit';
-import { Profile } from 'meticulous-typescript-profile';
+import { Profile, DefaultProfile } from 'meticulous-typescript-profile';
 import equal from 'fast-deep-equal';
 
 import { settingsDefaultNewPreset } from '../../../../utils/mock';
@@ -25,7 +25,8 @@ import {
   getProfiles,
   deleteProfile,
   getLastProfile,
-  getDefaultProfiles
+  getDefaultProfiles,
+  getProfileDefaultImages
 } from '../../../../api/profile';
 import { addVariablesToSettings } from '../../../../utils/preset';
 
@@ -46,10 +47,6 @@ export type ProfileValue = Profile & {
   isTemporary?: boolean;
 };
 
-export type DefaultProfileValue = Omit<ProfileValue, 'settings'> & {
-  description: string;
-};
-
 export function cleanupInternalProfile(profile: ProfileValue) {
   const copy = { ...profile };
 
@@ -63,8 +60,8 @@ export function cleanupInternalProfile(profile: ProfileValue) {
 
 export interface PresetsState extends PresetSettingInterface {
   value: Array<ProfileValue>;
-  defaultProfiles: Array<DefaultProfileValue>;
-  defaultProfileSelected?: DefaultProfileValue;
+  defaultProfiles: Array<DefaultProfile>;
+  defaultProfileSelected?: DefaultProfile;
   defaultProfileActiveIndexSwiper: number;
   defaultPresetIndex: number;
   activeIndexSwiper: number;
@@ -75,7 +72,25 @@ export interface PresetsState extends PresetSettingInterface {
 
 export const loadDefaultProfiles = createAsyncThunk(
   'presetData/loadDefaultProfiles',
-  async () => await getDefaultProfiles()
+  async () => {
+    let profiles = await getDefaultProfiles();
+
+    const missingImage = profiles.some((profile) => !profile.display.image);
+
+    if (missingImage) {
+      const images = await getProfileDefaultImages();
+
+      profiles = profiles.map((profile, index) => ({
+        ...profile,
+        display: {
+          ...profile.display,
+          image: profile.display.image ?? images[index]
+        }
+      }));
+    }
+
+    return profiles;
+  }
 );
 
 export const addPresetNewOne = createAsyncThunk(
@@ -497,7 +512,7 @@ const presetSlice = createSlice({
     },
     setDefaultProfileSelected: (
       state: Draft<typeof initialState>,
-      action: PayloadAction<DefaultProfileValue>
+      action: PayloadAction<DefaultProfile>
     ) => {
       state.defaultProfileSelected = action.payload;
     },

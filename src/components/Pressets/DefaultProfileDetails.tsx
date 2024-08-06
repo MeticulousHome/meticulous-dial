@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
@@ -92,10 +92,17 @@ export const DefaultProfileDetails = () => {
                 />
               </div>
               <p>{defaultProfile.name}</p>
-              <p>{defaultProfile.description}</p>
+              <p
+                style={{
+                  padding: '0px 29px'
+                }}
+              >
+                {defaultProfile.display.description}
+              </p>
             </div>
           </div>
         </SwiperSlide>
+        <SwiperSlide></SwiperSlide>
         <SwiperSlide></SwiperSlide>
 
         <SwiperSlide

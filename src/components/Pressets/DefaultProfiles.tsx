@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
 import { Pagination as PaginationSwiper } from 'swiper';
 
 import { clearSlides, handlePresetSlideChange } from '../../utils/preset';
-import { ProfileImage } from './ProfileImage';
 import { RouteProps, Title } from '../../navigation';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -17,6 +16,7 @@ import {
 } from '../store/features/preset/preset-slice';
 import './defaultProfile.css';
 import { api } from '../../api/api';
+import { Profile } from 'meticulous-typescript-profile';
 
 const API_URL = process.env.SERVER_URL || 'http://localhost:8080';
 
@@ -38,7 +38,10 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
     {
       pressDown() {
         if (!transitioning && defaultProfiles && defaultProfiles[activeIndex]) {
-          dispatch(addPresetNewOne({ profile: defaultProfiles[activeIndex] }));
+          const { id, ...profileSelected } = defaultProfiles[activeIndex];
+          dispatch(
+            addPresetNewOne({ profile: profileSelected as unknown as Profile })
+          );
           dispatch(setScreen('pressets'));
         }
       },
@@ -97,7 +100,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
         }}
       >
         {defaultProfiles.map((preset) => (
-          <SwiperSlide key={preset.isTemporary ? 'temp' : preset.id.toString()}>
+          <SwiperSlide key={preset.id.toString()}>
             {() => (
               <div>
                 <div
@@ -136,7 +139,9 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
                       style={{
                         display: 'block',
                         textAlign: 'left',
-                        marginBottom: '10px'
+                        marginBottom: '10px',
+                        maxWidth: '160px',
+                        wordBreak: 'break-all'
                       }}
                     >
                       {preset.name}
@@ -145,11 +150,11 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
                       style={{
                         display: 'block',
                         textAlign: 'left',
-                        maxWidth: '155px',
+                        maxWidth: '160px',
                         wordBreak: 'break-all'
                       }}
                     >
-                      {preset.description}
+                      {preset.display.shortDescription}
                     </span>
                   </div>
                 </div>
