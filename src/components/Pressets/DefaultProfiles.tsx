@@ -112,61 +112,49 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
         {defaultProfiles.map((preset) => (
           <SwiperSlide key={preset.id.toString()}>
             {() => (
-              <div>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                  }}
-                >
-                  <img
-                    src={`${API_URL}${api.getProfileImageUrl(
-                      preset.display.image
-                    )}`}
-                    alt="No image"
-                    width="50"
-                    height="50"
-                    className="profile-image image-prev"
-                    style={{
-                      border: `7px solid ${
-                        preset.display.accentColor ?? '#e0dcd0'
-                      }`,
-                      display: 'block',
-                      position: 'relative'
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'flex-start',
-                      marginLeft: '10px'
-                    }}
-                  >
-                    <span
-                      style={{
-                        display: 'block',
-                        textAlign: 'left',
-                        marginBottom: '10px',
-                        maxWidth: '160px',
-                        wordBreak: 'break-all'
-                      }}
-                    >
-                      {preset.name}
-                    </span>
-                    <span
-                      style={{
-                        display: 'block',
-                        textAlign: 'left',
-                        maxWidth: '160px',
-                        wordBreak: 'break-all'
-                      }}
-                    >
-                      {preset.display.shortDescription}
-                    </span>
+              <div
+                style={{
+                  width: '100%'
+                }}
+              >
+                <div className="default-profile-container">
+                  <div></div>
+                  <div className="default-profile-container__content">
+                    <div className="default-profile-container__content__info">
+                      <img
+                        src={`${API_URL}${api.getProfileImageUrl(
+                          preset.display.image
+                        )}`}
+                        alt="No image"
+                        width="50"
+                        height="50"
+                        className="profile-image image-prev"
+                        style={{
+                          border: `7px solid ${
+                            preset.display.accentColor ?? '#e0dcd0'
+                          }`,
+                          display: 'block',
+                          position: 'relative'
+                        }}
+                      />
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'flex-start',
+                          marginLeft: '10px'
+                        }}
+                      >
+                        <span className="default-profile-container__content__info__text default-profile-container__content__info__text--mb-10">
+                          {preset.name}
+                        </span>
+                        <span className="default-profile-container__content__info__text">
+                          {preset.display.shortDescription}
+                        </span>
+                      </div>
+                    </div>
                   </div>
+                  <div></div>
                 </div>
               </div>
             )}
