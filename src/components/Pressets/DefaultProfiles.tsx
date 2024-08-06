@@ -76,7 +76,8 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
 
   useEffect(() => {
     if (!isLoading && defaultProfiles.length === 0) {
-      setScreen('pressetSettings');
+      // if there is not default profile user is sent to pressets screen
+      dispatch(setScreen('pressets'));
     }
   }, [isLoading, defaultProfiles]);
 
