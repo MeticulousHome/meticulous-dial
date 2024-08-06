@@ -1,21 +1,11 @@
 import { APIError, LastProfileIdent } from 'meticulous-api';
-import { Profile } from 'meticulous-typescript-profile';
+import { DefaultProfile, Profile } from 'meticulous-typescript-profile';
 import { api } from './api';
-import { profiles } from '../../src/data/defaultProfiles';
-import { DefaultProfileValue } from '../../src/components/store/features/preset/preset-slice';
 
-const loadDefaultProfilesMock = (): Promise<DefaultProfileValue[]> =>
-  new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(profiles);
-    }, 2000);
-  });
-
-export const getDefaultProfiles = async () => {
+export const getDefaultProfiles = async (): Promise<DefaultProfile[]> => {
   try {
-    // TODO: change logic to fetch profiles from api
-    const profilesData = await loadDefaultProfilesMock();
-    return profilesData;
+    const { data } = await api.getDefaultProfiles();
+    return data as DefaultProfile[];
   } catch (error) {
     console.error('GetProfiles error: ', error);
     return [];
