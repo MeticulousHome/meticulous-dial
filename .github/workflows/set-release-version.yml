@@ -11,13 +11,14 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_TOKEN }}
-      - name: Setup Node.js 18
-        uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.node-version'
+
       - name: Disable "include administrators" branch protection
         id: disable_include_admins
         uses: benjefferies/branch-protection-bot@1.0.8
@@ -26,12 +27,15 @@ jobs:
           access_token: ${{ secrets.GH_TOKEN }}
           branch: ${{ github.ref_name }}
           enforce_admins: false
+
       - name: Install dependencies
         run: npm install
+
       - name: Run semantic-release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: npx semantic-release
+        run: npx semantic-release --branches ${{ github.ref_name }}
+
       - name: Enable "include administrators" branch protection
         uses: benjefferies/branch-protection-bot@1.0.8
         if: always()
@@ -39,6 +43,4 @@ jobs:
           access_token: ${{ secrets.GH_TOKEN }}
           branch: ${{ github.ref_name }}
           enforce_admins: ${{ steps.disable_include_admins.outputs.initial_status }}
-      - name: Sync beta with master branch
-        if: github.ref_name == 'master'
-        run: git push origin master:beta --force
+
