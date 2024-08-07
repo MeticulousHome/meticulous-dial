@@ -70,6 +70,7 @@ const initialValue: AnimationData = {
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const dispatch = useAppDispatch();
   const presets = useAppSelector((state) => state.presets);
+  const profileHoverId = useAppSelector((state) => state.presets.profileHover);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
   const [pressetSwiper, setPressetsSwiper] = useState<SwiperS | null>(null);
   const [pressetTitleSwiper, setPressetTitleSwiper] = useState(null);
@@ -523,18 +524,17 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   }, []);
 
   useEffect(() => {
-    socket.on('profileHover', (data: { id: string; from: string }) => {
-      if (data.from === 'dial') {
-        return;
-      }
-      setOption((prev) => ({ ...prev, animating: false }));
-      const myIndex = presets.value.findIndex((e) => e.id === data.id);
-      presetSwiperRef.current.swiper.slideTo(myIndex);
-      titleSwiperRef.current.swiper.slideTo(myIndex);
-      dispatch(setActiveIndexSwiper(myIndex));
-      setOption({ screen: 'PRESSETS', animating: false });
-    });
-  }, []);
+    if (profileHoverId === '-1') {
+      return;
+    }
+
+    setOption((prev) => ({ ...prev, animating: false }));
+    const myIndex = presets.value.findIndex((e) => e.id === profileHoverId);
+    presetSwiperRef.current.swiper.slideTo(myIndex);
+    titleSwiperRef.current.swiper.slideTo(myIndex);
+    dispatch(setActiveIndexSwiper(myIndex));
+    setOption({ screen: 'PRESSETS', animating: false });
+  }, [profileHoverId]);
 
   return (
     <div className="preset-wrapper">
