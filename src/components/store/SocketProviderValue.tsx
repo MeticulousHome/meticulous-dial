@@ -5,7 +5,7 @@ import { GestureType, ISensorData, ProfileCause } from '../../types/index';
 import { useAppDispatch } from './hooks';
 import { setStats, setWaterStatus } from './features/stats/stats-slice';
 import { setScreen } from './features/screens/screens-slice';
-import { getPresets } from './features/preset/preset-slice';
+import { getPresets, setProfileHover } from './features/preset/preset-slice';
 import { handleEvents } from '../../HandleEvents';
 import {
   addOneNotification,
@@ -79,6 +79,13 @@ export const SocketProviderValue = () => {
         console.log('gesture:', gesture);
         handleEvents.emit('gesture', gesture);
       }
+    });
+
+    socket.on('profileHover', (data: { id: string; from: string }) => {
+      if (data.from === 'dial') {
+        return;
+      }
+      dispatch(setProfileHover(data.id));
     });
   }, []);
 
