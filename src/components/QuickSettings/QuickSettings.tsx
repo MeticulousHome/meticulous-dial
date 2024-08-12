@@ -70,9 +70,9 @@ export function QuickSettings(): JSX.Element {
   const socket = useSocket();
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const { defaultProfileActiveIndexSwiper, defaultProfiles } = useAppSelector(
-    (state) => state.presets
-  );
+  const {
+    defaultProfilesInfo: { defaultProfileActiveIndexSwiper, defaultProfiles }
+  } = useAppSelector((state) => state.presets);
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const stats = useAppSelector((state) => state.stats);

@@ -60,9 +60,12 @@ export function cleanupInternalProfile(profile: ProfileValue) {
 
 export interface PresetsState extends PresetSettingInterface {
   value: Array<ProfileValue>;
-  defaultProfiles: Array<Profile>;
-  defaultProfileSelected?: Profile;
-  defaultProfileActiveIndexSwiper: number;
+  defaultProfilesInfo: {
+    defaultProfiles: Array<Profile>;
+    defaultProfileSelected?: Profile;
+    defaultProfileActiveIndexSwiper: number;
+    status: 'ready' | 'pending' | 'failed';
+  };
   defaultPresetIndex: number;
   activeIndexSwiper: number;
   activePreset: ProfileValue;
@@ -72,8 +75,10 @@ export interface PresetsState extends PresetSettingInterface {
 
 export const loadDefaultProfiles = createAsyncThunk(
   'presetData/loadDefaultProfiles',
-  async () => {
+  async (_, { rejectWithValue }) => {
     let profiles = await getDefaultProfiles();
+
+    if (profiles.length === 0) return rejectWithValue(null);
 
     const missingImage = profiles.some((profile) => !profile.display.image);
 
@@ -467,8 +472,12 @@ export const getPresets = createAsyncThunk(
 const initialState: PresetsState = {
   value: [],
   // default profiles
-  defaultProfiles: [],
-  defaultProfileActiveIndexSwiper: 0,
+  defaultProfilesInfo: {
+    defaultProfileActiveIndexSwiper: 0,
+    defaultProfiles: [],
+    status: 'pending',
+    defaultProfileSelected: null
+  },
   // end default profiles
   option: 'HOME',
   defaultPresetIndex: -1,
@@ -495,18 +504,18 @@ const presetSlice = createSlice({
   initialState,
   reducers: {
     resetDefaultProfileConfig: (state) => {
-      state.defaultProfileActiveIndexSwiper = 0;
-      state.defaultProfileSelected = null;
+      state.defaultProfilesInfo.defaultProfileActiveIndexSwiper = 0;
+      state.defaultProfilesInfo.defaultProfileSelected = null;
     },
     setNextDefaultProfileOption: (state) => {
-      state.defaultProfileActiveIndexSwiper = Math.min(
-        state.defaultProfileActiveIndexSwiper + 1,
-        state.defaultProfiles.length - 1
+      state.defaultProfilesInfo.defaultProfileActiveIndexSwiper = Math.min(
+        state.defaultProfilesInfo.defaultProfileActiveIndexSwiper + 1,
+        state.defaultProfilesInfo.defaultProfiles.length - 1
       );
     },
     setPrevDefaultProfileOption: (state) => {
-      state.defaultProfileActiveIndexSwiper = Math.max(
-        state.defaultProfileActiveIndexSwiper - 1,
+      state.defaultProfilesInfo.defaultProfileActiveIndexSwiper = Math.max(
+        state.defaultProfilesInfo.defaultProfileActiveIndexSwiper - 1,
         0
       );
     },
@@ -514,7 +523,7 @@ const presetSlice = createSlice({
       state: Draft<typeof initialState>,
       action: PayloadAction<Profile>
     ) => {
-      state.defaultProfileSelected = action.payload;
+      state.defaultProfilesInfo.defaultProfileSelected = action.payload;
     },
     setPresetState: (_, action: PayloadAction<PresetsState>) => {
       return { ...action.payload };
@@ -721,13 +730,16 @@ const presetSlice = createSlice({
         console.log('save error', action);
       })
       .addCase(loadDefaultProfiles.pending, (state, action) => {
+        state.defaultProfilesInfo.status = 'pending';
         state.pending = true;
       })
       .addCase(loadDefaultProfiles.fulfilled, (state, action) => {
+        state.defaultProfilesInfo.status = 'ready';
         state.pending = false;
-        state.defaultProfiles = action.payload;
+        state.defaultProfilesInfo.defaultProfiles = action.payload;
       })
       .addCase(loadDefaultProfiles.rejected, (state, action) => {
+        state.defaultProfilesInfo.status = 'failed';
         state.pending = false;
         state.error = true;
       });
