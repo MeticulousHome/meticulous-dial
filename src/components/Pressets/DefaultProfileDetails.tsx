@@ -15,7 +15,7 @@ export const DefaultProfileDetails = () => {
   const presetSwiperRef = useRef<SwiperRef | null>(null);
 
   const defaultProfile = useAppSelector(
-    (state) => state.presets.defaultProfileSelected
+    (state) => state.presets.defaultProfilesInfo.defaultProfileSelected
   );
 
   useHandleGestures({

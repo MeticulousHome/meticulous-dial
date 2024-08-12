@@ -22,12 +22,14 @@ const API_URL = process.env.SERVER_URL || 'http://localhost:8080';
 
 export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
   const activeIndex = useAppSelector(
-    (state) => state.presets.defaultProfileActiveIndexSwiper
+    (state) => state.presets.defaultProfilesInfo.defaultProfileActiveIndexSwiper
   );
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const isLoading = useAppSelector((state) => state.presets.pending);
+  const isLoading = useAppSelector(
+    (state) => state.presets.defaultProfilesInfo.status === 'pending'
+  );
   const defaultProfiles = useAppSelector(
-    (state) => state.presets.defaultProfiles
+    (state) => state.presets.defaultProfilesInfo.defaultProfiles
   );
   const dispatch = useAppDispatch();
 
