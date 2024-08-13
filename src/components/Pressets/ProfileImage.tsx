@@ -67,7 +67,15 @@ export const ProfileImage = ({ preset }: { preset: IProfileImage }) => {
         image
       })
     );
-  }, [preset.id]);
+  }, [preset.id, image]);
+
+  useEffect(() => {
+    setImage(
+      preset.display?.image
+        ? `${API_URL}${api.getProfileImageUrl(preset.display.image)}`
+        : pImage?.image ?? `assets/images/${presetIndex}.png`
+    );
+  }, [preset.display?.image]);
 
   return (
     <img
