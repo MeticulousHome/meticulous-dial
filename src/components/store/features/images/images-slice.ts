@@ -15,7 +15,7 @@ const profileImageSlice = createSlice({
   name: 'tmp-profile-images',
   initialState: imageProfileAdapter.getInitialState(),
   reducers: {
-    addNewImageProfile: imageProfileAdapter.addOne
+    addNewImageProfile: imageProfileAdapter.upsertOne
   }
 });
 
