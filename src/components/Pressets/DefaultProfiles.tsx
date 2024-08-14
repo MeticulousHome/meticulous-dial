@@ -59,12 +59,12 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
       },
       left() {
         if (!transitioning) {
-          dispatch(setNextDefaultProfileOption());
+          dispatch(setPrevDefaultProfileOption());
         }
       },
       right() {
         if (!transitioning) {
-          dispatch(setPrevDefaultProfileOption());
+          dispatch(setNextDefaultProfileOption());
         }
       }
     },
