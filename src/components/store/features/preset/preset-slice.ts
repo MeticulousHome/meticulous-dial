@@ -709,17 +709,14 @@ const presetSlice = createSlice({
               };
             });
 
-            const discard = state.activePreset.id === action.payload.profileId;
             state.activePreset = payload[defaultIndex];
             const { settings } = state.allSettings.find(
               (item) => item.presetId === payload[defaultIndex].id.toString()
             );
-            if (discard) {
-              state.updatingSettings = {
-                presetId: payload[defaultIndex]?.id.toString(),
-                settings: settings || [...settingsDefaultNewPreset]
-              };
-            }
+            state.updatingSettings = {
+              presetId: payload[defaultIndex]?.id.toString(),
+              settings: settings || [...settingsDefaultNewPreset]
+            };
             state.activeIndexSwiper = defaultIndex;
             // state.activePresetIndex = defaultIndex;
           }
