@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import './quick-settings.css';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
@@ -79,9 +79,7 @@ export function QuickSettings(): JSX.Element {
   const { auto_preheat } = useAppSelector((state) => state.settings);
   const [preheatValue, setPreheatValue] = useState<string>('');
   const [settings, setSettings] = useState(defaultSettings);
-  const [contextSettings, setContextSettings] = useState<QuickSettingOption[]>(
-    []
-  );
+
   const presets = useAppSelector((state) => state.presets);
   const currentScreen = useAppSelector((state) => state.screen.value);
   const [counterESGG, setCounterESGG] = useState(0);
@@ -198,6 +196,16 @@ export function QuickSettings(): JSX.Element {
     !bubbleDisplay.visible || stats.waitingForActionAlreadySent
   );
 
+  const indexSeparator = useMemo(() => {
+    const contextSettings = profileContextSettings;
+
+    const contextItems = settings.filter((setting) =>
+      contextSettings.map((cx) => cx.key).includes(setting.key)
+    );
+
+    return contextItems.length - 1;
+  }, [settings.length]);
+
   useEffect(() => {
     if (
       presets.value.length === 0 ||
@@ -208,17 +216,24 @@ export function QuickSettings(): JSX.Element {
     }
 
     const context: QuickSettingOption[] = profileContextSettings;
-    setContextSettings(context);
-    setSettings([...context, ...defaultSettings]);
-  }, [presets, currentScreen]);
 
-  useEffect(() => {
-    if (currentScreen === 'defaultProfiles') {
-      setSettings((prev) =>
-        [{ key: 'details', label: 'Show details' }].concat(prev)
-      );
+    switch (currentScreen) {
+      case 'defaultProfiles':
+        setSettings([
+          ...[{ key: 'details', label: 'Show details' }],
+          ...defaultSettings
+        ]);
+        break;
+      default:
+        setSettings([...context, ...defaultSettings]);
+        break;
     }
-  }, [currentScreen]);
+  }, [
+    presets.value.length,
+    presets.activeIndexSwiper,
+    presets.option,
+    currentScreen
+  ]);
 
   useEffect(() => {
     if (swiper) {
@@ -260,29 +275,10 @@ export function QuickSettings(): JSX.Element {
         initialSlide={activeIndex}
         style={{ paddingLeft: '29px', top: '-4px' }}
       >
-        {contextSettings.map((setting, index: number) => {
+        {settings.map((setting, index: number) => {
           const isActive = index === activeIndex;
-
           return (
-            <SwiperSlide
-              className={getSettingClasses(isActive)}
-              key={`context_option-${index}`}
-              onAnimationEnd={handleAnimationEnd}
-            >
-              {setting.label} {setting.key === 'preheat' && preheatValue}
-            </SwiperSlide>
-          );
-        })}
-        {contextSettings.length > 0 && (
-          <SwiperSlide key="seperator" className="separator" />
-        )}
-        {settings
-          .filter(
-            (item) => !contextSettings.map((cx) => cx.key).includes(item.key)
-          )
-          .map((setting, index: number) => {
-            const isActive = index === activeIndex - contextSettings.length;
-            return (
+            <>
               <SwiperSlide
                 className={getSettingClasses(isActive)}
                 key={`default_option-${index}`}
@@ -290,8 +286,13 @@ export function QuickSettings(): JSX.Element {
               >
                 {setting.label} {setting.key === 'preheat' && preheatValue}
               </SwiperSlide>
-            );
-          })}
+
+              {indexSeparator === index && (
+                <SwiperSlide key="seperator" className="separator" />
+              )}
+            </>
+          );
+        })}
       </Swiper>
     </div>
   );
