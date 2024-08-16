@@ -86,7 +86,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     screen: 'HOME' | 'PRESSETS';
     animating: boolean;
   }>({
-    screen: presets.value.length === 0 ? 'PRESSETS' : 'HOME',
+    screen: presets.value.length === 0 ? 'PRESSETS' : presets.option,
     animating: false
   });
 
@@ -598,9 +598,13 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             }}
           >
             {presets.value.length &&
-              presets.value.map((preset) => (
+              presets.value.map((preset, index) => (
                 <SwiperSlide
-                  key={preset.isTemporary ? 'temp' : preset.id.toString()}
+                  key={
+                    preset.isTemporary
+                      ? `temp_${index}_`
+                      : `${preset.id.toString()}_${index}_`
+                  }
                 >
                   {() => (
                     <div>
@@ -674,10 +678,14 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             className={`title-swiper ${transitioning ? 'transitioning' : ''}`}
           >
             {presets.value.length &&
-              presets.value.map((preset) => {
+              presets.value.map((preset, index) => {
                 return (
                   <SwiperSlide
-                    key={preset.isTemporary ? 'temp' : preset.id.toString()}
+                    key={
+                      preset.isTemporary
+                        ? `temp_${index}`
+                        : `${preset.id.toString()}_${index}`
+                    }
                   >
                     {() => (
                       <Title
