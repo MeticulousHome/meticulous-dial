@@ -3,7 +3,7 @@ import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
 import { Pagination as PaginationSwiper } from 'swiper';
 
 import { clearSlides, handlePresetSlideChange } from '../../utils/preset';
-import { RouteProps, Title } from '../../navigation';
+import { RouteProps } from '../../navigation';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setScreen } from '../store/features/screens/screens-slice';
@@ -40,7 +40,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
     {
       pressDown() {
         if (!transitioning && defaultProfiles && defaultProfiles[activeIndex]) {
-          const { id, ...profileSelected } = defaultProfiles[
+          const { ...profileSelected } = defaultProfiles[
             activeIndex
           ] as Profile;
           dispatch(
