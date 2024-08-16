@@ -512,7 +512,7 @@ const presetSlice = createSlice({
     setNextDefaultProfileOption: (state) => {
       state.defaultProfilesInfo.defaultProfileActiveIndexSwiper = Math.min(
         state.defaultProfilesInfo.defaultProfileActiveIndexSwiper + 1,
-        state.defaultProfilesInfo.defaultProfiles.length - 1
+        state.defaultProfilesInfo.defaultProfiles.length
       );
     },
     setPrevDefaultProfileOption: (state) => {

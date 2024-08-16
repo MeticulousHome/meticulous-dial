@@ -14,9 +14,14 @@
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   grid-auto-flow: row dense;
+  height: 100%;
 }
 .default-profile-container__content {
   grid-column: span 3 / span 3;
+  padding: 5px 10px;
+  display: flex;
+  border-radius: 4px;
+  align-items: center;
 }
 .default-profile-container__content__info {
   width: 100%;
@@ -28,6 +33,9 @@
   display: block;
   text-align: left;
   word-break: break-all;
+}
+.default-profile-container__content__info__text--active {
+  color: #f5c444;
 }
 .default-profile-container__content__info__text--mb-10 {
   margin-bottom: 10px;
