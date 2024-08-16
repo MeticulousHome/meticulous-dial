@@ -20,10 +20,10 @@ export const DefaultProfileDetails = () => {
 
   useHandleGestures({
     left() {
-      setActiveIndex((prev) => Math.min(prev + 1, items.length - 1));
+      setActiveIndex((prev) => Math.max(prev - 1, 0));
     },
     right() {
-      setActiveIndex((prev) => Math.max(prev - 1, 0));
+      setActiveIndex((prev) => Math.min(prev + 1, items.length - 1));
     },
     pressDown() {
       switch (items[activeIndex].key) {
