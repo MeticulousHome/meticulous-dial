@@ -12,7 +12,8 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import {
   deletePreset,
   resetActiveSetting,
-  setDefaultProfileSelected
+  setDefaultProfileSelected,
+  setOptionPressets
 } from '../store/features/preset/preset-slice';
 
 interface QuickSettingOption {
@@ -92,6 +93,7 @@ export function QuickSettings(): JSX.Element {
       case 'delete': {
         dispatch(deletePreset());
         dispatch(setScreen('pressets'));
+        dispatch(setOptionPressets('PRESSETS'));
         dispatch(setBubbleDisplay({ visible: false, component: null }));
       }
     }

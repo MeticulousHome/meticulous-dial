@@ -147,6 +147,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     socket.emit('profileHover', { id: mPresset.id, from: 'dial' });
   };
 
+  useEffect(() => {
+    setOption({ screen: presets.option, animating: false });
+  }, [presets.option]);
+
   useHandleGestures(
     {
       pressDown() {
