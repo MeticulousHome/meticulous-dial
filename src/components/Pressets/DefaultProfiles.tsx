@@ -45,7 +45,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
           dispatch(setScreen('pressets'));
 
         if (defaultProfiles && defaultProfiles[activeIndex]) {
-          const { id, ...profileSelected } = defaultProfiles[
+          const { ...profileSelected } = defaultProfiles[
             activeIndex
           ] as Profile;
           dispatch(
