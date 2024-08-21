@@ -288,11 +288,7 @@ export function QuickSettings(): JSX.Element {
             >
               {setting.label}{' '}
               {setting.key === 'preheat' &&
-                `${getMessageIfIsConnected({
-                  messageValue: isNaN(parseInt(preheatValue))
-                    ? undefined
-                    : preheatValue
-                })}`}
+                `${getMessageIfIsConnected({ messageValue: preheatValue })}`}
             </SwiperSlide>
           );
         })}

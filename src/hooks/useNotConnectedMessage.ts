@@ -5,7 +5,9 @@ export const useNotConnectedMessage = () => {
   const wifi = useAppSelector((state) => state.wifi);
 
   const getMessageIfIsConnected = useCallback(
-    ({ messageValue }: { messageValue: string | null | undefined }) => {
+    ({ messageValue }: { messageValue?: string | undefined }) => {
+      if (isNaN(parseInt(messageValue))) messageValue = undefined;
+
       if ((!wifi.wifiStatus || !wifi.wifiStatus.connected) && !messageValue) {
         return 'Not Connected';
       }
