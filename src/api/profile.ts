@@ -7,7 +7,7 @@ export const getDefaultProfiles = async (): Promise<Profile[]> => {
     const { data } = await api.getDefaultProfiles();
     return data as Profile[];
   } catch (error) {
-    console.error('GetProfiles error: ', error);
+    console.error('GetDefaultProfiles error: ', error.message);
     return [];
   }
 };
@@ -17,7 +17,7 @@ export const getProfiles = async () => {
     const { data } = await api.fetchAllProfiles();
     return data as Profile[] | APIError;
   } catch (error) {
-    console.error('GetProfiles error: ', error);
+    console.error('GetProfiles error: ', error.message);
   }
 };
 
@@ -26,7 +26,7 @@ export const saveProfile = async (body: Profile) => {
     const { data } = await api.saveProfile(body);
     return data;
   } catch (error) {
-    console.error('SaveProfile error: ', error);
+    console.error('SaveProfile error: ', error.message);
   }
 };
 
@@ -35,7 +35,7 @@ export const deleteProfile = async (id: string) => {
     const { data } = await api.deleteProfile(id);
     return data;
   } catch (error) {
-    console.error('DeleteProfile error: ', error);
+    console.error('DeleteProfile error: ', error.message);
   }
 };
 
@@ -44,7 +44,7 @@ export const loadProfileData = async (body: Profile) => {
     const { data } = await api.loadProfileFromJSON(body);
     return data;
   } catch (error) {
-    console.error('LoadProfileData error: ', error);
+    console.error('LoadProfileData error: ', error.message);
   }
 };
 
@@ -53,7 +53,7 @@ export const startProfile = async () => {
     const { data } = await api.executeAction('start');
     return data;
   } catch (error) {
-    console.error('Start profile error: ', error);
+    console.error('Start profile error: ', error.message);
   }
 };
 
@@ -62,7 +62,7 @@ export const getLastProfile = async () => {
     const { data } = await api.getLastProfile();
     return data as LastProfileIdent;
   } catch (error) {
-    console.error('Get last Profile error: ', error);
+    console.error('Get last Profile error: ', error.message);
   }
 };
 
@@ -71,7 +71,7 @@ export const getProfileDefaultImages = async (): Promise<string[]> => {
     const { data } = await api.getProfileDefaultImages();
     return data as string[];
   } catch (error) {
-    console.error('Get Profile Default Images error: ', error);
+    console.error('Get Profile Default Images error: ', error.message);
     return [];
   }
 };
@@ -81,6 +81,6 @@ export const getProfileImage = async (imageId: string) => {
     const { data } = await api.getProfileImage(imageId);
     return data;
   } catch (error) {
-    console.error('Get Profile Default Images error: ', error);
+    console.error('Get Profile Default Images error: ', error.message);
   }
 };
