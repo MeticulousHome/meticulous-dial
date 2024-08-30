@@ -72,6 +72,7 @@ export interface PresetsState extends PresetSettingInterface {
   status: 'ready' | 'pending' | 'failed';
   option: 'HOME' | 'PRESSETS';
   profileHover: string;
+  profileFocus: string;
 }
 
 export const loadDefaultProfiles = createAsyncThunk(
@@ -536,6 +537,12 @@ const presetSlice = createSlice({
     ) => {
       state.profileHover = action.payload;
     },
+    setFocusProfile: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<string>
+    ) => {
+      state.profileFocus = action.payload;
+    },
     updatePresetSetting: (
       state: Draft<typeof initialState>,
       action: PayloadAction<IPresetSetting>
@@ -759,6 +766,7 @@ export const {
   setNextDefaultProfileOption,
   setPrevDefaultProfileOption,
   resetDefaultProfileConfig,
-  setProfileHover
+  setProfileHover,
+  setFocusProfile
 } = presetSlice.actions;
 export default presetSlice.reducer;

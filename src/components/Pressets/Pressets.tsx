@@ -71,6 +71,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const dispatch = useAppDispatch();
   const presets = useAppSelector((state) => state.presets);
   const profileHoverId = useAppSelector((state) => state.presets.profileHover);
+  const profileFocusId = useAppSelector((state) => state.presets.profileFocus);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
   const [pressetSwiper, setPressetsSwiper] = useState<SwiperS | null>(null);
   const [pressetTitleSwiper, setPressetTitleSwiper] = useState(null);
@@ -138,18 +139,67 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     return true;
   }, []);
 
-  const sendCurrentPressetId = (index: number) => {
+  const sendCurrentPressetId = (index: number, focus: boolean) => {
     const mPresset = presets.value[index];
     if (mPresset === undefined) {
       return;
     }
 
-    socket.emit('profileHover', { id: mPresset.id, from: 'dial' });
+    socket.emit('profileHover', {
+      id: mPresset.id,
+      from: 'dial',
+      type: focus ? 'focus' : 'scroll'
+    });
   };
 
   useEffect(() => {
     setOption({ screen: presets.option, animating: false });
   }, [presets.option]);
+
+  const focusProfileHandle = () => {
+    if (
+      pressetSwiper &&
+      pressetSwiper.pagination &&
+      pressetSwiper.pagination.el
+    ) {
+      pressetSwiper.pagination.el.classList.add('bullet-hidden');
+    }
+
+    setOption({
+      screen: 'HOME',
+      animating: true
+    });
+
+    if (pressetTitleContenExistValidation()) {
+      pressetsTitleContentRef.current.classList.remove(
+        'animation-pressets-content-bottom'
+      );
+      pressetsTitleContentRef.current.classList.remove(
+        'animation-pressets-content-top'
+      );
+      pressetsTitleContentRef.current.classList.add(
+        'animation-pressets-content-top'
+      );
+    }
+
+    handleRemoveOpacityTitleActive(pressetTitleSwiper);
+    handleAddOpacityTitleInactive(pressetTitleSwiper);
+
+    clearSlides(pressetSwiper);
+    clearSlides(pressetTitleSwiper);
+
+    handleAddIncreseAnimation(pressetSwiper);
+
+    handleAddLeaveAnimation(pressetSwiper);
+    handleAddLeaveAnimation(pressetTitleSwiper);
+
+    setTimeout(() => {
+      setOption((prev) => ({
+        ...prev,
+        animating: false
+      }));
+    }, 300);
+  };
 
   useHandleGestures(
     {
@@ -219,48 +269,8 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               return;
             }
 
-            if (
-              pressetSwiper &&
-              pressetSwiper.pagination &&
-              pressetSwiper.pagination.el
-            ) {
-              pressetSwiper.pagination.el.classList.add('bullet-hidden');
-            }
-
-            setOption({
-              screen: 'HOME',
-              animating: true
-            });
-
-            if (pressetTitleContenExistValidation()) {
-              pressetsTitleContentRef.current.classList.remove(
-                'animation-pressets-content-bottom'
-              );
-              pressetsTitleContentRef.current.classList.remove(
-                'animation-pressets-content-top'
-              );
-              pressetsTitleContentRef.current.classList.add(
-                'animation-pressets-content-top'
-              );
-            }
-
-            handleRemoveOpacityTitleActive(pressetTitleSwiper);
-            handleAddOpacityTitleInactive(pressetTitleSwiper);
-
-            clearSlides(pressetSwiper);
-            clearSlides(pressetTitleSwiper);
-
-            handleAddIncreseAnimation(pressetSwiper);
-
-            handleAddLeaveAnimation(pressetSwiper);
-            handleAddLeaveAnimation(pressetTitleSwiper);
-
-            setTimeout(() => {
-              setOption((prev) => ({
-                ...prev,
-                animating: false
-              }));
-            }, 300);
+            focusProfileHandle();
+            sendCurrentPressetId(presets.activeIndexSwiper, true);
             break;
           }
           default:
@@ -314,7 +324,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
         if (!transitioning) {
           if (!option.animating && option.screen === 'PRESSETS') {
             dispatch(setNextPreset());
-            sendCurrentPressetId(presets.activeIndexSwiper + 1);
+            sendCurrentPressetId(presets.activeIndexSwiper + 1, false);
           } else {
             setAnimation(initialValue);
             setPercentaje(0);
@@ -375,7 +385,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
         if (!transitioning) {
           if (!option.animating && option.screen === 'PRESSETS') {
             dispatch(setPrevPreset());
-            sendCurrentPressetId(presets.activeIndexSwiper - 1);
+            sendCurrentPressetId(presets.activeIndexSwiper - 1, false);
           } else {
             setAnimation(initialValue);
             setPercentaje(0);
@@ -539,6 +549,14 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     dispatch(setActiveIndexSwiper(myIndex));
     setOption({ screen: 'PRESSETS', animating: false });
   }, [profileHoverId]);
+
+  useEffect(() => {
+    console.log(presetSwiperRef.current, profileFocusId, '__DEV');
+    if (profileFocusId === '' || profileFocusId === undefined) {
+      return;
+    }
+    focusProfileHandle();
+  }, [profileFocusId]);
 
   return (
     <div className="preset-wrapper">
