@@ -5,7 +5,11 @@ import { GestureType, ISensorData, ProfileCause } from '../../types/index';
 import { useAppDispatch } from './hooks';
 import { setStats, setWaterStatus } from './features/stats/stats-slice';
 import { setScreen } from './features/screens/screens-slice';
-import { getPresets, setProfileHover } from './features/preset/preset-slice';
+import {
+  getPresets,
+  setFocusProfile,
+  setProfileHover
+} from './features/preset/preset-slice';
 import { handleEvents } from '../../HandleEvents';
 import {
   addOneNotification,
@@ -81,12 +85,24 @@ export const SocketProviderValue = () => {
       }
     });
 
-    socket.on('profileHover', (data: { id: string; from: string }) => {
-      if (data.from === 'dial') {
-        return;
+    socket.on(
+      'profileHover',
+      (data: { id: string; from: string; type: 'focus' | 'scroll' }) => {
+        console.log(data, '__DEV');
+
+        if (data.from === 'dial') {
+          return;
+        }
+
+        if (data.type === 'scroll') {
+          dispatch(setProfileHover(data.id));
+        }
+
+        if (data.type === 'focus') {
+          dispatch(setFocusProfile(data.id));
+        }
       }
-      dispatch(setProfileHover(data.id));
-    });
+    );
   }, []);
 
   return socket;
