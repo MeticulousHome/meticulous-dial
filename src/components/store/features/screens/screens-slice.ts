@@ -39,7 +39,8 @@ export type ScreenType =
   | 'pressetProfileImage'
   | 'deviceInfo'
   | 'defaultProfiles'
-  | 'defaultProfileDetails';
+  | 'defaultProfileDetails'
+  | 'manual-purge';
 
 interface ScreenState {
   value: ScreenType;
