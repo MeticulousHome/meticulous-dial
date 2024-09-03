@@ -551,11 +551,14 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   }, [profileHoverId]);
 
   useEffect(() => {
-    console.log(presetSwiperRef.current, profileFocusId, '__DEV');
     if (profileFocusId === '' || profileFocusId === undefined) {
       return;
     }
-    focusProfileHandle();
+    try {
+      focusProfileHandle();
+    } catch (e) {
+      /* empty */
+    }
   }, [profileFocusId]);
 
   return (
