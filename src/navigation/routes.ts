@@ -32,6 +32,7 @@ import { PressetProfileImage } from '../../src/components/Pressets/PressetProfil
 import { DeviceInfo } from '../../src/components/Settings/Advanced/DeviceInfo';
 import { DefaultProfiles } from '../components/Pressets/DefaultProfiles';
 import { DefaultProfileDetails } from '../../src/components/Pressets/DefaultProfileDetails';
+import { PurgePiston } from '../components/PurgePiston/PurgePiston';
 
 interface Route {
   component: ComponentType;
@@ -140,6 +141,10 @@ export const routes: Record<ScreenType, Route> = {
   purge: {
     component: Purge,
     title: selectActivePresetName
+  },
+  'manual-purge': {
+    component: PurgePiston,
+    bottomStatusHidden: true
   },
   dose: {
     component: () => null, // Multiple choice to be implemented

@@ -36,8 +36,13 @@ export const SocketProviderValue = () => {
 
     socket.on('status', (data: ISensorData) => {
       dispatch(setStats(data));
-
       // When stat is not in idle, lock the screen at Barometer
+
+      if (data?.name === 'purge' || data?.name === 'home') {
+        dispatch(setScreen('manual-purge'));
+        return;
+      }
+
       if (data?.name !== 'idle') {
         dispatch(setScreen('barometer'));
       }

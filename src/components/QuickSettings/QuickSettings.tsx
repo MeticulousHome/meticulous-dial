@@ -161,6 +161,7 @@ export function QuickSettings(): JSX.Element {
           }
           case 'purge': {
             socket.emit('action', 'purge');
+            dispatch(setScreen('manual-purge'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
