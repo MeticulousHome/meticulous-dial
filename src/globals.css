@@ -41,6 +41,16 @@ body {
   justify-content: center;
   align-items: center;
 }
+
+.meticulous-main-canvas {
+  position: relative;
+  width: 480px;
+  height: 480px;
+  max-width: 480px;
+  max-height: 480px;
+  overflow: hidden;
+}
+
 .text-gray {
   color: #5e5e5e;
 }

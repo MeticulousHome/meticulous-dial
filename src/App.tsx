@@ -83,17 +83,23 @@ const App = (): JSX.Element => {
     stats?.name !== 'idle' || bubbleDisplay.visible
   );
 
-  return backendReady && splashAnimationLooping ? (
-    <SocketManager>
-      <Router currentScreen={screen.value} previousScreen={screen.prev} />
-    </SocketManager>
-  ) : (
-    <Splash
-      onAnimationFinished={() => {
-        setSplashAnimationLooping(true);
-        return presetsStatus !== 'ready';
-      }}
-    />
+  return (
+    <div>
+      <div className="meticulous-main-canvas">
+        {backendReady && splashAnimationLooping ? (
+          <SocketManager>
+            <Router currentScreen={screen.value} previousScreen={screen.prev} />
+          </SocketManager>
+        ) : (
+          <Splash
+            onAnimationFinished={() => {
+              setSplashAnimationLooping(true);
+              return presetsStatus !== 'ready';
+            }}
+          />
+        )}
+      </div>
+    </div>
   );
 };
 
