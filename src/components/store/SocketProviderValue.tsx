@@ -88,8 +88,6 @@ export const SocketProviderValue = () => {
     socket.on(
       'profileHover',
       (data: { id: string; from: string; type: 'focus' | 'scroll' }) => {
-        console.log(data, '__DEV');
-
         if (data.from === 'dial') {
           return;
         }
