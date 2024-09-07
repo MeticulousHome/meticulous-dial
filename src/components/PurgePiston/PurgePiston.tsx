@@ -73,9 +73,9 @@ export function PurgePiston(): JSX.Element {
       autoplay: true
     });
 
-    // if (screen === 'home') {
-    //   blinkAnimator.current.style.top = '-206.5px';
-    // }
+    if (stats.name === 'home') {
+      blinkAnimator.current.style.top = '-206.5px';
+    }
 
     socket.on('actuators', (data: { m_pos: number }) => {
       if (data.m_pos < 0) {
