@@ -17,6 +17,7 @@ import {
 import './defaultProfile.css';
 import { api } from '../../api/api';
 import { Profile } from 'meticulous-typescript-profile';
+import { v4 as uuidv4 } from 'uuid';
 
 const API_URL = process.env.SERVER_URL || 'http://localhost:8080';
 
@@ -52,6 +53,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
             addPresetNewOne({
               profile: {
                 ...profileSelected,
+                id: uuidv4(),
                 display: {
                   shortDescription: profileSelected.display.shortDescription,
                   description: profileSelected.display.description
