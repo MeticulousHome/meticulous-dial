@@ -1,121 +1,113 @@
-import { useEffect, useRef, useState } from 'react';
-import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
+import { useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { api } from '../../api/api';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 
 const API_URL = process.env.SERVER_URL || 'http://localhost:8080';
-const items = [{ key: 'content' }, { key: 'back' }];
+
+const SCROLL_VALUE = 50;
 
 export const DefaultProfileDetails = () => {
   const dispatch = useAppDispatch();
-
-  const [activeIndex, setActiveIndex] = useState(0);
-  const presetSwiperRef = useRef<SwiperRef | null>(null);
 
   const defaultProfile = useAppSelector(
     (state) => state.presets.defaultProfilesInfo.defaultProfileSelected
   );
 
-  useHandleGestures({
-    left() {
-      setActiveIndex((prev) => Math.max(prev - 1, 0));
-    },
-    right() {
-      setActiveIndex((prev) => Math.min(prev + 1, items.length - 1));
-    },
-    pressDown() {
-      switch (items[activeIndex].key) {
-        case 'back':
-          dispatch(
-            setBubbleDisplay({ visible: true, component: 'quick-settings' })
-          );
-          break;
+  const mainContainerRef = useRef<HTMLDivElement | null>(null);
 
-        default:
-          break;
-      }
+  useHandleGestures({
+    left: () => {
+      mainContainerScroll(true);
+    },
+    right: () => {
+      mainContainerScroll(false);
+    },
+    pressDown: async () => {
+      dispatch(
+        setBubbleDisplay({ visible: true, component: 'quick-settings' })
+      );
     }
   });
 
-  useEffect(() => {
-    presetSwiperRef.current?.swiper.slideTo(activeIndex);
-  }, [activeIndex]);
+  const mainContainerScroll = (up: boolean) => {
+    if (!mainContainerRef.current) {
+      return;
+    }
+
+    mainContainerRef.current.scrollTop += up ? -SCROLL_VALUE : SCROLL_VALUE;
+  };
 
   return (
-    <div className="main-quick-settings">
-      <Swiper
-        ref={presetSwiperRef}
-        slidesPerView={8}
-        allowTouchMove={false}
-        direction="vertical"
-        spaceBetween={25}
-        autoHeight={false}
-        initialSlide={activeIndex}
-        centeredSlides={true}
-        style={{ paddingLeft: '29px', top: '-4px' }}
+    <div
+      className="main-quick-settings"
+      style={{
+        height: 480,
+        alignItems: 'normal',
+        paddingTop: 100
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          paddingLeft: '5px'
+        }}
       >
-        <SwiperSlide key="content">
-          <div
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}
+        >
+          <img
+            src={`${API_URL}${api.getProfileImageUrl(
+              defaultProfile.display.image
+            )}`}
+            alt="No image"
+            width="50"
+            height="50"
+            className="profile-image image-prev"
             style={{
-              width: '100%'
+              border: `7px solid ${
+                defaultProfile.display.accentColor ?? '#e0dcd0'
+              }`,
+              display: 'block',
+              position: 'relative'
+            }}
+          />
+        </div>
+        <p>{defaultProfile.name}</p>
+        <p
+          style={{
+            padding: '0px 10px',
+            whiteSpace: 'pre-wrap',
+            overflow: 'hidden',
+            scrollBehavior: 'smooth',
+            maxHeight: 283
+          }}
+          ref={mainContainerRef}
+        >
+          {defaultProfile.display.description}
+          <div
+            className={`settings-item active-setting`}
+            style={{
+              marginTop: 80,
+              marginBottom: 80
             }}
           >
             <div
+              className="settings-entry"
               style={{
-                transform: 'translateX(-7%)'
+                padding: '6px'
               }}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}
-              >
-                <img
-                  src={`${API_URL}${api.getProfileImageUrl(
-                    defaultProfile.display.image
-                  )}`}
-                  alt="No image"
-                  width="50"
-                  height="50"
-                  className="profile-image image-prev"
-                  style={{
-                    border: `7px solid ${
-                      defaultProfile.display.accentColor ?? '#e0dcd0'
-                    }`,
-                    display: 'block',
-                    position: 'relative'
-                  }}
-                />
-              </div>
-              <p>{defaultProfile.name}</p>
-              <p
-                style={{
-                  padding: '0px 29px'
-                }}
-              >
-                {defaultProfile.display.description}
-              </p>
+              <span>Back</span>
             </div>
           </div>
-        </SwiperSlide>
-        <SwiperSlide></SwiperSlide>
-        <SwiperSlide></SwiperSlide>
-
-        <SwiperSlide
-          key="back"
-          className={`settings-item ${
-            items[activeIndex].key === 'back' ? 'active-setting' : ''
-          }`}
-        >
-          <div className="settings-entry">
-            <span>Back</span>
-          </div>
-        </SwiperSlide>
-      </Swiper>
+        </p>
+      </div>
     </div>
   );
 };
