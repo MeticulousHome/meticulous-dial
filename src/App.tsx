@@ -25,9 +25,6 @@ const App = (): JSX.Element => {
     (prev, next) => prev === next
   );
   const presetsStatus = useAppSelector((state) => state.presets.status);
-  const presetID = useAppSelector(
-    (state) => state.presets.activePreset?.id || -1
-  );
 
   const stats = useAppSelector((state) => state.stats);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
@@ -83,9 +80,12 @@ const App = (): JSX.Element => {
     stats?.name !== 'idle' || bubbleDisplay.visible
   );
 
+  const dev = !!process.env.npm_lifecycle_event;
+
   return (
     <div>
       <div className="meticulous-main-canvas">
+        {dev && <div className="main-circle-overlay" />}
         {backendReady && splashAnimationLooping ? (
           <SocketManager>
             <Router currentScreen={screen.value} previousScreen={screen.prev} />

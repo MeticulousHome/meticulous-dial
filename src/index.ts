@@ -30,7 +30,9 @@ const createWindow = (): void => {
     backgroundColor: 'black',
     center: true,
     webPreferences: {
-      preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY
+      preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+      nodeIntegration: true,
+      contextIsolation: false
     }
   };
 
