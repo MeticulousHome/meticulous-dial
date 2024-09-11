@@ -75,6 +75,19 @@ body {
   /* height: calc(100% - 136px);  */
 }
 
+.main-circle-overlay {
+  height: 100%;
+  width: 100%;
+  left: -100px;
+  top: -100px;
+  border-color: #101010;
+  border-width: 100px;
+  border-style: solid;
+  border-radius: 50%;
+  position: absolute;
+  z-index: 1000;
+}
+
 @keyframes shakeAnimation {
   0% {
     transform: translateX(0px);
