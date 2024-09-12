@@ -116,11 +116,13 @@
 .title-swiper {
   position: absolute;
   z-index: 10;
-  top: 0;
+  top: -50px;
+  width: 100%;
+  text-align: center;
 }
 
 .title-swiper.transitioning::before,
-.title-swiper.transitioning .swiper-slide-active .navigation-title {
+.title-swiper.transitioning {
   opacity: 0;
 }
 
@@ -445,10 +447,13 @@
 .presset-title-top {
   top: 100px !important;
   border: none !important;
-  font-size: 30px !important;
+  font-size: 22px !important;
   text-transform: capitalize !important;
   color: #e0dcd0;
   letter-spacing: -0.75px;
+  display: contents;
+  width: 181px;
+  text-align: center;
 }
 
 .presset-title-temp {

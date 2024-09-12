@@ -74,7 +74,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const profileFocusId = useAppSelector((state) => state.presets.profileFocus);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
   const [pressetSwiper, setPressetsSwiper] = useState<SwiperS | null>(null);
-  const [pressetTitleSwiper, setPressetTitleSwiper] = useState(null);
   const titleSwiperRef = useRef<SwiperRef | null>(null);
   const circleOne = useRef<SVGCircleElement>(null);
   const animationInProgress = useRef(false);
@@ -182,16 +181,11 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       );
     }
 
-    handleRemoveOpacityTitleActive(pressetTitleSwiper);
-    handleAddOpacityTitleInactive(pressetTitleSwiper);
-
     clearSlides(pressetSwiper);
-    clearSlides(pressetTitleSwiper);
 
     handleAddIncreseAnimation(pressetSwiper);
 
     handleAddLeaveAnimation(pressetSwiper);
-    handleAddLeaveAnimation(pressetTitleSwiper);
 
     setTimeout(() => {
       setOption((prev) => ({
@@ -264,7 +258,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               return dispatch(setScreen('defaultProfiles'));
             }
 
-            if (!pressetSwiper && !pressetTitleSwiper) {
+            if (!pressetSwiper) {
               console.log('No swiper loaded, aborting gesture!');
               return;
             }
@@ -330,7 +324,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             setPercentaje(0);
             animationInProgress.current = false;
 
-            if (!pressetSwiper && !pressetTitleSwiper) {
+            if (!pressetSwiper) {
               console.log('No swiper loaded, aborting gesture!');
               return;
             }
@@ -364,16 +358,11 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               );
             }
 
-            handleRemoveOpacityTitleInactive(pressetTitleSwiper);
-
             clearSlides(pressetSwiper);
-            clearSlides(pressetTitleSwiper);
 
-            handleAddOpacityTitleActive(pressetTitleSwiper);
             handleAddDecreseAnimation(pressetSwiper);
 
             handleAddEnterAnimation(pressetSwiper);
-            handleAddEnterAnimation(pressetTitleSwiper);
 
             setTimeout(() => {
               setOption((prev) => ({ ...prev, animating: false }));
@@ -391,7 +380,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             setPercentaje(0);
             animationInProgress.current = false;
 
-            if (!pressetSwiper && !pressetTitleSwiper) {
+            if (!pressetSwiper) {
               console.log('No swiper loaded, aborting gesture!');
               return;
             }
@@ -424,16 +413,11 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               );
             }
 
-            handleRemoveOpacityTitleInactive(pressetTitleSwiper);
-
             clearSlides(pressetSwiper);
-            clearSlides(pressetTitleSwiper);
 
-            handleAddOpacityTitleActive(pressetTitleSwiper);
             handleAddDecreseAnimation(pressetSwiper);
 
             handleAddEnterAnimation(pressetSwiper);
-            handleAddEnterAnimation(pressetTitleSwiper);
 
             setTimeout(() => {
               setOption((prev) => ({ ...prev, animating: false }));
@@ -458,28 +442,21 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   }, [presets.activeIndexSwiper]);
 
   useEffect(() => {
-    if (pressetTitleSwiper && pressetSwiper) {
+    if (pressetSwiper) {
       if (option.screen === 'HOME') {
         pressetSwiper.pagination.el.classList.add('bullet-hidden');
         clearSlides(pressetSwiper);
         handleAddIncreseAnimation(pressetSwiper);
         handleAddLeaveAnimation(pressetSwiper);
 
-        clearSlides(pressetTitleSwiper);
-        handleAddOpacityTitleInactive(pressetTitleSwiper);
-        handleAddLeaveAnimation(pressetTitleSwiper);
-
         if (pressetTitleContenExistValidation()) {
           pressetsTitleContentRef.current.classList.add(
             'animation-pressets-content-top'
           );
         }
-      } else {
-        clearSlides(pressetTitleSwiper);
-        handleAddLeaveAnimation(pressetTitleSwiper);
       }
     }
-  }, [pressetTitleSwiper, pressetSwiper]);
+  }, [pressetSwiper]);
 
   useEffect(() => {
     if (presets.value.length > 5 || presets.value.length <= 5) {
@@ -633,6 +610,23 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                 >
                   {() => (
                     <div>
+                      <div
+                        className={`title-swiper  ${
+                          transitioning ? 'transitioning ' : ''
+                        }`}
+                      >
+                        {(option.screen === 'PRESSETS' || transitioning) && (
+                          <Title
+                            customClass={`presset-title-top ${
+                              (preset.isTemporary || false) &&
+                              'presset-title-temp'
+                            }
+                        `}
+                          >
+                            {preset.name}
+                          </Title>
+                        )}
+                      </div>
                       <ProfileImage preset={preset} />
                       <div
                         style={{
@@ -662,78 +656,36 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               ))}
             <SwiperSlide key="new">
               {() => (
-                <div className="main-layout-content">
-                  <div className="pressets-conainer">
-                    <div className="presset-item presset-active">
-                      <div className="presset-icon">
-                        <svg
-                          width="204"
-                          height="204"
-                          viewBox="0 0 204 204"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <rect width="204" height="204" fill="black" />
-                          <path
-                            fillRule="evenodd"
-                            clipRule="evenodd"
-                            d="M104.745 99.2547V32H99.2551V99.2547H32V104.745H99.2551V172H104.745V104.745H172V99.2547H104.745Z"
-                            fill="white"
-                          />
-                        </svg>
-                      </div>
+                <div style={{ display: 'block' }}>
+                  <div
+                    className={`title-swiper ${
+                      transitioning ? 'transitioning' : ''
+                    }`}
+                  >
+                    <div className={'presset-title-top'}>New</div>
+                  </div>
+                  <div className="presset-image">
+                    <div className="presset-icon">
+                      <svg
+                        width="204"
+                        height="204"
+                        viewBox="0 0 204 204"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M104.745 99.2547V32H99.2551V99.2547H32V104.745H99.2551V172H104.745V104.745H172V99.2547H104.745Z"
+                          fill="white"
+                        />
+                      </svg>
                     </div>
                   </div>
                 </div>
               )}
             </SwiperSlide>
           </Swiper>
-          <Swiper
-            onSwiper={setPressetTitleSwiper}
-            slidesPerView={2.15}
-            spaceBetween={79}
-            centeredSlides={true}
-            initialSlide={presets.activeIndexSwiper}
-            allowTouchMove={false}
-            ref={titleSwiperRef}
-            onSlideChange={(e) => {
-              clearSlides(e);
-              handlePresetSlideChange(e);
-            }}
-            className={`title-swiper ${transitioning ? 'transitioning' : ''}`}
-          >
-            {presets.value.length &&
-              presets.value.map((preset, index) => {
-                return (
-                  <SwiperSlide
-                    key={
-                      preset.isTemporary
-                        ? `temp_${index}`
-                        : `${preset.id.toString()}_${index}`
-                    }
-                  >
-                    {() => (
-                      <Title
-                        customClass={`presset-title-top ${
-                          (preset.isTemporary || false) && 'presset-title-temp'
-                        }`}
-                      >
-                        {preset.name}
-                      </Title>
-                    )}
-                  </SwiperSlide>
-                );
-              })}
-            <SwiperSlide key="new">
-              {() => <Title customClass="presset-title-top">New</Title>}
-            </SwiperSlide>
-          </Swiper>
-          {/* {option.screen === 'PRESETS' && (
-            <Pagination
-              page={presets.activeIndexSwiper}
-              pages={presets.value.length + 1}
-            />
-          )} */}
         </>
       )}
     </div>
