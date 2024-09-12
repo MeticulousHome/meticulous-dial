@@ -67,28 +67,31 @@ export const SocketProviderValue = () => {
       }
     );
 
-    socket.on('button', (data: { type: string }) => {
-      console.log('Receive: button', data);
+    socket.on(
+      'button',
+      (data: { type: string; time_since_last_event: number }) => {
+        console.log('Receive: button', data);
 
-      const eventGestureMap: Record<string, GestureType> = {
-        ENCODER_CLOCKWISE: 'right',
-        ENCODER_COUNTERCLOCKWISE: 'left',
-        ENCODER_PUSH: 'click',
-        ENCODER_DOUBLE: 'doubleClick',
-        ENCODER_LONG: 'longEncoder',
-        TARE_DOUBLE: 'doubleTare',
-        TARE_LONG: 'longTare',
-        CONTEXT: 'context',
-        ENCODER_PRESSED: 'pressDown',
-        ENCODER_RELEASED: 'pressUp'
-      };
+        const eventGestureMap: Record<string, GestureType> = {
+          ENCODER_CLOCKWISE: 'right',
+          ENCODER_COUNTERCLOCKWISE: 'left',
+          ENCODER_PUSH: 'click',
+          ENCODER_DOUBLE: 'doubleClick',
+          ENCODER_LONG: 'longEncoder',
+          TARE_DOUBLE: 'doubleTare',
+          TARE_LONG: 'longTare',
+          CONTEXT: 'context',
+          ENCODER_PRESSED: 'pressDown',
+          ENCODER_RELEASED: 'pressUp'
+        };
 
-      const gesture = eventGestureMap[data.type];
-      if (gesture) {
-        console.log('gesture:', gesture);
-        handleEvents.emit('gesture', gesture);
+        const gesture = eventGestureMap[data.type];
+        if (gesture) {
+          console.log('gesture:', gesture);
+          handleEvents.emit('gesture', gesture, data.time_since_last_event);
+        }
       }
-    });
+    );
 
     socket.on(
       'profileHover',
@@ -134,7 +137,7 @@ export const useSocketKeyboardListeners = () => {
       const gesture = keyDownGestureMap[e.code];
       if (gesture) {
         console.log(gesture);
-        handleEvents.emit('gesture', gesture);
+        handleEvents.emit('gesture', gesture, 1000);
       }
     };
 
@@ -142,7 +145,7 @@ export const useSocketKeyboardListeners = () => {
       const gesture = keyUpGestureMap[e.code];
       gesture?.forEach((gesture) => {
         console.log(gesture);
-        handleEvents.emit('gesture', gesture);
+        handleEvents.emit('gesture', gesture, 1000);
       });
     };
 
