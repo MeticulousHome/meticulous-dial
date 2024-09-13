@@ -1,3 +1,3 @@
 // meticulous-version
 
-module.exports = { version: '1.9.0' };
+module.exports = { version: '1.10.0' };
