@@ -18,6 +18,7 @@ import { durationAnimation } from './navigation/Transitioner';
 import { useSocketKeyboardListeners } from './components/store/SocketProviderValue';
 import { Splash } from './components/Splash/Splash';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Checkerboard } from './components/ScreenTestCheckerboard/Checkerboard';
 
 const App = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -90,7 +91,13 @@ const App = (): JSX.Element => {
     stats?.name !== 'idle' || bubbleDisplay.visible
   );
 
+  // TODO: Maybe this should be a config passed via env longterm
   const dev = !!process.env.npm_lifecycle_event;
+  const display_test = !!process.env.DISPLAY_TEST;
+
+  if (display_test) {
+    return <Checkerboard />;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
