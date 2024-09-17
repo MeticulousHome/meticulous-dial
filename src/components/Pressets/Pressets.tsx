@@ -9,11 +9,7 @@ import {
   handleAddLeaveAnimation,
   handleAddDecreseAnimation,
   handleAddIncreseAnimation,
-  handlePresetSlideChange,
-  handleAddOpacityTitleActive,
-  handleAddOpacityTitleInactive,
-  handleRemoveOpacityTitleActive,
-  handleRemoveOpacityTitleInactive
+  handlePresetSlideChange
 } from '../../utils/preset';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import './pressets.less';

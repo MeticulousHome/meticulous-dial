@@ -1,83 +1,160 @@
-import { IpcMainEvent } from 'electron';
-import { PasswortConnect } from '../types';
 import {
   AcknowledgeNotificationRequest,
   WiFiConfig,
-  WiFiConnectRequest
+  WiFiConnectRequest,
+  WiFiNetwork,
+  WifiStatus
 } from 'meticulous-api';
 import { api } from './api';
 
-export const getNetworkConfig = async () => {
+export interface FixedWifiStatus extends WifiStatus {
+  known_wifis: { [key: string]: string };
+}
+
+// Wrapper for getWiFiConfig
+export async function getNetworkConfig(): Promise<FixedWifiStatus> {
   try {
     const response = await api.getWiFiConfig();
+    return response.data as unknown as FixedWifiStatus;
+  } catch (error) {
+    if (error.response) {
+      console.error('Error fetching Network Config: ', error.response.data);
+      throw new Error(
+        error.response.data?.message || 'Error fetching Network Config.'
+      );
+    } else {
+      console.error(
+        'Network error while fetching Network Config: ',
+        error.message
+      );
+      throw new Error('Network error while fetching Network Config.');
+    }
+  }
+}
+
+// Wrapper for setWiFiConfig
+export async function updateNetworkConfig(
+  data: Partial<WiFiConfig>
+): Promise<WiFiConfig> {
+  try {
+    const response = await api.setWiFiConfig(data);
+    return response.data as WiFiConfig;
+  } catch (error) {
+    if (error.response) {
+      console.error('Error updating Network Config: ', error.response.data);
+      throw new Error(
+        error.response.data?.message || 'Error updating Network Config.'
+      );
+    } else {
+      console.error(
+        'Network error while updating Network Config: ',
+        error.message
+      );
+      throw new Error('Network error while updating Network Config.');
+    }
+  }
+}
+
+// Wrapper for getWiFiQR
+export async function getWiFiQRCode(): Promise<Blob> {
+  try {
+    const response = await api.getWiFiQR();
     return response.data;
   } catch (error) {
-    console.error('getNetworkConfig error ', error.message);
+    if (error.response) {
+      console.error('Error fetching Wi-Fi QR Code: ', error.response.data);
+      throw new Error(
+        error.response.data?.message || 'Error fetching Wi-Fi QR Code.'
+      );
+    } else {
+      console.error(
+        'Network error while fetching Wi-Fi QR Code: ',
+        error.message
+      );
+      throw new Error('Network error while fetching Wi-Fi QR Code.');
+    }
   }
-};
+}
 
-export const getWifiList = async () => {
+// Wrapper for listAvailableWiFi
+export async function listAvailableWiFi(): Promise<WiFiNetwork[]> {
   try {
     const response = await api.listAvailableWiFi();
-    return response.data;
+    return response.data as WiFiNetwork[];
   } catch (error) {
-    console.error('getWifiList error ', error.message);
+    if (error.response) {
+      console.error('Error listing available Wi-Fi: ', error.response.data);
+      throw new Error(
+        error.response.data?.message || 'Error listing available Wi-Fi.'
+      );
+    } else {
+      console.error(
+        'Network error while listing available Wi-Fi: ',
+        error.message
+      );
+      throw new Error('Network error while listing available Wi-Fi.');
+    }
   }
-};
+}
 
-export const connectToWifi = async (
-  _event: IpcMainEvent,
-  config: PasswortConnect
-) => {
+// Wrapper for connectToWiFi
+export async function connectToWiFi(data: WiFiConnectRequest): Promise<void> {
   try {
-    const payload: WiFiConnectRequest = {
-      ssid: config.ssid,
-      password: config.password
-    };
-    const response = await api.connectToWiFi(payload);
-    console.log('Log ~ connect to wifi ~ response:', response);
-    return response.data;
+    const response = await api.connectToWiFi(data);
+    return response.data as void;
   } catch (error) {
-    console.error('connectToWifi error ', error.message);
+    if (error.response) {
+      console.error('Error connecting to Wi-Fi: ', error.response.data);
+      throw new Error(
+        error.response.data?.message || 'Error connecting to Wi-Fi.'
+      );
+    } else {
+      console.error('Network error while connecting to Wi-Fi: ', error.message);
+      throw new Error('Network error while connecting to Wi-Fi.');
+    }
   }
-};
+}
 
-export const updateNetworkConfig = async (
-  _event: IpcMainEvent,
-  newConfig: Partial<WiFiConfig>
-) => {
-  try {
-    const response = await api.setWiFiConfig(newConfig);
-    console.log('Log ~ updateNetworkConfig ~ response:', response);
-    return response.data;
-  } catch (error) {
-    console.error('getNetworkConfig error ', error.message);
-  }
-};
-
-export const notificationFeedback = async (id: string, response: string) => {
-  try {
-    const notification_response: AcknowledgeNotificationRequest = {
-      id,
-      response
-    };
-    const notification = await api.acknowledgeNotification(
-      notification_response
-    );
-    return notification;
-  } catch (error) {
-    console.log('notification feedback error', id);
-  }
-};
-
-export const deleteKnowWifi = async (
-  _event: IpcMainEvent,
-  { ssid }: { ssid: string }
-) => {
+// Wrapper for deleteWifi
+export async function deleteKnownWifi(ssid: string): Promise<void> {
   try {
     const response = await api.deleteWifi({ ssid });
-    return response.data;
+    return response.data as void;
   } catch (error) {
-    console.log('deleteKnowWifi error: ', error.message);
+    if (error.response) {
+      console.error('Error deleting known Wi-Fi: ', error.response.data);
+      throw new Error(
+        error.response.data?.message || 'Error deleting known Wi-Fi.'
+      );
+    } else {
+      console.error(
+        'Network error while deleting known Wi-Fi: ',
+        error.message
+      );
+      throw new Error('Network error while deleting known Wi-Fi.');
+    }
   }
-};
+}
+
+// Wrapper for acknowledgeNotification
+export async function acknowledgeNotification(
+  data: AcknowledgeNotificationRequest
+): Promise<void> {
+  try {
+    const response = await api.acknowledgeNotification(data);
+    return response.data as void;
+  } catch (error) {
+    if (error.response) {
+      console.error('Error fetching Network Config: ', error.response.data);
+      throw new Error(
+        error.response.data?.message || 'Error fetching Network Config.'
+      );
+    } else {
+      console.error(
+        'Network error while fetching Network Config: ',
+        error.message
+      );
+      throw new Error('Network error while fetching Network Config.');
+    }
+  }
+}

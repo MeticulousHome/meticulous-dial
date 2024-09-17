@@ -65,6 +65,10 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
   const captionRef = useRef<HTMLDivElement>(null);
   const [caption, setCaption] = useState(defaultValue || []);
 
+  useEffect(() => {
+    setCaption(defaultValue || []);
+  }, [defaultValue]);
+
   const moveElements = (right: boolean) => {
     const newAlphabet = [...alphabet];
     const i = alphabet.findIndex((element) => {
@@ -477,7 +481,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         </div>
         <div ref={captionRef} className="circle-caption" style={{ fontSize }}>
           {caption.length > maxShownCharacters && (
-            <span>
+            <span key="abrv">
               ... <br />
             </span>
           )}

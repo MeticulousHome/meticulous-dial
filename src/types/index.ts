@@ -1,6 +1,3 @@
-export * from './wifi';
-
-import { DashboardProfile, ItalianProfile } from '../constants';
 import { VariableType } from 'meticulous-typescript-profile';
 
 interface JSONObject {
@@ -66,7 +63,6 @@ export interface ISensorData {
 export interface IPreset {
   id: number;
   name: string;
-  kind?: ItalianProfile | DashboardProfile;
   isDefault?: boolean;
   settings?: IPresetSetting[];
   image?: string;
@@ -229,21 +225,6 @@ type SettingsKeys = 'key' | 'value';
 export interface PressetSettings {
   name: string;
   settings: Record<SettingsKeys, string | number>[];
-}
-
-export type Actions = 'to_play';
-
-export interface IItalian {
-  action: Actions;
-  name: string;
-  automatic_purge: boolean;
-  temperature: number;
-  preinfusion: boolean;
-  preheat: boolean;
-  pressure: number;
-  out_weight: number;
-  source: 'lcd';
-  kind: ItalianProfile;
 }
 
 export interface SettingsItem {

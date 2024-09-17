@@ -1,8 +1,6 @@
-import { useEffect } from 'react';
 import { useHandleGestures } from '../../../src/hooks/useHandleGestures';
 import { memoizedRoutes } from '../../../src/utils';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
-import { getConfig as getWifiConfig } from '../store/features/wifi/wifi-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import './bubble.less';
 
@@ -26,12 +24,6 @@ export default function Bubble() {
       bubbleDisplay.visible;
     }
   });
-
-  useEffect(() => {
-    if (bubbleDisplay.visible) {
-      dispatch(getWifiConfig());
-    }
-  }, [bubbleDisplay.visible, getWifiConfig]);
 
   if (!Bubble || !Bubble.component) return <></>;
 

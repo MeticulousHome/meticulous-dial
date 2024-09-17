@@ -1,3 +1,9 @@
+.response {
+  margin-left: 80px;
+  display: flex;
+  flex-direction: column;
+}
+
 .connect-response {
   text-transform: uppercase;
   font-size: 22px;

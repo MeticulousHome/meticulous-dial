@@ -1,27 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import './wifiSettings.css';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import {
-  saveConfig,
-  getConfig as getWifiConfig
-} from '../store/features/wifi/wifi-slice';
+import { useAppDispatch } from '../store/hooks';
+
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
-import { WifiMode } from '../../types';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { marqueeIfNeeded } from '../shared/MarqueeValue';
+import { useNetworkConfig, useUpdateNetworkConfig } from '../../hooks/useWifi';
+import { APMode } from 'meticulous-api';
+import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
+import { api } from '../../api/api';
 
 export const WifiSettings = (): JSX.Element => {
   const dispatch = useAppDispatch();
-  const [userWifiMode, setUserWifiMode] = useState(null);
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const { wifiStatus, networkConfig } = useAppSelector((state) => state.wifi);
-  const isWifiConnected = wifiStatus?.connected;
-  const [networkConfigMode, setNetworkConfigMode] = useState(
-    networkConfig?.mode
+  const [networkConfigMode, setNetworkConfigMode] = useState<APMode>(
+    APMode.CLIENT
   );
-  const isApMode = isWifiConnected && networkConfigMode === WifiMode.AP;
+
+  const { data: networkConfig, error, isLoading, refetch } = useNetworkConfig();
+  const updateNetworkConfigMutation = useUpdateNetworkConfig();
+
+  useEffect(() => {
+    refetch();
+  }, [updateNetworkConfigMutation.status]);
+
+  useEffect(() => {
+    setNetworkConfigMode(networkConfig?.config.mode);
+    const img = new Image();
+    img.src = api.getWiFiQRURL();
+  }, [networkConfig]);
+
+  const isWifiConnected = networkConfig?.status.connected;
+
+  const isApMode = isWifiConnected && networkConfigMode === APMode.AP;
   const APModeDescription = 'Create standalone wifi';
   const ClientModeDescription = 'Machine joins existing wifi';
 
@@ -61,7 +74,7 @@ export const WifiSettings = (): JSX.Element => {
     {
       key: 'save',
       label: 'Save',
-      visible: userWifiMode !== null
+      visible: networkConfigMode !== networkConfig?.config.mode
     },
     {
       key: 'back',
@@ -70,85 +83,110 @@ export const WifiSettings = (): JSX.Element => {
     }
   ];
 
-  useHandleGestures({
-    left() {
-      setActiveIndex((prev) => Math.max(prev - 1, 0));
-    },
-    right() {
-      setActiveIndex((prev) =>
-        Math.min(
-          prev + 1,
-          wifiSettingItems.filter((item) => item.visible).length - 1
-        )
-      );
-    },
-    pressDown() {
-      const filter = wifiSettingItems.filter((item) => item.visible)[
-        activeIndex
-      ].key;
-      switch (filter) {
-        case 'network_mode': {
-          const mode =
-            networkConfigMode === WifiMode.AP ? WifiMode.CLIENT : WifiMode.AP;
-          setNetworkConfigMode(mode);
-          setUserWifiMode(mode);
-          break;
-        }
-        case 'qr_code': {
-          dispatch(
-            setBubbleDisplay({ visible: true, component: 'wifiQrMenu' })
-          );
-          break;
-        }
-        case 'details': {
-          dispatch(
-            setBubbleDisplay({ visible: true, component: 'wifiDetails' })
-          );
-          break;
-        }
-        case 'save': {
-          dispatch(
-            saveConfig({
-              ...networkConfig,
-              mode: networkConfigMode ?? networkConfig.mode
-            })
-          );
-          dispatch(
-            setBubbleDisplay({ visible: true, component: 'wifiSettingsSave' })
-          );
-          break;
-        }
-        case 'known_wifis': {
-          dispatch(setBubbleDisplay({ visible: true, component: 'KnownWifi' }));
-          break;
-        }
-        case 'back': {
+  useHandleGestures(
+    {
+      left() {
+        setActiveIndex((prev) => Math.max(prev - 1, 0));
+      },
+      right() {
+        setActiveIndex((prev) =>
+          Math.min(
+            prev + 1,
+            wifiSettingItems.filter((item) => item.visible).length - 1
+          )
+        );
+      },
+      pressDown() {
+        // In case of error we go back
+        if (updateNetworkConfigMutation.isError || error) {
           dispatch(
             setBubbleDisplay({ visible: true, component: 'quick-settings' })
           );
-          break;
         }
-        case 'connect_new_network': {
-          dispatch(
-            setBubbleDisplay({ visible: true, component: 'connectWifiMenu' })
-          );
-          break;
+        const filter = wifiSettingItems.filter((item) => item.visible)[
+          activeIndex
+        ].key;
+        switch (filter) {
+          case 'network_mode': {
+            const mode =
+              networkConfigMode === APMode.AP ? APMode.CLIENT : APMode.AP;
+            setNetworkConfigMode(mode);
+            break;
+          }
+          case 'qr_code': {
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'wifiQrMenu' })
+            );
+            break;
+          }
+          case 'details': {
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'wifiDetails' })
+            );
+            break;
+          }
+          case 'save': {
+            updateNetworkConfigMutation.mutate({
+              ...networkConfig.config,
+              mode: networkConfigMode
+            });
+            break;
+          }
+          case 'known_wifis': {
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'KnownWifi' })
+            );
+            break;
+          }
+          case 'back': {
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'quick-settings' })
+            );
+            break;
+          }
+          case 'connect_new_network': {
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'connectWifiMenu' })
+            );
+            break;
+          }
+          default:
+            break;
         }
-        default:
-          break;
       }
-    }
-  });
-
-  useEffect(() => {
-    dispatch(getWifiConfig());
-  }, []);
+    },
+    updateNetworkConfigMutation.isPending
+  );
 
   useEffect(() => {
     if (swiper) {
       swiper.slideTo(activeIndex, 0, false);
     }
   }, [activeIndex, swiper]);
+
+  if (isLoading || updateNetworkConfigMutation.isPending) {
+    return <LoadingScreen />;
+  }
+
+  if (updateNetworkConfigMutation.isError || error) {
+    return (
+      <div className="quick-settings">
+        <div
+          className={` deleted-response ${
+            updateNetworkConfigMutation.isError ? 'error-entry' : ''
+          }`}
+        >
+          {updateNetworkConfigMutation.isError
+            ? 'An unknown error occured. Please try again'
+            : 'Connection could not be verified, please check the connection details'}
+        </div>
+        <br />
+        <div key="back" className={`settings-item active-setting deleted-item`}>
+          <div className="settings-entry deleted-button">Ok</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="main-quick-settings">
