@@ -17,6 +17,7 @@ import { notificationSelector } from './components/store/features/notifications/
 import { durationAnimation } from './navigation/Transitioner';
 import { useSocketKeyboardListeners } from './components/store/SocketProviderValue';
 import { Splash } from './components/Splash/Splash';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const App = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -24,6 +25,15 @@ const App = (): JSX.Element => {
     (state) => state.screen,
     (prev, next) => prev === next
   );
+
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnWindowFocus: false // default: true
+      }
+    }
+  });
+
   const presetsStatus = useAppSelector((state) => state.presets.status);
 
   const stats = useAppSelector((state) => state.stats);
@@ -83,23 +93,28 @@ const App = (): JSX.Element => {
   const dev = !!process.env.npm_lifecycle_event;
 
   return (
-    <div>
-      <div className="meticulous-main-canvas">
-        {dev && <div className="main-circle-overlay" />}
-        {backendReady && splashAnimationLooping ? (
-          <SocketManager>
-            <Router currentScreen={screen.value} previousScreen={screen.prev} />
-          </SocketManager>
-        ) : (
-          <Splash
-            onAnimationFinished={() => {
-              setSplashAnimationLooping(true);
-              return presetsStatus !== 'ready';
-            }}
-          />
-        )}
+    <QueryClientProvider client={queryClient}>
+      <div>
+        <div className="meticulous-main-canvas">
+          {dev && <div className="main-circle-overlay" />}
+          {backendReady && splashAnimationLooping ? (
+            <SocketManager>
+              <Router
+                currentScreen={screen.value}
+                previousScreen={screen.prev}
+              />
+            </SocketManager>
+          ) : (
+            <Splash
+              onAnimationFinished={() => {
+                setSplashAnimationLooping(true);
+                return presetsStatus !== 'ready';
+              }}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </QueryClientProvider>
   );
 };
 

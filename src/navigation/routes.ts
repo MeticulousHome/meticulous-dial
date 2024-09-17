@@ -18,14 +18,11 @@ import { RootState } from '../components/store/store';
 import { Notification } from '../components/Notification/Notification';
 import { getTitlePressets } from '../components/Pressets/TitlePressets';
 import { ConnectWifiViaApp } from '../components/Wifi/ConnetWifiViaApp';
-import { ConnectWifi } from '../components/Wifi/ConnectWifi';
 import { QuickSettings } from '../../src/components/QuickSettings/QuickSettings';
 import { QuickPreheat } from '../../src/components/Preheat/Preheat';
 import { SnakeGame } from '../../src/components/Snake/Snake';
 import { KnownWifi } from '../../src/components/Wifi/KnownWifi';
 import { DeleteWifiMenu } from '../components/Wifi/DeleteWifiMenu';
-import { DeletedWifi } from '../components/Wifi/DeletedWifi';
-import { WifiSettingsSave } from '../components/Wifi/WifiSettingsSave';
 import { AdvancedSettings } from '../components/Settings/Advanced/Advanced';
 import { WifiQrMenu } from '../../src/components/Wifi/WifiQrMenu';
 import { PressetProfileImage } from '../../src/components/Pressets/PressetProfileImage';
@@ -202,22 +199,9 @@ export const routes: Record<ScreenType, Route> = {
     component: DeleteWifiMenu,
     bottomStatusHidden: true
   },
-  deletedWifi: {
-    component: DeletedWifi,
-    bottomStatusHidden: true
-  },
-  wifiSettingsSave: {
-    component: WifiSettingsSave,
-    bottomStatusHidden: true
-  },
   connectWifiMenu: {
     component: ConnectWifiMenu,
     title: 'connect to a new network',
-    bottomStatusHidden: true
-  },
-  connectWifi: {
-    component: ConnectWifi,
-    title: 'connecting...',
     bottomStatusHidden: true
   },
   selectWifi: {

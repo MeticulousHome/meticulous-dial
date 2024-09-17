@@ -1,21 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import {
-  getConfig as getWifiConfig,
-  selectWifiToDelete
-} from '../store/features/wifi/wifi-slice';
+import { useAppDispatch } from '../store/hooks';
+import { selectWifiToDelete } from '../store/features/wifi/wifi-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { WifiIcon } from './WifiIcon';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
+import { useNetworkConfig } from '../../hooks/useWifi';
 
 export const KnownWifi = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const { pending, knownWifis = [] } = useAppSelector((state) => state.wifi);
+
+  const { data, isLoading } = useNetworkConfig();
+
+  const knownWifis = useMemo(() => {
+    if (!data?.known_wifis) {
+      return [];
+    }
+
+    return Object.keys(data?.known_wifis).map((key: string) => ({
+      password: data.known_wifis[key],
+      ssid: key
+    })) as { password: string; ssid: string }[];
+  }, [data]);
 
   useHandleGestures({
     left() {
@@ -39,16 +49,12 @@ export const KnownWifi = (): JSX.Element => {
   });
 
   useEffect(() => {
-    dispatch(getWifiConfig());
-  }, []);
-
-  useEffect(() => {
     if (swiper) {
       swiper.slideTo(activeIndex, 0, false);
     }
   }, [activeIndex, swiper]);
 
-  if (pending) {
+  if (isLoading) {
     return <LoadingScreen />;
   }
 

@@ -7,7 +7,7 @@ import {
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useRef, useState } from 'react';
-import { notificationFeedback } from '../../../src/api/wifi';
+import { acknowledgeNotification } from '../../../src/api/wifi';
 
 const SCROLL_VALUE = 50;
 
@@ -37,10 +37,10 @@ export function Notification(): JSX.Element {
           activeButton.classList.remove('focused-button');
           setActivebutton(null);
 
-          await notificationFeedback(
+          await acknowledgeNotification({
             id,
-            activeButton.getAttribute('data-value')
-          );
+            response: activeButton.getAttribute('data-value')
+          });
           mainContainerRef.current.scrollTop = 0;
           dispatch(removeOneNotification(id));
         }

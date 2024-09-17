@@ -3,20 +3,23 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 
 import './selectWifi.css';
 import { WifiIcon } from './WifiIcon';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { getWifis, selectWifi } from '../store/features/wifi/wifi-slice';
+import { useAppDispatch } from '../store/hooks';
+import { selectWifi } from '../store/features/wifi/wifi-slice';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import {
   setBubbleDisplay,
   setScreen
 } from '../store/features/screens/screens-slice';
+import { useAvailableWiFiList } from '../../hooks/useWifi';
 
 export const SelectWifi = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const { pending, wifiList = [] } = useAppSelector((state) => state.wifi);
+
+  const { data, isLoading } = useAvailableWiFiList();
+  const wifiList = data || [];
 
   useHandleGestures({
     left() {
@@ -39,16 +42,12 @@ export const SelectWifi = (): JSX.Element => {
   });
 
   useEffect(() => {
-    dispatch(getWifis());
-  }, []);
-
-  useEffect(() => {
     if (swiper) {
       swiper.slideTo(activeIndex, 0, false);
     }
   }, [activeIndex, swiper]);
 
-  if (pending) {
+  if (isLoading) {
     return <LoadingScreen />;
   }
 

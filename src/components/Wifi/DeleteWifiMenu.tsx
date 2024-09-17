@@ -7,10 +7,12 @@ import {
 } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import {
-  deleteKnowWifiThunk,
-  selectWifi
-} from '../store/features/wifi/wifi-slice';
+import { selectWifi } from '../store/features/wifi/wifi-slice';
+import { useDeleteKnownWiFi } from '../../hooks/useWifi';
+import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
+
+import './deletedWifi.css';
+import { useQueryClient } from '@tanstack/react-query';
 
 const items = [{ key: 'connect' }, { key: 'delete' }, { key: 'back' }];
 
@@ -19,6 +21,8 @@ export const DeleteWifiMenu = (): JSX.Element => {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const { selectedWifiToDelete } = useAppSelector((state) => state.wifi);
+  const queryClient = useQueryClient();
+  const deleteKnownWifiMutation = useDeleteKnownWiFi(queryClient);
 
   useHandleGestures({
     left() {
@@ -28,6 +32,9 @@ export const DeleteWifiMenu = (): JSX.Element => {
       setActiveIndex((prev) => Math.min(prev + 1, items.length - 1));
     },
     pressDown() {
+      if (deleteKnownWifiMutation.isError) {
+        dispatch(setBubbleDisplay({ visible: true, component: 'KnownWifi' }));
+      }
       switch (items[activeIndex].key) {
         case 'connect': {
           dispatch(setBubbleDisplay({ visible: false, component: null }));
@@ -36,10 +43,7 @@ export const DeleteWifiMenu = (): JSX.Element => {
           break;
         }
         case 'delete': {
-          dispatch(deleteKnowWifiThunk({ ssid: selectedWifiToDelete }));
-          dispatch(
-            setBubbleDisplay({ visible: true, component: 'deletedWifi' })
-          );
+          deleteKnownWifiMutation.mutate(selectedWifiToDelete);
           break;
         }
         case 'back': {
@@ -57,6 +61,26 @@ export const DeleteWifiMenu = (): JSX.Element => {
       swiper.slideTo(activeIndex, 0, false);
     }
   }, [activeIndex, swiper]);
+
+  if (deleteKnownWifiMutation.isSuccess) {
+    dispatch(setBubbleDisplay({ visible: true, component: 'KnownWifi' }));
+  }
+
+  if (deleteKnownWifiMutation.isPending) {
+    return <LoadingScreen />;
+  }
+
+  if (deleteKnownWifiMutation.isError) {
+    <div className="main-quick-settings">
+      <div className="deleted-response error-entry">
+        An unknown error occured. Please try again
+      </div>
+      <br />
+      <div key="back" className={`settings-item active-setting deleted-item`}>
+        <div className="settings-entry deleted-button">Ok</div>
+      </div>
+    </div>;
+  }
 
   return (
     <div className="main-quick-settings">

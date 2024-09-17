@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
-import { getConfig as getWifiConfig } from '../store/features/wifi/wifi-slice';
 import { useAppDispatch } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { QrImage } from './QrImage';
@@ -14,10 +13,6 @@ export const WifiQrMenu = (): JSX.Element => {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(items.length - 1);
   const dispatch = useAppDispatch();
-
-  useEffect(() => {
-    dispatch(getWifiConfig());
-  }, []);
 
   useHandleGestures({
     left() {
