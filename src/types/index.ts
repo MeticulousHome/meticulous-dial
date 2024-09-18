@@ -1,4 +1,4 @@
-import { VariableType } from 'meticulous-typescript-profile';
+import { VariableType } from '@meticulous-home/espresso-profile';
 
 interface JSONObject {
   [x: string]: JSONValue;

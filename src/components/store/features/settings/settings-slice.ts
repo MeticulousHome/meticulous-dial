@@ -1,7 +1,11 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { api } from '../../../../api/api';
 
-import { Settings, SettingsType, DeviceInfo } from 'meticulous-api';
+import {
+  Settings,
+  SettingsType,
+  DeviceInfo
+} from '@meticulous-home/espresso-api';
 
 type InitialSettings = Settings & { deviceInfo?: DeviceInfo };
 

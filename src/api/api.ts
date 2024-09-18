@@ -1,4 +1,4 @@
-import Api from 'meticulous-api';
+import Api from '@meticulous-home/espresso-api';
 
 export const api = new Api(
   undefined,

@@ -1,11 +1,6 @@
-import {
-  QueryClient,
-  useMutation,
-  useQuery,
-  useQueryClient
-} from '@tanstack/react-query';
+import { QueryClient, useMutation, useQuery } from '@tanstack/react-query';
 
-import { WiFiConfig, WiFiConnectRequest } from 'meticulous-api';
+import { WiFiConfig, WiFiCredentials } from '@meticulous-home/espresso-api';
 import {
   connectToWiFi,
   deleteKnownWifi,
@@ -56,7 +51,7 @@ export const useAvailableWiFiList = () => {
 // Hook to connect to Wi-Fi
 export const useConnectToWiFi = () => {
   return useMutation({
-    mutationFn: (data: WiFiConnectRequest) => connectToWiFi(data),
+    mutationFn: (data: WiFiCredentials) => connectToWiFi(data),
     onError: (error) => {
       console.error('Error connecting to Wi-Fi:', error);
     },

@@ -13,7 +13,7 @@ import {
   TEMPORARY_SETTINGS
 } from '../constants/setting';
 import { PresetsState } from '../components/store/features/preset/preset-slice';
-import { Variable } from 'meticulous-typescript-profile';
+import { Variable } from '@meticulous-home/espresso-profile';
 
 export const handleRemovePresetsAnimation = (
   swiper: Swiper,

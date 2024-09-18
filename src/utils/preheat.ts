@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Profile } from 'meticulous-typescript-profile';
+import { Profile } from '@meticulous-home/espresso-profile';
 
 export const simpleJson: Profile = {
   id: '',

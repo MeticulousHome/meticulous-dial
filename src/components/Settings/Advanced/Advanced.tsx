@@ -5,7 +5,7 @@ import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { marqueeIfNeeded } from '../../shared/MarqueeValue';
-import { SettingsKey } from 'meticulous-api';
+import { SettingsKey } from '@meticulous-home/espresso-api';
 import {
   updateItemSetting,
   updateSettings
