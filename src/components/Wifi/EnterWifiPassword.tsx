@@ -12,7 +12,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 
-import './connectWifi.css';
+import './wifiResult.css';
 
 export function EnterWifiPassword(): JSX.Element {
   const { wifi } = useAppSelector((state) => state);
@@ -42,10 +42,13 @@ export function EnterWifiPassword(): JSX.Element {
       return [];
     }
 
-    return Object.keys(data?.known_wifis).map((key: string) => ({
-      password: data.known_wifis[key],
-      ssid: key
-    })) as { password: string; ssid: string }[];
+    return Object.keys(data?.known_wifis).map((key: string) => {
+      const entry = data.known_wifis[key];
+      if (typeof entry === 'string') {
+        return { password: entry, ssid: key };
+      }
+      return entry;
+    }) as { password: string; ssid: string }[];
   }, [data]);
 
   useEffect(
@@ -89,10 +92,14 @@ export function EnterWifiPassword(): JSX.Element {
     return (
       <div className="main-container response">
         {connectToWifiMutation.isError && (
-          <div className={`connect-response error-entry`}>
-            An unknown error occured. Please try again
-            <>{connectToWifiMutation.failureReason}</>
-          </div>
+          <>
+            <div className={`connect-response error-entry`}>
+              An error occured. Please try again
+            </div>
+            <div className={`connect-response error-entry`}>
+              {connectToWifiMutation.failureReason.message}
+            </div>
+          </>
         )}
         {connectToWifiMutation.isSuccess && (
           <div className={`connect-response `}>Successfully Connected</div>
