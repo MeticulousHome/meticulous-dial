@@ -4,7 +4,7 @@ import { WiFiConfig, WiFiCredentials } from '@meticulous-home/espresso-api';
 import {
   connectToWiFi,
   deleteKnownWifi,
-  getNetworkConfig,
+  getWifiStatus,
   listAvailableWiFi,
   updateNetworkConfig
 } from '../api/wifi';
@@ -16,7 +16,7 @@ export const NETWORK_CONFIG_QUERY_KEY = 'networkConfig';
 export const useNetworkConfig = () => {
   return useQuery({
     queryKey: [NETWORK_CONFIG_QUERY_KEY],
-    queryFn: getNetworkConfig,
+    queryFn: getWifiStatus,
     staleTime: 0,
     refetchInterval: 2000
   });

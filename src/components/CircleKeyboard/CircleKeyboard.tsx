@@ -481,7 +481,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         </div>
         <div ref={captionRef} className="circle-caption" style={{ fontSize }}>
           {caption.length > maxShownCharacters && (
-            <span key="abrv">
+            <span key="caption_abreviation">
               ... <br />
             </span>
           )}

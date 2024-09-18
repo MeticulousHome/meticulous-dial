@@ -68,7 +68,7 @@ export function EnterWifiPassword(): JSX.Element {
       password
     );
     const ssid = wifi.selectedWifi;
-    connectToWifiMutation.mutate({ ssid, password });
+    connectToWifiMutation.mutate({ type: 'PSK', ssid, password });
   };
 
   const onCancel = () => {
