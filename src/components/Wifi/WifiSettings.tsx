@@ -7,9 +7,8 @@ import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { marqueeIfNeeded } from '../shared/MarqueeValue';
 import { useNetworkConfig, useUpdateNetworkConfig } from '../../hooks/useWifi';
-import { APMode } from 'meticulous-api';
+import { APMode } from '@meticulous-home/espresso-api';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
-import { api } from '../../api/api';
 
 export const WifiSettings = (): JSX.Element => {
   const dispatch = useAppDispatch();

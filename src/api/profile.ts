@@ -1,5 +1,5 @@
-import { APIError, LastProfileIdent } from 'meticulous-api';
-import { Profile } from 'meticulous-typescript-profile';
+import { APIError, LastProfileIdent } from '@meticulous-home/espresso-api';
+import { Profile } from '@meticulous-home/espresso-profile';
 import { api } from './api';
 
 export const getDefaultProfiles = async (): Promise<Profile[]> => {

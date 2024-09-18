@@ -16,7 +16,7 @@ import {
 } from '../store/features/preset/preset-slice';
 import './defaultProfile.css';
 import { api } from '../../api/api';
-import { Profile } from 'meticulous-typescript-profile';
+import { Profile } from '@meticulous-home/espresso-profile';
 import { v4 as uuidv4 } from 'uuid';
 
 const API_URL = process.env.SERVER_URL || 'http://localhost:8080';

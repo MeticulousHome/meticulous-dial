@@ -1,21 +1,17 @@
 import {
   AcknowledgeNotificationRequest,
   WiFiConfig,
-  WiFiConnectRequest,
+  WiFiCredentials,
   WiFiNetwork,
   WifiStatus
-} from 'meticulous-api';
+} from '@meticulous-home/espresso-api';
 import { api } from './api';
 
-export interface FixedWifiStatus extends WifiStatus {
-  known_wifis: { [key: string]: string };
-}
-
 // Wrapper for getWiFiConfig
-export async function getNetworkConfig(): Promise<FixedWifiStatus> {
+export async function getNetworkConfig(): Promise<WifiStatus> {
   try {
     const response = await api.getWiFiConfig();
-    return response.data as unknown as FixedWifiStatus;
+    return response.data;
   } catch (error) {
     if (error.response) {
       console.error('Error fetching Network Config: ', error.response.data);
@@ -38,7 +34,7 @@ export async function updateNetworkConfig(
 ): Promise<WiFiConfig> {
   try {
     const response = await api.setWiFiConfig(data);
-    return response.data as WiFiConfig;
+    return response.data;
   } catch (error) {
     if (error.response) {
       console.error('Error updating Network Config: ', error.response.data);
@@ -98,7 +94,7 @@ export async function listAvailableWiFi(): Promise<WiFiNetwork[]> {
 }
 
 // Wrapper for connectToWiFi
-export async function connectToWiFi(data: WiFiConnectRequest): Promise<void> {
+export async function connectToWiFi(data: WiFiCredentials): Promise<void> {
   try {
     const response = await api.connectToWiFi(data);
     return response.data as void;

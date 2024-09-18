@@ -4,7 +4,7 @@ import {
   Draft,
   PayloadAction
 } from '@reduxjs/toolkit';
-import { Profile } from 'meticulous-typescript-profile';
+import { Profile } from '@meticulous-home/espresso-profile';
 import equal from 'fast-deep-equal';
 
 import { settingsDefaultNewPreset } from '../../../../utils/mock';

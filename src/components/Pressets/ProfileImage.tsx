@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Profile } from 'meticulous-typescript-profile';
+import { Profile } from '@meticulous-home/espresso-profile';
 import { api } from '../../api/api';
 
 import {
