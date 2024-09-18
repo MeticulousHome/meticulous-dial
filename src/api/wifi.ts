@@ -1,5 +1,6 @@
 import {
   AcknowledgeNotificationRequest,
+  APIError,
   WiFiConfig,
   WiFiCredentials,
   WiFiNetwork,
@@ -8,10 +9,14 @@ import {
 import { api } from './api';
 
 // Wrapper for getWiFiConfig
-export async function getNetworkConfig(): Promise<WifiStatus> {
+export async function getWifiStatus(): Promise<WifiStatus> {
   try {
     const response = await api.getWiFiConfig();
-    return response.data;
+    const data = response.data;
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
+    return data;
   } catch (error) {
     if (error.response) {
       console.error('Error fetching Network Config: ', error.response.data);
@@ -30,11 +35,15 @@ export async function getNetworkConfig(): Promise<WifiStatus> {
 
 // Wrapper for setWiFiConfig
 export async function updateNetworkConfig(
-  data: Partial<WiFiConfig>
+  config: Partial<WiFiConfig>
 ): Promise<WiFiConfig> {
   try {
-    const response = await api.setWiFiConfig(data);
-    return response.data;
+    const response = await api.setWiFiConfig(config);
+    const data = response.data;
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
+    return data;
   } catch (error) {
     if (error.response) {
       console.error('Error updating Network Config: ', error.response.data);
@@ -76,7 +85,11 @@ export async function getWiFiQRCode(): Promise<Blob> {
 export async function listAvailableWiFi(): Promise<WiFiNetwork[]> {
   try {
     const response = await api.listAvailableWiFi();
-    return response.data as WiFiNetwork[];
+    const data = response.data;
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
+    return data;
   } catch (error) {
     if (error.response) {
       console.error('Error listing available Wi-Fi: ', error.response.data);
@@ -94,10 +107,13 @@ export async function listAvailableWiFi(): Promise<WiFiNetwork[]> {
 }
 
 // Wrapper for connectToWiFi
-export async function connectToWiFi(data: WiFiCredentials): Promise<void> {
+export async function connectToWiFi(config: WiFiCredentials): Promise<void> {
   try {
-    const response = await api.connectToWiFi(data);
-    return response.data as void;
+    const response = await api.connectToWiFi(config);
+    const data = response.data;
+    if (data && 'error' in data) {
+      throw new Error((data as APIError).error);
+    }
   } catch (error) {
     if (error.response) {
       console.error('Error connecting to Wi-Fi: ', error.response.data);
@@ -115,7 +131,10 @@ export async function connectToWiFi(data: WiFiCredentials): Promise<void> {
 export async function deleteKnownWifi(ssid: string): Promise<void> {
   try {
     const response = await api.deleteWifi({ ssid });
-    return response.data as void;
+    const data = response.data;
+    if (data && 'error' in data) {
+      throw new Error((data as APIError).error);
+    }
   } catch (error) {
     if (error.response) {
       console.error('Error deleting known Wi-Fi: ', error.response.data);
@@ -134,11 +153,14 @@ export async function deleteKnownWifi(ssid: string): Promise<void> {
 
 // Wrapper for acknowledgeNotification
 export async function acknowledgeNotification(
-  data: AcknowledgeNotificationRequest
+  notification: AcknowledgeNotificationRequest
 ): Promise<void> {
   try {
-    const response = await api.acknowledgeNotification(data);
-    return response.data as void;
+    const response = await api.acknowledgeNotification(notification);
+    const data = response.data;
+    if (data && 'error' in data) {
+      throw new Error((data as APIError).error);
+    }
   } catch (error) {
     if (error.response) {
       console.error('Error fetching Network Config: ', error.response.data);

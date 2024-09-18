@@ -92,7 +92,7 @@
     "typescript": "5.4.5"
   },
   "dependencies": {
-    "@meticulous-home/espresso-api": "^0.4.0",
+    "@meticulous-home/espresso-api": "^0.4.2",
     "@meticulous-home/espresso-profile": "^0.4.2",
     "@reduxjs/toolkit": "^1.9.1",
     "@tanstack/react-query": "^5.56.2",
