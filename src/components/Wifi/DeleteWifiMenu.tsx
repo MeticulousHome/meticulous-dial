@@ -11,7 +11,7 @@ import { selectWifi } from '../store/features/wifi/wifi-slice';
 import { useDeleteKnownWiFi } from '../../hooks/useWifi';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 
-import './deletedWifi.css';
+import './wifiResult.css';
 import { useQueryClient } from '@tanstack/react-query';
 
 const items = [{ key: 'connect' }, { key: 'delete' }, { key: 'back' }];
@@ -34,6 +34,7 @@ export const DeleteWifiMenu = (): JSX.Element => {
     pressDown() {
       if (deleteKnownWifiMutation.isError) {
         dispatch(setBubbleDisplay({ visible: true, component: 'KnownWifi' }));
+        return;
       }
       switch (items[activeIndex].key) {
         case 'connect': {
@@ -71,15 +72,20 @@ export const DeleteWifiMenu = (): JSX.Element => {
   }
 
   if (deleteKnownWifiMutation.isError) {
-    <div className="main-quick-settings">
-      <div className="deleted-response error-entry">
-        An unknown error occured. Please try again
+    return (
+      <div className="main-container response">
+        <div className={`connect-response error-entry`}>
+          An error occured. Please try again
+        </div>
+        <div className={`connect-response error-entry`}>
+          {deleteKnownWifiMutation.failureReason.message}
+        </div>
+        <br />
+        <div key="back" className={`settings-item active-setting connect-item`}>
+          <div className="settings-entry connect-button">Ok</div>
+        </div>
       </div>
-      <br />
-      <div key="back" className={`settings-item active-setting deleted-item`}>
-        <div className="settings-entry deleted-button">Ok</div>
-      </div>
-    </div>;
+    );
   }
 
   return (

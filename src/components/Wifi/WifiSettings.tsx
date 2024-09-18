@@ -27,8 +27,6 @@ export const WifiSettings = (): JSX.Element => {
 
   useEffect(() => {
     setNetworkConfigMode(networkConfig?.config.mode);
-    const img = new Image();
-    img.src = api.getWiFiQRURL();
   }, [networkConfig]);
 
   const isWifiConnected = networkConfig?.status.connected;
@@ -129,6 +127,7 @@ export const WifiSettings = (): JSX.Element => {
               ...networkConfig.config,
               mode: networkConfigMode
             });
+            setActiveIndex(0);
             break;
           }
           case 'known_wifis': {
