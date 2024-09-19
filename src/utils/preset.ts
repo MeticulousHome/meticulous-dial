@@ -46,8 +46,8 @@ export const handleAddPresetAnimation = (
         ? 'left'
         : 'bottom'
       : orientation === 'horizontal'
-      ? 'right'
-      : 'top';
+        ? 'right'
+        : 'top';
 
   if (swiper.slides[activeIndex]) {
     swiper.slides[activeIndex]

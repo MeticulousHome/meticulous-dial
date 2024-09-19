@@ -33,10 +33,10 @@ export const Router = memo(
           ? route.parentTitle(state)
           : route.parentTitle
         : parentRoute?.titleShared
-        ? null
-        : typeof parentRoute?.title === 'function'
-        ? parentRoute.title(state)
-        : parentRoute?.title
+          ? null
+          : typeof parentRoute?.title === 'function'
+            ? parentRoute.title(state)
+            : parentRoute?.title
     );
 
     const calculatedDirection =

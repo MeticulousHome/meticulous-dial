@@ -94,7 +94,10 @@ export function SettingNumerical({ type }: Props): JSX.Element {
       updatePresetSetting({
         ...setting,
         value
-      } as unknown as IPresetNumericalTemperature | IPresetNumericalPressure | IPresetNumericalOutput)
+      } as unknown as
+        | IPresetNumericalTemperature
+        | IPresetNumericalPressure
+        | IPresetNumericalOutput)
     );
   };
 
