@@ -161,6 +161,13 @@ export function PurgePiston(): JSX.Element {
     };
   }, [position]);
 
+  useEffect(() => {
+    return () => {
+      pistonContainer.current.destroy();
+      blinkContainer.current.destroy();
+    };
+  }, []);
+
   return (
     <div className="piston-container">
       <div className="piston-purge-container center">

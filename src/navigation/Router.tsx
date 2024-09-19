@@ -1,15 +1,13 @@
 import { Freeze } from 'react-freeze';
 import { ScreenType } from '../components/store/features/screens/screens-slice';
 import BottomStatus from '../components/BottomStatus';
-import { routes } from './routes';
 import { Transitioner } from './Transitioner';
 import { memo } from 'react';
 import { useAppSelector } from '../components/store/hooks';
 import Bubble from '../../src/components/Bubble/Bubble';
 import { memoizedRoutes } from '../../src/utils';
-
+import { routes } from './routes';
 const routeKeys = Object.keys(routes);
-
 export interface RouteProps {
   transitioning: boolean;
 }

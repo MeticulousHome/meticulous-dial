@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 import { GestureType, ISensorData, ProfileCause } from '../../types/index';
-import { useAppDispatch } from './hooks';
+import { useAppDispatch, useAppSelector } from './hooks';
 import { setStats, setWaterStatus } from './features/stats/stats-slice';
 import { setScreen } from './features/screens/screens-slice';
 import {
@@ -22,6 +22,7 @@ const socket: Socket | null = io(SERVER_URL);
 
 export const SocketProviderValue = () => {
   const dispatch = useAppDispatch();
+  const currentStateName = useAppSelector((state) => state.stats.name);
 
   useEffect(() => {
     socket.on('notification', (notification: string) => {
@@ -42,13 +43,15 @@ export const SocketProviderValue = () => {
       dispatch(setStats(data));
       // When stat is not in idle, lock the screen at Barometer
 
-      if (data?.name === 'purge' || data?.name === 'home') {
-        dispatch(setScreen('manual-purge'));
-        return;
-      }
+      if (currentStateName !== data?.name) {
+        if (data?.name === 'purge' || data?.name === 'home') {
+          dispatch(setScreen('manual-purge'));
+          return;
+        }
 
-      if (data?.name !== 'idle') {
-        dispatch(setScreen('barometer'));
+        if (data?.name !== 'idle') {
+          dispatch(setScreen('barometer'));
+        }
       }
     });
 

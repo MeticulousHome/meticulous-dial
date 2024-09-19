@@ -490,13 +490,13 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     const start = async () => {
       if (startCoffe) {
         ready.current = true;
+        animationInProgress.current = false;
+        setAnimation(initialValue);
         dispatch(setWaitingForAction(true));
         const profile = cleanupInternalProfile({ ...presets.activePreset });
-
         const data = await loadProfileData(profile);
         if (data) {
-          const started = await startProfile();
-          if (started) dispatch(setScreen('barometer'));
+          await startProfile();
         }
       }
     };

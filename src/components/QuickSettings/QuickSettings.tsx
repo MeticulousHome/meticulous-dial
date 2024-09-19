@@ -135,7 +135,6 @@ export function QuickSettings(): JSX.Element {
         switch (settings[activeIndex].key) {
           case 'home': {
             socket.emit('action', 'home');
-            dispatch(setScreen('pressets'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
@@ -161,7 +160,6 @@ export function QuickSettings(): JSX.Element {
           }
           case 'purge': {
             socket.emit('action', 'purge');
-            dispatch(setScreen('manual-purge'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
