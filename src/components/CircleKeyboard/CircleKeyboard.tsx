@@ -56,8 +56,8 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
     keyboardType === KEYBOARD_TYPE.Default
       ? DEFAULT_ALPHABET[0]
       : keyboardType === KEYBOARD_TYPE.AccentCharacters
-      ? SMALL_ACCENT_CHARACTERS[0]
-      : SPECIAL_CHARACTERS[0];
+        ? SMALL_ACCENT_CHARACTERS[0]
+        : SPECIAL_CHARACTERS[0];
 
   const { name, defaultValue, onSubmit, onCancel, onChange } = props;
   const inputLimit = 64;
@@ -288,8 +288,8 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         cpAlphabet.length > 1
           ? cpAlphabet
           : capsLockActive.active
-          ? cpAlphabet.toUpperCase()
-          : cpAlphabet.toLowerCase();
+            ? cpAlphabet.toUpperCase()
+            : cpAlphabet.toLowerCase();
     }
 
     return cpAlphabet;

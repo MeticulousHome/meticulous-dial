@@ -52,7 +52,7 @@ export const ProfileImage = ({ preset }: { preset: IProfileImage }) => {
   const [image, setImage] = useState(
     preset.display?.image
       ? `${API_URL}${api.getProfileImageUrl(preset.display.image)}`
-      : pImage?.image ?? `assets/images/${presetIndex}.png`
+      : (pImage?.image ?? `assets/images/${presetIndex}.png`)
   );
 
   const borderStyle = preset.display?.accentColor
@@ -73,7 +73,7 @@ export const ProfileImage = ({ preset }: { preset: IProfileImage }) => {
     setImage(
       preset.display?.image
         ? `${API_URL}${api.getProfileImageUrl(preset.display.image)}`
-        : pImage?.image ?? `assets/images/${presetIndex}.png`
+        : (pImage?.image ?? `assets/images/${presetIndex}.png`)
     );
   }, [preset.display?.image]);
 
