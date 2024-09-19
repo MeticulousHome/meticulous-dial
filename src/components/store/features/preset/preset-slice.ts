@@ -423,7 +423,7 @@ export const getPresets = createAsyncThunk(
         currentProfileWasModified ||
         params.cause === 'load'
       ) {
-        dispatch(setScreen('pressets'));
+        // dispatch(setScreen('pressets'));
       }
 
       try {
