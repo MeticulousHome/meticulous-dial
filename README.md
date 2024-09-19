@@ -16,12 +16,6 @@ Note: you will need to have installed NodeJS v18 or later
 npm run start
 ```
 
-### Start storybook
-
-```bash
-npm run storybook
-```
-
 ## 2. Code conventions
 
 We are using [Commitizen](http://commitizen.github.io/cz-cli/) and [Commitlint](https://commitlint.js.org/#/) to provide meaningful commits
