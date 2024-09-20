@@ -85,7 +85,7 @@ const settingsSlice = createSlice({
       (state[key] as SettingsType) = value;
     }
   },
-  extraReducers(builder) {
+  extraReducers: (builder) => {
     builder
       .addCase(fetchSettigns.fulfilled, (state, action) => {
         return {
