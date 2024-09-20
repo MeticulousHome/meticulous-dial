@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperRef } from 'swiper/react';
+import 'swiper/css';
+
 import classnames from 'classnames';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import './swiperWrapper.css';

@@ -1,7 +1,10 @@
 // Core modules imports are same as usual
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
-import SwiperS, { Pagination as PaginationSwiper } from 'swiper';
+import { Pagination as PaginationSwiper } from 'swiper/modules';
+import SwiperS from 'swiper';
+
+import 'swiper/css';
 
 import {
   clearSlides,

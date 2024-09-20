@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Swiper, SwiperRef, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
 
 import { handlePresetSlideChange } from '../../utils/preset';
 

@@ -9,6 +9,8 @@ import {
 } from '../store/features/screens/screens-slice';
 import { useSocket } from '../store/SocketManager';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+
 import {
   deletePreset,
   resetActiveSetting,
