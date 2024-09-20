@@ -43,6 +43,12 @@ const createWindow = (): void => {
   // Create the browser window.
   const mainWindow = new BrowserWindow(config);
 
+  mainWindow.webContents.on('render-process-gone', (event, details) => {
+    console.error('webContents: render-process-gone', details, event);
+    console.error('Killing app after render-process-gone!!!');
+    app.quit();
+  });
+
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
