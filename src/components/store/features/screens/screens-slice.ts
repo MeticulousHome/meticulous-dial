@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 // The 'splash' screen is injected in App.tsx instead to reduce loading times
 export type ScreenType =
+  | 'ready'
   | 'barometer'
   | 'pressets'
   | 'pressetSettings'
@@ -53,7 +54,7 @@ interface ScreenState {
 const initialState: ScreenState = {
   prev: null,
   bubbleDisplay: { visible: false, component: null, previousComponent: null },
-  value: 'pressets'
+  value: 'ready'
 };
 
 const screenSlice = createSlice({

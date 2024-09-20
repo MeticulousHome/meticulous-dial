@@ -612,7 +612,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                   {() => (
                     <div>
                       <div className={`title-swiper`}>
-                        {(option.screen === 'PRESSETS' || transitioning) && (
+                        {option.screen === 'PRESSETS' && !transitioning && (
                           <div
                             className={`presset-title-top 
                               ${preset.isTemporary ? 'presset-title-temp' : ''} 
