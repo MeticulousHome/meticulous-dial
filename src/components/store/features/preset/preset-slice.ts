@@ -390,7 +390,7 @@ export const getPresets = createAsyncThunk(
       change_id?: string;
       profile_id?: string;
     },
-    { dispatch, getState, rejectWithValue }
+    { getState, rejectWithValue }
   ) => {
     const state = getState() as RootState;
 
@@ -416,14 +416,6 @@ export const getPresets = createAsyncThunk(
         currentProfileWasModified =
           state.presets.activePreset.id === profileId &&
           (cause === 'delete' || cause === 'update');
-      }
-
-      if (
-        data.length === 0 ||
-        currentProfileWasModified ||
-        params.cause === 'load'
-      ) {
-        // dispatch(setScreen('pressets'));
       }
 
       try {
