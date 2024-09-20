@@ -606,16 +606,11 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                 >
                   {() => (
                     <div>
-                      <div
-                        className={`title-swiper  ${
-                          transitioning ? 'transitioning ' : ''
-                        }`}
-                      >
+                      <div className={`title-swiper`}>
                         {(option.screen === 'PRESSETS' || transitioning) && (
                           <Title
                             customClass={`presset-title-top ${
-                              (preset.isTemporary || false) &&
-                              'presset-title-temp'
+                              preset.isTemporary && 'presset-title-temp'
                             }
                         `}
                           >
