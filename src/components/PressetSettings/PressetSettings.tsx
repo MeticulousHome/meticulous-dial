@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
 
 import './pressetSettings.css';
 import { IPresetSetting, YesNoEnum } from '../../types';

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useAppDispatch } from '../store/hooks';

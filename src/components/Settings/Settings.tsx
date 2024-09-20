@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+
 import { SettingsKey } from '@meticulous-home/espresso-api';
 
 import './settings.css';

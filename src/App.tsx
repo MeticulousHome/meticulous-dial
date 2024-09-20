@@ -1,7 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider, useSelector } from 'react-redux';
-import 'swiper/swiper-bundle.min.css';
 
 import { useAppDispatch, useAppSelector } from './components/store/hooks';
 import { SocketManager } from './components/store/SocketManager';

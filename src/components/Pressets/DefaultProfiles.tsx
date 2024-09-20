@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
-import { Pagination as PaginationSwiper } from 'swiper';
+import { Pagination as PaginationSwiper } from 'swiper/modules';
 
 import { clearSlides, handlePresetSlideChange } from '../../utils/preset';
 import { RouteProps } from '../../navigation';

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
 
 import { useAppDispatch } from '../store/hooks';
 import { selectWifiToDelete } from '../store/features/wifi/wifi-slice';

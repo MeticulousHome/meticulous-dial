@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
-import { Pagination as PaginationSwiper, EffectCoverflow } from 'swiper';
+import {
+  Pagination as PaginationSwiper,
+  EffectCoverflow
+} from 'swiper/modules';
+import 'swiper/css';
 
 import { getProfileDefaultImages } from '../../api/profile';
 import { setScreen } from '../store/features/screens/screens-slice';

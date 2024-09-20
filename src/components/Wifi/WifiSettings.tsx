@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+
 import './wifiSettings.css';
 import { useAppDispatch } from '../store/hooks';
 

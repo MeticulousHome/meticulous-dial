@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { startMasterCalibration } from '../../../api/api';
+import 'swiper/css';
 
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
