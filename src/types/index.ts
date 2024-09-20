@@ -115,28 +115,33 @@ export type IPresetBaseNumerical = {
   type: 'numerical';
   value: number | number[][];
 };
+
+export interface IPresetNumericalUnit extends IPresetBaseNumerical {
+  unit: string;
+}
+
 export interface IPresetNumericalPressure
   extends IBasePresset,
-    IPresetBaseNumerical {
+    IPresetNumericalUnit {
   key: PressureKey;
   unit: 'bar';
 }
 export interface IPresetNumericalTemperature
   extends IBasePresset,
-    IPresetBaseNumerical {
+    IPresetNumericalUnit {
   key: TemperatureKey;
   unit: '°c';
 }
 export interface IPresetNumericalDose
   extends IBasePresset,
-    IPresetBaseNumerical {
+    IPresetNumericalUnit {
   key: DoseKey;
   unit: 'g';
 }
 
 export interface IPresetNumericalOutput
   extends IBasePresset,
-    IPresetBaseNumerical {
+    IPresetNumericalUnit {
   key: OutputKey;
   unit: 'g';
 }

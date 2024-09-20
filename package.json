@@ -16,7 +16,7 @@
     "make": "NODE_ENV=production electron-forge make",
     "publish": "electron-forge publish",
     "prepare": "husky",
-    "lint": "eslint --ext .ts,.tsx ."
+    "lint": "eslint ."
   },
   "repository": {
     "type": "git",
@@ -45,6 +45,7 @@
     "@electron-forge/maker-squirrel": "^7.4.0",
     "@electron-forge/maker-zip": "^7.4.0",
     "@electron-forge/plugin-webpack": "^7.4.0",
+    "@eslint/js": "^9.10.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/exec": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
@@ -60,8 +61,12 @@
     "electron": "24.8.8",
     "electron-devtools-installer": "^3.2.0",
     "eslint": "^8.57.1",
+    "eslint-import-resolver-typescript": "^3.6.3",
+    "eslint-import-resolver-webpack": "^0.13.9",
     "eslint-plugin-import": "^2.30.0",
+    "eslint-plugin-react": "^7.36.1",
     "fork-ts-checker-webpack-plugin": "^9.0.2",
+    "globals": "^15.9.0",
     "husky": "^9.1.6",
     "less": "^4.2.0",
     "less-loader": "^12.2.0",
@@ -74,7 +79,8 @@
     "style-loader": "^4.0.0",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "typescript-eslint": "^8.6.0"
   },
   "dependencies": {
     "@meticulous-home/espresso-api": "^0.5.3",

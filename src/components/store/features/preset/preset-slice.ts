@@ -724,7 +724,7 @@ const presetSlice = createSlice({
           state.activeIndexSwiper = 0;
         }
       })
-      .addCase(getPresets.rejected, (state, action) => {
+      .addCase(getPresets.rejected, (state) => {
         state.status = 'failed';
       })
       .addCase(setNextPreset.rejected, (state, action) => {
@@ -733,7 +733,7 @@ const presetSlice = createSlice({
       .addCase(savePreset.rejected, (state, action) => {
         console.log('save error', action);
       })
-      .addCase(loadDefaultProfiles.pending, (state, action) => {
+      .addCase(loadDefaultProfiles.pending, (state) => {
         state.defaultProfilesInfo.status = 'pending';
         state.pending = true;
       })
@@ -742,7 +742,7 @@ const presetSlice = createSlice({
         state.pending = false;
         state.defaultProfilesInfo.defaultProfiles = action.payload;
       })
-      .addCase(loadDefaultProfiles.rejected, (state, action) => {
+      .addCase(loadDefaultProfiles.rejected, (state) => {
         state.defaultProfilesInfo.status = 'failed';
         state.pending = false;
         state.error = true;

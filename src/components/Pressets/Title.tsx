@@ -1,7 +1,7 @@
-import React from 'react';
+import { memo } from 'react';
 import styledComponents, { css, keyframes } from 'styled-components';
 
-export const TitleCircle = React.memo(
+export const TitleCircle = memo(
   ({
     titleOpacityEnd,
     titleOpacityInitial,

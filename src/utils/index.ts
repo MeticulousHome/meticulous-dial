@@ -25,7 +25,7 @@ export const formatStatValue = (
 
   try {
     fValue = parseFloat(value);
-  } catch (e) {
+  } catch {
     return fValue;
   }
 

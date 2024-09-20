@@ -180,7 +180,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
           }
           const captioValue = caption.concat(' ');
           setCaption(captioValue);
-          onChange && onChange(captioValue.join(''));
+          if (onChange) onChange(captioValue.join(''));
           return;
         }
         case 'ok':
@@ -194,7 +194,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
           if (caption.length > 0) {
             const captionValue = caption.slice(0, -1);
             setCaption(captionValue);
-            onChange && onChange(captionValue.join(''));
+            if (onChange) onChange(captionValue.join(''));
           }
           return;
         case 'cancel':
@@ -248,7 +248,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         default: {
           const captionValue = caption.concat(mainLetter);
           setCaption(captionValue);
-          onChange && onChange(captionValue.join(''));
+          if (onChange) onChange(captionValue.join(''));
           if (!/^[A-Za-z]$/.test(mainLetter) && capsLockActive.active) {
             return;
           }
