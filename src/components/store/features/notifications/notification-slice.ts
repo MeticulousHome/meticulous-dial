@@ -11,8 +11,8 @@ export interface NotificationItem {
   timestamp: Date;
 }
 
-const notificationAdapter = createEntityAdapter<NotificationItem>({
-  selectId: (notification) => notification.id
+const notificationAdapter = createEntityAdapter({
+  selectId: (notification: NotificationItem) => notification.id
 });
 
 const notificationSlice = createSlice({

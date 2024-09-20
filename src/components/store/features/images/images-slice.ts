@@ -7,8 +7,8 @@ export interface ProfileImageItem {
   borderColor: string;
 }
 
-export const imageProfileAdapter = createEntityAdapter<ProfileImageItem>({
-  selectId: (preset) => preset.presetId
+export const imageProfileAdapter = createEntityAdapter({
+  selectId: (preset: ProfileImageItem) => preset.presetId
 });
 
 const profileImageSlice = createSlice({
