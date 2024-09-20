@@ -9,19 +9,6 @@ const config: ForgeConfig = {
   packagerConfig: {},
   rebuildConfig: {},
   makers: [new MakerDeb({})],
-  publishers: [
-    {
-      name: '@electron-forge/publisher-s3',
-      config: {
-        bucket: process.env.S3_BUCKET,
-        folder: process.env.DISTRIBUTION_FOLDER,
-        public: false,
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-        region: process.env.AWS_REGION
-      }
-    }
-  ],
   plugins: [
     new WebpackPlugin({
       devContentSecurityPolicy:
