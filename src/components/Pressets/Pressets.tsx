@@ -491,7 +491,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       if (startCoffe) {
         ready.current = true;
         animationInProgress.current = false;
-        setAnimation(initialValue);
         dispatch(setWaitingForAction(true));
         const profile = cleanupInternalProfile({ ...presets.activePreset });
         const data = await loadProfileData(profile);
