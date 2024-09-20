@@ -1,11 +1,11 @@
-import React, { useRef } from 'react';
+import React, { memo, useRef } from 'react';
 import { getDashArray } from '../SettingNumerical/Gauge';
 import styledComponents, { keyframes } from 'styled-components';
 
 export const radius = 237;
 export const transform = `rotate(90, ${radius}, ${radius})`;
 
-export const Circle = React.memo(
+export const Circle = memo(
   ({
     extraDelay,
     strokeInitialValue,

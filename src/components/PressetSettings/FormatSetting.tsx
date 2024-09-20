@@ -1,4 +1,4 @@
-import { IPresetSetting } from '../../types';
+import { IPresetNumericalUnit, IPresetSetting } from '../../types';
 import { api } from '../../api/api';
 
 interface FormatSettingProps {
@@ -79,7 +79,7 @@ export const FormatSetting = ({ setting, isActive }: FormatSettingProps) => {
             </span>
           )}
           <span className={`presset-option-unit ${activeClass}`}>
-            {(setting as any)?.unit}
+            {(setting as IPresetNumericalUnit)?.unit}
           </span>
         </span>
       </span>

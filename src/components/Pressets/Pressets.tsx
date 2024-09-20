@@ -534,7 +534,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     }
     try {
       focusProfileHandle();
-    } catch (e) {
+    } catch {
       /* empty */
     }
   }, [profileFocusId]);
