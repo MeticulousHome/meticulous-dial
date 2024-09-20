@@ -31,6 +31,7 @@ import { DefaultProfiles } from '../components/Pressets/DefaultProfiles';
 import { DefaultProfileDetails } from '../../src/components/Pressets/DefaultProfileDetails';
 import { PurgePiston } from '../components/PurgePiston/PurgePiston';
 import { UpdateChannel } from '../components/Settings/Advanced/UpdateChannel';
+import { ReadyAnimation } from '../components/ReadyAnimation/ReadyAnimation';
 
 interface Route {
   component: ComponentType;
@@ -53,6 +54,10 @@ const selectStatProfileName = (state: RootState) =>
   state.stats.profile || state.presets.activePreset.name;
 
 export const routes: Record<ScreenType, Route> = {
+  ready: {
+    component: ReadyAnimation,
+    bottomStatusHidden: true
+  },
   settings: {
     component: Settings,
     title: 'settings',
