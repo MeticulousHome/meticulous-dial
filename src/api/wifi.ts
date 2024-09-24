@@ -11,7 +11,7 @@ import { api } from './api';
 // Wrapper for getWiFiConfig
 export async function getWifiStatus(): Promise<WifiStatus> {
   try {
-    const response = await api.getWiFiConfig();
+    const response = await api.getWiFiStatus();
     const data = response.data;
     if ('error' in data) {
       throw new Error((data as APIError).error);
