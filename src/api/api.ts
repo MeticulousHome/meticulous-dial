@@ -1,6 +1,4 @@
 import Api from '@meticulous-home/espresso-api';
-// import '@meticulous-home/espresso-api'
-import { APIError } from '@meticulous-home/espresso-api';
 
 export const api = new Api(
   undefined,
