@@ -30,6 +30,7 @@ import { DeviceInfo } from '../../src/components/Settings/Advanced/DeviceInfo';
 import { DefaultProfiles } from '../components/Pressets/DefaultProfiles';
 import { DefaultProfileDetails } from '../../src/components/Pressets/DefaultProfileDetails';
 import { PurgePiston } from '../components/PurgePiston/PurgePiston';
+import { UpdateChannel } from '../components/Settings/Advanced/UpdateChannel';
 
 interface Route {
   component: ComponentType;
@@ -237,6 +238,9 @@ export const routes: Record<ScreenType, Route> = {
   },
   deviceInfo: {
     component: DeviceInfo
+  },
+  updateChannel: {
+    component: UpdateChannel
   },
   defaultProfiles: {
     component: DefaultProfiles,

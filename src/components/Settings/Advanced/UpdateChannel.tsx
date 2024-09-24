@@ -12,41 +12,20 @@ import {
 } from '../../../../src/components/store/features/settings/settings-slice';
 import { SettingsItem } from '../../../types';
 
-export const AdvancedSettings = () => {
+const UPDATE_CHANNELS = ['stable', 'beta', 'rel', 'nightly'];
+
+export const UpdateChannel = () => {
   const dispatch = useAppDispatch();
   const globalSettings = useAppSelector((state) => state.settings);
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const settings: SettingsItem[] = [
-    {
-      key: 'device_info',
-      label: 'Device Info',
+    ...UPDATE_CHANNELS.map((channel) => ({
+      key: 'channel',
+      label: channel,
       visible: true
-    },
-    {
-      key: 'enable_sounds',
-      label: 'sounds',
-      value: globalSettings.enable_sounds,
-      visible: true
-    },
-    {
-      key: 'save_debug_shot_data',
-      label: 'Save debug shot data',
-      value: globalSettings.save_debug_shot_data,
-      visible: true
-    },
-    {
-      key: 'set_update_channel',
-      label: 'Set update channel',
-      value: globalSettings.update_channel,
-      visible: true
-    },
-    {
-      key: 'save',
-      label: 'Save',
-      visible: true
-    },
+    })),
     {
       key: 'back',
       label: 'Back',
@@ -82,50 +61,26 @@ export const AdvancedSettings = () => {
       pressDown() {
         const activeItem = settings[activeIndex].key;
         switch (activeItem) {
-          case 'enable_sounds':
-            dispatch(
-              updateItemSetting({
-                key: 'enable_sounds',
-                value: !globalSettings.enable_sounds
-              })
-            );
-            break;
-
-          case 'save_debug_shot_data':
-            dispatch(
-              updateItemSetting({
-                key: 'save_debug_shot_data',
-                value: !globalSettings.save_debug_shot_data
-              })
-            );
-            break;
-          case 'set_update_channel':
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'updateChannel' })
-            );
-            break;
-          case 'device_info':
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'deviceInfo' })
-            );
-            break;
           case 'back':
             dispatch(
-              setBubbleDisplay({ visible: true, component: 'settings' })
-            );
-            break;
-          case 'save':
-            dispatch(
-              updateSettings({
-                enable_sounds: globalSettings.enable_sounds,
-                save_debug_shot_data: globalSettings.save_debug_shot_data
-              })
-            );
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'settings' })
+              setBubbleDisplay({ visible: true, component: 'advancedSettings' })
             );
             break;
           default: {
+            dispatch(
+              updateItemSetting({
+                key: 'update_channel',
+                value: activeItem
+              })
+            );
+            dispatch(
+              updateSettings({
+                update_channel: activeItem
+              })
+            );
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'settings' })
+            );
             break;
           }
         }
