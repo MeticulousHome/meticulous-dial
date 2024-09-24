@@ -45,6 +45,7 @@ const App = (): JSX.Element => {
   useEffect(() => {
     if (notifications.length > 0 && screen.value !== 'notifications') {
       dispatch(setScreen('notifications'));
+      dispatch(setBubbleDisplay({ visible: false, component: null }));
     }
 
     if (notifications.length === 0 && screen.value === 'notifications') {
