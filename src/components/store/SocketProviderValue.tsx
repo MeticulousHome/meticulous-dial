@@ -28,10 +28,6 @@ export const SocketProviderValue = () => {
     socket.on('notification', (notification: string) => {
       const oNotification: NotificationItem = JSON.parse(notification);
 
-      if (oNotification.responses.length === 0) {
-        return;
-      }
-
       if (!oNotification.message && !oNotification.image) {
         dispatch(removeOneNotification(oNotification.id));
       } else {

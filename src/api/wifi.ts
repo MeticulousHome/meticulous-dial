@@ -157,22 +157,28 @@ export async function acknowledgeNotification(
 ): Promise<void> {
   try {
     const response = await api.acknowledgeNotification(notification);
+    if (response.status === 404) {
+      return;
+    }
     const data = response.data;
     if (data && 'error' in data) {
       throw new Error((data as APIError).error);
     }
   } catch (error) {
     if (error.response) {
-      console.error('Error fetching Network Config: ', error.response.data);
+      if (error.response.status === 404) {
+        return;
+      }
+      console.error('Error acknowledging Notification: ', error.response.data);
       throw new Error(
-        error.response.data?.message || 'Error fetching Network Config.'
+        error.response.data?.message || 'Error acknowledging Notification'
       );
     } else {
       console.error(
-        'Network error while fetching Network Config: ',
+        'Network error while acknowledging Notification: ',
         error.message
       );
-      throw new Error('Network error while fetching Network Config.');
+      throw new Error('Network error while acknloedging Notification: ');
     }
   }
 }
