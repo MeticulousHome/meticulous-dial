@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { startMasterCalibration } from '../../../api/api';
 
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
@@ -28,6 +29,11 @@ export const AdvancedSettings = () => {
       key: 'enable_sounds',
       label: 'sounds',
       value: globalSettings.enable_sounds,
+      visible: true
+    },
+    {
+      key: 'master_calibration',
+      label: 'ACAIA master calibration',
       visible: true
     },
     {
@@ -124,6 +130,19 @@ export const AdvancedSettings = () => {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'settings' })
             );
+            break;
+          case 'master_calibration':
+            startMasterCalibration()
+              .then(() => {
+                dispatch(setBubbleDisplay({ visible: false, component: null }));
+              })
+              .catch((err) => {
+                console.log(err);
+              });
+
+            // dispatch(
+            //   setBubbleDisplay({ visible: false, component: null })
+            // );
             break;
           default: {
             break;
