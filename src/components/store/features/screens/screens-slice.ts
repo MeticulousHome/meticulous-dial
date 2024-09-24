@@ -35,6 +35,7 @@ export type ScreenType =
   | 'advancedSettings'
   | 'pressetProfileImage'
   | 'deviceInfo'
+  | 'updateChannel'
   | 'defaultProfiles'
   | 'defaultProfileDetails'
   | 'manual-purge';

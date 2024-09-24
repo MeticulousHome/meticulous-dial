@@ -16,6 +16,7 @@ export const initialState: InitialSettings = {
   auto_preheat: 0,
   enable_sounds: false,
   save_debug_shot_data: false,
+  update_channel: 'stable',
   deviceInfo: null
 };
 
