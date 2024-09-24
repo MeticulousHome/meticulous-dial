@@ -68,7 +68,7 @@ export const getDeviceInfo = createAsyncThunk(
 interface UpdateItemSettingAction {
   payload: {
     key: keyof Settings;
-    value: SettingsType;
+    value: SettingsType | string;
   };
 }
 
@@ -81,8 +81,8 @@ const settingsSlice = createSlice({
       action: UpdateItemSettingAction
     ) => {
       const key: keyof Settings = action.payload.key;
-      const value: SettingsType = action.payload.value;
-      (state[key] as SettingsType) = value;
+      const value: SettingsType | string = action.payload.value;
+      (state[key] as SettingsType | string) = value;
     }
   },
   extraReducers(builder) {
