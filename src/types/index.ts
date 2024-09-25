@@ -228,7 +228,7 @@ export interface PressetSettings {
 }
 
 export interface SettingsItem {
-  value?: string | boolean;
+  value?: number | string | boolean;
   key: string;
   label?: string;
   visible?: boolean;
