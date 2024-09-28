@@ -70,7 +70,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const profileFocusId = useAppSelector((state) => state.presets.profileFocus);
   const presetSwiperRef = useRef<SwiperRef | null>(null);
   const [pressetSwiper, setPressetsSwiper] = useState<SwiperS | null>(null);
-  const titleSwiperRef = useRef<SwiperRef | null>(null);
   const circleOne = useRef<SVGCircleElement>(null);
   const animationInProgress = useRef(false);
   const socket = useSocket();
@@ -432,7 +431,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   useEffect(() => {
     const index = presets.activeIndexSwiper;
     presetSwiperRef.current?.swiper.slideTo(index);
-    titleSwiperRef.current?.swiper.slideTo(index);
   }, [presets.activeIndexSwiper]);
 
   useEffect(() => {
@@ -515,7 +513,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     setOption((prev) => ({ ...prev, animating: false }));
     const myIndex = presets.value.findIndex((e) => e.id === profileHoverId);
     presetSwiperRef.current.swiper.slideTo(myIndex);
-    titleSwiperRef.current.swiper.slideTo(myIndex);
     dispatch(setActiveIndexSwiper(myIndex));
     setOption({ screen: 'PRESSETS', animating: false });
   }, [profileHoverId]);
@@ -605,14 +602,25 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                     <div>
                       <div className={`title-swiper`}>
                         {(option.screen === 'PRESSETS' || transitioning) && (
-                          <Title
-                            customClass={`presset-title-top ${
-                              preset.isTemporary && 'presset-title-temp'
-                            }
+                          <div
+                            className={`presset-title-top 
+                              ${preset.isTemporary ? 'presset-title-temp' : ''} 
+                              ${
+                                preset.name.length > 30
+                                  ? 'presset-title-small'
+                                  : ''
+                              }
+                              ${
+                                preset.name.length > 40
+                                  ? 'presset-title-very-small'
+                                  : ''
+                              }
                         `}
                           >
-                            {preset.name}
-                          </Title>
+                            {preset.name.length > 70
+                              ? `${preset.name.substring(0, 70)}...`
+                              : preset.name}
+                          </div>
                         )}
                       </div>
                       <ProfileImage preset={preset} />
