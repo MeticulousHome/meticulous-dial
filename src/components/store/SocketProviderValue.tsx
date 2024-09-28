@@ -16,6 +16,7 @@ import {
   NotificationItem,
   removeOneNotification
 } from './features/notifications/notification-slice';
+import { api } from '../../api/api';
 
 const SERVER_URL: string = process.env.SERVER_URL ?? 'http://localhost:8080';
 const socket: Socket | null = io(SERVER_URL);
@@ -137,6 +138,14 @@ export const useSocketKeyboardListeners = () => {
       if (gesture) {
         console.log(gesture);
         handleEvents.emit('gesture', gesture, 1000);
+      }
+
+      if (e.code === 'KeyQ') {
+        const stop = async () => {
+          await api.executeAction('stop');
+        };
+
+        stop();
       }
     };
 
