@@ -139,10 +139,6 @@ export const AdvancedSettings = () => {
               .catch((err) => {
                 console.log(err);
               });
-
-            // dispatch(
-            //   setBubbleDisplay({ visible: false, component: null })
-            // );
             break;
           default: {
             break;
