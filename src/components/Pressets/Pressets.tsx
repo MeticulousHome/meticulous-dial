@@ -22,7 +22,7 @@ import {
   setOptionPressets,
   setPrevPreset
 } from '../store/features/preset/preset-slice';
-import { Title, RouteProps } from '../../navigation';
+import { RouteProps } from '../../navigation';
 import '../../navigation/navigation.less';
 import { ProfileImage } from './ProfileImage';
 import { setScreen } from '../store/features/screens/screens-slice';
@@ -91,6 +91,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const [percentaje, setPercentaje] = useState(0);
   const [startCoffe, setStartCoffe] = useState(false);
   const ready = useRef(false);
+  const currentScreen = useAppSelector((state) => state.screen.value);
 
   const pressetTitleContenExistValidation = useCallback(() => {
     if (!pressetsTitleContentRef.current) {
@@ -149,6 +150,13 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   useEffect(() => {
     setOption({ screen: presets.option, animating: false });
   }, [presets.option]);
+
+  useEffect(() => {
+    if (currentScreen === 'pressets') {
+      return;
+    }
+    animationInProgress.current = false;
+  }, [currentScreen]);
 
   const focusProfileHandle = () => {
     if (

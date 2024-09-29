@@ -41,6 +41,7 @@ interface Route {
   bottomStatusHidden?: boolean;
   bottomTitle?: string;
   props?: object;
+  animationDirectionFrom?: Partial<Record<ScreenType, 'in' | 'out'>>;
 }
 
 const selectActivePresetName = (state: RootState) =>
@@ -72,7 +73,10 @@ export const routes: Record<ScreenType, Route> = {
     parentTitle: null,
     title: selectStatProfileName,
     // titleShared: true,
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    animationDirectionFrom: {
+      'manual-purge': 'in'
+    }
   },
   pressetSettings: {
     component: PressetSettings,
@@ -142,7 +146,10 @@ export const routes: Record<ScreenType, Route> = {
   },
   'manual-purge': {
     component: PurgePiston,
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    animationDirectionFrom: {
+      barometer: 'in'
+    }
   },
   dose: {
     component: () => null, // Multiple choice to be implemented

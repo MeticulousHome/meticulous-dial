@@ -2,7 +2,7 @@ import { Freeze } from 'react-freeze';
 import { ScreenType } from '../components/store/features/screens/screens-slice';
 import BottomStatus from '../components/BottomStatus';
 import { Transitioner } from './Transitioner';
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { useAppSelector } from '../components/store/hooks';
 import Bubble from '../../src/components/Bubble/Bubble';
 import { memoizedRoutes } from '../../src/utils';
@@ -39,11 +39,26 @@ export const Router = memo(
         : parentRoute?.title
     );
 
-    const direction =
+    const calculatedDirection =
       !previousScreen ||
-      routeKeys.indexOf(currentScreen) > routeKeys.indexOf(previousScreen)
+      routeKeys.indexOf(currentScreen) >= routeKeys.indexOf(previousScreen)
         ? 'in'
         : 'out';
+
+    const directionMap = routes[currentScreen].animationDirectionFrom;
+    const direction =
+      (previousScreen && directionMap && directionMap[previousScreen]) ||
+      calculatedDirection;
+
+    useEffect(() => {
+      console.log(
+        'Router',
+        previousScreen,
+        '->',
+        currentScreen,
+        `${direction}(${calculatedDirection})`
+      );
+    }, [currentScreen, previousScreen]);
 
     return (
       <>

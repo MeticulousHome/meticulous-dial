@@ -24,8 +24,6 @@ export type ActionType =
 export type StageType =
   | 'idle'
   | 'initialize'
-  | 'preinfusion'
-  | 'infusion'
   | 'purge'
   | 'tare'
   | 'home'
@@ -48,7 +46,7 @@ export type IPresetSettings = string[];
 
 export interface ISensorData {
   time: string;
-  name: StageType;
+  name: StageType | string;
   waitingForActionAlreadySent: boolean;
   sensors: {
     p: string; // Pressure - Bars
