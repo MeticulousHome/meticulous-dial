@@ -21,6 +21,27 @@ export const getProfiles = async () => {
   }
 };
 
+export async function getProfilesForReactQueryy(): Promise<Profile[]> {
+  try {
+    const response = await api.fetchAllProfiles();
+    const data = response.data;
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
+    return data;
+  } catch (error) {
+    if (error.response) {
+      console.error('Error fetching Profiles: ', error.response.data);
+      throw new Error(
+        error.response.data?.message || 'Error fetching Profiles.'
+      );
+    } else {
+      console.error('Network error while fetching Profiles: ', error.message);
+      throw new Error('Network error while fetching Profiles.');
+    }
+  }
+}
+
 export const saveProfile = async (body: Profile) => {
   try {
     const { data } = await api.saveProfile(body);
