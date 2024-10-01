@@ -7,7 +7,20 @@ import { addVariablesToSettings } from '../utils/preset';
 
 import { Profile } from '@meticulous-home/espresso-profile';
 import { LastProfileIdent } from '@meticulous-home/espresso-api';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useSocket } from '../components/store/SocketManager';
+import { useAppDispatch } from '../components/store/hooks';
+import {
+  ProfileValue,
+  setActiveIndexSwiper,
+  setActivePreset,
+  setAllSettings,
+  setDefaultPresetIndex,
+  setProfiles,
+  setStatus,
+  setUpdatingSettings
+} from '../components/store/features/preset/preset-slice';
+import { settingsDefaultNewPreset } from '../utils/mock';
 
 export const PROFILES_QUERY_KEY = 'profiles';
 export const LAST_PROFILE_QUERY_KEY = 'lastProfile';
@@ -17,7 +30,7 @@ export const LAST_PROFILE_QUERY_KEY = 'lastProfile';
  * @param {Profile} profile - Profile to which you will add the settings.
  * @returns {ProfileValue} profile modified with the `settings[]` property added.
  */
-const addSettingsToProfile = (profile: Profile) => ({
+const addSettingsToProfile = (profile: Profile): ProfileValue => ({
   ...profile,
   settings: [
     {
@@ -74,7 +87,7 @@ export function usePressets(): {
   isError: boolean;
   isFetching: boolean;
   isPending: boolean;
-  profiles: Profile[];
+  profiles: ProfileValue[];
   lastProfileIndex: number;
   isLastProfileKnown: boolean;
 } {
@@ -144,4 +157,44 @@ export function usePressets(): {
       };
     }
   });
+}
+
+export function useProfileManagement() {
+  const dispatch = useAppDispatch();
+  //const { profileChangeData } = useSocket();
+
+  const { profiles, lastProfileIndex, isLastProfileKnown, isError } =
+    usePressets();
+  console.log('Pressets::usePressets::profiles ---->', profiles);
+
+  useEffect(() => {
+    if (!isError) {
+      dispatch(setStatus('failed'));
+      return;
+    }
+
+    if (profiles) {
+      const allSettings = profiles.map((profile) => ({
+        presetId: profile.id.toString(),
+        settings: profile.settings
+      }));
+
+      const { settings } = allSettings.find(
+        (item) => item.presetId === profiles[lastProfileIndex].id.toString()
+      );
+
+      const updatingSettings = {
+        presetId: profiles[lastProfileIndex].id.toString(),
+        settings: settings || [...settingsDefaultNewPreset]
+      };
+
+      dispatch(setStatus('ready'));
+      dispatch(setProfiles(profiles));
+      dispatch(setAllSettings(allSettings));
+      dispatch(setDefaultPresetIndex(lastProfileIndex));
+      dispatch(setActivePreset(profiles[lastProfileIndex]));
+      dispatch(setUpdatingSettings(updatingSettings));
+      dispatch(setActiveIndexSwiper(lastProfileIndex));
+    }
+  }, [profiles, dispatch]);
 }
