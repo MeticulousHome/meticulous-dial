@@ -44,7 +44,7 @@ const unitSettingConfigMap: Record<NumericalSettingType, ISettingConfig> = {
   },
   flow: {
     interval: 0.1,
-    unit: 'bar',
+    unit: 'ml',
     maxValue: 12
   },
   time: {
