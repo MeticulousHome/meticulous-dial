@@ -18,6 +18,7 @@ import {
   setDefaultProfileSelected,
   setOptionPressets
 } from '../store/features/preset/preset-slice';
+import { updatePreheatStatus } from '../store/features/settings/settings-slice';
 
 import { useOSStatus } from '../../hooks/useOSStatus';
 
@@ -48,10 +49,10 @@ const defaultSettings: QuickSettingOption[] = [
     key: 'purge',
     label: 'purge'
   },
-  // {
-  //   key: 'preheat',
-  //   label: 'preheat'
-  // },
+  {
+    key: 'preheat',
+    label: 'preheat'
+  },
   {
     key: 'calibrate',
     label: 'calibrate scale'
@@ -82,6 +83,7 @@ export function QuickSettings(): JSX.Element {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(1);
   const stats = useAppSelector((state) => state.stats);
+  const preheatStatus = useAppSelector((state) => state.settings.preheatStatus);
   const [settings, setSettings] = useState(defaultSettings);
 
   const presets = useAppSelector((state) => state.presets);
@@ -184,6 +186,10 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'preheat': {
+            const newStatus =
+              preheatStatus === 'enabled' ? 'disabled' : 'enabled';
+            dispatch(updatePreheatStatus(newStatus));
+            socket.emit('action', 'preheat');
             break;
           }
           case 'calibrate': {
@@ -311,7 +317,8 @@ export function QuickSettings(): JSX.Element {
                 key={`option-${index}-${setting.key}`}
                 onAnimationEnd={handleAnimationEnd}
               >
-                {setting.label}
+                {setting.label}{' '}
+                {setting.key === 'preheat' && `: ${preheatStatus}`}
               </SwiperSlide>
 
               {indexSeparator === index && (

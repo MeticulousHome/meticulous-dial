@@ -4,12 +4,15 @@ import './bottom-status.css';
 
 const BottomStatus = ({ hidden }: { hidden: boolean }) => {
   const stats = useAppSelector((state) => state.stats);
+  const preheatStatus = useAppSelector((state) => state.settings.preheatStatus);
 
   return (
     <div className={`bottom-status bottom__${hidden ? 'fadeOut' : 'fadeIn'}`}>
       <div className="bottom-content">
         <div className="bottom-item">
-          <div className={`status-value ${stats.waterStatus ? 'blue' : 'red'}`}>
+          <div
+            className={`status-value ${preheatStatus === 'enabled' ? 'red' : 'disabled'}`}
+          >
             {formatStatValue(stats.sensors.t, 1)}
             <div className="status-unit status-temp-icon">°C</div>
           </div>
