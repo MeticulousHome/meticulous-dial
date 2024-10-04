@@ -50,6 +50,12 @@ export const AdvancedSettings = () => {
       visible: true
     },
     {
+      key: 'os_update',
+      label: 'OS Status',
+      value: globalSettings.update_channel,
+      visible: true
+    },
+    {
       key: 'save',
       label: 'Save',
       visible: true
@@ -109,6 +115,11 @@ export const AdvancedSettings = () => {
           case 'set_update_channel':
             dispatch(
               setBubbleDisplay({ visible: true, component: 'updateChannel' })
+            );
+            break;
+          case 'os_update':
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'OSStatus' })
             );
             break;
           case 'device_info':

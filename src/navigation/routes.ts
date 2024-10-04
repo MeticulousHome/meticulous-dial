@@ -18,6 +18,7 @@ import { RootState } from '../components/store/store';
 import { Notification } from '../components/Notification/Notification';
 import { getTitlePressets } from '../components/Pressets/TitlePressets';
 import { ConnectWifiViaApp } from '../components/Wifi/ConnetWifiViaApp';
+import { OSStatus } from '../components/OSStatus/OSStatus';
 import { QuickSettings } from '../../src/components/QuickSettings/QuickSettings';
 import { QuickPreheat } from '../../src/components/Preheat/Preheat';
 import { SnakeGame } from '../../src/components/Snake/Snake';
@@ -54,8 +55,9 @@ const selectStatProfileName = (state: RootState) =>
   state.stats.profile || state.presets.activePreset.name;
 
 export const routes: Record<ScreenType, Route> = {
-  ready: {
-    component: ReadyAnimation,
+  OSStatus: {
+    component: OSStatus,
+    title: 'OSStatus',
     bottomStatusHidden: true
   },
   settings: {
