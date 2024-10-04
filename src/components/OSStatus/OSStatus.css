@@ -1,0 +1,11 @@
+.OS-info-text {
+  text-transform: none;
+  font-size: 22px;
+  color: #dddddd;
+  text-align: left;
+  width: 100%;
+  justify-content: start;
+  font-weight: 400;
+  font-family: 'Abc_mono';
+  height: fit-content;
+}
