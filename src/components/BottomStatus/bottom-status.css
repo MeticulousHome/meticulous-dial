@@ -70,11 +70,29 @@
 }
 
 .bottom-status .status-value.red::after {
-  border-bottom: 9px solid #ff3d00;
+  border-bottom: 11px solid #ff3d00;
 }
 
-.bottom-status .status-value.blue::after {
-  border-bottom: 9px solid #87cefa;
+.bottom-status .status-value.disabled::after {
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 12px solid #5c5c5c;
+}
+
+.bottom-status .status-value.disabled::before {
+  content: '';
+  position: absolute;
+  right: calc(103% + 1px);
+  top: calc(20% + 1px);
+  margin-top: -6px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 9px solid #000101;
+  z-index: 1;
 }
 
 @keyframes bottomFadeIn {

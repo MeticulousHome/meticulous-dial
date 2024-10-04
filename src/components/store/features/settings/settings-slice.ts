@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { api } from '../../../../api/api';
 
 import {
@@ -7,7 +7,10 @@ import {
   DeviceInfo
 } from '@meticulous-home/espresso-api';
 
-type InitialSettings = Partial<Settings> & { deviceInfo?: DeviceInfo };
+type InitialSettings = Settings & {
+  deviceInfo?: DeviceInfo;
+  preheatStatus: 'enabled' | 'disabled';
+};
 
 export const initialState: InitialSettings = {
   auto_purge_after_shot: false,
@@ -15,7 +18,8 @@ export const initialState: InitialSettings = {
   enable_sounds: false,
   save_debug_shot_data: false,
   update_channel: 'stable',
-  deviceInfo: null
+  deviceInfo: null,
+  preheatStatus: 'disabled'
 };
 
 export const fetchSettigns = createAsyncThunk(
@@ -81,6 +85,12 @@ const settingsSlice = createSlice({
       const key: keyof Settings = action.payload.key;
       const value: SettingsType = action.payload.value;
       (state[key] as SettingsType) = value;
+    },
+    updatePreheatStatus: (
+      state,
+      action: PayloadAction<'enabled' | 'disabled'>
+    ) => {
+      state.preheatStatus = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -112,5 +122,5 @@ const settingsSlice = createSlice({
   }
 });
 
-export const { updateItemSetting } = settingsSlice.actions;
+export const { updateItemSetting, updatePreheatStatus } = settingsSlice.actions;
 export default settingsSlice.reducer;
