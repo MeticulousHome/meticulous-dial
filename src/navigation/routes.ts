@@ -32,6 +32,7 @@ import { DefaultProfileDetails } from '../../src/components/Pressets/DefaultProf
 import { PurgePiston } from '../components/PurgePiston/PurgePiston';
 import { UpdateChannel } from '../components/Settings/Advanced/UpdateChannel';
 import { ReadyAnimation } from '../components/ReadyAnimation/ReadyAnimation';
+import { HeatTimeoutAfterShot } from '../components/HeatTimeoutAfterShot/HeatTimeoutAfterShot';
 
 interface Route {
   component: ComponentType;
@@ -238,6 +239,10 @@ export const routes: Record<ScreenType, Route> = {
   },
   'quick-settings': {
     component: QuickSettings
+  },
+  heat_timeout_after_shot: {
+    component: HeatTimeoutAfterShot,
+    bottomStatusHidden: true
   },
   snake: {
     component: SnakeGame

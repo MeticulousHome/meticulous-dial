@@ -5,12 +5,16 @@ import 'swiper/css';
 
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
-import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
+import {
+  setBubbleDisplay,
+  setScreen
+} from '../../store/features/screens/screens-slice';
 import { marqueeIfNeeded } from '../../shared/MarqueeValue';
 import { SettingsKey } from '@meticulous-home/espresso-api';
 import {
   updateItemSetting,
-  updateSettings
+  updateSettings,
+  setTempHeatingTimeout
 } from '../../../../src/components/store/features/settings/settings-slice';
 import { SettingsItem } from '../../../types';
 
@@ -20,6 +24,7 @@ export const AdvancedSettings = () => {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+
   const settings: SettingsItem[] = [
     {
       key: 'device_info',
@@ -50,6 +55,11 @@ export const AdvancedSettings = () => {
       visible: true
     },
     {
+      key: 'heat_timeout_after_shot',
+      label: 'Heat timeout after shot',
+      visible: true
+    },
+    {
       key: 'save',
       label: 'Save',
       visible: true
@@ -66,7 +76,11 @@ export const AdvancedSettings = () => {
       if (!item) return <></>;
       let val = item.label.toUpperCase();
       if (globalSettings) {
-        if (typeof globalSettings[item.key as SettingsKey] === 'boolean') {
+        if (item.key === 'heat_timeout_after_shot') {
+          val = `${val}: ${globalSettings.tempHeatingTimeout ?? globalSettings.heating_timeout} MIN`;
+        } else if (
+          typeof globalSettings[item.key as SettingsKey] === 'boolean'
+        ) {
           val = globalSettings[item.key as SettingsKey]
             ? val + ': ENABLED'
             : val + ': DISABLED';
@@ -77,7 +91,6 @@ export const AdvancedSettings = () => {
     },
     [globalSettings]
   );
-
   useHandleGestures(
     {
       left() {
@@ -117,6 +130,7 @@ export const AdvancedSettings = () => {
             );
             break;
           case 'back':
+            dispatch(setTempHeatingTimeout(null)); // Clear temporary value without saving
             dispatch(
               setBubbleDisplay({ visible: true, component: 'settings' })
             );
@@ -125,9 +139,13 @@ export const AdvancedSettings = () => {
             dispatch(
               updateSettings({
                 enable_sounds: globalSettings.enable_sounds,
-                save_debug_shot_data: globalSettings.save_debug_shot_data
+                save_debug_shot_data: globalSettings.save_debug_shot_data,
+                heating_timeout:
+                  globalSettings.tempHeatingTimeout ??
+                  globalSettings.heating_timeout
               })
             );
+            dispatch(setTempHeatingTimeout(null)); // Clear temporary value after saving
             dispatch(
               setBubbleDisplay({ visible: true, component: 'settings' })
             );
@@ -140,6 +158,10 @@ export const AdvancedSettings = () => {
               .catch((err) => {
                 console.log(err);
               });
+            break;
+          case 'heat_timeout_after_shot':
+            dispatch(setScreen('heat_timeout_after_shot'));
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           default: {
             break;
