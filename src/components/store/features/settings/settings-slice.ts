@@ -10,6 +10,8 @@ import {
 type InitialSettings = Settings & {
   deviceInfo?: DeviceInfo;
   preheatStatus: 'enabled' | 'disabled';
+  heating_timeout: number;
+  tempHeatingTimeout: number | null;
 };
 
 export const initialState: InitialSettings = {
@@ -19,7 +21,9 @@ export const initialState: InitialSettings = {
   save_debug_shot_data: false,
   update_channel: 'stable',
   deviceInfo: null,
-  preheatStatus: 'disabled'
+  preheatStatus: 'disabled',
+  heating_timeout: 0,
+  tempHeatingTimeout: null
 };
 
 export const fetchSettigns = createAsyncThunk(
@@ -91,6 +95,12 @@ const settingsSlice = createSlice({
       action: PayloadAction<'enabled' | 'disabled'>
     ) => {
       state.preheatStatus = action.payload;
+    },
+    updateHeatingTimeout: (state, action: PayloadAction<number>) => {
+      state.heating_timeout = action.payload;
+    },
+    setTempHeatingTimeout: (state, action: PayloadAction<number | null>) => {
+      state.tempHeatingTimeout = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -104,7 +114,8 @@ const settingsSlice = createSlice({
       .addCase(updateSettings.fulfilled, (state, action) => {
         return {
           ...state,
-          ...action.payload
+          ...action.payload,
+          tempHeatingTimeout: null // Clear temporary value after successful update
         };
       })
       .addCase(updateSettings.rejected, (state) => {
@@ -122,5 +133,6 @@ const settingsSlice = createSlice({
   }
 });
 
-export const { updateItemSetting, updatePreheatStatus } = settingsSlice.actions;
+export const { updateItemSetting, updatePreheatStatus, setTempHeatingTimeout } =
+  settingsSlice.actions;
 export default settingsSlice.reducer;
