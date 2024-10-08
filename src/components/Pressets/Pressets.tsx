@@ -39,6 +39,7 @@ import {
 } from '../store/features/settings/settings-slice';
 import { loadProfileData, startProfile } from '../../api/profile';
 import { useSocket } from '../store/SocketManager';
+import { RootState } from '../store/store';
 
 interface AnimationData {
   circlekey: number;
@@ -68,6 +69,9 @@ const initialValue: AnimationData = {
 
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const dispatch = useAppDispatch();
+  const screen = useAppSelector((state: RootState) => state.screen);
+  const comingFromHeatTimeout =
+    screen.prev === 'heat_timeout_after_shot' && screen.value === 'pressets';
   const presets = useAppSelector((state) => state.presets);
   const profileHoverId = useAppSelector((state) => state.presets.profileHover);
   const profileFocusId = useAppSelector((state) => state.presets.profileFocus);
@@ -512,9 +516,11 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
   useEffect(() => {
     dispatch(setWaitingForAction(false));
-    dispatch(fetchSettigns());
     dispatch(getDeviceInfo());
-  }, []);
+    if (!comingFromHeatTimeout) {
+      dispatch(fetchSettigns());
+    }
+  }, [comingFromHeatTimeout]);
 
   useEffect(() => {
     if (profileHoverId === '-1') {
