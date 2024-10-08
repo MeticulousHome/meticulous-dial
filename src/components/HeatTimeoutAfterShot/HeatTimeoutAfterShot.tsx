@@ -8,7 +8,7 @@ import {
 } from '../store/features/screens/screens-slice';
 import { setTempHeatingTimeout } from '../store/features/settings/settings-slice';
 import { RootState } from '../store/store';
-import { AnyAction } from '@reduxjs/toolkit';
+import { AppDispatch } from '../store/store';
 
 const MAX_TIMEOUT = 60; // 60 minutes
 const INTERVAL = 1; // 1 minute intervals
