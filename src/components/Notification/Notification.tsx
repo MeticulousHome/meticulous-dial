@@ -1,4 +1,4 @@
-import './notification.css';
+import React, { useRef, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   notificationSelector,
@@ -6,42 +6,61 @@ import {
 } from '../store/features/notifications/notification-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { useRef, useState } from 'react';
 import { acknowledgeNotification } from '../../../src/api/wifi';
+import './notification.css';
 
 const SCROLL_VALUE = 50;
 
 export function Notification(): JSX.Element {
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const [activeButton, setActivebutton] = useState<HTMLButtonElement | null>(
-    null
-  );
-  const mainContainerRef = useRef<HTMLDivElement | null>(null);
+  const messageRef = useRef<HTMLDivElement>(null);
   const notifications = useSelector(notificationSelector.selectAll);
-  const [allowScroll, setAllowScroll] = useState<boolean>(true);
+  const [isScrollable, setIsScrollable] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(0);
+  const [canSelectOption, setCanSelectOption] = useState(false);
+
+  useEffect(() => {
+    if (messageRef.current) {
+      const isOverflowing =
+        messageRef.current.scrollHeight > messageRef.current.clientHeight;
+      setIsScrollable(isOverflowing);
+      setCanSelectOption(!isOverflowing);
+      messageRef.current.classList.toggle('scrollable', isOverflowing);
+    }
+  }, [notifications]);
 
   useHandleGestures(
     {
       left: () => {
-        mainContainerScroll(true);
-        moveBButtons(true);
+        if (
+          canSelectOption &&
+          notifications[0].responses.length > 1 &&
+          selectedOption > 0
+        ) {
+          setSelectedOption((prev) => prev - 1);
+        } else {
+          scrollMessage(true);
+        }
       },
       right: () => {
-        mainContainerScroll(false);
-        moveBButtons(false);
+        if (
+          canSelectOption &&
+          notifications[0].responses.length > 1 &&
+          selectedOption < notifications[0].responses.length - 1
+        ) {
+          setSelectedOption((prev) => prev + 1);
+        } else {
+          scrollMessage(false);
+        }
       },
       pressDown: async () => {
-        if (activeButton !== null) {
-          setAllowScroll(true);
-          activeButton.classList.remove('focused-button');
-          setActivebutton(null);
-
+        if (notifications.length > 0) {
+          const { id, responses } = notifications[0];
           await acknowledgeNotification({
             id,
-            response: activeButton.getAttribute('data-value')
+            response: responses[selectedOption]
           });
-          mainContainerRef.current.scrollTop = 0;
           dispatch(removeOneNotification(id));
         }
       }
@@ -53,93 +72,79 @@ export function Notification(): JSX.Element {
     return <></>;
   }
 
-  const { id, message, responses, image } = notifications[0];
+  const { message, image, responses } = notifications[0];
 
-  const mainContainerScroll = (up: boolean) => {
-    if (!mainContainerRef.current || !allowScroll) {
-      return;
-    }
+  const scrollMessage = (up: boolean) => {
+    if (messageRef.current) {
+      messageRef.current.scrollTop += up ? -SCROLL_VALUE : SCROLL_VALUE;
 
-    mainContainerRef.current.scrollTop += up ? -SCROLL_VALUE : SCROLL_VALUE;
-
-    if (
-      mainContainerRef.current.scrollTop ===
-      mainContainerRef.current.scrollHeight -
-        mainContainerRef.current.offsetHeight
-    ) {
-      setAllowScroll(false);
-    }
-  };
-
-  const myActiveButton = (id: number) => {
-    if (id < 0) {
-      activeButton.classList.remove('focused-button');
-      mainContainerRef.current.scrollTop -= SCROLL_VALUE;
-      setAllowScroll(true);
-      setActivebutton(null);
-      return;
-    }
-
-    let myButton: HTMLButtonElement = null;
-    myButton = document.getElementById(`button-${id}`) as HTMLButtonElement;
-    myButton.classList.add('focused-button');
-    setActivebutton(myButton);
-  };
-
-  const moveBButtons = (left: boolean) => {
-    if (allowScroll) {
-      return;
-    }
-    if (activeButton === null) {
-      myActiveButton(0);
-      return;
-    }
-
-    const intKey =
-      parseInt(activeButton.getAttribute('data-key')) + (left ? -1 : +1);
-    if (responses.length - 1 >= intKey) {
-      if (activeButton !== null) {
-        activeButton.classList.remove('focused-button');
+      if (
+        !canSelectOption &&
+        messageRef.current.scrollHeight - messageRef.current.scrollTop ===
+          messageRef.current.clientHeight
+      ) {
+        setCanSelectOption(true);
+      } else if (
+        canSelectOption &&
+        messageRef.current.scrollTop <
+          messageRef.current.scrollHeight - messageRef.current.clientHeight
+      ) {
+        setCanSelectOption(false);
+        setSelectedOption(0);
       }
-
-      myActiveButton(intKey);
     }
+  };
+
+  const renderOptions = () => {
+    if (responses.length === 1) {
+      return (
+        <button className="notification-button selected">
+          {responses[0] || 'OK'}
+        </button>
+      );
+    }
+
+    return (
+      <div className="notification-options-container">
+        {selectedOption > 0 && (
+          <button
+            className="notification-button left"
+            disabled={!canSelectOption}
+          >
+            {responses[selectedOption - 1]}
+          </button>
+        )}
+        <button className="notification-button center selected">
+          {responses[selectedOption]}
+        </button>
+        {selectedOption < responses.length - 1 && (
+          <button
+            className="notification-button right"
+            disabled={!canSelectOption}
+          >
+            {responses[selectedOption + 1]}
+          </button>
+        )}
+      </div>
+    );
   };
 
   return (
-    <div className="main-container">
-      <div className="notification-container">
-        <div className="message-container">
-          <div className="circle-container">
-            <div className="circle" id="main-circle" ref={mainContainerRef}>
-              <div className="cicle limit-left" />
-              <div className="cicle limit-right" />
-              <div className="notification-content">
-                {message}
-                <div className="image-container">
-                  <img src={image} />
-                </div>
-                <div className="n-buttons">
-                  {responses.map((response, index) => {
-                    return (
-                      <button
-                        id={`button-${index}`}
-                        key={index}
-                        data-key={index}
-                        data-value={response}
-                        className="response-button"
-                      >
-                        {response}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+    <div className="notification-circular-container">
+      <div className="notification-circular-content">
+        <div
+          className={`notification-message ${isScrollable ? 'scrollable' : ''}`}
+          ref={messageRef}
+        >
+          <p>{message}</p>
+          {image && (
+            <div className="notification-image-container">
+              <img src={image} alt="Notification image" />
             </div>
-          </div>
+          )}
         </div>
-        <div className="notification-fade-bottom" />
       </div>
+      <div className="notification-button-container">{renderOptions()}</div>
     </div>
   );
 }
