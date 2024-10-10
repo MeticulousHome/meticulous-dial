@@ -1,114 +1,134 @@
-.main-container {
+:root {
+  --notification-font-size: 24px;
+  --button-font-size: 20px;
+}
+
+.notification-circular-container {
+  width: 100%;
   height: 100%;
-  width: 100%;
-  position: absolute;
   display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.notification-container {
-  white-space: pre-line;
-  display: flex;
-  align-items: center;
   flex-direction: column;
-  justify-content: space-around;
-  height: 480px;
-  width: 480px;
-  z-index: 2;
-}
-
-.circle-container {
-  display: flex;
   justify-content: center;
   align-items: center;
-  height: 480px;
-}
-
-.circle {
-  width: 480px;
-  height: 480px;
+  background-color: rgba(0, 0, 0, 0.8);
   border-radius: 50%;
-  overflow: auto;
-  scroll-behavior: smooth;
+  overflow: hidden;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
-.circle::-webkit-scrollbar {
-  display: none;
-}
-
-.notification-content {
-  font-size: 30px;
-  margin: 0;
-  padding: 0px;
-  margin-top: 20px;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
-.circle .limit-left {
-  content: '';
-  width: 50%;
-  height: 50%;
-  float: left;
-  shape-outside: polygon(0% 0%, 70% 0%, 45% 10%, 20% 30%, 6% 66%, 0px 100%);
-  shape-margin: 3%;
-}
-
-.circle .limit-right {
-  content: '';
-  width: 50%;
-  height: 50%;
-  float: right;
-  shape-outside: polygon(30% 0%, 55% 10%, 80% 30%, 94% 66%, 100% 100%, 100% 0%);
-  shape-margin: 3%;
-}
-
-.image-container {
+.notification-circular-content {
+  width: 80%;
+  height: 70%;
   display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  overflow: hidden;
+}
+
+.notification-message {
   width: 100%;
-  flex-direction: row;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-.image-container img {
-  width: 195px;
-  justify-self: center;
-}
-
-.n-buttons {
+  height: 100%;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  margin-bottom: 150px;
+  padding: 10px;
+  box-sizing: border-box;
 }
 
-.response-button {
-  border: unset;
-  font-size: 30px;
-  line-height: 52px;
-  font-weight: 500;
-  justify-content: start;
-  color: #808080;
-  padding: 5px;
-  background-color: transparent;
-  background: none;
+.notification-message.scrollable {
+  justify-content: flex-start;
+  mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
 }
 
-.focused-button {
+.notification-message p {
+  font-size: var(--notification-font-size);
   color: white;
+  text-align: center;
+  margin: 0;
+  hyphens: auto;
+  word-break: break-word;
 }
 
-.notification-fade-bottom {
+.notification-image-container {
   width: 100%;
-  position: absolute;
-  bottom: 0;
-  height: 30%;
-  background: linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0.7) 35%,
-    rgba(255, 255, 255, 0) 100%
-  );
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.notification-image-container img {
+  max-width: 80%;
+  height: auto;
+  border-radius: 10px;
+}
+
+.notification-button-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.notification-options-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.notification-button {
+  background-color: #f5c444;
+  color: black;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 25px;
+  font-size: var(--button-font-size);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0 5px;
+}
+
+.notification-button.left,
+.notification-button.right {
+  opacity: 0.5;
+  transform: scale(0.8);
+}
+
+.notification-button.center {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.notification-button.selected {
+  background-color: #e0b030;
+  box-shadow: 0 0 10px rgba(224, 176, 48, 0.5);
+}
+
+.notification-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+/* Estilos para el scrollbar */
+.notification-message::-webkit-scrollbar {
+  width: 8px;
+}
+
+.notification-message::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.notification-message::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.notification-message::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.5);
 }
