@@ -6,7 +6,7 @@ import {
 import { useAppDispatch, useAppSelector } from '../components/store/hooks';
 import { api } from '../api/api';
 
-const API_URL = process.env.SERVER_URL || 'http://localhost:8080';
+const API_URL = window.env.SERVER_URL || 'http://localhost:8080';
 
 export function useFetchData(onReady?: () => void) {
   const dispatch = useAppDispatch();
