@@ -16,6 +16,7 @@ export function Notification(): JSX.Element {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const messageRef = useRef<HTMLDivElement>(null);
   const notifications = useSelector(notificationSelector.selectAll);
+  const [currentNotification] = notifications;
   const [isScrollable, setIsScrollable] = useState(false);
   const [selectedOption, setSelectedOption] = useState(0);
   const [canSelectOption, setCanSelectOption] = useState(false);
@@ -35,7 +36,7 @@ export function Notification(): JSX.Element {
       left: () => {
         if (
           canSelectOption &&
-          notifications[0].responses.length > 1 &&
+          currentNotification.responses.length > 1 &&
           selectedOption > 0
         ) {
           setSelectedOption((prev) => prev - 1);
@@ -46,8 +47,8 @@ export function Notification(): JSX.Element {
       right: () => {
         if (
           canSelectOption &&
-          notifications[0].responses.length > 1 &&
-          selectedOption < notifications[0].responses.length - 1
+          currentNotification.responses.length > 1 &&
+          selectedOption < currentNotification.responses.length - 1
         ) {
           setSelectedOption((prev) => prev + 1);
         } else {
@@ -55,8 +56,8 @@ export function Notification(): JSX.Element {
         }
       },
       pressDown: async () => {
-        if (notifications.length > 0) {
-          const { id, responses } = notifications[0];
+        if (currentNotification) {
+          const { id, responses } = currentNotification;
           await acknowledgeNotification({
             id,
             response: responses[selectedOption]
@@ -68,11 +69,11 @@ export function Notification(): JSX.Element {
     bubbleDisplay.visible
   );
 
-  if (notifications.length === 0) {
+  if (!currentNotification) {
     return <></>;
   }
 
-  const { message, image, responses } = notifications[0];
+  const { message, image, responses } = currentNotification;
 
   const scrollMessage = (up: boolean) => {
     if (messageRef.current) {
