@@ -22,7 +22,7 @@ export const UpdateChannel = () => {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const settings: SettingsItem[] = [
     ...UPDATE_CHANNELS.map((channel) => ({
-      key: 'channel',
+      key: 'channel_' + channel,
       label: channel,
       visible: true
     })),
@@ -67,15 +67,16 @@ export const UpdateChannel = () => {
             );
             break;
           default: {
+            const channel = settings[activeIndex].label;
             dispatch(
               updateItemSetting({
                 key: 'update_channel',
-                value: activeItem
+                value: channel
               })
             );
             dispatch(
               updateSettings({
-                update_channel: activeItem
+                update_channel: channel
               })
             );
             dispatch(
