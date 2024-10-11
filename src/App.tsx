@@ -90,7 +90,7 @@ const App = (): JSX.Element => {
     stats?.name !== 'idle' || bubbleDisplay.visible
   );
 
-  const dev = !!process.env.npm_lifecycle_event;
+  const dev = !!window.env.npm_lifecycle_event;
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -18,7 +18,7 @@ import {
 } from './features/notifications/notification-slice';
 import { api } from '../../api/api';
 
-const SERVER_URL: string = process.env.SERVER_URL ?? 'http://localhost:8080';
+const SERVER_URL: string = window.env.SERVER_URL ?? 'http://localhost:8080';
 const socket: Socket | null = io(SERVER_URL);
 
 export const SocketProviderValue = () => {
