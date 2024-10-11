@@ -13,3 +13,12 @@ export const startMasterCalibration = async () => {
     console.error('Start profile error: ', error.message);
   }
 };
+
+export const getOSStatus = async () => {
+  try {
+    const { data } = await api.getOSStatus();
+    return data;
+  } catch (error) {
+    console.error('Start profile error: ', error.message);
+  }
+};

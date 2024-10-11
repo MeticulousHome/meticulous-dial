@@ -4,9 +4,9 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useAppDispatch } from '../store/hooks';
 import { useSocket } from '../../../src/components/store/SocketManager';
+import { getOSStatus } from '../../api/api';
 
 import './OSStatus.css';
-// import './wifiDetails.css';
 
 interface OSUpdateData {
   progress: number;
@@ -19,9 +19,6 @@ const InitialOSStatus: OSUpdateData = {
   status: 'IDLE',
   info: ''
 };
-
-const OS_STATUS_ENDPOINT =
-  'http://localhost:8080/api/v1/machine/OS_update_status';
 
 const items = [{ key: 'content' }, { key: 'back' }];
 
@@ -85,7 +82,7 @@ export const OSStatus = (): JSX.Element => {
   }, [OSStatusData]);
 
   useEffect(() => {
-    fetch(OS_STATUS_ENDPOINT)
+    getOSStatus()
       .then((response) => response.json())
       .then((data) => setOSStatusData(data));
     socket.on('OSUpdate', (data: OSUpdateData) => {
