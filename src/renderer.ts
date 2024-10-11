@@ -28,9 +28,10 @@
 
 import './globals.css';
 import './App';
+import './preload_types';
 
 console.log(
   '👋 This message is being logged by "renderer.js", included via webpack'
 );
 
-console.log('Electron version: ', process.versions.electron);
+console.log('Electron version: ', window.electron_version);
