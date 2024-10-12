@@ -10,6 +10,7 @@ import {
 import { useSocket } from '../store/SocketManager';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
+import { getOSStatus } from '../../api/api';
 
 import {
   deletePreset,
@@ -18,6 +19,8 @@ import {
   setOptionPressets
 } from '../store/features/preset/preset-slice';
 
+import { OSUpdateData, InitialOSStatus } from '../OSStatus/OSStatus';
+
 interface QuickSettingOption {
   key: string;
   label: string;
@@ -25,6 +28,10 @@ interface QuickSettingOption {
 }
 
 const profileContextSettings: QuickSettingOption[] = [
+  {
+    key: 'os_update',
+    label: 'test'
+  },
   {
     key: 'edit',
     label: 'Edit profile'
@@ -77,7 +84,7 @@ export function QuickSettings(): JSX.Element {
     defaultProfilesInfo: { defaultProfileActiveIndexSwiper, defaultProfiles }
   } = useAppSelector((state) => state.presets);
   const [swiper, setSwiper] = useState(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(1);
   const stats = useAppSelector((state) => state.stats);
   const { auto_preheat } = useAppSelector((state) => state.settings);
   const [preheatValue, setPreheatValue] = useState<string>('');
@@ -88,6 +95,9 @@ export function QuickSettings(): JSX.Element {
   const [counterESGG, setCounterESGG] = useState(0);
   const [holdAnimation, setHoldAnimation] =
     useState<holdAnimationState>('stopped');
+
+  const [OSStatusData, setOSStatusData] = useState(InitialOSStatus);
+  const [info, setInfo] = useState('');
 
   const handleAnimationEnd = () => {
     setHoldAnimation('finished');
@@ -113,7 +123,7 @@ export function QuickSettings(): JSX.Element {
         );
       },
       left() {
-        setActiveIndex((prev) => Math.max(prev - 1, 0));
+        setActiveIndex((prev) => Math.max(prev - 1, 1));
         setCounterESGG(0);
       },
       right() {
@@ -256,6 +266,13 @@ export function QuickSettings(): JSX.Element {
     }
   }, [counterESGG]);
 
+  useEffect(() => {
+    getOSStatus().then((data) => setOSStatusData(data));
+    socket.on('OSUpdate', (data: OSUpdateData) => {
+      setOSStatusData(data);
+    });
+  }, []);
+
   const getSettingClasses = useCallback(
     (isActive: boolean) => {
       return `settings-item ${isActive ? 'active-setting' : ''} ${
@@ -280,6 +297,38 @@ export function QuickSettings(): JSX.Element {
       >
         {settings.map((setting, index: number) => {
           const isActive = index === activeIndex;
+          if (setting.key === 'os_update') {
+            var OS_STATUS_INFO_TEXT = '';
+            switch (OSStatusData.status) {
+              case 'COMPLETE':
+                OS_STATUS_INFO_TEXT = 'Update Complete';
+                break;
+              case 'DOWNLOADING':
+                OS_STATUS_INFO_TEXT = `Downloading Update: ${OSStatusData.progress}%`;
+                break;
+              case 'INSTALLING':
+                OS_STATUS_INFO_TEXT = `Installing Update: ${OSStatusData.progress}%`;
+                break;
+            }
+            const SWIPER_SLIDE_OS_ELEMENT: JSX.Element = (
+              <>
+                <SwiperSlide
+                  className={getSettingClasses(isActive)}
+                  key={`default_option-${index}`}
+                  onAnimationEnd={handleAnimationEnd}
+                >
+                  <span className={`os-info-${OSStatusData.status}`}>
+                    {OS_STATUS_INFO_TEXT}
+                  </span>
+                </SwiperSlide>
+              </>
+            );
+
+            return OSStatusData.status === 'IDLE' ||
+              OSStatusData.status === 'FAILED'
+              ? null
+              : SWIPER_SLIDE_OS_ELEMENT;
+          }
           return (
             <>
               <SwiperSlide
