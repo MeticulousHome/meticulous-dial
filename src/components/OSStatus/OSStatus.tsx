@@ -8,13 +8,13 @@ import { getOSStatus } from '../../api/api';
 
 import './OSStatus.css';
 
-interface OSUpdateData {
-  progress: number;
-  status: string;
-  info: string;
+export interface OSUpdateData {
+  progress?: number;
+  status?: string;
+  info?: string;
 }
 
-const InitialOSStatus: OSUpdateData = {
+export const InitialOSStatus: OSUpdateData = {
   progress: 0,
   status: 'IDLE',
   info: ''
