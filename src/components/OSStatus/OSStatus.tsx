@@ -82,9 +82,7 @@ export const OSStatus = (): JSX.Element => {
   }, [OSStatusData]);
 
   useEffect(() => {
-    getOSStatus()
-      .then((response) => response.json())
-      .then((data) => setOSStatusData(data));
+    getOSStatus().then((data) => setOSStatusData(data));
     socket.on('OSUpdate', (data: OSUpdateData) => {
       setOSStatusData(data);
     });
