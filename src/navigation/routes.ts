@@ -60,6 +60,10 @@ export const routes: Record<ScreenType, Route> = {
     title: 'OSStatus',
     bottomStatusHidden: true
   },
+  ready: {
+    component: ReadyAnimation,
+    bottomStatusHidden: true
+  },
   settings: {
     component: Settings,
     title: 'settings',
