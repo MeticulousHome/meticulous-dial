@@ -273,6 +273,20 @@ export function QuickSettings(): JSX.Element {
     });
   }, []);
 
+  useEffect(() => {
+    switch (OSStatusData.status) {
+      case 'COMPLETE':
+        setInfo('Update Complete');
+        break;
+      case 'DOWNLOADING':
+        setInfo(`Downloading Update: ${OSStatusData.progress}%`);
+        break;
+      case 'INSTALLING':
+        setInfo(`Installing Update: ${OSStatusData.progress}%`);
+        break;
+    }
+  }, [OSStatusData]);
+
   const getSettingClasses = useCallback(
     (isActive: boolean) => {
       return `settings-item ${isActive ? 'active-setting' : ''} ${
@@ -298,18 +312,6 @@ export function QuickSettings(): JSX.Element {
         {settings.map((setting, index: number) => {
           const isActive = index === activeIndex;
           if (setting.key === 'os_update') {
-            var OS_STATUS_INFO_TEXT = '';
-            switch (OSStatusData.status) {
-              case 'COMPLETE':
-                OS_STATUS_INFO_TEXT = 'Update Complete';
-                break;
-              case 'DOWNLOADING':
-                OS_STATUS_INFO_TEXT = `Downloading Update: ${OSStatusData.progress}%`;
-                break;
-              case 'INSTALLING':
-                OS_STATUS_INFO_TEXT = `Installing Update: ${OSStatusData.progress}%`;
-                break;
-            }
             const SWIPER_SLIDE_OS_ELEMENT: JSX.Element = (
               <>
                 <SwiperSlide
@@ -318,7 +320,7 @@ export function QuickSettings(): JSX.Element {
                   onAnimationEnd={handleAnimationEnd}
                 >
                   <span className={`os-info-${OSStatusData.status}`}>
-                    {OS_STATUS_INFO_TEXT}
+                    {info}
                   </span>
                 </SwiperSlide>
               </>
