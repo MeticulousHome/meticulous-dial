@@ -9,3 +9,18 @@
   font-family: 'Abc_mono';
   height: fit-content;
 }
+
+.os-info-FAILED {
+  color: #f44336;
+}
+.os-info-COMPLETE {
+  color: #ffc107;
+}
+
+.os-info-DOWNLOADING {
+  color: #ffc107;
+}
+
+.os-info-INSTALLING {
+  color: #ffc107;
+}
