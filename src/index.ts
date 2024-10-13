@@ -38,11 +38,12 @@ const createWindow = (): void => {
       alwaysOnTop: true,
       closable: false,
       titleBarStyle: 'hidden',
+      kiosk: true
 
       // These will be changed once the renderer sends a message to change the window
-      kiosk: false,
-      height: 1,
-      width: 1
+      //kiosk: false,
+      // height: 1,
+      // width: 1
     };
   }
   // Create the browser window.
@@ -73,12 +74,12 @@ const createWindow = (): void => {
       return;
     }
 
-    mainWindow.restore();
-    mainWindow.setSize(480, 480);
-    mainWindow.setContentSize(480, 480);
-    mainWindow.setKiosk(true);
-    mainWindow.center();
-    mainWindow.setMenuBarVisibility(false);
+    // mainWindow.restore();
+    // mainWindow.setSize(480, 480);
+    // mainWindow.setContentSize(480, 480);
+    // mainWindow.setKiosk(true);
+    // mainWindow.center();
+    // mainWindow.setMenuBarVisibility(false);
   });
 };
 
