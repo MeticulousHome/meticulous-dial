@@ -4,7 +4,7 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { api } from '../../api/api';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 
-const API_URL = window.env.SERVER_URL || 'http://localhost:8080';
+const API_URL = process.env.SERVER_URL || 'http://localhost:8080';
 
 const SCROLL_VALUE = 50;
 

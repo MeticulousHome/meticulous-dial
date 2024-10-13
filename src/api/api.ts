@@ -2,7 +2,7 @@ import Api from '@meticulous-home/espresso-api';
 
 export const api = new Api(
   undefined,
-  window.env.SERVER_URL || 'http://localhost:8080/'
+  process.env.SERVER_URL || 'http://localhost:8080/'
 );
 
 export const startMasterCalibration = async () => {

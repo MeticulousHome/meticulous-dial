@@ -17,7 +17,7 @@ import { useDispatch } from 'react-redux';
 import { updatePresetSetting } from '../store/features/preset/preset-slice';
 import { api } from '../../api/api';
 
-const API_URL = window.env.SERVER_URL || 'http://localhost:8080';
+const API_URL = process.env.SERVER_URL || 'http://localhost:8080';
 
 export const PressetProfileImage = ({ transitioning }: RouteProps) => {
   const dispatch = useDispatch();

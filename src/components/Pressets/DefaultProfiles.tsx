@@ -19,7 +19,7 @@ import { api } from '../../api/api';
 import { Profile } from '@meticulous-home/espresso-profile';
 import { v4 as uuidv4 } from 'uuid';
 
-const API_URL = window.env.SERVER_URL || 'http://localhost:8080';
+const API_URL = process.env.SERVER_URL || 'http://localhost:8080';
 
 export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
   const activeIndex = useAppSelector(
