@@ -33,10 +33,6 @@ const App = (): JSX.Element => {
     }
   });
 
-  useEffect(() => {
-    window.electron.ipcRenderer.sendMessage('window', 'maximize');
-  }, []);
-
   const presetsStatus = useAppSelector((state) => state.presets.status);
 
   const stats = useAppSelector((state) => state.stats);
