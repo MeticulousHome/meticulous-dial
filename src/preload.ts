@@ -5,7 +5,7 @@
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
-export type Channels = 'window';
+export type Channels = 'ready';
 
 const electronHandler = {
   ipcRenderer: {
@@ -28,7 +28,6 @@ const electronHandler = {
 };
 
 contextBridge.exposeInMainWorld('electron', electronHandler);
-ipcRenderer.send('window', 'minimize');
 
 contextBridge.exposeInMainWorld('env', {
   ...process.env
