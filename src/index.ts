@@ -66,28 +66,19 @@ const createWindow = (): void => {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
-  let initialStart = true;
 
-  ipcMain.on('window', async (event, arg) => {
-    console.log('Window requested to ', arg);
+  ipcMain.on('ready', async (event, arg) => {
+    console.log('React indicates it is ready');
     if (!app.isPackaged) {
       return;
     }
 
-    if (arg === 'minimize' && initialStart) {
-      mainWindow.minimize();
-      mainWindow.setKiosk(false);
-      mainWindow.setSize(480, 480);
-      mainWindow.setContentSize(480, 480);
-      initialStart = false;
-    } else {
-      mainWindow.restore();
-      mainWindow.setSize(480, 480);
-      mainWindow.setContentSize(480, 480);
-      mainWindow.setKiosk(true);
-      mainWindow.center();
-      mainWindow.setMenuBarVisibility(false);
-    }
+    mainWindow.restore();
+    mainWindow.setSize(480, 480);
+    mainWindow.setContentSize(480, 480);
+    mainWindow.setKiosk(true);
+    mainWindow.center();
+    mainWindow.setMenuBarVisibility(false);
   });
 };
 
