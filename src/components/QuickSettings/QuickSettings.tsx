@@ -319,7 +319,9 @@ export function QuickSettings(): JSX.Element {
                   key={`default_option-${index}`}
                   onAnimationEnd={handleAnimationEnd}
                 >
-                  <span className={`os-info-${OSStatusData.status}`}>
+                  <span
+                    className={`os-info-${OSStatusData.status.toLowerCase()}`}
+                  >
                     {info}
                   </span>
                 </SwiperSlide>
