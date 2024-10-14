@@ -97,8 +97,21 @@ export function QuickSettings(): JSX.Element {
     useState<holdAnimationState>('stopped');
 
   const { data: osStatusData, error: osStatusError } = useOSStatus();
-
-  const [info, setInfo] = useState('');
+  const osStatusVisible = osStatusData.status !== 'IDLE';
+  const osStatusInfo = useMemo(() => {
+    if (osStatusError) {
+      return '';
+    }
+    switch (osStatusData.status) {
+      case 'COMPLETE':
+        return 'Update Complete';
+      case 'DOWNLOADING':
+        return `Downloading Update: ${osStatusData.progress}%`;
+      case 'INSTALLING':
+        return `Installing Update: ${osStatusData.progress}%`;
+    }
+    return '';
+  }, [osStatusData, osStatusError]);
 
   const handleAnimationEnd = () => {
     setHoldAnimation('finished');
@@ -266,24 +279,6 @@ export function QuickSettings(): JSX.Element {
       dispatch(setScreen('snake'));
     }
   }, [counterESGG]);
-
-  useEffect(() => {
-    if (osStatusError) {
-      setInfo('');
-      return;
-    }
-    switch (osStatusData.status) {
-      case 'COMPLETE':
-        setInfo('Update Complete');
-        break;
-      case 'DOWNLOADING':
-        setInfo(`Downloading Update: ${osStatusData.progress}%`);
-        break;
-      case 'INSTALLING':
-        setInfo(`Installing Update: ${osStatusData.progress}%`);
-        break;
-    }
-  }, [osStatusData, osStatusError]);
 
   const getSettingClasses = useCallback(
     (isActive: boolean) => {
