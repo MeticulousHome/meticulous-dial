@@ -17,6 +17,9 @@ import {
   removeOneNotification
 } from './features/notifications/notification-slice';
 import { api } from '../../api/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { OS_UPDATE_STATUS } from '../../hooks/useOSStatus';
+import { OSStatusResponse } from '@meticulous-home/espresso-api';
 
 const SERVER_URL: string = window.env.SERVER_URL ?? 'http://localhost:8080';
 const socket: Socket | null = io(SERVER_URL);
@@ -24,6 +27,7 @@ const socket: Socket | null = io(SERVER_URL);
 export const SocketProviderValue = () => {
   const dispatch = useAppDispatch();
   const currentStateName = useAppSelector((state) => state.stats.name);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     socket.on('notification', (notification: string) => {
@@ -54,6 +58,10 @@ export const SocketProviderValue = () => {
 
     socket.on('water_status', (data: boolean) => {
       dispatch(setWaterStatus(data));
+    });
+
+    socket.on('OSUpdate', (data: OSStatusResponse) => {
+      queryClient.setQueryData([OS_UPDATE_STATUS], data);
     });
 
     socket.on(
