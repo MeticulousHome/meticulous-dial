@@ -224,41 +224,31 @@ export function QuickSettings(): JSX.Element {
   }, [settings.length]);
 
   useEffect(() => {
-    if (
+    const context: QuickSettingOption[] = profileContextSettings;
+
+    const requiresProfileContext: boolean = !(
       presets.value.length === 0 ||
       presets.activeIndexSwiper === presets.value.length ||
       (presets.option !== 'HOME' && presets.option !== 'PRESSETS')
-    ) {
-      setSettings([
-        {
-          key: 'os_update',
-          label: osStatusInfo
-        },
-        ...defaultSettings
-      ]);
-      return;
-    }
+    );
 
-    const context: QuickSettingOption[] = profileContextSettings;
+    const osStatusSettingOption: QuickSettingOption = {
+      key: 'os_update',
+      label: osStatusInfo
+    };
 
     switch (currentScreen) {
       case 'defaultProfiles':
         setSettings([
-          {
-            key: 'os_update',
-            label: osStatusInfo
-          },
+          osStatusSettingOption,
           ...[{ key: 'details', label: 'Show details' }],
           ...defaultSettings
         ]);
         break;
       default:
         setSettings([
-          {
-            key: 'os_update',
-            label: osStatusInfo
-          },
-          ...context,
+          osStatusSettingOption,
+          ...(requiresProfileContext === true ? context : []),
           ...defaultSettings
         ]);
         break;
