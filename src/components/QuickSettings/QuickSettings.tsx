@@ -48,10 +48,10 @@ const defaultSettings: QuickSettingOption[] = [
     key: 'purge',
     label: 'purge'
   },
-  {
-    key: 'preheat',
-    label: 'preheat'
-  },
+  // {
+  //   key: 'preheat',
+  //   label: 'preheat'
+  // },
   {
     key: 'calibrate',
     label: 'calibrate scale'
@@ -82,8 +82,6 @@ export function QuickSettings(): JSX.Element {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(1);
   const stats = useAppSelector((state) => state.stats);
-  const { auto_preheat } = useAppSelector((state) => state.settings);
-  const [preheatValue, setPreheatValue] = useState<string>('');
   const [settings, setSettings] = useState(defaultSettings);
 
   const presets = useAppSelector((state) => state.presets);
@@ -186,9 +184,6 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'preheat': {
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'quick-preheat' })
-            );
             break;
           }
           case 'calibrate': {
@@ -276,10 +271,6 @@ export function QuickSettings(): JSX.Element {
   }, [activeIndex, swiper]);
 
   useEffect(() => {
-    setPreheatValue(auto_preheat === 0 ? '' : `${auto_preheat}°C`);
-  }, [auto_preheat]);
-
-  useEffect(() => {
     if (counterESGG >= 20) {
       console.log('Easter Egg on');
       dispatch(setBubbleDisplay({ visible: false, component: null }));
@@ -323,7 +314,7 @@ export function QuickSettings(): JSX.Element {
                 key={`option-${index}-${setting.key}`}
                 onAnimationEnd={handleAnimationEnd}
               >
-                {setting.label} {setting.key === 'preheat' && preheatValue}
+                {setting.label}
               </SwiperSlide>
 
               {indexSeparator === index && (

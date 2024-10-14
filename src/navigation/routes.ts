@@ -20,7 +20,6 @@ import { getTitlePressets } from '../components/Pressets/TitlePressets';
 import { ConnectWifiViaApp } from '../components/Wifi/ConnetWifiViaApp';
 import { OSStatus } from '../components/OSStatus/OSStatus';
 import { QuickSettings } from '../../src/components/QuickSettings/QuickSettings';
-import { QuickPreheat } from '../../src/components/Preheat/Preheat';
 import { SnakeGame } from '../../src/components/Snake/Snake';
 import { KnownWifi } from '../../src/components/Wifi/KnownWifi';
 import { DeleteWifiMenu } from '../components/Wifi/DeleteWifiMenu';
@@ -239,9 +238,6 @@ export const routes: Record<ScreenType, Route> = {
   },
   'quick-settings': {
     component: QuickSettings
-  },
-  'quick-preheat': {
-    component: QuickPreheat
   },
   snake: {
     component: SnakeGame
