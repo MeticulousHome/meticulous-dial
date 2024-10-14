@@ -19,6 +19,7 @@ export const getOSStatus = async () => {
     const { data } = await api.getOSStatus();
     return data;
   } catch (error) {
-    console.error('Start profile error: ', error.message);
+    console.error('Failed to fetch OS status:', error);
+    throw error;
   }
 };
