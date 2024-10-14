@@ -10,7 +10,7 @@ import {
 import { useSocket } from '../store/SocketManager';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
-import { getOSStatus } from '../../api/api';
+import '../OSStatus/OSStatus.css';
 
 import {
   deletePreset,
@@ -19,7 +19,7 @@ import {
   setOptionPressets
 } from '../store/features/preset/preset-slice';
 
-import { OSUpdateData, InitialOSStatus } from '../OSStatus/OSStatus';
+import { useOSStatus } from '../../hooks/useOSStatus';
 
 interface QuickSettingOption {
   key: string;
@@ -96,7 +96,8 @@ export function QuickSettings(): JSX.Element {
   const [holdAnimation, setHoldAnimation] =
     useState<holdAnimationState>('stopped');
 
-  const [OSStatusData, setOSStatusData] = useState(InitialOSStatus);
+  const { data: osStatusData, error: osStatusError } = useOSStatus();
+
   const [info, setInfo] = useState('');
 
   const handleAnimationEnd = () => {
@@ -267,25 +268,22 @@ export function QuickSettings(): JSX.Element {
   }, [counterESGG]);
 
   useEffect(() => {
-    getOSStatus().then((data) => setOSStatusData(data));
-    socket.on('OSUpdate', (data: OSUpdateData) => {
-      setOSStatusData(data);
-    });
-  }, []);
-
-  useEffect(() => {
-    switch (OSStatusData.status) {
+    if (osStatusError) {
+      setInfo('');
+      return;
+    }
+    switch (osStatusData.status) {
       case 'COMPLETE':
         setInfo('Update Complete');
         break;
       case 'DOWNLOADING':
-        setInfo(`Downloading Update: ${OSStatusData.progress}%`);
+        setInfo(`Downloading Update: ${osStatusData.progress}%`);
         break;
       case 'INSTALLING':
-        setInfo(`Installing Update: ${OSStatusData.progress}%`);
+        setInfo(`Installing Update: ${osStatusData.progress}%`);
         break;
     }
-  }, [OSStatusData]);
+  }, [osStatusData, osStatusError]);
 
   const getSettingClasses = useCallback(
     (isActive: boolean) => {
@@ -320,7 +318,7 @@ export function QuickSettings(): JSX.Element {
                   onAnimationEnd={handleAnimationEnd}
                 >
                   <span
-                    className={`os-info-${OSStatusData.status.toLowerCase()}`}
+                    className={`os-info-${osStatusData.status.toLowerCase()}`}
                   >
                     {info}
                   </span>
@@ -328,8 +326,8 @@ export function QuickSettings(): JSX.Element {
               </>
             );
 
-            return OSStatusData.status === 'IDLE' ||
-              OSStatusData.status === 'FAILED'
+            return osStatusData.status === 'IDLE' ||
+              osStatusData.status === 'FAILED'
               ? null
               : SWIPER_SLIDE_OS_ELEMENT;
           }
