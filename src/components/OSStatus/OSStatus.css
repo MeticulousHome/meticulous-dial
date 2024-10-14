@@ -10,17 +10,17 @@
   height: fit-content;
 }
 
-.os-info-FAILED {
+.os-info-failed {
   color: #f44336;
 }
-.os-info-COMPLETE {
+.os-info-complete {
   color: #ffc107;
 }
 
-.os-info-DOWNLOADING {
+.os-info-downloading {
   color: #ffc107;
 }
 
-.os-info-INSTALLING {
+.os-info-installing {
   color: #ffc107;
 }
