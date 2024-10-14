@@ -7,13 +7,11 @@ import {
   DeviceInfo
 } from '@meticulous-home/espresso-api';
 
-type InitialSettings = Settings & { deviceInfo?: DeviceInfo };
+type InitialSettings = Partial<Settings> & { deviceInfo?: DeviceInfo };
 
 export const initialState: InitialSettings = {
-  disallow_firmware_flashing: false,
   auto_purge_after_shot: false,
   auto_start_shot: false,
-  auto_preheat: 0,
   enable_sounds: false,
   save_debug_shot_data: false,
   update_channel: 'stable',

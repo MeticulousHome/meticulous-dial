@@ -30,7 +30,6 @@ export type ScreenType =
   | 'OSStatus'
   | 'enterWifiPassword'
   | 'quick-settings'
-  | 'quick-preheat'
   | 'snake'
   | 'KnownWifi'
   | 'deleteKnowWifiMenu'
