@@ -102,7 +102,7 @@ export const OSStatus = (): JSX.Element => {
         style={{ paddingLeft: '29px', top: '-4px' }}
       >
         <SwiperSlide key="content">
-          <div className="OS-info-text">{info}</div>
+          <div className="os-info-text">{info}</div>
         </SwiperSlide>
         <SwiperSlide></SwiperSlide>
         <SwiperSlide></SwiperSlide>
