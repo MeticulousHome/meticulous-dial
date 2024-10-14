@@ -67,7 +67,7 @@ const createWindow = (): void => {
     mainWindow = null;
   });
 
-  ipcMain.on('ready', async (event, arg) => {
+  ipcMain.on('ready', async () => {
     console.log('React indicates it is ready');
     if (!app.isPackaged) {
       return;
