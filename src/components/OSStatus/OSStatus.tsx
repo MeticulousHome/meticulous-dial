@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
@@ -11,7 +11,20 @@ const items = [{ key: 'content' }, { key: 'back' }];
 
 export const OSStatus = (): JSX.Element => {
   const { data: osStatusData, error: osStatusError } = useOSStatus();
-  const [info, setInfo] = useState('');
+  const osStatusInfo = useMemo(() => {
+    if (osStatusError) {
+      return 'Failed to get update status';
+    }
+    switch (osStatusData.status) {
+      case 'COMPLETE':
+        return 'Update Complete';
+      case 'DOWNLOADING':
+        return `Downloading Update: ${Math.round(osStatusData.progress)}%`;
+      case 'INSTALLING':
+        return `Installing Update: ${Math.round(osStatusData.progress)}%`;
+    }
+    return 'OS up to date.';
+  }, [osStatusData, osStatusError]);
 
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -44,33 +57,6 @@ export const OSStatus = (): JSX.Element => {
     }
   }, [activeIndex, swiper]);
 
-  useEffect(() => {
-    const UpToDateMesage = 'OS up to date.';
-
-    if (osStatusError) {
-      setInfo('Failed to get update status');
-      return;
-    }
-
-    if (osStatusData.status === 'IDLE') {
-      setInfo(UpToDateMesage);
-    } else {
-      switch (osStatusData.status) {
-        case 'COMPLETE':
-          setInfo(UpToDateMesage + ' Reboot your machine ');
-          break;
-        case 'FAILED':
-          setInfo('OS Could not be updated. Error: ' + osStatusData.info);
-          break;
-        default:
-          setInfo(
-            osStatusData.status + ' Update \n' + osStatusData.progress + '%'
-          );
-          break;
-      }
-    }
-  }, [osStatusData, osStatusError]);
-
   return (
     <div className="main-quick-settings">
       <Swiper
@@ -85,7 +71,7 @@ export const OSStatus = (): JSX.Element => {
         style={{ paddingLeft: '29px', top: '-4px' }}
       >
         <SwiperSlide key="content">
-          <div className="os-info-text">{info}</div>
+          <div className="os-info-text">{osStatusInfo}</div>
         </SwiperSlide>
         <SwiperSlide></SwiperSlide>
         <SwiperSlide></SwiperSlide>
