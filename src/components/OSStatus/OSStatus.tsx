@@ -3,29 +3,14 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useAppDispatch } from '../store/hooks';
-import { useSocket } from '../../../src/components/store/SocketManager';
-import { getOSStatus } from '../../api/api';
 
 import './OSStatus.css';
-
-export interface OSUpdateData {
-  progress?: number;
-  status?: string;
-  info?: string;
-}
-
-export const InitialOSStatus: OSUpdateData = {
-  progress: 0,
-  status: 'IDLE',
-  info: ''
-};
+import { useOSStatus } from '../../hooks/useOSStatus';
 
 const items = [{ key: 'content' }, { key: 'back' }];
 
 export const OSStatus = (): JSX.Element => {
-  const socket = useSocket();
-
-  const [OSStatusData, setOSStatusData] = useState(InitialOSStatus);
+  const { data: osStatusData, error: osStatusError } = useOSStatus();
   const [info, setInfo] = useState('');
 
   const [swiper, setSwiper] = useState(null);
@@ -62,31 +47,29 @@ export const OSStatus = (): JSX.Element => {
   useEffect(() => {
     const UpToDateMesage = 'OS up to date.';
 
-    if (OSStatusData.status === 'IDLE') {
+    if (osStatusError) {
+      setInfo('Failed to get update status');
+      return;
+    }
+
+    if (osStatusData.status === 'IDLE') {
       setInfo(UpToDateMesage);
     } else {
-      switch (OSStatusData.status) {
+      switch (osStatusData.status) {
         case 'COMPLETE':
           setInfo(UpToDateMesage + ' Reboot your machine ');
           break;
         case 'FAILED':
-          setInfo('OS Could not be updated. Error: ' + OSStatusData.info);
+          setInfo('OS Could not be updated. Error: ' + osStatusData.info);
           break;
         default:
           setInfo(
-            OSStatusData.status + ' Update \n' + OSStatusData.progress + '%'
+            osStatusData.status + ' Update \n' + osStatusData.progress + '%'
           );
           break;
       }
     }
-  }, [OSStatusData]);
-
-  useEffect(() => {
-    getOSStatus().then((data) => setOSStatusData(data));
-    socket.on('OSUpdate', (data: OSUpdateData) => {
-      setOSStatusData(data);
-    });
-  }, []);
+  }, [osStatusData, osStatusError]);
 
   return (
     <div className="main-quick-settings">
