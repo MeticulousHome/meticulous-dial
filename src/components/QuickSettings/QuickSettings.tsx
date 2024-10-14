@@ -122,7 +122,7 @@ export function QuickSettings(): JSX.Element {
   useHandleGestures(
     {
       context() {
-        setActiveIndex(0);
+        setActiveIndex(1);
         dispatch(
           setBubbleDisplay({
             visible: !bubbleDisplay.visible,
@@ -229,6 +229,13 @@ export function QuickSettings(): JSX.Element {
       presets.activeIndexSwiper === presets.value.length ||
       (presets.option !== 'HOME' && presets.option !== 'PRESSETS')
     ) {
+      setSettings([
+        {
+          key: 'os_update',
+          label: osStatusInfo
+        },
+        ...defaultSettings
+      ]);
       return;
     }
 
