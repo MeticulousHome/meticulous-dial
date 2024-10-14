@@ -17,6 +17,6 @@ export const useOSStatus = () => {
     queryFn: getOSStatus,
     initialData: initialOSStatus,
     staleTime: 0,
-    refetchInterval: 2000
+    refetchInterval: 60000
   });
 };
