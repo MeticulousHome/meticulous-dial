@@ -29,10 +29,6 @@ interface QuickSettingOption {
 
 const profileContextSettings: QuickSettingOption[] = [
   {
-    key: 'os_update',
-    label: 'test'
-  },
-  {
     key: 'edit',
     label: 'Edit profile'
   },
@@ -226,11 +222,10 @@ export function QuickSettings(): JSX.Element {
   const indexSeparator = useMemo(() => {
     const contextSettings = profileContextSettings;
 
-    const contextItems = settings.filter((setting) =>
-      contextSettings.map((cx) => cx.key).includes(setting.key)
-    );
-
-    return contextItems.length - 1;
+    if (contextSettings?.length > 0) {
+      return settings.indexOf(contextSettings[contextSettings.length - 1]);
+    }
+    return undefined;
   }, [settings.length]);
 
   useEffect(() => {
@@ -247,19 +242,31 @@ export function QuickSettings(): JSX.Element {
     switch (currentScreen) {
       case 'defaultProfiles':
         setSettings([
+          {
+            key: 'os_update',
+            label: osStatusInfo
+          },
           ...[{ key: 'details', label: 'Show details' }],
           ...defaultSettings
         ]);
         break;
       default:
-        setSettings([...context, ...defaultSettings]);
+        setSettings([
+          {
+            key: 'os_update',
+            label: osStatusInfo
+          },
+          ...context,
+          ...defaultSettings
+        ]);
         break;
     }
   }, [
     presets.value.length,
     presets.activeIndexSwiper,
     presets.option,
-    currentScreen
+    currentScreen,
+    osStatusInfo
   ]);
 
   useEffect(() => {
@@ -281,12 +288,15 @@ export function QuickSettings(): JSX.Element {
   }, [counterESGG]);
 
   const getSettingClasses = useCallback(
-    (isActive: boolean) => {
-      return `settings-item ${isActive ? 'active-setting' : ''} ${
+    (isActive: boolean, key: string) => {
+      return `
+      ${key === 'os_update' ? `os-info-text os-info-${osStatusData.status.toLowerCase()}` : ''}
+      settings-item ${isActive ? 'active-setting' : ''} ${
         isActive && holdAnimation === 'running' ? 'animated-setting' : ''
-      }`;
+      }
+      `;
     },
-    [holdAnimation]
+    [holdAnimation, osStatusData]
   );
 
   return (
@@ -304,42 +314,26 @@ export function QuickSettings(): JSX.Element {
       >
         {settings.map((setting, index: number) => {
           const isActive = index === activeIndex;
-          if (setting.key === 'os_update') {
-            const SWIPER_SLIDE_OS_ELEMENT: JSX.Element = (
-              <>
-                <SwiperSlide
-                  className={getSettingClasses(isActive)}
-                  key={`default_option-${index}`}
-                  onAnimationEnd={handleAnimationEnd}
-                >
-                  <span
-                    className={`os-info-${osStatusData.status.toLowerCase()}`}
-                  >
-                    {info}
-                  </span>
-                </SwiperSlide>
-              </>
-            );
-
-            return osStatusData.status === 'IDLE' ||
-              osStatusData.status === 'FAILED'
-              ? null
-              : SWIPER_SLIDE_OS_ELEMENT;
+          if (setting.key === 'os_update' && !osStatusVisible) {
+            return <></>;
           }
           return (
-            <>
+            <div key={`option-${index}-${setting.key}`}>
               <SwiperSlide
-                className={getSettingClasses(isActive)}
-                key={`default_option-${index}`}
+                className={getSettingClasses(isActive, setting.key)}
+                key={`option-${index}-${setting.key}`}
                 onAnimationEnd={handleAnimationEnd}
               >
                 {setting.label} {setting.key === 'preheat' && preheatValue}
               </SwiperSlide>
 
               {indexSeparator === index && (
-                <SwiperSlide key="seperator" className="separator" />
+                <SwiperSlide
+                  key={`seperator-${index}`}
+                  className="separator"
+                ></SwiperSlide>
               )}
-            </>
+            </div>
           );
         })}
       </Swiper>
