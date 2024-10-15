@@ -19,6 +19,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useProfileManagement } from './hooks/usePressets';
 import { IdleTimerProvider } from './hooks/useIdleTimer';
 import { setBrightness } from './api/api';
+import { useProfileManagement } from './hooks/usePressets';
 
 const queryClient = new QueryClient({
   defaultOptions: {
