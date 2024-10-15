@@ -4,7 +4,7 @@ import Swiper from 'swiper';
 import {
   ActionKey,
   IPresetAction,
-  IPresetBaseNumerical,
+  IPresetNumericalVariable,
   IPresetSetting
 } from '../types';
 import {
@@ -379,15 +379,17 @@ export const addVariablesToSettings = ({
   if (!variables) return [];
   if (!variables.length) return [];
 
-  const settings: IPresetBaseNumerical[] = variables.map((variable, index) => ({
-    id: index + nextId,
-    type: 'numerical',
-    isInternal: false,
-    externalType: variable.type,
-    key: variable.key,
-    label: variable.name,
-    value: variable.value
-  }));
+  const settings: IPresetNumericalVariable[] = variables.map(
+    (variable, index) => ({
+      id: index + nextId,
+      isInternal: false,
+      externalType: variable.type,
+      label: variable.name,
+      type: 'numerical',
+      value: variable.value,
+      key: variable.key
+    })
+  );
 
   return settings;
 };
