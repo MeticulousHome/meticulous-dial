@@ -119,6 +119,9 @@ export const SocketProviderValue = () => {
     socket.on('OSUpdate', async (data: OSStatusResponse) => {
       queryClient.setQueriesData({ queryKey: [OS_UPDATE_STATUS] }, data);
     });
+    return () => {
+      socket.off('OSUpdate');
+    };
   }, [queryClient]);
 
   return socket;
