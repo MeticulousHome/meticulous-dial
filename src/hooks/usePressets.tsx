@@ -8,7 +8,6 @@ import { addVariablesToSettings } from '../utils/preset';
 import { Profile } from '@meticulous-home/espresso-profile';
 import { LastProfileIdent } from '@meticulous-home/espresso-api';
 import { useEffect, useMemo } from 'react';
-import { useSocket } from '../components/store/SocketManager';
 import { useAppDispatch } from '../components/store/hooks';
 import {
   ProfileValue,
@@ -123,6 +122,8 @@ export function usePressets(): {
         lastProfilePotentialIndex,
         isLastProfileKnown
       } = useMemo(() => {
+        console.log('Pressets::usePressets::useMemo 💥');
+
         const lastProfilePotentialIndex = profiles.findIndex(
           (profile) => profile.id === lastProfileBrewed.id
         );
@@ -152,7 +153,10 @@ export function usePressets(): {
         isFetching: profilesResult.isFetching || lastProfileResult.isFetching,
         isPending: profilesResult.isPending || lastProfileResult.isPending,
         profiles: combinedProfiles,
-        lastProfileIndex: lastProfilePotentialIndex,
+        lastProfileIndex:
+          lastProfilePotentialIndex >= 0
+            ? lastProfilePotentialIndex
+            : combinedProfiles.length - 1,
         isLastProfileKnown
       };
     }
@@ -163,17 +167,17 @@ export function useProfileManagement() {
   const dispatch = useAppDispatch();
   //const { profileChangeData } = useSocket();
 
-  const { profiles, lastProfileIndex, isLastProfileKnown, isError } =
+  const { profiles, lastProfileIndex, isLastProfileKnown, isError, isLoading } =
     usePressets();
-  console.log('Pressets::usePressets::profiles ---->', profiles);
 
   useEffect(() => {
-    if (!isError) {
+    console.log('Pressets::useProfileManagement::useEffect 💥');
+    if (isError) {
       dispatch(setStatus('failed'));
       return;
     }
 
-    if (profiles) {
+    if (profiles && !isLoading) {
       const allSettings = profiles.map((profile) => ({
         presetId: profile.id.toString(),
         settings: profile.settings
@@ -196,5 +200,5 @@ export function useProfileManagement() {
       dispatch(setUpdatingSettings(updatingSettings));
       dispatch(setActiveIndexSwiper(lastProfileIndex));
     }
-  }, [profiles, dispatch]);
+  }, [profiles, lastProfileIndex, isLastProfileKnown, isError, isLoading]);
 }
