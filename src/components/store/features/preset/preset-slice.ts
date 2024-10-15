@@ -217,7 +217,7 @@ export const deletePreset = createAsyncThunk(
   }
 );
 
-export const setActiveIndexSwiper = createAsyncThunk(
+/* export const setActiveIndexSwiper = createAsyncThunk(
   'presetData/setActiveIndexSwiper',
   async (payload: number, { getState, dispatch }) => {
     const state = getState() as RootState;
@@ -232,7 +232,7 @@ export const setActiveIndexSwiper = createAsyncThunk(
       })
     );
   }
-);
+); */
 
 export const setNextSettingOption = createAsyncThunk(
   'presetData/setNextSettingOption',
@@ -392,6 +392,7 @@ export const getPresets = createAsyncThunk(
     },
     { getState, rejectWithValue }
   ) => {
+    console.log('getPresets::params', params);
     const state = getState() as RootState;
 
     let defaultIndex =
@@ -549,6 +550,48 @@ const presetSlice = createSlice({
       action: PayloadAction<'HOME' | 'PRESSETS'>
     ) => {
       state.option = action.payload;
+    },
+    setProfiles: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<ProfileValue[]>
+    ) => {
+      state.value = action.payload;
+    },
+    setStatus: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<'ready' | 'pending' | 'failed'>
+    ) => {
+      state.status = action.payload;
+    },
+    setAllSettings: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<IPresetsSettingData[]>
+    ) => {
+      state.allSettings = action.payload;
+    },
+    setDefaultPresetIndex: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<number>
+    ) => {
+      state.defaultPresetIndex = action.payload;
+    },
+    setActivePreset: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<ProfileValue>
+    ) => {
+      state.activePreset = action.payload;
+    },
+    setUpdatingSettings: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<IPresetsSettingData>
+    ) => {
+      state.updatingSettings = action.payload;
+    },
+    setActiveIndexSwiper: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<number>
+    ) => {
+      state.activeIndexSwiper = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -759,6 +802,13 @@ export const {
   setPrevDefaultProfileOption,
   resetDefaultProfileConfig,
   setProfileHover,
-  setFocusProfile
+  setFocusProfile,
+  setProfiles,
+  setStatus,
+  setAllSettings,
+  setDefaultPresetIndex,
+  setActivePreset,
+  setUpdatingSettings,
+  setActiveIndexSwiper
 } = presetSlice.actions;
 export default presetSlice.reducer;
