@@ -60,10 +60,6 @@ export const SocketProviderValue = () => {
       dispatch(setWaterStatus(data));
     });
 
-    socket.on('OSUpdate', (data: OSStatusResponse) => {
-      queryClient.setQueryData([OS_UPDATE_STATUS], data);
-    });
-
     socket.on(
       'profile',
       (data: {
@@ -118,6 +114,12 @@ export const SocketProviderValue = () => {
       }
     );
   }, []);
+
+  useEffect(() => {
+    socket.on('OSUpdate', async (data: OSStatusResponse) => {
+      queryClient.setQueriesData({ queryKey: [OS_UPDATE_STATUS] }, data);
+    });
+  }, [queryClient]);
 
   return socket;
 };
