@@ -75,7 +75,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const [pressetSwiper, setPressetsSwiper] = useState<SwiperS | null>(null);
   const circleOne = useRef<SVGCircleElement>(null);
   const animationInProgress = useRef(false);
-  const socket = useSocket();
+  const { socket } = useSocket();
 
   const [animation, setAnimation] = useState<AnimationData>(initialValue);
 
