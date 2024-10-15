@@ -10,7 +10,6 @@ export const initialOSStatus: OSStatusResponse = {
   info: ''
 };
 
-// Hook to fetch network config
 export const useOSStatus = () => {
   return useQuery({
     queryKey: [OS_UPDATE_STATUS],
