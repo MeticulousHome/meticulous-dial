@@ -18,20 +18,20 @@ import { useSocketKeyboardListeners } from './components/store/SocketProviderVal
 import { Splash } from './components/Splash/Splash';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false // default: true
+    }
+  }
+});
+
 const App = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const screen = useAppSelector(
     (state) => state.screen,
     (prev, next) => prev === next
   );
-
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        refetchOnWindowFocus: false // default: true
-      }
-    }
-  });
 
   useEffect(() => {
     window.electron.ipcRenderer.sendMessage('ready');
