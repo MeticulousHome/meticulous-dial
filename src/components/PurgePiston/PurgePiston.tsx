@@ -15,7 +15,7 @@ const NO_FRAMES = 1000;
 export function PurgePiston(): JSX.Element {
   const stats = useAppSelector((state) => state.stats);
   // const screen = useAppSelector((state) => state.screen.value);
-  const socket = useSocket();
+  const { socket } = useSocket();
   const pistonContainer = useRef<AnimationItem | null>(null);
   const pistonAnimator = useRef(null);
   const blinkContainer = useRef<AnimationItem | null>(null);
