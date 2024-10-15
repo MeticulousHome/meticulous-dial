@@ -17,6 +17,7 @@ import { durationAnimation } from './navigation/Transitioner';
 import { useSocketKeyboardListeners } from './components/store/SocketProviderValue';
 import { Splash } from './components/Splash/Splash';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useProfileManagement } from './hooks/usePressets';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,6 +62,7 @@ const App = (): JSX.Element => {
   // For development purpose
   useSocketKeyboardListeners();
   useFetchData(() => setBackendReady(true));
+  useProfileManagement();
   useHandleGestures(
     {
       doubleTare() {
@@ -97,34 +99,31 @@ const App = (): JSX.Element => {
   const dev = !!window.env.npm_lifecycle_event;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <div>
-        <div className="meticulous-main-canvas">
-          {dev && <div className="main-circle-overlay" />}
-          {backendReady && splashAnimationLooping ? (
-            <SocketManager>
-              <Router
-                currentScreen={screen.value}
-                previousScreen={screen.prev}
-              />
-            </SocketManager>
-          ) : (
-            <Splash
-              onAnimationFinished={() => {
-                setSplashAnimationLooping(true);
-                return presetsStatus !== 'ready';
-              }}
-            />
-          )}
-        </div>
+    <div>
+      <div className="meticulous-main-canvas">
+        {dev && <div className="main-circle-overlay" />}
+        {backendReady && splashAnimationLooping ? (
+          <SocketManager>
+            <Router currentScreen={screen.value} previousScreen={screen.prev} />
+          </SocketManager>
+        ) : (
+          <Splash
+            onAnimationFinished={() => {
+              setSplashAnimationLooping(true);
+              return presetsStatus !== 'ready';
+            }}
+          />
+        )}
       </div>
-    </QueryClientProvider>
+    </div>
   );
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <Provider store={store}>
-    <App />
-  </Provider>
+  <QueryClientProvider client={queryClient}>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </QueryClientProvider>
 );
