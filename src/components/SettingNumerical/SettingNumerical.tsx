@@ -48,9 +48,9 @@ const unitSettingConfigMap: Record<NumericalSettingType, ISettingConfig> = {
     maxValue: 12
   },
   time: {
-    interval: 1.0,
-    unit: 'min',
-    maxValue: 60
+    interval: 0.1,
+    unit: 'sec',
+    maxValue: 180
   },
   weight: {
     interval: 0.1,

@@ -514,6 +514,9 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     start();
   }, [startCoffe]);
 
+  // Fetches device info and selectively updates settings.
+  // Avoids overwriting recent heat timeout changes with old backend data.
+  // This is needed because the presets screen always fetches all settings.
   useEffect(() => {
     dispatch(setWaitingForAction(false));
     dispatch(getDeviceInfo());
