@@ -13,19 +13,16 @@ export default function Bubble() {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const route = memoizedRoutes[Bubble.component];
 
-  useHandleGestures(
-    {
-      context() {
-        dispatch(
-          setBubbleDisplay({
-            visible: !bubbleDisplay.visible,
-            component: !bubbleDisplay.visible ? 'quick-settings' : null
-          })
-        );
-      }
-    },
-    bubbleDisplay.visible
-  );
+  useHandleGestures({
+    context() {
+      dispatch(
+        setBubbleDisplay({
+          visible: !bubbleDisplay.visible,
+          component: !bubbleDisplay.visible ? 'quick-settings' : null
+        })
+      );
+    }
+  });
 
   if (!Bubble || !Bubble.component) return <></>;
 
