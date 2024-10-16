@@ -7,7 +7,7 @@ import {
   DeviceInfo
 } from '@meticulous-home/espresso-api';
 
-type InitialSettings = Settings & {
+type InitialSettings = Partial<Settings> & {
   deviceInfo?: DeviceInfo;
   preheatStatus: 'enabled' | 'disabled';
   heating_timeout: number;

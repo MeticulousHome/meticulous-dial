@@ -10,7 +10,7 @@ import { setTempHeatingTimeout } from '../store/features/settings/settings-slice
 import { RootState } from '../store/store';
 import { AppDispatch } from '../store/store';
 
-const MAX_TIMEOUT = 60; // 60 minutes
+const MAX_TIMEOUT = 10; // 60 minutes
 const INTERVAL = 1; // 1 minute intervals
 
 export const HeatTimeoutAfterShot: React.FC = () => {

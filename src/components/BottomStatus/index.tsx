@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import { formatStatValue } from '../../utils';
 import { useAppSelector } from '../store/hooks';
 import './bottom-status.css';
@@ -7,11 +8,19 @@ const BottomStatus = ({ hidden }: { hidden: boolean }) => {
   const preheatStatus = useAppSelector((state) => state.settings.preheatStatus);
 
   return (
-    <div className={`bottom-status bottom__${hidden ? 'fadeOut' : 'fadeIn'}`}>
+    <div
+      className={classNames('bottom-status', {
+        bottom__fadeOut: hidden,
+        bottom__fadeIn: !hidden
+      })}
+    >
       <div className="bottom-content">
         <div className="bottom-item">
           <div
-            className={`status-value ${preheatStatus === 'enabled' ? 'red' : 'disabled'}`}
+            className={classNames('status-value', {
+              red: preheatStatus === 'enabled',
+              disabled: preheatStatus !== 'enabled'
+            })}
           >
             {formatStatValue(stats.sensors.t, 1)}
             <div className="status-unit status-temp-icon">°C</div>
