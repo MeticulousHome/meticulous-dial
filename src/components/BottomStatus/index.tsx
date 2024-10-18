@@ -1,11 +1,14 @@
+import React from 'react';
 import classNames from 'classnames';
 import { formatStatValue } from '../../utils';
 import { useAppSelector } from '../store/hooks';
 import './bottom-status.css';
+import Funnel from './Funnel';
 
-const BottomStatus = ({ hidden }: { hidden: boolean }) => {
+const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
   const stats = useAppSelector((state) => state.stats);
   const preheatStatus = useAppSelector((state) => state.settings.preheatStatus);
+  const preheatEnabled = preheatStatus === 'enabled';
 
   return (
     <div
@@ -16,15 +19,15 @@ const BottomStatus = ({ hidden }: { hidden: boolean }) => {
     >
       <div className="bottom-content">
         <div className="bottom-item">
-          <div
-            className={classNames('status-value', {
-              red: preheatStatus === 'enabled',
-              disabled: preheatStatus !== 'enabled'
-            })}
-          >
+          <div className="status-value">
             {formatStatValue(stats.sensors.t, 1)}
             <div className="status-unit status-temp-icon">°C</div>
           </div>
+          {preheatEnabled && (
+            <div className="funnel-container">
+              <Funnel preheatEnabled={preheatEnabled} />
+            </div>
+          )}
         </div>
         <div className="bottom-item">
           <div className="status-value">
