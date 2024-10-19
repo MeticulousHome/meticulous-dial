@@ -14,9 +14,9 @@ import {
 import { Router } from './navigation/Router';
 import { notificationSelector } from './components/store/features/notifications/notification-slice';
 import { durationAnimation } from './navigation/Transitioner';
-import { useSocketKeyboardListeners } from './components/store/SocketProviderValue';
 import { Splash } from './components/Splash/Splash';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { IdleTimerProvider } from './hooks/useIdleTimer';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,8 +58,6 @@ const App = (): JSX.Element => {
 
   const getureTimeAgo = useRef(new Date());
 
-  // For development purpose
-  useSocketKeyboardListeners();
   useFetchData(() => setBackendReady(true));
   useHandleGestures(
     {
@@ -102,12 +100,14 @@ const App = (): JSX.Element => {
         <div className="meticulous-main-canvas">
           {dev && <div className="main-circle-overlay" />}
           {backendReady && splashAnimationLooping ? (
-            <SocketManager>
-              <Router
-                currentScreen={screen.value}
-                previousScreen={screen.prev}
-              />
-            </SocketManager>
+            <IdleTimerProvider>
+              <SocketManager>
+                <Router
+                  currentScreen={screen.value}
+                  previousScreen={screen.prev}
+                />
+              </SocketManager>
+            </IdleTimerProvider>
           ) : (
             <Splash
               onAnimationFinished={() => {

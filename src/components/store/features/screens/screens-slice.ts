@@ -40,7 +40,8 @@ export type ScreenType =
   | 'defaultProfiles'
   | 'defaultProfileDetails'
   | 'manual-purge'
-  | 'heat_timeout_after_shot';
+  | 'heat_timeout_after_shot'
+  | 'idle';
 
 interface ScreenState {
   value: ScreenType;

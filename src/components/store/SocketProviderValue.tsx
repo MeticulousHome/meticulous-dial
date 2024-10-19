@@ -21,6 +21,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { OS_UPDATE_STATUS } from '../../hooks/useOSStatus';
 import { OSStatusResponse } from '@meticulous-home/espresso-api';
 import { updatePreheatTimeLeft } from './features/settings/settings-slice';
+import { useIdleTimer } from '../../hooks/useIdleTimer';
 
 const SERVER_URL: string = window.env.SERVER_URL ?? 'http://localhost:8080';
 const socket: Socket | null = io(SERVER_URL);
@@ -29,9 +30,14 @@ export const SocketProviderValue = () => {
   const dispatch = useAppDispatch();
   const currentStateName = useAppSelector((state) => state.stats.name);
   const queryClient = useQueryClient();
+  const { resetTimer: resetIdleTimer } = useIdleTimer();
+
+  // For development purpose
+  useSocketKeyboardListeners();
 
   useEffect(() => {
     socket.on('notification', (notification: string) => {
+      resetIdleTimer();
       const oNotification: NotificationItem = JSON.parse(notification);
 
       if (!oNotification.message && !oNotification.image) {
@@ -62,6 +68,7 @@ export const SocketProviderValue = () => {
     });
 
     socket.on('water_status', (data: boolean) => {
+      resetIdleTimer();
       dispatch(setWaterStatus(data));
     });
 
@@ -79,6 +86,8 @@ export const SocketProviderValue = () => {
     socket.on(
       'button',
       (data: { type: string; time_since_last_event: number }) => {
+        resetIdleTimer();
+
         console.log('Receive: button', data);
 
         const eventGestureMap: Record<string, GestureType> = {
@@ -105,6 +114,8 @@ export const SocketProviderValue = () => {
     socket.on(
       'profileHover',
       (data: { id: string; from: string; type: 'focus' | 'scroll' }) => {
+        resetIdleTimer();
+
         if (data.from === 'dial') {
           return;
         }
@@ -150,8 +161,11 @@ const keyUpGestureMap: Record<string, GestureType[]> = {
 };
 
 export const useSocketKeyboardListeners = () => {
+  const { resetTimer: resetIdleTimer } = useIdleTimer();
+
   useEffect(() => {
     const keyDownListener = (e: KeyboardEvent) => {
+      resetIdleTimer();
       const gesture = keyDownGestureMap[e.code];
       if (gesture) {
         console.log(gesture);
