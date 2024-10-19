@@ -33,6 +33,7 @@ import { PurgePiston } from '../components/PurgePiston/PurgePiston';
 import { UpdateChannel } from '../components/Settings/Advanced/UpdateChannel';
 import { ReadyAnimation } from '../components/ReadyAnimation/ReadyAnimation';
 import { HeatTimeoutAfterShot } from '../components/HeatTimeoutAfterShot/HeatTimeoutAfterShot';
+import { IdleScreen } from '../components/IdleScreen/IdleScreen';
 
 interface Route {
   component: ComponentType;
@@ -267,6 +268,10 @@ export const routes: Record<ScreenType, Route> = {
   },
   defaultProfileDetails: {
     component: DefaultProfileDetails,
+    bottomStatusHidden: true
+  },
+  idle: {
+    component: IdleScreen,
     bottomStatusHidden: true
   }
 };
