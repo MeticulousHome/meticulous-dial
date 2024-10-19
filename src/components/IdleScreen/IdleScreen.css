@@ -1,0 +1,58 @@
+.indicators {
+  position: absolute;
+  width: 480px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  color: #606060;
+  font-family: 'Rubik', sans-serif;
+  font-variant-numeric: tabular-nums;
+  /* font-optical-sizing: auto; */
+  font-weight: 500;
+  font-style: normal;
+  font-size: 20px;
+  gap: 5px;
+}
+.indicators-top {
+  top: 25px;
+}
+.indicators-bottom {
+  top: 415px;
+}
+
+.indicators-icon {
+  height: 30px;
+  width: auto;
+  filter: invert(100%) brightness(37.5%);
+}
+
+.clock-wrapper {
+  padding-top: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.clock {
+  color: #dddddd;
+  font-family: 'Rubik', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 110px;
+  margin-top: -10px;
+  margin-bottom: -10px;
+}
+
+.midday {
+  position: absolute;
+  font-size: 61px;
+  top: 259px;
+  left: 300px;
+  font-weight: 200;
+  rotate: 270deg;
+  color: #606060;
+}

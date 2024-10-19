@@ -14,10 +14,10 @@ import {
 import { Router } from './navigation/Router';
 import { notificationSelector } from './components/store/features/notifications/notification-slice';
 import { durationAnimation } from './navigation/Transitioner';
-import { useSocketKeyboardListeners } from './components/store/SocketProviderValue';
 import { Splash } from './components/Splash/Splash';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useProfileManagement } from './hooks/usePressets';
+import { IdleTimerProvider } from './hooks/useIdleTimer';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,8 +59,6 @@ const App = (): JSX.Element => {
 
   const getureTimeAgo = useRef(new Date());
 
-  // For development purpose
-  useSocketKeyboardListeners();
   useFetchData(() => setBackendReady(true));
   useProfileManagement();
   useHandleGestures(
@@ -99,23 +97,30 @@ const App = (): JSX.Element => {
   const dev = !!window.env.npm_lifecycle_event;
 
   return (
-    <div>
-      <div className="meticulous-main-canvas">
-        {dev && <div className="main-circle-overlay" />}
-        {backendReady && splashAnimationLooping ? (
-          <SocketManager>
-            <Router currentScreen={screen.value} previousScreen={screen.prev} />
-          </SocketManager>
-        ) : (
-          <Splash
-            onAnimationFinished={() => {
-              setSplashAnimationLooping(true);
-              return presetsStatus !== 'ready';
-            }}
-          />
-        )}
+    <QueryClientProvider client={queryClient}>
+      <div>
+        <div className="meticulous-main-canvas">
+          {dev && <div className="main-circle-overlay" />}
+          {backendReady && splashAnimationLooping ? (
+            <IdleTimerProvider>
+              <SocketManager>
+                <Router
+                  currentScreen={screen.value}
+                  previousScreen={screen.prev}
+                />
+              </SocketManager>
+            </IdleTimerProvider>
+          ) : (
+            <Splash
+              onAnimationFinished={() => {
+                setSplashAnimationLooping(true);
+                return presetsStatus !== 'ready';
+              }}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </QueryClientProvider>
   );
 };
 
