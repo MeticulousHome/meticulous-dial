@@ -7,8 +7,9 @@ import Funnel from './Funnel';
 
 const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
   const stats = useAppSelector((state) => state.stats);
-  const preheatStatus = useAppSelector((state) => state.settings.preheatStatus);
-  const preheatEnabled = preheatStatus === 'enabled';
+  const PreheatTimeLeft = useAppSelector(
+    (state) => state.settings.PreheatTimeLeft
+  );
 
   return (
     <div
@@ -23,9 +24,9 @@ const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
             {formatStatValue(stats.sensors.t, 1)}
             <div className="status-unit status-temp-icon">°C</div>
           </div>
-          {preheatEnabled && (
+          {PreheatTimeLeft !== 0 && (
             <div className="funnel-container">
-              <Funnel preheatEnabled={preheatEnabled} />
+              <Funnel preheatEnabled={PreheatTimeLeft !== 0} />
             </div>
           )}
         </div>
