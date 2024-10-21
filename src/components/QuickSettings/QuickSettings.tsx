@@ -18,9 +18,10 @@ import {
   setDefaultProfileSelected,
   setOptionPressets
 } from '../store/features/preset/preset-slice';
-import { updatePreheatStatus } from '../store/features/settings/settings-slice';
 
 import { useOSStatus } from '../../hooks/useOSStatus';
+import { marqueeIfNeeded } from '../shared/MarqueeValue';
+import { formatTime } from '../../utils';
 
 interface QuickSettingOption {
   key: string;
@@ -51,7 +52,7 @@ const defaultSettings: QuickSettingOption[] = [
   },
   {
     key: 'preheat',
-    label: 'preheat'
+    label: 'Preheat brew chamber'
   },
   {
     key: 'calibrate',
@@ -83,7 +84,9 @@ export function QuickSettings(): JSX.Element {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(1);
   const stats = useAppSelector((state) => state.stats);
-  const preheatStatus = useAppSelector((state) => state.settings.preheatStatus);
+  const PreheatTimeLeft = useAppSelector(
+    (state) => state.settings.PreheatTimeLeft
+  );
   const [settings, setSettings] = useState(defaultSettings);
 
   const presets = useAppSelector((state) => state.presets);
@@ -186,9 +189,6 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'preheat': {
-            const newStatus =
-              preheatStatus === 'enabled' ? 'disabled' : 'enabled';
-            dispatch(updatePreheatStatus(newStatus));
             socket.emit('action', 'preheat');
             break;
           }
@@ -317,8 +317,17 @@ export function QuickSettings(): JSX.Element {
                 key={`option-${index}-${setting.key}`}
                 onAnimationEnd={handleAnimationEnd}
               >
-                {setting.label}{' '}
-                {setting.key === 'preheat' && `: ${preheatStatus}`}
+                <div className="text-container">
+                  {marqueeIfNeeded({
+                    enabled: isActive,
+                    val:
+                      setting.key === 'preheat'
+                        ? PreheatTimeLeft > 0
+                          ? `Stop preheat ${formatTime(PreheatTimeLeft)}`
+                          : 'Preheat brew chamber'
+                        : setting.label
+                  })}
+                </div>
               </SwiperSlide>
 
               {indexSeparator === index && (

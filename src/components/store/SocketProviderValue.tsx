@@ -20,7 +20,7 @@ import { api } from '../../api/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { OS_UPDATE_STATUS } from '../../hooks/useOSStatus';
 import { OSStatusResponse } from '@meticulous-home/espresso-api';
-import { updatePreheatStatus } from './features/settings/settings-slice';
+import { updatePreheatTimeLeft } from './features/settings/settings-slice';
 
 const SERVER_URL: string = window.env.SERVER_URL ?? 'http://localhost:8080';
 const socket: Socket | null = io(SERVER_URL);
@@ -41,11 +41,8 @@ export const SocketProviderValue = () => {
       }
     });
 
-    socket.on('heater_status', (status: string) => {
-      console.log('heater_status:', status);
-      if (status === 'off') {
-        dispatch(updatePreheatStatus('disabled'));
-      }
+    socket.on('heater_status', (timeLeft: number) => {
+      dispatch(updatePreheatTimeLeft(timeLeft));
     });
 
     socket.on('status', (data: ISensorData) => {

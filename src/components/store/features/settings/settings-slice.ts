@@ -9,7 +9,7 @@ import {
 
 type InitialSettings = Partial<Settings> & {
   deviceInfo?: DeviceInfo;
-  preheatStatus: 'enabled' | 'disabled';
+  PreheatTimeLeft: number;
   heating_timeout: number;
   tempHeatingTimeout: number | null;
 };
@@ -21,7 +21,7 @@ export const initialState: InitialSettings = {
   save_debug_shot_data: false,
   update_channel: 'stable',
   deviceInfo: null,
-  preheatStatus: 'disabled',
+  PreheatTimeLeft: 0,
   heating_timeout: 0,
   tempHeatingTimeout: null
 };
@@ -90,11 +90,8 @@ const settingsSlice = createSlice({
       const value: SettingsType = action.payload.value;
       (state[key] as SettingsType) = value;
     },
-    updatePreheatStatus: (
-      state,
-      action: PayloadAction<'enabled' | 'disabled'>
-    ) => {
-      state.preheatStatus = action.payload;
+    updatePreheatTimeLeft: (state, action: PayloadAction<number>) => {
+      state.PreheatTimeLeft = action.payload;
     },
     updateHeatingTimeout: (state, action: PayloadAction<number>) => {
       state.heating_timeout = action.payload;
@@ -133,6 +130,9 @@ const settingsSlice = createSlice({
   }
 });
 
-export const { updateItemSetting, updatePreheatStatus, setTempHeatingTimeout } =
-  settingsSlice.actions;
+export const {
+  updateItemSetting,
+  updatePreheatTimeLeft,
+  setTempHeatingTimeout
+} = settingsSlice.actions;
 export default settingsSlice.reducer;
