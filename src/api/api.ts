@@ -1,4 +1,4 @@
-import Api from '@meticulous-home/espresso-api';
+import Api, { BrightnessRequest } from '@meticulous-home/espresso-api';
 
 export const api = new Api(
   undefined,
@@ -21,5 +21,13 @@ export const getOSStatus = async () => {
   } catch (error) {
     console.error('Failed to fetch OS status:', error);
     throw error;
+  }
+};
+
+export const setBrightness = async ({ brightness }: BrightnessRequest) => {
+  try {
+    await api.setBrightness({ brightness });
+  } catch (error) {
+    console.error('Error setting brightness', error);
   }
 };
