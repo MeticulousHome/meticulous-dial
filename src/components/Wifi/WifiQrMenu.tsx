@@ -16,6 +16,16 @@ export const WifiQrMenu = (): JSX.Element => {
   const [activeIndex, setActiveIndex] = useState(items.length - 1);
   const dispatch = useAppDispatch();
 
+  //Auto-exit timer
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      dispatch(setBubbleDisplay({ visible: true, component: 'wifiSettings' }));
+    }, 30000);
+
+    // Cleanup timer on component unmount
+    return () => clearTimeout(timer);
+  }, []);
+
   useHandleGestures({
     left() {
       setActiveIndex((prev) => Math.max(prev - 1, 0));
