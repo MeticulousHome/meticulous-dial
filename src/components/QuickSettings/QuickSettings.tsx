@@ -20,6 +20,8 @@ import {
 } from '../store/features/preset/preset-slice';
 
 import { useOSStatus } from '../../hooks/useOSStatus';
+import { marqueeIfNeeded } from '../shared/MarqueeValue';
+import { formatTime } from '../../utils';
 
 interface QuickSettingOption {
   key: string;
@@ -48,10 +50,10 @@ const defaultSettings: QuickSettingOption[] = [
     key: 'purge',
     label: 'purge'
   },
-  // {
-  //   key: 'preheat',
-  //   label: 'preheat'
-  // },
+  {
+    key: 'preheat',
+    label: 'Preheat brew chamber'
+  },
   {
     key: 'calibrate',
     label: 'calibrate scale'
@@ -82,6 +84,9 @@ export function QuickSettings(): JSX.Element {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(1);
   const stats = useAppSelector((state) => state.stats);
+  const PreheatTimeLeft = useAppSelector(
+    (state) => state.settings.PreheatTimeLeft
+  );
   const [settings, setSettings] = useState(defaultSettings);
 
   const presets = useAppSelector((state) => state.presets);
@@ -184,6 +189,7 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'preheat': {
+            socket.emit('action', 'preheat');
             break;
           }
           case 'calibrate': {
@@ -311,7 +317,17 @@ export function QuickSettings(): JSX.Element {
                 key={`option-${index}-${setting.key}`}
                 onAnimationEnd={handleAnimationEnd}
               >
-                {setting.label}
+                <div className="text-container">
+                  {marqueeIfNeeded({
+                    enabled: isActive,
+                    val:
+                      setting.key === 'preheat'
+                        ? PreheatTimeLeft > 0
+                          ? `Stop preheat ${formatTime(PreheatTimeLeft)}`
+                          : 'Preheat brew chamber'
+                        : setting.label
+                  })}
+                </div>
               </SwiperSlide>
 
               {indexSeparator === index && (

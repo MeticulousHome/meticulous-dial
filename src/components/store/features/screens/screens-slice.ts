@@ -39,7 +39,8 @@ export type ScreenType =
   | 'updateChannel'
   | 'defaultProfiles'
   | 'defaultProfileDetails'
-  | 'manual-purge';
+  | 'manual-purge'
+  | 'heat_timeout_after_shot';
 
 interface ScreenState {
   value: ScreenType;

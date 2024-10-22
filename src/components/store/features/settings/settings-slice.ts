@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { api } from '../../../../api/api';
 
 import {
@@ -7,7 +7,12 @@ import {
   DeviceInfo
 } from '@meticulous-home/espresso-api';
 
-type InitialSettings = Partial<Settings> & { deviceInfo?: DeviceInfo };
+type InitialSettings = Partial<Settings> & {
+  deviceInfo?: DeviceInfo;
+  PreheatTimeLeft: number;
+  heating_timeout: number;
+  tempHeatingTimeout: number | null;
+};
 
 export const initialState: InitialSettings = {
   auto_purge_after_shot: false,
@@ -15,7 +20,10 @@ export const initialState: InitialSettings = {
   enable_sounds: false,
   save_debug_shot_data: false,
   update_channel: 'stable',
-  deviceInfo: null
+  deviceInfo: null,
+  PreheatTimeLeft: 0,
+  heating_timeout: 0,
+  tempHeatingTimeout: null
 };
 
 export const fetchSettigns = createAsyncThunk(
@@ -81,6 +89,15 @@ const settingsSlice = createSlice({
       const key: keyof Settings = action.payload.key;
       const value: SettingsType = action.payload.value;
       (state[key] as SettingsType) = value;
+    },
+    updatePreheatTimeLeft: (state, action: PayloadAction<number>) => {
+      state.PreheatTimeLeft = action.payload;
+    },
+    updateHeatingTimeout: (state, action: PayloadAction<number>) => {
+      state.heating_timeout = action.payload;
+    },
+    setTempHeatingTimeout: (state, action: PayloadAction<number | null>) => {
+      state.tempHeatingTimeout = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -94,7 +111,8 @@ const settingsSlice = createSlice({
       .addCase(updateSettings.fulfilled, (state, action) => {
         return {
           ...state,
-          ...action.payload
+          ...action.payload,
+          tempHeatingTimeout: null // Clear temporary value after successful update
         };
       })
       .addCase(updateSettings.rejected, (state) => {
@@ -112,5 +130,9 @@ const settingsSlice = createSlice({
   }
 });
 
-export const { updateItemSetting } = settingsSlice.actions;
+export const {
+  updateItemSetting,
+  updatePreheatTimeLeft,
+  setTempHeatingTimeout
+} = settingsSlice.actions;
 export default settingsSlice.reducer;

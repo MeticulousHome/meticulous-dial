@@ -1,0 +1,29 @@
+.funnel-svg {
+  width: auto;
+  height: 100%;
+}
+
+.main-path {
+  stroke-width: 0.5;
+}
+
+.main-path.static-color {
+  fill: #feffed;
+  stroke: #feffed;
+}
+
+@keyframes blink-glow {
+  0%,
+  100% {
+    fill: #feffed;
+    stroke: #feffed;
+  }
+  50% {
+    fill: #981902;
+    stroke: #981902;
+  }
+}
+
+.main-path.blink-glow {
+  animation: blink-glow 2.3s infinite;
+}
