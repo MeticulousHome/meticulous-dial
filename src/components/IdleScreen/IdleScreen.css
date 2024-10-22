@@ -48,11 +48,8 @@
 }
 
 .midday {
-  position: absolute;
-  font-size: 61px;
-  top: 259px;
-  left: 300px;
-  font-weight: 200;
-  rotate: 270deg;
+  font-variant-position: tabular-nums;
+  font-size: 55px;
+  font-weight: 500;
   color: #606060;
 }

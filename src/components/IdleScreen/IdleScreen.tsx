@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 
-import './IdleScreen.css';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { setScreen } from '../store/features/screens/screens-slice';
+import { setBrightness } from '../../api/api';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
-import { useUpdateNetworkConfig, useNetworkConfig } from '../../hooks/useWifi';
+import { useNetworkConfig, useUpdateNetworkConfig } from '../../hooks/useWifi';
+import { setScreen } from '../store/features/screens/screens-slice';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import './IdleScreen.css';
 
 function formatTime() {
   const time = new Date();
@@ -32,6 +33,13 @@ export function IdleScreen(): JSX.Element {
   const updateNetworkConfigMutation = useUpdateNetworkConfig();
 
   useEffect(() => {
+    setBrightness({ brightness: 0 });
+    return () => {
+      setBrightness({ brightness: 1 });
+    };
+  }, []);
+
+  useEffect(() => {
     refetch();
   }, [updateNetworkConfigMutation.status]);
 
@@ -46,6 +54,7 @@ export function IdleScreen(): JSX.Element {
     if (shouldGoToIdle) {
       return;
     }
+    setBrightness({ brightness: 1 });
     dispatch(setScreen(prevScreen || 'pressets'));
   }, [shouldGoToIdle]);
 
