@@ -58,8 +58,8 @@ export function IdleScreen(): JSX.Element {
     if (shouldGoToIdle) {
       return;
     }
-    setBrightness({ brightness: 1 });
     dispatch(setScreen(prevScreen || 'pressets'));
+    setBrightness({ brightness: 1 });
   }, [shouldGoToIdle]);
 
   useEffect(() => {
