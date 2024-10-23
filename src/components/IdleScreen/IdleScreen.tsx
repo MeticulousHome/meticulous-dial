@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { setBrightness } from '../../api/api';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
-import { useNetworkConfig, useUpdateNetworkConfig } from '../../hooks/useWifi';
+import { useNetworkConfig } from '../../hooks/useWifi';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import './IdleScreen.css';
