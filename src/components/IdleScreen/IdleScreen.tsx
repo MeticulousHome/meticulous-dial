@@ -32,8 +32,8 @@ export function IdleScreen(): JSX.Element {
   const prevScreen = useAppSelector((state) => state.screen.prev);
   const temperature = useAppSelector((state) => state.stats.sensors.t);
 
-  const { data: networkConfig, refetch } = useNetworkConfig();
-  const updateNetworkConfigMutation = useUpdateNetworkConfig();
+  const { data: networkConfig, refetch: refetchNetworkConfig } =
+    useNetworkConfig();
 
   const animation = useRef<AnimationItem | null>(null);
   const animationDiv = useRef<HTMLDivElement | null>(null);
@@ -41,6 +41,7 @@ export function IdleScreen(): JSX.Element {
   const useMetCat = true;
 
   useEffect(() => {
+    refetchNetworkConfig();
     setBrightness({ brightness: 0 });
     const intervalId = setInterval(() => setTime(formatTime()), 250);
 
@@ -50,10 +51,6 @@ export function IdleScreen(): JSX.Element {
       animation.current?.destroy();
     };
   }, []);
-
-  useEffect(() => {
-    refetch();
-  }, [updateNetworkConfigMutation.status]);
 
   const isWifiConnected = networkConfig?.status.connected;
 
