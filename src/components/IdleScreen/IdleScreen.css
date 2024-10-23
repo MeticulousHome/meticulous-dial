@@ -53,3 +53,13 @@
   font-weight: 500;
   color: #606060;
 }
+
+.metcat {
+  position: absolute;
+  top: 60px;
+}
+
+.miniclock {
+  font-size: 84px;
+  font-weight: 300;
+}
