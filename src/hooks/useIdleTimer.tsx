@@ -42,10 +42,6 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
     setIsIdle(false);
   };
 
-  const setTimer = (timeout: number) => {
-    setIdleTime(timeout);
-  };
-
   useEffect(() => {
     const intervalId = setInterval(() => {
       time.current += 1;
@@ -63,7 +59,9 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
   }, [time.current, idleTime]);
 
   return (
-    <TimerContext.Provider value={{ resetTimer, setTimer, isIdle }}>
+    <TimerContext.Provider
+      value={{ resetTimer, setTimer: setIdleTime, isIdle }}
+    >
       {children}
     </TimerContext.Provider>
   );

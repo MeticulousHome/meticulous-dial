@@ -18,6 +18,7 @@ import { Splash } from './components/Splash/Splash';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useProfileManagement } from './hooks/usePressets';
 import { IdleTimerProvider } from './hooks/useIdleTimer';
+import { setBrightness } from './api/api';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,6 +37,7 @@ const App = (): JSX.Element => {
 
   useEffect(() => {
     window.electron.ipcRenderer.sendMessage('ready');
+    setBrightness({ brightness: 1 });
   }, []);
 
   const presetsStatus = useAppSelector((state) => state.presets.status);
