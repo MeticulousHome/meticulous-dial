@@ -4,12 +4,13 @@ import React, {
   useEffect,
   useContext,
   useCallback,
-  ReactNode
+  ReactNode,
+  useRef
 } from 'react';
 
 interface TimerContextType {
   resetTimer: () => void;
-  setTimer: () => void;
+  setTimer: (timeout: number) => void;
   isIdle: boolean;
 }
 
@@ -34,30 +35,33 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
   children
 }): JSX.Element => {
   const [idleTime, setIdleTime] = useState(DEFAULT_TIMEOUT);
-  const [time, setTime] = useState(0);
+  const time = useRef(0);
   const [isIdle, setIsIdle] = useState(false);
 
-  const resetTimer = useCallback(() => {
-    setTime(0);
+  const resetTimer = () => {
+    time.current = 0;
     setIsIdle(false);
-  }, []);
+  };
 
-  const setTimer = useCallback(() => {
-    setIdleTime(0);
-    setIsIdle(false);
-  }, []);
+  const setTimer = (timeout: number) => {
+    setIdleTime(timeout);
+  };
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setTime((prevTime) => prevTime + 1);
+      time.current += 1;
     }, 1000);
+    return () => clearInterval(intervalId);
+  }, []);
 
-    if (time >= idleTime) {
+  useEffect(() => {
+    if (!time.current) {
+      return;
+    }
+    if (time.current >= idleTime) {
       setIsIdle(true);
     }
-
-    return () => clearInterval(intervalId);
-  }, [time, idleTime, resetTimer]);
+  }, [time.current, idleTime]);
 
   return (
     <TimerContext.Provider value={{ resetTimer, setTimer, isIdle }}>
