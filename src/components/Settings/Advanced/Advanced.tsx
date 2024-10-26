@@ -24,6 +24,7 @@ export const AdvancedSettings = () => {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const [counterHiddenMenu, setCounterHiddenMenu] = useState(0);
 
   const settings: SettingsItem[] = [
     {
@@ -95,9 +96,11 @@ export const AdvancedSettings = () => {
     {
       left() {
         setActiveIndex((prev) => Math.max(prev - 1, 0));
+        setCounterHiddenMenu(0);
       },
       right() {
         setActiveIndex((prev) => Math.min(prev + 1, settings.length - 1));
+        setCounterHiddenMenu(counterHiddenMenu + 1);
       },
       pressDown() {
         const activeItem = settings[activeIndex].key;
@@ -177,6 +180,14 @@ export const AdvancedSettings = () => {
       swiper.slideTo(activeIndex, 0, false);
     }
   }, [activeIndex, swiper]);
+
+  useEffect(() => {
+    if (counterHiddenMenu >= 14) {
+      console.log('Hiddenmenu on');
+      dispatch(setScreen('hiddenMenu'));
+      dispatch(setBubbleDisplay({ visible: false, component: null }));
+    }
+  }, [counterHiddenMenu]);
 
   return (
     <div className="main-quick-settings">

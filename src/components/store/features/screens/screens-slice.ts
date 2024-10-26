@@ -41,7 +41,10 @@ export type ScreenType =
   | 'defaultProfileDetails'
   | 'manual-purge'
   | 'heat_timeout_after_shot'
-  | 'idle';
+  | 'idle'
+  | 'hiddenMenu'
+  | 'test-options'
+  | 'menu-motor-heater';
 
 interface ScreenState {
   value: ScreenType;

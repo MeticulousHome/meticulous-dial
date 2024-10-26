@@ -1,0 +1,114 @@
+.menu-motor-heater {
+  width: 480px;
+  height: 480px;
+  background: #000;
+  border-radius: 50%;
+  position: relative;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 40px;
+  box-sizing: border-box;
+  font-family: 'Abc';
+  font-size: 22px;
+}
+
+.sensors {
+  width: 273px;
+  text-align: left;
+}
+
+.sensor-value {
+  margin: 4px 0;
+  line-height: 1.3;
+  font-family: 'Abc_mono';
+  font-size: 18px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.8);
+  display: grid;
+  grid-template-columns: 1fr 80px;
+  align-items: center;
+}
+
+.sensor-value-label {
+  white-space: nowrap;
+}
+
+.sensor-value-number {
+  text-align: right;
+  padding-right: 8px;
+}
+
+.target-controls {
+  width: 272px;
+  margin-top: 12px;
+}
+
+.power-control {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 4px 0;
+  font-size: 16px;
+}
+
+.power-input {
+  background: #f5c444;
+  border: 1px solid #ffffff;
+  padding: 4px 8px;
+  width: 80px;
+  border-radius: 16px;
+  color: #000;
+  text-align: center;
+  box-sizing: border-box;
+  font-family: 'Abc_mono';
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.button {
+  width: 272px;
+  height: 28px;
+  background: #f5c444;
+  border: 1px solid #ffffff;
+  color: #000;
+  font-weight: 400;
+  cursor: pointer;
+  margin-top: 20px;
+  border-radius: 16px;
+  box-sizing: border-box;
+  font-family: 'Abc';
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.button:last-child {
+  margin-top: 8px;
+  margin-bottom: 40px;
+}
+
+.power-input.selected {
+  background-color: #ffe4a3;
+}
+
+.button.selected {
+  background-color: #ffe4a3;
+}
+
+.power-input.editing {
+  background-color: #ffb347;
+  color: #000;
+}
+
+.power-control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #686868 !important;
+}

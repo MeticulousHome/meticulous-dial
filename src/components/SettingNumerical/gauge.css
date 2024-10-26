@@ -81,3 +81,11 @@
 .opacity-20 {
   opacity: 0.2;
 }
+
+.scale-percent .scale-level {
+  margin-left: 100px;
+}
+
+.scale-pwm .scale-level {
+  margin-left: 100px;
+}

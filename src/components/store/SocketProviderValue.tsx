@@ -61,7 +61,12 @@ export const SocketProviderValue = () => {
           return;
         }
 
-        if (data?.name !== 'idle') {
+        if (
+          currentStateName === 'idle' &&
+          data?.name !== 'idle' &&
+          data?.name !== 'simultaneous_control' &&
+          data?.name !== 'starting...'
+        ) {
           dispatch(setScreen('barometer'));
         }
       }

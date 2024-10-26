@@ -34,6 +34,9 @@ import { UpdateChannel } from '../components/Settings/Advanced/UpdateChannel';
 import { ReadyAnimation } from '../components/ReadyAnimation/ReadyAnimation';
 import { HeatTimeoutAfterShot } from '../components/HeatTimeoutAfterShot/HeatTimeoutAfterShot';
 import { IdleScreen } from '../components/IdleScreen/IdleScreen';
+import { HiddenMenu } from '../components/HiddenMenu/HiddenMenu';
+import { TestOptions } from '../components/HiddenMenu/TestOptions/TestOptions';
+import { ControlPanel } from '../components/HiddenMenu/ControlPanel/ControlPanel';
 
 interface Route {
   component: ComponentType;
@@ -272,6 +275,18 @@ export const routes: Record<ScreenType, Route> = {
   },
   idle: {
     component: IdleScreen,
+    bottomStatusHidden: true
+  },
+  hiddenMenu: {
+    component: HiddenMenu,
+    bottomStatusHidden: true
+  },
+  'test-options': {
+    component: TestOptions,
+    bottomStatusHidden: true
+  },
+  'menu-motor-heater': {
+    component: ControlPanel,
     bottomStatusHidden: true
   }
 };
