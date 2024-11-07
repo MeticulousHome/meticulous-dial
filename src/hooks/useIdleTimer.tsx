@@ -28,35 +28,37 @@ type IdleTimerProviderProps = {
 };
 
 // 5 minutes default timeout
-const DEFAULT_TIMEOUT = 5 * 60;
+const DEFAULT_TIMEOUT = 5 * 60 * 1000;
 
 export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
   children
 }): JSX.Element => {
   const [idleTime, setIdleTime] = useState(DEFAULT_TIMEOUT);
-  const time = useRef(0);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isIdle, setIsIdle] = useState(false);
 
+  const startTimer = () => {
+    timeoutRef.current = setTimeout(() => {
+      setIsIdle(true);
+    }, idleTime);
+  };
+
   const resetTimer = () => {
-    time.current = 0;
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     setIsIdle(false);
+    startTimer();
   };
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      time.current += 1;
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, []);
-
-  useEffect(() => {
-    if (!time.current) {
-      return;
-    }
-    if (time.current >= idleTime) {
-      setIsIdle(true);
-    }
-  }, [time.current, idleTime]);
+    startTimer();
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [idleTime]);
 
   return (
     <TimerContext.Provider
