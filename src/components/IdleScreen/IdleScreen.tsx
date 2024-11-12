@@ -55,9 +55,8 @@ export function IdleScreen(): JSX.Element {
   const isWifiConnected = networkConfig?.status.connected;
 
   useEffect(() => {
-    if (shouldGoToIdle) {
-      return;
-    }
+    if (shouldGoToIdle || prevScreen === 'idle') return;
+
     dispatch(setScreen(prevScreen || 'pressets'));
     setBrightness({ brightness: 1 });
   }, [shouldGoToIdle]);

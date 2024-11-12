@@ -168,9 +168,8 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   }, [currentScreen]);
 
   useEffect(() => {
-    if (!shouldGoToIdle) {
-      return;
-    }
+    if (!shouldGoToIdle) return;
+
     dispatch(setScreen('idle'));
   }, [shouldGoToIdle]);
 

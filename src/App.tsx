@@ -77,7 +77,9 @@ const App = (): JSX.Element => {
             screen.value === 'scale'
               ? screen.prev === 'settings'
                 ? 'barometer'
-                : screen.prev
+                : screen.prev !== 'idle'
+                  ? screen.prev
+                  : 'pressets'
               : 'scale'
           )
         );
