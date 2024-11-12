@@ -1,10 +1,19 @@
-import { useCallback } from 'react';
-import { useAppSelector } from '../store/hooks';
+import { useCallback, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { roundPrecision, addRightComplement } from '../../utils';
 import './scale.css';
+import { useIdleTimer } from '../../hooks/useIdleTimer';
+import { setScreen } from '../store/features/screens/screens-slice';
 
 export function Scale(): JSX.Element {
-  const { stats } = useAppSelector((state) => state);
+  const stats = useAppSelector((state) => state.stats);
+  const dispatch = useAppDispatch();
+  const { isIdle: shouldGoToIdle } = useIdleTimer();
+
+  useEffect(() => {
+    if (!shouldGoToIdle) return;
+    dispatch(setScreen('idle'));
+  }, [shouldGoToIdle]);
 
   const getTotalScale = useCallback(() => {
     const toLayout = addRightComplement(
@@ -19,11 +28,11 @@ export function Scale(): JSX.Element {
     const pads: JSX.Element[] = [];
     withPads.split(toLayout).map((i: string) => {
       for (let y = 1; y <= i.length; y++) {
-        pads.push(<span>0</span>);
+        pads.push(<span className="weight">0</span>);
       }
     });
 
-    pads.push(<>{toLayout}</>);
+    pads.push(<span key={1}>{toLayout}</span>);
     return pads;
   }, [stats.sensors.w]);
 
@@ -37,7 +46,7 @@ export function Scale(): JSX.Element {
       <div className="main-layout-content">
         <div className="pressets-options-conainer">
           <div className="scale-weight">
-            <div className="weight">{getTotalScale()}</div>
+            <div>{getTotalScale()}</div>
             <div className="weight-data">g</div>
           </div>
         </div>
