@@ -4,9 +4,9 @@ import React, {
   useEffect,
   useContext,
   ReactNode,
-  useRef
+  useRef,
+  useCallback
 } from 'react';
-
 interface TimerContextType {
   resetTimer: () => void;
   setTimer: (timeout: number) => void;
@@ -36,20 +36,19 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
   const [idleTime, setIdleTime] = useState(DEFAULT_TIMEOUT);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isIdle, setIsIdle] = useState(false);
-
-  const startTimer = () => {
+  const startTimer = useCallback(() => {
     timeoutRef.current = setTimeout(() => {
       setIsIdle(true);
     }, idleTime);
-  };
+  }, []);
 
-  const resetTimer = () => {
+  const resetTimer = useCallback(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
     setIsIdle(false);
     startTimer();
-  };
+  }, []);
 
   useEffect(() => {
     startTimer();
