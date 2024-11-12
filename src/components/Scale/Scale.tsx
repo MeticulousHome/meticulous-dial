@@ -3,7 +3,10 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { roundPrecision, addRightComplement } from '../../utils';
 import './scale.css';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
-import { setScreen } from '../store/features/screens/screens-slice';
+import {
+  setScreen,
+  setBubbleDisplay
+} from '../store/features/screens/screens-slice';
 
 export function Scale(): JSX.Element {
   const stats = useAppSelector((state) => state.stats);
@@ -13,6 +16,7 @@ export function Scale(): JSX.Element {
   useEffect(() => {
     if (!shouldGoToIdle) return;
     dispatch(setScreen('idle'));
+    dispatch(setBubbleDisplay({ visible: false, component: null }));
   }, [shouldGoToIdle]);
 
   const getTotalScale = useCallback(() => {

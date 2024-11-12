@@ -28,7 +28,10 @@ import {
 import { RouteProps } from '../../navigation';
 import '../../navigation/navigation.less';
 import { ProfileImage } from './ProfileImage';
-import { setScreen } from '../store/features/screens/screens-slice';
+import {
+  setScreen,
+  setBubbleDisplay
+} from '../store/features/screens/screens-slice';
 import { circumference, getDashArray } from '../SettingNumerical/Gauge';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
 import { Circle, radius, transform } from './Circle';
@@ -171,6 +174,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     if (!shouldGoToIdle) return;
 
     dispatch(setScreen('idle'));
+    dispatch(setBubbleDisplay({ visible: false, component: null }));
   }, [shouldGoToIdle]);
 
   const focusProfileHandle = () => {
