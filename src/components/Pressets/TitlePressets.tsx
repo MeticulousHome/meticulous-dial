@@ -4,7 +4,7 @@ import './pressets.less';
 export const getTitlePressets = () => <TitlePressets />;
 
 export const TitlePressets = () => {
-  const { presets } = useAppSelector((state) => state);
+  const presets = useAppSelector((state) => state.presets);
 
   return (
     <div className="pressets-title">
