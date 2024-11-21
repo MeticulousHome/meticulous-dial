@@ -74,6 +74,15 @@ const Indicators = styled.span<{ $main: boolean }>`
   background: ${(props) => (props.$main ? '#898989' : '#494949')};
 `;
 
+const IconsConatiner = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+`;
 export function AnalogClock() {
   const requestId = useRef<number>(-1);
   const hourRef = useRef(null);
@@ -115,16 +124,25 @@ export function AnalogClock() {
 
   return (
     <ClockContainer>
-      <WifiIndicator
-        enabled={isWifiConnected}
-        style={{
-          position: 'relative',
-          width: 27.57,
-          top: 347,
-          left: CLOCK_DIAMETER / 2 - 27.57 / 2
-        }}
-      />
-
+      <IconsConatiner>
+        <div
+          style={{
+            position: 'relative',
+            width: '30px',
+            top: '103px'
+          }}
+        >
+          <img src="assets/logo-white.svg" alt="Logo Meticulous white" />
+        </div>
+        <WifiIndicator
+          enabled={isWifiConnected}
+          style={{
+            position: 'relative',
+            width: '27.57px',
+            bottom: '103px'
+          }}
+        />
+      </IconsConatiner>
       {Array.from({ length: 60 }).map((_, i) => {
         return (
           <RotationContainer key={i} $rotation={(i * 360) / 60}>

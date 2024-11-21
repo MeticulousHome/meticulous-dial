@@ -64,7 +64,7 @@ const isOutsideCircle = (
   return pointsOutside >= 3;
 };
 
-const APPLE_IMAGE = 'assets/images/logo.png';
+const APPLE_IMAGE = 'assets/logo.png';
 
 export const SnakeGame: React.FC = () => {
   const dispatch = useAppDispatch();
