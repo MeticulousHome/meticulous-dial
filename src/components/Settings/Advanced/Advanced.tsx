@@ -32,6 +32,11 @@ export const AdvancedSettings = () => {
       visible: true
     },
     {
+      key: 'time_date',
+      label: 'time & date',
+      visible: true
+    },
+    {
       key: 'enable_sounds',
       label: 'sounds',
       value: globalSettings.enable_sounds,
@@ -162,6 +167,11 @@ export const AdvancedSettings = () => {
           case 'heat_timeout_after_shot':
             dispatch(setScreen('heat_timeout_after_shot'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          case 'time_date':
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'timeDate' })
+            );
             break;
           default: {
             break;

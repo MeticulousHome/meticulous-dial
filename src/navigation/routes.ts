@@ -35,7 +35,9 @@ import { ReadyAnimation } from '../components/ReadyAnimation/ReadyAnimation';
 import { HeatTimeoutAfterShot } from '../components/HeatTimeoutAfterShot/HeatTimeoutAfterShot';
 import { IdleScreen } from '../components/IdleScreen/IdleScreen';
 import { Heating } from '../components/Heating/Heating';
-
+import { TimeDate } from '../components/Settings/Advanced/TimeDate/TimeDateConfig';
+import { TimeZoneConfig } from '../components/Settings/Advanced/TimeDate/TimeZone/TimeZoneConfig';
+import { TimeZoneSelector } from '../components/Settings/Advanced/TimeDate/TimeZone/TimeZoneSelector';
 interface Route {
   component: ComponentType;
   parentTitle?: string | ((state: RootState) => string) | (() => JSX.Element);
@@ -57,6 +59,21 @@ const selectStatProfileName = (state: RootState) =>
   state.stats.profile || state.presets.activePreset.name;
 
 export const routes: Record<ScreenType, Route> = {
+  tzSelector: {
+    component: TimeZoneSelector,
+    title: 'timeZoneSelector',
+    bottomStatusHidden: true
+  },
+  timeZoneConfig: {
+    component: TimeZoneConfig,
+    title: 'timeZoneConfig',
+    bottomStatusHidden: true
+  },
+  timeDate: {
+    component: TimeDate,
+    title: 'TimeDate',
+    bottomStatusHidden: true
+  },
   OSStatus: {
     component: OSStatus,
     title: 'OSStatus',
