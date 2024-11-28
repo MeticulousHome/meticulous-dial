@@ -45,6 +45,7 @@ import { USBSettings } from '../components/Settings/USBSettings';
 import { BrewSettings } from '../components/Settings/BrewSettings';
 import { TimeConfig } from '../components/Settings/Advanced/TimeDate/TimeConfig';
 import { DateConfig } from '../components/Settings/Advanced/TimeDate/DateConfig';
+import { ShotGraphScreen } from '../components/ShotGraph/ShotGraphScreen';
 
 interface Route {
   component: ComponentType;
@@ -315,6 +316,12 @@ export const routes: Record<ScreenType, Route> = {
   },
   defaultProfileDetails: {
     component: DefaultProfileDetails,
+    bottomStatusHidden: true
+  },
+  shot_history: {
+    component: ShotGraphScreen,
+    title: selectActivePresetName,
+    parent: 'pressets',
     bottomStatusHidden: true
   },
   idle: {
