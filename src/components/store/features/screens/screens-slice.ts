@@ -49,7 +49,8 @@ export type ScreenType =
   | 'timeConfig'
   | 'dateConfig'
   | 'calibrateScale'
-  | 'usbSettings';
+  | 'usbSettings'
+  | 'shot_history';
 
 interface ScreenState {
   value: ScreenType;

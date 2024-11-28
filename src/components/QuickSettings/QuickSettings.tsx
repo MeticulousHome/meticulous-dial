@@ -38,6 +38,10 @@ const profileContextSettings: QuickSettingOption[] = [
     label: 'Edit profile'
   },
   {
+    key: 'last_shot',
+    label: 'Last shot'
+  },
+  {
     key: 'delete',
     label: 'Hold to delete profile',
     longpress: true,
@@ -47,7 +51,8 @@ const profileContextSettings: QuickSettingOption[] = [
 
 const prevScreenSetting: QuickSettingOption = {
   key: 'prevScreen',
-  label: 'Back'
+  label: 'Back',
+  hasSeparator: true
 };
 
 const defaultSettings: QuickSettingOption[] = [
@@ -212,6 +217,11 @@ export function QuickSettings(): JSX.Element {
           case 'edit': {
             dispatch(resetActiveSetting());
             dispatch(setScreen('pressetSettings'));
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
+          case 'last_shot': {
+            dispatch(setScreen('shot_history'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
