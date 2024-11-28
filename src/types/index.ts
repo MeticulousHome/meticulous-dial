@@ -54,6 +54,14 @@ export interface ISensorData {
     w: string; // Weight - grams
     f: string; // Flow - ml/s
   };
+  setpoints: {
+    active?: string;
+    temperature?: number;
+    flow?: number;
+    pressure?: number;
+    power?: number;
+    piston?: number;
+  };
   profile: string;
   waterStatus: boolean;
 }

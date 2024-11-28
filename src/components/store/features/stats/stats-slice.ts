@@ -12,7 +12,8 @@ const initialState: ISensorData = {
   },
   time: '0',
   profile: undefined,
-  waterStatus: false
+  setpoints: {},
+  waterStatus: true
 };
 
 const statsSlice = createSlice({

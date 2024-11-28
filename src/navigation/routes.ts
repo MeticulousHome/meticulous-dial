@@ -34,6 +34,7 @@ import { UpdateChannel } from '../components/Settings/Advanced/UpdateChannel';
 import { ReadyAnimation } from '../components/ReadyAnimation/ReadyAnimation';
 import { HeatTimeoutAfterShot } from '../components/HeatTimeoutAfterShot/HeatTimeoutAfterShot';
 import { IdleScreen } from '../components/IdleScreen/IdleScreen';
+import { Heating } from '../components/Heating/Heating';
 
 interface Route {
   component: ComponentType;
@@ -87,7 +88,8 @@ export const routes: Record<ScreenType, Route> = {
     // titleShared: true,
     bottomStatusHidden: true,
     animationDirectionFrom: {
-      'manual-purge': 'in'
+      'manual-purge': 'in',
+      heating: 'in'
     }
   },
   pressetSettings: {
@@ -161,6 +163,15 @@ export const routes: Record<ScreenType, Route> = {
     bottomStatusHidden: true,
     animationDirectionFrom: {
       barometer: 'in'
+    }
+  },
+  heating: {
+    component: Heating,
+    title: selectActivePresetName,
+    bottomStatusHidden: true,
+    animationDirectionFrom: {
+      barometer: 'in',
+      'manual-purge': 'in'
     }
   },
   dose: {

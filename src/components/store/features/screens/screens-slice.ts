@@ -40,6 +40,7 @@ export type ScreenType =
   | 'defaultProfiles'
   | 'defaultProfileDetails'
   | 'manual-purge'
+  | 'heating'
   | 'heat_timeout_after_shot'
   | 'idle';
 

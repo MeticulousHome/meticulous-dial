@@ -60,6 +60,10 @@ export const SocketProviderValue = () => {
           dispatch(setScreen('manual-purge'));
           return;
         }
+        if (data?.name === 'heating') {
+          dispatch(setScreen('heating'));
+          return;
+        }
 
         if (data?.name !== 'idle') {
           dispatch(setScreen('barometer'));
