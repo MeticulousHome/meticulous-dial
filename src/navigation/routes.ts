@@ -35,6 +35,7 @@ import { ReadyAnimation } from '../components/ReadyAnimation/ReadyAnimation';
 import { HeatTimeoutAfterShot } from '../components/HeatTimeoutAfterShot/HeatTimeoutAfterShot';
 import { IdleScreen } from '../components/IdleScreen/IdleScreen';
 import { Heating } from '../components/Heating/Heating';
+import { ShotGraphScreen } from '../components/ShotGraph/ShotGraphScreen';
 
 interface Route {
   component: ComponentType;
@@ -279,6 +280,11 @@ export const routes: Record<ScreenType, Route> = {
   },
   defaultProfileDetails: {
     component: DefaultProfileDetails,
+    bottomStatusHidden: true
+  },
+  shot_history: {
+    component: ShotGraphScreen,
+    title: selectActivePresetName,
     bottomStatusHidden: true
   },
   idle: {

@@ -42,6 +42,7 @@ export type ScreenType =
   | 'manual-purge'
   | 'heating'
   | 'heat_timeout_after_shot'
+  | 'shot_history'
   | 'idle';
 
 interface ScreenState {
