@@ -3,7 +3,10 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 
 import { useHandleGestures } from '../../../../../hooks/useHandleGestures';
 import { useAppSelector, useAppDispatch } from '../../../../store/hooks';
-import { setBubbleDisplay } from '../../../../store/features/screens/screens-slice';
+import {
+  setBubbleDisplay,
+  setScreen
+} from '../../../../store/features/screens/screens-slice';
 import { marqueeIfNeeded } from '../../../../shared/MarqueeValue';
 import { SettingsKey } from '@meticulous-home/espresso-api';
 import { SettingsItem } from '../../../../../types';
@@ -67,9 +70,8 @@ export const TimeZoneConfig = () => {
             );
             break;
           case 'time_zone_selector':
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'tzSelector' })
-            );
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(setScreen('selectLetterCountry'));
             break;
           case 'back':
             dispatch(

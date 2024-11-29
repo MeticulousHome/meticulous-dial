@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { api } from '../../../../api/api';
+import { TimezoneData } from '../../../Settings/Advanced/TimeDate/TimeZone/mockTzJson';
 
 import {
   Settings,
@@ -12,6 +13,8 @@ type InitialSettings = Partial<Settings> & {
   PreheatTimeLeft: number;
   heating_timeout: number;
   tempHeatingTimeout: number | null;
+  countryLetter: string | null;
+  country: TimezoneData | null;
 };
 
 export const initialState: InitialSettings = {
@@ -23,7 +26,9 @@ export const initialState: InitialSettings = {
   deviceInfo: null,
   PreheatTimeLeft: 0,
   heating_timeout: 0,
-  tempHeatingTimeout: null
+  tempHeatingTimeout: null,
+  countryLetter: null,
+  country: null
 };
 
 export const fetchSettigns = createAsyncThunk(
@@ -98,6 +103,12 @@ const settingsSlice = createSlice({
     },
     setTempHeatingTimeout: (state, action: PayloadAction<number | null>) => {
       state.tempHeatingTimeout = action.payload;
+    },
+    setCountryLetter: (state, action: PayloadAction<string>) => {
+      state.countryLetter = action.payload;
+    },
+    setCountry: (state, action: PayloadAction<TimezoneData>) => {
+      state.country = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -133,6 +144,8 @@ const settingsSlice = createSlice({
 export const {
   updateItemSetting,
   updatePreheatTimeLeft,
-  setTempHeatingTimeout
+  setTempHeatingTimeout,
+  setCountryLetter,
+  setCountry
 } = settingsSlice.actions;
 export default settingsSlice.reducer;

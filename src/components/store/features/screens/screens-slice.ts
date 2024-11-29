@@ -36,7 +36,6 @@ export type ScreenType =
   | 'KnownWifi'
   | 'deleteKnowWifiMenu'
   | 'advancedSettings'
-  | 'tzSelector'
   | 'pressetProfileImage'
   | 'deviceInfo'
   | 'updateChannel'
@@ -45,7 +44,10 @@ export type ScreenType =
   | 'manual-purge'
   | 'heating'
   | 'heat_timeout_after_shot'
-  | 'idle';
+  | 'idle'
+  | 'selectLetterCountry'
+  | 'countrySettings'
+  | 'timeZoneSettings';
 
 interface ScreenState {
   value: ScreenType;
