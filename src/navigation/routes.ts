@@ -37,7 +37,9 @@ import { IdleScreen } from '../components/IdleScreen/IdleScreen';
 import { Heating } from '../components/Heating/Heating';
 import { TimeDate } from '../components/Settings/Advanced/TimeDate/TimeDateConfig';
 import { TimeZoneConfig } from '../components/Settings/Advanced/TimeDate/TimeZone/TimeZoneConfig';
-import { TimeZoneSelector } from '../components/Settings/Advanced/TimeDate/TimeZone/TimeZoneSelector';
+import SelectLetterCountry from '../components/Settings/Advanced/TimeDate/TimeZone/SelectLetterCountry';
+import CountrySettings from '../components/Settings/Advanced/TimeDate/TimeZone/CountrySettings';
+import TimeZoneSettings from '../components/Settings/Advanced/TimeDate/TimeZone/TimeZoneSettings';
 interface Route {
   component: ComponentType;
   parentTitle?: string | ((state: RootState) => string) | (() => JSX.Element);
@@ -59,11 +61,6 @@ const selectStatProfileName = (state: RootState) =>
   state.stats.profile || state.presets.activePreset.name;
 
 export const routes: Record<ScreenType, Route> = {
-  tzSelector: {
-    component: TimeZoneSelector,
-    title: 'timeZoneSelector',
-    bottomStatusHidden: true
-  },
   timeZoneConfig: {
     component: TimeZoneConfig,
     title: 'timeZoneConfig',
@@ -203,6 +200,18 @@ export const routes: Record<ScreenType, Route> = {
   },
   name: {
     component: EditNameScreen,
+    bottomStatusHidden: true
+  },
+  selectLetterCountry: {
+    component: SelectLetterCountry,
+    bottomStatusHidden: true
+  },
+  countrySettings: {
+    component: CountrySettings,
+    bottomStatusHidden: true
+  },
+  timeZoneSettings: {
+    component: TimeZoneSettings,
     bottomStatusHidden: true
   },
   'pre-infusion': {
