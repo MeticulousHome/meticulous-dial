@@ -14,7 +14,8 @@ import {
   CASE_ACCENT_TO_UPPERCASE_MAPPING,
   CASE_ACCENT_TO_LOWERCASE_MAPPING,
   massageAlphabetWithMainChar,
-  SPECIAL_CHARACTERS
+  SPECIAL_CHARACTERS,
+  ALPHABETH_ONLY_LETTERS
 } from './Keys';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 
@@ -24,16 +25,19 @@ interface IKeyboardProps {
   onSubmit: (text: string) => void;
   onCancel: () => void;
   onChange?: (text: string) => void;
+  onlyLetters?: boolean;
 }
 
 export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
   const [rotate, setRotate] = useState<number>(FIRST_POSITION);
-  const [keyboardType, setKeyboardType] = useState<KEYBOARD_TYPE>(
-    KEYBOARD_TYPE.Default
+  const [keyboardType, setKeyboardType] = useState<KEYBOARD_TYPE>(() =>
+    props.onlyLetters ? KEYBOARD_TYPE.OnlyLetters : KEYBOARD_TYPE.Default
   );
-  const [alphabet, setAlphabet] = useState<string[]>(
-    massageAlphabetWithMainChar(DEFAULT_ALPHABET, 0)
-  );
+  const [alphabet, setAlphabet] = useState<string[]>(() => {
+    return props.onlyLetters
+      ? massageAlphabetWithMainChar(ALPHABETH_ONLY_LETTERS, 0)
+      : massageAlphabetWithMainChar(DEFAULT_ALPHABET, 0);
+  });
   const [mainLetter, setMainLetter] = useState<string>('a');
   const [capsLockActive, setCapsLockActive] = useState<{
     active: boolean;
@@ -57,7 +61,9 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       ? DEFAULT_ALPHABET[0]
       : keyboardType === KEYBOARD_TYPE.AccentCharacters
         ? SMALL_ACCENT_CHARACTERS[0]
-        : SPECIAL_CHARACTERS[0];
+        : keyboardType === KEYBOARD_TYPE.OnlyLetters
+          ? ALPHABETH_ONLY_LETTERS[0]
+          : SPECIAL_CHARACTERS[0];
 
   const { name, defaultValue, onSubmit, onCancel, onChange } = props;
   const inputLimit = 64;
