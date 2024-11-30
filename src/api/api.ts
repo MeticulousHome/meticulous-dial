@@ -1,8 +1,7 @@
 import Api, {
   BrightnessRequest,
-  Timezones,
-  CurrentTimezone,
-  APIError
+  APIError,
+  regionType
 } from '@meticulous-home/espresso-api';
 
 export const api = new Api(
@@ -37,9 +36,12 @@ export const setBrightness = async ({ brightness }: BrightnessRequest) => {
   }
 };
 
-export const getTimezones = async () => {
+export const getTimezoneRegion = async (
+  region_type: regionType,
+  filter: string
+) => {
   try {
-    const { data } = await api.getTimezones();
+    const { data } = await api.getTimezoneRegion(region_type, filter);
     return data;
   } catch (error) {
     console.error('Error getting timezones', error);
@@ -48,9 +50,13 @@ export const getTimezones = async () => {
 
 export const setTimezone = async (new_timezone: string) => {
   try {
-    const { data } = await api.setTimezone(new_timezone);
+    const { data } = await api.updateSetting({ time_zone: new_timezone });
     return data;
   } catch (error) {
     console.error('Error setting timezone', error);
   }
+};
+
+export const isAPIError = (value: any): value is APIError => {
+  return (value as APIError).error !== undefined;
 };
