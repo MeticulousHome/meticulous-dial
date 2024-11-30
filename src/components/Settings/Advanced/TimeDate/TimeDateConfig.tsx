@@ -131,7 +131,7 @@ export function TimeDate(): JSX.Element {
           return (
             <div key={`option-${index}-${setting.key}`}>
               <SwiperSlide
-                className={getSettingClasses(isActive, setting.key)}
+                className={getSettingClasses(isActive)}
                 key={`option-${index}-${setting.key}`}
               >
                 <div className="text-container">{setting.label}</div>
