@@ -14,7 +14,7 @@ type InitialSettings = Partial<Settings> & {
   heating_timeout: number;
   tempHeatingTimeout: number | null;
   countryLetter: string | null;
-  country: TimezoneData | null;
+  country: string | null;
 };
 
 export const initialState: InitialSettings = {
@@ -107,7 +107,7 @@ const settingsSlice = createSlice({
     setCountryLetter: (state, action: PayloadAction<string>) => {
       state.countryLetter = action.payload;
     },
-    setCountry: (state, action: PayloadAction<TimezoneData>) => {
+    setCountry: (state, action: PayloadAction<string>) => {
       state.country = action.payload;
     }
   },
