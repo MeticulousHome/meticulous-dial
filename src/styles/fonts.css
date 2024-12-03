@@ -1,0 +1,26 @@
+/* Fonts R2D2*/
+@font-face {
+  font-family: 'Lato';
+  src: url('/src/assets/fonts/Lato-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/src/assets/fonts/Satoshi-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'Abc';
+  src: url('/src/assets/fonts/abc-diatype-regular.otf');
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: 'Abc_light';
+  src: url('/src/assets/fonts/abc-diatype-light.otf');
+}
+
+@font-face {
+  font-family: 'Abc_mono';
+  src: url('/src/assets/fonts/abc-diatype-mono-regular-trial.otf');
+}
