@@ -18,6 +18,10 @@ import { Splash } from './components/Splash/Splash';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { IdleTimerProvider } from './hooks/useIdleTimer';
 import { setBrightness } from './api/api';
+import { ThemeProvider } from 'styled-components';
+import { GlobalStyles } from './styles/global';
+
+import * as Styled from '@styles/app.styled';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -100,28 +104,26 @@ const App = (): JSX.Element => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div>
-        <div className="meticulous-main-canvas">
-          {dev && <div className="main-circle-overlay" />}
-          {backendReady && splashAnimationLooping ? (
-            <IdleTimerProvider>
-              <SocketManager>
-                <Router
-                  currentScreen={screen.value}
-                  previousScreen={screen.prev}
-                />
-              </SocketManager>
-            </IdleTimerProvider>
-          ) : (
-            <Splash
-              onAnimationFinished={() => {
-                setSplashAnimationLooping(true);
-                return presetsStatus !== 'ready';
-              }}
-            />
-          )}
-        </div>
-      </div>
+      <Styled.MainCanvas>
+        {dev && <div className="main-circle-overlay" />}
+        {backendReady && splashAnimationLooping ? (
+          <IdleTimerProvider>
+            <SocketManager>
+              <Router
+                currentScreen={screen.value}
+                previousScreen={screen.prev}
+              />
+            </SocketManager>
+          </IdleTimerProvider>
+        ) : (
+          <Splash
+            onAnimationFinished={() => {
+              setSplashAnimationLooping(true);
+              return presetsStatus !== 'ready';
+            }}
+          />
+        )}
+      </Styled.MainCanvas>
     </QueryClientProvider>
   );
 };
@@ -129,6 +131,9 @@ const App = (): JSX.Element => {
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <Provider store={store}>
-    <App />
+    <ThemeProvider theme={{}}>
+      <GlobalStyles />
+      <App />
+    </ThemeProvider>
   </Provider>
 );
