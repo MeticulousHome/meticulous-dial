@@ -57,6 +57,17 @@ export const setTimezone = async (new_timezone: string) => {
   }
 };
 
+export const setTimezoneSync = async (new_timezonesync: string) => {
+  try {
+    const { data } = await api.updateSetting({
+      timezone_sync: new_timezonesync
+    });
+    return data;
+  } catch (error) {
+    console.error('Error setting timezone sync', error);
+  }
+};
+
 export const isAPIError = (value: any): value is APIError => {
   return (value as APIError).error !== undefined;
 };
