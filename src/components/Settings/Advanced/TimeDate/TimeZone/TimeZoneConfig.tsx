@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 import { useHandleGestures } from '../../../../../hooks/useHandleGestures';
@@ -8,8 +8,8 @@ import {
   setScreen
 } from '../../../../store/features/screens/screens-slice';
 import { marqueeIfNeeded } from '../../../../shared/MarqueeValue';
-import { SettingsKey } from '@meticulous-home/espresso-api';
 import { SettingsItem } from '../../../../../types';
+import { api, isAPIError, setTimezoneSync } from '../../../../../api/api';
 
 export const TimeZoneConfig = () => {
   const dispatch = useAppDispatch();
@@ -17,40 +17,74 @@ export const TimeZoneConfig = () => {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const settings: SettingsItem[] = [
-    {
-      key: 'automatic_toggle',
-      label: 'Automatic',
-      visible: true,
-      value: false
-    },
-    {
-      key: 'time_zone_selector',
-      label: 'Select Timezone',
-      visible: true
-    },
-    {
-      key: 'back',
-      label: 'Back',
-      visible: true
+  const [automaticTz, setAutomaticTz] = useState<boolean>(false);
+
+  useEffect(() => {
+    api.getSettings().then((result) => {
+      const { data } = result;
+      if (isAPIError(data)) {
+        setAutomaticTz(false);
+      } else {
+        const response = data.timezone_sync;
+        console.log(response, response === 'automatic');
+        setAutomaticTz(response === 'automatic');
+      }
+    });
+  }, []);
+
+  const settings: SettingsItem[] = useMemo(() => {
+    if (automaticTz) {
+      return [
+        {
+          key: 'automatic_toggle',
+          label: 'Automatic',
+          visible: true,
+          value: false
+        },
+        {
+          key: 'back',
+          label: 'Back',
+          visible: true
+        }
+      ];
     }
-  ];
+    return [
+      {
+        key: 'automatic_toggle',
+        label: 'Automatic',
+        visible: true,
+        value: false
+      },
+      {
+        key: 'time_zone_selector',
+        label: 'Select Timezone',
+        visible: true
+      },
+      {
+        key: 'back',
+        label: 'Back',
+        visible: true
+      }
+    ];
+  }, [automaticTz]);
+
+  const handleAutomaticToggle = () => {
+    const new_timezone_sync = !automaticTz;
+    setAutomaticTz(new_timezone_sync);
+    setTimezoneSync(new_timezone_sync ? 'automatic' : 'manual');
+    console.log(new_timezone_sync);
+  };
 
   const showValue = useCallback(
     (isActive: boolean, item: SettingsItem) => {
       if (!item) return <></>;
       let val = item.label.toUpperCase();
-      if (globalSettings) {
-        if (typeof globalSettings[item.key as SettingsKey] === 'boolean') {
-          val = globalSettings[item.key as SettingsKey]
-            ? val + ': ENABLED'
-            : val + ': DISABLED';
-        }
-
-        return marqueeIfNeeded({ enabled: isActive, val });
+      if (item.key === 'automatic_toggle') {
+        val += automaticTz ? ': ENABLED' : ': DISABLED';
       }
+      return marqueeIfNeeded({ enabled: isActive, val });
     },
-    [globalSettings]
+    [automaticTz]
   );
 
   useHandleGestures(
@@ -64,10 +98,8 @@ export const TimeZoneConfig = () => {
       pressDown() {
         const activeItem = settings[activeIndex].key;
         switch (activeItem) {
-          case 'automatic':
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'advancedSettings' })
-            );
+          case 'automatic_toggle':
+            handleAutomaticToggle();
             break;
           case 'time_zone_selector':
             dispatch(setBubbleDisplay({ visible: false, component: null }));
