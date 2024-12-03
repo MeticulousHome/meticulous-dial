@@ -1,5 +1,5 @@
 /* Fonts */
-@font-face {
+/* @font-face {
   font-family: 'Lato';
   src: url('/src/assets/fonts/Lato-Regular.ttf');
 }
@@ -23,8 +23,8 @@
 @font-face {
   font-family: 'Abc_mono';
   src: url('/src/assets/fonts/abc-diatype-mono-regular-trial.otf');
-}
-
+} */
+/* 
 html,
 body {
   width: 480px;
@@ -40,20 +40,20 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-}
+} */
 
-.meticulous-main-canvas {
+/* .meticulous-main-canvas {
   position: relative;
   width: 480px;
   height: 480px;
   max-width: 480px;
   max-height: 480px;
   overflow: hidden;
-}
+} */
 
-.text-gray {
+/* .text-gray {
   color: #5e5e5e;
-}
+} */
 
 /*-----------------------------*/
 /* Layouts */
