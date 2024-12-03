@@ -4,7 +4,13 @@ import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { useHandleGestures } from '../../../../../hooks/useHandleGestures';
 import { setScreen } from '../../../../store/features/screens/screens-slice';
 import { Option, TextContainer, Title } from './Timezone.styled';
+import {
+  getTimezoneRegion,
+  isAPIError,
+  setTimezone
+} from '../../../../../api/api';
 import { styled } from 'styled-components';
+import { Regions } from '@meticulous-home/espresso-api';
 
 const TimeZone = styled.span<{ isactive?: boolean }>`
   color: #f3f4f6;
@@ -18,8 +24,7 @@ export default function TimeZoneSettings() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const country = useAppSelector((state) => state.settings.country);
-  const [name] = Object.keys(country);
-  const timeZones = Object.entries(country[name]);
+  const [timeZones, setTimeZones] = useState<Regions>({ cities: [] });
 
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
 
@@ -29,6 +34,12 @@ export default function TimeZoneSettings() {
     if (swiper) swiper.slideTo(activeIndex);
   }, [activeIndex, swiper]);
 
+  useEffect(() => {
+    getTimezoneRegion('cities', country).then((result) => {
+      setTimeZones(isAPIError(result) ? { cities: [] } : result);
+    });
+  }, []);
+
   const slides = useMemo(() => {
     return [
       <SwiperSlide className="presset-option-item" key={`option-back`}>
@@ -36,9 +47,11 @@ export default function TimeZoneSettings() {
           <Option isactive={activeIndex === 0}>Back</Option>
         </div>
       </SwiperSlide>,
-      ...timeZones.map(([city, timezone], index) => {
+      ...timeZones['cities'].map((timezone, index) => {
         const isactive = index + 1 === activeIndex;
-        const neednoWrap = city.length + timezone.length > 11;
+        const city = Object.keys(timezone)[0];
+        const tz_name = Object.values(timezone)[0];
+        const neednoWrap = city.length + tz_name.length > 11;
         return (
           <SwiperSlide
             className="presset-option-item"
@@ -48,7 +61,7 @@ export default function TimeZoneSettings() {
               <TextContainer neednoWrap={neednoWrap} isactive={isactive}>
                 <Option isactive={isactive}>
                   <span>{city}</span>{' '}
-                  <TimeZone isactive={isactive}>{timezone}</TimeZone>
+                  <TimeZone isactive={isactive}>{tz_name}</TimeZone>
                 </Option>
               </TextContainer>
             </div>
@@ -56,7 +69,7 @@ export default function TimeZoneSettings() {
         );
       })
     ];
-  }, [activeIndex, animationStyle]);
+  }, [activeIndex, animationStyle, timeZones]);
 
   useHandleGestures(
     {
@@ -76,10 +89,11 @@ export default function TimeZoneSettings() {
         if (activeIndex === 0) {
           dispatch(setScreen('countrySettings'));
         } else {
-          console.log(
-            'Seleccionar Ciudad/TimeZone:',
-            timeZones[activeIndex - 1]
-          );
+          const tz_selected = Object.values(
+            timeZones.cities[activeIndex - 1]
+          )[0];
+          setTimezone(tz_selected);
+          console.log('Seleccionar Ciudad/TimeZone:', tz_selected);
         }
       }
     },
