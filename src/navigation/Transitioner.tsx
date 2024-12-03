@@ -2,6 +2,7 @@ import { useEffect, useState, cloneElement, ReactElement } from 'react';
 import { ScreenType } from '../components/store/features/screens/screens-slice';
 import { VisibilityProvider } from './VisibilityContext';
 import './navigation.less';
+import * as Styled from '@styles/layout.styled';
 
 interface TransitionerProps {
   screen: ScreenType;
@@ -141,9 +142,9 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
 
   return (
     <>
-      <div
+      <Styled.MainLayout
         key={screen}
-        className={`main-layout route route-${screen} ${
+        className={`route route-${screen} ${
           previous ? `enter ${direction} ${animationSize}` : ''
         }`}
         style={animationStyle}
@@ -160,11 +161,11 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
         {!shouldTransitionTitle && bottomTitle && (
           <Title position="bottom">{bottomTitle}</Title>
         )}
-      </div>
+      </Styled.MainLayout>
       {previous && (
-        <div
+        <Styled.MainLayout
           key={previous.screen}
-          className={`main-layout route route-${previous.screen} leave ${direction} ${animationSize}`}
+          className={`route route-${previous.screen} leave ${direction} ${animationSize}`}
           style={animationStyle}
         >
           <VisibilityProvider value={false}>
@@ -182,7 +183,7 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
             (title || typeof previous.title === 'string') && (
               <Title shared={previous.titleShared}>{previous.title}</Title>
             )}
-        </div>
+        </Styled.MainLayout>
       )}
       {shouldTransitionParentTitle && parentTitle && (
         <Title parent animation="enter" direction={titleDirection}>
