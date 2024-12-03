@@ -12,7 +12,9 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "paths": {
-      "*": ["node_modules/*"]
+      "*": ["node_modules/*"],
+      "@components/*": ["src/components/*"],
+      "@styles/*": ["src/styles/*"]
     },
     "jsx": "react-jsx"
   },
