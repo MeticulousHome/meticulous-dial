@@ -7,6 +7,7 @@ import {
   setScreen,
   setBubbleDisplay
 } from '../store/features/screens/screens-slice';
+import * as Styled from '@styles/layout.styled';
 
 export function Scale(): JSX.Element {
   const stats = useAppSelector((state) => state.stats);
@@ -41,12 +42,7 @@ export function Scale(): JSX.Element {
   }, [stats.sensors.w]);
 
   return (
-    <div
-      className={`main-layout`}
-      style={{
-        zIndex: 50
-      }}
-    >
+    <Styled.MainLayout>
       <div className="main-layout-content">
         <div className="pressets-options-conainer">
           <div className="scale-weight">
@@ -55,6 +51,6 @@ export function Scale(): JSX.Element {
           </div>
         </div>
       </div>
-    </div>
+    </Styled.MainLayout>
   );
 }

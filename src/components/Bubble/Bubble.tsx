@@ -3,6 +3,7 @@ import { memoizedRoutes } from '../../../src/utils';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import './bubble.less';
+import * as Styled from '@styles/layout.styled';
 
 export const durationAnimation = 450;
 const animationStyle = { animationDuration: `${durationAnimation / 1000}s` };
@@ -27,8 +28,8 @@ export default function Bubble() {
   if (!Bubble || !Bubble.component) return <></>;
 
   return (
-    <div
-      className={`main-bubble main-layout ${
+    <Styled.MainLayout
+      className={`main-bubble ${
         Bubble && Bubble.visible
           ? 'bubble-enter-animation'
           : 'bubble-leave-animation'
@@ -38,6 +39,6 @@ export default function Bubble() {
       <div className="bubble-container">
         <route.component />
       </div>
-    </div>
+    </Styled.MainLayout>
   );
 }
