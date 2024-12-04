@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { useHandleGestures } from '../../../../../hooks/useHandleGestures';
-import { setScreen } from '../../../../store/features/screens/screens-slice';
+import {
+  setBubbleDisplay,
+  setScreen
+} from '../../../../store/features/screens/screens-slice';
 import { Option, TextContainer, Title } from './Timezone.styled';
 import {
   getTimezoneRegion,
@@ -94,6 +97,10 @@ export default function TimeZoneSettings() {
           )[0];
           setTimezone(tz_selected);
           console.log('Seleccionar Ciudad/TimeZone:', tz_selected);
+          dispatch(
+            setBubbleDisplay({ visible: true, component: 'timeZoneConfig' })
+          );
+          dispatch(setScreen('barometer'));
         }
       }
     },
