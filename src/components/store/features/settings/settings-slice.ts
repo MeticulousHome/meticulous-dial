@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { api } from '../../../../api/api';
-import { TimezoneData } from '../../../Settings/Advanced/TimeDate/TimeZone/mockTzJson';
 
 import {
   Settings,

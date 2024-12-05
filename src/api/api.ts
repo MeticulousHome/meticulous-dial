@@ -68,6 +68,6 @@ export const setTimezoneSync = async (new_timezonesync: string) => {
   }
 };
 
-export const isAPIError = (value: any): value is APIError => {
+export const isAPIError = (value): value is APIError => {
   return (value as APIError).error !== undefined;
 };
