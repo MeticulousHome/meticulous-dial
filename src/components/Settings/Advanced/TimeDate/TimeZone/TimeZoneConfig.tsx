@@ -13,7 +13,6 @@ import { api, isAPIError, setTimezoneSync } from '../../../../../api/api';
 
 export const TimeZoneConfig = () => {
   const dispatch = useAppDispatch();
-  const globalSettings = useAppSelector((state) => state.settings);
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
