@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { styled } from 'styled-components';
-import { useAppSelector } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { Temperatures } from './Temperatures';
+import { setScreen } from '../store/features/screens/screens-slice';
+import { setWaitingForAction } from '../store/features/stats/stats-slice';
 
 const NO_WATER_DOT_SIZE = 5;
 const DOT_MAX_SIZE = 22;
@@ -106,9 +108,10 @@ export const Heating = () => {
   const [noWaterAnimationStart, setNoWaterAnimationStart] =
     useState<Date | null>(null);
 
+  const dispatch = useAppDispatch();
   const stats = useAppSelector((state) => state.stats);
   const waterStatus = stats.waterStatus;
-  const temperature = parseInt(stats.sensors.t);
+  const temperature = 90; // parseInt(stats.sensors.t);
   const temperatureTarget = stats.setpoints.temperature;
   const animationRef = useRef<number | null>(null);
 
@@ -116,6 +119,12 @@ export const Heating = () => {
     Array.from({ length: ROWS }, () => Array.from({ length: COLS }, () => null))
   );
   const gradientRef = useRef<HTMLDivElement | null>(null);
+
+  // useEffect(() => {
+  //   if (stats.name === 'idle') {
+  //     dispatch(setScreen('pressets'));
+  //   }
+  // }, [stats.name]);
 
   useEffect(() => {
     console.log('waterStatus', waterStatus);

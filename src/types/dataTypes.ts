@@ -48,7 +48,7 @@ export const dataTypes: Record<DataTypeKey | 'temperature', DataType> = {
   flow: {
     name: 'Flow',
     minValue: 0,
-    maxValue: 15,
+    maxValue: 12,
     axisLabelStep: 2,
     unit: 'ml/s',
     color: colorDataGreenLight,

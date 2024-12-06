@@ -2,7 +2,11 @@ import { HistoryDataPoint, HistoryEntry } from '@meticulous-home/espresso-api';
 import { useEffect, useMemo, useState } from 'react';
 import { styled } from 'styled-components';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { useLastShot } from '../../hooks/useHistory';
+import {
+  lastShotForProfileQuery,
+  useHistoryShot,
+  useLastShot
+} from '../../hooks/useHistory';
 import { DataTypeKey, dataTypes } from '../../types/dataTypes';
 import {
   GraphDividers,
@@ -10,17 +14,18 @@ import {
   StartEndIndicator
 } from './GraphAnnotations';
 import { getGraphPath } from './GraphPath';
+import { Profile } from '@meticulous-home/espresso-profile';
 
-export const GRAPH_WIDTH = 270;
-export const GRAPH_WRAPPER_HEIGHT = 220;
-export const GRAPH_HEIGHT = 175;
-export const GRAPH_HORIZONTAL_PADDING = (480 - GRAPH_WIDTH) / 2;
-export const GRAPH_VERTICAL_PADDING = (GRAPH_WRAPPER_HEIGHT - GRAPH_HEIGHT) / 2;
-export const GRAPH_POINT_RADIUS = 7;
-export const GRAPH_AXIS_COLOR = '#00475B';
+const GRAPH_WIDTH = 270;
+const GRAPH_WRAPPER_HEIGHT = 220;
+const GRAPH_HEIGHT = 175;
+const GRAPH_HORIZONTAL_PADDING = (480 - GRAPH_WIDTH) / 2;
+const GRAPH_VERTICAL_PADDING = (GRAPH_WRAPPER_HEIGHT - GRAPH_HEIGHT) / 2;
 const GRAPH_SCROLL_STEPS = 50;
 const GRAPH_LINE_SIZE = 2;
 const GRAPH_LABEL_DOT_SIZE = 10;
+
+export const GRAPH_AXIS_COLOR = '#00475B';
 
 const GraphContainer = styled.div`
   width: 480px;
@@ -76,9 +81,11 @@ const GraphValueText = styled.span`
 type PathsType = Record<DataTypeKey, { path: string; maskPath: string }>;
 
 export const ShotGraphScreen = ({
-  historyShot
+  historyShot,
+  profile
 }: {
   historyShot?: HistoryEntry;
+  profile?: Profile;
 }) => {
   const [paths, setPaths] = useState<PathsType>({
     flow: { path: '', maskPath: '' },
@@ -86,12 +93,18 @@ export const ShotGraphScreen = ({
     weight: { path: '', maskPath: '' }
   });
 
+  const { data: profileHistory } = useHistoryShot(
+    lastShotForProfileQuery(profile)
+  );
+
   const { data: lastShot } = useLastShot();
   const [selectedPointIndex, setSelectedPointIndex] = useState<number>(0);
   const [selectedPoint, setSelectedPoint] = useState<HistoryDataPoint | null>(
     null
   );
-  const displayShot = historyShot || lastShot;
+  const displayShot = !!profile
+    ? profileHistory?.history[0]
+    : historyShot || lastShot;
 
   const gestureProgress = useMemo(() => {
     if (!displayShot) {
@@ -149,6 +162,9 @@ export const ShotGraphScreen = ({
     setSelectedPoint(displayShot.data[selectedPointIndex]);
   }, [selectedPointIndex, displayShot]);
 
+  if (!displayShot) {
+    return <></>;
+  }
   return (
     <GraphContainer>
       {/* SVG */}
@@ -165,7 +181,11 @@ export const ShotGraphScreen = ({
         <g
           transform={`translate(${GRAPH_HORIZONTAL_PADDING}, ${GRAPH_VERTICAL_PADDING})`}
         >
-          <GraphDividers numDeviders={7} />
+          <GraphDividers
+            numDeviders={7}
+            width={480 + GRAPH_HORIZONTAL_PADDING}
+            height={GRAPH_HEIGHT}
+          />
           {Object.keys(paths).map((key: Partial<DataTypeKey>) => (
             <path
               key={key}
@@ -175,10 +195,16 @@ export const ShotGraphScreen = ({
               strokeWidth={GRAPH_LINE_SIZE}
             />
           ))}
-          <StartEndIndicator data={displayShot?.data} />
+          <StartEndIndicator
+            data={displayShot?.data}
+            width={GRAPH_WIDTH}
+            height={GRAPH_HEIGHT}
+          />
           <SelectionIndicator
             data={displayShot?.data}
             selectedPointIndex={selectedPointIndex}
+            width={GRAPH_WIDTH}
+            height={GRAPH_HEIGHT}
           />
         </g>
       </svg>
@@ -198,10 +224,6 @@ export const ShotGraphScreen = ({
           </GraphLabel>
         ))}
       </GraphLabels>
-      <div style={{ position: 'absolute', bottom: 20 }}>
-        <GraphValueText>Selected index: {selectedPointIndex}</GraphValueText>
-        <GraphValueText>Selected time: {selectedPoint?.time}ms</GraphValueText>
-      </div>
     </GraphContainer>
   );
 };

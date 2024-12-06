@@ -45,6 +45,8 @@ import { useSocket } from '../store/SocketManager';
 import { RootState } from '../store/store';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 
+import ReactCardFlip from 'react-card-flip';
+
 interface AnimationData {
   circlekey: number;
   titlekey: number;
@@ -104,6 +106,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const [startCoffe, setStartCoffe] = useState(false);
   const ready = useRef(false);
   const currentScreen = useAppSelector((state) => state.screen.value);
+  const [showGraph, setShowGraph] = useState(false);
 
   const pressetTitleContenExistValidation = useCallback(() => {
     if (!pressetsTitleContentRef.current) {
@@ -217,6 +220,14 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     }, 300);
   };
 
+  useEffect(() => {
+    if (showGraph) {
+      setTimeout(() => {
+        dispatch(setScreen('shot_history'));
+      }, 400);
+    }
+  }, [showGraph]);
+
   useHandleGestures(
     {
       pressDown() {
@@ -230,6 +241,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
             circleOne.current.onanimationend = () => {
               setStartCoffe(true);
+              setShowGraph(false);
             };
 
             const currentStrokeDashValue = Math.round(
@@ -261,7 +273,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               }
 
               animationInProgress.current = true;
-
+              console.log('currentStrokeDashValue', currentStrokeDashValue);
               return prev === 0 && currentStrokeDashValue > 0
                 ? currentStrokeDashValue
                 : prev + 1;
@@ -310,7 +322,11 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                 100
             );
 
-            setPercentaje(() => {
+            setPercentaje((percent) => {
+              if (percent > 0 && percent < 5) {
+                setShowGraph((prev) => !prev);
+              }
+
               if (animationInProgress.current) {
                 setAnimation((prev) => ({
                   circlekey: prev.circlekey + 1 > 10 ? 0 : prev.circlekey + 1,
@@ -319,7 +335,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                   strokeDashValueEnd: 0,
                   fillInitial: currentStrokeDashValue / 100,
                   fillEnd: 0.0,
-                  titleOpacityInitial: 1,
+                  titleOpacityInitial: percent <= 1 ? 0 : 1,
                   titleOpacityEnd: 0,
                   timeFunc: 'ease-in',
                   extraDelay: 100
@@ -335,6 +351,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
         }
       },
       left() {
+        setShowGraph(false);
         if (!transitioning) {
           if (!option.animating && option.screen === 'PRESSETS') {
             dispatch(setNextPreset());
@@ -391,6 +408,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
         }
       },
       right() {
+        setShowGraph(false);
         if (!transitioning) {
           if (!option.animating && option.screen === 'PRESSETS') {
             dispatch(setPrevPreset());
@@ -655,7 +673,16 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                           </div>
                         )}
                       </div>
-                      <ProfileImage preset={preset} />
+                      <ReactCardFlip
+                        isFlipped={
+                          showGraph && index == presets.activeIndexSwiper
+                        }
+                        flipDirection="horizontal"
+                      >
+                        <ProfileImage preset={preset} />
+                        <div></div>
+                      </ReactCardFlip>
+
                       <div
                         style={{
                           display: 'flex',

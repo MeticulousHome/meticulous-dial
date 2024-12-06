@@ -18,7 +18,7 @@ export const useNetworkConfig = () => {
     queryKey: [NETWORK_CONFIG_QUERY_KEY],
     queryFn: getWifiStatus,
     staleTime: 0,
-    refetchInterval: 2000
+    refetchInterval: 10000
   });
 };
 

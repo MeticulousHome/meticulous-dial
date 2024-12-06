@@ -31,6 +31,10 @@ interface QuickSettingOption {
 
 const profileContextSettings: QuickSettingOption[] = [
   {
+    key: 'last_shot',
+    label: 'Last shot'
+  },
+  {
     key: 'edit',
     label: 'Edit profile'
   },

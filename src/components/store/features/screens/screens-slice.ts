@@ -58,7 +58,7 @@ interface ScreenState {
 const initialState: ScreenState = {
   prev: null,
   bubbleDisplay: { visible: false, component: null, previousComponent: null },
-  value: 'ready'
+  value: 'heating'
 };
 
 const screenSlice = createSlice({

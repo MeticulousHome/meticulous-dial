@@ -1,20 +1,20 @@
 import { HistoryDataPoint } from '@meticulous-home/espresso-api';
 import { useMemo } from 'react';
 import { colorBrandRed, colorGrayScale3 } from '../../constants/colors';
-import {
-  GRAPH_AXIS_COLOR,
-  GRAPH_HEIGHT,
-  GRAPH_HORIZONTAL_PADDING,
-  GRAPH_POINT_RADIUS,
-  GRAPH_WIDTH
-} from './ShotGraphScreen';
+import { GRAPH_AXIS_COLOR } from './ShotGraphScreen';
 
 export interface GraphDividersProps {
+  width: number;
+  height: number;
   numDeviders: number;
 }
 
-export const GraphDividers = ({ numDeviders }: GraphDividersProps) => {
-  const lineSpacing = GRAPH_HEIGHT / (numDeviders - 1);
+export const GraphDividers = ({
+  width,
+  height,
+  numDeviders
+}: GraphDividersProps) => {
+  const lineSpacing = height / (numDeviders - 1);
   return (
     <>
       {Array.from({ length: numDeviders }, (_, i) => {
@@ -23,7 +23,7 @@ export const GraphDividers = ({ numDeviders }: GraphDividersProps) => {
         return (
           <path
             key={i}
-            d={`M${x} ${y} L${GRAPH_WIDTH + GRAPH_HORIZONTAL_PADDING} ${y}`}
+            d={`M${x} ${y} L${width} ${y}`}
             stroke={colorGrayScale3}
             strokeWidth={1}
             strokeDasharray={'4,8'}
@@ -68,10 +68,14 @@ const triangleLeftPoints = `${TRIANGLE_SIZE} 0, ${(1 - 0.866) * TRIANGLE_SIZE} $
 
 export const SelectionIndicator = ({
   data,
-  selectedPointIndex
+  selectedPointIndex,
+  width,
+  height
 }: {
   data: HistoryDataPoint[];
   selectedPointIndex: number;
+  width: number;
+  height: number;
 }) => {
   const selectedPointX = useMemo(() => {
     if (!data) {
@@ -82,9 +86,7 @@ export const SelectionIndicator = ({
     const last = data[data.length - 1];
     const startTime = first.time;
     const endTime = last.time;
-    return (
-      (selectedPoint.time - startTime) * (GRAPH_WIDTH / (endTime - startTime))
-    );
+    return (selectedPoint.time - startTime) * (width / (endTime - startTime));
   }, [data, selectedPointIndex]);
 
   if (!data) {
@@ -108,7 +110,7 @@ export const SelectionIndicator = ({
   )
     .toString(16)
     .padStart(2, '0');
-  console.log(indexPercentage, leftColoring, rightColoring);
+
   return (
     <>
       {valueText(
@@ -119,21 +121,21 @@ export const SelectionIndicator = ({
         'middle'
       )}
       <path
-        d={`M${selectedPointX} ${0} L${selectedPointX} ${GRAPH_HEIGHT + GRAPH_POINT_RADIUS / 2}`}
+        d={`M${selectedPointX} ${0} L${selectedPointX} ${height + 5}`}
         stroke={colorBrandRed}
         strokeWidth={'3'}
         strokeLinecap="round"
       />
 
       <polygon
-        transform={`translate(${selectedPointX - 5 - TRIANGLE_SIZE}, ${GRAPH_HEIGHT + 6})`}
+        transform={`translate(${selectedPointX - 5 - TRIANGLE_SIZE}, ${height + 6})`}
         // points="5 1.5, 10 10, 0 10"
         points={triangleLeftPoints}
         fill={colorBrandRed + leftColoring}
       />
 
       <polygon
-        transform={`translate(${selectedPointX + 5}, ${GRAPH_HEIGHT + 6})`}
+        transform={`translate(${selectedPointX + 5}, ${height + 6})`}
         // points="5 1.5, 10 10, 0 10"
         points={triangleRightPoints}
         fill={colorBrandRed + rightColoring}
@@ -142,33 +144,36 @@ export const SelectionIndicator = ({
   );
 };
 
-export const StartEndIndicator = ({ data }: { data: HistoryDataPoint[] }) => {
+export const StartEndIndicator = ({
+  data,
+  width,
+  height
+}: {
+  data: HistoryDataPoint[];
+  width: number;
+  height: number;
+}) => {
   if (!data) {
     return <></>;
   }
   const last = data[data.length - 1];
   return (
     <>
+      {valueText(width + 5, -5, (last?.shot.weight || 0.0).toFixed(1), 'g')}
       {valueText(
-        GRAPH_WIDTH + 5,
-        -5,
-        (last?.shot.weight || 0.0).toFixed(1),
-        'g'
-      )}
-      {valueText(
-        GRAPH_WIDTH + 5,
-        GRAPH_HEIGHT + 20,
+        width + 5,
+        height + 20,
         (last?.time / 1000 || 0.0).toFixed(1),
         's'
       )}
       <path
-        d={`M${GRAPH_WIDTH} ${0} L${GRAPH_WIDTH} ${GRAPH_HEIGHT}`}
+        d={`M${width} ${0} L${width} ${height}`}
         stroke={GRAPH_AXIS_COLOR}
         strokeWidth={'2'}
         strokeDasharray={'4,4'}
       />
       <path
-        d={`M${0} ${0} L${0} ${GRAPH_HEIGHT}`}
+        d={`M${0} ${0} L${0} ${height}`}
         stroke={GRAPH_AXIS_COLOR}
         strokeWidth={'2'}
         strokeDasharray={'4,4'}

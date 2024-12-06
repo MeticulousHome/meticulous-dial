@@ -157,7 +157,8 @@ const keyDownGestureMap: Record<string, GestureType> = {
   KeyD: 'doubleTare',
   KeyX: 'doubleClick',
   KeyB: 'pressDown',
-  KeyN: 'pressUp'
+  KeyN: 'pressUp',
+  KeyC: 'click'
 };
 
 const keyUpGestureMap: Record<string, GestureType[]> = {
