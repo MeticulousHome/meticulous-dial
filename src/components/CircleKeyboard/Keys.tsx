@@ -40,6 +40,9 @@ export const ALPHABETH_ONLY_LETTERS = [...ALPHABETH, 'cancel'];
 
 //NOTE: We use ROTATE_VALUE x alphabet(items) to have x + JUMP_ROTATE = 360 degrees
 export const ROTATE_VALUE = 7.25;
+export const JUMP_ROTATE_LETTERS = 90;
+export const ROTATE_VALUE_LETTERS =
+  (360 - JUMP_ROTATE_LETTERS) / ALPHABETH_ONLY_LETTERS.length;
 export const DEFAULT_ALPHABET = [
   ...ALPHABETH,
   '1',
@@ -195,11 +198,12 @@ export const getJumpRotate = (keyboardType: KEYBOARD_TYPE) => {
       : keyboardType === KEYBOARD_TYPE.OnlyLetters
         ? ALPHABETH_ONLY_LETTERS
         : CAPITAL_ACCENT_CHARACTERS;
-  return (
-    360 -
-    ROTATE_VALUE *
-      characters.filter((alphabetItem) => alphabetItem.trim() !== '').length
-  );
+  return keyboardType === KEYBOARD_TYPE.OnlyLetters
+    ? JUMP_ROTATE_LETTERS
+    : 360 -
+        ROTATE_VALUE *
+          characters.filter((alphabetItem) => alphabetItem.trim() !== '')
+            .length;
 };
 
 export const massageAlphabetWithMainChar = (

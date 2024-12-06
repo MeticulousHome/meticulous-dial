@@ -15,7 +15,9 @@ import {
   CASE_ACCENT_TO_LOWERCASE_MAPPING,
   massageAlphabetWithMainChar,
   SPECIAL_CHARACTERS,
-  ALPHABETH_ONLY_LETTERS
+  ALPHABETH_ONLY_LETTERS,
+  ROTATE_VALUE_LETTERS,
+  JUMP_ROTATE_LETTERS
 } from './Keys';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 
@@ -81,7 +83,10 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       return element.toLowerCase() === mainLetter.toLowerCase();
     });
     const pm2 = i + (!right ? -2 : +2);
-    const pmr = rotate + (right ? -ROTATE_VALUE : +ROTATE_VALUE);
+    const pmr =
+      keyboardType === KEYBOARD_TYPE.OnlyLetters
+        ? rotate + (right ? -ROTATE_VALUE_LETTERS : +ROTATE_VALUE_LETTERS)
+        : rotate + (right ? -ROTATE_VALUE : +ROTATE_VALUE);
     const newLetter = alphabet[pm2];
     const p1 = i + 1;
     const m1 = i - 1;
@@ -105,11 +110,23 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       setMainLetter(toUpperOrLowerCase(!right ? LAST_KEY : firstKey) as string);
 
       const jumpRotate = getJumpRotate(keyboardType);
-      setRotate(
-        !right
-          ? rotate + ROTATE_VALUE + jumpRotate
-          : rotate - ROTATE_VALUE - jumpRotate
-      );
+      console.log('jumpRotate: ', jumpRotate);
+      const new_rotate =
+        keyboardType === KEYBOARD_TYPE.OnlyLetters
+          ? !right
+            ? rotate + ROTATE_VALUE_LETTERS + JUMP_ROTATE_LETTERS
+            : rotate - (ROTATE_VALUE_LETTERS + JUMP_ROTATE_LETTERS)
+          : !right
+            ? rotate + ROTATE_VALUE + jumpRotate
+            : rotate - ROTATE_VALUE - jumpRotate;
+      console.log('new rotate', new_rotate);
+      // setRotate(
+      //   !right
+      //     ? rotate + ROTATE_VALUE + jumpRotate
+      //     : rotate - ROTATE_VALUE - jumpRotate
+      // );
+
+      setRotate(new_rotate);
       return;
     }
 
@@ -519,7 +536,10 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
                 return;
               }
               return (
-                <g transform={`rotate(${index * 7.24})`} key={index}>
+                <g
+                  transform={`rotate(${index * (keyboardType === KEYBOARD_TYPE.OnlyLetters ? ROTATE_VALUE_LETTERS : ROTATE_VALUE)})`}
+                  key={index}
+                >
                   {parseCharacter(letter, index)}
                 </g>
               );
