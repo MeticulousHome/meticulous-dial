@@ -7,11 +7,7 @@ import {
   setScreen
 } from '../../../../store/features/screens/screens-slice';
 import { Option, TextContainer, Title } from './Timezone.styled';
-import {
-  getTimezoneRegion,
-  isAPIError,
-  setTimezone
-} from '../../../../../api/api';
+import { getTimezoneRegion, setTimezone } from '../../../../../api/api';
 import { styled } from 'styled-components';
 import { Regions } from '@meticulous-home/espresso-api';
 
@@ -38,9 +34,14 @@ export default function TimeZoneSettings() {
   }, [activeIndex, swiper]);
 
   useEffect(() => {
-    getTimezoneRegion('cities', country).then((result) => {
-      setTimeZones(isAPIError(result) ? { cities: [] } : result);
-    });
+    try {
+      getTimezoneRegion('cities', country).then((result) => {
+        setTimeZones(result);
+      });
+    } catch (error) {
+      console.log('Error fetching cities: ', error);
+      setTimeZones({ cities: [] });
+    }
   }, []);
 
   const slides = useMemo(() => {

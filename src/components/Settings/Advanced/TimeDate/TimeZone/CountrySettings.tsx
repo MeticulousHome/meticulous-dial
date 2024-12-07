@@ -5,7 +5,7 @@ import { useHandleGestures } from '../../../../../hooks/useHandleGestures';
 import { Option, TextContainer, Title } from './Timezone.styled';
 import { setScreen } from '../../../../store/features/screens/screens-slice';
 import { setCountry } from '../../../../store/features/settings/settings-slice';
-import { getTimezoneRegion, isAPIError } from '../../../../../api/api';
+import { getTimezoneRegion } from '../../../../../api/api';
 import { Regions } from '@meticulous-home/espresso-api';
 
 export default function CountrySettings() {
@@ -28,15 +28,19 @@ export default function CountrySettings() {
 
   useEffect(() => {
     console.log('requesting countries');
-    getTimezoneRegion('countries', countryLetter.toLowerCase()).then(
-      (result) => {
-        setAvailableCountries(isAPIError(result) ? { countries: [] } : result);
-      }
-    );
+    try {
+      getTimezoneRegion('countries', countryLetter.toLowerCase()).then(
+        (result) => {
+          setAvailableCountries(result);
+        }
+      );
+    } catch (error) {
+      setAvailableCountries({ countries: [] });
+      console.log('Error fetching countries: ', error);
+    }
   }, []);
 
   const slides = useMemo(() => {
-    console.log(availableCountries);
     if (availableCountries['countries'].length == 0) {
       return [
         <SwiperSlide className="presset-option-item" key={`option-back`}>

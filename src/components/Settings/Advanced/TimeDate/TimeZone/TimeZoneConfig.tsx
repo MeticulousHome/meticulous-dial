@@ -9,7 +9,7 @@ import {
 } from '../../../../store/features/screens/screens-slice';
 import { marqueeIfNeeded } from '../../../../shared/MarqueeValue';
 import { SettingsItem } from '../../../../../types';
-import { api, isAPIError, setTimezoneSync } from '../../../../../api/api';
+import { api, setTimezoneSync } from '../../../../../api/api';
 
 export const TimeZoneConfig = () => {
   const dispatch = useAppDispatch();
@@ -21,12 +21,12 @@ export const TimeZoneConfig = () => {
   useEffect(() => {
     api.getSettings().then((result) => {
       const { data } = result;
-      if (isAPIError(data)) {
+      if ('error' in data) {
+        console.log('Error fetching timezone sync mode: ', data.error);
         setAutomaticTz(false);
       } else {
-        const response = data.timezone_sync;
-        console.log(response, response === 'automatic');
-        setAutomaticTz(response === 'automatic');
+        const sync_mode = data.timezone_sync;
+        setAutomaticTz(sync_mode === 'automatic');
       }
     });
   }, []);

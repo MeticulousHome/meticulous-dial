@@ -42,18 +42,26 @@ export const getTimezoneRegion = async (
 ) => {
   try {
     const { data } = await api.getTimezoneRegion(region_type, filter);
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
     return data;
   } catch (error) {
     console.error('Error getting timezones', error);
+    throw new Error(error);
   }
 };
 
 export const setTimezone = async (new_timezone: string) => {
   try {
     const { data } = await api.updateSetting({ time_zone: new_timezone });
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
     return data;
   } catch (error) {
     console.error('Error setting timezone', error);
+    throw new Error(error);
   }
 };
 
@@ -62,12 +70,12 @@ export const setTimezoneSync = async (new_timezonesync: string) => {
     const { data } = await api.updateSetting({
       timezone_sync: new_timezonesync
     });
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
     return data;
   } catch (error) {
     console.error('Error setting timezone sync', error);
+    throw new Error(error);
   }
-};
-
-export const isAPIError = (value): value is APIError => {
-  return (value as APIError).error !== undefined;
 };
