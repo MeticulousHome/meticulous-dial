@@ -1,16 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
-import { useHandleGestures } from '../../../hooks/useHandleGestures';
-import { useAppSelector, useAppDispatch } from '../../store/hooks';
-import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
-import { marqueeIfNeeded } from '../../shared/MarqueeValue';
 import { SettingsKey } from '@meticulous-home/espresso-api';
 import {
   updateItemSetting,
   updateSettings
 } from '../../../../src/components/store/features/settings/settings-slice';
+import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { SettingsItem } from '../../../types';
+import { marqueeIfNeeded } from '../../shared/MarqueeValue';
+import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { MenuAnnotation } from '../MenuAnnotation';
 
 const UPDATE_CHANNELS = ['stable', 'beta', 'rel', 'nightly'];
 
@@ -20,6 +21,7 @@ export const UpdateChannel = () => {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+
   const settings: SettingsItem[] = [
     ...UPDATE_CHANNELS.map((channel) => ({
       key: 'channel_' + channel,
@@ -79,9 +81,6 @@ export const UpdateChannel = () => {
                 update_channel: channel
               })
             );
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'settings' })
-            );
             break;
           }
         }
@@ -111,21 +110,20 @@ export const UpdateChannel = () => {
       >
         {settings.map((item, index: number) => {
           const isActive = index === activeIndex;
+          const isSelectedChannel =
+            globalSettings?.update_channel === item.label;
           return (
             <SwiperSlide
               key={index}
               className={`settings-item ${isActive ? 'active-setting' : ''}`}
+              style={{ display: 'flex', justifyContent: 'space-between' }}
             >
-              <div style={{ height: '30px' }}>
-                <div className="settings-entry text-container">
-                  <span
-                    className="settings-text"
-                    style={{ wordBreak: 'break-word' }}
-                  >
-                    {showValue(isActive, item)}
-                  </span>
-                </div>
-              </div>
+              <span>{showValue(isActive, item)}</span>
+              {isSelectedChannel && (
+                <MenuAnnotation style={{ marginRight: 10 }}>
+                  current
+                </MenuAnnotation>
+              )}
             </SwiperSlide>
           );
         })}

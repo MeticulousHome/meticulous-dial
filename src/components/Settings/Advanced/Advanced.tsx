@@ -14,7 +14,8 @@ import { SettingsKey } from '@meticulous-home/espresso-api';
 import {
   updateItemSetting,
   updateSettings,
-  setTempHeatingTimeout
+  setTempHeatingTimeout,
+  fetchSettigns
 } from '../../../../src/components/store/features/settings/settings-slice';
 import { SettingsItem } from '../../../types';
 
@@ -24,6 +25,10 @@ export const AdvancedSettings = () => {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+
+  useEffect(() => {
+    dispatch(fetchSettigns());
+  }, []);
 
   const settings: SettingsItem[] = [
     {
@@ -50,7 +55,7 @@ export const AdvancedSettings = () => {
     },
     {
       key: 'set_update_channel',
-      label: 'Set update channel',
+      label: 'Update channel',
       value: globalSettings.update_channel,
       visible: true
     },
@@ -78,6 +83,8 @@ export const AdvancedSettings = () => {
       if (globalSettings) {
         if (item.key === 'heat_timeout_after_shot') {
           val = `${val}: ${globalSettings.tempHeatingTimeout ?? globalSettings.heating_timeout} MIN`;
+        } else if (item.key === 'set_update_channel') {
+          val = `${val}: ${globalSettings.update_channel}`;
         } else if (
           typeof globalSettings[item.key as SettingsKey] === 'boolean'
         ) {
