@@ -222,10 +222,9 @@ export function QuickSettings(): JSX.Element {
   );
 
   const indexSeparator = useMemo(() => {
-    const contextSettings = profileContextSettings;
-
-    if (contextSettings?.length > 0) {
-      return settings.indexOf(contextSettings[contextSettings.length - 1]);
+    if (settings?.length > 0) {
+      const additionalItems = settings.length - defaultSettings.length - 1;
+      return additionalItems > 0 ? additionalItems : undefined;
     }
     return undefined;
   }, [settings.length]);
