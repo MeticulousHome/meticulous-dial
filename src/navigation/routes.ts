@@ -90,7 +90,8 @@ export const routes: Record<ScreenType, Route> = {
   scale: {
     component: Scale,
     title: 'scale',
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressets'
   },
   pressets: {
     component: Pressets,
@@ -110,7 +111,8 @@ export const routes: Record<ScreenType, Route> = {
   pressetSettings: {
     component: PressetSettings,
     title: selectActivePresetName,
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressets'
   },
   pressure: {
     component: SettingNumerical,
@@ -119,7 +121,8 @@ export const routes: Record<ScreenType, Route> = {
     props: {
       type: 'pressure'
     },
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
   },
   time: {
     component: SettingNumerical,
@@ -128,7 +131,8 @@ export const routes: Record<ScreenType, Route> = {
     props: {
       type: 'time'
     },
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
   },
   weight: {
     component: SettingNumerical,
@@ -137,7 +141,8 @@ export const routes: Record<ScreenType, Route> = {
     props: {
       type: 'weight'
     },
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
   },
   flow: {
     component: SettingNumerical,
@@ -146,7 +151,8 @@ export const routes: Record<ScreenType, Route> = {
     props: {
       type: 'flow'
     },
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
   },
 
   temperature: {
@@ -156,7 +162,8 @@ export const routes: Record<ScreenType, Route> = {
     props: {
       type: 'temperature'
     },
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
   },
   output: {
     title: selectActivePresetName,
@@ -165,7 +172,8 @@ export const routes: Record<ScreenType, Route> = {
     props: {
       type: 'output'
     },
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
   },
   'manual-purge': {
     component: PurgePiston,
@@ -190,11 +198,13 @@ export const routes: Record<ScreenType, Route> = {
   dose: {
     component: () => null, // Multiple choice to be implemented
     title: 'dose',
-    parentTitle: selectActivePresetName
+    parentTitle: selectActivePresetName,
+    parent: 'pressetSettings'
   },
   name: {
     component: EditNameScreen,
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
   },
   selectLetterCountry: {
     component: SelectLetterCountry,
@@ -252,7 +262,8 @@ export const routes: Record<ScreenType, Route> = {
   },
   enterWifiPassword: {
     component: EnterWifiPassword,
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressets'
   },
   'quick-settings': {
     component: QuickSettings
@@ -262,7 +273,8 @@ export const routes: Record<ScreenType, Route> = {
     bottomStatusHidden: true
   },
   snake: {
-    component: SnakeGame
+    component: SnakeGame,
+    parent: 'pressets'
   },
   advancedSettings: {
     component: AdvancedSettings
@@ -270,7 +282,8 @@ export const routes: Record<ScreenType, Route> = {
   pressetProfileImage: {
     component: PressetProfileImage,
     title: selectActivePresetName,
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
   },
   deviceInfo: {
     component: DeviceInfo
@@ -283,7 +296,8 @@ export const routes: Record<ScreenType, Route> = {
   },
   defaultProfiles: {
     component: DefaultProfiles,
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressets'
   },
   defaultProfileDetails: {
     component: DefaultProfileDetails,

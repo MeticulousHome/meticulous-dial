@@ -22,6 +22,7 @@ import {
 import { useOSStatus } from '../../hooks/useOSStatus';
 import { marqueeIfNeeded } from '../shared/MarqueeValue';
 import { formatTime } from '../../utils';
+import { routes } from '../../navigation/routes';
 
 interface QuickSettingOption {
   key: string;
@@ -40,6 +41,11 @@ const profileContextSettings: QuickSettingOption[] = [
     longpress: true
   }
 ];
+
+const prevScreenSetting: QuickSettingOption = {
+  key: 'prevScreen',
+  label: 'Back'
+};
 
 const defaultSettings: QuickSettingOption[] = [
   {
@@ -91,6 +97,7 @@ export function QuickSettings(): JSX.Element {
 
   const presets = useAppSelector((state) => state.presets);
   const currentScreen = useAppSelector((state) => state.screen.value);
+
   const [counterESGG, setCounterESGG] = useState(0);
   const [holdAnimation, setHoldAnimation] =
     useState<holdAnimationState>('stopped');
@@ -158,6 +165,15 @@ export function QuickSettings(): JSX.Element {
           return;
         }
         switch (settings[activeIndex].key) {
+          case 'prevScreen': {
+            if (!routes[currentScreen].parent) {
+              console.error("return to previous screen doesn't exist");
+              break;
+            }
+            dispatch(setScreen(routes[currentScreen].parent));
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
           case 'home': {
             socket.emit('action', 'home');
             dispatch(setBubbleDisplay({ visible: false, component: null }));
@@ -232,11 +248,14 @@ export function QuickSettings(): JSX.Element {
   useEffect(() => {
     const context: QuickSettingOption[] = profileContextSettings;
 
-    const requiresProfileContext: boolean = !(
-      presets.value.length === 0 ||
-      presets.activeIndexSwiper === presets.value.length ||
-      (presets.option !== 'HOME' && presets.option !== 'PRESSETS')
-    );
+    const requiresProfileContext: boolean =
+      !(
+        presets.value.length === 0 ||
+        presets.activeIndexSwiper === presets.value.length ||
+        (presets.option !== 'HOME' && presets.option !== 'PRESSETS')
+      ) && currentScreen === 'pressets';
+
+    const backAvailable = !!routes[currentScreen].parent;
 
     const osStatusSettingOption: QuickSettingOption = {
       key: 'os_update',
@@ -248,6 +267,7 @@ export function QuickSettings(): JSX.Element {
         setSettings([
           osStatusSettingOption,
           ...[{ key: 'details', label: 'Show details' }],
+          ...(backAvailable ? [prevScreenSetting] : []),
           ...defaultSettings
         ]);
         break;
@@ -255,6 +275,7 @@ export function QuickSettings(): JSX.Element {
         setSettings([
           osStatusSettingOption,
           ...(requiresProfileContext === true ? context : []),
+          ...(backAvailable ? [prevScreenSetting] : []),
           ...defaultSettings
         ]);
         break;
