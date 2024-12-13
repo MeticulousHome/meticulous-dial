@@ -8,12 +8,13 @@ import { AnalogClock } from './AnalogClock';
 import { DigitalClock } from './DigitalClock';
 import { BaristaClock } from './BaristaClock';
 import { DVDIdleScreen } from './DVD';
+import { useSettings } from '../../hooks/useSettings';
 
 export function IdleScreen(): JSX.Element {
   const dispatch = useAppDispatch();
   const { isIdle: shouldGoToIdle } = useIdleTimer();
   const prevScreen = useAppSelector((state) => state.screen.prev);
-  const globalSettings = useAppSelector((state) => state.settings);
+  const { data: globalSettings } = useSettings();
 
   useEffect(() => {
     setBrightness({ brightness: 0 });
@@ -22,7 +23,6 @@ export function IdleScreen(): JSX.Element {
       setBrightness({ brightness: 1 });
     };
   }, []);
-
   useEffect(() => {
     if (shouldGoToIdle || prevScreen === 'idle') return;
 
@@ -30,7 +30,7 @@ export function IdleScreen(): JSX.Element {
     setBrightness({ brightness: 1 });
   }, [shouldGoToIdle]);
 
-  switch (globalSettings.idle_screen) {
+  switch (globalSettings?.idle_screen) {
     case 'baristaBarista':
       return <BaristaClock />;
     case 'metCat':

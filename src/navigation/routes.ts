@@ -24,7 +24,7 @@ import { DeleteWifiMenu } from '../components/Wifi/DeleteWifiMenu';
 import { AdvancedSettings } from '../components/Settings/Advanced/Advanced';
 import { WifiQrMenu } from '../../src/components/Wifi/WifiQrMenu';
 import { PressetProfileImage } from '../../src/components/Pressets/PressetProfileImage';
-import { DeviceInfo } from '../../src/components/Settings/Advanced/DeviceInfo';
+import { DeviceInfoScreen } from '../components/Settings/Advanced/DeviceInfoScreen';
 import { DefaultProfiles } from '../components/Pressets/DefaultProfiles';
 import { DefaultProfileDetails } from '../../src/components/Pressets/DefaultProfileDetails';
 import { PurgePiston } from '../components/PurgePiston/PurgePiston';
@@ -286,7 +286,7 @@ export const routes: Record<ScreenType, Route> = {
     parent: 'pressetSettings'
   },
   deviceInfo: {
-    component: DeviceInfo
+    component: DeviceInfoScreen
   },
   updateChannel: {
     component: UpdateChannel

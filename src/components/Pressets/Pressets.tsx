@@ -36,13 +36,8 @@ import { circumference, getDashArray } from '../SettingNumerical/Gauge';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
 import { Circle, radius, transform } from './Circle';
 import { TitleCircle } from './Title';
-import {
-  fetchSettigns,
-  getDeviceInfo
-} from '../store/features/settings/settings-slice';
 import { loadProfileData, startProfile } from '../../api/profile';
 import { useSocket } from '../store/SocketManager';
-import { RootState } from '../store/store';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 
 interface AnimationData {
@@ -73,9 +68,6 @@ const initialValue: AnimationData = {
 
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const dispatch = useAppDispatch();
-  const screen = useAppSelector((state: RootState) => state.screen);
-  const comingFromHeatTimeout =
-    screen.prev === 'heat_timeout_after_shot' && screen.value === 'pressets';
   const presets = useAppSelector((state) => state.presets);
   const profileHoverId = useAppSelector((state) => state.presets.profileHover);
   const profileFocusId = useAppSelector((state) => state.presets.profileFocus);
@@ -525,17 +517,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
     start();
   }, [startCoffe]);
-
-  // Fetches device info and selectively updates settings.
-  // Avoids overwriting recent heat timeout changes with old backend data.
-  // This is needed because the presets screen always fetches all settings.
-  useEffect(() => {
-    dispatch(setWaitingForAction(false));
-    dispatch(getDeviceInfo());
-    if (!comingFromHeatTimeout) {
-      dispatch(fetchSettigns());
-    }
-  }, [comingFromHeatTimeout]);
 
   useEffect(() => {
     if (profileHoverId === '-1') {

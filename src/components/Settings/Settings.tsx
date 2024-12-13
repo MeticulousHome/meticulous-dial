@@ -12,17 +12,15 @@ import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 
 import SettingsVisibility from '../../schemas/settings.json';
 import { marqueeIfNeeded } from '../shared/MarqueeValue';
-import {
-  updateItemSetting,
-  updateSettings
-} from '../store/features/settings/settings-slice';
+import { useSettings, useUpdateSettings } from '../../hooks/useSettings';
 
 export function Settings(): JSX.Element {
   const dispatch = useAppDispatch();
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const globalSettings = useAppSelector((state) => state.settings);
+  const { data: globalSettings } = useSettings();
+  const updateSettings = useUpdateSettings();
 
   const showValue = useCallback(
     (isActive: boolean, item: SettingsKey) => {
@@ -58,13 +56,6 @@ export function Settings(): JSX.Element {
             );
             break;
           }
-          case 'save': {
-            dispatch(updateSettings(globalSettings));
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'quick-settings' })
-            );
-            break;
-          }
           case 'back':
             dispatch(
               setBubbleDisplay({ visible: true, component: 'quick-settings' })
@@ -75,12 +66,9 @@ export function Settings(): JSX.Element {
               typeof globalSettings[activeItem as SettingsKey] === 'boolean'
             ) {
               const new_value = !globalSettings[activeItem as SettingsKey];
-              dispatch(
-                updateItemSetting({
-                  key: activeItem as SettingsKey,
-                  value: new_value
-                })
-              );
+              updateSettings.mutate({ [activeItem]: new_value });
+            } else {
+              console.error('This setting type is not yet implemented!');
             }
             break;
           }

@@ -1,7 +1,9 @@
 import { ISensorData } from './../../../../types/index';
 import { createSlice, PayloadAction, Draft } from '@reduxjs/toolkit';
 
-const initialState: ISensorData = {
+type LocalMachineState = { preheatTimeLeft: number };
+
+const initialState: ISensorData & LocalMachineState = {
   name: 'idle',
   waitingForActionAlreadySent: false,
   sensors: {
@@ -13,7 +15,8 @@ const initialState: ISensorData = {
   time: '0',
   profile: undefined,
   setpoints: {},
-  waterStatus: true
+  waterStatus: true,
+  preheatTimeLeft: 0
 };
 
 const statsSlice = createSlice({
@@ -27,9 +30,16 @@ const statsSlice = createSlice({
       state = {
         ...action.payload,
         waterStatus: state.waterStatus,
-        waitingForActionAlreadySent: state.waitingForActionAlreadySent
+        waitingForActionAlreadySent: state.waitingForActionAlreadySent,
+        preheatTimeLeft: state.preheatTimeLeft
       };
       return state;
+    },
+    updatePreheatTimeLeft: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<number>
+    ) => {
+      state.preheatTimeLeft = action.payload;
     },
     setWaterStatus: (
       state: Draft<typeof initialState>,
@@ -48,7 +58,11 @@ const statsSlice = createSlice({
   }
 });
 
-export const { setStats, setWaterStatus, setWaitingForAction } =
-  statsSlice.actions;
+export const {
+  setStats,
+  setWaterStatus,
+  setWaitingForAction,
+  updatePreheatTimeLeft
+} = statsSlice.actions;
 
 export default statsSlice.reducer;

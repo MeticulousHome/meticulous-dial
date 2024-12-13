@@ -1,27 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { useSettings, useUpdateSettings } from '../..//hooks/useSettings';
 import { Gauge } from '../../components/SettingNumerical/Gauge';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { useDispatch, useSelector } from 'react-redux';
 import {
   setBubbleDisplay,
   setScreen
 } from '../store/features/screens/screens-slice';
-import { setTempHeatingTimeout } from '../store/features/settings/settings-slice';
-import { RootState, AppDispatch } from '../store/store';
+import { AppDispatch } from '../store/store';
 
 const MAX_TIMEOUT = 10; // 60 minutes
 const INTERVAL = 1; // 1 minute intervals
 
 export const HeatTimeoutAfterShot: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const globalHeatingTimeout = useSelector(
-    (state: RootState) => state.settings.heating_timeout
-  );
-  const tempHeatingTimeout = useSelector(
-    (state: RootState) => state.settings.tempHeatingTimeout
-  );
+  const { data: globalSettings } = useSettings();
+  const updateSettings = useUpdateSettings();
+
   const [localHeatingTimeout, setLocalHeatingTimeout] = useState(
-    tempHeatingTimeout ?? globalHeatingTimeout
+    globalSettings.heating_timeout
   );
 
   useHandleGestures({
@@ -34,17 +31,13 @@ export const HeatTimeoutAfterShot: React.FC = () => {
       setLocalHeatingTimeout(newValue);
     },
     pressDown() {
-      dispatch(setTempHeatingTimeout(localHeatingTimeout));
+      updateSettings.mutate({ heating_timeout: localHeatingTimeout });
       dispatch(
         setBubbleDisplay({ visible: true, component: 'advancedSettings' })
       );
       dispatch(setScreen('pressets'));
     }
   });
-
-  useEffect(() => {
-    setLocalHeatingTimeout(tempHeatingTimeout ?? globalHeatingTimeout);
-  }, [tempHeatingTimeout, globalHeatingTimeout]);
 
   return (
     <div className="gauge-container">
