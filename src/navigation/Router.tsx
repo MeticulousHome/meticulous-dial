@@ -21,7 +21,6 @@ export const Router = memo(
   ({ currentScreen, previousScreen }: RouterProps): JSX.Element => {
     const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
     const route = memoizedRoutes[currentScreen];
-    const parentRoute = route.parent && memoizedRoutes[route.parent];
     const RouteComponent = route.component;
     const title = useAppSelector((state) =>
       typeof route.title === 'function' ? route.title(state) : route.title
@@ -32,11 +31,7 @@ export const Router = memo(
         ? typeof route.parentTitle === 'function'
           ? route.parentTitle(state)
           : route.parentTitle
-        : parentRoute?.titleShared
-          ? null
-          : typeof parentRoute?.title === 'function'
-            ? parentRoute.title(state)
-            : parentRoute?.title
+        : null
     );
 
     const calculatedDirection =
