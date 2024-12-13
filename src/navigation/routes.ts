@@ -153,7 +153,6 @@ export const routes: Record<ScreenType, Route> = {
     component: SettingNumerical,
     title: selectActivePresetName,
     bottomTitle: 'temperature',
-    // parent: 'pressetSettings',
     props: {
       type: 'temperature'
     },
@@ -163,7 +162,6 @@ export const routes: Record<ScreenType, Route> = {
     title: selectActivePresetName,
     component: SettingNumerical,
     bottomTitle: 'output',
-    // parent: 'pressetSettings',
     props: {
       type: 'output'
     },
@@ -191,12 +189,10 @@ export const routes: Record<ScreenType, Route> = {
   },
   dose: {
     component: () => null, // Multiple choice to be implemented
-    parent: 'pressetSettings',
     title: 'dose',
-    parentTitle: selectActivePresetName,
+    parentTitle: selectActivePresetName
   },
   name: {
-    parent: 'pressetSettings',
     component: EditNameScreen,
     bottomStatusHidden: true
   },
