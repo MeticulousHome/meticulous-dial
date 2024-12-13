@@ -1,21 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
+import { Swiper, SwiperSlide } from 'swiper/react';
 
-import './pressetSettings.css';
-import { IPresetSetting, YesNoEnum } from '../../types';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { getPresetSettings } from '../../utils/preset';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { IPresetSetting } from '../../types';
+import { getPresetSettings } from '../../utils/preset';
 import {
-  savePreset,
   discardSettings,
+  savePreset,
   setNextSettingOption,
-  setPrevSettingOption,
-  updatePresetSetting
+  setPrevSettingOption
 } from '../store/features/preset/preset-slice';
 import { setScreen } from '../store/features/screens/screens-slice';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { FormatSetting } from './FormatSetting';
+import './pressetSettings.css';
 
 export function PressetSettings(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -35,13 +34,6 @@ export function PressetSettings(): JSX.Element {
     IPresetSetting['key']
   >(settings[presets.activeSetting].key);
 
-  const updateYesOrNoValue = () => {
-    const mutableValue = { ...settings[presets.activeSetting] };
-    mutableValue.value =
-      mutableValue.value === YesNoEnum.Yes ? YesNoEnum.No : YesNoEnum.Yes;
-    dispatch(updatePresetSetting(mutableValue));
-  };
-
   useHandleGestures(
     {
       left() {
@@ -59,12 +51,6 @@ export function PressetSettings(): JSX.Element {
           dispatch(setScreen('pressets'));
         } else if (presetSettingIndex === 'name') {
           dispatch(setScreen('name'));
-        } else if (presetSettingIndex === 'purge') {
-          dispatch(setScreen('purge'));
-        } else if (presetSettingIndex === 'pre-infusion') {
-          updateYesOrNoValue();
-        } else if (presetSettingIndex === 'pre-heat') {
-          updateYesOrNoValue();
         } else if (presetSettingIndex === 'output') {
           dispatch(setScreen('output'));
         } else if (presetSettingIndex.includes('pressure')) {
@@ -77,8 +63,6 @@ export function PressetSettings(): JSX.Element {
           dispatch(setScreen('flow'));
         } else if (presetSettingIndex === 'temperature') {
           dispatch(setScreen('temperature'));
-        } else if (presetSettingIndex === 'ratio') {
-          dispatch(setScreen('ratio'));
         } else if (presetSettingIndex === 'image') {
           dispatch(setScreen('pressetProfileImage'));
         }
