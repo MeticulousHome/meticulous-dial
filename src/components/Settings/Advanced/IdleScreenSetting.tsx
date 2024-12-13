@@ -6,12 +6,9 @@ import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { marqueeIfNeeded } from '../../shared/MarqueeValue';
 import { SettingsKey } from '@meticulous-home/espresso-api';
-import {
-  updateItemSetting,
-  updateSettings
-} from '../../store/features/settings/settings-slice';
 import { SettingsItem } from '../../../types';
 import { MenuAnnotation } from '../MenuAnnotation';
+import { useSettings, useUpdateSettings } from '../../../hooks/useSettings';
 
 export const IdleScreens: SettingsItem[] = [
   {
@@ -42,7 +39,8 @@ export const IdleScreens: SettingsItem[] = [
 
 export const IdleScreenSetting = () => {
   const dispatch = useAppDispatch();
-  const globalSettings = useAppSelector((state) => state.settings);
+  const { data: globalSettings } = useSettings();
+  const updateSettings = useUpdateSettings();
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
@@ -91,17 +89,7 @@ export const IdleScreenSetting = () => {
             break;
           default: {
             const screen = settings[activeIndex].key;
-            dispatch(
-              updateItemSetting({
-                key: 'idle_screen',
-                value: screen
-              })
-            );
-            dispatch(
-              updateSettings({
-                idle_screen: screen
-              })
-            );
+            updateSettings.mutate({ idle_screen: screen });
             break;
           }
         }

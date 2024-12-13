@@ -3,7 +3,11 @@ import { io, Socket } from 'socket.io-client';
 
 import { GestureType, ISensorData, ProfileCause } from '../../types/index';
 import { useAppDispatch, useAppSelector } from './hooks';
-import { setStats, setWaterStatus } from './features/stats/stats-slice';
+import {
+  setStats,
+  setWaterStatus,
+  updatePreheatTimeLeft
+} from './features/stats/stats-slice';
 import { setScreen } from './features/screens/screens-slice';
 import {
   getPresets,
@@ -18,9 +22,8 @@ import {
 } from './features/notifications/notification-slice';
 import { api } from '../../api/api';
 import { useQueryClient } from '@tanstack/react-query';
-import { OS_UPDATE_STATUS } from '../../hooks/useOSStatus';
+import { OS_UPDATE_STATUS } from '../../hooks/useDeviceOSStatus';
 import { OSStatusResponse } from '@meticulous-home/espresso-api';
-import { updatePreheatTimeLeft } from './features/settings/settings-slice';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 
 const SERVER_URL: string = window.env.SERVER_URL ?? 'http://localhost:8080';

@@ -2,22 +2,20 @@ import { useCallback, useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 import { SettingsKey } from '@meticulous-home/espresso-api';
-import {
-  updateItemSetting,
-  updateSettings
-} from '../../../../src/components/store/features/settings/settings-slice';
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { SettingsItem } from '../../../types';
 import { marqueeIfNeeded } from '../../shared/MarqueeValue';
 import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { MenuAnnotation } from '../MenuAnnotation';
+import { useSettings, useUpdateSettings } from '../../../hooks/useSettings';
 
 const UPDATE_CHANNELS = ['stable', 'beta', 'rel', 'nightly'];
 
 export const UpdateChannel = () => {
   const dispatch = useAppDispatch();
-  const globalSettings = useAppSelector((state) => state.settings);
+  const { data: globalSettings } = useSettings();
+  const updateSettings = useUpdateSettings();
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
@@ -70,17 +68,7 @@ export const UpdateChannel = () => {
             break;
           default: {
             const channel = settings[activeIndex].label;
-            dispatch(
-              updateItemSetting({
-                key: 'update_channel',
-                value: channel
-              })
-            );
-            dispatch(
-              updateSettings({
-                update_channel: channel
-              })
-            );
+            updateSettings.mutate({ update_channel: channel });
             break;
           }
         }

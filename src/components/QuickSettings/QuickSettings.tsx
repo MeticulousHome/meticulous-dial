@@ -19,7 +19,7 @@ import {
   setOptionPressets
 } from '../store/features/preset/preset-slice';
 
-import { useOSStatus } from '../../hooks/useOSStatus';
+import { useOSStatus } from '../../hooks/useDeviceOSStatus';
 import { marqueeIfNeeded } from '../shared/MarqueeValue';
 import { formatTime } from '../../utils';
 
@@ -85,7 +85,7 @@ export function QuickSettings(): JSX.Element {
   const [activeIndex, setActiveIndex] = useState(1);
   const stats = useAppSelector((state) => state.stats);
   const PreheatTimeLeft = useAppSelector(
-    (state) => state.settings.PreheatTimeLeft
+    (state) => state.stats.preheatTimeLeft
   );
   const [settings, setSettings] = useState(defaultSettings);
 

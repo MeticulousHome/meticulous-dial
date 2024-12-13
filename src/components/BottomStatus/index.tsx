@@ -8,7 +8,7 @@ import Funnel from './Funnel';
 const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
   const stats = useAppSelector((state) => state.stats);
   const PreheatTimeLeft = useAppSelector(
-    (state) => state.settings.PreheatTimeLeft
+    (state) => state.stats.preheatTimeLeft
   );
 
   return (

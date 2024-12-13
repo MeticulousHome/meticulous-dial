@@ -1,7 +1,8 @@
 import Api, {
-  BrightnessRequest,
+  regionType,
   APIError,
-  regionType
+  BrightnessRequest,
+  DeviceInfo
 } from '@meticulous-home/espresso-api';
 
 export const api = new Api(
@@ -27,6 +28,27 @@ export const getOSStatus = async () => {
     throw error;
   }
 };
+
+export async function getDeviceInfo(): Promise<DeviceInfo> {
+  try {
+    const response = await api.getDeviceInfo();
+    const data = response.data;
+    if (data && 'error' in data) {
+      throw new Error((data as APIError).error);
+    }
+    return data as DeviceInfo;
+  } catch (error) {
+    if (error.response) {
+      console.error('Error connecting to Wi-Fi: ', error.response.data);
+      throw new Error(
+        error.response.data?.message || 'Error connecting to Wi-Fi.'
+      );
+    } else {
+      console.error('Network error while connecting to Wi-Fi: ', error.message);
+      throw new Error('Network error while connecting to Wi-Fi.');
+    }
+  }
+}
 
 export const setBrightness = async ({ brightness }: BrightnessRequest) => {
   try {

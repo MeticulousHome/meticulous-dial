@@ -1,35 +1,29 @@
 import { useCallback, useEffect, useState } from 'react';
+import 'swiper/css';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { startMasterCalibration } from '../../../api/api';
-import 'swiper/css';
 
+import { SettingsKey } from '@meticulous-home/espresso-api';
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
-import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { SettingsItem } from '../../../types';
+import { useSettings, useUpdateSettings } from '../../../hooks/useSettings';
+import { marqueeIfNeeded } from '../../shared/MarqueeValue';
 import {
   setBubbleDisplay,
   setScreen
 } from '../../store/features/screens/screens-slice';
-import { marqueeIfNeeded } from '../../shared/MarqueeValue';
-import { SettingsKey } from '@meticulous-home/espresso-api';
-import {
-  updateItemSetting,
-  updateSettings,
-  setTempHeatingTimeout,
-  fetchSettigns
-} from '../../../../src/components/store/features/settings/settings-slice';
-import { SettingsItem } from '../../../types';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { IdleScreens } from './IdleScreenSetting';
+import { useDeviceInfo } from '../../../hooks/useDeviceOSStatus';
 
 export const AdvancedSettings = () => {
   const dispatch = useAppDispatch();
-  const globalSettings = useAppSelector((state) => state.settings);
+  const { data: globalSettings } = useSettings();
+  const updateSettings = useUpdateSettings();
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-
-  useEffect(() => {
-    dispatch(fetchSettigns());
-  }, []);
+  const { refetch: fetchDeviceStatus } = useDeviceInfo();
 
   const settings: SettingsItem[] = [
     {
@@ -76,11 +70,6 @@ export const AdvancedSettings = () => {
       visible: true
     },
     {
-      key: 'save',
-      label: 'Save',
-      visible: true
-    },
-    {
       key: 'back',
       label: 'Back',
       visible: true
@@ -94,7 +83,7 @@ export const AdvancedSettings = () => {
       if (globalSettings) {
         switch (item.key) {
           case 'heat_timeout_after_shot':
-            val = `${val}: ${globalSettings.tempHeatingTimeout ?? globalSettings.heating_timeout} MIN`;
+            val = `${val}: ${globalSettings.heating_timeout} MIN`;
             break;
           case 'set_update_channel':
             val = `${val}: ${globalSettings.update_channel}`;
@@ -132,21 +121,14 @@ export const AdvancedSettings = () => {
         const activeItem = settings[activeIndex].key;
         switch (activeItem) {
           case 'enable_sounds':
-            dispatch(
-              updateItemSetting({
-                key: 'enable_sounds',
-                value: !globalSettings.enable_sounds
-              })
-            );
+            updateSettings.mutate({
+              enable_sounds: !globalSettings.enable_sounds
+            });
             break;
-
           case 'save_debug_shot_data':
-            dispatch(
-              updateItemSetting({
-                key: 'save_debug_shot_data',
-                value: !globalSettings.save_debug_shot_data
-              })
-            );
+            updateSettings.mutate({
+              save_debug_shot_data: !globalSettings.save_debug_shot_data
+            });
             break;
           case 'set_update_channel':
             dispatch(
@@ -162,27 +144,12 @@ export const AdvancedSettings = () => {
             );
             break;
           case 'device_info':
+            fetchDeviceStatus();
             dispatch(
               setBubbleDisplay({ visible: true, component: 'deviceInfo' })
             );
             break;
           case 'back':
-            dispatch(setTempHeatingTimeout(null)); // Clear temporary value without saving
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'settings' })
-            );
-            break;
-          case 'save':
-            dispatch(
-              updateSettings({
-                enable_sounds: globalSettings.enable_sounds,
-                save_debug_shot_data: globalSettings.save_debug_shot_data,
-                heating_timeout:
-                  globalSettings.tempHeatingTimeout ??
-                  globalSettings.heating_timeout
-              })
-            );
-            dispatch(setTempHeatingTimeout(null)); // Clear temporary value after saving
             dispatch(
               setBubbleDisplay({ visible: true, component: 'settings' })
             );

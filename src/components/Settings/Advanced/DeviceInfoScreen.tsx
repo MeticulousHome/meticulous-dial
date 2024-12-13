@@ -6,14 +6,16 @@ import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { marqueeIfNeeded } from '../../shared/MarqueeValue';
+import { useDeviceInfo } from '../../../hooks/useDeviceOSStatus';
+import { DeviceInfo } from '@meticulous-home/espresso-api';
 
-export const DeviceInfo = () => {
+export const DeviceInfoScreen = () => {
   const dispatch = useAppDispatch();
-  const globalSettings = useAppSelector((state) => state.settings);
+  const { data: deviceInfo } = useDeviceInfo();
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const settingsKeys = Object.keys(globalSettings.deviceInfo).concat('back');
+  const settingsKeys = Object.keys(deviceInfo || []).concat('back');
 
   useHandleGestures(
     {
@@ -59,47 +61,30 @@ export const DeviceInfo = () => {
         initialSlide={activeIndex}
         style={{ paddingLeft: '29px', top: '-4px' }}
       >
-        {Object.entries(globalSettings.deviceInfo).map(
-          (item, index: number) => {
-            const isActive = index === activeIndex;
-            return (
-              <SwiperSlide
-                key={index}
-                className={`settings-item ${isActive ? 'active-setting' : ''}`}
-              >
-                <div style={{ height: '30px' }}>
-                  <div className="settings-entry text-container">
-                    <span
-                      className="settings-text"
-                      style={{ wordBreak: 'break-word' }}
-                    >
-                      {marqueeIfNeeded({
-                        val: `${item[0]}: ${item[1]}`,
-                        enabled: isActive
-                      })}
-                    </span>
-                  </div>
+        {Object.entries(settingsKeys).map((item, index: number) => {
+          const isActive = index === activeIndex;
+          const name = item[1] as keyof DeviceInfo;
+          return (
+            <SwiperSlide
+              key={index}
+              className={`settings-item ${isActive ? 'active-setting' : ''}`}
+            >
+              <div style={{ height: '30px' }}>
+                <div className="settings-entry text-container">
+                  <span
+                    className="settings-text"
+                    style={{ wordBreak: 'break-word' }}
+                  >
+                    {marqueeIfNeeded({
+                      val: `${name}${deviceInfo[name] !== undefined ? `: ${deviceInfo[name] || 'UNSET'}` : ''}`,
+                      enabled: isActive
+                    })}
+                  </span>
                 </div>
-              </SwiperSlide>
-            );
-          }
-        )}
-        <SwiperSlide
-          className={`settings-item ${
-            activeIndex === settingsKeys.length - 1 ? 'active-setting' : ''
-          }`}
-        >
-          <div style={{ height: '30px' }}>
-            <div className="settings-entry text-container">
-              <span
-                className="settings-text"
-                style={{ wordBreak: 'break-word' }}
-              >
-                back
-              </span>
-            </div>
-          </div>
-        </SwiperSlide>
+              </div>
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
     </div>
   );
