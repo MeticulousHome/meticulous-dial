@@ -93,15 +93,7 @@ export type TemperatureKey = 'temperature';
 
 export type DoseKey = 'dose';
 
-export type RatioKey = 'ratio';
-
-export type PurgeKey = 'purge';
-
 export type OutputKey = 'output';
-
-export type PreInfusionKey = 'pre-infusion';
-
-export type PreHeatKey = 'pre-heat';
 
 export type ActionKey = 'save' | 'discard' | 'delete';
 
@@ -159,34 +151,11 @@ export type IPresetMultipleOption = {
   type: 'multiple-option';
   value: string;
 };
-export type PresetMultipleOptionRatio = IPresetMultipleOption & {
-  key: RatioKey;
-};
-export interface IPresetMultipleOptionRatio
-  extends IBasePresset,
-    PresetMultipleOptionRatio {}
-
-export type PresetMultipleOptionPurge = IPresetMultipleOption & {
-  key: PurgeKey;
-};
-export interface IPresetMultipleOptionPurge
-  extends IBasePresset,
-    PresetMultipleOptionPurge {}
 
 export type PresetOnOff = {
   type: 'on-off';
   value: string;
 };
-
-export type PresetOnOffPreinfusion = PresetOnOff & { key: PreInfusionKey };
-
-export type PresetOnOffPreHeat = PresetOnOff & { key: PreHeatKey };
-
-export interface IPresetOnOffPreinfusion
-  extends IBasePresset,
-    PresetOnOffPreinfusion {}
-
-export interface IPresetOnOffPreheat extends IBasePresset, PresetOnOffPreHeat {}
 
 export type PresetAction = {
   type: 'action';
@@ -202,10 +171,6 @@ export type IPresetSetting =
   | IPresetNumericalTemperature
   | IPresetNumericalDose
   | IPresetNumericalOutput
-  | IPresetMultipleOptionRatio
-  | IPresetMultipleOptionPurge
-  | IPresetOnOffPreinfusion
-  | IPresetOnOffPreheat
   | IPresetAction
   | IProfilePresetImage;
 
@@ -219,19 +184,10 @@ export type IPresetType =
   | PressureKey
   | TemperatureKey
   | OutputKey
-  | RatioKey
-  | PurgeKey
-  | PreInfusionKey
-  | PreHeatKey
   | ActionKey
   | '';
 
-export type ISettingType =
-  | PressureKey
-  | TemperatureKey
-  | OutputKey
-  | PreHeatKey
-  | PreInfusionKey;
+export type ISettingType = PressureKey | TemperatureKey | OutputKey;
 
 type SettingsKeys = 'key' | 'value';
 export interface PressetSettings {

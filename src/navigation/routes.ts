@@ -4,8 +4,6 @@ import { Pressets } from '../components/Pressets/Pressets';
 import { Scale } from '../components/Scale/Scale';
 import { PressetSettings } from '../components/PressetSettings/PressetSettings';
 import { SettingNumerical } from '../components/SettingNumerical/SettingNumerical';
-import { OnOff } from '../components/OnOff/OnOff';
-import { Purge } from '../components/Purge/Purge';
 import { Settings } from '../components/Settings/Settings';
 import { ScreenType } from '../components/store/features/screens/screens-slice';
 import { EditNameScreen } from '../components/EditNameScreen/EditNameScreen';
@@ -103,7 +101,6 @@ export const routes: Record<ScreenType, Route> = {
     component: Barometer,
     parentTitle: null,
     title: selectStatProfileName,
-    // titleShared: true,
     bottomStatusHidden: true,
     animationDirectionFrom: {
       'manual-purge': 'in',
@@ -172,10 +169,6 @@ export const routes: Record<ScreenType, Route> = {
     },
     bottomStatusHidden: true
   },
-  purge: {
-    component: Purge,
-    title: selectActivePresetName
-  },
   'manual-purge': {
     component: PurgePiston,
     bottomStatusHidden: true,
@@ -198,15 +191,12 @@ export const routes: Record<ScreenType, Route> = {
   },
   dose: {
     component: () => null, // Multiple choice to be implemented
+    parent: 'pressetSettings',
     title: 'dose',
-    parent: 'pressetSettings'
-  },
-  ratio: {
-    component: () => null, // Multiple choice to be implemented
-    title: 'ratio',
-    parent: 'pressetSettings'
+    parentTitle: selectActivePresetName,
   },
   name: {
+    parent: 'pressetSettings',
     component: EditNameScreen,
     bottomStatusHidden: true
   },
@@ -221,21 +211,6 @@ export const routes: Record<ScreenType, Route> = {
   timeZoneSettings: {
     component: TimeZoneSettings,
     bottomStatusHidden: true
-  },
-  'pre-infusion': {
-    component: OnOff,
-    title: selectActivePresetName,
-    props: {
-      type: 'pre-infusion'
-    }
-  },
-  'pre-heat': {
-    component: OnOff,
-    title: selectActivePresetName,
-    // parent: 'pressetSettings',
-    props: {
-      type: 'pre-heat'
-    }
   },
   notifications: {
     component: Notification,
