@@ -22,6 +22,7 @@ export const initialState: InitialSettings = {
   enable_sounds: false,
   save_debug_shot_data: false,
   update_channel: 'stable',
+  idle_screen: 'default',
   deviceInfo: null,
   PreheatTimeLeft: 0,
   heating_timeout: 0,

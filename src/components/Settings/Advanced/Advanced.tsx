@@ -18,6 +18,7 @@ import {
   fetchSettigns
 } from '../../../../src/components/store/features/settings/settings-slice';
 import { SettingsItem } from '../../../types';
+import { IdleScreens } from './IdleScreenSetting';
 
 export const AdvancedSettings = () => {
   const dispatch = useAppDispatch();
@@ -65,6 +66,11 @@ export const AdvancedSettings = () => {
       visible: true
     },
     {
+      key: 'set_idle_screen',
+      label: 'Select Idle Screen',
+      visible: true
+    },
+    {
       key: 'heat_timeout_after_shot',
       label: 'Heat timeout after shot',
       visible: true
@@ -86,16 +92,27 @@ export const AdvancedSettings = () => {
       if (!item) return <></>;
       let val = item.label.toUpperCase();
       if (globalSettings) {
-        if (item.key === 'heat_timeout_after_shot') {
-          val = `${val}: ${globalSettings.tempHeatingTimeout ?? globalSettings.heating_timeout} MIN`;
-        } else if (item.key === 'set_update_channel') {
-          val = `${val}: ${globalSettings.update_channel}`;
-        } else if (
-          typeof globalSettings[item.key as SettingsKey] === 'boolean'
-        ) {
-          val = globalSettings[item.key as SettingsKey]
-            ? val + ': ENABLED'
-            : val + ': DISABLED';
+        switch (item.key) {
+          case 'heat_timeout_after_shot':
+            val = `${val}: ${globalSettings.tempHeatingTimeout ?? globalSettings.heating_timeout} MIN`;
+            break;
+          case 'set_update_channel':
+            val = `${val}: ${globalSettings.update_channel}`;
+            break;
+          case 'set_idle_screen': {
+            const idleKey = globalSettings.idle_screen;
+            const idle = IdleScreens.filter((item) => item.key === idleKey)[0];
+            const idleLabel =
+              idle?.shortLabel || idle?.label || idleKey.toUpperCase();
+            val = `${val}: ${idleLabel}`;
+            break;
+          }
+          default:
+            if (typeof globalSettings[item.key as SettingsKey] === 'boolean') {
+              val = globalSettings[item.key as SettingsKey]
+                ? val + ': ENABLED'
+                : val + ': DISABLED';
+            }
         }
 
         return marqueeIfNeeded({ enabled: isActive, val });
@@ -134,6 +151,14 @@ export const AdvancedSettings = () => {
           case 'set_update_channel':
             dispatch(
               setBubbleDisplay({ visible: true, component: 'updateChannel' })
+            );
+            break;
+          case 'set_idle_screen':
+            dispatch(
+              setBubbleDisplay({
+                visible: true,
+                component: 'idleScreenSettings'
+              })
             );
             break;
           case 'device_info':

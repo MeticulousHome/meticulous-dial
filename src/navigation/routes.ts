@@ -40,6 +40,8 @@ import { TimeZoneConfig } from '../components/Settings/Advanced/TimeDate/TimeZon
 import SelectLetterCountry from '../components/Settings/Advanced/TimeDate/TimeZone/SelectLetterCountry';
 import CountrySettings from '../components/Settings/Advanced/TimeDate/TimeZone/CountrySettings';
 import TimeZoneSettings from '../components/Settings/Advanced/TimeDate/TimeZone/TimeZoneSettings';
+import { IdleScreenSetting } from '../components/Settings/Advanced/IdleScreenSetting';
+
 interface Route {
   component: ComponentType;
   parentTitle?: string | ((state: RootState) => string) | (() => JSX.Element);
@@ -298,6 +300,9 @@ export const routes: Record<ScreenType, Route> = {
   },
   updateChannel: {
     component: UpdateChannel
+  },
+  idleScreenSettings: {
+    component: IdleScreenSetting
   },
   defaultProfiles: {
     component: DefaultProfiles,
