@@ -197,12 +197,10 @@ export const routes: Record<ScreenType, Route> = {
   },
   dose: {
     component: () => null, // Multiple choice to be implemented
-    parent: 'pressetSettings',
     title: 'dose',
-    parentTitle: selectActivePresetName,
+    parentTitle: selectActivePresetName
   },
   name: {
-    parent: 'pressetSettings',
     component: EditNameScreen,
     bottomStatusHidden: true,
   },
