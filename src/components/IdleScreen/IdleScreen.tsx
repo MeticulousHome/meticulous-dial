@@ -5,11 +5,15 @@ import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { AnalogClock } from './AnalogClock';
+import { DigitalClock } from './DigitalClock';
+import { BaristaClock } from './BaristaClock';
+import { DVDIdleScreen } from './DVD';
 
 export function IdleScreen(): JSX.Element {
   const dispatch = useAppDispatch();
   const { isIdle: shouldGoToIdle } = useIdleTimer();
   const prevScreen = useAppSelector((state) => state.screen.prev);
+  const globalSettings = useAppSelector((state) => state.settings);
 
   useEffect(() => {
     setBrightness({ brightness: 0 });
@@ -26,6 +30,18 @@ export function IdleScreen(): JSX.Element {
     setBrightness({ brightness: 1 });
   }, [shouldGoToIdle]);
 
-  // FIXME: Use a backend config to select the idle screen
-  return <AnalogClock />;
+  switch (globalSettings.idle_screen) {
+    case 'baristaBarista':
+      return <BaristaClock />;
+    case 'metCat':
+      return <DigitalClock useMetCat={true} />;
+    case 'digital':
+      return <DigitalClock useMetCat={false} />;
+    case 'dvd':
+      return <DVDIdleScreen />;
+    case 'analog':
+    case 'default':
+    default:
+      return <AnalogClock />;
+  }
 }
