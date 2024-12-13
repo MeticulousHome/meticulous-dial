@@ -39,6 +39,7 @@ export type ScreenType =
   | 'pressetProfileImage'
   | 'deviceInfo'
   | 'updateChannel'
+  | 'idleScreenSettings'
   | 'defaultProfiles'
   | 'defaultProfileDetails'
   | 'manual-purge'
