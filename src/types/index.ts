@@ -37,6 +37,7 @@ export type GestureType =
   | 'doubleClick'
   | 'context'
   | 'start'
+  | 'singleTare'
   | 'longTare'
   | 'longEncoder'
   | 'pressDown'
