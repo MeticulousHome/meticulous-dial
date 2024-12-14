@@ -48,7 +48,8 @@ export type ScreenType =
   | 'idle'
   | 'selectLetterCountry'
   | 'countrySettings'
-  | 'timeZoneSettings';
+  | 'timeZoneSettings'
+  | 'calibrateScale';
 
 interface ScreenState {
   value: ScreenType;

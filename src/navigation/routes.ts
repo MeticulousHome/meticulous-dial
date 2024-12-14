@@ -42,6 +42,8 @@ import CountrySettings from '../components/Settings/Advanced/TimeDate/TimeZone/C
 import TimeZoneSettings from '../components/Settings/Advanced/TimeDate/TimeZone/TimeZoneSettings';
 import { IdleScreenSetting } from '../components/Settings/Advanced/IdleScreenSetting';
 
+import CalibrateScale from '../components/Scale/CalibrateScale';
+
 interface Route {
   component: ComponentType;
   parentTitle?: string | ((state: RootState) => string) | (() => JSX.Element);
@@ -189,6 +191,10 @@ export const routes: Record<ScreenType, Route> = {
       barometer: 'in',
       'manual-purge': 'in'
     }
+  },
+  calibrateScale: {
+    component: CalibrateScale,
+    bottomStatusHidden: true
   },
   dose: {
     component: () => null, // Multiple choice to be implemented

@@ -193,8 +193,9 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'calibrate': {
-            socket.emit('calibrate', '');
+            //socket.emit('calibrate', '');
             dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(setScreen('calibrateScale'));
             break;
           }
           case 'wifi': {
