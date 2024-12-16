@@ -20,6 +20,7 @@ import {
   JUMP_ROTATE_LETTERS
 } from './Keys';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useAppSelector } from '../../components/store/hooks';
 
 interface IKeyboardProps {
   name: string;
@@ -31,6 +32,8 @@ interface IKeyboardProps {
 }
 
 export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+
   const [rotate, setRotate] = useState<number>(FIRST_POSITION);
   const [keyboardType, setKeyboardType] = useState<KEYBOARD_TYPE>(() =>
     props.onlyLetters ? KEYBOARD_TYPE.OnlyLetters : KEYBOARD_TYPE.Default
@@ -152,140 +155,143 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
     }
   };
 
-  useHandleGestures({
-    left() {
-      moveElements(true);
-    },
-    right() {
-      moveElements(false);
-    },
-    doubleClick() {
-      if (mainLetter === 'capslock') {
-        if (capsLockActive.active && caption.length === 0) {
-          setCapsLockActive({ ...capsLockActive, keep: true });
-          return;
-        }
-
-        setCapsLockActive({
-          active: !capsLockActive.active,
-          keep: !capsLockActive.keep
-        });
-      }
-    },
-    pressDown() {
-      if (caption.length >= inputLimit && mainLetter !== 'backspace') {
-        if (mainLetter === 'ok') {
-          onSubmit(caption.join('').trim());
-        }
-        if (mainLetter === 'cancel') {
-          setCaption(defaultValue);
-          onCancel();
-        }
-        return;
-      }
-      if (captionRef.current) {
-        //remove class to trigger animation if caption is empty next time
-        captionRef.current.classList.remove('caption_shake');
-      }
-      switch (mainLetter) {
-        case 'space': {
-          if (caption.length >= inputLimit - 1) {
-            addAnimation();
+  useHandleGestures(
+    {
+      left() {
+        moveElements(true);
+      },
+      right() {
+        moveElements(false);
+      },
+      doubleClick() {
+        if (mainLetter === 'capslock') {
+          if (capsLockActive.active && caption.length === 0) {
+            setCapsLockActive({ ...capsLockActive, keep: true });
             return;
           }
 
-          if (
-            caption.length < inputLimit &&
-            caption.join('').trim().length === 0
-          ) {
-            addAnimation();
-            return;
-          }
-          const captioValue = caption.concat(' ');
-          setCaption(captioValue);
-          if (onChange) onChange(captioValue.join(''));
-          return;
-        }
-        case 'ok':
-          if (caption.length === 0 || caption.join('').trim().length === 0) {
-            addAnimation();
-            return;
-          }
-          onSubmit(caption.join('').trim());
-          return;
-        case 'backspace':
-          if (caption.length > 0) {
-            const captionValue = caption.slice(0, -1);
-            setCaption(captionValue);
-            if (onChange) onChange(captionValue.join(''));
-          }
-          return;
-        case 'cancel':
-          onCancel();
-          return;
-        case 'capslock':
           setCapsLockActive({
             active: !capsLockActive.active,
-            keep: capsLockActive.keep ? false : capsLockActive.keep
+            keep: !capsLockActive.keep
           });
-          return;
-        case 'keyboardType':
-          if (keyboardType === KEYBOARD_TYPE.Default) {
-            setKeyboardType(KEYBOARD_TYPE.AccentCharacters);
-            if (capsLockActive.active) {
-              setAlphabet(
-                massageAlphabetWithMainChar(
-                  CAPITAL_ACCENT_CHARACTERS,
-                  CAPITAL_ACCENT_CHARACTERS.length - 2
-                )
-              );
-            } else {
-              setAlphabet(
-                massageAlphabetWithMainChar(
-                  SMALL_ACCENT_CHARACTERS,
-                  SMALL_ACCENT_CHARACTERS.length - 2
-                )
-              );
-            }
-            setRotate(467);
-          } else if (keyboardType === KEYBOARD_TYPE.AccentCharacters) {
-            setKeyboardType(KEYBOARD_TYPE.SpecialCharacters);
-            setAlphabet(
-              massageAlphabetWithMainChar(
-                SPECIAL_CHARACTERS,
-                SPECIAL_CHARACTERS.length - 2
-              )
-            );
-            setRotate(466);
-          } else {
-            setKeyboardType(KEYBOARD_TYPE.Default);
-            setAlphabet(
-              massageAlphabetWithMainChar(
-                DEFAULT_ALPHABET,
-                DEFAULT_ALPHABET.length - 2
-              )
-            );
-            setRotate(423);
+        }
+      },
+      pressDown() {
+        if (caption.length >= inputLimit && mainLetter !== 'backspace') {
+          if (mainLetter === 'ok') {
+            onSubmit(caption.join('').trim());
+          }
+          if (mainLetter === 'cancel') {
+            setCaption(defaultValue);
+            onCancel();
           }
           return;
-        default: {
-          const captionValue = caption.concat(mainLetter);
-          setCaption(captionValue);
-          if (onChange) onChange(captionValue.join(''));
-          if (!/^[A-Za-z]$/.test(mainLetter) && capsLockActive.active) {
+        }
+        if (captionRef.current) {
+          //remove class to trigger animation if caption is empty next time
+          captionRef.current.classList.remove('caption_shake');
+        }
+        switch (mainLetter) {
+          case 'space': {
+            if (caption.length >= inputLimit - 1) {
+              addAnimation();
+              return;
+            }
+
+            if (
+              caption.length < inputLimit &&
+              caption.join('').trim().length === 0
+            ) {
+              addAnimation();
+              return;
+            }
+            const captioValue = caption.concat(' ');
+            setCaption(captioValue);
+            if (onChange) onChange(captioValue.join(''));
             return;
           }
-          if (!capsLockActive.keep && capsLockActive.active) {
+          case 'ok':
+            if (caption.length === 0 || caption.join('').trim().length === 0) {
+              addAnimation();
+              return;
+            }
+            onSubmit(caption.join('').trim());
+            return;
+          case 'backspace':
+            if (caption.length > 0) {
+              const captionValue = caption.slice(0, -1);
+              setCaption(captionValue);
+              if (onChange) onChange(captionValue.join(''));
+            }
+            return;
+          case 'cancel':
+            onCancel();
+            return;
+          case 'capslock':
             setCapsLockActive({
-              ...capsLockActive,
-              active: false
+              active: !capsLockActive.active,
+              keep: capsLockActive.keep ? false : capsLockActive.keep
             });
+            return;
+          case 'keyboardType':
+            if (keyboardType === KEYBOARD_TYPE.Default) {
+              setKeyboardType(KEYBOARD_TYPE.AccentCharacters);
+              if (capsLockActive.active) {
+                setAlphabet(
+                  massageAlphabetWithMainChar(
+                    CAPITAL_ACCENT_CHARACTERS,
+                    CAPITAL_ACCENT_CHARACTERS.length - 2
+                  )
+                );
+              } else {
+                setAlphabet(
+                  massageAlphabetWithMainChar(
+                    SMALL_ACCENT_CHARACTERS,
+                    SMALL_ACCENT_CHARACTERS.length - 2
+                  )
+                );
+              }
+              setRotate(467);
+            } else if (keyboardType === KEYBOARD_TYPE.AccentCharacters) {
+              setKeyboardType(KEYBOARD_TYPE.SpecialCharacters);
+              setAlphabet(
+                massageAlphabetWithMainChar(
+                  SPECIAL_CHARACTERS,
+                  SPECIAL_CHARACTERS.length - 2
+                )
+              );
+              setRotate(466);
+            } else {
+              setKeyboardType(KEYBOARD_TYPE.Default);
+              setAlphabet(
+                massageAlphabetWithMainChar(
+                  DEFAULT_ALPHABET,
+                  DEFAULT_ALPHABET.length - 2
+                )
+              );
+              setRotate(423);
+            }
+            return;
+          default: {
+            const captionValue = caption.concat(mainLetter);
+            setCaption(captionValue);
+            if (onChange) onChange(captionValue.join(''));
+            if (!/^[A-Za-z]$/.test(mainLetter) && capsLockActive.active) {
+              return;
+            }
+            if (!capsLockActive.keep && capsLockActive.active) {
+              setCapsLockActive({
+                ...capsLockActive,
+                active: false
+              });
+            }
+            break;
           }
-          break;
         }
       }
-    }
-  });
+    },
+    bubbleDisplay.visible
+  );
 
   const toUpperOrLowerCase = (
     cpAlphabet: string[] | string
