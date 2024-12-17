@@ -99,15 +99,18 @@ const Label = styled.div`
   width: 100%;
 `;
 
-const Text = styled.span<{ color?: string; show: boolean }>`
+const Text = styled.span<{ color?: string; show: boolean; bordered?: boolean }>`
   opacity: ${(props) => (props.show ? '1' : '0')};
   color: ${(props) => props.color || 'inherit'};
   transition: opacity 0.5s ease;
   transition-delay: 0.8s;
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 50%;
   text-align: center;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: ${(props) => (props.bordered ? '12px' : '')};
+  border: ${(props) => (props.bordered ? `1px solid ${props.color}` : '')};
 `;
 
 const SVGContainer = css`
@@ -169,7 +172,7 @@ export default function CalibrateScale() {
     if (!isCalibrated) return;
 
     const timeoutId = setTimeout(() => {
-      dispatch(setBubbleDisplay({ visible: true, component: null }));
+      dispatch(setBubbleDisplay({ visible: false, component: null }));
       dispatch(setScreen('pressets'));
     }, 5000);
 
@@ -211,6 +214,7 @@ export default function CalibrateScale() {
               <Text show={!isTaring && !isCalibrated}>set zero</Text>
               <Text
                 show={isTaring && !isCalibrated}
+                bordered={true}
                 color={
                   notAllowCalibrate
                     ? 'rgba(255, 255, 255, 0.3)'
