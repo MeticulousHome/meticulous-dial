@@ -16,7 +16,8 @@ import {
   deletePreset,
   resetActiveSetting,
   setDefaultProfileSelected,
-  setOptionPressets
+  setOptionPressets,
+  discardSettings
 } from '../store/features/preset/preset-slice';
 
 import { useOSStatus } from '../../hooks/useOSStatus';
@@ -170,6 +171,10 @@ export function QuickSettings(): JSX.Element {
               console.error("return to previous screen doesn't exist");
               break;
             }
+
+            if (currentScreen === 'pressetSettings')
+              dispatch(discardSettings());
+
             dispatch(setScreen(routes[currentScreen].parent));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
