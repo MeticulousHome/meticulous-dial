@@ -118,41 +118,33 @@ export const setPrevPreset = createAsyncThunk(
   async (_, { getState, dispatch }) => {
     const state = getState() as RootState;
     const presetState = { ...state.presets };
-    const currentActiveIndex =
-      presetState.activeIndexSwiper > -1
-        ? presetState.activeIndexSwiper
-        : presetState.defaultPresetIndex;
-    if (presetState.activeIndexSwiper > 0) {
-      presetState.activeIndexSwiper += -1;
-    }
-    if (presetState.activeIndexSwiper === presetState.value.length) return;
-    if (currentActiveIndex > 0) {
-      const newActivePresetIndex = currentActiveIndex - 1;
 
-      const presetList = [...presetState.value].map((i) => {
-        return {
-          ...i,
-          isDefault: false
-        };
-      });
-      presetList[newActivePresetIndex] = {
-        ...presetList[newActivePresetIndex],
+    if (presetState.activeIndexSwiper > 0) {
+      const newIndex = presetState.activeIndexSwiper - 1;
+
+      const presetList = [...presetState.value].map((i) => ({
+        ...i,
+        isDefault: false
+      }));
+
+      presetList[newIndex] = {
+        ...presetList[newIndex],
         isDefault: true
       };
-      presetState.activePreset = presetList[newActivePresetIndex];
-      presetState.value = presetList;
+
+      presetState.activePreset = presetList[newIndex];
+      presetState.activeIndexSwiper = newIndex;
       presetState.updatingSettings = {
-        presetId: presetList[newActivePresetIndex].id.toString(),
-        settings: presetList[newActivePresetIndex].settings
+        presetId: presetList[newIndex].id.toString(),
+        settings: presetList[newIndex].settings
       };
+      presetState.value = presetList;
 
       dispatch(
         setPresetState({
           ...presetState
         })
       );
-    } else {
-      // throw new Error('No more presets');
     }
   }
 );
@@ -163,34 +155,26 @@ export const setNextPreset = createAsyncThunk(
     const state = getState() as RootState;
     const presetState = { ...state.presets } as PresetsState;
 
-    const currentActiveIndex =
-      presetState.activeIndexSwiper > -1
-        ? presetState.activeIndexSwiper
-        : presetState.defaultPresetIndex;
-
     if (presetState.activeIndexSwiper < presetState.value.length) {
-      presetState.activeIndexSwiper += 1;
-    }
+      const newIndex = presetState.activeIndexSwiper + 1;
 
-    if (currentActiveIndex === presetState.value.length) return;
+      if (newIndex === presetState.value.length) return;
 
-    if (currentActiveIndex < presetState.value.length - 1) {
-      const newActivePresetIndex = currentActiveIndex + 1;
-      const presetList = [...presetState.value].map((i) => {
-        return {
-          ...i,
-          isDefault: false
-        };
-      });
+      const presetList = [...presetState.value].map((i) => ({
+        ...i,
+        isDefault: false
+      }));
 
-      presetList[newActivePresetIndex] = {
-        ...presetList[newActivePresetIndex],
+      presetList[newIndex] = {
+        ...presetList[newIndex],
         isDefault: true
       };
-      presetState.activePreset = presetList[newActivePresetIndex];
+
+      presetState.activePreset = presetList[newIndex];
+      presetState.activeIndexSwiper = newIndex;
       presetState.updatingSettings = {
-        presetId: presetList[newActivePresetIndex].id.toString(),
-        settings: presetList[newActivePresetIndex].settings || []
+        presetId: presetList[newIndex].id.toString(),
+        settings: presetList[newIndex].settings || []
       };
       presetState.value = presetList;
     }
