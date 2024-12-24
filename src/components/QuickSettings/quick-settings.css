@@ -87,3 +87,53 @@
 .text-container > span {
   display: inline-block;
 }
+
+@keyframes leftright {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(calc(320px - 100%));
+  }
+}
+
+.animate-marquee {
+  position: relative;
+  display: inline-block;
+  animation: leftright 6s infinite alternate ease-in-out;
+}
+
+.option-delete {
+  margin-bottom: 35px !important;
+}
+
+.option-delete::after {
+  content: '';
+  position: absolute;
+  bottom: -18px;
+  left: 12px;
+  width: 75%;
+  border-top: 2px dashed rgba(245, 196, 68, 0.5);
+  z-index: 1;
+}
+
+.active-indicator {
+  position: absolute;
+  left: 228px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 95%;
+  height: 38px;
+  background: linear-gradient(
+    90deg,
+    #1d1d1d 0%,
+    #1d1d1d 50%,
+    #f5c444 50%,
+    #f5c444 100%
+  );
+  background-size: 200% 100%;
+  background-position: 100% 100%;
+  border-radius: 4px;
+  z-index: 2;
+  overflow: hidden;
+}
