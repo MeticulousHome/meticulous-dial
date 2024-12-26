@@ -18,6 +18,7 @@ import { Splash } from './components/Splash/Splash';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { IdleTimerProvider } from './hooks/useIdleTimer';
 import { setBrightness } from './api/api';
+import { useProfileManagement } from './hooks/usePressets';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,6 +62,7 @@ const App = (): JSX.Element => {
   const getureTimeAgo = useRef(new Date());
 
   useFetchData(() => setBackendReady(true));
+  useProfileManagement();
   useHandleGestures(
     {
       doubleTare() {
@@ -128,7 +130,9 @@ const App = (): JSX.Element => {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <Provider store={store}>
-    <App />
-  </Provider>
+  <QueryClientProvider client={queryClient}>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </QueryClientProvider>
 );

@@ -155,6 +155,12 @@ export interface IPresetNumericalOutput
   unit: 'g';
 }
 
+export interface IPresetNumericalVariable
+  extends IBasePresset,
+    IPresetBaseNumerical {
+  key: string;
+}
+
 export type IPresetMultipleOption = {
   type: 'multiple-option';
   value: string;
@@ -202,6 +208,7 @@ export type IPresetSetting =
   | IPresetNumericalTemperature
   | IPresetNumericalDose
   | IPresetNumericalOutput
+  | IPresetNumericalVariable
   | IPresetMultipleOptionRatio
   | IPresetMultipleOptionPurge
   | IPresetOnOffPreinfusion
@@ -258,3 +265,9 @@ export type ProfileCause =
   | 'delete'
   | 'full_reload'
   | 'load';
+
+export type ProfileAction = {
+  change: ProfileCause;
+  change_id: string;
+  profile_id: string;
+} | null;

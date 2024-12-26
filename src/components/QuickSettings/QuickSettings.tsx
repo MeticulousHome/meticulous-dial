@@ -75,7 +75,7 @@ const defaultSettings: QuickSettingOption[] = [
 type holdAnimationState = 'stopped' | 'running' | 'finished';
 
 export function QuickSettings(): JSX.Element {
-  const socket = useSocket();
+  const { socket } = useSocket();
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const {

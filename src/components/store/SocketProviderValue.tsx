@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 import { GestureType, ISensorData, ProfileCause } from '../../types/index';
@@ -34,6 +34,12 @@ export const SocketProviderValue = () => {
 
   // For development purpose
   useSocketKeyboardListeners();
+
+  const [profileChangeData, setProfileChangeData] = useState<{
+    change: ProfileCause;
+    change_id: string;
+    profile_id: string;
+  }>(null);
 
   useEffect(() => {
     socket.on('notification', (notification: string) => {
@@ -84,6 +90,7 @@ export const SocketProviderValue = () => {
         profile_id: string;
       }) => {
         dispatch(getPresets({ ...data, cause: data.change }));
+        //setProfileChangeData(data);
       }
     );
 
@@ -145,7 +152,7 @@ export const SocketProviderValue = () => {
     };
   }, [queryClient]);
 
-  return socket;
+  return { socket, profileChangeData };
 };
 
 const keyDownGestureMap: Record<string, GestureType> = {

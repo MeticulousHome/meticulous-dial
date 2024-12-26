@@ -15,8 +15,10 @@ export const SocketManager = ({
 }: {
   children: ReactNode;
 }): JSX.Element => {
-  const dispatch = SocketProviderValue();
+  const { socket, profileChangeData } = SocketProviderValue();
   return (
-    <SocketContext.Provider value={dispatch}>{children}</SocketContext.Provider>
+    <SocketContext.Provider value={{ socket, profileChangeData }}>
+      {children}
+    </SocketContext.Provider>
   );
 };

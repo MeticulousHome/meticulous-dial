@@ -22,7 +22,7 @@ export function useFetchData(onReady?: () => void) {
   const [profileImageReady, setProfileImageReady] = useState(false);
 
   useEffect(() => {
-    dispatch(getPresets({}));
+    //dispatch(getPresets({}));
     dispatch(loadDefaultProfiles());
   }, []);
 
