@@ -3,11 +3,13 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 type InitialSettings = {
   countryLetter: string | null;
   country: string | null;
+  allow_stage_skipping: boolean;
 };
 
 export const initialState: InitialSettings = {
   countryLetter: null,
-  country: null
+  country: null,
+  allow_stage_skipping: false
 };
 
 const settingsSlice = createSlice({
