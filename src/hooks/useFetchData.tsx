@@ -43,9 +43,8 @@ export function useFetchData(onReady?: () => void) {
   }, [defaultProfileState]);
 
   useEffect(() => {
-    if (!onReady) {
-      return;
-    }
+    console.log('presets Ready', presetsState, presetID);
+
     if (presetID != -1 || presetsState === 'ready') {
       if (activePreset?.display?.image && !profileImageReady) {
         const img = new Image();
@@ -58,7 +57,10 @@ export function useFetchData(onReady?: () => void) {
           activePreset.display.image
         )}`;
       } else {
-        onReady();
+        console.log('calling onReady');
+        if (onReady) {
+          onReady();
+        }
       }
     }
   }, [activePreset, presetsState, presetID, profileImageReady]);

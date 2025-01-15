@@ -1,11 +1,10 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider, useSelector } from 'react-redux';
 
 import { useAppDispatch, useAppSelector } from './components/store/hooks';
 import { SocketManager } from './components/store/SocketManager';
 import { store } from './components/store/store';
-import { useFetchData } from './hooks/useFetchData';
 import { useHandleGestures } from './hooks/useHandleGestures';
 import {
   setBubbleDisplay,
@@ -14,7 +13,6 @@ import {
 import { Router } from './navigation/Router';
 import { notificationSelector } from './components/store/features/notifications/notification-slice';
 import { durationAnimation } from './navigation/Transitioner';
-import { Splash } from './components/Splash/Splash';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { IdleTimerProvider } from './hooks/useIdleTimer';
 import { setBrightness } from './api/api';
@@ -39,13 +37,9 @@ const App = (): JSX.Element => {
     setBrightness({ brightness: 1 });
   }, []);
 
-  const presetsStatus = useAppSelector((state) => state.presets.status);
-
   const stats = useAppSelector((state) => state.stats);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const notifications = useSelector(notificationSelector.selectAll);
-  const [splashAnimationLooping, setSplashAnimationLooping] = useState(false);
-  const [backendReady, setBackendReady] = useState(false);
 
   useEffect(() => {
     if (notifications.length > 0 && screen.value !== 'notifications') {
@@ -60,7 +54,6 @@ const App = (): JSX.Element => {
 
   const getureTimeAgo = useRef(new Date());
 
-  useFetchData(() => setBackendReady(true));
   useHandleGestures(
     {
       doubleTare() {
@@ -103,23 +96,14 @@ const App = (): JSX.Element => {
       <div>
         <div className="meticulous-main-canvas">
           {dev && <div className="main-circle-overlay" />}
-          {backendReady && splashAnimationLooping ? (
-            <IdleTimerProvider>
-              <SocketManager>
-                <Router
-                  currentScreen={screen.value}
-                  previousScreen={screen.prev}
-                />
-              </SocketManager>
-            </IdleTimerProvider>
-          ) : (
-            <Splash
-              onAnimationFinished={() => {
-                setSplashAnimationLooping(true);
-                return presetsStatus !== 'ready';
-              }}
-            />
-          )}
+          <IdleTimerProvider>
+            <SocketManager>
+              <Router
+                currentScreen={screen.value}
+                previousScreen={screen.prev}
+              />
+            </SocketManager>
+          </IdleTimerProvider>
         </div>
       </div>
     </QueryClientProvider>
