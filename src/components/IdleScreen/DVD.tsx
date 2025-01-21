@@ -1,9 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { MutableRefObject, useEffect, useRef } from 'react';
 import { styled } from 'styled-components';
 
 const LogoSize = 60;
 
-const Container = styled.div`
+const Container = styled.div<{ $blurred: boolean }>`
   height: 480px;
   width: 480px;
   background-color: #111;
@@ -11,6 +11,7 @@ const Container = styled.div`
   margin: 0;
   overflow: hidden;
   position: relative;
+  ${(props) => (props.$blurred ? 'filter: blur(5px)' : '')};
 `;
 
 const Dvd = styled.div`
@@ -42,6 +43,25 @@ const isPointOutsideCircle = (x: number, y: number) => {
   );
   return distance > radius;
 };
+
+function doOverlap(
+  position1: { x: number; y: number },
+  position2: { x: number; y: number }
+) {
+  if (
+    position1.x > position2.x + LogoSize ||
+    position2.x > position1.x + LogoSize
+  )
+    return false;
+
+  if (
+    position1.y > position2.y + LogoSize ||
+    position2.y > position1.y + LogoSize
+  )
+    return false;
+
+  return true;
+}
 
 const palette = [
   '#FF0716',
@@ -88,13 +108,17 @@ const getNewRandomColor = () => {
   return currentPalette[colorChoiceIndex];
 };
 
-const BouncyLogo: React.FC<{ imageSrc: string }> = ({ imageSrc }) => {
+const BouncyLogo: React.FC<{
+  imageSrc: string;
+  position: MutableRefObject<object>;
+}> = ({ imageSrc, position }) => {
   const logoRef = useRef<HTMLDivElement>(null);
   const framesOutside = useRef(0);
 
   useEffect(() => {
     let x = 100 + Math.random() * 100;
     let y = 100 + Math.random() * 100;
+    position.current = { x, y };
     let dirX = Math.random();
     let dirY = Math.random();
 
@@ -132,6 +156,7 @@ const BouncyLogo: React.FC<{ imageSrc: string }> = ({ imageSrc }) => {
 
         x += dirX * ANIMATION_SPEED;
         y += dirY * ANIMATION_SPEED;
+        position.current = { x, y };
         elem.style.left = `${x}px`;
         elem.style.top = `${y}px`;
       }
@@ -150,10 +175,14 @@ const BouncyLogo: React.FC<{ imageSrc: string }> = ({ imageSrc }) => {
 };
 
 export const DVDIdleScreen: React.FC = () => {
+  const metPosition = useRef({ x: 0, y: 0 });
+  const bqPosition = useRef({ x: 0, y: 0 });
+  const collision = doOverlap(metPosition.current, bqPosition.current);
+
   return (
-    <Container>
-      <BouncyLogo imageSrc="assets/logo.png" />
-      <BouncyLogo imageSrc="assets/BQLogo.png" />
+    <Container $blurred={collision}>
+      <BouncyLogo position={metPosition} imageSrc="assets/logo.png" />
+      <BouncyLogo position={bqPosition} imageSrc="assets/BQLogo.png" />
     </Container>
   );
 };
