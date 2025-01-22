@@ -117,6 +117,9 @@ export function EnterWifiPassword(): JSX.Element {
       defaultValue={knownPassword?.split('')}
       onSubmit={updateSetting}
       onCancel={onCancel}
+      onChange={(text: string) => {
+        setKnownPassword(text);
+      }}
     />
   );
 }
