@@ -5,6 +5,7 @@
     "visible": [
       "auto_start_shot",
       "auto_purge_after_shot",
+      "usb_mode",
       "advanced",
       "save",
       "back"

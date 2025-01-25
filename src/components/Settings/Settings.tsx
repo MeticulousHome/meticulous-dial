@@ -56,6 +56,12 @@ export function Settings(): JSX.Element {
             );
             break;
           }
+          case 'usb_mode': {
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'usbSettings' })
+            );
+            break;
+          }
           case 'back':
             dispatch(
               setBubbleDisplay({ visible: true, component: 'quick-settings' })

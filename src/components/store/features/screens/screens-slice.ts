@@ -45,7 +45,8 @@ export type ScreenType =
   | 'selectLetterCountry'
   | 'countrySettings'
   | 'timeZoneSettings'
-  | 'calibrateScale';
+  | 'calibrateScale'
+  | 'usbSettings';
 
 interface ScreenState {
   value: ScreenType;
