@@ -65,7 +65,7 @@ export const FormatSetting = ({ setting, isActive }: FormatSettingProps) => {
                 height="50"
                 className="profile-image image-prev"
                 style={{
-                  border: '7px solid #e0dcd0',
+                  border: '8px solid #e0dcd0',
                   display: 'block',
                   position: 'absolute',
                   left: 0,

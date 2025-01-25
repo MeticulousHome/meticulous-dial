@@ -10,9 +10,7 @@ export const TitlePressets = () => {
     <div className="pressets-title">
       <div id="pressets-title-content">
         <div>Catalog</div>
-        <div style={{ textOverflow: 'ellipsis', overflow: 'hidden' }}>
-          {presets.activePreset.name}
-        </div>
+        <div className="pressets-title-active">{presets.activePreset.name}</div>
       </div>
     </div>
   );

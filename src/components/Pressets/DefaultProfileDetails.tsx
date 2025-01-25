@@ -70,7 +70,7 @@ export const DefaultProfileDetails = () => {
             height="50"
             className="profile-image image-prev"
             style={{
-              border: `7px solid ${
+              border: `8px solid ${
                 defaultProfile.display.accentColor ?? '#e0dcd0'
               }`,
               display: 'block',

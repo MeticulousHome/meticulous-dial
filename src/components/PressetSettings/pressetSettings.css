@@ -22,14 +22,14 @@
 .presset-option-value.active,
 .presset-option-unit.active {
   visibility: visible;
-  font-family: 'Abc_mono';
+  font-family: 'ABC Diatype Mono';
   letter-spacing: -0.5px;
 }
 
 .presset-option-value.defaultProfileActive {
   color: black !important;
   visibility: visible;
-  font-family: 'Abc_mono';
+  font-family: 'ABC Diatype Mono';
   letter-spacing: -0.5px;
 }
 

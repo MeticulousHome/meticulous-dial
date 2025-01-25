@@ -29,7 +29,7 @@ Barometer styles
 }
 
 .bar-needle__value {
-  font-family: 'Abc_mono' I !important;
+  font-family: 'ABC Diatype Mono' I !important;
   font-size: 50px;
   letter-spacing: -1.5px;
   color: #e0dcd0;
@@ -68,7 +68,7 @@ Barometer styles
 
 .column-value {
   font-size: 33px;
-  font-family: 'Abc_mono';
+  font-family: 'ABC Diatype Mono';
   letter-spacing: -0.75px;
   color: #e0dcd0;
   display: flex;

@@ -28,7 +28,7 @@
 
 .value {
   width: 4rem;
-  font-family: 'Abc_mono' I !important;
+  font-family: 'ABC Diatype Mono' I !important;
   z-index: 10;
   display: flex;
   flex-direction: column;
@@ -36,7 +36,7 @@
 }
 
 .value span {
-  font-family: 'Abc_mono' I !important;
+  font-family: 'ABC Diatype Mono' I !important;
   font-size: 18px;
   color: gray;
   margin-top: 5px;

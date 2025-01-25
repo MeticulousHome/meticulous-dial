@@ -116,7 +116,7 @@
 .title-swiper {
   position: absolute;
   z-index: 10;
-  top: -60px;
+  top: -68px;
   width: 100%;
   height: 60px;
   text-align: center;
@@ -126,15 +126,20 @@
 }
 
 .presset-title-top {
-  border: none !important;
-  font-size: 22px !important;
+  font-size: 30px !important;
+  font-weight: 400;
   color: #e0dcd0;
-  letter-spacing: -0.75px;
-  width: 100%;
+  letter-spacing: -0.025em;
   text-align: center;
   text-overflow: ellipsis;
   padding-left: 5px;
   padding-right: 5px;
+  white-space: nowrap;
+}
+
+.pressets-title-active {
+  margin-left: -150px;
+  margin-right: -150px;
 }
 
 .presset-title-small {
@@ -253,12 +258,10 @@
 
 .animation-bounce-top {
   animation: bounce-top 500ms ease-out;
-
 }
 
 .animation-bounce-bottom {
   animation: bounce-bottom 500ms ease-out;
-
 }
 
 @keyframes pressets-left-leave {
@@ -478,7 +481,8 @@
 
 .swiper-pagination {
   position: absolute !important;
-  top: 353px !important;
+  top: 352px !important;
+  line-height: 0;
 }
 
 span.swiper-pagination-bullet {
@@ -486,7 +490,7 @@ span.swiper-pagination-bullet {
   height: 6px;
   border-radius: 3px;
   background-color: #fff;
-  opacity: 0.3;
+  opacity: 0.12;
 }
 
 span.swiper-pagination-bullet-active {
@@ -508,17 +512,17 @@ span.swiper-pagination-bullet-active {
 }
 
 .pressets-title {
-  height: 20px;
+  height: 22px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 @keyframes pressets-title-content-bottom {
-  .spring-interpolate-keyframes(translate-y, -21px, 0);
+  .spring-interpolate-keyframes(translate-y, -22px, 0);
 }
 
 @keyframes pressets-title-content-top {
-  .spring-interpolate-keyframes(translate-y, 0, -21px);
+  .spring-interpolate-keyframes(translate-y, 0, -22px);
 }
 
 .animation-pressets-content-top {

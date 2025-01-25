@@ -2,8 +2,8 @@ import { styled } from 'styled-components';
 
 const TemperatureValue = styled.span<{ fontSize: string; color?: string }>`
   font-size: ${(props) => props.fontSize};
-  font-family: 'Abc_light';
-  font-variant-numeric: tabular-nums;
+  font-family: 'ABC Diatype Mono';
+  font-weight: 300;
   letter-spacing: ${(props) => (props.fontSize === '60px' ? '4px' : '3px')};
   color: ${(props) => props.color || '#E7E7E7'};
   margin-right: ${(props) => (props.fontSize === '25px' ? '2px' : '0')};
@@ -12,13 +12,15 @@ const TemperatureValue = styled.span<{ fontSize: string; color?: string }>`
 const Superscript = styled.sup<{ fontSize: string }>`
   font-size: ${(props) => props.fontSize};
   color: #e7e7e799;
-  font-family: 'Abc_light';
+  font-family: 'ABC Diatype';
+  font-weight: 300;
 `;
 
 const Label = styled.span`
   font-size: 15px;
   color: #e7e7e799;
-  font-family: 'Abc_light';
+  font-family: 'ABC Diatype';
+  font-weight: 300;
   letter-spacing: 3px;
   margin-bottom: 4px;
 `;

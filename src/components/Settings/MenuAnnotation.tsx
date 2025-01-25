@@ -5,7 +5,7 @@ export const MenuAnnotation = styled.span`
   font-size: 14px;
   font-weight: 400;
   letter-spacing: 1.3px;
-  font-family: 'Abc_mono';
+  font-family: 'ABC Diatype Mono';
   border-width: 1px;
   border-color: #1d1d1d;
   border-style: solid;
