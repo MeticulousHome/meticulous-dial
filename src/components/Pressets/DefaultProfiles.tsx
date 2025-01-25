@@ -141,7 +141,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
                           height="60"
                           className="profile-image image-prev"
                           style={{
-                            border: `7px solid ${
+                            border: `8px solid ${
                               preset.display.accentColor ?? '#e0dcd0'
                             }`,
                             display: 'block',

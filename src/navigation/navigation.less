@@ -52,10 +52,10 @@
 @zoom-out-scale: 2.3;
 @zoom-in-scale: 0.3;
 @navigation-title-font-size: 16px;
-@navigation-title-top: 61px;
+@navigation-title-top: 60px;
 @navigation-title-parent-font-size: 16px;
-@navigation-title-parent-top: 61px;
-@navigation-title-shared-top: 61px;
+@navigation-title-parent-top: 60px;
+@navigation-title-shared-top: 60px;
 @navigation-title-bottom: 355px;
 
 .route {
@@ -136,11 +136,35 @@
   animation-timing-function: ease-out;
   animation-fill-mode: forwards;
   border: 1px solid #5d5d5d;
-  border-radius: 30px;
-  letter-spacing: 3.2px;
+  border-radius: 12px;
+  height: 22px;
   font-size: @navigation-title-parent-font-size;
   font-style: normal;
-  font-weight: 100;
+  font-family: 'ABC Diatype Mono';
+  font-weight: 200;
+  letter-spacing: 0.2em;
+  line-height: 22px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  text-transform: uppercase;
+}
+
+.navigation-title::after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    #000 2%,
+    rgba(0, 0, 0, 0) 10%,
+    rgba(0, 0, 0, 0) 90%,
+    #000 98%
+  );
 }
 
 .navigation-title.enter {
@@ -158,7 +182,7 @@
   font-size: 24px;
   text-overflow: unset;
   color: #e0dcd0;
-  font-family: 'Abc';
+  font-family: 'ABC Diatype';
   letter-spacing: 0.5px;
   text-align: center;
   font-size: 24px;
@@ -170,27 +194,21 @@
 .navigation-title.shared.enter.in {
   position: absolute;
   top: @navigation-title-top;
-  left: 165px;
-  right: 165px;
+  left: 155px;
+  right: 155px;
   text-align: center;
   font-size: @navigation-title-font-size;
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
   z-index: 10;
-  letter-spacing: 0.2px;
-  font-family: 'Abc';
-  font-weight: 100;
 }
 
 .navigation-title.parent {
   top: @navigation-title-parent-top;
   font-size: @navigation-title-parent-font-size;
-  letter-spacing: 3.2px;
   text-align: center;
   text-transform: uppercase;
+  font-family: 'ABC Diatype Mono';
+  font-weight: 200;
+  letter-spacing: 0.2em;
 }
 
 .navigation-title.shared {

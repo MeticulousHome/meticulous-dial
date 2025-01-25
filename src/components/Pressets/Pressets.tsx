@@ -39,6 +39,7 @@ import { TitleCircle } from './Title';
 import { loadProfileData, startProfile } from '../../api/profile';
 import { useSocket } from '../store/SocketManager';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
+import classNames from 'classnames';
 
 interface AnimationData {
   circlekey: number;
@@ -613,22 +614,15 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                 >
                   {() => (
                     <div>
-                      <div className={`title-swiper`}>
+                      <div className="title-swiper">
                         {option.screen === 'PRESSETS' && !transitioning && (
                           <div
-                            className={`presset-title-top 
-                              ${preset.isTemporary ? 'presset-title-temp' : ''} 
-                              ${
-                                preset.name.length > 30
-                                  ? 'presset-title-small'
-                                  : ''
-                              }
-                              ${
+                            className={classNames('presset-title-top', {
+                              'presset-title-temp': preset.isTemporary,
+                              'presset-title-small': preset.name.length > 30,
+                              'presset-title-very-small':
                                 preset.name.length > 40
-                                  ? 'presset-title-very-small'
-                                  : ''
-                              }
-                        `}
+                            })}
                           >
                             {preset.name.length > 70
                               ? `${preset.name.substring(0, 70)}...`
@@ -637,28 +631,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                         )}
                       </div>
                       <ProfileImage preset={preset} />
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'row',
-                          justifyContent: 'space-between'
-                        }}
-                        key="labels"
-                      >
-                        {preset.isLast ? (
-                          <div key="last_label" style={{ fontSize: '10px' }}>
-                            last
-                          </div>
-                        ) : null}
-                        {preset.isTemporary ? (
-                          <div
-                            key="temporary_label"
-                            style={{ fontSize: '10px' }}
-                          >
-                            temporary
-                          </div>
-                        ) : null}
-                      </div>
                     </div>
                   )}
                 </SwiperSlide>
@@ -667,11 +639,9 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               {() => (
                 <div style={{ display: 'block' }}>
                   <div
-                    className={`title-swiper ${
-                      transitioning ? 'transitioning' : ''
-                    }`}
+                    className={classNames('title-swiper', { transitioning })}
                   >
-                    <div className={'presset-title-top'}>New</div>
+                    <div className="presset-title-top">New</div>
                   </div>
                   <div className="presset-image">
                     <div className="presset-icon">

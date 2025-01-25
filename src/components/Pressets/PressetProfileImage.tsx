@@ -131,7 +131,7 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
                     width="164"
                     height="164"
                     className="profile-image"
-                    style={{ border: '7px solid #e0dcd0' }}
+                    style={{ border: '8px solid #e0dcd0' }}
                   />
                 </div>
               )}

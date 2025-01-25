@@ -10,19 +10,33 @@
 }
 
 @font-face {
-  font-family: 'Abc';
+  font-family: 'ABC Diatype';
   src: url('/src/assets/fonts/abc-diatype-regular.otf');
   font-weight: normal;
 }
 
 @font-face {
-  font-family: 'Abc_light';
+  font-family: 'ABC Diatype';
   src: url('/src/assets/fonts/abc-diatype-light.otf');
+  font-weight: 300;
 }
 
 @font-face {
-  font-family: 'Abc_mono';
+  font-family: 'ABC Diatype Mono';
   src: url('/src/assets/fonts/abc-diatype-mono-regular-trial.otf');
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: 'ABC Diatype Mono';
+  src: url('/src/assets/fonts/abc-diatype-mono-light-trial.otf');
+  font-weight: 300;
+}
+
+@font-face {
+  font-family: 'ABC Diatype Mono';
+  src: url('/src/assets/fonts/abc-diatype-mono-thin-trial.otf');
+  font-weight: 200;
 }
 
 html,
@@ -34,7 +48,7 @@ body {
 }
 
 body {
-  font-family: 'Abc';
+  font-family: 'ABC Diatype';
   color: white;
   background-color: black;
   display: flex;
