@@ -100,7 +100,7 @@ const App = (): JSX.Element => {
     stats?.name !== 'idle' || bubbleDisplay.visible
   );
 
-  const dev = !!window.env?.SHOW_CIRCLE_OVERLAY || true;
+  const dev = !!window.env?.SHOW_CIRCLE_OVERLAY;
 
   return (
     <QueryClientProvider client={queryClient}>
