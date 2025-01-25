@@ -33,7 +33,9 @@ const App = (): JSX.Element => {
   );
 
   useEffect(() => {
-    window.electron.ipcRenderer.sendMessage('ready');
+    if (window.electron) {
+      window.electron.ipcRenderer.sendMessage('ready');
+    }
     setBrightness({ brightness: 1 });
   }, []);
 
