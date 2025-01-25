@@ -41,6 +41,7 @@ import TimeZoneSettings from '../components/Settings/Advanced/TimeDate/TimeZone/
 import { IdleScreenSetting } from '../components/Settings/Advanced/IdleScreenSetting';
 
 import CalibrateScale from '../components/Scale/CalibrateScale';
+import { USBSettings } from '../components/Settings/USBSettings';
 
 interface Route {
   component: ComponentType;
@@ -305,6 +306,10 @@ export const routes: Record<ScreenType, Route> = {
   },
   idle: {
     component: IdleScreen,
+    bottomStatusHidden: true
+  },
+  usbSettings: {
+    component: USBSettings,
     bottomStatusHidden: true
   }
 };
