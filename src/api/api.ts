@@ -7,7 +7,7 @@ import Api, {
 
 export const api = new Api(
   undefined,
-  window.env.SERVER_URL || 'http://localhost:8080/'
+  window.env?.SERVER_URL || 'http://localhost:8080/'
 );
 
 export const startMasterCalibration = async () => {
