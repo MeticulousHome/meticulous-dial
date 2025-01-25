@@ -1,7 +1,7 @@
 {
   "name": "meticulous-ui",
   "productName": "meticulous-ui",
-  "version": "1.27.1",
+  "version": "1.27.2",
   "description": "My Electron application description",
   "main": ".webpack/main",
   "private": true,
