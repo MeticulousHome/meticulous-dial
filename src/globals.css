@@ -22,6 +22,12 @@
 }
 
 @font-face {
+  font-family: 'ABC Diatype';
+  src: url('/src/assets/fonts/abc-diatype-thin.otf');
+  font-weight: 200;
+}
+
+@font-face {
   font-family: 'ABC Diatype Mono';
   src: url('/src/assets/fonts/abc-diatype-mono-regular-trial.otf');
   font-weight: normal;
@@ -94,7 +100,7 @@ body {
   width: 100%;
   left: -100px;
   top: -100px;
-  border-color: #101010;
+  border-color: #222222;
   border-width: 100px;
   border-style: solid;
   border-radius: 50%;
