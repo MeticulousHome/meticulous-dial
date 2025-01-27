@@ -1,12 +1,17 @@
 import { styled } from 'styled-components';
+import { AnimatedCounter } from 'react-animated-counter';
+
+const TEMP_COLOR = '#e7e7e7';
+const SMALL_FONT_SIZE = 25;
+const LARGE_FONT_SIZE = 60;
 
 const TemperatureValue = styled.span<{ $small?: boolean }>`
   font-family: 'ABC Diatype Mono';
-  font-size: ${(props) => (props.$small ? 25 : 60)}px;
+  font-size: ${(props) => (props.$small ? SMALL_FONT_SIZE : LARGE_FONT_SIZE)}px;
   font-weight: ${(props) => (props.$small ? 200 : 300)};
   letter-spacing: -0.02em;
   line-height: 1;
-  color: #e7e7e7;
+  color: ${TEMP_COLOR};
 `;
 
 const Unit = styled.sup<{ $small?: boolean }>`
@@ -28,14 +33,28 @@ export const Label = styled.div`
   text-transform: uppercase;
 `;
 
-export const Temperature: React.FC<{ number: number; small?: boolean }> = ({
-  number,
-  small
-}) => (
+export const Temperature: React.FC<{
+  value: number;
+  small?: boolean;
+  animated?: boolean;
+}> = ({ value, small, animated }) => (
   <div
     style={{ display: 'flex', alignItems: 'flex-start', gap: small ? 4 : 5 }}
   >
-    <TemperatureValue $small={small}>{number}</TemperatureValue>
+    <TemperatureValue $small={small}>
+      {animated ? (
+        <AnimatedCounter
+          value={value}
+          color={TEMP_COLOR}
+          decrementColor={TEMP_COLOR}
+          incrementColor={TEMP_COLOR}
+          includeDecimals={false}
+          fontSize={`${small ? SMALL_FONT_SIZE : LARGE_FONT_SIZE}px`}
+        />
+      ) : (
+        value
+      )}
+    </TemperatureValue>
 
     <Unit $small={small}>°C</Unit>
   </div>
@@ -54,7 +73,7 @@ export const Temperatures: React.FC<{ current: number; target: number }> = ({
       justifyContent: 'space-between'
     }}
   >
-    <Temperature number={current} />
+    <Temperature value={current} animated />
     <div
       style={{
         display: 'flex',
@@ -66,7 +85,7 @@ export const Temperatures: React.FC<{ current: number; target: number }> = ({
       }}
     >
       <Label>Target</Label>
-      <Temperature number={target} small />
+      <Temperature value={target} small />
     </div>
   </div>
 );
