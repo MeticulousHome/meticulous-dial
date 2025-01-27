@@ -9,7 +9,7 @@ const ROW_GAP = 3;
 const ROWS = 11;
 const COLS = 6;
 const TEMP_RANGE_START = 20;
-const TEMP_RANGE_END = 100;
+const TEMP_RANGE_END = 90;
 const TEMP_RANGE_SIZE = TEMP_RANGE_END - TEMP_RANGE_START;
 
 const backgroundWidth = COLS * DOT_MAX_SIZE + (COLS - 1) * COL_GAP;
