@@ -20,7 +20,16 @@ import { setBrightness } from './api/api';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false // default: true
+      refetchOnWindowFocus: false,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      enabled: true,
+      networkMode: 'always'
+    },
+    mutations: {
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      networkMode: 'always'
     }
   }
 });
