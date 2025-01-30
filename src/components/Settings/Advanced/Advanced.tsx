@@ -8,10 +8,7 @@ import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { SettingsItem } from '../../../types';
 import { useSettings, useUpdateSettings } from '../../../hooks/useSettings';
 import { marqueeIfNeeded } from '../../shared/MarqueeValue';
-import {
-  setBubbleDisplay,
-  setScreen
-} from '../../store/features/screens/screens-slice';
+import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { IdleScreens } from './IdleScreenSetting';
 import { useDeviceInfo } from '../../../hooks/useDeviceOSStatus';
@@ -27,20 +24,8 @@ export const AdvancedSettings = () => {
 
   const settings: SettingsItem[] = [
     {
-      key: 'device_info',
-      label: 'Device Info',
-      visible: true
-    },
-    {
-      key: 'time_date',
-      label: 'time & date',
-      visible: true
-    },
-    {
-      key: 'enable_sounds',
-      label: 'sounds',
-      value: globalSettings.enable_sounds,
-      visible: true
+      key: 'usb_mode',
+      label: 'USB mode'
     },
     {
       key: 'master_calibration',
@@ -50,23 +35,16 @@ export const AdvancedSettings = () => {
     {
       key: 'save_debug_shot_data',
       label: 'Save debug shot data',
-      value: globalSettings.save_debug_shot_data,
       visible: true
     },
     {
       key: 'set_update_channel',
       label: 'Update channel',
-      value: globalSettings.update_channel,
       visible: true
     },
     {
       key: 'set_idle_screen',
       label: 'Select Idle Screen',
-      visible: true
-    },
-    {
-      key: 'heat_timeout_after_shot',
-      label: 'Heat timeout after shot',
       visible: true
     },
     {
@@ -82,8 +60,8 @@ export const AdvancedSettings = () => {
       let val = item.label.toUpperCase();
       if (globalSettings) {
         switch (item.key) {
-          case 'heat_timeout_after_shot':
-            val = `${val}: ${globalSettings.heating_timeout} MIN`;
+          case 'usb_mode':
+            val = `${val}: ${globalSettings.usb_mode}`;
             break;
           case 'set_update_channel':
             val = `${val}: ${globalSettings.update_channel}`;
@@ -120,11 +98,13 @@ export const AdvancedSettings = () => {
       pressDown() {
         const activeItem = settings[activeIndex].key;
         switch (activeItem) {
-          case 'enable_sounds':
-            updateSettings.mutate({
-              enable_sounds: !globalSettings.enable_sounds
-            });
+          case 'device_info':
+            fetchDeviceStatus();
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'deviceInfo' })
+            );
             break;
+
           case 'save_debug_shot_data':
             updateSettings.mutate({
               save_debug_shot_data: !globalSettings.save_debug_shot_data
@@ -143,12 +123,7 @@ export const AdvancedSettings = () => {
               })
             );
             break;
-          case 'device_info':
-            fetchDeviceStatus();
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'deviceInfo' })
-            );
-            break;
+
           case 'back':
             dispatch(
               setBubbleDisplay({ visible: true, component: 'settings' })
@@ -162,15 +137,6 @@ export const AdvancedSettings = () => {
               .catch((err) => {
                 console.log(err);
               });
-            break;
-          case 'heat_timeout_after_shot':
-            dispatch(setScreen('heat_timeout_after_shot'));
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
-            break;
-          case 'time_date':
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'timeDate' })
-            );
             break;
           default: {
             break;
