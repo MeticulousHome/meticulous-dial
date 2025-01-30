@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import './quick-settings.css';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
@@ -24,6 +24,8 @@ import { useOSStatus } from '../../hooks/useDeviceOSStatus';
 import { marqueeIfNeeded } from '../shared/MarqueeValue';
 import { formatTime } from '../../utils';
 import { routes } from '../../navigation/routes';
+import { ScrollMenu } from '../BubbleMenu/ScrollMenu';
+import { MenuOption } from '../BubbleMenu/MenuOptions';
 
 interface QuickSettingOption {
   key: string;
@@ -80,8 +82,134 @@ const defaultSettings: QuickSettingOption[] = [
 ];
 
 type holdAnimationState = 'stopped' | 'running' | 'finished';
-
 export function QuickSettings(): JSX.Element {
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const dispatch = useAppDispatch();
+
+  const scrollMenuRef = useRef(null);
+
+  // Quick settings content
+  const { data: osStatusData, error: osStatusError } = useOSStatus();
+  const presets = useAppSelector((state) => state.presets);
+  const currentScreen = useAppSelector((state) => state.screen.value);
+
+  const settings: MenuOption[] = [
+    {
+      type: 'disabled',
+      label: useCallback(() => {
+        if (osStatusError) {
+          return '';
+        }
+        switch (osStatusData.status) {
+          case 'COMPLETE':
+            return 'Update Complete';
+          case 'DOWNLOADING':
+            return `Downloading Update: ${Math.round(osStatusData.progress)}%`;
+          case 'INSTALLING':
+            return `Installing Update: ${Math.round(osStatusData.progress)}%`;
+        }
+        return '';
+      }, [osStatusData, osStatusError]),
+      visible: () => osStatusData.status !== 'IDLE'
+    },
+    {
+      type: 'default',
+      label: 'Edit profile'
+    },
+    {
+      type: 'hold',
+      label: 'Delete profile',
+      onSelected() {
+        console.log('Delete profile');
+      }
+    },
+    {
+      type: 'default',
+      label: 'Back',
+      visible: () => !!routes[currentScreen].parent,
+      onSelected() {
+        if (!routes[currentScreen].parent) {
+          console.error("return to previous screen doesn't exist");
+          return;
+        }
+
+        if (currentScreen === 'pressetSettings') dispatch(discardSettings());
+
+        dispatch(setScreen(routes[currentScreen].parent));
+        dispatch(setBubbleDisplay({ visible: false, component: null }));
+      }
+    },
+    {
+      type: 'seperator'
+    },
+    {
+      type: 'default',
+      label: 'home'
+    },
+    {
+      type: 'default',
+      label: 'purge'
+    },
+    {
+      type: 'seperator'
+    },
+    {
+      type: 'default',
+      label: 'Preheat brew chamber'
+    },
+    {
+      type: 'default',
+      label: 'calibrate scale'
+    },
+    {
+      type: 'default',
+      label: 'wifi'
+    },
+    {
+      type: 'default',
+      label: 'config'
+    },
+    {
+      type: 'default',
+      label: 'exit'
+    }
+  ];
+
+  useHandleGestures({
+    context() {
+      dispatch(
+        setBubbleDisplay({
+          visible: !bubbleDisplay.visible,
+          component: !bubbleDisplay.visible ? 'quick-settings' : null
+        })
+      );
+    },
+    left() {
+      if (scrollMenuRef.current) {
+        scrollMenuRef.current.handleLeft();
+      }
+    },
+    right() {
+      if (scrollMenuRef.current) {
+        scrollMenuRef.current.handleRight();
+      }
+    },
+    pressDown() {
+      if (scrollMenuRef.current) {
+        scrollMenuRef.current.handleDown();
+      }
+    },
+    pressUp() {
+      if (scrollMenuRef.current) {
+        scrollMenuRef.current.handleUp();
+      }
+    }
+  });
+
+  return <ScrollMenu ref={scrollMenuRef} settings={settings} />;
+}
+
+export function QuickSettings2(): JSX.Element {
   const socket = useSocket();
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
