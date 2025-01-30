@@ -8,7 +8,8 @@ import { formatStatValue } from '../../utils';
 import { setScreen } from '../../../src/components/store/features/screens/screens-slice';
 import { useSocket } from '../../../src/components/store/SocketManager';
 
-const MAX_POSITION = 83;
+// This is not absolute max but the maximum we choose for the sake of animation
+const MAX_POSITION = 74;
 const TOTAL_FRAMES = 60.0;
 const NO_FRAMES = 1000;
 
