@@ -201,6 +201,7 @@ export interface SettingsItem {
   label?: string;
   shortLabel?: string;
   visible?: boolean;
+  seperator_after?: boolean;
 }
 
 export enum YesNoEnum {

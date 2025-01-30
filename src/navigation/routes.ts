@@ -42,6 +42,7 @@ import { IdleScreenSetting } from '../components/Settings/Advanced/IdleScreenSet
 
 import CalibrateScale from '../components/Scale/CalibrateScale';
 import { USBSettings } from '../components/Settings/USBSettings';
+import { BrewSettings } from '../components/Settings/BrewSettings';
 
 interface Route {
   component: ComponentType;
@@ -310,6 +311,10 @@ export const routes: Record<ScreenType, Route> = {
   },
   usbSettings: {
     component: USBSettings,
+    bottomStatusHidden: true
+  },
+  brewSettings: {
+    component: BrewSettings,
     bottomStatusHidden: true
   }
 };

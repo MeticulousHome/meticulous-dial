@@ -29,6 +29,7 @@ interface QuickSettingOption {
   key: string;
   label: string;
   longpress?: boolean;
+  seperator_after?: boolean;
 }
 
 const profileContextSettings: QuickSettingOption[] = [
@@ -39,7 +40,8 @@ const profileContextSettings: QuickSettingOption[] = [
   {
     key: 'delete',
     label: 'Hold to delete profile',
-    longpress: true
+    longpress: true,
+    seperator_after: true
   }
 ];
 
@@ -62,13 +64,15 @@ const defaultSettings: QuickSettingOption[] = [
     label: 'Preheat brew chamber'
   },
   {
-    key: 'calibrate',
-    label: 'calibrate scale'
+    key: 'brew_config',
+    label: 'Brew Settings',
+    seperator_after: true
   },
   {
     key: 'wifi',
     label: 'wifi'
   },
+
   {
     key: 'config',
     label: 'config'
@@ -213,12 +217,6 @@ export function QuickSettings(): JSX.Element {
             socket.emit('action', 'preheat');
             break;
           }
-          case 'calibrate': {
-            //socket.emit('calibrate', '');
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
-            dispatch(setScreen('calibrateScale'));
-            break;
-          }
           case 'wifi': {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'wifiSettings' })
@@ -228,6 +226,12 @@ export function QuickSettings(): JSX.Element {
           case 'config': {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'settings' })
+            );
+            break;
+          }
+          case 'brew_config': {
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'brewSettings' })
             );
             break;
           }
@@ -241,14 +245,6 @@ export function QuickSettings(): JSX.Element {
     },
     !bubbleDisplay.visible || stats.waitingForActionAlreadySent
   );
-
-  const indexSeparator = useMemo(() => {
-    if (settings?.length > 0) {
-      const additionalItems = settings.length - defaultSettings.length - 1;
-      return additionalItems > 0 ? additionalItems : undefined;
-    }
-    return undefined;
-  }, [settings.length]);
 
   useEffect(() => {
     const context: QuickSettingOption[] = profileContextSettings;
@@ -356,7 +352,7 @@ export function QuickSettings(): JSX.Element {
                 </div>
               </SwiperSlide>
 
-              {indexSeparator === index && (
+              {setting.seperator_after && (
                 <SwiperSlide
                   key={`seperator-${index}`}
                   className="separator"

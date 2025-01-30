@@ -19,27 +19,17 @@ import { SettingsItem } from '../../types';
 
 const settings: SettingsItem[] = [
   {
-    key: 'device_info',
-    label: 'Device Info',
+    key: 'auto_start_shot',
+    label: 'Auto start after heating'
+  },
+  {
+    key: 'auto_purge_after_shot',
+    label: 'Auto purge after shot'
+  },
+  {
+    key: 'heat_timeout_after_shot',
+    label: 'Heat timeout after shot',
     visible: true
-  },
-  {
-    key: 'time_date',
-    label: 'time & date',
-    visible: true
-  },
-  {
-    key: 'enable_sounds',
-    label: 'sounds',
-    visible: true
-  },
-  {
-    key: 'calibrate',
-    label: 'calibrate scale'
-  },
-  {
-    key: 'advanced',
-    label: 'Advanced Settings'
   },
   {
     key: 'back',
@@ -47,13 +37,12 @@ const settings: SettingsItem[] = [
   }
 ];
 
-export function Settings(): JSX.Element {
-  const { data: globalSettings } = useSettings();
-
+export function BrewSettings(): JSX.Element {
   const dispatch = useAppDispatch();
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const { data: globalSettings } = useSettings();
   const updateSettings = useUpdateSettings();
 
   const showValue = useCallback(
@@ -66,8 +55,13 @@ export function Settings(): JSX.Element {
             ? val + ': ENABLED'
             : val + ': DISABLED';
         }
+
+        if (item.key === 'heat_timeout_after_shot') {
+          val = `${val}: ${globalSettings.heating_timeout} MIN`;
+        }
+
+        return marqueeIfNeeded({ enabled: isActive, val });
       }
-      return marqueeIfNeeded({ enabled: isActive, val });
     },
     [globalSettings]
   );
@@ -83,43 +77,26 @@ export function Settings(): JSX.Element {
       pressDown() {
         const activeItem = settings[activeIndex];
         switch (activeItem.key) {
-          case 'device_info':
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'deviceInfo' })
-            );
-            break;
-          case 'advanced': {
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'advancedSettings' })
-            );
-            break;
-          }
-          case 'usb_mode': {
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'usbSettings' })
-            );
-            break;
-          }
-          case 'calibrate': {
+          case 'heat_timeout_after_shot':
+            dispatch(setScreen('heat_timeout_after_shot'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
-            dispatch(setScreen('calibrateScale'));
-            break;
-          }
-          case 'enable_sounds':
-            updateSettings.mutate({
-              enable_sounds: !globalSettings.enable_sounds
-            });
-            break;
-          case 'time_date':
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'timeDate' })
-            );
             break;
           case 'back':
             dispatch(
               setBubbleDisplay({ visible: true, component: 'quick-settings' })
             );
             break;
+          default: {
+            if (
+              typeof globalSettings[activeItem.key as SettingsKey] === 'boolean'
+            ) {
+              const new_value = !globalSettings[activeItem.key as SettingsKey];
+              updateSettings.mutate({ [activeItem.key]: new_value });
+            } else {
+              console.error('This setting type is not yet implemented!');
+            }
+            break;
+          }
         }
       }
     },
@@ -164,9 +141,6 @@ export function Settings(): JSX.Element {
                   </div>
                 </div>
               </SwiperSlide>
-              {item.seperator_after && (
-                <SwiperSlide key={`seperator-${index}`} className="separator" />
-              )}
             </>
           );
         })}

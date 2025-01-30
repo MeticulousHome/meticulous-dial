@@ -8,10 +8,11 @@ import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { marqueeIfNeeded } from '../../shared/MarqueeValue';
 import { useDeviceInfo } from '../../../hooks/useDeviceOSStatus';
 import { DeviceInfo } from '@meticulous-home/espresso-api';
+import { LoadingScreen } from '../../LoadingScreen/LoadingScreen';
 
 export const DeviceInfoScreen = () => {
   const dispatch = useAppDispatch();
-  const { data: deviceInfo } = useDeviceInfo();
+  const { data: deviceInfo, isLoading } = useDeviceInfo();
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
@@ -30,7 +31,7 @@ export const DeviceInfoScreen = () => {
         switch (activeItem) {
           case 'back':
             dispatch(
-              setBubbleDisplay({ visible: true, component: 'advancedSettings' })
+              setBubbleDisplay({ visible: true, component: 'settings' })
             );
             break;
           default: {
@@ -47,6 +48,10 @@ export const DeviceInfoScreen = () => {
       swiper.slideTo(activeIndex, 0, false);
     }
   }, [activeIndex, swiper]);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="main-quick-settings">

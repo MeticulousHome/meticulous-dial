@@ -32,9 +32,7 @@ export const HeatTimeoutAfterShot: React.FC = () => {
     },
     pressDown() {
       updateSettings.mutate({ heating_timeout: localHeatingTimeout });
-      dispatch(
-        setBubbleDisplay({ visible: true, component: 'advancedSettings' })
-      );
+      dispatch(setBubbleDisplay({ visible: false, component: null }));
       dispatch(setScreen('pressets'));
     }
   });

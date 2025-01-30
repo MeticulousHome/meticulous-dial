@@ -12,6 +12,7 @@ import 'swiper/css';
 import '../../../OSStatus/OSStatus.css';
 
 import { SettingsItem } from '../../../../types';
+import { useSettings } from '../../../../hooks/useSettings';
 
 const defaultSettings: SettingsItem[] = [
   {
@@ -39,6 +40,7 @@ export function TimeDate(): JSX.Element {
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [settings, setSettings] = useState(defaultSettings);
+  const { data: globalSettings } = useSettings();
 
   const [counterESGG, setCounterESGG] = useState(0);
 
@@ -79,7 +81,7 @@ export function TimeDate(): JSX.Element {
           }
           case 'back': {
             dispatch(
-              setBubbleDisplay({ visible: true, component: 'advancedSettings' })
+              setBubbleDisplay({ visible: true, component: 'settings' })
             );
             break;
           }
@@ -113,6 +115,19 @@ export function TimeDate(): JSX.Element {
       `;
   }, []);
 
+  const getLabel = (setting: SettingsItem) => {
+    switch (setting.key) {
+      case 'set_timezone':
+        if (globalSettings && globalSettings.time_zone) {
+          return `${setting.label}: ${globalSettings.time_zone}`;
+        }
+        break;
+      case 'set_date_time':
+        break;
+    }
+    return setting.label;
+  };
+
   return (
     <div className="main-quick-settings">
       <Swiper
@@ -134,7 +149,7 @@ export function TimeDate(): JSX.Element {
                 className={getSettingClasses(isActive)}
                 key={`option-${index}-${setting.key}`}
               >
-                <div className="text-container">{setting.label}</div>
+                <div className="text-container">{getLabel(setting)}</div>
               </SwiperSlide>
             </div>
           );
