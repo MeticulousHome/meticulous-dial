@@ -8,8 +8,6 @@ import {
   setScreen
 } from '../store/features/screens/screens-slice';
 import { useSocket } from '../store/SocketManager';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
 import '../OSStatus/OSStatus.css';
 
 import {
@@ -24,7 +22,12 @@ import { useOSStatus } from '../../hooks/useDeviceOSStatus';
 import { marqueeIfNeeded } from '../shared/MarqueeValue';
 import { formatTime } from '../../utils';
 import { routes } from '../../navigation/routes';
-import { styled } from 'styled-components';
+import * as Styled from './QuickSettings.styled';
+
+import {
+  calculateOptionPosition,
+  VIEWPORT_HEIGHT
+} from './QuickSettings.utils';
 
 interface QuickSettingOption {
   key: string;
@@ -62,7 +65,7 @@ const defaultSettings: QuickSettingOption[] = [
   },
   {
     key: 'preheat',
-    label: 'Preheat brew chamber'
+    label: 'Preheat brew chamber with long text'
   },
   {
     key: 'brew_config',
@@ -86,150 +89,6 @@ const defaultSettings: QuickSettingOption[] = [
 
 type holdAnimationState = 'stopped' | 'running' | 'finished';
 
-type Option = {
-  key: string;
-  label: string;
-  longpress?: boolean;
-};
-
-type Styles = {
-  [key: string]: React.CSSProperties;
-};
-
-const styles: Styles = {
-  wrapper: {
-    width: '480px',
-    height: '480px',
-    backgroundColor: '#1d1d1d',
-    borderRadius: '8px',
-    overflow: 'hidden',
-    display: 'flex',
-    flexDirection: 'column'
-  },
-  button: {
-    width: '100%',
-    height: '48px',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    border: 'none',
-    backgroundColor: '#1d1d1d',
-    cursor: 'pointer'
-  },
-  buttonUp: {
-    borderBottom: '1px solid #333333'
-  },
-  buttonDown: {
-    borderTop: '1px solid #333333'
-  },
-  buttonDisabled: {
-    color: '#666666',
-    cursor: 'not-allowed'
-  },
-  buttonEnabled: {
-    color: '#f5c444'
-  },
-  viewport: {
-    flex: 1,
-    position: 'relative',
-    overflow: 'hidden',
-    backgroundColor: '#1d1d1d',
-    height: '480px',
-    paddingLeft: '28px'
-  },
-
-  optionContent: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    width: '100%'
-    /*  paddingLeft: "22px", */
-  },
-  label: {
-    fontSize: '22px',
-    letterSpacing: '1.3px'
-  },
-  holdText: {
-    fontSize: '12px',
-    textTransform: 'none',
-    letterSpacing: 'normal'
-  },
-
-  optionDark: {
-    color: '#1d1d1d',
-    pointerEvents: 'none'
-  },
-
-  /** aproved C:*/
-  option: {
-    textTransform: 'uppercase',
-    borderRadius: '4px',
-    fontSize: '22px',
-    color: '#dddddd',
-    textAlign: 'left',
-    width: '90%',
-    letterSpacing: '1.3px',
-    whiteSpace: 'nowrap',
-    marginBottom: '25px',
-    display: 'flex',
-    alignItems: 'center',
-    position: 'relative',
-    height: '38px', //this should't be a fixed value
-    paddingLeft: '18px'
-    /* fontFamily: 'Abc_mono' */
-  }
-};
-
-const OptionsContainer = styled.div<{ translateY: number; isInner?: boolean }>`
-  position: absolute;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-family: 'Abc_mono';
-  transform: ${(props) =>
-    props.isInner
-      ? `translate(-50%, 0) translateY(${props.translateY}px)`
-      : `translateY(${props.translateY}px)`};
-
-  ${(props) =>
-    props.isInner &&
-    `color: #1d1d1d;
-     top: 50%;
-     left: 50%;
-    `}
-`;
-
-const OptionsList = ({
-  options,
-  translateY,
-  isInner,
-  isDark = false
-}: {
-  options: Option[];
-  translateY: number;
-  isInner?: boolean;
-  isDark?: boolean;
-}) => (
-  <OptionsContainer translateY={translateY} isInner={isInner}>
-    {options.map((option) => (
-      <div
-        key={option.key}
-        className={`${option.key === 'delete' ? 'option-delete' : ''}`}
-        style={{
-          ...styles.option,
-          ...(isDark ? styles.optionDark : {})
-        }}
-      >
-        <div style={styles.optionContent}>
-          <span style={styles.label}>{option.label}</span>
-        </div>
-      </div>
-    ))}
-  </OptionsContainer>
-);
-
 export function QuickSettings(): JSX.Element {
   const socket = useSocket();
   const dispatch = useAppDispatch();
@@ -248,41 +107,6 @@ export function QuickSettings(): JSX.Element {
   const [settings, setSettings] = useState(defaultSettings);
 
   const [activeOption, setActiveOption] = useState(0);
-  const ITEM_HEIGHT = 38;
-  const ITEM_MARGIN = 25;
-  const EXTRA_MARGIN_AFTER_DELETE = 10;
-  const VIEWPORT_HEIGHT = 480; // altura del viewport (contenedor principal)
-
-  // Calcula la posición para el OptionsList blanco
-  const calculatePosition = (activeOption: number) => {
-    const halfContainer = VIEWPORT_HEIGHT / 2;
-    const halfItem = ITEM_HEIGHT / 2;
-    let totalOffset = activeOption * (ITEM_HEIGHT + ITEM_MARGIN);
-
-    if (activeOption > 1) {
-      totalOffset += EXTRA_MARGIN_AFTER_DELETE;
-    }
-
-    return halfContainer - totalOffset - halfItem;
-  };
-
-  // Calcula la posición para el texto negro dentro del active-indicator
-  const calculateDarkTextPosition = (activeOption: number) => {
-    // Calculamos la posición igual que el texto blanco
-    const halfContainer = VIEWPORT_HEIGHT / 2;
-    const halfItem = ITEM_HEIGHT / 2;
-    let totalOffset = activeOption * (ITEM_HEIGHT + ITEM_MARGIN);
-
-    if (activeOption > 1) {
-      totalOffset += EXTRA_MARGIN_AFTER_DELETE;
-    }
-
-    // Ajustamos por el translate(-50%, -50%) del contenedor padre
-    const position = halfContainer - totalOffset - halfItem;
-    const heightCompensation = VIEWPORT_HEIGHT / 2;
-
-    return position - heightCompensation;
-  };
 
   const presets = useAppSelector((state) => state.presets);
   const currentScreen = useAppSelector((state) => state.screen.value);
@@ -310,9 +134,8 @@ export function QuickSettings(): JSX.Element {
 
   const handleAnimationEnd = () => {
     setHoldAnimation('finished');
-    switch (
-      settings[activeIndex].key //<<<<<<< Verify this
-    ) {
+    console.log('Termino la animacion ✔');
+    switch (settings[activeOption].key) {
       case 'delete': {
         dispatch(deletePreset());
         dispatch(setScreen('pressets'));
@@ -334,20 +157,11 @@ export function QuickSettings(): JSX.Element {
         );
       },
       left() {
-        setActiveIndex((prev) => Math.max(prev - 1, 1));
-        /* setActiveOption((prev) => {
-          console.log('Math.max(prev - 1, 0)', Math.max(prev - 1, 0));
-          return Math.max(prev - 1, 1);
-        }); */
-        setActiveOption((prev) => (prev > 0 ? prev - 1 : prev));
+        setActiveOption((prev) => Math.max(prev - 1, 0));
         setCounterESGG(0);
       },
       right() {
-        setActiveIndex((prev) => Math.min(prev + 1, settings.length - 1));
-        //setActiveOption((prev) => Math.min(prev + 1, menuOptions.length - 1));
-        setActiveOption((prev) =>
-          prev < settings.length - 1 ? prev + 1 : prev
-        );
+        setActiveOption((prev) => Math.min(prev + 1, settings.length - 1));
         if (settings[activeOption].key === 'exit') {
           setCounterESGG(counterESGG + 1);
         }
@@ -364,17 +178,17 @@ export function QuickSettings(): JSX.Element {
         console.log('settings[activeOption]', settings[activeOption]);
 
         if (settings[activeOption].longpress) {
-          console.log("we're on longpress?");
+          console.log("we're on longpress?"); //✔
           setHoldAnimation('running');
           return;
         }
-        switch (settings[activeIndex].key) {
+        switch (settings[activeOption].key) {
           case 'prevScreen': {
             if (!routes[currentScreen].parent) {
               console.error("return to previous screen doesn't exist");
               break;
             }
-
+            //✔
             if (currentScreen === 'pressetSettings')
               dispatch(discardSettings());
 
@@ -383,11 +197,14 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'home': {
+            //✔
             socket.emit('action', 'home');
+            console.log('home');
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
           case 'details': {
+            //✔
             dispatch(
               setDefaultProfileSelected(
                 defaultProfiles[defaultProfileActiveIndexSwiper]
@@ -402,27 +219,38 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'edit': {
+            //✔
             dispatch(resetActiveSetting());
             dispatch(setScreen('pressetSettings'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
           case 'purge': {
+            //✔
             socket.emit('action', 'purge');
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
           case 'preheat': {
+            //❌
             socket.emit('action', 'preheat');
             break;
           }
+          case 'calibrate': {
+            //✔
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(setScreen('calibrateScale'));
+            break;
+          }
           case 'wifi': {
+            //✔
             dispatch(
               setBubbleDisplay({ visible: true, component: 'wifiSettings' })
             );
             break;
           }
           case 'config': {
+            //✔
             dispatch(
               setBubbleDisplay({ visible: true, component: 'settings' })
             );
@@ -436,6 +264,7 @@ export function QuickSettings(): JSX.Element {
           }
 
           case 'exit': {
+            //✔
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
@@ -445,27 +274,26 @@ export function QuickSettings(): JSX.Element {
     !bubbleDisplay.visible || waitingForActionAlreadySent
   );
 
+  const requiresProfileContext: boolean =
+    !(
+      presets.value.length === 0 ||
+      presets.activeIndexSwiper === presets.value.length ||
+      (presets.option !== 'HOME' && presets.option !== 'PRESSETS')
+    ) && currentScreen === 'pressets';
+
   useEffect(() => {
     const context: QuickSettingOption[] = profileContextSettings;
 
-    const requiresProfileContext: boolean =
-      !(
-        presets.value.length === 0 ||
-        presets.activeIndexSwiper === presets.value.length ||
-        (presets.option !== 'HOME' && presets.option !== 'PRESSETS')
-      ) && currentScreen === 'pressets';
-
     const backAvailable = !!routes[currentScreen].parent;
 
-    const osStatusSettingOption: QuickSettingOption = {
-      key: 'os_update',
-      label: osStatusInfo
-    };
+    const osStatusSettingOption: QuickSettingOption | null = osStatusVisible
+      ? { key: 'os_update', label: osStatusInfo }
+      : null;
 
     switch (currentScreen) {
       case 'defaultProfiles':
         setSettings([
-          /* osStatusSettingOption, */
+          ...(osStatusSettingOption ? [osStatusSettingOption] : []),
           ...[{ key: 'details', label: 'Show details' }],
           ...(backAvailable ? [prevScreenSetting] : []),
           ...defaultSettings
@@ -473,7 +301,7 @@ export function QuickSettings(): JSX.Element {
         break;
       default:
         setSettings([
-          /* osStatusSettingOption, */
+          ...(osStatusSettingOption ? [osStatusSettingOption] : []),
           ...(requiresProfileContext === true ? context : []),
           ...(backAvailable ? [prevScreenSetting] : []),
           ...defaultSettings
@@ -485,14 +313,9 @@ export function QuickSettings(): JSX.Element {
     presets.activeIndexSwiper,
     presets.option,
     currentScreen,
-    osStatusInfo
+    osStatusInfo,
+    osStatusVisible
   ]);
-
-  useEffect(() => {
-    if (swiper) {
-      swiper.slideTo(activeIndex, 0, false); //<<<<<<<<< Verify this
-    }
-  }, [activeIndex, swiper]);
 
   useEffect(() => {
     if (counterESGG >= 20) {
@@ -505,7 +328,7 @@ export function QuickSettings(): JSX.Element {
   const getSettingClasses = useCallback(
     (isActive: boolean, key: string) => {
       return `
-      settings-item ${isActive ? 'active-setting' : ''}
+      settings-item ${isActive ? 'active-setting' : ''} 
       ${isActive && holdAnimation === 'running' ? 'animated-setting' : ''}
       ${key === 'os_update' ? `os-info-${osStatusData.status.toLowerCase()}` : ''}
       `;
@@ -513,8 +336,35 @@ export function QuickSettings(): JSX.Element {
     [holdAnimation, osStatusData]
   );
 
+  const lastProfileContextIndex = useMemo(() => {
+    const profileKeys = profileContextSettings.map((opt) => opt.key);
+    const indices = settings
+      .map((opt, index) => (profileKeys.includes(opt.key) ? index : -1))
+      .filter((idx) => idx !== -1);
+    return indices.length > 0 ? Math.max(...indices) : -1;
+  }, [settings]);
+
+  const optionPositionOutter = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeOption,
+        lastProfileContextIndex: lastProfileContextIndex
+      }),
+    [activeOption]
+  );
+
+  const optionPositionInner = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeOption,
+        lastProfileContextIndex: lastProfileContextIndex,
+        adjustmentFn: (position: number) => position - VIEWPORT_HEIGHT / 2
+      }),
+    [activeOption]
+  );
+
   return (
-    <div className="main-quick-settings">
+    <Styled.QuickSettingsContainer>
       {/* <Swiper
         onSwiper={setSwiper}
         slidesPerView={8}
@@ -527,7 +377,7 @@ export function QuickSettings(): JSX.Element {
         style={{ paddingLeft: '29px', top: '-4px' }}
       >
         {settings.map((setting, index: number) => {
-          const isActive = index === activeIndex;
+          const isActive = index === activeIndex; // ---> 👁‍🗨
           if (setting.key === 'os_update' && !osStatusVisible) {
             return <></>;
           }
@@ -561,22 +411,49 @@ export function QuickSettings(): JSX.Element {
           );
         })}
       </Swiper> */}
+      <Styled.Viewport>
+        <Styled.OptionsContainer
+          translateY={optionPositionOutter}
+          bringToFront={holdAnimation === 'running'}
+        >
+          {settings.map((option, index) => {
+            const isLastProfileContext = index === lastProfileContextIndex;
+            return (
+              <Styled.Option
+                key={option.key}
+                isLastProfileContext={isLastProfileContext}
+                isAnimating={holdAnimation === 'running' && option.longpress}
+                onAnimationEnd={handleAnimationEnd}
+              >
+                <span>{option.label}</span>
+              </Styled.Option>
+            );
+          })}
+        </Styled.OptionsContainer>
 
-      <div style={styles.viewport}>
-        <OptionsList
-          options={settings}
-          translateY={calculatePosition(activeOption)}
-        />
-
-        <div className="active-indicator">
-          <OptionsList
-            options={settings}
-            translateY={calculateDarkTextPosition(activeOption)}
+        <Styled.ActiveIndicator holdAnimation={holdAnimation}>
+          <Styled.OptionsContainer
+            translateY={optionPositionInner}
             isInner={true}
-            isDark={true}
-          />
-        </div>
-      </div>
-    </div>
+          >
+            {settings.map((option, index) => {
+              const isLastProfileContext = index === lastProfileContextIndex;
+              return (
+                <Styled.Option
+                  key={option.key}
+                  isLastProfileContext={isLastProfileContext}
+                  isMarquee={activeOption === index && option.label.length > 24}
+                  onAnimationEnd={() =>
+                    console.log('Termino la animacion Option::Inner ❌')
+                  }
+                >
+                  <span>{option.label}</span>
+                </Styled.Option>
+              );
+            })}
+          </Styled.OptionsContainer>
+        </Styled.ActiveIndicator>
+      </Styled.Viewport>
+    </Styled.QuickSettingsContainer>
   );
 }
