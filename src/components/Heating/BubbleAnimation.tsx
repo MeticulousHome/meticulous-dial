@@ -12,13 +12,15 @@ const TEMP_RANGE_START = 20;
 const TEMP_RANGE_END = 90;
 const TEMP_RANGE_SIZE = TEMP_RANGE_END - TEMP_RANGE_START;
 
-const backgroundWidth = COLS * DOT_MAX_SIZE + (COLS - 1) * COL_GAP;
-const backgroundHeight = ROWS * DOT_MAX_SIZE + (ROWS - 1) * ROW_GAP;
+export const BUBBLES_CONTAINER_WIDTH =
+  COLS * DOT_MAX_SIZE + (COLS - 1) * COL_GAP;
+export const BUBBLES_CONTAINER_HEIGHT =
+  ROWS * DOT_MAX_SIZE + (ROWS - 1) * ROW_GAP;
 
 const Dots = styled.div<{ $gap: number }>`
   position: relative;
-  width: ${backgroundWidth}px;
-  height: ${backgroundHeight}px;
+  width: ${BUBBLES_CONTAINER_WIDTH}px;
+  height: ${BUBBLES_CONTAINER_HEIGHT}px;
   background: black;
 
   display: flex;
@@ -68,8 +70,8 @@ const linearGradientCSS = `linear-gradient(180deg, ${gradientColors
 
 const GradientContainer = styled.div`
   position: absolute;
-  width: ${backgroundWidth}px;
-  height: ${backgroundHeight}px;
+  width: ${BUBBLES_CONTAINER_WIDTH}px;
+  height: ${BUBBLES_CONTAINER_HEIGHT}px;
   transition: background-position-y 0.3s;
   background: ${linearGradientCSS};
   background-position-y: 0%;

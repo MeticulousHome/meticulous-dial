@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, ReactElement } from 'react';
+import React, { forwardRef, PropsWithChildren, ReactElement } from 'react';
 import './modular.less';
 
 export const ModularScreen: React.FC<{
@@ -15,14 +15,14 @@ interface ModularSectionProps extends PropsWithChildren {
   >['style'];
 }
 
-export const ModularLeft: React.FC<ModularSectionProps> = (props) => (
-  <div {...props} className="modular-left" />
+export const ModularLeft = forwardRef<HTMLDivElement, ModularSectionProps>(
+  (props, ref) => <div ref={ref} {...props} className="modular-left" />
 );
 
-export const ModularRight: React.FC<ModularSectionProps> = (props) => (
-  <div {...props} className="modular-right" />
+export const ModularRight = forwardRef<HTMLDivElement, ModularSectionProps>(
+  (props, ref) => <div ref={ref} {...props} className="modular-right" />
 );
 
-export const ModularFooter: React.FC<ModularSectionProps> = (props) => (
-  <div {...props} className="modular-footer" />
+export const ModularFooter = forwardRef<HTMLDivElement, ModularSectionProps>(
+  (props, ref) => <div ref={ref} {...props} className="modular-footer" />
 );
