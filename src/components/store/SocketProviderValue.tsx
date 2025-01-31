@@ -66,6 +66,18 @@ export const SocketProviderValue = () => {
           return;
         }
         if (data?.name === 'heating') {
+          dispatch(setWaterStatus(true));
+          dispatch(setScreen('heating'));
+          return;
+        }
+        // FIXME: We desperately need to refactor the machines statemachine -_-'
+        if (data?.name === 'Pour water and click to continue') {
+          dispatch(setWaterStatus(false));
+          dispatch(setScreen('heating'));
+          return;
+        }
+        if (data?.name === 'click to start') {
+          dispatch(setWaterStatus(true));
           dispatch(setScreen('heating'));
           return;
         }
