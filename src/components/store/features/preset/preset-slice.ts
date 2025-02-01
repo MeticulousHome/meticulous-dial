@@ -155,30 +155,32 @@ export const setNextPreset = createAsyncThunk(
     const state = getState() as RootState;
     const presetState = { ...state.presets } as PresetsState;
 
-    if (presetState.activeIndexSwiper < presetState.value.length) {
-      const newIndex = presetState.activeIndexSwiper + 1;
+    const currentActiveIndex =
+      presetState.activeIndexSwiper > -1
+        ? presetState.activeIndexSwiper
+        : presetState.defaultPresetIndex;
 
-      if (newIndex === presetState.value.length) return;
+    if (presetState.activeIndexSwiper < presetState.value.length)
+      presetState.activeIndexSwiper += 1;
 
-      const presetList = [...presetState.value].map((i) => ({
-        ...i,
-        isDefault: false
+    if (currentActiveIndex === presetState.value.length) return;
+
+    if (currentActiveIndex < presetState.value.length - 1) {
+      const newActivePresetIndex = currentActiveIndex + 1;
+
+      // Actualizar lista de presets con el nuevo activo
+      const presetList = presetState.value.map((preset, idx) => ({
+        ...preset,
+        isDefault: idx === newActivePresetIndex
       }));
 
-      presetList[newIndex] = {
-        ...presetList[newIndex],
-        isDefault: true
-      };
-
-      presetState.activePreset = presetList[newIndex];
-      presetState.activeIndexSwiper = newIndex;
+      presetState.activePreset = presetList[newActivePresetIndex];
       presetState.updatingSettings = {
-        presetId: presetList[newIndex].id.toString(),
-        settings: presetList[newIndex].settings || []
+        presetId: presetList[newActivePresetIndex].id.toString(),
+        settings: presetList[newActivePresetIndex].settings || []
       };
       presetState.value = presetList;
     }
-
     dispatch(
       setPresetState({
         ...presetState
