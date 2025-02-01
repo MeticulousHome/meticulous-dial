@@ -1,6 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-
-import './quick-settings.css';
+import { useEffect, useMemo, useState } from 'react';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
@@ -17,24 +15,22 @@ import {
   setOptionPressets,
   discardSettings
 } from '../store/features/preset/preset-slice';
-
 import { useOSStatus } from '../../hooks/useDeviceOSStatus';
-import { marqueeIfNeeded } from '../shared/MarqueeValue';
-import { formatTime } from '../../utils';
 import { routes } from '../../navigation/routes';
-import * as Styled from './QuickSettings.styled';
+import Styled, { VIEWPORT_HEIGHT } from './QuickSettings.styled';
+import { calculateOptionPosition } from './QuickSettings.utils';
+import { formatTime } from '../../utils';
 
-import {
-  calculateOptionPosition,
-  VIEWPORT_HEIGHT
-} from './QuickSettings.utils';
+import './quick-settings.css';
 
-interface QuickSettingOption {
+export type QuickSettingOption = {
   key: string;
   label: string;
   longpress?: boolean;
-  seperator_after?: boolean;
-}
+  hasSeparator?: boolean;
+  isStatusInfo?: boolean;
+  status?: string;
+};
 
 const profileContextSettings: QuickSettingOption[] = [
   {
@@ -45,7 +41,7 @@ const profileContextSettings: QuickSettingOption[] = [
     key: 'delete',
     label: 'Hold to delete profile',
     longpress: true,
-    seperator_after: true
+    hasSeparator: true
   }
 ];
 
@@ -57,7 +53,8 @@ const prevScreenSetting: QuickSettingOption = {
 const defaultSettings: QuickSettingOption[] = [
   {
     key: 'home',
-    label: 'home'
+    label: 'home',
+    longpress: true
   },
   {
     key: 'purge',
@@ -70,7 +67,7 @@ const defaultSettings: QuickSettingOption[] = [
   {
     key: 'brew_config',
     label: 'Brew Settings',
-    seperator_after: true
+    hasSeparator: true
   },
   {
     key: 'wifi',
@@ -79,7 +76,9 @@ const defaultSettings: QuickSettingOption[] = [
 
   {
     key: 'config',
-    label: 'config'
+    label: 'config lorem ipsum dolor sit amet consectetur adipiscing elit',
+    hasSeparator: true,
+    longpress: true
   },
   {
     key: 'exit',
@@ -106,8 +105,6 @@ export function QuickSettings(): JSX.Element {
   );
   const [settings, setSettings] = useState(defaultSettings);
 
-  const [activeOption, setActiveOption] = useState(0);
-
   const presets = useAppSelector((state) => state.presets);
   const currentScreen = useAppSelector((state) => state.screen.value);
 
@@ -117,6 +114,12 @@ export function QuickSettings(): JSX.Element {
 
   const { data: osStatusData, error: osStatusError } = useOSStatus();
   const osStatusVisible = osStatusData.status !== 'IDLE';
+  const [activeOption, setActiveOption] = useState(0);
+
+  useEffect(() => {
+    setActiveOption(osStatusVisible ? 1 : 0);
+  }, [osStatusVisible]);
+
   const osStatusInfo = useMemo(() => {
     if (osStatusError) {
       return '';
@@ -148,7 +151,6 @@ export function QuickSettings(): JSX.Element {
   useHandleGestures(
     {
       context() {
-        setActiveIndex(1);
         dispatch(
           setBubbleDisplay({
             visible: !bubbleDisplay.visible,
@@ -157,7 +159,8 @@ export function QuickSettings(): JSX.Element {
         );
       },
       left() {
-        setActiveOption((prev) => Math.max(prev - 1, 0));
+        const minIndex = osStatusVisible ? 1 : 0;
+        setActiveOption((prev) => Math.max(prev - 1, minIndex));
         setCounterESGG(0);
       },
       right() {
@@ -287,7 +290,12 @@ export function QuickSettings(): JSX.Element {
     const backAvailable = !!routes[currentScreen].parent;
 
     const osStatusSettingOption: QuickSettingOption | null = osStatusVisible
-      ? { key: 'os_update', label: osStatusInfo }
+      ? {
+          key: 'os_update',
+          label: osStatusInfo,
+          isStatusInfo: true,
+          status: osStatusData.status.toLowerCase()
+        }
       : null;
 
     switch (currentScreen) {
@@ -319,48 +327,28 @@ export function QuickSettings(): JSX.Element {
 
   useEffect(() => {
     if (counterESGG >= 20) {
-      console.log('Easter Egg on');
       dispatch(setBubbleDisplay({ visible: false, component: null }));
       dispatch(setScreen('snake'));
     }
   }, [counterESGG]);
 
-  const getSettingClasses = useCallback(
-    (isActive: boolean, key: string) => {
-      return `
-      settings-item ${isActive ? 'active-setting' : ''} 
-      ${isActive && holdAnimation === 'running' ? 'animated-setting' : ''}
-      ${key === 'os_update' ? `os-info-${osStatusData.status.toLowerCase()}` : ''}
-      `;
-    },
-    [holdAnimation, osStatusData]
-  );
-
-  const lastProfileContextIndex = useMemo(() => {
-    const profileKeys = profileContextSettings.map((opt) => opt.key);
-    const indices = settings
-      .map((opt, index) => (profileKeys.includes(opt.key) ? index : -1))
-      .filter((idx) => idx !== -1);
-    return indices.length > 0 ? Math.max(...indices) : -1;
-  }, [settings]);
-
   const optionPositionOutter = useMemo(
     () =>
       calculateOptionPosition({
         activeOptionIdx: activeOption,
-        lastProfileContextIndex: lastProfileContextIndex
+        settings
       }),
-    [activeOption]
+    [activeOption, settings]
   );
 
   const optionPositionInner = useMemo(
     () =>
       calculateOptionPosition({
         activeOptionIdx: activeOption,
-        lastProfileContextIndex: lastProfileContextIndex,
-        adjustmentFn: (position: number) => position - VIEWPORT_HEIGHT / 2
+        adjustmentFn: (position) => position - VIEWPORT_HEIGHT / 2,
+        settings
       }),
-    [activeOption]
+    [activeOption, settings]
   );
 
   return (
@@ -416,19 +404,26 @@ export function QuickSettings(): JSX.Element {
           translateY={optionPositionOutter}
           bringToFront={holdAnimation === 'running'}
         >
-          {settings.map((option, index) => {
-            const isLastProfileContext = index === lastProfileContextIndex;
-            return (
+          {settings.map((option) =>
+            option.key === 'os_update' ? (
+              <Styled.OsStatusOption
+                key={option.key}
+                status={option.status}
+                hasSeparator={option.hasSeparator}
+              >
+                <span>{option.label}</span>
+              </Styled.OsStatusOption>
+            ) : (
               <Styled.Option
                 key={option.key}
-                isLastProfileContext={isLastProfileContext}
+                hasSeparator={option.hasSeparator}
                 isAnimating={holdAnimation === 'running' && option.longpress}
                 onAnimationEnd={handleAnimationEnd}
               >
                 <span>{option.label}</span>
               </Styled.Option>
-            );
-          })}
+            )
+          )}
         </Styled.OptionsContainer>
 
         <Styled.ActiveIndicator holdAnimation={holdAnimation}>
@@ -436,12 +431,19 @@ export function QuickSettings(): JSX.Element {
             translateY={optionPositionInner}
             isInner={true}
           >
-            {settings.map((option, index) => {
-              const isLastProfileContext = index === lastProfileContextIndex;
-              return (
+            {settings.map((option, index) =>
+              option.key === 'os_update' ? (
+                <Styled.OsStatusOption
+                  key={option.key}
+                  status={option.status} // Pasa el estado para estilos
+                  hasSeparator={option.hasSeparator}
+                >
+                  <span>{option.label}</span>
+                </Styled.OsStatusOption>
+              ) : (
                 <Styled.Option
                   key={option.key}
-                  isLastProfileContext={isLastProfileContext}
+                  hasSeparator={option.hasSeparator}
                   isMarquee={activeOption === index && option.label.length > 24}
                   onAnimationEnd={() =>
                     console.log('Termino la animacion Option::Inner ❌')
@@ -449,8 +451,8 @@ export function QuickSettings(): JSX.Element {
                 >
                   <span>{option.label}</span>
                 </Styled.Option>
-              );
-            })}
+              )
+            )}
           </Styled.OptionsContainer>
         </Styled.ActiveIndicator>
       </Styled.Viewport>
