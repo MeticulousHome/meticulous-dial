@@ -97,7 +97,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const [startCoffe, setStartCoffe] = useState(false);
   const ready = useRef(false);
   const currentScreen = useAppSelector((state) => state.screen.value);
-  const [calculatedIndex, setCalculatedIndex] = useState(0);
+  //const [calculatedIndex, setCalculatedIndex] = useState(0);
   const pressetTitleContenExistValidation = useCallback(() => {
     if (!pressetsTitleContentRef.current) {
       const element = document.getElementById('pressets-title-content');
@@ -335,9 +335,13 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       left() {
         if (!transitioning) {
           //We need 'prev != 0' to avoid the first element to be selected when component is mounted
-          setCalculatedIndex((prev) =>
-            prev !== 0 && prev < presets.value.length ? prev + 1 : prev
-          );
+          /* setCalculatedIndex((prev) => {
+            console.log('prev', prev);
+            console.log('presets.value.length', presets.value.length);
+            return prev !== 0 && prev < presets.value.length + 1
+              ? prev + 1
+              : prev;
+          }); */
 
           if (!option.animating && option.screen === 'PRESSETS') {
             dispatch(setNextPreset());
@@ -395,7 +399,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       },
       right() {
         if (!transitioning) {
-          setCalculatedIndex((prev) => (prev > 0 ? prev - 1 : prev));
+          /*  setCalculatedIndex((prev) => {
+            console.log('prev', prev);
+            return prev > 0 ? prev - 1 : prev;
+          }); */
           if (!option.animating && option.screen === 'PRESSETS') {
             dispatch(setPrevPreset());
             sendCurrentPressetId(presets.activeIndexSwiper - 1, false);
@@ -458,11 +465,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     },
     bubbleDisplay.visible || option.animating
   );
-
-  /* useEffect(() => {
-    const index = presets.activeIndexSwiper;
-    presetSwiperRef.current?.swiper.slideTo(index);
-  }, [presets.activeIndexSwiper]); */
 
   useEffect(() => {
     if (pressetSwiper) {
@@ -538,7 +540,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     setOption((prev) => ({ ...prev, animating: false }));
     const myIndex = presets.value.findIndex((e) => e.id === profileHoverId);
     presetSwiperRef.current.swiper.slideTo(myIndex);
-    dispatch(setActiveIndexSwiper(myIndex));
+    //dispatch(setActiveIndexSwiper(myIndex));
     setOption({ screen: 'PRESSETS', animating: false });
   }, [profileHoverId]);
 
@@ -613,6 +615,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               bulletActiveClass: 'swiper-pagination-bullet-active',
               bulletClass: 'swiper-pagination-bullet'
             }}
+            speed={600}
           >
             {presets.value.length &&
               presets.value.map((preset, index) => (
