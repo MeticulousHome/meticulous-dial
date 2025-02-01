@@ -1,6 +1,32 @@
 import { styled, keyframes, css } from 'styled-components';
 
-export const QuickSettingsContainer = styled.div`
+/**
+ * Total height of the menu's visible area (in pixels).
+ * It is also the size of the entire visible area in the application.
+ * @constant {number}
+ */
+export const VIEWPORT_HEIGHT = 480;
+
+/**
+ * Height of each menu item (in pixels).
+ * @constant {number}
+ */
+export const ITEM_HEIGHT = 38;
+
+/**
+ * Standard bottom margin between menu items (in pixels).
+ * @constant {number}
+ */
+
+export const ITEM_MARGIN = 25;
+
+/**
+ * Additional margin applied after items with visual separators (in pixels).
+ * @constant {number}
+ */
+export const EXTRA_MARGIN_AFTER_DELETE = 10;
+
+const QuickSettingsContainer = styled.div`
   display: flex;
   align-items: center;
   height: 100%;
@@ -9,7 +35,7 @@ export const QuickSettingsContainer = styled.div`
   font-family: 'ABC Diatype Mono';
 `;
 
-export const Viewport = styled.div`
+const Viewport = styled.div`
   flex: 1;
   position: relative;
   overflow: hidden;
@@ -49,13 +75,13 @@ const LeftRightAnimation = keyframes`
   }
 `;
 
-export const ActiveIndicator = styled.div<{ holdAnimation: string }>`
+const ActiveIndicator = styled.div<{ holdAnimation: string }>`
   position: absolute;
   left: 228px;
   top: 50%;
   transform: translate(-50%, -50%);
   width: 95%;
-  height: 38px;
+  height: ${ITEM_HEIGHT}px;
   background: linear-gradient(
     90deg,
     #1d1d1d 0%,
@@ -77,7 +103,7 @@ export const ActiveIndicator = styled.div<{ holdAnimation: string }>`
       : 'none'};
 `;
 
-export const OptionsContainer = styled.div<{
+const OptionsContainer = styled.div<{
   translateY: number;
   isInner?: boolean;
   bringToFront?: boolean;
@@ -99,8 +125,8 @@ export const OptionsContainer = styled.div<{
 `;
 
 //height: 38px; //this should't be a fixed value
-export const Option = styled.div<{
-  isLastProfileContext?: boolean;
+const Option = styled.div<{
+  hasSeparator?: boolean;
   isAnimating?: boolean;
   isMarquee?: boolean;
 }>`
@@ -114,15 +140,13 @@ export const Option = styled.div<{
   display: flex;
   align-items: center;
   position: relative;
-  height: 38px;
+  height: ${ITEM_HEIGHT}px;
 
   ${(props) =>
-    props.isLastProfileContext
-      ? 'margin-bottom: 35px;'
-      : 'margin-bottom: 25px;'}
+    props.hasSeparator ? 'margin-bottom: 35px;' : 'margin-bottom: 25px;'}
 
   ${(props) =>
-    props.isLastProfileContext &&
+    props.hasSeparator &&
     `
     &::after {
       content: '';
@@ -149,13 +173,20 @@ export const Option = styled.div<{
       `}
   }
 `;
-/**
- *  ${({ isMarquee }) =>
-    isMarquee &&
-    css`
-      position: relative;
-      display: inline-block;
-      animation: ${LeftRightAnimation} 6s infinite alternate ease-in-out;
-      animation-delay: 0.5s;
-    `}
- */
+
+const OsStatusOption = styled(Option)<{ status?: string }>`
+  text-transform: none;
+  ${({ status }) => status === 'complete' && `color: #ffc107`}
+  ${({ status }) => status === 'failed' && `color: #f44336`}
+  ${({ status }) => status === 'downloading' && `color: #ffc107`}
+  ${({ status }) => status === 'installing' && `color: #ffc107`}
+`;
+
+export default {
+  QuickSettingsContainer,
+  Viewport,
+  ActiveIndicator,
+  OptionsContainer,
+  Option,
+  OsStatusOption
+};
