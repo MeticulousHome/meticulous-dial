@@ -6,7 +6,6 @@ import {
   setScreen
 } from '../store/features/screens/screens-slice';
 import { useSocket } from '../store/SocketManager';
-import '../OSStatus/OSStatus.css';
 
 import {
   deletePreset,
@@ -17,11 +16,12 @@ import {
 } from '../store/features/preset/preset-slice';
 import { useOSStatus } from '../../hooks/useDeviceOSStatus';
 import { routes } from '../../navigation/routes';
-import Styled, { VIEWPORT_HEIGHT } from './QuickSettings.styled';
+import Styled, {
+  VIEWPORT_HEIGHT,
+  MARQUEE_MIN_TEXT_LENGTH
+} from './QuickSettings.styled';
 import { calculateOptionPosition } from './QuickSettings.utils';
 import { formatTime } from '../../utils';
-
-import './quick-settings.css';
 
 export type QuickSettingOption = {
   key: string;
@@ -62,7 +62,7 @@ const defaultSettings: QuickSettingOption[] = [
   },
   {
     key: 'preheat',
-    label: 'Preheat brew chamber with long text'
+    label: ''
   },
   {
     key: 'brew_config',
@@ -351,6 +351,13 @@ export function QuickSettings(): JSX.Element {
     [activeOption, settings]
   );
 
+  const preheatTimer = useMemo(
+    () =>
+      PreheatTimeLeft > 0
+        ? `Stop preheat ${formatTime(PreheatTimeLeft)}`
+        : 'Preheat brew chamber',
+    [PreheatTimeLeft]
+  );
   return (
     <Styled.QuickSettingsContainer>
       {/* <Swiper
@@ -420,7 +427,9 @@ export function QuickSettings(): JSX.Element {
                 isAnimating={holdAnimation === 'running' && option.longpress}
                 onAnimationEnd={handleAnimationEnd}
               >
-                <span>{option.label}</span>
+                <span>
+                  {option.key === 'preheat' ? preheatTimer : option.label}
+                </span>
               </Styled.Option>
             )
           )}
@@ -435,7 +444,7 @@ export function QuickSettings(): JSX.Element {
               option.key === 'os_update' ? (
                 <Styled.OsStatusOption
                   key={option.key}
-                  status={option.status} // Pasa el estado para estilos
+                  status={option.status}
                   hasSeparator={option.hasSeparator}
                 >
                   <span>{option.label}</span>
@@ -444,12 +453,17 @@ export function QuickSettings(): JSX.Element {
                 <Styled.Option
                   key={option.key}
                   hasSeparator={option.hasSeparator}
-                  isMarquee={activeOption === index && option.label.length > 24}
+                  isMarquee={
+                    activeOption === index &&
+                    option.label.length > MARQUEE_MIN_TEXT_LENGTH
+                  }
                   onAnimationEnd={() =>
                     console.log('Termino la animacion Option::Inner ❌')
                   }
                 >
-                  <span>{option.label}</span>
+                  <span>
+                    {option.key === 'preheat' ? preheatTimer : option.label}
+                  </span>
                 </Styled.Option>
               )
             )}

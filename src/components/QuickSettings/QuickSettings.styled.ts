@@ -26,6 +26,12 @@ export const ITEM_MARGIN = 25;
  */
 export const EXTRA_MARGIN_AFTER_DELETE = 10;
 
+/**
+ * Minimum length of text for marquee animation (Scroll Text animation).
+ * @constant {number}
+ */
+export const MARQUEE_MIN_TEXT_LENGTH = 24;
+
 const QuickSettingsContainer = styled.div`
   display: flex;
   align-items: center;
@@ -124,7 +130,6 @@ const OptionsContainer = styled.div<{
   ${(props) => (props.bringToFront ? 'z-index: 20;' : 'z-index: 10;')}
 `;
 
-//height: 38px; //this should't be a fixed value
 const Option = styled.div<{
   hasSeparator?: boolean;
   isAnimating?: boolean;
