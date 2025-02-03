@@ -81,7 +81,7 @@ const LeftRightAnimation = keyframes`
   }
 `;
 
-const ActiveIndicator = styled.div<{ holdAnimation: string }>`
+const ActiveIndicator = styled.div<{ $holdAnimation: string }>`
   position: absolute;
   left: 228px;
   top: 50%;
@@ -101,8 +101,8 @@ const ActiveIndicator = styled.div<{ holdAnimation: string }>`
   overflow: hidden;
   z-index: 10;
 
-  animation: ${({ holdAnimation }) =>
-    holdAnimation === 'running'
+  animation: ${({ $holdAnimation }) =>
+    $holdAnimation === 'running'
       ? css`
           ${SlidableBackground} 1s ease normal
         `
@@ -110,9 +110,9 @@ const ActiveIndicator = styled.div<{ holdAnimation: string }>`
 `;
 
 const OptionsContainer = styled.div<{
-  translateY: number;
-  isInner?: boolean;
-  bringToFront?: boolean;
+  $translateY: number;
+  $isInner?: boolean;
+  $bringToFront?: boolean;
 }>`
   position: absolute;
   width: 100%;
@@ -120,20 +120,20 @@ const OptionsContainer = styled.div<{
   flex-direction: column;
   align-items: center;
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: ${(props) =>
-    props.isInner
-      ? `translate(-50%, 0) translateY(${props.translateY}px)`
-      : `translateY(${props.translateY}px)`};
+  transform: ${({ $translateY, $isInner, $bringToFront }) =>
+    $isInner
+      ? `translate(-50%, 0) translateY(${$translateY}px)`
+      : `translateY(${$translateY}px)`};
 
-  ${(props) => (props.isInner ? 'color: #1d1d1d;' : 'color: #dddddd;')}
-  ${(props) => props.isInner && 'top: 50%; left: 50%;'}
-  ${(props) => (props.bringToFront ? 'z-index: 20;' : 'z-index: 10;')}
+  ${({ $isInner }) => ($isInner ? 'color: #1d1d1d;' : 'color: #dddddd;')}
+  ${({ $isInner }) => $isInner && 'top: 50%; left: 50%;'}
+  ${({ $bringToFront }) => ($bringToFront ? 'z-index: 20;' : 'z-index: 10;')}
 `;
 
 const Option = styled.div<{
-  hasSeparator?: boolean;
-  isAnimating?: boolean;
-  isMarquee?: boolean;
+  $hasSeparator?: boolean;
+  $isAnimating?: boolean;
+  $isMarquee?: boolean;
 }>`
   text-transform: uppercase;
   border-radius: 4px;
@@ -147,11 +147,11 @@ const Option = styled.div<{
   position: relative;
   height: ${ITEM_HEIGHT}px;
 
-  ${(props) =>
-    props.hasSeparator ? 'margin-bottom: 35px;' : 'margin-bottom: 25px;'}
+  ${({ $hasSeparator }) =>
+    $hasSeparator ? 'margin-bottom: 35px;' : 'margin-bottom: 25px;'}
 
-  ${(props) =>
-    props.hasSeparator &&
+  ${({ $hasSeparator }) =>
+    $hasSeparator &&
     `
     &::after {
       content: '';
@@ -163,13 +163,13 @@ const Option = styled.div<{
   `}
 
   span {
-    ${({ isAnimating }) =>
-      isAnimating &&
+    ${({ $isAnimating }) =>
+      $isAnimating &&
       css`
         animation: ${WhiteTextReveal} 1s ease forwards;
       `}
-    ${({ isMarquee }) =>
-      isMarquee &&
+    ${({ $isMarquee }) =>
+      $isMarquee &&
       css`
         position: relative;
         display: inline-block;
@@ -179,12 +179,12 @@ const Option = styled.div<{
   }
 `;
 
-const OsStatusOption = styled(Option)<{ status?: string }>`
+const OsStatusOption = styled(Option)<{ $status?: string }>`
   text-transform: none;
-  ${({ status }) => status === 'complete' && `color: #ffc107`}
-  ${({ status }) => status === 'failed' && `color: #f44336`}
-  ${({ status }) => status === 'downloading' && `color: #ffc107`}
-  ${({ status }) => status === 'installing' && `color: #ffc107`}
+  ${({ $status }) => $status === 'complete' && `color: #ffc107`}
+  ${({ $status }) => $status === 'failed' && `color: #f44336`}
+  ${({ $status }) => $status === 'downloading' && `color: #ffc107`}
+  ${({ $status }) => $status === 'installing' && `color: #ffc107`}
 `;
 
 export default {

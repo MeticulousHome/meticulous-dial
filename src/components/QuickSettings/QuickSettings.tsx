@@ -53,8 +53,7 @@ const prevScreenSetting: QuickSettingOption = {
 const defaultSettings: QuickSettingOption[] = [
   {
     key: 'home',
-    label: 'home',
-    longpress: true
+    label: 'home'
   },
   {
     key: 'purge',
@@ -76,9 +75,7 @@ const defaultSettings: QuickSettingOption[] = [
 
   {
     key: 'config',
-    label: 'config lorem ipsum dolor sit amet consectetur adipiscing elit',
-    hasSeparator: true,
-    longpress: true
+    label: 'config'
   },
   {
     key: 'exit',
@@ -408,23 +405,23 @@ export function QuickSettings(): JSX.Element {
       </Swiper> */}
       <Styled.Viewport>
         <Styled.OptionsContainer
-          translateY={optionPositionOutter}
-          bringToFront={holdAnimation === 'running'}
+          $translateY={optionPositionOutter}
+          $bringToFront={holdAnimation === 'running'}
         >
           {settings.map((option) =>
             option.key === 'os_update' ? (
               <Styled.OsStatusOption
                 key={option.key}
-                status={option.status}
-                hasSeparator={option.hasSeparator}
+                $status={option.status}
+                $hasSeparator={option.hasSeparator}
               >
                 <span>{option.label}</span>
               </Styled.OsStatusOption>
             ) : (
               <Styled.Option
                 key={option.key}
-                hasSeparator={option.hasSeparator}
-                isAnimating={holdAnimation === 'running' && option.longpress}
+                $hasSeparator={option.hasSeparator}
+                $isAnimating={holdAnimation === 'running' && option.longpress}
                 onAnimationEnd={handleAnimationEnd}
               >
                 <span>
@@ -435,25 +432,25 @@ export function QuickSettings(): JSX.Element {
           )}
         </Styled.OptionsContainer>
 
-        <Styled.ActiveIndicator holdAnimation={holdAnimation}>
+        <Styled.ActiveIndicator $holdAnimation={holdAnimation}>
           <Styled.OptionsContainer
-            translateY={optionPositionInner}
-            isInner={true}
+            $translateY={optionPositionInner}
+            $isInner={true}
           >
             {settings.map((option, index) =>
               option.key === 'os_update' ? (
                 <Styled.OsStatusOption
                   key={option.key}
-                  status={option.status}
-                  hasSeparator={option.hasSeparator}
+                  $status={option.status}
+                  $hasSeparator={option.hasSeparator}
                 >
                   <span>{option.label}</span>
                 </Styled.OsStatusOption>
               ) : (
                 <Styled.Option
                   key={option.key}
-                  hasSeparator={option.hasSeparator}
-                  isMarquee={
+                  $hasSeparator={option.hasSeparator}
+                  $isMarquee={
                     activeOption === index &&
                     option.label.length > MARQUEE_MIN_TEXT_LENGTH
                   }
