@@ -1,4 +1,4 @@
-import { CSSProperties, useEffect, useState } from 'react';
+import { CSSProperties, useEffect } from 'react';
 import { styled } from 'styled-components';
 import { SwitchTransition, CSSTransition } from 'react-transition-group';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -14,6 +14,7 @@ import {
   ModularScreen
 } from '../ModularScreen/ModularScreen';
 import { formatTime } from '../../utils';
+import { useSettings, useUpdateSettings } from '../../hooks/useSettings';
 
 const TimeLeft = styled.div`
   font-family: 'ABC Diatype Mono';
@@ -73,8 +74,9 @@ export const Heating = () => {
   );
   const statsName = useAppSelector((state) => state.stats.name);
   const heatingFinished = statsName === 'click to start';
-  const [brewTrigger, setBrewTrigger] =
-    useState<(typeof OPTIONS)[number]['id']>('auto');
+
+  const { data: globalSettings } = useSettings();
+  const updateSettings = useUpdateSettings();
 
   useEffect(() => {
     if (statsName === 'idle') {
@@ -101,8 +103,10 @@ export const Heating = () => {
         >
           <ModularRightOptions
             options={OPTIONS}
-            value={brewTrigger}
-            onValueChange={setBrewTrigger}
+            value={globalSettings?.auto_start_shot ? 'auto' : 'manual'}
+            onValueChange={(value) => {
+              updateSettings.mutate({ auto_start_shot: value === 'auto' });
+            }}
           />
         </CSSTransition>
         <div
