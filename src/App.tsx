@@ -48,7 +48,7 @@ const App = (): JSX.Element => {
     setBrightness({ brightness: 1 });
   }, []);
 
-  const stats = useAppSelector((state) => state.stats);
+  const isIdle = useAppSelector((state) => state.stats?.name === 'idle');
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const notifications = useSelector(notificationSelector.selectAll);
 
@@ -97,7 +97,7 @@ const App = (): JSX.Element => {
         );
       }
     },
-    stats?.name !== 'idle' || bubbleDisplay.visible
+    !isIdle || bubbleDisplay.visible
   );
 
   const dev = !!window.env?.SHOW_CIRCLE_OVERLAY;

@@ -143,30 +143,26 @@ const Grams = styled.span`
   letter-spacing: 7.6px;
 `;
 
-const formatWeight = (weight: string) => {
-  const numericWeight = parseInt(weight, 10);
-  if (numericWeight < 0) {
-    const absoluteWeight = Math.abs(numericWeight).toString().padStart(3, '0');
+const formatWeight = (weight: number) => {
+  if (weight < 0) {
+    const absoluteWeight = Math.abs(weight).toString().padStart(3, '0');
     return `-${absoluteWeight}`;
   }
-  return numericWeight.toString().padStart(3, '0');
+  return weight.toString().padStart(3, '0');
 };
 
 export default function CalibrateScale() {
   const socket = useSocket();
   const dispatch = useAppDispatch();
 
-  const { w: weight } = useAppSelector((state) => state.stats.sensors);
+  const weight = useAppSelector((state) => Math.round(state.stats.sensors.w));
   const formattedWeight = formatWeight(weight);
   const [isTaring, setIsTaring] = useState(false);
   const [isCalibrated, setIsCalibrated] = useState(false);
-  const parsedWeight = parseInt(weight);
 
   //This logic is temporary since the method of calibration will change. For example, it will be done with 100g instead of 500g.
   const notAllowCalibrate =
-    parsedWeight <= 0 ||
-    parsedWeight < LOWER_RANGE_ALLOWED ||
-    parsedWeight > UPPER_RANGE_ALLOWED;
+    weight <= 0 || weight < LOWER_RANGE_ALLOWED || weight > UPPER_RANGE_ALLOWED;
 
   useEffect(() => {
     if (!isCalibrated) return;

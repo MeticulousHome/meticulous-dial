@@ -48,20 +48,25 @@ const transitionDuration = 600;
 
 export const Heating = () => {
   const dispatch = useAppDispatch();
-  const stats = useAppSelector((state) => state.stats);
-  const {
-    waterStatus,
-    preheatTimeLeft,
-    setpoints: { temperature: temperatureTarget }
-  } = stats;
-  const temperature = parseInt(stats.sensors.t);
-  const heatingFinished = stats.name === 'click to start';
+  const waterStatus = useAppSelector((state) => state.stats.waterStatus);
+  const preheatTimeLeft = useAppSelector(
+    (state) => state.stats.preheatTimeLeft
+  );
+  const temperature = useAppSelector((state) =>
+    Math.round(state.stats.sensors.t)
+  );
+
+  const temperatureTarget = useAppSelector(
+    (state) => state.stats.setpoints.temperature
+  );
+  const statsName = useAppSelector((state) => state.stats.name);
+  const heatingFinished = statsName === 'click to start';
 
   useEffect(() => {
-    if (stats.name === 'idle') {
+    if (statsName === 'idle') {
       dispatch(setScreen('pressets'));
     }
-  }, [stats.name]);
+  }, [statsName]);
 
   const transitionStyle: CSSProperties = {
     transform: `translateX(${heatingFinished ? 10 + BUBBLES_CONTAINER_WIDTH / 2 : 0}px)`,

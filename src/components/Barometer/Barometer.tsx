@@ -32,7 +32,7 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
         min={0}
         max={maxValue}
         step={1}
-        value={Number.parseFloat(stats.sensors.p)}
+        value={stats.sensors.p}
         className="meter"
       />
       <div className="bar-needle__content">
