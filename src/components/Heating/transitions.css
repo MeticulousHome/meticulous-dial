@@ -14,3 +14,29 @@
 .fade-exit-active {
   transition: opacity 300ms;
 }
+
+.fade-options-enter {
+  opacity: 0;
+  height: 0;
+  margin-top: -20px;
+}
+.fade-options-exit {
+  opacity: 1;
+  height: 80px;
+  margin-top: 0;
+}
+.fade-options-enter-active {
+  opacity: 1;
+  height: 80px;
+  margin-top: 0;
+}
+.fade-options-exit-active {
+  opacity: 0;
+  height: 0;
+  margin-top: -20px;
+}
+.fade-options-enter-active,
+.fade-options-exit-active {
+  transition: all 600ms;
+  overflow: hidden;
+}

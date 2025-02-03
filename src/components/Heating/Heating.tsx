@@ -93,11 +93,18 @@ export const Heating = () => {
         <BubbleAnimation temperature={temperature} waterStatus={waterStatus} />
       </ModularLeft>
       <ModularRight style={transitionStyle}>
-        <ModularRightOptions
-          options={OPTIONS}
-          value={brewTrigger}
-          onValueChange={setBrewTrigger}
-        />
+        <CSSTransition
+          in={!heatingFinished}
+          unmountOnExit
+          timeout={transitionDuration}
+          classNames="fade-options"
+        >
+          <ModularRightOptions
+            options={OPTIONS}
+            value={brewTrigger}
+            onValueChange={setBrewTrigger}
+          />
+        </CSSTransition>
         <div
           style={{
             display: 'flex',
