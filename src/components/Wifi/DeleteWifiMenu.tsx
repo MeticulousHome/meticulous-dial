@@ -95,7 +95,7 @@ export const DeleteWifiMenu = (): JSX.Element => {
         slidesPerView={8}
         allowTouchMove={false}
         direction="vertical"
-        spaceBetween={25}
+        spaceBetween={16}
         autoHeight={false}
         centeredSlides={true}
         initialSlide={activeIndex}

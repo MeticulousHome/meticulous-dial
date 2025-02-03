@@ -116,7 +116,7 @@ export function BrewSettings(): JSX.Element {
         slidesPerView={8}
         allowTouchMove={false}
         direction="vertical"
-        spaceBetween={25}
+        spaceBetween={16}
         autoHeight={false}
         centeredSlides={true}
         initialSlide={activeIndex}
@@ -130,15 +130,13 @@ export function BrewSettings(): JSX.Element {
                 key={index}
                 className={`settings-item ${isActive ? 'active-setting' : ''}`}
               >
-                <div style={{ height: '30px' }}>
-                  <div className="settings-entry text-container">
-                    <span
-                      className="settings-text"
-                      style={{ wordBreak: 'break-word' }}
-                    >
-                      {showValue(isActive, item)}
-                    </span>
-                  </div>
+                <div className="settings-entry text-container">
+                  <span
+                    className="settings-text"
+                    style={{ wordBreak: 'break-word' }}
+                  >
+                    {showValue(isActive, item)}
+                  </span>
                 </div>
               </SwiperSlide>
             </>

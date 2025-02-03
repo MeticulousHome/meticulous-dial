@@ -1,4 +1,4 @@
-import { CSSProperties, useEffect } from 'react';
+import { CSSProperties, useEffect, useState } from 'react';
 import { styled } from 'styled-components';
 import { SwitchTransition, CSSTransition } from 'react-transition-group';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -10,6 +10,7 @@ import {
   ModularFooter,
   ModularLeft,
   ModularRight,
+  ModularRightOptions,
   ModularScreen
 } from '../ModularScreen/ModularScreen';
 import { formatTime } from '../../utils';
@@ -46,6 +47,17 @@ const StatusLabel = styled.span`
 
 const transitionDuration = 600;
 
+const OPTIONS = [
+  {
+    id: 'auto',
+    label: 'Auto brew'
+  },
+  {
+    id: 'manual',
+    label: 'Push to brew'
+  }
+] as const;
+
 export const Heating = () => {
   const dispatch = useAppDispatch();
   const waterStatus = useAppSelector((state) => state.stats.waterStatus);
@@ -61,6 +73,8 @@ export const Heating = () => {
   );
   const statsName = useAppSelector((state) => state.stats.name);
   const heatingFinished = statsName === 'click to start';
+  const [brewTrigger, setBrewTrigger] =
+    useState<(typeof OPTIONS)[number]['id']>('auto');
 
   useEffect(() => {
     if (statsName === 'idle') {
@@ -79,6 +93,11 @@ export const Heating = () => {
         <BubbleAnimation temperature={temperature} waterStatus={waterStatus} />
       </ModularLeft>
       <ModularRight style={transitionStyle}>
+        <ModularRightOptions
+          options={OPTIONS}
+          value={brewTrigger}
+          onValueChange={setBrewTrigger}
+        />
         <div
           style={{
             display: 'flex',

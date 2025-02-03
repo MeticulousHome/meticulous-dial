@@ -19,16 +19,15 @@
 .settings-item {
   text-transform: uppercase;
   border-radius: 4px;
-  /* height: 35px !important; */
-  font-size: 22px;
-  color: #dddddd;
+  font-size: 20px;
+  line-height: 2;
+  color: #fff;
   text-align: left;
-  width: 90%;
   justify-content: start;
-  font-weight: 400;
-  letter-spacing: 1.3px;
-  font-family: 'ABC Diatype Mono';
-  padding-left: 18px;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  font-family: 'ABC Diatype';
+  padding-left: 16px;
   white-space: nowrap;
 }
 
@@ -41,8 +40,7 @@
 }
 
 .active-setting {
-  color: #1d1d1d;
-  background: #f5c444;
+  color: #000;
   background: #f5c444;
   background: linear-gradient(
     90deg,
