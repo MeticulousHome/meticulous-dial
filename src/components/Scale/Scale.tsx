@@ -9,7 +9,7 @@ import {
 } from '../store/features/screens/screens-slice';
 
 export function Scale(): JSX.Element {
-  const stats = useAppSelector((state) => state.stats);
+  const weight = useAppSelector((state) => state.stats.sensors.w || 0);
   const dispatch = useAppDispatch();
   const { isIdle: shouldGoToIdle } = useIdleTimer();
 
@@ -20,9 +20,7 @@ export function Scale(): JSX.Element {
   }, [shouldGoToIdle]);
 
   const getTotalScale = useCallback(() => {
-    const toLayout = addRightComplement(
-      roundPrecision(parseFloat(stats.sensors.w) || 0, 1).toString()
-    );
+    const toLayout = addRightComplement(roundPrecision(weight, 1).toString());
     const withPads = toLayout.padStart(5, '0');
 
     if (/^0*$/.test(toLayout.replace('.', ''))) {
@@ -38,7 +36,7 @@ export function Scale(): JSX.Element {
 
     pads.push(<span key={1}>{toLayout}</span>);
     return pads;
-  }, [stats.sensors.w]);
+  }, [weight]);
 
   return (
     <div

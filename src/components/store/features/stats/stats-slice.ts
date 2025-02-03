@@ -7,12 +7,12 @@ const initialState: ISensorData & LocalMachineState = {
   name: 'idle',
   waitingForActionAlreadySent: false,
   sensors: {
-    p: '0',
-    f: '0',
-    w: '0',
-    t: '0'
+    p: 0,
+    f: 0,
+    w: 0,
+    t: 0
   },
-  time: '0',
+  time: 0,
   profile: undefined,
   setpoints: {},
   waterStatus: true,

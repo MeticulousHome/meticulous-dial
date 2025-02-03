@@ -46,14 +46,14 @@ export type GestureType =
 export type IPresetSettings = string[];
 
 export interface ISensorData {
-  time: string;
+  time: number;
   name: StageType | string;
   waitingForActionAlreadySent: boolean;
   sensors: {
-    p: string; // Pressure - Bars
-    t: string; // Temperature - degrees celsius
-    w: string; // Weight - grams
-    f: string; // Flow - ml/s
+    p: number; // Pressure - Bars
+    t: number; // Temperature - degrees celsius
+    w: number; // Weight - grams
+    f: number; // Flow - ml/s
   };
   setpoints: {
     active?: string;

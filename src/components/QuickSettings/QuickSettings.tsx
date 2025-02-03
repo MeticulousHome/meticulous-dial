@@ -94,7 +94,9 @@ export function QuickSettings(): JSX.Element {
   } = useAppSelector((state) => state.presets);
   const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(1);
-  const stats = useAppSelector((state) => state.stats);
+  const waitingForActionAlreadySent = useAppSelector(
+    (state) => state.stats.waitingForActionAlreadySent
+  );
   const PreheatTimeLeft = useAppSelector(
     (state) => state.stats.preheatTimeLeft
   );
@@ -243,7 +245,7 @@ export function QuickSettings(): JSX.Element {
         }
       }
     },
-    !bubbleDisplay.visible || stats.waitingForActionAlreadySent
+    !bubbleDisplay.visible || waitingForActionAlreadySent
   );
 
   useEffect(() => {
