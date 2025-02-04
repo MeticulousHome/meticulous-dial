@@ -20,7 +20,6 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import {
   cleanupInternalProfile,
   resetActiveSetting,
-  setActiveIndexSwiper,
   setNextPreset,
   setOptionPressets,
   setPrevPreset

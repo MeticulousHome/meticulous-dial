@@ -174,11 +174,7 @@ export function QuickSettings(): JSX.Element {
         setHoldAnimation('stopped');
       },
       pressDown() {
-        console.log('activeOption', activeOption);
-        console.log('settings[activeOption]', settings[activeOption]);
-
         if (settings[activeOption].longpress) {
-          console.log("we're on longpress?"); //✔
           setHoldAnimation('running');
           return;
         }
@@ -188,7 +184,6 @@ export function QuickSettings(): JSX.Element {
               console.error("return to previous screen doesn't exist");
               break;
             }
-            //✔
             if (currentScreen === 'pressetSettings')
               dispatch(discardSettings());
 
@@ -197,14 +192,12 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'home': {
-            //✔
             socket.emit('action', 'home');
             console.log('home');
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
           case 'details': {
-            //✔
             dispatch(
               setDefaultProfileSelected(
                 defaultProfiles[defaultProfileActiveIndexSwiper]
@@ -219,38 +212,32 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'edit': {
-            //✔
             dispatch(resetActiveSetting());
             dispatch(setScreen('pressetSettings'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
           case 'purge': {
-            //✔
             socket.emit('action', 'purge');
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
           case 'preheat': {
-            //❌
             socket.emit('action', 'preheat');
             break;
           }
           case 'calibrate': {
-            //✔
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             dispatch(setScreen('calibrateScale'));
             break;
           }
           case 'wifi': {
-            //✔
             dispatch(
               setBubbleDisplay({ visible: true, component: 'wifiSettings' })
             );
             break;
           }
           case 'config': {
-            //✔
             dispatch(
               setBubbleDisplay({ visible: true, component: 'settings' })
             );
@@ -264,7 +251,6 @@ export function QuickSettings(): JSX.Element {
           }
 
           case 'exit': {
-            //✔
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
