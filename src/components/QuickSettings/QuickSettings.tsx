@@ -19,8 +19,8 @@ import { routes } from '../../navigation/routes';
 import Styled, {
   VIEWPORT_HEIGHT,
   MARQUEE_MIN_TEXT_LENGTH
-} from './QuickSettings.styled';
-import { calculateOptionPosition } from './QuickSettings.utils';
+} from '../../styles/utils/mixins';
+import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
 import { formatTime } from '../../utils';
 
 export type QuickSettingOption = {
@@ -61,7 +61,7 @@ const defaultSettings: QuickSettingOption[] = [
   },
   {
     key: 'preheat',
-    label: ''
+    label: 'Preheat brew chamber'
   },
   {
     key: 'brew_config',
@@ -356,53 +356,7 @@ export function QuickSettings(): JSX.Element {
     [PreheatTimeLeft]
   );
   return (
-    <Styled.QuickSettingsContainer>
-      {/* <Swiper
-        onSwiper={setSwiper}
-        slidesPerView={8}
-        allowTouchMove={false}
-        direction="vertical"
-        spaceBetween={16}
-        autoHeight={false}
-        centeredSlides={true}
-        initialSlide={activeIndex}
-        style={{ paddingLeft: '29px', top: '-4px' }}
-      >
-        {settings.map((setting, index: number) => {
-          const isActive = index === activeIndex; // ---> 👁‍🗨
-          if (setting.key === 'os_update' && !osStatusVisible) {
-            return <></>;
-          }
-          return (
-            <div key={`option-${index}-${setting.key}`}>
-              <SwiperSlide
-                className={getSettingClasses(isActive, setting.key)} //<<<<<<< Verify this
-                key={`option-${index}-${setting.key}`}
-                onAnimationEnd={handleAnimationEnd} //<<<<<<< Verify this
-              >
-                <div className="text-container">
-                  {marqueeIfNeeded({
-                    enabled: isActive,
-                    val:
-                      setting.key === 'preheat'
-                        ? PreheatTimeLeft > 0
-                          ? `Stop preheat ${formatTime(PreheatTimeLeft)}`
-                          : 'Preheat brew chamber'
-                        : setting.label
-                  })}
-                </div>
-              </SwiperSlide>
-
-              {setting.seperator_after && (
-                <SwiperSlide
-                  key={`seperator-${index}`}
-                  className="separator"
-                ></SwiperSlide>
-              )}
-            </div>
-          );
-        })}
-      </Swiper> */}
+    <Styled.SettingsContainer>
       <Styled.Viewport>
         <Styled.OptionsContainer
           $translateY={optionPositionOutter}
@@ -467,6 +421,6 @@ export function QuickSettings(): JSX.Element {
           </Styled.OptionsContainer>
         </Styled.ActiveIndicator>
       </Styled.Viewport>
-    </Styled.QuickSettingsContainer>
+    </Styled.SettingsContainer>
   );
 }

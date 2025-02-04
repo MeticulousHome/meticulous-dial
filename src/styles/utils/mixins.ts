@@ -24,7 +24,7 @@ export const ITEM_MARGIN = 25;
  * Additional margin applied after items with visual separators (in pixels).
  * @constant {number}
  */
-export const EXTRA_MARGIN_AFTER_DELETE = 10;
+export const EXTRA_MARGIN_AFTER_BORDER = 10;
 
 /**
  * Minimum length of text for marquee animation (Scroll Text animation).
@@ -32,7 +32,7 @@ export const EXTRA_MARGIN_AFTER_DELETE = 10;
  */
 export const MARQUEE_MIN_TEXT_LENGTH = 24;
 
-const QuickSettingsContainer = styled.div`
+const SettingsContainer = styled.div`
   display: flex;
   align-items: center;
   height: 100%;
@@ -81,7 +81,7 @@ const LeftRightAnimation = keyframes`
   }
 `;
 
-const ActiveIndicator = styled.div<{ $holdAnimation: string }>`
+const ActiveIndicator = styled.div<{ $holdAnimation?: string }>`
   position: absolute;
   left: 228px;
   top: 50%;
@@ -120,7 +120,7 @@ const OptionsContainer = styled.div<{
   flex-direction: column;
   align-items: center;
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: ${({ $translateY, $isInner, $bringToFront }) =>
+  transform: ${({ $translateY, $isInner }) =>
     $isInner
       ? `translate(-50%, 0) translateY(${$translateY}px)`
       : `translateY(${$translateY}px)`};
@@ -188,7 +188,7 @@ const OsStatusOption = styled(Option)<{ $status?: string }>`
 `;
 
 export default {
-  QuickSettingsContainer,
+  SettingsContainer,
   Viewport,
   ActiveIndicator,
   OptionsContainer,
