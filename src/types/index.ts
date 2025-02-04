@@ -195,14 +195,14 @@ export interface PressetSettings {
   settings: Record<SettingsKeys, string | number>[];
 }
 
-export interface SettingsItem {
+export type SettingsItem = {
   value?: number | string | boolean;
   key: string;
   label?: string;
   shortLabel?: string;
   visible?: boolean;
-  seperator_after?: boolean;
-}
+  hasSeparator?: boolean;
+};
 
 export enum YesNoEnum {
   Yes = 'yes',
