@@ -1,10 +1,11 @@
-import type { QuickSettingOption } from './QuickSettings';
+import type { QuickSettingOption } from '../../components/QuickSettings/QuickSettings';
+import type { SettingsItem } from '../../types/index';
 import {
   VIEWPORT_HEIGHT,
   ITEM_HEIGHT,
   ITEM_MARGIN,
-  EXTRA_MARGIN_AFTER_DELETE
-} from './QuickSettings.styled';
+  EXTRA_MARGIN_AFTER_BORDER
+} from './mixins';
 
 /**
  * Calculates the vertical position of an active option in a quick settings menu,
@@ -33,8 +34,10 @@ import {
  *   `(Viewport height / 2) - (Accumulated offset) - (Half the item's height)`
  * - Accumulated offset: Sum of:
  *   - (Item height + Standard margin) for each preceding item
- *   - Extra margin (`EXTRA_MARGIN_AFTER_DELETE`) if the item has a visual separator
+ *   - Extra margin (`EXTRA_MARGIN_AFTER_BORDER`) if the item has a visual separator
  */
+
+type SettingsArray = (SettingsItem | QuickSettingOption)[];
 export const calculateOptionPosition = ({
   activeOptionIdx,
   adjustmentFn,
@@ -42,7 +45,7 @@ export const calculateOptionPosition = ({
 }: {
   activeOptionIdx: number;
   adjustmentFn?: (position: number) => number;
-  settings: QuickSettingOption[];
+  settings: SettingsArray;
 }): number => {
   const halfContainer = VIEWPORT_HEIGHT / 2;
   const halfItem = ITEM_HEIGHT / 2;
@@ -52,10 +55,12 @@ export const calculateOptionPosition = ({
     .reduce((acc, element) => {
       const baseOffset = acc + ITEM_HEIGHT + ITEM_MARGIN;
       return element.hasSeparator
-        ? baseOffset + EXTRA_MARGIN_AFTER_DELETE
+        ? baseOffset + EXTRA_MARGIN_AFTER_BORDER
         : baseOffset;
     }, 0);
 
-  const basePosition = halfContainer - totalOffset - halfItem;
+  // Añadimos 2px al cálculo base
+  const basePosition = halfContainer - totalOffset - halfItem + 2;
+
   return adjustmentFn ? adjustmentFn(basePosition) : basePosition;
 };
