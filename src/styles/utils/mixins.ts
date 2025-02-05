@@ -11,7 +11,7 @@ export const VIEWPORT_HEIGHT = 480;
  * Height of each menu item (in pixels).
  * @constant {number}
  */
-export const ITEM_HEIGHT = 38;
+export const ITEM_HEIGHT = 45;
 
 /**
  * Standard bottom margin between menu items (in pixels).
@@ -38,7 +38,7 @@ const SettingsContainer = styled.div`
   height: 100%;
   width: 100%;
   justify-content: center;
-  font-family: 'ABC Diatype Mono';
+  font-family: 'ABC Diatype';
 `;
 
 const Viewport = styled.div`
@@ -125,7 +125,7 @@ const OptionsContainer = styled.div<{
       ? `translate(-50%, 0) translateY(${$translateY}px)`
       : `translateY(${$translateY}px)`};
 
-  ${({ $isInner }) => ($isInner ? 'color: #1d1d1d;' : 'color: #dddddd;')}
+  ${({ $isInner }) => ($isInner ? 'color: #000;' : 'color: #fff;')}
   ${({ $isInner }) => $isInner && 'top: 50%; left: 50%;'}
   ${({ $bringToFront }) => ($bringToFront ? 'z-index: 20;' : 'z-index: 10;')}
 `;
@@ -137,15 +137,19 @@ const Option = styled.div<{
 }>`
   text-transform: uppercase;
   border-radius: 4px;
-  font-size: 22px;
+  font-size: 20px;
   text-align: left;
   width: 90%;
-  letter-spacing: 1.3px;
+  letter-spacing: 0.2em;
   white-space: nowrap;
   display: flex;
   align-items: center;
   position: relative;
   height: ${ITEM_HEIGHT}px;
+  line-height: 2;
+  justify-content: start;
+  font-weight: 300;
+  padding-left: 16px;
 
   ${({ $hasSeparator }) =>
     $hasSeparator ? 'margin-bottom: 35px;' : 'margin-bottom: 25px;'}
