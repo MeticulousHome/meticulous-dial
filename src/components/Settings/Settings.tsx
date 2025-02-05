@@ -14,6 +14,7 @@ import type { SettingsItem } from '../../types';
 
 import Styled, { VIEWPORT_HEIGHT } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
+import { getSettingLabel } from '../../utils/settingsLabels';
 
 const initialSettings: SettingsItem[] = [
   {
@@ -52,20 +53,17 @@ export function Settings(): JSX.Element {
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const updateSettings = useUpdateSettings();
-
   const updatedSettings = useMemo(
     () =>
       isSuccess
-        ? initialSettings.map((item) =>
-            item.key === 'enable_sounds'
-              ? {
-                  ...item,
-                  label: `${item.label}: ${globalSettings.enable_sounds ? 'ENABLED' : 'DISABLED'}`
-                }
-              : item
-          )
+        ? initialSettings.map((item) => {
+            const newLabel = getSettingLabel(item.key, globalSettings);
+            return newLabel
+              ? { ...item, label: `${item.label}: ${newLabel}` }
+              : item;
+          })
         : initialSettings,
-    [globalSettings, isSuccess, initialSettings]
+    [globalSettings, isSuccess]
   );
 
   useHandleGestures(
