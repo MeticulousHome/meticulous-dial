@@ -92,8 +92,6 @@ export function QuickSettings(): JSX.Element {
   const {
     defaultProfilesInfo: { defaultProfileActiveIndexSwiper, defaultProfiles }
   } = useAppSelector((state) => state.presets);
-  const [swiper, setSwiper] = useState(null);
-  const [activeIndex, setActiveIndex] = useState(1);
   const waitingForActionAlreadySent = useAppSelector(
     (state) => state.stats.waitingForActionAlreadySent
   );
