@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
+import { useMemo, useState } from 'react';
 import 'swiper/css';
 
 import { SettingsKey } from '@meticulous-home/espresso-api';
@@ -13,11 +12,16 @@ import {
   setScreen
 } from '../store/features/screens/screens-slice';
 
-import { marqueeIfNeeded } from '../shared/MarqueeValue';
 import { useSettings, useUpdateSettings } from '../../hooks/useSettings';
 import { SettingsItem } from '../../types';
+import Styled, {
+  VIEWPORT_HEIGHT,
+  MARQUEE_MIN_TEXT_LENGTH
+} from '../../styles/utils/mixins';
+import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
+import { getSettingLabel } from '../../utils/settingsLabels';
 
-const settings: SettingsItem[] = [
+const initialSettings: SettingsItem[] = [
   {
     key: 'auto_start_shot',
     label: 'Auto start after heating'
@@ -39,31 +43,22 @@ const settings: SettingsItem[] = [
 
 export function BrewSettings(): JSX.Element {
   const dispatch = useAppDispatch();
-  const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const { data: globalSettings } = useSettings();
+  const { data: globalSettings, isSuccess } = useSettings();
   const updateSettings = useUpdateSettings();
 
-  const showValue = useCallback(
-    (isActive: boolean, item: SettingsItem) => {
-      if (!item) return <></>;
-      let val = item.label;
-      if (globalSettings) {
-        if (typeof globalSettings[item.key as SettingsKey] === 'boolean') {
-          val = globalSettings[item.key as SettingsKey]
-            ? val + ': ENABLED'
-            : val + ': DISABLED';
-        }
-
-        if (item.key === 'heat_timeout_after_shot') {
-          val = `${val}: ${globalSettings.heating_timeout} MIN`;
-        }
-
-        return marqueeIfNeeded({ enabled: isActive, val });
-      }
-    },
-    [globalSettings]
+  const updatedSettings = useMemo(
+    () =>
+      isSuccess
+        ? initialSettings.map((item) => {
+            const newLabel = getSettingLabel(item.key, globalSettings);
+            return newLabel
+              ? { ...item, label: `${item.label}: ${newLabel}` }
+              : item;
+          })
+        : initialSettings,
+    [globalSettings, isSuccess]
   );
 
   useHandleGestures(
@@ -72,10 +67,12 @@ export function BrewSettings(): JSX.Element {
         setActiveIndex((prev) => Math.max(prev - 1, 0));
       },
       right() {
-        setActiveIndex((prev) => Math.min(prev + 1, settings.length - 1));
+        setActiveIndex((prev) =>
+          Math.min(prev + 1, updatedSettings.length - 1)
+        );
       },
       pressDown() {
-        const activeItem = settings[activeIndex];
+        const activeItem = updatedSettings[activeIndex];
         switch (activeItem.key) {
           case 'heat_timeout_after_shot':
             dispatch(setScreen('heat_timeout_after_shot'));
@@ -103,46 +100,55 @@ export function BrewSettings(): JSX.Element {
     !bubbleDisplay.visible
   );
 
-  useEffect(() => {
-    if (swiper) {
-      swiper.slideTo(activeIndex, 0, false);
-    }
-  }, [activeIndex, swiper]);
+  const optionPositionOutter = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        settings: updatedSettings
+      }),
+    [activeIndex, updatedSettings]
+  );
+
+  const optionPositionInner = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        adjustmentFn: (position) => position - VIEWPORT_HEIGHT / 2,
+        settings: updatedSettings
+      }),
+    [activeIndex, updatedSettings]
+  );
 
   return (
-    <div className="main-quick-settings">
-      <Swiper
-        onSwiper={setSwiper}
-        slidesPerView={8}
-        allowTouchMove={false}
-        direction="vertical"
-        spaceBetween={16}
-        autoHeight={false}
-        centeredSlides={true}
-        initialSlide={activeIndex}
-        style={{ paddingLeft: '29px', top: '-4px' }}
-      >
-        {settings.map((item, index: number) => {
-          const isActive = index === activeIndex;
-          return (
-            <>
-              <SwiperSlide
-                key={index}
-                className={`settings-item ${isActive ? 'active-setting' : ''}`}
+    <Styled.SettingsContainer>
+      <Styled.Viewport>
+        <Styled.OptionsContainer $translateY={optionPositionOutter}>
+          {updatedSettings.map((option) => (
+            <Styled.Option key={option.key} $hasSeparator={option.hasSeparator}>
+              <span>{option.label}</span>
+            </Styled.Option>
+          ))}
+        </Styled.OptionsContainer>
+        <Styled.ActiveIndicator>
+          <Styled.OptionsContainer
+            $translateY={optionPositionInner}
+            $isInner={true}
+          >
+            {updatedSettings.map((option, index) => (
+              <Styled.Option
+                key={option.key}
+                $hasSeparator={option.hasSeparator}
+                $isMarquee={
+                  activeIndex === index &&
+                  option.label.length > MARQUEE_MIN_TEXT_LENGTH
+                }
               >
-                <div className="settings-entry text-container">
-                  <span
-                    className="settings-text"
-                    style={{ wordBreak: 'break-word' }}
-                  >
-                    {showValue(isActive, item)}
-                  </span>
-                </div>
-              </SwiperSlide>
-            </>
-          );
-        })}
-      </Swiper>
-    </div>
+                <span>{option.label}</span>
+              </Styled.Option>
+            ))}
+          </Styled.OptionsContainer>
+        </Styled.ActiveIndicator>
+      </Styled.Viewport>
+    </Styled.SettingsContainer>
   );
 }

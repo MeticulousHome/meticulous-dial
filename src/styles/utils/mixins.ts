@@ -18,7 +18,7 @@ export const ITEM_HEIGHT = 45;
  * @constant {number}
  */
 
-export const ITEM_MARGIN = 25;
+export const ITEM_MARGIN = 16;
 
 /**
  * Additional margin applied after items with visual separators (in pixels).
@@ -152,7 +152,9 @@ const Option = styled.div<{
   padding-left: 16px;
 
   ${({ $hasSeparator }) =>
-    $hasSeparator ? 'margin-bottom: 35px;' : 'margin-bottom: 25px;'}
+    $hasSeparator
+      ? `margin-bottom: ${ITEM_MARGIN + EXTRA_MARGIN_AFTER_BORDER}px;`
+      : `margin-bottom: ${ITEM_MARGIN}px;`}
 
   ${({ $hasSeparator }) =>
     $hasSeparator &&
@@ -160,7 +162,7 @@ const Option = styled.div<{
     &::after {
       content: '';
       position: absolute;
-      bottom: -18px;
+      bottom: -13px;
       width: 85%;
       border-top: 2px dashed rgba(245, 196, 68, 0.5);
     }
@@ -177,7 +179,7 @@ const Option = styled.div<{
       css`
         position: relative;
         display: inline-block;
-        animation: ${LeftRightAnimation} 6s infinite alternate ease-in-out;
+        animation: ${LeftRightAnimation} 5s infinite alternate ease-in-out;
         animation-delay: 0.5s;
       `}
   }
