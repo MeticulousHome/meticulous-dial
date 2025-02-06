@@ -30,7 +30,7 @@ export const EXTRA_MARGIN_AFTER_BORDER = 10;
  * Minimum length of text for marquee animation (Scroll Text animation).
  * @constant {number}
  */
-export const MARQUEE_MIN_TEXT_LENGTH = 24;
+export const MARQUEE_MIN_TEXT_LENGTH = 22;
 
 const SettingsContainer = styled.div`
   display: flex;
@@ -193,11 +193,21 @@ const OsStatusOption = styled(Option)<{ $status?: string }>`
   ${({ $status }) => $status === 'installing' && `color: #ffc107`}
 `;
 
+const NetworkOption = styled(Option)<{ $isMarquee?: boolean }>`
+  gap: 1rem;
+  span {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+}`;
+
 export default {
   SettingsContainer,
   Viewport,
   ActiveIndicator,
   OptionsContainer,
   Option,
-  OsStatusOption
+  OsStatusOption,
+  NetworkOption
 };

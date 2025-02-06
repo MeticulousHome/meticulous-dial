@@ -1,20 +1,21 @@
-import { useEffect, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
+import { useEffect, useMemo, useState } from 'react';
 
 import './wifiSettings.css';
 import { useAppDispatch } from '../store/hooks';
 
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { marqueeIfNeeded } from '../shared/MarqueeValue';
 import { useNetworkConfig, useUpdateNetworkConfig } from '../../hooks/useWifi';
 import { APMode } from '@meticulous-home/espresso-api';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
+import Styled, {
+  VIEWPORT_HEIGHT,
+  MARQUEE_MIN_TEXT_LENGTH
+} from '../../styles/utils/mixins';
+import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
 
 export const WifiSettings = (): JSX.Element => {
   const dispatch = useAppDispatch();
-  const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [networkConfigMode, setNetworkConfigMode] = useState<APMode>(
     APMode.CLIENT
@@ -34,53 +35,52 @@ export const WifiSettings = (): JSX.Element => {
   const isWifiConnected = networkConfig?.status.connected;
 
   const isApMode = isWifiConnected && networkConfigMode === APMode.AP;
-  const APModeDescription = 'Create standalone wifi';
-  const ClientModeDescription = 'Machine joins existing wifi';
 
-  const wifiSettingItems = [
-    {
-      key: 'status',
-      label: 'Status',
-      value: isWifiConnected ? 'CONNECTED' : 'NOT CONNECTED',
-      visible: true
-    },
-    {
-      key: 'qr_code',
-      label: 'Show connection code',
-      visible: isWifiConnected
-    },
-    {
-      key: 'details',
-      label: 'See network details',
-      visible: true
-    },
-    {
-      key: 'network_mode',
-      label: 'Wifi mode',
-      value: isApMode ? APModeDescription : ClientModeDescription,
-      visible: true
-    },
-    {
-      key: 'known_wifis',
-      label: 'Known Wifis',
-      visible: true
-    },
-    {
-      key: 'connect_new_network',
-      label: 'Connect to a new network',
-      visible: true
-    },
-    {
-      key: 'save',
-      label: 'Save',
-      visible: networkConfigMode !== networkConfig?.config.mode
-    },
-    {
-      key: 'back',
-      label: 'Back',
-      visible: true
-    }
-  ];
+  const wifiSettingItems = useMemo(
+    () => [
+      {
+        key: 'status',
+        label: `Status: ${isWifiConnected ? 'CONNECTED' : 'NOT CONNECTED'}`,
+        visible: true
+      },
+      {
+        key: 'qr_code',
+        label: 'Show connection code',
+        visible: isWifiConnected
+      },
+      {
+        key: 'details',
+        label: 'See network details',
+        visible: true
+      },
+      {
+        key: 'network_mode',
+        label: `Wifi mode: ${isApMode ? 'Create standalone wifi' : 'Machine joins existing wifi'}`,
+        visible: true
+      },
+      {
+        key: 'known_wifis',
+        label: 'Known Wifis',
+        visible: true
+      },
+      {
+        key: 'connect_new_network',
+        label: 'Connect to a new network',
+        visible: true
+      },
+      {
+        key: 'save',
+        label: 'Save',
+        visible: networkConfigMode !== networkConfig?.config.mode
+      },
+      {
+        key: 'back',
+        label: 'Back',
+        visible: true
+      }
+    ],
+    [isWifiConnected, isApMode, networkConfigMode]
+  );
 
   useHandleGestures(
     {
@@ -157,12 +157,24 @@ export const WifiSettings = (): JSX.Element => {
     },
     updateNetworkConfigMutation.isPending
   );
+  const optionPositionOutter = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        settings: wifiSettingItems
+      }),
+    [activeIndex, wifiSettingItems]
+  );
 
-  useEffect(() => {
-    if (swiper) {
-      swiper.slideTo(activeIndex, 0, false);
-    }
-  }, [activeIndex, swiper]);
+  const optionPositionInner = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        adjustmentFn: (position) => position - VIEWPORT_HEIGHT / 2,
+        settings: wifiSettingItems
+      }),
+    [activeIndex, wifiSettingItems]
+  );
 
   if (isLoading || updateNetworkConfigMutation.isPending) {
     return <LoadingScreen />;
@@ -189,46 +201,38 @@ export const WifiSettings = (): JSX.Element => {
   }
 
   return (
-    <div className="main-quick-settings">
-      <Swiper
-        onSwiper={setSwiper}
-        slidesPerView={8}
-        allowTouchMove={false}
-        direction="vertical"
-        spaceBetween={16}
-        autoHeight={false}
-        centeredSlides={true}
-        initialSlide={activeIndex}
-        style={{ paddingLeft: '29px', top: '-4px' }}
-      >
-        {wifiSettingItems
-          .filter((item) => item.visible)
-          .map((item, index) => {
-            if (!item.visible) return <></>;
-
-            const isActive = index === activeIndex;
-            return (
-              <SwiperSlide
-                key={item.key}
-                className={`settings-item ${isActive ? 'active-setting' : ''}`}
-              >
-                <div className="settings-entry text-container">
-                  <span
-                    className="settings-text"
-                    style={{ wordBreak: 'break-word' }}
-                  >
-                    {marqueeIfNeeded({
-                      enabled: isActive,
-                      val: `${item.label.toUpperCase()}${
-                        item.value ? ': ' + item.value : ''
-                      }`
-                    })}
-                  </span>
-                </div>
-              </SwiperSlide>
-            );
-          })}
-      </Swiper>
-    </div>
+    <Styled.SettingsContainer>
+      <Styled.Viewport>
+        <Styled.OptionsContainer $translateY={optionPositionOutter}>
+          {wifiSettingItems
+            .filter((item) => item.visible)
+            .map((option) => (
+              <Styled.Option key={option.key}>
+                <span>{option.label}</span>
+              </Styled.Option>
+            ))}
+        </Styled.OptionsContainer>
+        <Styled.ActiveIndicator>
+          <Styled.OptionsContainer
+            $translateY={optionPositionInner}
+            $isInner={true}
+          >
+            {wifiSettingItems
+              .filter((item) => item.visible)
+              .map((option, index) => (
+                <Styled.Option
+                  key={option.key}
+                  $isMarquee={
+                    activeIndex === index &&
+                    option.label.length > MARQUEE_MIN_TEXT_LENGTH
+                  }
+                >
+                  <span>{option.label}</span>
+                </Styled.Option>
+              ))}
+          </Styled.OptionsContainer>
+        </Styled.ActiveIndicator>
+      </Styled.Viewport>
+    </Styled.SettingsContainer>
   );
 };
