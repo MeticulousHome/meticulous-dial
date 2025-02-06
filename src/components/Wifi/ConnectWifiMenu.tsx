@@ -1,21 +1,20 @@
-import { useEffect, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
+import { useMemo, useState } from 'react';
 
 import './connectWifiMenu.css';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useAppDispatch } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import Styled, { VIEWPORT_HEIGHT } from '../../styles/utils/mixins';
+import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
 
 const items = [
-  { key: 'connect-via-app' },
-  { key: 'choose-wifi' },
-  { key: 'back' }
+  { key: 'connect-via-app', label: 'Connect via APP' },
+  { key: 'choose-wifi', label: 'Connect to a network' },
+  { key: 'back', label: 'Back' }
 ];
 
 export const ConnectWifiMenu = (): JSX.Element => {
   const dispatch = useAppDispatch();
-  const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
   useHandleGestures({
@@ -51,14 +50,52 @@ export const ConnectWifiMenu = (): JSX.Element => {
     }
   });
 
-  useEffect(() => {
-    if (swiper) {
-      swiper.slideTo(activeIndex, 0, false);
-    }
-  }, [activeIndex, swiper]);
+  const optionPositionOutter = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        settings: items
+      }),
+    [activeIndex, items]
+  );
 
+  const optionPositionInner = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        adjustmentFn: (position) => position - VIEWPORT_HEIGHT / 2,
+        settings: items
+      }),
+    [activeIndex, items]
+  );
   return (
-    <div className="main-quick-settings">
+    <Styled.SettingsContainer>
+      <Styled.Viewport>
+        <Styled.OptionsContainer $translateY={optionPositionOutter}>
+          {items.map((option) => (
+            <Styled.Option key={option.key}>
+              <span>{option.label}</span>
+            </Styled.Option>
+          ))}
+        </Styled.OptionsContainer>
+        <Styled.ActiveIndicator>
+          <Styled.OptionsContainer
+            $translateY={optionPositionInner}
+            $isInner={true}
+          >
+            {items.map((option) => (
+              <Styled.Option key={option.key}>
+                <span>{option.label}</span>
+              </Styled.Option>
+            ))}
+          </Styled.OptionsContainer>
+        </Styled.ActiveIndicator>
+      </Styled.Viewport>
+    </Styled.SettingsContainer>
+  );
+};
+
+/*  <div className="main-quick-settings">
       <Swiper
         onSwiper={setSwiper}
         slidesPerView={8}
@@ -95,6 +132,4 @@ export const ConnectWifiMenu = (): JSX.Element => {
           <div style={{ height: '30px' }}>Back</div>
         </SwiperSlide>
       </Swiper>
-    </div>
-  );
-};
+    </div> */
