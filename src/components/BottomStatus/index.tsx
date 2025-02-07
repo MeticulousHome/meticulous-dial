@@ -7,6 +7,7 @@ import Funnel from './Funnel';
 
 const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
   const stats = useAppSelector((state) => state.stats);
+  const scaleConnected = !isNaN(stats.sensors.w);
   const PreheatTimeLeft = useAppSelector(
     (state) => state.stats.preheatTimeLeft
   );
@@ -18,7 +19,10 @@ const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
         bottom__fadeIn: !hidden
       })}
     >
-      <div className="bottom-content">
+      <div
+        className="bottom-content"
+        style={{ alignItems: `${scaleConnected ? '' : 'center'}` }}
+      >
         <div className="bottom-item">
           <div className="status-value">
             {formatStatValue(stats.sensors.t, 1)}
@@ -31,10 +35,16 @@ const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
           )}
         </div>
         <div className="bottom-item">
-          <div className="status-value">
-            {formatStatValue(stats.sensors.w, 1)}
-            <div className="status-unit">gr</div>
-          </div>
+          {scaleConnected ? (
+            <div className="status-value">
+              {formatStatValue(stats.sensors.w, 1)}
+              <div className="status-unit">gr</div>
+            </div>
+          ) : (
+            <div style={{ fontSize: '24px', color: '#f44336' }}>
+              Scale not connected
+            </div>
+          )}
         </div>
       </div>
     </div>
