@@ -81,4 +81,3 @@ Based on the [gesture](#gestures), we need to use them into each state in a spec
 
 We react to different button events coming from controller. We have mapped every button to a keyboard event for testing. See SocketProviderValue.ts.
 <img src="./public/keyboard-events.png" width=300/>
-
