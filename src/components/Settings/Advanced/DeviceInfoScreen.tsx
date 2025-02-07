@@ -69,6 +69,11 @@ export const DeviceInfoScreen = () => {
         {Object.entries(settingsKeys).map((item, index: number) => {
           const isActive = index === activeIndex;
           const name = item[1] as keyof DeviceInfo;
+          let entry = deviceInfo[name];
+          const displayName = name.replace(/_/g, ' ');
+          if (typeof entry === 'object') {
+            entry = 'available via the API';
+          }
           return (
             <SwiperSlide
               key={index}
@@ -80,7 +85,7 @@ export const DeviceInfoScreen = () => {
                   style={{ wordBreak: 'break-word' }}
                 >
                   {marqueeIfNeeded({
-                    val: `${name}${deviceInfo[name] !== undefined ? `: ${deviceInfo[name] || 'UNSET'}` : ''}`,
+                    val: `${displayName}: ${entry !== undefined ? `${entry || 'UNSET'}` : ''}`,
                     enabled: isActive
                   })}
                 </span>
