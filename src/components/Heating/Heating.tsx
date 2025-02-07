@@ -1,17 +1,9 @@
-import {
-  CSSProperties,
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState
-} from 'react';
+import { CSSProperties, useCallback, useEffect, useState } from 'react';
 import { styled } from 'styled-components';
 import { SwitchTransition, CSSTransition } from 'react-transition-group';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { Label, Temperature } from './Temperatures';
-import { BubbleAnimation, BUBBLES_CONTAINER_WIDTH } from './BubbleAnimation';
 import './transitions.css';
 import {
   ModularFooter,
@@ -20,6 +12,7 @@ import {
   ModularScreen
 } from '../ModularScreen/ModularScreen';
 import { formatTime } from '../../utils';
+import { BUBBLES_WIDTH, LottieBubbleAnimation } from './LottieBubbleAnimation';
 
 const TimeLeftSeconds = styled.div`
   font-family: 'ABC Diatype Mono';
@@ -87,7 +80,7 @@ export const Heating = () => {
   );
 
   const [temperatureTarget, setTemperatureTarget] = useState(
-    temperatureTargetStatus
+    temperatureTargetStatus || 0
   );
   const preheatTimeLeft = useCallback(() => {
     if (!temperatureTargetStatus) {
@@ -135,14 +128,17 @@ export const Heating = () => {
   }, [temperatureTargetStatus]);
 
   const transitionStyle: CSSProperties = {
-    transform: `translateX(${heatingFinished ? 10 + BUBBLES_CONTAINER_WIDTH / 2 : 0}px)`,
+    transform: `translateX(${heatingFinished ? 10 + BUBBLES_WIDTH / 2 : 0}px)`,
     transition: `transform ${transitionDuration / 1000}s`
   };
 
   return (
     <ModularScreen>
       <ModularLeft style={transitionStyle}>
-        <BubbleAnimation temperature={temperature} waterStatus={waterStatus} />
+        <LottieBubbleAnimation
+          temperature={temperature}
+          waterStatus={waterStatus}
+        />
       </ModularLeft>
       <ModularRight style={transitionStyle}>
         {/* <CSSTransition
