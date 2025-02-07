@@ -28,6 +28,7 @@ interface IKeyboardProps {
   onCancel: () => void;
   onChange?: (text: string) => void;
   onlyLetters?: boolean;
+  capitalizeFirstLetter?: boolean;
 }
 
 export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
@@ -326,7 +327,10 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
   // Recalculate caption style when the caption changes length
   useEffect(() => {
     if (caption.length === 0) {
-      setCapsLockActive({ ...capsLockActive, active: true });
+      setCapsLockActive({
+        ...capsLockActive,
+        active: props.capitalizeFirstLetter ?? true
+      });
     }
 
     if (captionRef.current) {

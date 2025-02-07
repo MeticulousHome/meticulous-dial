@@ -120,6 +120,7 @@ export function EnterWifiPassword(): JSX.Element {
       onChange={(text: string) => {
         setKnownPassword(text);
       }}
+      capitalizeFirstLetter={false}
     />
   );
 }
