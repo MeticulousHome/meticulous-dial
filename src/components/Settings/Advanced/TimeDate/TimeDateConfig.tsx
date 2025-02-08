@@ -22,8 +22,14 @@ const defaultSettings: SettingsItem[] = [
     value: false
   },
   {
-    key: 'set_date_time',
-    label: 'Set date & time',
+    key: 'set_time',
+    label: 'Set Time',
+    visible: true,
+    value: false
+  },
+  {
+    key: 'set_date',
+    label: 'Set Date',
     visible: true,
     value: false
   },
@@ -73,9 +79,15 @@ export function TimeDate(): JSX.Element {
             );
             break;
           }
-          case 'conset_date_time': {
+          case 'set_time': {
             dispatch(
-              setBubbleDisplay({ visible: true, component: 'timeDate' }) //Does nothing for now
+              setBubbleDisplay({ visible: true, component: 'timeConfig' })
+            );
+            break;
+          }
+          case 'set_date': {
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'dateConfig' })
             );
             break;
           }
