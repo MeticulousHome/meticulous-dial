@@ -1,89 +1,63 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-
+import { useMemo, useState } from 'react';
 import { useHandleGestures } from '../../../../../hooks/useHandleGestures';
 import { useAppSelector, useAppDispatch } from '../../../../store/hooks';
 import {
   setBubbleDisplay,
   setScreen
 } from '../../../../store/features/screens/screens-slice';
-import { marqueeIfNeeded } from '../../../../shared/MarqueeValue';
 import { SettingsItem } from '../../../../../types';
-import { api, setTimezoneSync } from '../../../../../api/api';
+import {
+  useSettings,
+  useUpdateSettings
+} from '../../../../../hooks/useSettings';
+import { getSettingLabel } from '../../../../../utils/settingsLabels';
+import Styled, {
+  VIEWPORT_HEIGHT,
+  MARQUEE_MIN_TEXT_LENGTH
+} from '../../../../../styles/utils/mixins';
+import { calculateOptionPosition } from '../../../../../styles/utils/calculateOptionPosition';
+
+const initialSettings: SettingsItem[] = [
+  {
+    key: 'timezone_sync',
+    label: 'Automatic',
+    visible: true
+  },
+  {
+    key: 'time_zone_selector',
+    label: 'Select Timezone',
+    visible: true
+  },
+  {
+    key: 'back',
+    label: 'Back'
+  }
+];
 
 export const TimeZoneConfig = () => {
   const dispatch = useAppDispatch();
-  const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const [automaticTz, setAutomaticTz] = useState<boolean>(false);
+  const { data: globalSettings, isSuccess } = useSettings();
+  const updateSettings = useUpdateSettings();
 
-  useEffect(() => {
-    api.getSettings().then((result) => {
-      const { data } = result;
-      if ('error' in data) {
-        console.log('Error fetching timezone sync mode: ', data.error);
-        setAutomaticTz(false);
-      } else {
-        const sync_mode = data.timezone_sync;
-        setAutomaticTz(sync_mode === 'automatic');
-      }
-    });
-  }, []);
-
-  const settings: SettingsItem[] = useMemo(() => {
-    if (automaticTz) {
-      return [
-        {
-          key: 'automatic_toggle',
-          label: 'Automatic',
-          visible: true,
-          value: false
-        },
-        {
-          key: 'back',
-          label: 'Back',
-          visible: true
-        }
-      ];
-    }
-    return [
-      {
-        key: 'automatic_toggle',
-        label: 'Automatic',
-        visible: true,
-        value: false
-      },
-      {
-        key: 'time_zone_selector',
-        label: 'Select Timezone',
-        visible: true
-      },
-      {
-        key: 'back',
-        label: 'Back',
-        visible: true
-      }
-    ];
-  }, [automaticTz]);
-
-  const handleAutomaticToggle = () => {
-    const new_timezone_sync = !automaticTz;
-    setAutomaticTz(new_timezone_sync);
-    setTimezoneSync(new_timezone_sync ? 'automatic' : 'manual');
-    console.log(new_timezone_sync);
-  };
-
-  const showValue = useCallback(
-    (isActive: boolean, item: SettingsItem) => {
-      if (!item) return <></>;
-      let val = item.label.toUpperCase();
-      if (item.key === 'automatic_toggle') {
-        val += automaticTz ? ': ENABLED' : ': DISABLED';
-      }
-      return marqueeIfNeeded({ enabled: isActive, val });
-    },
-    [automaticTz]
+  const settings = useMemo(
+    () =>
+      isSuccess
+        ? initialSettings
+            .filter((setting) =>
+              setting.key === 'time_zone_selector'
+                ? globalSettings.timezone_sync === 'manual'
+                : true
+            )
+            .map((item) => {
+              const newLabel = getSettingLabel(item.key, globalSettings);
+              return newLabel
+                ? { ...item, label: `${item.label}: ${newLabel}` }
+                : item;
+            })
+        : initialSettings,
+    [globalSettings, isSuccess]
   );
 
   useHandleGestures(
@@ -97,9 +71,17 @@ export const TimeZoneConfig = () => {
       pressDown() {
         const activeItem = settings[activeIndex].key;
         switch (activeItem) {
-          case 'automatic_toggle':
-            handleAutomaticToggle();
+          case 'timezone_sync': {
+            //toggle automatic/manual C:
+            const new_timezone_sync =
+              globalSettings.timezone_sync === 'automatic'
+                ? 'manual'
+                : 'automatic';
+            updateSettings.mutate({
+              timezone_sync: new_timezone_sync
+            });
             break;
+          }
           case 'time_zone_selector':
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             dispatch(setScreen('selectLetterCountry'));
@@ -115,44 +97,54 @@ export const TimeZoneConfig = () => {
     !bubbleDisplay.visible
   );
 
-  useEffect(() => {
-    if (swiper) {
-      swiper.slideTo(activeIndex, 0, false);
-    }
-  }, [activeIndex, swiper]);
+  const optionPositionOutter = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        settings
+      }),
+    [activeIndex, settings]
+  );
+
+  const optionPositionInner = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        adjustmentFn: (position) => position - VIEWPORT_HEIGHT / 2,
+        settings
+      }),
+    [activeIndex, settings]
+  );
 
   return (
-    <div className="main-quick-settings">
-      <Swiper
-        onSwiper={setSwiper}
-        slidesPerView={8}
-        allowTouchMove={false}
-        direction="vertical"
-        spaceBetween={16}
-        autoHeight={false}
-        centeredSlides={true}
-        initialSlide={activeIndex}
-        style={{ paddingLeft: '29px', top: '-4px' }}
-      >
-        {settings.map((item, index: number) => {
-          const isActive = index === activeIndex;
-          return (
-            <SwiperSlide
-              key={index}
-              className={`settings-item ${isActive ? 'active-setting' : ''}`}
-            >
-              <div className="settings-entry text-container">
-                <span
-                  className="settings-text"
-                  style={{ wordBreak: 'break-word' }}
-                >
-                  {showValue(isActive, item)}
-                </span>
-              </div>
-            </SwiperSlide>
-          );
-        })}
-      </Swiper>
-    </div>
+    <Styled.SettingsContainer>
+      <Styled.Viewport>
+        <Styled.OptionsContainer $translateY={optionPositionOutter}>
+          {settings.map((option) => (
+            <Styled.Option key={option.key}>
+              <span>{option.label}</span>
+            </Styled.Option>
+          ))}
+        </Styled.OptionsContainer>
+        <Styled.ActiveIndicator>
+          <Styled.OptionsContainer
+            $translateY={optionPositionInner}
+            $isInner={true}
+          >
+            {settings.map((option, index) => (
+              <Styled.Option
+                key={option.key}
+                $isMarquee={
+                  activeIndex === index &&
+                  option.label.length > MARQUEE_MIN_TEXT_LENGTH
+                }
+              >
+                <span>{option.label}</span>
+              </Styled.Option>
+            ))}
+          </Styled.OptionsContainer>
+        </Styled.ActiveIndicator>
+      </Styled.Viewport>
+    </Styled.SettingsContainer>
   );
 };
