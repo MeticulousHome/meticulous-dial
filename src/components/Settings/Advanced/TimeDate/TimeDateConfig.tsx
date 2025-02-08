@@ -1,25 +1,25 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import '../../../QuickSettings/quick-settings.css';
 import { useHandleGestures } from '../../../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import {
-  setBubbleDisplay,
-  setScreen
-} from '../../../store/features/screens/screens-slice';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
+import { setBubbleDisplay } from '../../../store/features/screens/screens-slice';
 import '../../../OSStatus/OSStatus.css';
 
 import { SettingsItem } from '../../../../types';
 import { useSettings } from '../../../../hooks/useSettings';
 
-const defaultSettings: SettingsItem[] = [
+import Styled, {
+  VIEWPORT_HEIGHT,
+  MARQUEE_MIN_TEXT_LENGTH
+} from '../../../../styles/utils/mixins';
+import { calculateOptionPosition } from '../../../../styles/utils/calculateOptionPosition';
+import { getSettingLabel } from '../../../../utils/settingsLabels';
+
+const initialSettings: SettingsItem[] = [
   {
-    key: 'set_timezone',
-    label: 'Set time zone',
-    visible: true,
-    value: false
+    key: 'time_zone',
+    label: 'Set time zone'
   },
   {
     key: 'set_time',
@@ -35,45 +35,40 @@ const defaultSettings: SettingsItem[] = [
   },
   {
     key: 'back',
-    label: 'Back',
-    visible: true
+    label: 'Back'
   }
 ];
 
 export function TimeDate(): JSX.Element {
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [settings, setSettings] = useState(defaultSettings);
-  const { data: globalSettings } = useSettings();
+  const { data: globalSettings, isSuccess } = useSettings();
 
-  const [counterESGG, setCounterESGG] = useState(0);
+  const settings = useMemo(
+    () =>
+      isSuccess
+        ? initialSettings.map((item) => {
+            const newLabel = getSettingLabel(item.key, globalSettings);
+            return newLabel
+              ? { ...item, label: `${item.label}: ${newLabel}` }
+              : item;
+          })
+        : initialSettings,
+    [globalSettings, isSuccess]
+  );
 
   useHandleGestures(
     {
-      context() {
-        setActiveIndex(1);
-        dispatch(
-          setBubbleDisplay({
-            visible: !bubbleDisplay.visible,
-            component: !bubbleDisplay.visible ? 'quick-settings' : null
-          })
-        );
-      },
       left() {
         setActiveIndex((prev) => Math.max(prev - 1, 0));
-        setCounterESGG(0);
       },
       right() {
         setActiveIndex((prev) => Math.min(prev + 1, settings.length - 1));
-        if (settings[activeIndex].key === 'exit') {
-          setCounterESGG(counterESGG + 1);
-        }
       },
       pressDown() {
         switch (settings[activeIndex].key) {
-          case 'set_timezone': {
+          case 'time_zone': {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'timeZoneConfig' })
             );
@@ -103,70 +98,54 @@ export function TimeDate(): JSX.Element {
     !bubbleDisplay.visible
   );
 
-  useEffect(() => {
-    setSettings(defaultSettings);
-  }, []);
+  const optionPositionOutter = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        settings
+      }),
+    [activeIndex, settings]
+  );
 
-  useEffect(() => {
-    if (swiper) {
-      swiper.slideTo(activeIndex, 0, false);
-    }
-  }, [activeIndex, swiper]);
-
-  useEffect(() => {
-    if (counterESGG >= 20) {
-      console.log('Easter Egg on');
-      dispatch(setBubbleDisplay({ visible: false, component: null }));
-      dispatch(setScreen('snake'));
-    }
-  }, [counterESGG]);
-
-  const getSettingClasses = useCallback((isActive: boolean) => {
-    return `
-      settings-item ${isActive ? 'active-setting' : ''}
-      `;
-  }, []);
-
-  const getLabel = (setting: SettingsItem) => {
-    switch (setting.key) {
-      case 'set_timezone':
-        if (globalSettings && globalSettings.time_zone) {
-          return `${setting.label}: ${globalSettings.time_zone}`;
-        }
-        break;
-      case 'set_date_time':
-        break;
-    }
-    return setting.label;
-  };
+  const optionPositionInner = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        adjustmentFn: (position) => position - VIEWPORT_HEIGHT / 2,
+        settings
+      }),
+    [activeIndex, settings]
+  );
 
   return (
-    <div className="main-quick-settings">
-      <Swiper
-        onSwiper={setSwiper}
-        slidesPerView={8}
-        allowTouchMove={false}
-        direction="vertical"
-        spaceBetween={16}
-        autoHeight={false}
-        centeredSlides={true}
-        initialSlide={activeIndex}
-        style={{ paddingLeft: '29px', top: '-4px' }}
-      >
-        {settings.map((setting, index: number) => {
-          const isActive = index === activeIndex;
-          return (
-            <div key={`option-${index}-${setting.key}`}>
-              <SwiperSlide
-                className={getSettingClasses(isActive)}
-                key={`option-${index}-${setting.key}`}
+    <Styled.SettingsContainer>
+      <Styled.Viewport>
+        <Styled.OptionsContainer $translateY={optionPositionOutter}>
+          {settings.map((option) => (
+            <Styled.Option key={option.key}>
+              <span>{option.label}</span>
+            </Styled.Option>
+          ))}
+        </Styled.OptionsContainer>
+        <Styled.ActiveIndicator>
+          <Styled.OptionsContainer
+            $translateY={optionPositionInner}
+            $isInner={true}
+          >
+            {settings.map((option, index) => (
+              <Styled.Option
+                key={option.key}
+                $isMarquee={
+                  activeIndex === index &&
+                  option.label.length > MARQUEE_MIN_TEXT_LENGTH
+                }
               >
-                <div className="text-container">{getLabel(setting)}</div>
-              </SwiperSlide>
-            </div>
-          );
-        })}
-      </Swiper>
-    </div>
+                <span>{option.label}</span>
+              </Styled.Option>
+            ))}
+          </Styled.OptionsContainer>
+        </Styled.ActiveIndicator>
+      </Styled.Viewport>
+    </Styled.SettingsContainer>
   );
 }

@@ -7,7 +7,10 @@ export const getSettingLabel = (key: string, globalSettings: Settings) => {
       ? 'ENABLED'
       : 'DISABLED',
     auto_start_shot: globalSettings.auto_start_shot ? 'ENABLED' : 'DISABLED',
-    enable_sounds: globalSettings.enable_sounds ? 'ENABLED' : 'DISABLED'
+    enable_sounds: globalSettings.enable_sounds ? 'ENABLED' : 'DISABLED',
+    time_zone: globalSettings.time_zone ?? '',
+    timezone_sync:
+      globalSettings.timezone_sync === 'automatic' ? 'ENABLED' : 'DISABLED'
   };
 
   return settingLabelMap[key];
