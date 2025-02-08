@@ -43,6 +43,8 @@ import { IdleScreenSetting } from '../components/Settings/Advanced/IdleScreenSet
 import CalibrateScale from '../components/Scale/CalibrateScale';
 import { USBSettings } from '../components/Settings/USBSettings';
 import { BrewSettings } from '../components/Settings/BrewSettings';
+import { TimeConfig } from '../components/Settings/Advanced/TimeDate/TimeConfig';
+import { DateConfig } from '../components/Settings/Advanced/TimeDate/DateConfig';
 
 interface Route {
   component: ComponentType;
@@ -73,6 +75,16 @@ export const routes: Record<ScreenType, Route> = {
   timeDate: {
     component: TimeDate,
     title: 'TimeDate',
+    bottomStatusHidden: true
+  },
+  timeConfig: {
+    component: TimeConfig,
+    title: 'Time',
+    bottomStatusHidden: true
+  },
+  dateConfig: {
+    component: DateConfig,
+    title: 'Time',
     bottomStatusHidden: true
   },
   OSStatus: {
