@@ -1,7 +1,8 @@
 import Lottie, { AnimationItem } from 'lottie-web';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef } from 'react';
 
 import BubbleAnimation from './WaterBubbles.json';
+const baseSegment = [60, 314];
 
 import { styled } from 'styled-components';
 
@@ -56,7 +57,7 @@ const GradientContainer = styled.div`
   height: ${BUBBLES_HEIGHT - 1}px;
   top: 1px;
   left: 1px;
-  transition: background-position-y 0.3s;
+  transition: background-position-y 0.5s;
   background: ${linearGradientCSS};
   background-position-y: 0%;
   background-size: 100% ${gradientColors.length * 100}%;
@@ -75,19 +76,24 @@ export const LottieBubbleAnimation = memo(
     const animation = useRef<AnimationItem | null>(null);
     const animationDiv = useRef<HTMLDivElement | null>(null);
     const gradientRef = useRef<HTMLDivElement | null>(null);
-    const [noWaterAnimationStart, setNoWaterAnimationStart] =
-      useState<Date | null>(null);
+
+    // Start / stop the animation based on the water status
+    useEffect(() => {
+      if (!animation.current) {
+        return;
+      }
+      if (waterStatus) {
+        animation.current?.playSegments([0, baseSegment[1]], true);
+        animation.current.setLoop(true);
+      } else {
+        animation.current.setLoop(false);
+        animation.current?.playSegments([baseSegment[1], 375], false);
+      }
+    }, [waterStatus]);
 
     useEffect(() => {
       if (!gradientRef.current) {
         return;
-      }
-      // Should we transition to grey for the no-water status?
-      let noWaterInterpolation = -1;
-      if (noWaterAnimationStart) {
-        const noWaterTime =
-          new Date().getTime() - noWaterAnimationStart.getTime();
-        noWaterInterpolation = Math.max(0, 2000 - noWaterTime) / 2000;
       }
 
       // Where is the current temperature on the range of colors?
@@ -103,20 +109,11 @@ export const LottieBubbleAnimation = memo(
           gradientColors.length) *
         100;
 
-      // Mix Water status and temperature gradient
+      // go to 0 (grey) if the water is not detected
       gradientRef.current.style.backgroundPositionY = `${
-        (noWaterInterpolation > -1 ? noWaterInterpolation : 1) *
-        temperatureOffset
+        waterStatus ? temperatureOffset : 0
       }%`;
-    }, [temperature, noWaterAnimationStart, gradientRef]);
-
-    useEffect(() => {
-      if (waterStatus === false && !noWaterAnimationStart) {
-        setNoWaterAnimationStart(new Date());
-      } else {
-        setNoWaterAnimationStart(null);
-      }
-    }, [waterStatus, noWaterAnimationStart]);
+    }, [temperature, waterStatus, gradientRef]);
 
     useEffect(() => {
       if (!animationDiv.current) {
@@ -130,9 +127,20 @@ export const LottieBubbleAnimation = memo(
           animationData: BubbleAnimation,
           renderer: 'svg',
           loop: true,
-          autoplay: true
+          autoplay: true,
+          initialSegment: [0, baseSegment[0]]
         });
-        animation.current.setSpeed(1.2);
+        animation.current.setSubframe(false);
+
+        // Play segment, wait for the previous one to finish
+        animation.current?.playSegments(
+          [baseSegment[0], baseSegment[1]],
+          false
+        );
+
+        animation.current.addEventListener('loopComplete', () => {
+          animation.current.setSegment(baseSegment[0], baseSegment[1]);
+        });
       }
       return () => {
         animation.current?.destroy();
