@@ -79,25 +79,23 @@ export function TimeConfig(): JSX.Element {
   const [activeField, setActiveField] = useState<'hours' | 'minutes'>('hours');
   const setDateTime = useSetTime();
 
+  const changeTime = (direction: number) => {
+    if (activeField === 'hours') {
+      const oneHour = 60 * 60 * 1000;
+      setNewTime((prev) => new Date(prev.getTime() + oneHour * direction));
+    } else {
+      const oneMinute = 60 * 1000;
+      setNewTime((prev) => new Date(prev.getTime() + oneMinute * direction));
+    }
+  };
+
   useHandleGestures(
     {
       left() {
-        if (activeField === 'hours') {
-          const oneHour = 60 * 60 * 1000;
-          setNewTime((prev) => new Date(prev.getTime() - oneHour));
-        } else {
-          const oneMinute = 60 * 1000;
-          setNewTime((prev) => new Date(prev.getTime() - oneMinute));
-        }
+        changeTime(-1);
       },
       right() {
-        if (activeField === 'hours') {
-          const oneHour = 60 * 60 * 1000;
-          setNewTime((prev) => new Date(prev.getTime() + oneHour));
-        } else {
-          const oneMinute = 60 * 1000;
-          setNewTime((prev) => new Date(prev.getTime() + oneMinute));
-        }
+        changeTime(1);
       },
       pressDown() {
         setActiveField((prev) => (prev === 'hours' ? 'minutes' : 'hours'));

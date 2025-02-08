@@ -72,49 +72,35 @@ export function DateConfig(): JSX.Element {
   );
   const setDateTime = useSetTime();
 
+  const changeTime = (direction: number) => {
+    if (activeField === 'day') {
+      setNewTime((prev) => {
+        const next = new Date(prev.getTime());
+        next.setDate(next.getDate() + direction);
+        return next;
+      });
+    } else if (activeField === 'month') {
+      setNewTime((prev) => {
+        const next = new Date(prev.getTime());
+        next.setMonth(next.getMonth() + direction);
+        return next;
+      });
+    } else {
+      setNewTime((prev) => {
+        const next = new Date(prev.getTime());
+        next.setFullYear(next.getFullYear() + direction);
+        return next;
+      });
+    }
+  };
+
   useHandleGestures(
     {
       right() {
-        if (activeField === 'day') {
-          setNewTime((prev) => {
-            const next = new Date(prev.getTime());
-            next.setDate(next.getDate() + 1);
-            return next;
-          });
-        } else if (activeField === 'month') {
-          setNewTime((prev) => {
-            const next = new Date(prev.getTime());
-            next.setMonth(next.getMonth() + 1);
-            return next;
-          });
-        } else {
-          setNewTime((prev) => {
-            const next = new Date(prev.getTime());
-            next.setFullYear(next.getFullYear() + 1);
-            return next;
-          });
-        }
+        changeTime(1);
       },
       left() {
-        if (activeField === 'day') {
-          setNewTime((prev) => {
-            const next = new Date(prev.getTime());
-            next.setDate(next.getDate() - 1);
-            return next;
-          });
-        } else if (activeField === 'month') {
-          setNewTime((prev) => {
-            const next = new Date(prev.getTime());
-            next.setMonth(next.getMonth() - 1);
-            return next;
-          });
-        } else {
-          setNewTime((prev) => {
-            const next = new Date(prev.getTime());
-            next.setFullYear(next.getFullYear() - 1);
-            return next;
-          });
-        }
+        changeTime(-1);
       },
       pressDown() {
         setActiveField((prev) => {
