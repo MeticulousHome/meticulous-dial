@@ -170,6 +170,18 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     dispatch(setBubbleDisplay({ visible: false, component: null }));
   }, [shouldGoToIdle]);
 
+  useEffect(() => {
+    if (option.animating == false) {
+      return;
+    }
+    setTimeout(() => {
+      setOption((prev) => ({
+        ...prev,
+        animating: false
+      }));
+    }, 300);
+  }, [option.animating]);
+
   const focusProfileHandle = () => {
     if (
       pressetSwiper &&
@@ -201,13 +213,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     handleAddIncreseAnimation(pressetSwiper);
 
     handleAddLeaveAnimation(pressetSwiper);
-
-    setTimeout(() => {
-      setOption((prev) => ({
-        ...prev,
-        animating: false
-      }));
-    }, 300);
   };
 
   useHandleGestures(
