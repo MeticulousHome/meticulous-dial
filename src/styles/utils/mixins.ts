@@ -149,7 +149,7 @@ const Option = styled.div<{
   line-height: 2;
   justify-content: start;
   font-weight: 300;
-  padding-left: 16px;
+  padding: 0 16px;
 
   ${({ $hasSeparator }) =>
     $hasSeparator
@@ -202,6 +202,24 @@ const NetworkOption = styled(Option)<{ $isMarquee?: boolean }>`
   }
 }`;
 
+export const MenuAnnotation = styled.span<{ $marginRigth?: string }>`
+  display: flex;
+  align-items: center;
+  height: 15px;
+  font-size: 12px;
+  font-family: 'ABC Diatype Mono';
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 2px 5px;
+  text-transform: none;
+  line-height: normal;
+  margin-right: ${({ $marginRigth }) => $marginRigth || '0'};
+`;
+
+const SelectedOption = styled(Option)<{ $gapValue?: string }>`
+  justify-content: space-between;
+`;
+
 export default {
   SettingsContainer,
   Viewport,
@@ -209,5 +227,6 @@ export default {
   OptionsContainer,
   Option,
   OsStatusOption,
-  NetworkOption
+  NetworkOption,
+  SelectedOption
 };
