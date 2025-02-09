@@ -1,14 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
+import { useMemo, useState } from 'react';
 
-import { SettingsKey } from '@meticulous-home/espresso-api';
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { SettingsItem } from '../../../types';
-import { marqueeIfNeeded } from '../../shared/MarqueeValue';
 import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { MenuAnnotation } from '../MenuAnnotation';
 import { useSettings, useUpdateSettings } from '../../../hooks/useSettings';
+import Styled, {
+  VIEWPORT_HEIGHT,
+  MenuAnnotation
+} from '../../../styles/utils/mixins';
+import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
 
 const UPDATE_CHANNELS = ['stable', 'beta', 'rel', 'nightly'];
 
@@ -16,13 +17,12 @@ export const UpdateChannel = () => {
   const dispatch = useAppDispatch();
   const { data: globalSettings } = useSettings();
   const updateSettings = useUpdateSettings();
-  const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
 
   const settings: SettingsItem[] = [
     ...UPDATE_CHANNELS.map((channel) => ({
-      key: 'channel_' + channel,
+      key: channel,
       label: channel,
       visible: true
     })),
@@ -32,23 +32,6 @@ export const UpdateChannel = () => {
       visible: true
     }
   ];
-
-  const showValue = useCallback(
-    (isActive: boolean, item: SettingsItem) => {
-      if (!item) return <></>;
-      let val = item.label.toUpperCase();
-      if (globalSettings) {
-        if (typeof globalSettings[item.key as SettingsKey] === 'boolean') {
-          val = globalSettings[item.key as SettingsKey]
-            ? val + ': ENABLED'
-            : val + ': DISABLED';
-        }
-
-        return marqueeIfNeeded({ enabled: isActive, val });
-      }
-    },
-    [globalSettings]
-  );
 
   useHandleGestures(
     {
@@ -67,7 +50,7 @@ export const UpdateChannel = () => {
             );
             break;
           default: {
-            const channel = settings[activeIndex].label;
+            const channel = settings[activeIndex].key;
             updateSettings.mutate({ update_channel: channel });
             break;
           }
@@ -77,45 +60,62 @@ export const UpdateChannel = () => {
     !bubbleDisplay.visible
   );
 
-  useEffect(() => {
-    if (swiper) {
-      swiper.slideTo(activeIndex, 0, false);
-    }
-  }, [activeIndex, swiper]);
+  const optionPositionOutter = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        settings
+      }),
+    [activeIndex, settings]
+  );
+
+  const optionPositionInner = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        adjustmentFn: (position) => position - VIEWPORT_HEIGHT / 2,
+        settings
+      }),
+    [activeIndex, settings]
+  );
 
   return (
-    <div className="main-quick-settings">
-      <Swiper
-        onSwiper={setSwiper}
-        slidesPerView={8}
-        allowTouchMove={false}
-        direction="vertical"
-        spaceBetween={16}
-        autoHeight={false}
-        centeredSlides={true}
-        initialSlide={activeIndex}
-        style={{ paddingLeft: '29px', top: '-4px' }}
-      >
-        {settings.map((item, index: number) => {
-          const isActive = index === activeIndex;
-          const isSelectedChannel =
-            globalSettings?.update_channel === item.label;
-          return (
-            <SwiperSlide
-              key={index}
-              className={`settings-item ${isActive ? 'active-setting' : ''}`}
-              style={{ display: 'flex', justifyContent: 'space-between' }}
-            >
-              <span>{showValue(isActive, item)}</span>
-              {isSelectedChannel && (
-                <MenuAnnotation style={{ marginRight: 10 }}>
-                  current
-                </MenuAnnotation>
-              )}
-            </SwiperSlide>
-          );
-        })}
-      </Swiper>
-    </div>
+    <Styled.SettingsContainer>
+      <Styled.Viewport>
+        <Styled.OptionsContainer $translateY={optionPositionOutter}>
+          {settings.map((option) => {
+            const isSelectedChannel =
+              globalSettings?.update_channel === option.key;
+            return (
+              <Styled.SelectedOption key={option.key}>
+                <span>{option.label}</span>
+                {isSelectedChannel && (
+                  <MenuAnnotation $marginRigth="1.2rem">current</MenuAnnotation>
+                )}
+              </Styled.SelectedOption>
+            );
+          })}
+        </Styled.OptionsContainer>
+        <Styled.ActiveIndicator>
+          <Styled.OptionsContainer
+            $translateY={optionPositionInner}
+            $isInner={true}
+          >
+            {settings.map((option) => {
+              const isSelectedChannel =
+                globalSettings?.update_channel === option.key;
+              return (
+                <Styled.SelectedOption key={option.key}>
+                  <span>{option.label}</span>
+                  {isSelectedChannel && (
+                    <MenuAnnotation>current</MenuAnnotation>
+                  )}
+                </Styled.SelectedOption>
+              );
+            })}
+          </Styled.OptionsContainer>
+        </Styled.ActiveIndicator>
+      </Styled.Viewport>
+    </Styled.SettingsContainer>
   );
 };
