@@ -1,9 +1,7 @@
 import { useMemo, useState } from 'react';
-import 'swiper/css';
 
 import { SettingsKey } from '@meticulous-home/espresso-api';
 
-import './settings.css';
 import '../PressetSettings/pressetSettings.css';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -124,7 +122,7 @@ export function BrewSettings(): JSX.Element {
       <Styled.Viewport>
         <Styled.OptionsContainer $translateY={optionPositionOutter}>
           {updatedSettings.map((option) => (
-            <Styled.Option key={option.key} $hasSeparator={option.hasSeparator}>
+            <Styled.Option key={option.key}>
               <span>{option.label}</span>
             </Styled.Option>
           ))}
@@ -137,7 +135,6 @@ export function BrewSettings(): JSX.Element {
             {updatedSettings.map((option, index) => (
               <Styled.Option
                 key={option.key}
-                $hasSeparator={option.hasSeparator}
                 $isMarquee={
                   activeIndex === index &&
                   option.label.length > MARQUEE_MIN_TEXT_LENGTH
