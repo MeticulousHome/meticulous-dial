@@ -32,7 +32,6 @@
 .default-profile-container__content__info__text {
   display: block;
   text-align: left;
-  word-break: break-all;
 }
 .default-profile-container__content__info__text--active {
   color: #f5c444;
