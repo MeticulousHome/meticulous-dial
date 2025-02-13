@@ -606,7 +606,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
               bulletActiveClass: 'swiper-pagination-bullet-active',
               bulletClass: 'swiper-pagination-bullet'
             }}
-            speed={600}
+            speed={140}
           >
             {presets.value.length &&
               presets.value.map((preset, index) => (
