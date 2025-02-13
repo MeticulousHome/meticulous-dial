@@ -3,10 +3,7 @@ import { useDispatch } from 'react-redux';
 import { useSettings, useUpdateSettings } from '../..//hooks/useSettings';
 import { Gauge } from '../../components/SettingNumerical/Gauge';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import {
-  setBubbleDisplay,
-  setScreen
-} from '../store/features/screens/screens-slice';
+import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { AppDispatch } from '../store/store';
 
 const MAX_TIMEOUT = 10; // 60 minutes
@@ -32,8 +29,7 @@ export const HeatTimeoutAfterShot: React.FC = () => {
     },
     pressDown() {
       updateSettings.mutate({ heating_timeout: localHeatingTimeout });
-      dispatch(setBubbleDisplay({ visible: false, component: null }));
-      dispatch(setScreen('pressets'));
+      dispatch(setBubbleDisplay({ visible: true, component: 'brewSettings' }));
     }
   });
 
