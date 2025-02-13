@@ -52,8 +52,8 @@ const prevScreenSetting: QuickSettingOption = {
 
 const defaultSettings: QuickSettingOption[] = [
   {
-    key: 'home',
-    label: 'home'
+    key: 'raise',
+    label: 'raise'
   },
   {
     key: 'purge',
@@ -189,9 +189,9 @@ export function QuickSettings(): JSX.Element {
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
-          case 'home': {
+          case 'raise': {
             socket.emit('action', 'home');
-            console.log('home');
+            console.log('raise/home');
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
