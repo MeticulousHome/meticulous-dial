@@ -17,20 +17,24 @@ import Styled, {
   MARQUEE_MIN_TEXT_LENGTH
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
-import { getSettingLabel } from '../../utils/settingsLabels';
 
 const initialSettings: SettingsItem[] = [
   {
     key: 'auto_start_shot',
-    label: 'Auto start after heating'
+    label: 'Auto start after heating',
+    getLabel: (settings) =>
+      `${settings.auto_start_shot ? 'ENABLED' : 'DISABLED'}`
   },
   {
     key: 'auto_purge_after_shot',
-    label: 'Auto purge after shot'
+    label: 'Auto purge after shot',
+    getLabel: (settings) =>
+      `${settings.auto_purge_after_shot ? 'ENABLED' : 'DISABLED'}`
   },
   {
     key: 'heat_timeout_after_shot',
     label: 'Heat timeout after shot',
+    getLabel: (settings) => `${settings.heating_timeout} MIN`,
     visible: true
   },
   {
@@ -46,18 +50,19 @@ export function BrewSettings(): JSX.Element {
   const { data: globalSettings, isSuccess } = useSettings();
   const updateSettings = useUpdateSettings();
 
-  const updatedSettings = useMemo(
-    () =>
-      isSuccess
-        ? initialSettings.map((item) => {
-            const newLabel = getSettingLabel(item.key, globalSettings);
-            return newLabel
-              ? { ...item, label: `${item.label}: ${newLabel}` }
-              : item;
-          })
-        : initialSettings,
-    [globalSettings, isSuccess]
-  );
+  const updatedSettings = useMemo(() => {
+    if (!isSuccess) {
+      return initialSettings.map((item) => ({
+        ...item
+      }));
+    }
+    return initialSettings.map((item) => ({
+      ...item,
+      label: item.getLabel
+        ? `${item.label}: ${item.getLabel(globalSettings)}`
+        : item.label
+    }));
+  }, [globalSettings, isSuccess]);
 
   useHandleGestures(
     {

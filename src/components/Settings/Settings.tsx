@@ -14,7 +14,6 @@ import type { SettingsItem } from '../../types';
 
 import Styled, { VIEWPORT_HEIGHT } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
-import { getSettingLabel } from '../../utils/settingsLabels';
 
 const initialSettings: SettingsItem[] = [
   {
@@ -30,6 +29,8 @@ const initialSettings: SettingsItem[] = [
   {
     key: 'enable_sounds',
     label: 'sounds',
+    getLabel: (settings) =>
+      `${settings.enable_sounds ? 'ENABLED' : 'DISABLED'}`,
     visible: true
   },
   {
@@ -53,18 +54,20 @@ export function Settings(): JSX.Element {
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const updateSettings = useUpdateSettings();
-  const updatedSettings = useMemo(
-    () =>
-      isSuccess
-        ? initialSettings.map((item) => {
-            const newLabel = getSettingLabel(item.key, globalSettings);
-            return newLabel
-              ? { ...item, label: `${item.label}: ${newLabel}` }
-              : item;
-          })
-        : initialSettings,
-    [globalSettings, isSuccess]
-  );
+
+  const updatedSettings = useMemo(() => {
+    if (!isSuccess) {
+      return initialSettings.map((item) => ({
+        ...item
+      }));
+    }
+    return initialSettings.map((item) => ({
+      ...item,
+      label: item.getLabel
+        ? `${item.label}: ${item.getLabel(globalSettings)}`
+        : item.label
+    }));
+  }, [globalSettings, isSuccess]);
 
   useHandleGestures(
     {

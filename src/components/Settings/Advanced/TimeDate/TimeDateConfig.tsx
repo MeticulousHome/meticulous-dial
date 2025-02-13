@@ -14,12 +14,12 @@ import Styled, {
   MARQUEE_MIN_TEXT_LENGTH
 } from '../../../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../../../styles/utils/calculateOptionPosition';
-import { getSettingLabel } from '../../../../utils/settingsLabels';
 
 const initialSettings: SettingsItem[] = [
   {
     key: 'time_zone',
-    label: 'Set time zone'
+    label: 'Set time zone',
+    getLabel: (settings) => `${settings.time_zone || 'Not set'}`
   },
   {
     key: 'set_time',
@@ -45,18 +45,19 @@ export function TimeDate(): JSX.Element {
   const [activeIndex, setActiveIndex] = useState(0);
   const { data: globalSettings, isSuccess } = useSettings();
 
-  const settings = useMemo(
-    () =>
-      isSuccess
-        ? initialSettings.map((item) => {
-            const newLabel = getSettingLabel(item.key, globalSettings);
-            return newLabel
-              ? { ...item, label: `${item.label}: ${newLabel}` }
-              : item;
-          })
-        : initialSettings,
-    [globalSettings, isSuccess]
-  );
+  const settings = useMemo(() => {
+    if (!isSuccess) {
+      return initialSettings.map((item) => ({
+        ...item
+      }));
+    }
+    return initialSettings.map((item) => ({
+      ...item,
+      label: item.getLabel
+        ? `${item.label}: ${item.getLabel(globalSettings)}`
+        : item.label
+    }));
+  }, [globalSettings, isSuccess]);
 
   useHandleGestures(
     {

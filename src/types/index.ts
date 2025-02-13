@@ -1,5 +1,5 @@
 import { VariableType } from '@meticulous-home/espresso-profile';
-
+import { Settings } from '@meticulous-home/espresso-api';
 interface JSONObject {
   [x: string]: JSONValue;
 }
@@ -199,6 +199,7 @@ export type SettingsItem = {
   value?: number | string | boolean;
   key: string;
   label?: string;
+  getLabel?: (settings: Settings) => string;
   shortLabel?: string;
   visible?: boolean;
   hasSeparator?: boolean;
