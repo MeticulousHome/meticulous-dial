@@ -32,7 +32,8 @@
 .default-profile-container__content__info__text {
   display: block;
   text-align: left;
-  word-break: break-all;
+  word-break: break-word;
+  word-break: auto-phrase; /* Not supported outside of chrome based browsers as of early 2025 */
 }
 .default-profile-container__content__info__text--active {
   color: #f5c444;
