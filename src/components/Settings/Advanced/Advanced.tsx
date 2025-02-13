@@ -12,12 +12,13 @@ import Styled, {
   MARQUEE_MIN_TEXT_LENGTH
 } from '../../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
-import { getSettingLabel } from '../../../utils/settingsLabels';
+import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSetting';
 
 const initialSettings: SettingsItem[] = [
   {
     key: 'usb_mode',
-    label: 'USB mode'
+    label: 'USB mode',
+    getLabel: (settings) => settings.usb_mode
   },
   {
     key: 'master_calibration',
@@ -27,16 +28,21 @@ const initialSettings: SettingsItem[] = [
   {
     key: 'save_debug_shot_data',
     label: 'Save debug shot data',
+    getLabel: (settings) =>
+      `${settings.save_debug_shot_data ? 'ENABLED' : 'DISABLED'}`,
     visible: true
   },
   {
     key: 'set_update_channel',
     label: 'Update channel',
+    getLabel: (settings) => settings.update_channel,
     visible: true
   },
   {
     key: 'idle_screen',
     label: 'Select Idle Screen',
+    getLabel: (settings) =>
+      IdleScreens.find((item) => item.key === settings.idle_screen)?.shortLabel,
     visible: true
   },
   {
@@ -54,18 +60,19 @@ export const AdvancedSettings = () => {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { refetch: fetchDeviceStatus } = useDeviceInfo();
 
-  const updatedSettings = useMemo(
-    () =>
-      isSuccess
-        ? initialSettings.map((item) => {
-            const newLabel = getSettingLabel(item.key, globalSettings);
-            return newLabel
-              ? { ...item, label: `${item.label}: ${newLabel}` }
-              : item;
-          })
-        : initialSettings,
-    [globalSettings, isSuccess]
-  );
+  const updatedSettings = useMemo(() => {
+    if (!isSuccess) {
+      return initialSettings.map((item) => ({
+        ...item
+      }));
+    }
+    return initialSettings.map((item) => ({
+      ...item,
+      label: item.getLabel
+        ? `${item.label}: ${item.getLabel(globalSettings)}`
+        : item.label
+    }));
+  }, [globalSettings, isSuccess]);
 
   useHandleGestures(
     {

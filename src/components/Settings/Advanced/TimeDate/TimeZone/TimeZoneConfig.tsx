@@ -10,7 +10,6 @@ import {
   useSettings,
   useUpdateSettings
 } from '../../../../../hooks/useSettings';
-import { getSettingLabel } from '../../../../../utils/settingsLabels';
 import Styled, {
   VIEWPORT_HEIGHT,
   MARQUEE_MIN_TEXT_LENGTH
@@ -21,6 +20,8 @@ const initialSettings: SettingsItem[] = [
   {
     key: 'timezone_sync',
     label: 'Automatic',
+    getLabel: (settings) =>
+      settings.timezone_sync === 'automatic' ? 'ENABLED' : 'DISABLED',
     visible: true
   },
   {
@@ -41,24 +42,29 @@ export const TimeZoneConfig = () => {
   const { data: globalSettings, isSuccess } = useSettings();
   const updateSettings = useUpdateSettings();
 
-  const settings = useMemo(
-    () =>
-      isSuccess
-        ? initialSettings
-            .filter((setting) =>
-              setting.key === 'time_zone_selector'
-                ? globalSettings.timezone_sync === 'manual'
-                : true
-            )
-            .map((item) => {
-              const newLabel = getSettingLabel(item.key, globalSettings);
-              return newLabel
-                ? { ...item, label: `${item.label}: ${newLabel}` }
-                : item;
-            })
-        : initialSettings,
-    [globalSettings, isSuccess]
-  );
+  const settings = useMemo(() => {
+    if (!isSuccess) {
+      return initialSettings
+        .filter(
+          (setting) =>
+            setting.key !== 'time_zone_selector' ||
+            globalSettings?.timezone_sync === 'manual'
+        )
+        .map((item) => ({ ...item, label: item.label }));
+    }
+    return initialSettings
+      .filter(
+        (setting) =>
+          setting.key !== 'time_zone_selector' ||
+          globalSettings.timezone_sync === 'manual'
+      )
+      .map((item) => ({
+        ...item,
+        label: item.getLabel
+          ? `${item.label}: ${item.getLabel(globalSettings)}`
+          : item.label
+      }));
+  }, [globalSettings, isSuccess]);
 
   useHandleGestures(
     {
