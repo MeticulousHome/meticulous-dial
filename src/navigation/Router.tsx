@@ -19,7 +19,6 @@ interface RouterProps {
 
 export const Router = memo(
   ({ currentScreen, previousScreen }: RouterProps): JSX.Element => {
-    const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
     const route = memoizedRoutes[currentScreen];
     const RouteComponent = route.component;
     const title = useAppSelector((state) =>
@@ -69,9 +68,7 @@ export const Router = memo(
           <RouteComponent {...route.props} />
         </Transitioner>
         <Freeze freeze={route.bottomStatusHidden}>
-          <BottomStatus
-            hidden={route.bottomStatusHidden || bubbleDisplay.visible}
-          />
+          <BottomStatus hidden={route.bottomStatusHidden} />
         </Freeze>
       </>
     );
