@@ -1,7 +1,11 @@
 import { useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-import { GestureType, ISensorData, ProfileCause } from '../../types/index';
+import {
+  GestureType,
+  ISensorDataAndMachineState,
+  ProfileCause
+} from '../../types/index';
 import { useAppDispatch, useAppSelector } from './hooks';
 import {
   setStats,
@@ -54,7 +58,7 @@ export const SocketProviderValue = () => {
       dispatch(updatePreheatTimeLeft(timeLeft));
     });
 
-    socket.on('status', (data: ISensorData) => {
+    socket.on('status', (data: ISensorDataAndMachineState) => {
       dispatch(setStats(data));
 
       if (currentStateName !== data?.name) {

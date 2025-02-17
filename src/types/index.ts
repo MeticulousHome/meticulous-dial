@@ -1,33 +1,5 @@
 import { VariableType } from '@meticulous-home/espresso-profile';
-import { Settings } from '@meticulous-home/espresso-api';
-interface JSONObject {
-  [x: string]: JSONValue;
-}
-
-export type JSONValue =
-  | string
-  | number
-  | boolean
-  | JSONObject
-  | Array<JSONValue>;
-
-export type ActionType =
-  | 'Home'
-  | 'Scale'
-  | 'Purge'
-  | 'Tare'
-  | 'Exit'
-  | 'Start'
-  | 'Stop'
-  | '';
-
-export type StageType =
-  | 'idle'
-  | 'initialize'
-  | 'purge'
-  | 'tare'
-  | 'home'
-  | 'heating';
+import { StatusData, Settings } from '@meticulous-home/espresso-api';
 
 export type GestureType =
   | 'right'
@@ -45,26 +17,10 @@ export type GestureType =
 
 export type IPresetSettings = string[];
 
-export interface ISensorData {
-  time: number;
-  name: StageType | string;
+export interface ISensorDataAndMachineState extends StatusData {
   waitingForActionAlreadySent: boolean;
-  sensors: {
-    p: number; // Pressure - Bars
-    t: number; // Temperature - degrees celsius
-    w: number; // Weight - grams
-    f: number; // Flow - ml/s
-  };
-  setpoints: {
-    active?: string;
-    temperature?: number;
-    flow?: number;
-    pressure?: number;
-    power?: number;
-    piston?: number;
-  };
-  profile: string;
   waterStatus: boolean;
+  preheatTimeLeft: number;
 }
 
 export interface IPreset {
