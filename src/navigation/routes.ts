@@ -61,6 +61,19 @@ interface Route {
 const selectActivePresetName = (state: RootState) =>
   state.presets.activePreset.name;
 
+const selectPurgeTitle = (state: RootState) => {
+  const machine_state = state.stats.state;
+  if (machine_state == 'brewing') {
+    return state.stats.profile;
+  }
+
+  if (state.stats.name === 'home') {
+    return 'Raising';
+  }
+
+  return 'Purging';
+};
+
 // Profile from "start" event may not exist in LCD. Prefer using
 // that profile name over selected preset
 const selectStatProfileName = (state: RootState) =>
@@ -191,6 +204,7 @@ export const routes: Record<ScreenType, Route> = {
   },
   'manual-purge': {
     component: PurgePiston,
+    title: selectPurgeTitle,
     bottomStatusHidden: true,
     animationDirectionFrom: {
       barometer: 'in'
