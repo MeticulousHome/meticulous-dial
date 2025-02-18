@@ -1,6 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import './transitions.less';
 
+import { styled } from 'styled-components';
+
+const CircleText = styled.div`
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  top: 0;
+  left: 0;
+
+  background-color: black;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+
+  font-family: 'ABC Diatype';
+  font-size: 25px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  opacity: 0;
+
+  transition: opacity 0.5s ease;
+`;
+
 export function CircleOverlay({
   shouldAnimate,
   onAnimationFinished
@@ -18,6 +43,7 @@ export function CircleOverlay({
 
   // This state tracks whether the circle is finished drawing
   const [isDrawn, setIsDrawn] = useState(false);
+  const [wasLetGo, setWasLetGo] = useState(false);
 
   // We use `onTransitionEnd` to detect when the circle finishes drawing
   // This might also be triggered on winddown, so we need to check if the circle is fully drawn
@@ -37,41 +63,52 @@ export function CircleOverlay({
       if (shouldAnimate) {
         setStrokeDashOffset(0);
       } else {
-        setStrokeDashOffset(circumference);
+        if (strokeDashOffset !== circumference) {
+          setWasLetGo(true);
+          setStrokeDashOffset(circumference);
+        }
       }
     }
   }, [shouldAnimate, isDrawn]);
 
   return (
-    <svg
-      width="480"
-      height="480"
-      style={{ position: 'absolute', top: 0, left: 0 }}
-    >
-      {/* The circle that animates from 0% to 100% */}
-      <circle
-        cx="240"
-        cy="240"
-        r={radius}
-        fill="transparent"
-        className={
-          isDrawn
-            ? 'animateCircleColor'
-            : shouldAnimate
-              ? 'animateCirlceOpacityUp'
-              : 'animateCirlceOpacityDown'
-        }
-        strokeWidth={stroke}
-        style={{
-          transformOrigin: '50% 50%',
-          stroke: 'white',
-          transform: 'rotate(90deg)',
-          strokeDasharray: circumference,
-          strokeDashoffset: strokeDashOffset,
-          transition: 'stroke-dashoffset 1.5s ease-out'
-        }}
-        onTransitionEnd={handleTransitionEnd}
-      />
-    </svg>
+    <>
+      <svg
+        width="480"
+        height="480"
+        style={{ position: 'absolute', top: 0, left: 0 }}
+      >
+        {/* The circle that animates from 0% to 100% */}
+        <circle
+          cx="240"
+          cy="240"
+          r={radius}
+          fill="transparent"
+          className={
+            isDrawn
+              ? 'animateCircleColor'
+              : shouldAnimate
+                ? 'animateCirlceOpacityUp'
+                : 'animateCirlceOpacityDown'
+          }
+          strokeWidth={stroke}
+          style={{
+            transformOrigin: '50% 50%',
+            stroke: 'white',
+            transform: 'rotate(90deg)',
+            strokeDasharray: circumference,
+            strokeDashoffset: strokeDashOffset,
+            transition: 'stroke-dashoffset 1.5s ease-out'
+          }}
+          onTransitionEnd={handleTransitionEnd}
+        />
+      </svg>
+      <CircleText
+        className={wasLetGo ? 'animateTextOpacityUp' : ''}
+        onAnimationEnd={() => setWasLetGo(false)}
+      >
+        Hold to start
+      </CircleText>
+    </>
   );
 }
