@@ -172,12 +172,10 @@ export const ProfileHomeScreen = () => {
           </InnerList>
         </Viewport>
       </Container>
-      {zoomedIn && (
-        <CircleOverlay
-          shouldAnimate={isPressingDown}
-          onAnimationFinished={animationFinished}
-        />
-      )}
+      <CircleOverlay
+        shouldAnimate={zoomedIn && isPressingDown}
+        onAnimationFinished={animationFinished}
+      />
     </>
   );
 };
