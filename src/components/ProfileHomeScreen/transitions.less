@@ -78,3 +78,56 @@
   transform: scale(1) translateX(80px) translateY(-80px);
   opacity: 0;
 }
+
+@keyframes colorCycle {
+  0% {
+    stroke: white;
+  }
+  50% {
+    stroke: #ffc107;
+  }
+
+  100% {
+    stroke: white;
+  }
+}
+
+.animateCircleColor {
+  opacity: 1 !important;
+  animation: colorCycle 1s infinite linear;
+}
+
+@keyframes opacityUpCircle {
+  0% {
+    opacity: 0.1;
+  }
+  20% {
+    opacity: 0.5;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+@keyframes opacityDownCircle {
+  0% {
+    opacity: 1;
+  }
+  40% {
+    opacity: 0.4;
+  }
+  80% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.animateCirlceOpacityUp {
+  animation: opacityUpCircle 1.5s infinite linear;
+}
+
+.animateCirlceOpacityDown {
+  animation: opacityDownCircle 1.5s infinite linear;
+}
