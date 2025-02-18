@@ -9,6 +9,7 @@ import { PROFILE_ENTRY_SIZE, ProfileEntry } from './ProfileEntry';
 import { ProfileImage } from './ProfileImage';
 
 import './transitions.less';
+import { CircleOverlay } from './CircleOverlay';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -57,10 +58,16 @@ export const ProfileHomeScreen = () => {
     'left' | 'right' | 'none'
   >('none');
 
+  const [isPressingDown, setIsPressingDown] = useState(false);
+
   // TODO these should come from a context where they are synced with the server
   const { data: profiles } = useProfiles();
   const [zoomedIn, setZoomedIn] = useState(false);
   const [activeOption, setActiveOption] = useState(0);
+
+  const animationFinished = () => {
+    console.log('animation finished');
+  };
 
   useHandleGestures(
     {
@@ -92,8 +99,13 @@ export const ProfileHomeScreen = () => {
           if (!zoomedIn) {
             setZoomedIn(true);
             setTransitionDirection('none');
+          } else {
+            setIsPressingDown(true);
           }
         }
+      },
+      pressUp() {
+        setIsPressingDown(false);
       }
     },
     bubbleDisplay.visible
@@ -160,6 +172,12 @@ export const ProfileHomeScreen = () => {
           </InnerList>
         </Viewport>
       </Container>
+      {zoomedIn && (
+        <CircleOverlay
+          shouldAnimate={isPressingDown}
+          onAnimationFinished={animationFinished}
+        />
+      )}
     </>
   );
 };
