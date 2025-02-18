@@ -48,6 +48,7 @@ import { DateConfig } from '../components/Settings/Advanced/TimeDate/DateConfig'
 import { ShotGraphScreen } from '../components/ShotGraph/ShotGraphScreen';
 import { ScrollDirectionSettings } from '../components/Settings/ScrollDirection';
 import { BrewCompleteScreen } from '../components/BrewCompleteScreen/BrewCompleteScreen';
+import { ProfileHomeScreen } from '../components/ProfileHomeScreen/ProfileHomeScreen';
 
 interface Route {
   component: ComponentType;
@@ -122,6 +123,11 @@ export const routes: Record<ScreenType, Route> = {
   pressets: {
     component: Pressets,
     parentTitle: getProfileTitle,
+    title: null
+  },
+  profileHome: {
+    component: ProfileHomeScreen,
+    parentTitle: getTitlePressets,
     title: null
   },
   barometer: {
