@@ -50,7 +50,8 @@ export type ScreenType =
   | 'dateConfig'
   | 'calibrateScale'
   | 'usbSettings'
-  | 'shot_history';
+  | 'shot_history'
+  | 'preheatScreen';
 
 interface ScreenState {
   value: ScreenType;
