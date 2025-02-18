@@ -66,7 +66,7 @@ const transitionDuration = 600;
 //   }
 // ] as const;
 
-export const Heating = () => {
+export const HeatingScreen = () => {
   const dispatch = useAppDispatch();
   const waterStatus = useAppSelector((state) => state.stats.waterStatus);
   const temperature = useAppSelector((state) =>

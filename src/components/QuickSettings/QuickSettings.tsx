@@ -100,7 +100,7 @@ export function QuickSettings(): JSX.Element {
   const waitingForActionAlreadySent = useAppSelector(
     (state) => state.stats.waitingForActionAlreadySent
   );
-  const PreheatTimeLeft = useAppSelector(
+  const preheatTimeLeft = useAppSelector(
     (state) => state.stats.preheatTimeLeft
   );
   const [settings, setSettings] = useState(defaultSettings);
@@ -232,6 +232,10 @@ export function QuickSettings(): JSX.Element {
           }
           case 'preheat': {
             socket.emit('action', 'preheat');
+            if (preheatTimeLeft <= 0) {
+              dispatch(setScreen('preheatScreen'));
+              dispatch(setBubbleDisplay({ visible: false, component: null }));
+            }
             break;
           }
           case 'calibrate': {
@@ -344,10 +348,10 @@ export function QuickSettings(): JSX.Element {
 
   const preheatTimer = useMemo(
     () =>
-      PreheatTimeLeft > 0
-        ? `Stop preheat ${formatTime(PreheatTimeLeft)}`
+      preheatTimeLeft > 0
+        ? `Stop preheat ${formatTime(preheatTimeLeft)}`
         : 'Preheat brew chamber',
-    [PreheatTimeLeft]
+    [preheatTimeLeft]
   );
   return (
     <Styled.SettingsContainer>
