@@ -8,6 +8,8 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { PROFILE_ENTRY_SIZE, ProfileEntry } from './ProfileEntry';
 import { ProfileImage } from './ProfileImage';
 
+import './transitions.less';
+
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
 const CARD_PADDING = 480 / 2 - PROFILE_ENTRY_SIZE / 2;
@@ -51,23 +53,46 @@ const InnerList = styled.div<{
 export const ProfileHomeScreen = () => {
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const [transitionDirection, setTransitionDirection] = useState<
+    'left' | 'right' | 'none'
+  >('none');
 
   // TODO these should come from a context where they are synced with the server
   const { data: profiles } = useProfiles();
+  const [zoomedIn, setZoomedIn] = useState(false);
   const [activeOption, setActiveOption] = useState(0);
 
   useHandleGestures(
     {
       left() {
+        if (zoomedIn) {
+          setZoomedIn(false);
+          return;
+        }
+        if (activeOption !== 0) {
+          setTransitionDirection('left');
+        }
         setActiveOption((prev) => Math.max(prev - 1, 0));
       },
       right() {
+        if (zoomedIn) {
+          setZoomedIn(false);
+          return;
+        }
+        if (activeOption !== profiles?.length) {
+          setTransitionDirection('right');
+        }
         setActiveOption((prev) => Math.min(prev + 1, profiles?.length || 0));
       },
       pressDown() {
         // Mock the new button for testing
         if (activeOption == profiles?.length) {
           dispatch(setScreen('ready'));
+        } else {
+          if (!zoomedIn) {
+            setZoomedIn(true);
+            setTransitionDirection('none');
+          }
         }
       }
     },
@@ -91,9 +116,15 @@ export const ProfileHomeScreen = () => {
               return (
                 <ProfileEntry
                   key={index}
+                  contentClassNames={
+                    !zoomedIn &&
+                    index === activeOption &&
+                    `animation-bounce-${transitionDirection}`
+                  }
                   containerStyle={{ backgroundColor }}
                   title={profile.name}
                   distanceToActive={index - activeOption}
+                  zoomedIn={zoomedIn}
                 >
                   <ProfileImage profile={profile} />
                 </ProfileEntry>
@@ -103,7 +134,13 @@ export const ProfileHomeScreen = () => {
             <ProfileEntry
               key={'new'}
               title={'new'}
+              contentClassNames={
+                !zoomedIn &&
+                profiles.length === activeOption &&
+                `animation-bounce-${transitionDirection}`
+              }
               distanceToActive={profiles.length - activeOption}
+              zoomedIn={zoomedIn}
             >
               <svg
                 width="166"
