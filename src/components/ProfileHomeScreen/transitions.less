@@ -1,0 +1,80 @@
+/* animation scroll to the right spring and bounce back */
+@keyframes bounce-right {
+  0% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(8px);
+  }
+  70% {
+    transform: translateX(-3px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* animation scroll to the left spring and bounce back */
+@keyframes bounce-left {
+  0% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(-8px);
+  }
+  70% {
+    transform: translateX(3px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+.animation-bounce-right {
+  animation: bounce-right 300ms ease-out;
+  animation-delay: 140ms;
+}
+
+.animation-bounce-left {
+  animation: bounce-left 300ms ease-out;
+  animation-delay: 140ms;
+}
+
+&.title-enter {
+  top: -80px;
+  opacity: 0;
+}
+
+&.title-enter-active {
+  top: -68px;
+  opacity: 1;
+}
+
+&.title-exit {
+  top: -68px;
+  opacity: 1;
+}
+
+&.title-exit.title-exit-active,
+&.title-exit-done {
+  top: -80px;
+  opacity: 0;
+}
+
+.active.zoom-enter-active,
+.active.zoom-enter-done {
+  transform: scale(1.4);
+}
+
+.leftOf.zoom-enter-active,
+.leftOf.zoom-enter-done {
+  transform: scale(1) translateX(-80px) translateY(-80px);
+  opacity: 0;
+}
+
+.rightOf.zoom-enter-active,
+.rightOf.zoom-enter-done {
+  transform: scale(1) translateX(80px) translateY(-80px);
+  opacity: 0;
+}

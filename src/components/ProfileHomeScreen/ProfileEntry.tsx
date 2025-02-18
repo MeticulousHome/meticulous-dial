@@ -1,7 +1,10 @@
 import classNames from 'classnames';
 import { styled } from 'styled-components';
 
-import { CSSProperties } from 'react';
+import { CSSProperties, useRef } from 'react';
+import { CSSTransition } from 'react-transition-group';
+
+import './transitions.less';
 
 export const PROFILE_ENTRY_SIZE = 178;
 
@@ -80,6 +83,7 @@ interface ProfileEntryProps {
   containerStyle?: CSSProperties;
   contentClassNames?: string;
   distanceToActive: number;
+  zoomedIn: boolean;
   children: React.ReactNode;
 }
 
@@ -88,8 +92,12 @@ export const ProfileEntry = ({
   containerStyle,
   contentClassNames,
   distanceToActive,
+  zoomedIn,
   children
 }: ProfileEntryProps) => {
+  const titelRef = useRef(null);
+  const contentRef = useRef(null);
+
   const positionClasses =
     distanceToActive == 0
       ? 'active'
@@ -98,20 +106,34 @@ export const ProfileEntry = ({
         : 'leftOf';
 
   return (
-    <OuterContainer className={positionClasses}>
-      <TitleContainer>
-        <PressetTitleTop
-          className={classNames({
-            'presset-title-small': title.length > 30,
-            'presset-title-very-small': title.length > 40
-          })}
+    <CSSTransition
+      in={zoomedIn}
+      timeout={300}
+      classNames="zoom"
+      nodeRef={contentRef}
+    >
+      <OuterContainer ref={contentRef} className={positionClasses}>
+        <CSSTransition
+          in={!(zoomedIn && distanceToActive == 0)}
+          timeout={400}
+          classNames="title"
+          nodeRef={titelRef}
         >
-          {title.length > 70 ? `${title.substring(0, 70)}...` : title}
-        </PressetTitleTop>
-      </TitleContainer>
-      <InnerContainer style={containerStyle} className={contentClassNames}>
-        {children}
-      </InnerContainer>
-    </OuterContainer>
+          <TitleContainer ref={titelRef}>
+            <PressetTitleTop
+              className={classNames({
+                'presset-title-small': title.length > 30,
+                'presset-title-very-small': title.length > 40
+              })}
+            >
+              {title.length > 70 ? `${title.substring(0, 70)}...` : title}
+            </PressetTitleTop>
+          </TitleContainer>
+        </CSSTransition>
+        <InnerContainer style={containerStyle} className={contentClassNames}>
+          {children}
+        </InnerContainer>
+      </OuterContainer>
+    </CSSTransition>
   );
 };
