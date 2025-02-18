@@ -13,7 +13,7 @@ const ArrowSVG = () => (
     xmlns="http://www.w3.org/2000/svg"
   >
     <g>
-      <path d="M0 5.5L20 5.5" stroke="#E7E7E7" stroke-width="3" />
+      <path d="M0 5.5L20 5.5" stroke="#E7E7E7" strokeWidth="3" />
       <path
         transform="translate(18,0)"
         d="M10.1934 5.88013L0.861196 11.2681L0.861196 0.492206L10.1934 5.88013Z"
@@ -54,8 +54,8 @@ const HeaterCoil = ({
           y2="2.94035"
           gradientUnits="userSpaceOnUse"
         >
-          <stop offset="0.00492285" stop-color={color} />
-          <stop offset="0.722243" stop-color={shadow} />
+          <stop offset="0.00492285" stopColor={color} />
+          <stop offset="0.722243" stopColor={shadow} />
         </linearGradient>
       </defs>
     </svg>
