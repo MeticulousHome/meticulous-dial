@@ -154,10 +154,12 @@
 .slide-exit {
   transform: translateX(0);
   opacity: 1;
+  margin: 0;
 }
 
 .slide-exit-active, .slide-exit-done {
   transform: translateY(-100px);
   opacity: 0 !important;
-  transition: transform 500ms ease-out, opacity 300ms ease-out;
+  margin: 0 -257px 0 0;
+  transition: all 500ms ease-out, transform 500ms ease-out, opacity 300ms ease-out;
 }
