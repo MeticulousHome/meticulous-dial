@@ -66,7 +66,7 @@ const defaultSettings: QuickSettingOption[] = [
   },
   {
     key: 'preheat',
-    label: 'Preheat brew chamber'
+    label: ''
   },
   {
     key: 'brew_config',
@@ -349,8 +349,8 @@ export function QuickSettings(): JSX.Element {
   const preheatTimer = useMemo(
     () =>
       preheatTimeLeft > 0
-        ? `Stop preheat ${formatTime(preheatTimeLeft)}`
-        : 'Preheat brew chamber',
+        ? `Stop pre-heat ${formatTime(preheatTimeLeft)}`
+        : 'Pre-heat',
     [preheatTimeLeft]
   );
   return (
