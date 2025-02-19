@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
 import { Pagination as PaginationSwiper } from 'swiper/modules';
 
-import { clearSlides, handlePresetSlideChange } from '../../utils/preset';
 import { RouteProps } from '../../navigation';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -19,14 +18,17 @@ import { useDefaultProfiles } from '../../hooks/useProfiles';
 import { styled } from 'styled-components';
 import { api } from '../../api/api';
 
+import './defaultProfiles.less';
+
 const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
 
 const DefaultProfileContainer = styled.div`
   display: flex;
   height: 100%;
   width: 100%;
-  align-items: center;
+  align-items: start;
   justify-content: center;
+  padding-top: 30px;
 `;
 
 const DefaultProfileContentInfo = styled.div`
@@ -64,39 +66,60 @@ const DefaultProfileWrapper = styled.div`
   }
 `;
 
-export const DefaultIcon = ({ profile }: { profile: Profile }) => {
-  if (profile.display?.image) {
-    return (
-      <img
-        src={`${API_URL}${api.getProfileImageUrl(profile.display.image)}`}
-        alt="No image"
-        width="50"
-        height="50"
-        className="profile-image image-prev"
-        style={{
-          border: `8px solid ${profile.display?.accentColor ?? '#e0dcd0'}`,
-          display: 'block',
-          position: 'relative'
-        }}
-      />
+const Fade = styled.div`
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 50;
+
+  &.fade-top {
+    top: 0;
+    height: 200px;
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 1) 0%,
+      rgba(0, 0, 0, 1) 25%,
+      rgba(0, 0, 0, 0.7) 85%,
+      rgba(0, 0, 0, 0.7) 95%,
+      rgba(0, 0, 0, 0) 100%
     );
   }
 
+  &.fade-bottom {
+    bottom: 0;
+    height: 200px;
+    background: linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 1) 0%,
+      rgba(0, 0, 0, 1) 25%,
+      rgba(0, 0, 0, 0.7) 60%,
+      rgba(0, 0, 0, 0.7) 95%,
+      rgba(0, 0, 0, 0) 100%
+    );
+  }
+`;
+
+export const DefaultIcon = ({
+  profile,
+  index
+}: {
+  profile: Profile;
+  index: number;
+}) => {
+  let url = `assets/images/${(index % 24) + 1}.png`;
+  if (profile.display?.image) {
+    url = `${API_URL}${api.getProfileImageUrl(profile.display.image)}`;
+  }
   return (
-    <svg
-      width="60"
-      height="60"
-      viewBox="0 0 204 204"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M104.745 99.2547V32H99.2551V99.2547H32V104.745H99.2551V172H104.745V104.745H172V99.2547H104.745Z"
-        fill="white"
-      />
-    </svg>
+    <img
+      src={url}
+      alt="No image"
+      width="50"
+      height="50"
+      style={{
+        border: `8px solid ${profile.display?.accentColor ?? '#e0dcd0'}`
+      }}
+    />
   );
 };
 
@@ -177,22 +200,16 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
           allowTouchMove={false}
           ref={presetSwiperRef}
           direction="vertical"
-          onSlideChange={(e) => {
-            clearSlides(e);
-            handlePresetSlideChange(e, 'vertical');
-          }}
           modules={[PaginationSwiper]}
           pagination={{
-            dynamicBullets: false,
-            bulletActiveClass: 'swiper-pagination-bullet-active',
-            bulletClass: 'swiper-pagination-bullet'
+            dynamicBullets: false
           }}
         >
           {defaultProfiles?.map((profile, index) => (
             <SwiperSlide key={profile.id.toString()}>
               {() => (
                 <DefaultProfileContainer>
-                  <DefaultIcon profile={profile} />
+                  <DefaultIcon profile={profile} index={index} />
                   <DefaultProfileContentInfo>
                     <DefaultProfileContentInfoText
                       style={{
@@ -231,20 +248,8 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
           </SwiperSlide>
         </Swiper>
       </DefaultProfileWrapper>
-      <div
-        className="fade fade-top"
-        style={{
-          height: '200px',
-          zIndex: 50
-        }}
-      ></div>
-      <div
-        className="fade fade-bottom"
-        style={{
-          height: '195px',
-          zIndex: 50
-        }}
-      ></div>
+      <Fade className="fade-top" />
+      <Fade className="fade-bottom" />
     </>
   );
 };
