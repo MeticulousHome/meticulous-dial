@@ -29,6 +29,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { OS_UPDATE_STATUS } from '../../hooks/useDeviceOSStatus';
 import { OSStatusResponse } from '@meticulous-home/espresso-api';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
+import { PROFILES_QUERY_KEY } from '../../hooks/useProfiles';
 
 const SERVER_URL: string = window.env?.SERVER_URL || 'http://localhost:8080';
 const socket: Socket | null = io(SERVER_URL);
@@ -106,6 +107,7 @@ export const SocketProviderValue = () => {
         profile_id: string;
       }) => {
         dispatch(getPresets({ ...data, cause: data.change }));
+        queryClient.invalidateQueries({ queryKey: [PROFILES_QUERY_KEY] });
       }
     );
 
