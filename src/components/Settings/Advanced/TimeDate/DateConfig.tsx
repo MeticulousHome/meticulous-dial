@@ -22,9 +22,6 @@ const Container = styled.div`
 
   justify-content: space-evenly;
   align-items: center;
-
-  font-family: 'ABC Diatype Mono';
-  font-size: 20px;
 `;
 
 const ClockWrapper = styled.div`
