@@ -93,7 +93,12 @@ export const AdvancedSettings = () => {
               setBubbleDisplay({ visible: true, component: 'deviceInfo' })
             );
             break;
-
+          case 'usb_mode': {
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'usbSettings' })
+            );
+            break;
+          }
           case 'save_debug_shot_data':
             updateSettings.mutate({
               save_debug_shot_data: !globalSettings.save_debug_shot_data
