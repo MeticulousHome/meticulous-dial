@@ -83,7 +83,7 @@ const App = (): JSX.Element => {
                 ? 'barometer'
                 : screen.prev !== 'idle'
                   ? screen.prev
-                  : 'pressets'
+                  : 'profileHome'
               : 'scale'
           )
         );

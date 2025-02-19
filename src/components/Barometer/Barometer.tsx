@@ -16,7 +16,7 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
 
   useEffect(() => {
     if (stats.name === 'idle' && !stats.waitingForActionAlreadySent) {
-      dispatch(setScreen('pressets'));
+      dispatch(setScreen('profileHome'));
     }
   }, [stats.name, stats.waitingForActionAlreadySent]);
 

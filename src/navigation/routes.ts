@@ -1,6 +1,5 @@
 import { ComponentType } from 'react';
 import { Barometer } from '../components/Barometer/Barometer';
-import { Pressets } from '../components/Pressets/Pressets';
 import { Scale } from '../components/Scale/Scale';
 import { PressetSettings } from '../components/PressetSettings/PressetSettings';
 import { SettingNumerical } from '../components/SettingNumerical/SettingNumerical';
@@ -14,7 +13,6 @@ import { EnterWifiPassword } from '../components/Wifi/EnterWifiPassword';
 import { WifiDetails } from '../components/Wifi/WifiDetails';
 import { RootState } from '../components/store/store';
 import { Notification } from '../components/Notification/Notification';
-import { getTitlePressets } from '../components/Pressets/TitlePressets';
 import { ConnectWifiViaApp } from '../components/Wifi/ConnetWifiViaApp';
 import { OSStatus } from '../components/OSStatus/OSStatus';
 import { QuickSettings } from '../../src/components/QuickSettings/QuickSettings';
@@ -23,10 +21,10 @@ import { KnownWifi } from '../../src/components/Wifi/KnownWifi';
 import { DeleteWifiMenu } from '../components/Wifi/DeleteWifiMenu';
 import { AdvancedSettings } from '../components/Settings/Advanced/Advanced';
 import { WifiQrMenu } from '../../src/components/Wifi/WifiQrMenu';
-import { PressetProfileImage } from '../../src/components/Pressets/PressetProfileImage';
+import { PressetProfileImage } from '../../src/components/PressetSettings/PressetProfileImage';
 import { DeviceInfoScreen } from '../components/Settings/Advanced/DeviceInfoScreen';
-import { DefaultProfiles } from '../components/Pressets/DefaultProfiles';
-import { DefaultProfileDetails } from '../../src/components/Pressets/DefaultProfileDetails';
+import { DefaultProfiles } from '../components/DefaultProfiles/DefaultProfiles';
+import { DefaultProfileDetails } from '../components/DefaultProfiles/DefaultProfileDetails';
 import { PurgePiston } from '../components/PurgePiston/PurgePiston';
 import { UpdateChannel } from '../components/Settings/Advanced/UpdateChannel';
 import { ReadyAnimation } from '../components/ReadyAnimation/ReadyAnimation';
@@ -45,6 +43,8 @@ import { USBSettings } from '../components/Settings/USBSettings';
 import { BrewSettings } from '../components/Settings/BrewSettings';
 import { TimeConfig } from '../components/Settings/Advanced/TimeDate/TimeConfig';
 import { DateConfig } from '../components/Settings/Advanced/TimeDate/DateConfig';
+import { ProfileHomeScreen } from '../components/ProfileHomeScreen/ProfileHomeScreen';
+import { getProfilesTitle as getProfileTitle } from '../components/ProfileHomeScreen/ProfileTitle';
 
 interface Route {
   component: ComponentType;
@@ -118,11 +118,11 @@ export const routes: Record<ScreenType, Route> = {
     component: Scale,
     title: 'scale',
     bottomStatusHidden: true,
-    parent: 'pressets'
+    parent: 'profileHome'
   },
-  pressets: {
-    component: Pressets,
-    parentTitle: getTitlePressets,
+  profileHome: {
+    component: ProfileHomeScreen,
+    parentTitle: getProfileTitle,
     title: null
   },
   barometer: {
@@ -139,7 +139,7 @@ export const routes: Record<ScreenType, Route> = {
     component: PressetSettings,
     title: selectActivePresetName,
     bottomStatusHidden: true,
-    parent: 'pressets'
+    parent: 'profileHome'
   },
   pressure: {
     component: SettingNumerical,
@@ -291,7 +291,7 @@ export const routes: Record<ScreenType, Route> = {
   enterWifiPassword: {
     component: EnterWifiPassword,
     bottomStatusHidden: true,
-    parent: 'pressets'
+    parent: 'profileHome'
   },
   'quick-settings': {
     component: QuickSettings
@@ -302,7 +302,7 @@ export const routes: Record<ScreenType, Route> = {
   },
   snake: {
     component: SnakeGame,
-    parent: 'pressets'
+    parent: 'profileHome'
   },
   advancedSettings: {
     component: AdvancedSettings
@@ -325,7 +325,7 @@ export const routes: Record<ScreenType, Route> = {
   defaultProfiles: {
     component: DefaultProfiles,
     bottomStatusHidden: true,
-    parent: 'pressets'
+    parent: 'profileHome'
   },
   defaultProfileDetails: {
     component: DefaultProfileDetails,

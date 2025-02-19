@@ -11,7 +11,7 @@ export default function SelectLetterCountry() {
   const dispatch = useAppDispatch();
 
   const onCancel = useCallback(() => {
-    dispatch(setScreen('pressets'));
+    dispatch(setScreen('profileHome'));
     dispatch(setBubbleDisplay({ visible: true, component: 'timeZoneConfig' }));
   }, []);
 

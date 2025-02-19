@@ -1,0 +1,165 @@
+/* animation scroll to the right spring and bounce back */
+@keyframes bounce-right {
+  0% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(8px);
+  }
+  70% {
+    transform: translateX(-3px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* animation scroll to the left spring and bounce back */
+@keyframes bounce-left {
+  0% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(-8px);
+  }
+  70% {
+    transform: translateX(3px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+.animation-bounce-right {
+  animation: bounce-right 300ms ease-out;
+  animation-delay: 140ms;
+}
+
+.animation-bounce-left {
+  animation: bounce-left 300ms ease-out;
+  animation-delay: 140ms;
+}
+
+&.title-enter {
+  top: -80px;
+  opacity: 0;
+}
+
+&.title-enter-active {
+  top: -68px;
+  opacity: 1;
+}
+
+&.title-exit {
+  top: -68px;
+  opacity: 1;
+}
+
+&.title-exit.title-exit-active,
+&.title-exit-done {
+  top: -80px;
+  opacity: 0;
+}
+
+.active.zoom-enter-active,
+.active.zoom-enter-done {
+  transform: scale(1.4);
+}
+
+.leftOf.zoom-enter-active,
+.leftOf.zoom-enter-done {
+  transform: scale(1) translateX(-80px) translateY(-80px);
+  opacity: 0;
+}
+
+.rightOf.zoom-enter-active,
+.rightOf.zoom-enter-done {
+  transform: scale(1) translateX(80px) translateY(-80px);
+  opacity: 0;
+}
+
+@keyframes colorCycle {
+  0% {
+    stroke: white;
+  }
+  50% {
+    stroke: #ffc107;
+  }
+
+  100% {
+    stroke: white;
+  }
+}
+
+.animateCircleColor {
+  opacity: 1 !important;
+  animation: colorCycle 1s infinite linear;
+}
+
+@keyframes opacityUpCircle {
+  0% {
+    opacity: 0.1;
+  }
+  20% {
+    opacity: 0.5;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+@keyframes opacityDownCircle {
+  0% {
+    opacity: 1;
+  }
+  40% {
+    opacity: 0.4;
+  }
+  80% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.animateCirlceOpacityUp {
+  animation: opacityUpCircle 1.5s infinite linear;
+}
+
+.animateCirlceOpacityDown {
+  animation: opacityDownCircle 1.5s infinite linear;
+}
+
+@keyframes opacityUpText {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.7;
+  }
+  80% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.animateTextOpacityUp {
+  animation: opacityUpText 2s linear;
+}
+
+
+.slide-exit {
+  transform: translateX(0);
+  opacity: 1;
+  margin: 0;
+}
+
+.slide-exit-active, .slide-exit-done {
+  transform: translateY(-100px);
+  opacity: 0 !important;
+  margin: 0 -257px 0 0;
+  transition: all 500ms ease-out, transform 500ms ease-out, opacity 300ms ease-out;
+}

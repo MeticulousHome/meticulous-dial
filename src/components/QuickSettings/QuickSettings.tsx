@@ -10,7 +10,6 @@ import { useSocket } from '../store/SocketManager';
 import {
   deletePreset,
   resetActiveSetting,
-  setDefaultProfileSelected,
   setOptionPressets,
   discardSettings
 } from '../store/features/preset/preset-slice';
@@ -22,6 +21,7 @@ import Styled, {
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
 import { formatTime } from '../../utils';
+import { useProfiles } from '../../hooks/useProfiles';
 
 export type QuickSettingOption = {
   key: string;
@@ -89,9 +89,7 @@ export function QuickSettings(): JSX.Element {
   const socket = useSocket();
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const {
-    defaultProfilesInfo: { defaultProfileActiveIndexSwiper, defaultProfiles }
-  } = useAppSelector((state) => state.presets);
+  const { data: profiles } = useProfiles();
   const waitingForActionAlreadySent = useAppSelector(
     (state) => state.stats.waitingForActionAlreadySent
   );
@@ -136,7 +134,7 @@ export function QuickSettings(): JSX.Element {
     switch (settings[activeOption].key) {
       case 'delete': {
         dispatch(deletePreset());
-        dispatch(setScreen('pressets'));
+        dispatch(setScreen('profileHome'));
         dispatch(setOptionPressets('PRESSETS'));
         dispatch(setBubbleDisplay({ visible: false, component: null }));
       }
@@ -166,7 +164,7 @@ export function QuickSettings(): JSX.Element {
       },
       pressUp() {
         if (holdAnimation == 'finished') {
-          dispatch(setScreen('pressets'));
+          dispatch(setScreen('profileHome'));
           dispatch(setBubbleDisplay({ visible: false, component: null }));
         }
         setHoldAnimation('stopped');
@@ -196,11 +194,6 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'details': {
-            dispatch(
-              setDefaultProfileSelected(
-                defaultProfiles[defaultProfileActiveIndexSwiper]
-              )
-            );
             dispatch(
               setBubbleDisplay({
                 visible: true,
@@ -259,11 +252,13 @@ export function QuickSettings(): JSX.Element {
   );
 
   const requiresProfileContext: boolean =
-    !(
+    (!(
       presets.value.length === 0 ||
       presets.activeIndexSwiper === presets.value.length ||
       (presets.option !== 'HOME' && presets.option !== 'PRESSETS')
-    ) && currentScreen === 'pressets';
+    ) &&
+      currentScreen === 'profileHome') ||
+    (profiles?.length > 0 && currentScreen === 'profileHome');
 
   useEffect(() => {
     const context: QuickSettingOption[] = profileContextSettings;

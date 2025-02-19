@@ -1,20 +1,20 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { api } from '../../api/api';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
-
-const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
+import { useDefaultProfiles } from '../../hooks/useProfiles';
 
 const SCROLL_VALUE = 50;
 
 export const DefaultProfileDetails = () => {
   const dispatch = useAppDispatch();
 
-  const defaultProfile = useAppSelector(
-    (state) => state.presets.defaultProfilesInfo.defaultProfileSelected
+  const defaultProfileIndex = useAppSelector(
+    (state) => state.presets.defaultProfilesInfo.defaultProfileActiveIndex
   );
+  const { data: defaultProfiles } = useDefaultProfiles();
 
+  const defaultProfile = defaultProfiles?.[defaultProfileIndex];
   const mainContainerRef = useRef<HTMLDivElement | null>(null);
 
   useHandleGestures({
@@ -31,6 +31,14 @@ export const DefaultProfileDetails = () => {
     }
   });
 
+  useEffect(() => {
+    if (!defaultProfile) {
+      dispatch(
+        setBubbleDisplay({ visible: true, component: 'quick-settings' })
+      );
+    }
+  }, [defaultProfile]);
+
   const mainContainerScroll = (up: boolean) => {
     if (!mainContainerRef.current) {
       return;
@@ -38,6 +46,10 @@ export const DefaultProfileDetails = () => {
 
     mainContainerRef.current.scrollTop += up ? -SCROLL_VALUE : SCROLL_VALUE;
   };
+
+  if (!defaultProfile) {
+    return <div></div>;
+  }
 
   return (
     <div
@@ -54,32 +66,8 @@ export const DefaultProfileDetails = () => {
           paddingLeft: '5px'
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}
-        >
-          <img
-            src={`${API_URL}${api.getProfileImageUrl(
-              defaultProfile.display.image
-            )}`}
-            alt="No image"
-            width="50"
-            height="50"
-            className="profile-image image-prev"
-            style={{
-              border: `8px solid ${
-                defaultProfile.display.accentColor ?? '#e0dcd0'
-              }`,
-              display: 'block',
-              position: 'relative'
-            }}
-          />
-        </div>
         <p>{defaultProfile.name}</p>
-        <p
+        <div
           style={{
             padding: '0px 10px',
             whiteSpace: 'pre-wrap',
@@ -106,7 +94,7 @@ export const DefaultProfileDetails = () => {
               <span>Back</span>
             </div>
           </div>
-        </p>
+        </div>
       </div>
     </div>
   );

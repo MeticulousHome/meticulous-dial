@@ -1,19 +1,14 @@
 import { useEffect, useState } from 'react';
-import {
-  getPresets,
-  loadDefaultProfiles
-} from '../components/store/features/preset/preset-slice';
+import { getPresets } from '../components/store/features/preset/preset-slice';
 import { useAppDispatch, useAppSelector } from '../components/store/hooks';
 import { api } from '../api/api';
+import { useDefaultProfiles } from './useProfiles';
 
 const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
 
 export function useFetchData(onReady?: () => void) {
   const dispatch = useAppDispatch();
   const presetsState = useAppSelector((state) => state.presets.status);
-  const defaultProfileState = useAppSelector(
-    (state) => state.presets.defaultProfilesInfo.status
-  );
   const activePreset = useAppSelector((state) => state.presets.activePreset);
 
   const presetID = useAppSelector(
@@ -21,9 +16,10 @@ export function useFetchData(onReady?: () => void) {
   );
   const [profileImageReady, setProfileImageReady] = useState(false);
 
+  useDefaultProfiles();
+
   useEffect(() => {
     dispatch(getPresets({}));
-    dispatch(loadDefaultProfiles());
   }, []);
 
   useEffect(() => {
@@ -33,14 +29,6 @@ export function useFetchData(onReady?: () => void) {
       }, 1000);
     }
   }, [presetsState]);
-
-  useEffect(() => {
-    if (defaultProfileState === 'failed') {
-      setTimeout(() => {
-        dispatch(loadDefaultProfiles());
-      }, 1000);
-    }
-  }, [defaultProfileState]);
 
   useEffect(() => {
     console.log('presets Ready', presetsState, presetID);

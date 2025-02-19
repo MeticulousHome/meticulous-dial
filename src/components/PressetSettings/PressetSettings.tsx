@@ -45,10 +45,10 @@ export function PressetSettings(): JSX.Element {
       pressDown() {
         if (presetSettingIndex === 'save') {
           dispatch(savePreset());
-          dispatch(setScreen('pressets'));
+          dispatch(setScreen('profileHome'));
         } else if (presetSettingIndex == 'discard') {
           dispatch(discardSettings());
-          dispatch(setScreen('pressets'));
+          dispatch(setScreen('profileHome'));
         } else if (presetSettingIndex === 'name') {
           dispatch(setScreen('name'));
         } else if (presetSettingIndex === 'output') {

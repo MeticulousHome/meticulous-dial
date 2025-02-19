@@ -114,7 +114,7 @@ export const Heating = () => {
 
   useEffect(() => {
     if (statsName === 'idle') {
-      dispatch(setScreen('pressets'));
+      dispatch(setScreen('profileHome'));
     }
   }, [statsName]);
 

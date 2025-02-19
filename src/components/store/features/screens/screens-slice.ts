@@ -4,7 +4,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 export type ScreenType =
   | 'ready'
   | 'barometer'
-  | 'pressets'
+  | 'profileHome'
   | 'pressetSettings'
   | 'name'
   | 'pressure'
@@ -64,7 +64,7 @@ interface ScreenState {
 const initialState: ScreenState = {
   prev: null,
   bubbleDisplay: { visible: false, component: null, previousComponent: null },
-  value: 'ready'
+  value: 'profileHome'
 };
 
 const screenSlice = createSlice({
