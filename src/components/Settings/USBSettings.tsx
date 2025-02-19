@@ -7,7 +7,8 @@ import { SettingsItem } from '../../types';
 import { marqueeIfNeeded } from '../shared/MarqueeValue';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
-import { MenuAnnotation } from './MenuAnnotation';
+import { MenuAnnotation } from '../../styles/utils/mixins';
+import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 
 export const USBSettings = () => {
   const dispatch = useAppDispatch();
@@ -49,7 +50,7 @@ export const USBSettings = () => {
       );
       setActiveIndex(index);
     }
-  }, [globalSettings.usb_mode]);
+  }, [globalSettings?.usb_mode]);
 
   const showValue = useCallback(
     (isActive: boolean, item: StaticSettingsItem) => {
@@ -105,6 +106,10 @@ export const USBSettings = () => {
     !bubbleDisplay.visible
   );
 
+  if (!globalSettings) {
+    return <LoadingScreen />;
+  }
+
   return (
     <div className="main-quick-settings settings-explanation-container">
       <div className="settings-explanation">
@@ -143,7 +148,7 @@ export const USBSettings = () => {
                 paddingRight: `${90 - width}%`
               }}
             >
-              <span className="settings-fixed-item-text ">
+              <span className="settings-fixed-item-text">
                 {showValue(isActive, item)}
               </span>
               {isSelectedMode && (
