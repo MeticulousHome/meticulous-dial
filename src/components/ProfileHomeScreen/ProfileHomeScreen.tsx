@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { createRef, Ref, useEffect, useRef, useState } from 'react';
 import { styled } from 'styled-components';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useProfiles } from '../../hooks/useProfiles';
@@ -15,6 +15,7 @@ import {
   ProfileValue,
   setPresetState
 } from '../store/features/preset/preset-slice';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -43,7 +44,7 @@ const Viewport = styled.div`
   position: relative;
 `;
 
-const InnerList = styled.div<{
+const InnerList = styled(TransitionGroup)<{
   $translateX: number;
 }>`
   display: flex;
@@ -62,6 +63,14 @@ export const ProfileHomeScreen = () => {
   const [transitionDirection, setTransitionDirection] = useState<
     'left' | 'right' | 'none'
   >('none');
+  const nodeRefs = useRef<Record<string, Ref<HTMLDivElement>>>({});
+
+  const getOrCreateRef = (id: string) => {
+    if (!nodeRefs.current[id]) {
+      nodeRefs.current[id] = createRef();
+    }
+    return nodeRefs.current[id];
+  };
 
   const [isPressingDown, setIsPressingDown] = useState(false);
 
@@ -86,11 +95,17 @@ export const ProfileHomeScreen = () => {
     }
   };
 
-  //FIXME legacy code. Can be fully removed in the end
   useEffect(() => {
     if (!profiles) {
       return;
     }
+
+    if (activeOption > profiles.length) {
+      setActiveOption(profiles.length);
+      return;
+    }
+
+    //FIXME legacy code. Can be fully removed in the end
     const state_copy = { ...presetState };
     if (activeOption < profiles.length) {
       state_copy.activePreset = profiles[activeOption] as ProfileValue;
@@ -158,30 +173,41 @@ export const ProfileHomeScreen = () => {
     <>
       <Container>
         <Viewport>
-          <InnerList $translateX={CARD_PADDING - activeOption * CARD_SIZE}>
+          <InnerList
+            $translateX={CARD_PADDING - activeOption * CARD_SIZE}
+            component={'div'}
+          >
             {profiles.map((profile, index) => {
+              const itemRef = getOrCreateRef(index.toString());
               const backgroundColor = profile.display?.accentColor
                 ? profile.display?.accentColor
                 : '#e0dcd0';
 
               return (
-                <ProfileEntry
+                <CSSTransition
                   key={index}
-                  contentClassNames={
-                    !zoomedIn &&
-                    index === activeOption &&
-                    `animation-bounce-${transitionDirection}`
-                  }
-                  containerStyle={{ backgroundColor }}
-                  title={profile.name}
-                  distanceToActive={index - activeOption}
-                  zoomedIn={zoomedIn}
+                  nodeRef={itemRef} // Pass the ref here
+                  timeout={300}
+                  classNames="slide"
                 >
-                  {/* Only render images in those that are close to the active option */}
-                  {Math.abs(index - activeOption) < 2 && (
-                    <ProfileImage profile={profile} />
-                  )}
-                </ProfileEntry>
+                  <ProfileEntry
+                    ref={itemRef}
+                    contentClassNames={
+                      !zoomedIn &&
+                      index === activeOption &&
+                      `animation-bounce-${transitionDirection}`
+                    }
+                    containerStyle={{ backgroundColor }}
+                    title={profile.name}
+                    distanceToActive={index - activeOption}
+                    zoomedIn={zoomedIn}
+                  >
+                    {/* Only render images in those that are close to the active option */}
+                    {Math.abs(index - activeOption) < 2 && (
+                      <ProfileImage profile={profile} />
+                    )}
+                  </ProfileEntry>
+                </CSSTransition>
               );
             })}
             {/* New button */}

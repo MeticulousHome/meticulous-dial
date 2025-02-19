@@ -149,3 +149,15 @@
 .animateTextOpacityUp {
   animation: opacityUpText 2s linear;
 }
+
+
+.slide-exit {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.slide-exit-active, .slide-exit-done {
+  transform: translateY(-100px);
+  opacity: 0 !important;
+  transition: transform 500ms ease-out, opacity 300ms ease-out;
+}
