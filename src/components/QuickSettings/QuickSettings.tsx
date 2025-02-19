@@ -18,7 +18,8 @@ import { useOSStatus } from '../../hooks/useDeviceOSStatus';
 import { routes } from '../../navigation/routes';
 import Styled, {
   VIEWPORT_HEIGHT,
-  MARQUEE_MIN_TEXT_LENGTH
+  MARQUEE_MIN_TEXT_LENGTH,
+  MenuAnnotation
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
 import { formatTime } from '../../utils';
@@ -43,7 +44,7 @@ const profileContextSettings: QuickSettingOption[] = [
   },
   {
     key: 'delete',
-    label: 'Hold to delete profile',
+    label: 'Delete profile',
     longpress: true,
     hasSeparator: true
   }
@@ -409,10 +410,12 @@ export function QuickSettings(): JSX.Element {
                   onAnimationEnd={() =>
                     console.log('Termino la animacion Option::Inner ❌')
                   }
+                  $isMultiItem={option.longpress}
                 >
                   <span>
                     {option.key === 'preheat' ? preheatTimer : option.label}
                   </span>
+                  {option.longpress && <MenuAnnotation>HOLD</MenuAnnotation>}
                 </Styled.Option>
               )
             )}
