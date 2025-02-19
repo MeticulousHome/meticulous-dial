@@ -1,6 +1,5 @@
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { roundPrecision, addRightComplement } from '../../utils';
 import './scale.css';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import {
@@ -19,25 +18,6 @@ export function Scale(): JSX.Element {
     dispatch(setBubbleDisplay({ visible: false, component: null }));
   }, [shouldGoToIdle]);
 
-  const getTotalScale = useCallback(() => {
-    const toLayout = addRightComplement(roundPrecision(weight, 1).toString());
-    const withPads = toLayout.padStart(5, '0');
-
-    if (/^0*$/.test(toLayout.replace('.', ''))) {
-      return <span>{withPads}</span>;
-    }
-
-    const pads: JSX.Element[] = [];
-    withPads.split(toLayout).map((i: string) => {
-      for (let y = 1; y <= i.length; y++) {
-        pads.push(<span className="weight">0</span>);
-      }
-    });
-
-    pads.push(<span key={1}>{toLayout}</span>);
-    return pads;
-  }, [weight]);
-
   return (
     <div
       className={`main-layout`}
@@ -48,7 +28,9 @@ export function Scale(): JSX.Element {
       <div className="main-layout-content">
         <div className="pressets-options-conainer">
           <div className="scale-weight">
-            <div>{getTotalScale()}</div>
+            <div>
+              <span className="weight">{weight.toFixed(1)}</span>
+            </div>
             <div className="weight-data">g</div>
           </div>
         </div>
