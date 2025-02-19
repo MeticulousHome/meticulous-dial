@@ -46,20 +46,6 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
 
         <div className="columns-grid">
           <div className="column-item">
-            <div className="column-label">Temp</div>
-            <div className="column-value">
-              {formatStatValue(stats.sensors.t, 1)}
-              <div className="column-unit">°C</div>
-            </div>
-          </div>
-          <div className="column-item">
-            <div className="column-label">Weight</div>
-            <div className="column-value">
-              {formatStatValue(stats.sensors.w, 1)}
-              <div className="column-unit">gr</div>
-            </div>
-          </div>
-          <div className="column-item">
             <div className="column-label">Time</div>
             <div className="column-value">
               {formatStatValue(stats.time, 1, 1000)}
@@ -71,6 +57,20 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
             <div className="column-value">
               {formatStatValue(stats.sensors.f, 1)}
               <div className="column-unit">ml/s</div>
+            </div>
+          </div>
+          <div className="column-item">
+            <div className="column-label">Weight</div>
+            <div className="column-value">
+              {formatStatValue(stats.sensors.w, 1)}
+              <div className="column-unit">gr</div>
+            </div>
+          </div>
+          <div className="column-item">
+            <div className="column-label">Grav. Flow</div>
+            <div className="column-value">
+              {formatStatValue(stats.sensors.g, 1)}
+              <div className="column-unit">g/s</div>
             </div>
           </div>
         </div>

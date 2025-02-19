@@ -10,7 +10,8 @@ const initialState: ISensorDataAndMachineState = {
     p: 0,
     f: 0,
     w: 0,
-    t: 0
+    t: 0,
+    g: 0
   },
   time: 0,
   profile: undefined,
