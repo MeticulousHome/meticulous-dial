@@ -84,7 +84,7 @@ export const Heating = () => {
   );
   const preheatTimeLeft = useCallback(() => {
     if (!temperatureTargetStatus) {
-      return <TimeLeftText>stabelizing...</TimeLeftText>;
+      return <TimeLeftText>stabilizing...</TimeLeftText>;
     }
     const diff = temperatureTarget - Math.max(20, temperature);
 
