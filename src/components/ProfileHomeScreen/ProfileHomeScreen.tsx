@@ -187,7 +187,7 @@ export const ProfileHomeScreen = () => {
                 <CSSTransition
                   key={index}
                   nodeRef={itemRef} // Pass the ref here
-                  timeout={300}
+                  timeout={500}
                   classNames="slide"
                 >
                   <ProfileEntry
