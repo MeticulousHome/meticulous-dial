@@ -51,10 +51,15 @@ export const DeviceInfoScreen = () => {
     const repositoryInfo = repository_info
       ? Object.entries(repository_info)
           .filter(([key]) => keysToFilter.includes(key))
-          .map(([key, { branch, commit }]) => ({
-            key,
-            label: `${key}: ${branch} (${commit})`
-          }))
+          .map(([key, { branch, commit }]) => {
+            const [commitHash, comment] = commit.split('-');
+            const slicedComment =
+              comment.length > 20 ? comment.slice(0, 20) : comment;
+            return {
+              key,
+              label: `${key}: ${branch} (${commitHash.trim()} - ${slicedComment}...)`
+            };
+          })
       : [];
 
     return [
