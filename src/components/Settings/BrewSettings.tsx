@@ -21,20 +21,20 @@ import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosit
 const initialSettings: SettingsItem[] = [
   {
     key: 'auto_start_shot',
-    label: 'Auto start after heating',
+    label: 'Start',
     getLabel: (settings) =>
-      `${settings.auto_start_shot ? 'ENABLED' : 'DISABLED'}`
+      `${settings.auto_start_shot ? 'Automatic' : 'On button press'}`
   },
   {
     key: 'auto_purge_after_shot',
-    label: 'Auto purge after shot',
+    label: 'Purge',
     getLabel: (settings) =>
-      `${settings.auto_purge_after_shot ? 'ENABLED' : 'DISABLED'}`
+      `${settings.auto_purge_after_shot ? 'Automatic' : 'On button press'}`
   },
   {
     key: 'heat_timeout_after_shot',
-    label: 'Heat timeout after shot',
-    getLabel: (settings) => `${settings.heating_timeout} MIN`,
+    label: 'Pre/Post-heat',
+    getLabel: (settings) => `${settings.heating_timeout} min`,
     visible: true
   },
   {
