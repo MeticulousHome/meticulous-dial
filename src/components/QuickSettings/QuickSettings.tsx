@@ -24,6 +24,7 @@ import Styled, {
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
 import { formatTime, hidden_ui_elements_enabled } from '../../utils';
+import { useProfiles } from '../../hooks/useProfiles';
 
 export type QuickSettingOption = {
   key: string;
@@ -112,6 +113,7 @@ export function QuickSettings(): JSX.Element {
     ...allDefaultProfiles.default,
     ...allDefaultProfiles.community
   ];
+  const { data: profiles } = useProfiles();
 
   const { data: globalSettings } = useSettings();
   const updateSettings = useUpdateSettings();
@@ -296,11 +298,13 @@ export function QuickSettings(): JSX.Element {
   );
 
   const requiresProfileContext: boolean =
-    !(
+    (!(
       presets.value.length === 0 ||
       presets.activeIndexSwiper === presets.value.length ||
       (presets.option !== 'HOME' && presets.option !== 'PRESSETS')
-    ) && currentScreen === 'pressets';
+    ) &&
+      currentScreen === 'pressets') ||
+    (profiles?.length > 0 && currentScreen === 'profileHome');
 
   useEffect(() => {
     const context: QuickSettingOption[] = profileContextSettings;
