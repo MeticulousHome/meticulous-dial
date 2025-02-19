@@ -36,14 +36,16 @@
   overflow: hidden;
   width: 100%;
 }
+
 .active-setting {
-  color: #1d1d1d;
+  color: #0f0f0f;
   background: #f5c444;
   background: #f5c444;
+  /* Use the color beneath */
   background: linear-gradient(
     90deg,
-    #1d1d1d 0%,
-    #1d1d1d 50%,
+    transparent 0%,
+    transparent 50%,
     #f5c444 50%,
     #f5c444 100%
   );
@@ -114,8 +116,8 @@
   height: 38px;
   background: linear-gradient(
     90deg,
-    #1d1d1d 0%,
-    #1d1d1d 50%,
+    transparent 0%,
+    transparent 50%,
     #f5c444 50%,
     #f5c444 100%
   );
