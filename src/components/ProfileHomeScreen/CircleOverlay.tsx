@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './transitions.less';
 
 import { styled } from 'styled-components';
+import { useAppSelector } from '../store/hooks';
 
 const CircleText = styled.div`
   position: absolute;
@@ -58,6 +59,11 @@ export function CircleOverlay({
     }
   }
 
+  // FIXME Remove this legacy code
+  const profileFocused = useAppSelector(
+    (state) => state.presets.profileFocused
+  );
+
   useEffect(() => {
     if (!isDrawn) {
       if (shouldAnimate) {
@@ -104,7 +110,7 @@ export function CircleOverlay({
         />
       </svg>
       <CircleText
-        className={wasLetGo ? 'animateTextOpacityUp' : ''}
+        className={profileFocused && wasLetGo ? 'animateTextOpacityUp' : ''}
         onAnimationEnd={() => setWasLetGo(false)}
       >
         Hold to start

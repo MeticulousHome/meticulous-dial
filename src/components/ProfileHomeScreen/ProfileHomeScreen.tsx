@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { styled } from 'styled-components';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useProfiles } from '../../hooks/useProfiles';
@@ -8,8 +8,13 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { PROFILE_ENTRY_SIZE, ProfileEntry } from './ProfileEntry';
 import { ProfileImage } from './ProfileImage';
 
-import './transitions.less';
+import { loadProfileData, startProfile } from '../../api/profile';
 import { CircleOverlay } from './CircleOverlay';
+import './transitions.less';
+import {
+  ProfileValue,
+  setPresetState
+} from '../store/features/preset/preset-slice';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -64,10 +69,44 @@ export const ProfileHomeScreen = () => {
   const { data: profiles } = useProfiles();
   const [zoomedIn, setZoomedIn] = useState(false);
   const [activeOption, setActiveOption] = useState(0);
+  const [coffeeLoading, setCoffeeLoading] = useState(false);
 
-  const animationFinished = () => {
-    console.log('animation finished');
+  //FIXME legacy
+  const presetState = useAppSelector((state) => state.presets);
+
+  console.log('state', presetState.activePreset.name);
+
+  const animationFinished = async () => {
+    setCoffeeLoading(true);
+    console.log('starting coffee');
+    const profile = profiles?.[activeOption];
+    const data = await loadProfileData(profile);
+    if (data) {
+      await startProfile();
+    }
   };
+
+  //FIXME legacy code. Can be fully removed in the end
+  useEffect(() => {
+    if (!profiles) {
+      return;
+    }
+    const state_copy = { ...presetState };
+    if (activeOption < profiles.length) {
+      state_copy.activePreset = profiles[activeOption] as ProfileValue;
+      state_copy.updatingSettings = {
+        presetId: state_copy.activePreset.id.toString(),
+        settings: state_copy.activePreset.settings || []
+      };
+    }
+    state_copy.activeIndexSwiper = activeOption;
+    state_copy.profileFocused = zoomedIn;
+    dispatch(
+      setPresetState({
+        ...state_copy
+      })
+    );
+  }, [profiles, activeOption, zoomedIn]);
 
   useHandleGestures(
     {
@@ -92,9 +131,9 @@ export const ProfileHomeScreen = () => {
         setActiveOption((prev) => Math.min(prev + 1, profiles?.length || 0));
       },
       pressDown() {
-        // Mock the new button for testing
+        // New profile button
         if (activeOption == profiles?.length) {
-          dispatch(setScreen('ready'));
+          dispatch(setScreen('defaultProfiles'));
         } else {
           if (!zoomedIn) {
             setZoomedIn(true);
@@ -108,7 +147,7 @@ export const ProfileHomeScreen = () => {
         setIsPressingDown(false);
       }
     },
-    bubbleDisplay.visible
+    bubbleDisplay.visible || coffeeLoading
   );
 
   if (!profiles) {

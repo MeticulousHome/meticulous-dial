@@ -46,6 +46,7 @@ import { BrewSettings } from '../components/Settings/BrewSettings';
 import { TimeConfig } from '../components/Settings/Advanced/TimeDate/TimeConfig';
 import { DateConfig } from '../components/Settings/Advanced/TimeDate/DateConfig';
 import { ProfileHomeScreen } from '../components/ProfileHomeScreen/ProfileHomeScreen';
+import { getProfilesTitle as getProfileTitle } from '../components/ProfileHomeScreen/ProfileTitle';
 
 interface Route {
   component: ComponentType;
@@ -128,7 +129,7 @@ export const routes: Record<ScreenType, Route> = {
   },
   profileHome: {
     component: ProfileHomeScreen,
-    parentTitle: getTitlePressets,
+    parentTitle: getProfileTitle,
     title: null
   },
   barometer: {
