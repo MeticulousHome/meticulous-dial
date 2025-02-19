@@ -142,7 +142,7 @@ export function PurgePiston(): JSX.Element {
     if (!statusFirstName.current) {
       if (prevStatus.current !== 'idle') {
         if (stats.name === 'idle') {
-          dispatch(setScreen('pressets'));
+          dispatch(setScreen('profileHome'));
         }
       }
 
@@ -153,7 +153,7 @@ export function PurgePiston(): JSX.Element {
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       if (position === -1) {
-        dispatch(setScreen('pressets'));
+        dispatch(setScreen('profileHome'));
       }
     }, 2000);
 

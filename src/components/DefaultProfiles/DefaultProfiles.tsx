@@ -117,7 +117,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
 
         // back button
         if (activeIndex === defaultProfiles.length)
-          dispatch(setScreen('pressets'));
+          dispatch(setScreen('profileHome'));
 
         if (defaultProfiles && defaultProfiles[activeIndex]) {
           const { ...profileSelected } = defaultProfiles[
@@ -135,7 +135,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
               } as unknown as Profile
             })
           );
-          dispatch(setScreen('pressets'));
+          dispatch(setScreen('profileHome'));
         }
       },
       left() {

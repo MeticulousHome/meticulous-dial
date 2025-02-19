@@ -4,7 +4,6 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 export type ScreenType =
   | 'ready'
   | 'barometer'
-  | 'pressets'
   | 'profileHome'
   | 'pressetSettings'
   | 'name'

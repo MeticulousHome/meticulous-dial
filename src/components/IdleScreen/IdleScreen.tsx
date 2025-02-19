@@ -26,7 +26,7 @@ export function IdleScreen(): JSX.Element {
   useEffect(() => {
     if (shouldGoToIdle || prevScreen === 'idle') return;
 
-    dispatch(setScreen(prevScreen || 'pressets'));
+    dispatch(setScreen(prevScreen || 'profileHome'));
     setBrightness({ brightness: 1 });
   }, [shouldGoToIdle]);
 

@@ -169,7 +169,7 @@ export default function CalibrateScale() {
 
     const timeoutId = setTimeout(() => {
       dispatch(setBubbleDisplay({ visible: false, component: null }));
-      dispatch(setScreen('pressets'));
+      dispatch(setScreen('profileHome'));
     }, 5000);
 
     return () => clearTimeout(timeoutId);
@@ -181,7 +181,7 @@ export default function CalibrateScale() {
     },
     doubleClick() {
       dispatch(setBubbleDisplay({ visible: false, component: null }));
-      dispatch(setScreen('pressets'));
+      dispatch(setScreen('profileHome'));
     },
     pressDown() {
       if (notAllowCalibrate) return;
