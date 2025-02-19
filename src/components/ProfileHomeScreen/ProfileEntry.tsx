@@ -100,7 +100,7 @@ export const ProfileEntry = forwardRef<HTMLDivElement, ProfileEntryProps>(
     ref
   ) => {
     const titelRef = useRef(null);
-
+    const contentRef = useRef(null);
     const positionClasses =
       distanceToActive == 0
         ? 'active'
@@ -109,35 +109,40 @@ export const ProfileEntry = forwardRef<HTMLDivElement, ProfileEntryProps>(
           : 'leftOf';
 
     return (
-      <CSSTransition
-        in={zoomedIn}
-        timeout={300}
-        classNames="zoom"
-        nodeRef={ref}
-      >
-        <OuterContainer ref={ref} className={positionClasses}>
-          <CSSTransition
-            in={!(zoomedIn && distanceToActive == 0)}
-            timeout={400}
-            classNames="title"
-            nodeRef={titelRef}
-          >
-            <TitleContainer ref={titelRef}>
-              <PressetTitleTop
-                className={classNames({
-                  'presset-title-small': title.length > 30,
-                  'presset-title-very-small': title.length > 40
-                })}
-              >
-                {title.length > 70 ? `${title.substring(0, 70)}...` : title}
-              </PressetTitleTop>
-            </TitleContainer>
-          </CSSTransition>
-          <InnerContainer style={containerStyle} className={contentClassNames}>
-            {children}
-          </InnerContainer>
-        </OuterContainer>
-      </CSSTransition>
+      <div ref={ref}>
+        <CSSTransition
+          in={zoomedIn}
+          timeout={300}
+          classNames="zoom"
+          nodeRef={contentRef}
+        >
+          <OuterContainer ref={contentRef} className={positionClasses}>
+            <CSSTransition
+              in={!(zoomedIn && distanceToActive == 0)}
+              timeout={400}
+              classNames="title"
+              nodeRef={titelRef}
+            >
+              <TitleContainer ref={titelRef}>
+                <PressetTitleTop
+                  className={classNames({
+                    'presset-title-small': title.length > 30,
+                    'presset-title-very-small': title.length > 40
+                  })}
+                >
+                  {title.length > 70 ? `${title.substring(0, 70)}...` : title}
+                </PressetTitleTop>
+              </TitleContainer>
+            </CSSTransition>
+            <InnerContainer
+              style={containerStyle}
+              className={contentClassNames}
+            >
+              {children}
+            </InnerContainer>
+          </OuterContainer>
+        </CSSTransition>
+      </div>
     );
   }
 );
