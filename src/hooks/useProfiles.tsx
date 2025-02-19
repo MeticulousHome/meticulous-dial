@@ -1,12 +1,16 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
-import { getProfilesForReactQueryy as getProfilesForReactQuery } from '../api/profile';
+import {
+  getDefaultProfiles,
+  getProfilesForReactQueryy as getProfilesForReactQuery
+} from '../api/profile';
 
 import { addVariablesToSettings } from '../utils/preset';
 
 import { Profile } from '@meticulous-home/espresso-profile';
 
 export const PROFILES_QUERY_KEY = 'profiles';
+const DEFAULT_PROFILES_QUERY_KEY = 'default';
 export const LAST_PROFILE_QUERY_KEY = 'lastProfile';
 
 /**
@@ -64,6 +68,16 @@ export const useProfiles = () => {
     queryFn: getProfilesForReactQuery,
     placeholderData: keepPreviousData,
     select: (data: Profile[]) => data.map(addSettingsToProfile),
+    refetchOnReconnect: 'always',
+    refetchOnWindowFocus: false
+  });
+};
+
+export const useDefaultProfiles = () => {
+  return useQuery({
+    queryKey: [DEFAULT_PROFILES_QUERY_KEY],
+    queryFn: getDefaultProfiles,
+    placeholderData: keepPreviousData,
     refetchOnReconnect: 'always',
     refetchOnWindowFocus: false
   });

@@ -2,15 +2,29 @@ import { APIError, LastProfileIdent } from '@meticulous-home/espresso-api';
 import { Profile } from '@meticulous-home/espresso-profile';
 import { api } from './api';
 
-export const getDefaultProfiles = async (): Promise<Profile[]> => {
+export async function getDefaultProfiles(): Promise<Profile[]> {
   try {
-    const { data } = await api.getDefaultProfiles();
-    return data as Profile[];
+    const response = await api.getDefaultProfiles();
+    const data = response.data;
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
+    return data;
   } catch (error) {
-    console.error('GetDefaultProfiles error: ', error.message);
-    return [];
+    if (error.response) {
+      console.error('Error fetching default Profiles: ', error.response.data);
+      throw new Error(
+        error.response.data?.message || 'Error default fetching Profiles.'
+      );
+    } else {
+      console.error(
+        'Network error while fetching default Profiles: ',
+        error.message
+      );
+      throw new Error('Network error while fetching default Profiles.');
+    }
   }
-};
+}
 
 export const getProfiles = async () => {
   try {

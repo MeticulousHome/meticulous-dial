@@ -10,7 +10,6 @@ import { useSocket } from '../store/SocketManager';
 import {
   deletePreset,
   resetActiveSetting,
-  setDefaultProfileSelected,
   setOptionPressets,
   discardSettings
 } from '../store/features/preset/preset-slice';
@@ -89,9 +88,6 @@ export function QuickSettings(): JSX.Element {
   const socket = useSocket();
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const {
-    defaultProfilesInfo: { defaultProfileActiveIndexSwiper, defaultProfiles }
-  } = useAppSelector((state) => state.presets);
   const waitingForActionAlreadySent = useAppSelector(
     (state) => state.stats.waitingForActionAlreadySent
   );
@@ -196,11 +192,6 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'details': {
-            dispatch(
-              setDefaultProfileSelected(
-                defaultProfiles[defaultProfileActiveIndexSwiper]
-              )
-            );
             dispatch(
               setBubbleDisplay({
                 visible: true,

@@ -24,9 +24,7 @@ import {
   saveProfile,
   getProfiles,
   deleteProfile,
-  getLastProfile,
-  getDefaultProfiles,
-  getProfileDefaultImages
+  getLastProfile
 } from '../../../../api/profile';
 import { addVariablesToSettings } from '../../../../utils/preset';
 
@@ -61,10 +59,7 @@ export function cleanupInternalProfile(profile: ProfileValue) {
 export interface PresetsState extends PresetSettingInterface {
   value: Array<ProfileValue>;
   defaultProfilesInfo: {
-    defaultProfiles: Array<Profile>;
-    defaultProfileSelected?: Profile;
-    defaultProfileActiveIndexSwiper: number;
-    status: 'ready' | 'pending' | 'failed';
+    defaultProfileActiveIndex: number;
   };
   defaultPresetIndex: number;
   activeIndexSwiper: number;
@@ -73,32 +68,8 @@ export interface PresetsState extends PresetSettingInterface {
   option: 'HOME' | 'PRESSETS';
   profileHover: string;
   profileFocus: string;
+  profileFocused: boolean;
 }
-
-export const loadDefaultProfiles = createAsyncThunk(
-  'presetData/loadDefaultProfiles',
-  async (_, { rejectWithValue }) => {
-    let profiles = await getDefaultProfiles();
-
-    if (profiles.length === 0) return rejectWithValue(null);
-
-    const missingImage = profiles.some((profile) => !profile.display.image);
-
-    if (missingImage) {
-      const images = await getProfileDefaultImages();
-
-      profiles = profiles.map((profile, index) => ({
-        ...profile,
-        display: {
-          ...profile.display,
-          image: profile.display.image ?? images[index]
-        }
-      }));
-    }
-
-    return profiles;
-  }
-);
 
 export const addPresetNewOne = createAsyncThunk(
   'presetData/addNewOne',
@@ -453,10 +424,7 @@ const initialState: PresetsState = {
   value: [],
   // default profiles
   defaultProfilesInfo: {
-    defaultProfileActiveIndexSwiper: 0,
-    defaultProfiles: [],
-    status: 'pending',
-    defaultProfileSelected: null
+    defaultProfileActiveIndex: 0
   },
   // end default profiles
   option: 'HOME',
@@ -484,30 +452,21 @@ const presetSlice = createSlice({
   name: 'presets',
   initialState,
   reducers: {
-    resetDefaultProfileConfig: (state) => {
-      state.defaultProfilesInfo.defaultProfileActiveIndexSwiper = 0;
-      state.defaultProfilesInfo.defaultProfileSelected = null;
-    },
-    setNextDefaultProfileOption: (state) => {
-      state.defaultProfilesInfo.defaultProfileActiveIndexSwiper = Math.min(
-        state.defaultProfilesInfo.defaultProfileActiveIndexSwiper + 1,
-        state.defaultProfilesInfo.defaultProfiles.length
-      );
-    },
-    setPrevDefaultProfileOption: (state) => {
-      state.defaultProfilesInfo.defaultProfileActiveIndexSwiper = Math.max(
-        state.defaultProfilesInfo.defaultProfileActiveIndexSwiper - 1,
-        0
-      );
-    },
-    setDefaultProfileSelected: (
+    setDefaultProfileActiveIndex: (
       state: Draft<typeof initialState>,
-      action: PayloadAction<Profile>
+      action: PayloadAction<number>
     ) => {
-      state.defaultProfilesInfo.defaultProfileSelected = action.payload;
+      state.defaultProfilesInfo.defaultProfileActiveIndex = action.payload;
     },
+    //FIXME what is going on here?
     setPresetState: (_, action: PayloadAction<PresetsState>) => {
       return { ...action.payload };
+    },
+    setPresetStateWorking: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<PresetsState>
+    ) => {
+      state = { ...action.payload };
     },
     setProfileHover: (
       state: Draft<typeof initialState>,
@@ -718,20 +677,6 @@ const presetSlice = createSlice({
       })
       .addCase(savePreset.rejected, (state, action) => {
         console.log('save error', action);
-      })
-      .addCase(loadDefaultProfiles.pending, (state) => {
-        state.defaultProfilesInfo.status = 'pending';
-        state.pending = true;
-      })
-      .addCase(loadDefaultProfiles.fulfilled, (state, action) => {
-        state.defaultProfilesInfo.status = 'ready';
-        state.pending = false;
-        state.defaultProfilesInfo.defaultProfiles = action.payload;
-      })
-      .addCase(loadDefaultProfiles.rejected, (state) => {
-        state.defaultProfilesInfo.status = 'failed';
-        state.pending = false;
-        state.error = true;
       });
   }
 });
@@ -740,10 +685,7 @@ export const {
   updatePresetSetting,
   setPresetState,
   setOptionPressets,
-  setDefaultProfileSelected,
-  setNextDefaultProfileOption,
-  setPrevDefaultProfileOption,
-  resetDefaultProfileConfig,
+  setDefaultProfileActiveIndex,
   setProfileHover,
   setFocusProfile
 } = presetSlice.actions;
