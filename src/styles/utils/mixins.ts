@@ -133,6 +133,7 @@ const Option = styled.div<{
   $hasSeparator?: boolean;
   $isAnimating?: boolean;
   $isMarquee?: boolean;
+  $isMultiItem?: boolean;
 }>`
   text-transform: uppercase;
   border-radius: 4px;
@@ -166,6 +167,12 @@ const Option = styled.div<{
       width: 85%;
       border-top: 2px dashed rgba(245, 196, 68, 0.5);
     }
+  `}
+
+  ${({ $isMultiItem }) =>
+    $isMultiItem &&
+    `
+    justify-content: space-between;
   `}
 
   span {
@@ -210,9 +217,10 @@ export const MenuAnnotation = styled.span<{ $marginRigth?: string }>`
   font-family: 'ABC Diatype Mono';
   border: 1px solid currentColor;
   border-radius: 4px;
-  padding: 2px 5px;
+  padding: 5px 5px 2px 5px;
   text-transform: none;
   line-height: normal;
+  margin-top: -5px;
   margin-right: ${({ $marginRigth }) => $marginRigth || '0'};
 `;
 
