@@ -45,7 +45,6 @@ const Viewport = styled.div`
   flex: 1;
   position: relative;
   overflow: hidden;
-  background-color: #1d1d1d;
   height: 480px;
   padding-left: 28px;
 `;
@@ -90,8 +89,8 @@ const ActiveIndicator = styled.div<{ $holdAnimation?: string }>`
   height: ${ITEM_HEIGHT}px;
   background: linear-gradient(
     90deg,
-    #1d1d1d 0%,
-    #1d1d1d 50%,
+    transparent 0%,
+    transparent 50%,
     #f5c444 50%,
     #f5c444 100%
   );
@@ -125,7 +124,7 @@ const OptionsContainer = styled.div<{
       ? `translate(-50%, 0) translateY(${$translateY}px)`
       : `translateY(${$translateY}px)`};
 
-  ${({ $isInner }) => ($isInner ? 'color: #000;' : 'color: #fff;')}
+  ${({ $isInner }) => ($isInner ? 'color: #000;' : 'color: #565656;')}
   ${({ $isInner }) => $isInner && 'top: 50%; left: 50%;'}
   ${({ $bringToFront }) => ($bringToFront ? 'z-index: 20;' : 'z-index: 10;')}
 `;
@@ -137,18 +136,19 @@ const Option = styled.div<{
 }>`
   text-transform: uppercase;
   border-radius: 4px;
-  font-size: 20px;
+  font-size: 22px;
   text-align: left;
   width: 90%;
-  letter-spacing: 0.2em;
+  letter-spacing: 2.2px;
   white-space: nowrap;
   display: flex;
   align-items: center;
   position: relative;
   height: ${ITEM_HEIGHT}px;
-  line-height: 2;
+  line-height: 90%;
   justify-content: start;
-  font-weight: 300;
+  font-family: 'ABC Diatype Mono';
+  font-weight: normal;
   padding: 0 16px;
 
   ${({ $hasSeparator }) =>
