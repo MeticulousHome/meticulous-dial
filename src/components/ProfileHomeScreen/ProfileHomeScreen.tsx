@@ -177,7 +177,10 @@ export const ProfileHomeScreen = () => {
                   distanceToActive={index - activeOption}
                   zoomedIn={zoomedIn}
                 >
-                  <ProfileImage profile={profile} />
+                  {/* Only render images in those that are close to the active option */}
+                  {Math.abs(index - activeOption) < 2 && (
+                    <ProfileImage profile={profile} />
+                  )}
                 </ProfileEntry>
               );
             })}
