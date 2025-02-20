@@ -65,7 +65,6 @@ export default function Bubble() {
         })
       );
   };
-
   return (
     <div
       className={`main-bubble main-layout ${
