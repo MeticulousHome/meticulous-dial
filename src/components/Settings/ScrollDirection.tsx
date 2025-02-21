@@ -1,49 +1,32 @@
 import { useMemo, useState } from 'react';
 
-import './settings.css'; //verify this :D
+import { ReverseScrolling } from '@meticulous-home/espresso-api';
+
 import '../PressetSettings/pressetSettings.css';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import {
-  setBubbleDisplay,
-  setScreen
-} from '../store/features/screens/screens-slice';
+import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 
 import { useSettings, useUpdateSettings } from '../../hooks/useSettings';
-import type { SettingsItem } from '../../types';
-
-import Styled, { VIEWPORT_HEIGHT } from '../../styles/utils/mixins';
+import { SettingsItem } from '../../types';
+import Styled, {
+  VIEWPORT_HEIGHT,
+  MARQUEE_MIN_TEXT_LENGTH
+} from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
 
 const initialSettings: SettingsItem[] = [
   {
-    key: 'device_info',
-    label: 'Device Info',
-    visible: true
-  },
-  {
-    key: 'time_date',
-    label: 'time & date',
-    visible: true
-  },
-  {
-    key: 'enable_sounds',
-    label: 'sounds',
+    key: 'home',
+    label: 'Profiles',
     getLabel: (settings) =>
-      `${settings.enable_sounds ? 'ENABLED' : 'DISABLED'}`,
-    visible: true
+      `${settings.reverse_scrolling.home ? 'Reversed' : 'Classic'}`
   },
   {
-    key: 'calibrate',
-    label: 'calibrate scale'
-  },
-  {
-    key: 'scroll_directions',
-    label: 'Scroll Directions'
-  },
-  {
-    key: 'advanced',
-    label: 'Advanced Settings'
+    key: 'keyboard',
+    label: 'Keyboard',
+    getLabel: (settings) =>
+      `${settings.reverse_scrolling.keyboard ? 'Reversed' : 'Classic'}`
   },
   {
     key: 'back',
@@ -51,12 +34,11 @@ const initialSettings: SettingsItem[] = [
   }
 ];
 
-export function Settings(): JSX.Element {
-  const { data: globalSettings, isSuccess } = useSettings();
-
+export function ScrollDirectionSettings(): JSX.Element {
   const dispatch = useAppDispatch();
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const { data: globalSettings, isSuccess } = useSettings();
   const updateSettings = useUpdateSettings();
 
   const updatedSettings = useMemo(() => {
@@ -86,48 +68,24 @@ export function Settings(): JSX.Element {
       pressDown() {
         const activeItem = updatedSettings[activeIndex];
         switch (activeItem.key) {
-          case 'device_info':
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'deviceInfo' })
-            );
-            break;
-          case 'advanced': {
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'advancedSettings' })
-            );
-            break;
-          }
-          case 'usb_mode': {
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'usbSettings' })
-            );
-            break;
-          }
-          case 'calibrate': {
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
-            dispatch(setScreen('calibrateScale'));
-            break;
-          }
-          case 'enable_sounds':
-            updateSettings.mutate({
-              enable_sounds: !globalSettings.enable_sounds
-            });
-            break;
-          case 'time_date':
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'timeDate' })
-            );
-            break;
-          case 'scroll_directions':
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'scrollDirections' })
-            );
-            break;
           case 'back':
             dispatch(
               setBubbleDisplay({ visible: true, component: 'quick-settings' })
             );
             break;
+          default: {
+            const new_value =
+              !globalSettings.reverse_scrolling[
+                activeItem.key as keyof ReverseScrolling
+              ];
+            updateSettings.mutate({
+              reverse_scrolling: {
+                ...globalSettings.reverse_scrolling,
+                ...{ [activeItem.key]: new_value }
+              }
+            });
+            break;
+          }
         }
       }
     },
@@ -158,7 +116,7 @@ export function Settings(): JSX.Element {
       <Styled.Viewport>
         <Styled.OptionsContainer $translateY={optionPositionOutter}>
           {updatedSettings.map((option) => (
-            <Styled.Option key={option.key} $hasSeparator={option.hasSeparator}>
+            <Styled.Option key={option.key}>
               <span>{option.label}</span>
             </Styled.Option>
           ))}
@@ -168,10 +126,13 @@ export function Settings(): JSX.Element {
             $translateY={optionPositionInner}
             $isInner={true}
           >
-            {updatedSettings.map((option) => (
+            {updatedSettings.map((option, index) => (
               <Styled.Option
                 key={option.key}
-                $hasSeparator={option.hasSeparator}
+                $isMarquee={
+                  activeIndex === index &&
+                  option.label.length > MARQUEE_MIN_TEXT_LENGTH
+                }
               >
                 <span>{option.label}</span>
               </Styled.Option>

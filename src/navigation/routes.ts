@@ -47,6 +47,7 @@ import { BrewSettings } from '../components/Settings/BrewSettings';
 import { TimeConfig } from '../components/Settings/Advanced/TimeDate/TimeConfig';
 import { DateConfig } from '../components/Settings/Advanced/TimeDate/DateConfig';
 import { ShotGraphScreen } from '../components/ShotGraph/ShotGraphScreen';
+import { ScrollDirectionSettings } from '../components/Settings/ScrollDirection';
 
 interface Route {
   component: ComponentType;
@@ -354,6 +355,10 @@ export const routes: Record<ScreenType, Route> = {
   preheatScreen: {
     component: PreheatScreen,
     title: 'pre-heat',
+    bottomStatusHidden: true
+  },
+  scrollDirections: {
+    component: ScrollDirectionSettings,
     bottomStatusHidden: true
   }
 };
