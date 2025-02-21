@@ -65,7 +65,6 @@ export default function Bubble() {
         })
       );
   };
-  console.log('Bubble', bubbleDisplay);
 
   return (
     <div
