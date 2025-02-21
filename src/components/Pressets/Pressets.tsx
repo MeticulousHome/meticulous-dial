@@ -40,6 +40,8 @@ import { loadProfileData, startProfile } from '../../api/profile';
 import { useSocket } from '../store/SocketManager';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import classNames from 'classnames';
+import { useSettings } from '../../hooks/useSettings';
+import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 
 interface AnimationData {
   circlekey: number;
@@ -78,6 +80,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const animationInProgress = useRef(false);
   const socket = useSocket();
   const { isIdle: shouldGoToIdle } = useIdleTimer();
+  const { data: globalSettings } = useSettings();
 
   const [animation, setAnimation] = useState<AnimationData>(initialValue);
 
@@ -214,6 +217,119 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     handleAddLeaveAnimation(pressetSwiper);
   };
 
+  const rotateLeft = () => {
+    if (!transitioning) {
+      if (!option.animating && option.screen === 'PRESSETS') {
+        dispatch(setNextPreset());
+        sendCurrentPressetId(presets.activeIndexSwiper + 1, false);
+      } else {
+        setAnimation(initialValue);
+        setPercentaje(0);
+        animationInProgress.current = false;
+
+        if (!pressetSwiper) {
+          console.log('No swiper loaded, aborting gesture!');
+          return;
+        }
+
+        if (
+          pressetSwiper &&
+          pressetSwiper.pagination &&
+          pressetSwiper.pagination.el
+        ) {
+          pressetSwiper.pagination.el.classList.remove('bullet-hidden');
+        }
+
+        setOption({
+          screen: 'PRESSETS',
+          animating: true
+        });
+
+        if (!navigationTitleExistValidation()) {
+          navigationTitleParentRef.current = null;
+        }
+
+        if (pressetTitleContenExistValidation()) {
+          pressetsTitleContentRef.current.classList.remove(
+            'animation-pressets-content-bottom'
+          );
+          pressetsTitleContentRef.current.classList.remove(
+            'animation-pressets-content-top'
+          );
+          pressetsTitleContentRef.current.classList.add(
+            'animation-pressets-content-bottom'
+          );
+        }
+
+        clearSlides(pressetSwiper);
+
+        handleAddDecreseAnimation(pressetSwiper);
+
+        handleAddEnterAnimation(pressetSwiper);
+
+        setTimeout(() => {
+          setOption((prev) => ({ ...prev, animating: false }));
+        }, 300);
+      }
+    }
+  };
+
+  const rotateRight = () => {
+    if (!transitioning) {
+      if (!option.animating && option.screen === 'PRESSETS') {
+        dispatch(setPrevPreset());
+        sendCurrentPressetId(presets.activeIndexSwiper - 1, false);
+      } else {
+        setAnimation(initialValue);
+        setPercentaje(0);
+        animationInProgress.current = false;
+
+        if (!pressetSwiper) {
+          console.log('No swiper loaded, aborting gesture!');
+          return;
+        }
+        if (
+          pressetSwiper &&
+          pressetSwiper.pagination &&
+          pressetSwiper.pagination.el
+        ) {
+          pressetSwiper.pagination.el.classList.remove('bullet-hidden');
+        }
+
+        setOption({
+          screen: 'PRESSETS',
+          animating: true
+        });
+
+        if (!navigationTitleExistValidation()) {
+          navigationTitleParentRef.current = null;
+        }
+
+        if (pressetTitleContenExistValidation()) {
+          pressetsTitleContentRef.current.classList.remove(
+            'animation-pressets-content-bottom'
+          );
+          pressetsTitleContentRef.current.classList.remove(
+            'animation-pressets-content-top'
+          );
+          pressetsTitleContentRef.current.classList.add(
+            'animation-pressets-content-bottom'
+          );
+        }
+
+        clearSlides(pressetSwiper);
+
+        handleAddDecreseAnimation(pressetSwiper);
+
+        handleAddEnterAnimation(pressetSwiper);
+
+        setTimeout(() => {
+          setOption((prev) => ({ ...prev, animating: false }));
+        }, 300);
+      }
+    }
+  };
+
   useHandleGestures(
     {
       pressDown() {
@@ -332,114 +448,17 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
         }
       },
       left() {
-        if (!transitioning) {
-          if (!option.animating && option.screen === 'PRESSETS') {
-            dispatch(setNextPreset());
-            sendCurrentPressetId(presets.activeIndexSwiper + 1, false);
-          } else {
-            setAnimation(initialValue);
-            setPercentaje(0);
-            animationInProgress.current = false;
-
-            if (!pressetSwiper) {
-              console.log('No swiper loaded, aborting gesture!');
-              return;
-            }
-
-            if (
-              pressetSwiper &&
-              pressetSwiper.pagination &&
-              pressetSwiper.pagination.el
-            ) {
-              pressetSwiper.pagination.el.classList.remove('bullet-hidden');
-            }
-
-            setOption({
-              screen: 'PRESSETS',
-              animating: true
-            });
-
-            if (!navigationTitleExistValidation()) {
-              navigationTitleParentRef.current = null;
-            }
-
-            if (pressetTitleContenExistValidation()) {
-              pressetsTitleContentRef.current.classList.remove(
-                'animation-pressets-content-bottom'
-              );
-              pressetsTitleContentRef.current.classList.remove(
-                'animation-pressets-content-top'
-              );
-              pressetsTitleContentRef.current.classList.add(
-                'animation-pressets-content-bottom'
-              );
-            }
-
-            clearSlides(pressetSwiper);
-
-            handleAddDecreseAnimation(pressetSwiper);
-
-            handleAddEnterAnimation(pressetSwiper);
-
-            setTimeout(() => {
-              setOption((prev) => ({ ...prev, animating: false }));
-            }, 300);
-          }
+        if (globalSettings?.reverse_scrolling.home) {
+          rotateRight();
+        } else {
+          rotateLeft();
         }
       },
       right() {
-        if (!transitioning) {
-          if (!option.animating && option.screen === 'PRESSETS') {
-            dispatch(setPrevPreset());
-            sendCurrentPressetId(presets.activeIndexSwiper - 1, false);
-          } else {
-            setAnimation(initialValue);
-            setPercentaje(0);
-            animationInProgress.current = false;
-
-            if (!pressetSwiper) {
-              console.log('No swiper loaded, aborting gesture!');
-              return;
-            }
-            if (
-              pressetSwiper &&
-              pressetSwiper.pagination &&
-              pressetSwiper.pagination.el
-            ) {
-              pressetSwiper.pagination.el.classList.remove('bullet-hidden');
-            }
-
-            setOption({
-              screen: 'PRESSETS',
-              animating: true
-            });
-
-            if (!navigationTitleExistValidation()) {
-              navigationTitleParentRef.current = null;
-            }
-
-            if (pressetTitleContenExistValidation()) {
-              pressetsTitleContentRef.current.classList.remove(
-                'animation-pressets-content-bottom'
-              );
-              pressetsTitleContentRef.current.classList.remove(
-                'animation-pressets-content-top'
-              );
-              pressetsTitleContentRef.current.classList.add(
-                'animation-pressets-content-bottom'
-              );
-            }
-
-            clearSlides(pressetSwiper);
-
-            handleAddDecreseAnimation(pressetSwiper);
-
-            handleAddEnterAnimation(pressetSwiper);
-
-            setTimeout(() => {
-              setOption((prev) => ({ ...prev, animating: false }));
-            }, 300);
-          }
+        if (globalSettings?.reverse_scrolling.home) {
+          rotateLeft();
+        } else {
+          rotateRight();
         }
       },
       longEncoder() {
@@ -545,6 +564,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       /* empty */
     }
   }, [profileFocusId]);
+
+  if (!globalSettings) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="preset-wrapper">

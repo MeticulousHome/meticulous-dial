@@ -20,6 +20,7 @@ import {
   JUMP_ROTATE_LETTERS
 } from './Keys';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useSettings } from '../../hooks/useSettings';
 
 interface IKeyboardProps {
   name: string;
@@ -32,6 +33,7 @@ interface IKeyboardProps {
 }
 
 export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
+  const { data: globalSettings } = useSettings();
   const [rotate, setRotate] = useState<number>(FIRST_POSITION);
   const [keyboardType, setKeyboardType] = useState<KEYBOARD_TYPE>(() =>
     props.onlyLetters ? KEYBOARD_TYPE.OnlyLetters : KEYBOARD_TYPE.Default
@@ -155,10 +157,18 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
 
   useHandleGestures({
     left() {
-      moveElements(true);
+      if (globalSettings?.reverse_scrolling.keyboard) {
+        moveElements(false);
+      } else {
+        moveElements(true);
+      }
     },
     right() {
-      moveElements(false);
+      if (globalSettings?.reverse_scrolling.keyboard) {
+        moveElements(true);
+      } else {
+        moveElements(false);
+      }
     },
     doubleClick() {
       if (mainLetter === 'capslock') {
