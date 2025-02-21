@@ -51,6 +51,7 @@ export type ScreenType =
   | 'calibrateScale'
   | 'usbSettings'
   | 'shot_history'
+  | 'scrollDirections'
   | 'preheatScreen';
 
 interface ScreenState {
