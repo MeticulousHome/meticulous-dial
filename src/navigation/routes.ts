@@ -1,7 +1,6 @@
 import { ComponentType } from 'react';
 import { Barometer } from '../components/Barometer/Barometer';
 import { Pressets } from '../components/Pressets/Pressets';
-import { Scale } from '../components/Scale/Scale';
 import { PressetSettings } from '../components/PressetSettings/PressetSettings';
 import { SettingNumerical } from '../components/SettingNumerical/SettingNumerical';
 import { Settings } from '../components/Settings/Settings';
@@ -116,12 +115,6 @@ export const routes: Record<ScreenType, Route> = {
     component: Settings,
     title: 'settings',
     bottomStatusHidden: true
-  },
-  scale: {
-    component: Scale,
-    title: 'scale',
-    bottomStatusHidden: true,
-    parent: 'pressets'
   },
   pressets: {
     component: Pressets,

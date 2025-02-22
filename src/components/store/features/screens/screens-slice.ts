@@ -14,7 +14,6 @@ export type ScreenType =
   | 'temperature'
   | 'dose'
   | 'output'
-  | 'scale'
   | 'settings'
   | 'timeDate'
   | 'timeZoneConfig'
