@@ -1,10 +1,10 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import { Provider, useSelector } from 'react-redux';
+import { Provider, useSelector, useStore } from 'react-redux';
 
 import { useAppDispatch, useAppSelector } from './components/store/hooks';
 import { SocketManager } from './components/store/SocketManager';
-import { store } from './components/store/store';
+import { RootState, store } from './components/store/store';
 import { useHandleGestures } from './hooks/useHandleGestures';
 import {
   setBubbleDisplay,
@@ -16,6 +16,7 @@ import { durationAnimation } from './navigation/Transitioner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { IdleTimerProvider } from './hooks/useIdleTimer';
 import { setBrightness } from './api/api';
+import { Scale } from './components/Scale/Scale';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,6 +37,7 @@ const queryClient = new QueryClient({
 
 const App = (): JSX.Element => {
   const dispatch = useAppDispatch();
+  const store = useStore<RootState>();
   const screen = useAppSelector(
     (state) => state.screen,
     (prev, next) => prev === next
@@ -63,32 +65,63 @@ const App = (): JSX.Element => {
     }
   }, [notifications]);
 
-  const getureTimeAgo = useRef(new Date());
+  const [scaleState, setScaleState] = useState<{
+    visible: boolean;
+    size: 'small' | 'full';
+  }>({ visible: false, size: 'small' });
+
+  const isQuickScaleVisible = scaleState.visible && scaleState.size === 'small';
+  useEffect(() => {
+    if (!isQuickScaleVisible) return;
+
+    const scheduleHide = () =>
+      setTimeout(() => {
+        setScaleState((state) => ({ ...state, visible: false }));
+      }, 10000);
+    let timer = scheduleHide();
+
+    let lastSignificantWeight = store.getState().stats.sensors.w;
+    const subscription = store.subscribe(() => {
+      const weight = store.getState().stats.sensors.w;
+      if (Math.abs(weight - lastSignificantWeight) > 2) {
+        lastSignificantWeight = weight;
+        clearTimeout(timer);
+        timer = scheduleHide();
+      }
+    });
+
+    return () => {
+      clearTimeout(timer);
+      subscription();
+    };
+  }, [isQuickScaleVisible]);
 
   useHandleGestures(
     {
+      // TODO: Ideally we'd get tare up/down events so we can zoom in full the scale gradually
+      singleTare() {
+        setScaleState(({ visible }) => ({
+          visible: true,
+          size: visible ? 'full' : 'small'
+        }));
+      },
+      longTare() {
+        setScaleState(({ visible, size }) => ({
+          visible: !visible || size === 'small',
+          size: 'full'
+        }));
+      },
       doubleTare() {
-        const gestureTime = new Date();
-
-        const timeDiff = +gestureTime - +getureTimeAgo.current;
-
-        if (timeDiff < durationAnimation + 50) return;
-
-        getureTimeAgo.current = gestureTime;
-
-        dispatch(
-          setScreen(
-            screen.value === 'scale'
-              ? screen.prev === 'settings'
-                ? 'barometer'
-                : screen.prev !== 'idle'
-                  ? screen.prev
-                  : 'pressets'
-              : 'scale'
-          )
-        );
+        setScaleState(({ size }) => ({
+          visible: false,
+          size
+        }));
       },
       context() {
+        setScaleState(({ size }) => ({
+          visible: false,
+          size
+        }));
         dispatch(
           setBubbleDisplay({
             visible: !bubbleDisplay.visible,
@@ -113,6 +146,7 @@ const App = (): JSX.Element => {
                 currentScreen={screen.value}
                 previousScreen={screen.prev}
               />
+              <Scale {...scaleState} />
             </SocketManager>
           </IdleTimerProvider>
         </div>
