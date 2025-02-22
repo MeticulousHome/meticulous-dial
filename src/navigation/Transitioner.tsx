@@ -1,6 +1,6 @@
 import { useEffect, useState, cloneElement, ReactElement } from 'react';
 import { ScreenType } from '../components/store/features/screens/screens-slice';
-import { VisibilityProvider } from './VisibilityContext';
+import { useVisibility, VisibilityProvider } from './VisibilityContext';
 import './navigation.less';
 
 interface TransitionerProps {
@@ -69,6 +69,7 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
     titleDirection: props.direction,
     animationSize: 'large'
   });
+  const isVisible = useVisibility();
 
   useEffect(() => {
     setStates((prev) => {
@@ -148,7 +149,7 @@ export const Transitioner = (props: TransitionerProps): JSX.Element => {
         }`}
         style={animationStyle}
       >
-        <VisibilityProvider value={true}>
+        <VisibilityProvider value={isVisible}>
           {cloneElement(children, { transitioning: !!previous })}
         </VisibilityProvider>
         {!shouldTransitionParentTitle && parentTitle && (

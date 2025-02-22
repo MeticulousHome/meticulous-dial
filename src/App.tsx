@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider, useSelector, useStore } from 'react-redux';
 
@@ -12,11 +12,11 @@ import {
 } from './components/store/features/screens/screens-slice';
 import { Router } from './navigation/Router';
 import { notificationSelector } from './components/store/features/notifications/notification-slice';
-import { durationAnimation } from './navigation/Transitioner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { IdleTimerProvider } from './hooks/useIdleTimer';
 import { setBrightness } from './api/api';
 import { Scale } from './components/Scale/Scale';
+import { VisibilityProvider } from './navigation/VisibilityContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -142,10 +142,13 @@ const App = (): JSX.Element => {
           {dev && <div className="main-circle-overlay" />}
           <IdleTimerProvider>
             <SocketManager>
-              <Router
-                currentScreen={screen.value}
-                previousScreen={screen.prev}
-              />
+              {/* Mark router as not visible when scale is overlaid to avoid gesture handlers firing */}
+              <VisibilityProvider value={!scaleState.visible}>
+                <Router
+                  currentScreen={screen.value}
+                  previousScreen={screen.prev}
+                />
+              </VisibilityProvider>
               <Scale {...scaleState} />
             </SocketManager>
           </IdleTimerProvider>
