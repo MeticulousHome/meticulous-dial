@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import lottie, { AnimationItem } from 'lottie-web';
-import './piston.css';
 import piston from './piston.json';
 import blink from './blink.json';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { formatStatValue } from '../../utils';
 import { setScreen } from '../../../src/components/store/features/screens/screens-slice';
 import { useSocket } from '../../../src/components/store/SocketManager';
+import './piston.css';
 
 // This is not absolute max but the maximum we choose for the sake of animation
 const MAX_POSITION = 74;
@@ -15,7 +14,6 @@ const NO_FRAMES = 1000;
 
 export function PurgePiston(): JSX.Element {
   const stats = useAppSelector((state) => state.stats);
-  // const screen = useAppSelector((state) => state.screen.value);
   const socket = useSocket();
   const pistonContainer = useRef<AnimationItem | null>(null);
   const pistonAnimator = useRef(null);
@@ -25,9 +23,6 @@ export function PurgePiston(): JSX.Element {
   const [initialPosition, setInitialPosition] = useState<number | null>(null);
   const [prevPosition, setPrevPosition] = useState<number | null>(null);
   const [prevTime, setPrevTime] = useState<number | null>(null);
-  const firstTime = useRef<boolean>(true);
-  const statusFirstName = useRef<boolean>(true);
-  const prevStatus = useRef<string>('');
   const [position, setPosition] = useState<number>(-1);
   const intervalRef = useRef(null);
 
@@ -77,7 +72,6 @@ export function PurgePiston(): JSX.Element {
     if (stats.name === 'home') {
       blinkAnimator.current.style.top = '-206.5px';
     }
-
     socket.on('actuators', (data: { m_pos: number }) => {
       if (data.m_pos < 0) {
         return;
@@ -115,14 +109,8 @@ export function PurgePiston(): JSX.Element {
 
     const currentPosition = (myPosition / MAX_POSITION) * TOTAL_FRAMES;
 
-    if (firstTime.current) {
-      firstTime.current = false;
-      statusFirstName.current = false;
-
-      if (!pistonContainer.current) {
-        initAnimation(currentPosition);
-      }
-
+    if (!pistonContainer.current) {
+      initAnimation(currentPosition);
       return;
     }
 
@@ -137,18 +125,6 @@ export function PurgePiston(): JSX.Element {
     setPrevPosition(currentPosition);
     setPrevTime(Date.now());
   }, [position, animateToPosition, initialPosition]);
-
-  useEffect(() => {
-    if (!statusFirstName.current) {
-      if (prevStatus.current !== 'idle') {
-        if (stats.name === 'idle') {
-          dispatch(setScreen('pressets'));
-        }
-      }
-
-      prevStatus.current = stats.name;
-    }
-  }, [stats.name]);
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
@@ -170,21 +146,9 @@ export function PurgePiston(): JSX.Element {
   }, []);
 
   return (
-    <div className="piston-container">
-      <div className="piston-purge-container center">
-        <div className="values">
-          <div className="value">
-            {formatStatValue(stats.sensors.p, 1)}
-            <span>bar</span>
-          </div>
-          <div id="blink" ref={blinkAnimator} className="lottie" />
-          <div id="piston" ref={pistonAnimator} className="lottie" />
-          <div className="value">
-            {formatStatValue(stats.sensors.f, 1)}
-            <span>ml/s</span>
-          </div>
-        </div>
-      </div>
+    <div>
+      <div id="blink" ref={blinkAnimator} className="lottie" />
+      <div id="piston" ref={pistonAnimator} className="lottie" />
     </div>
   );
 }

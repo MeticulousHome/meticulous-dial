@@ -26,7 +26,7 @@ import { PressetProfileImage } from '../../src/components/Pressets/PressetProfil
 import { DeviceInfoScreen } from '../components/Settings/Advanced/DeviceInfoScreen';
 import { DefaultProfiles } from '../components/Pressets/DefaultProfiles';
 import { DefaultProfileDetails } from '../../src/components/Pressets/DefaultProfileDetails';
-import { PurgePiston } from '../components/PurgePiston/PurgePiston';
+import { PurgeScreen } from '../components/PurgePiston/PurgeScreen';
 import { UpdateChannel } from '../components/Settings/Advanced/UpdateChannel';
 import { ReadyAnimation } from '../components/ReadyAnimation/ReadyAnimation';
 import { HeatTimeoutAfterShot } from '../components/HeatTimeoutAfterShot/HeatTimeoutAfterShot';
@@ -199,11 +199,12 @@ export const routes: Record<ScreenType, Route> = {
     parent: 'pressetSettings'
   },
   'manual-purge': {
-    component: PurgePiston,
-    title: selectPurgeTitle,
+    component: PurgeScreen,
     bottomStatusHidden: true,
+    title: selectPurgeTitle,
     animationDirectionFrom: {
-      barometer: 'in'
+      barometer: 'in',
+      heating: 'in',
     }
   },
   heating: {
