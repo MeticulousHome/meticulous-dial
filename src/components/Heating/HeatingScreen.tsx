@@ -7,30 +7,14 @@ import { Label, Temperature } from './Temperatures';
 import './transitions.css';
 import {
   ModularFooter,
+  ModularFooterText,
+  ModularFooterTime,
   ModularLeft,
   ModularRight,
   ModularScreen
 } from '../ModularScreen/ModularScreen';
 import { formatTime } from '../../utils';
 import { BUBBLES_WIDTH, LottieBubbleAnimation } from './LottieBubbleAnimation';
-
-const TimeLeftSeconds = styled.div`
-  font-family: 'ABC Diatype Mono';
-  font-size: 40px;
-  font-weight: 300;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  text-align: center;
-`;
-
-const TimeLeftText = styled.div`
-  font-family: 'ABC Diatype Mono';
-  font-size: 20px;
-  font-weight: 300;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  text-align: center;
-`;
 
 const PushToStartLabel = styled.div`
   font-size: 20px;
@@ -84,15 +68,15 @@ export const HeatingScreen = () => {
   );
   const preheatTimeLeft = useCallback(() => {
     if (!temperatureTargetStatus) {
-      return <TimeLeftText>stabilizing...</TimeLeftText>;
+      return <ModularFooterText>stabilizing...</ModularFooterText>;
     }
     const diff = temperatureTarget - Math.max(20, temperature);
 
     if (diff <= 2) {
-      return <TimeLeftText>a few seconds</TimeLeftText>;
+      return <ModularFooterText>a few seconds</ModularFooterText>;
     }
     if (diff <= 5) {
-      return <TimeLeftText>less than 30 seconds</TimeLeftText>;
+      return <ModularFooterText>less than 30 seconds</ModularFooterText>;
     }
 
     const stabilizingTime = 20;
@@ -103,7 +87,7 @@ export const HeatingScreen = () => {
     const timeLeft =
       Math.ceil((diff * timePerDegree + stabilizingTime) / timeIncrements) *
       timeIncrements;
-    return <TimeLeftSeconds>{formatTime(timeLeft)}</TimeLeftSeconds>;
+    return <ModularFooterTime>{formatTime(timeLeft)}</ModularFooterTime>;
   }, [temperatureTarget, temperature, temperatureTargetStatus]);
 
   const statsName = useAppSelector((state) => state.stats.name);
