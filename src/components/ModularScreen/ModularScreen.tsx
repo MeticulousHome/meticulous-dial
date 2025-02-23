@@ -1,6 +1,7 @@
 import React, { forwardRef, PropsWithChildren, ReactElement } from 'react';
 import './modular.less';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { styled } from 'styled-components';
 
 export const ModularScreen: React.FC<{
   children: ReactElement<
@@ -27,6 +28,24 @@ export const ModularRight = forwardRef<HTMLDivElement, ModularSectionProps>(
 export const ModularFooter = forwardRef<HTMLDivElement, ModularSectionProps>(
   (props, ref) => <div ref={ref} {...props} className="modular-footer" />
 );
+
+export const ModularFooterText = styled.div`
+  font-family: 'ABC Diatype Mono';
+  font-size: 20px;
+  font-weight: normal;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-align: center;
+`;
+
+export const ModularFooterTime = styled.div`
+  font-family: 'ABC Diatype Mono';
+  font-size: 40px;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-align: center;
+`;
 
 export function ModularRightOptions<
   T extends readonly { id: string; label: string }[]
