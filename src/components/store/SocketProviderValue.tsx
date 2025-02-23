@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 import {
@@ -6,7 +6,7 @@ import {
   ISensorDataAndMachineState,
   ProfileCause
 } from '../../types/index';
-import { useAppDispatch, useAppSelector } from './hooks';
+import { useAppDispatch } from './hooks';
 import {
   setStats,
   setWaterStatus,
@@ -35,7 +35,7 @@ const socket: Socket | null = io(SERVER_URL);
 
 export const SocketProviderValue = () => {
   const dispatch = useAppDispatch();
-  const currentStateName = useAppSelector((state) => state.stats.name);
+  const previousStateName = useRef<string>('idle');
   const queryClient = useQueryClient();
   const { resetTimer: resetIdleTimer } = useIdleTimer();
 
@@ -59,9 +59,13 @@ export const SocketProviderValue = () => {
     });
 
     socket.on('status', (data: ISensorDataAndMachineState) => {
+      const previousState = previousStateName.current;
+      if (data) {
+        previousStateName.current = data?.name;
+      }
       dispatch(setStats(data));
 
-      if (currentStateName !== data?.name) {
+      if (previousState !== data?.name) {
         // Every status change resets the idle timer
         resetIdleTimer();
 
