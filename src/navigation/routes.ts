@@ -48,6 +48,7 @@ import { TimeConfig } from '../components/Settings/Advanced/TimeDate/TimeConfig'
 import { DateConfig } from '../components/Settings/Advanced/TimeDate/DateConfig';
 import { ShotGraphScreen } from '../components/ShotGraph/ShotGraphScreen';
 import { ScrollDirectionSettings } from '../components/Settings/ScrollDirection';
+import { BrewCompleteScreen } from '../components/BrewCompleteScreen/BrewCompleteScreen';
 
 interface Route {
   component: ComponentType;
@@ -211,7 +212,7 @@ export const routes: Record<ScreenType, Route> = {
     title: selectPurgeTitle,
     animationDirectionFrom: {
       barometer: 'in',
-      heating: 'in',
+      heating: 'in'
     }
   },
   heating: {
@@ -360,6 +361,11 @@ export const routes: Record<ScreenType, Route> = {
   },
   scrollDirections: {
     component: ScrollDirectionSettings,
+    bottomStatusHidden: true
+  },
+  brewComplete: {
+    title: 'Brew complete',
+    component: BrewCompleteScreen,
     bottomStatusHidden: true
   }
 };

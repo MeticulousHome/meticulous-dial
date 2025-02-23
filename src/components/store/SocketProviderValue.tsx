@@ -86,6 +86,11 @@ export const SocketProviderValue = () => {
           return;
         }
 
+        if (data?.name === 'remove cup' || data?.name === 'click to purge') {
+          dispatch(setScreen('brewComplete'));
+          return;
+        }
+
         // When the machine is not in idle, lock the screen at Barometer
         if (data?.name !== 'idle') {
           dispatch(setScreen('barometer'));

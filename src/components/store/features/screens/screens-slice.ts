@@ -52,7 +52,9 @@ export type ScreenType =
   | 'usbSettings'
   | 'shot_history'
   | 'scrollDirections'
-  | 'preheatScreen';
+  | 'preheatScreen'
+  | 'brewComplete'
+  | 'usbSettings';
 
 interface ScreenState {
   value: ScreenType;
