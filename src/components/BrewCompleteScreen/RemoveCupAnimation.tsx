@@ -24,6 +24,26 @@ const fadeUp = keyframes`
 }
 `;
 
+const fadeUpArrow = keyframes`
+0% {
+    opacity: 0;
+    transform: translateY(0px);
+}
+10% {
+    transform: translateY(0px);
+}
+30% {
+    opacity: 1;
+}
+70% {
+    opacity: 1;
+}
+100% {
+    opacity: 0;
+    transform: translateY(-80px);
+}
+`;
+
 const AnimationContainer = styled.div`
   position: relative;
   width: 130px;
@@ -76,10 +96,43 @@ const CupAnimationSVG = styled.svg`
   animation: ${fadeUp} 4s ease-out infinite;
 `;
 
+const ArrowAnimationSVG = styled.svg`
+  position: absolute;
+  left: 0;
+  bottom: 25px;
+  z-index: 1;
+  animation: ${fadeUpArrow} 4s ease-out infinite;
+`;
+
 const CupWidth = 126;
-const CupHeight = 167;
+const CupHeight = 137;
 const CupAnimation = () => (
   <CupAnimationSVG
+    width={CupWidth}
+    height={CupHeight}
+    viewBox={`0 0 ${CupWidth} ${CupHeight}`}
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M63.0588 16.4141C37.3142 16.4141 16.3867 24.5058 16.3867 34.4486L31.7244 110.094C32.9758 116.358 46.5271 121.29 63.0598 121.29C79.6102 121.29 93.1727 116.347 94.3992 110.074L109.733 34.4486C109.733 24.5058 88.8034 16.4141 63.0588 16.4141Z"
+      fill="black"
+    />
+    <path
+      d="M22.9353 39.3721C22.9353 47.9356 40.9012 54.8778 63.0632 54.8778C85.2252 54.8778 103.191 47.9357 103.191 39.3721"
+      stroke="#7BEEBF"
+      strokeWidth="2"
+    />
+    <path
+      d="M63.0624 23.7676C40.9281 23.7676 22.9353 30.7246 22.9353 39.273L36.1222 104.31C37.1981 109.696 48.849 113.937 63.0633 113.937C77.2927 113.937 88.9533 109.687 90.0078 104.293L103.191 39.273C103.191 30.7246 85.1967 23.7676 63.0624 23.7676Z"
+      stroke="#7BEEBF"
+      strokeWidth="2"
+    />
+  </CupAnimationSVG>
+);
+
+const ArrowAnimation = () => (
+  <ArrowAnimationSVG
     width={CupWidth}
     height={CupHeight}
     viewBox={`0 0 ${CupWidth} ${CupHeight}`}
@@ -98,30 +151,14 @@ const CupAnimation = () => (
         strokeWidth="2"
       />
     </g>
-    <g transform="translate(0, 30)">
-      <path
-        d="M63.0588 16.4141C37.3142 16.4141 16.3867 24.5058 16.3867 34.4486L31.7244 110.094C32.9758 116.358 46.5271 121.29 63.0598 121.29C79.6102 121.29 93.1727 116.347 94.3992 110.074L109.733 34.4486C109.733 24.5058 88.8034 16.4141 63.0588 16.4141Z"
-        fill="black"
-      />
-      <path
-        d="M22.9353 39.3721C22.9353 47.9356 40.9012 54.8778 63.0632 54.8778C85.2252 54.8778 103.191 47.9357 103.191 39.3721"
-        stroke="#7BEEBF"
-        strokeWidth="2"
-      />
-      <path
-        d="M63.0624 23.7676C40.9281 23.7676 22.9353 30.7246 22.9353 39.273L36.1222 104.31C37.1981 109.696 48.849 113.937 63.0633 113.937C77.2927 113.937 88.9533 109.687 90.0078 104.293L103.191 39.273C103.191 30.7246 85.1967 23.7676 63.0624 23.7676Z"
-        stroke="#7BEEBF"
-        strokeWidth="2"
-      />
-    </g>
-  </CupAnimationSVG>
+  </ArrowAnimationSVG>
 );
-
 export const RemoveCupAnimation: React.FC = () => {
   return (
     <AnimationContainer>
       <DripTray />
       <CupAnimation />
+      <ArrowAnimation />
     </AnimationContainer>
   );
 };
