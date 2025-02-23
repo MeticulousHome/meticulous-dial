@@ -33,6 +33,10 @@ import { useIdleTimer } from '../../hooks/useIdleTimer';
 const SERVER_URL: string = window.env?.SERVER_URL || 'http://localhost:8080';
 const socket: Socket | null = io(SERVER_URL);
 
+const isBrewComplete = (state: string) => {
+  return state === 'remove cup' || state === 'click to purge';
+};
+
 export const SocketProviderValue = () => {
   const dispatch = useAppDispatch();
   const previousStateName = useRef<string>('idle');
@@ -69,10 +73,6 @@ export const SocketProviderValue = () => {
         // Every status change resets the idle timer
         resetIdleTimer();
 
-        if (data?.name === 'purge' || data?.name === 'home') {
-          dispatch(setScreen('manual-purge'));
-          return;
-        }
         if (data?.name === 'heating') {
           dispatch(setWaterStatus(true));
           dispatch(setScreen('heating'));
@@ -90,8 +90,17 @@ export const SocketProviderValue = () => {
           return;
         }
 
-        if (data?.name === 'remove cup' || data?.name === 'click to purge') {
+        if (
+          isBrewComplete(data?.name) ||
+          (isBrewComplete(previousState) && data?.name === 'purge')
+        ) {
           dispatch(setScreen('brewComplete'));
+          return;
+        }
+
+        // Brew complete screen takes precedence here when purging
+        if (data?.name === 'purge' || data?.name === 'home') {
+          dispatch(setScreen('manual-purge'));
           return;
         }
 

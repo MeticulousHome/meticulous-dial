@@ -72,7 +72,7 @@ export const BrewCompleteScreen = () => {
   return (
     <ModularScreen>
       <ModularLeft>
-        <RemoveCupAnimation />
+        {isPurging ? <PurgePiston /> : <RemoveCupAnimation />}
       </ModularLeft>
       <ModularRight>
         <div
