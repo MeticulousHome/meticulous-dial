@@ -2,7 +2,9 @@ import Api, {
   regionType,
   APIError,
   BrightnessRequest,
-  DeviceInfo
+  DeviceInfo,
+  ManufacturingSettings,
+  ManufacturingMenuItems
 } from '@meticulous-home/espresso-api';
 
 export const api = new Api(
@@ -101,6 +103,38 @@ export const setTimezoneSync = async (new_timezonesync: string) => {
     return data;
   } catch (error) {
     console.error('Error setting timezone sync', error);
+    throw new Error(error);
+  }
+};
+
+export const getManufacturingMenuItems =
+  async (): Promise<ManufacturingMenuItems> => {
+    try {
+      const response = await api.getManufacturingMenuItems();
+      if (response.status === 204) {
+        return { Elements: [] };
+      }
+
+      if ('error' in response.data) {
+        const apiError = response.data as APIError;
+        throw new Error(`${apiError.error}: ${apiError.description}`);
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching manufacturing settings', error);
+      return { Elements: [] };
+    }
+  };
+
+export const updateManufacturingSettings = async (
+  settings: Partial<ManufacturingSettings>
+) => {
+  try {
+    const { data } = await api.updateManufacturingSettings(settings);
+    return data;
+  } catch (error) {
+    console.error('Error setting manufacturing settings', error);
     throw new Error(error);
   }
 };
