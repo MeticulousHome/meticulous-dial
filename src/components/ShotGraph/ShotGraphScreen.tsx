@@ -14,10 +14,14 @@ import {
 } from './GraphAnnotations';
 import { getGraphPath } from './GraphPath';
 import { useAppSelector } from '../store/hooks';
-import { setScreen } from '../store/features/screens/screens-slice';
+import {
+  setScreen,
+  setBubbleDisplay
+} from '../store/features/screens/screens-slice';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../store/store';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
+import { useIdleTimer } from '../../hooks/useIdleTimer';
 
 const GRAPH_WIDTH = 270;
 const GRAPH_WRAPPER_HEIGHT = 220;
@@ -119,6 +123,14 @@ export const ShotGraphScreen = () => {
     const length = Math.max(0, displayShot.data.length - 1);
     return Math.round(length / GRAPH_SCROLL_STEPS);
   }, [displayShot]);
+
+  const { isIdle: shouldGoToIdle } = useIdleTimer();
+
+  useEffect(() => {
+    if (!shouldGoToIdle) return;
+    dispatch(setScreen('idle'));
+    dispatch(setBubbleDisplay({ visible: false, component: null }));
+  }, [shouldGoToIdle]);
 
   useHandleGestures({
     left() {
