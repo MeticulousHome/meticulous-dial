@@ -10,8 +10,18 @@ import {
 } from '../ModularScreen/ModularScreen';
 import { RemoveCupAnimation } from './RemoveCupAnimation';
 import { formatTime } from '../../utils';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect } from 'react';
 import { PurgePiston } from '../PurgePiston/PurgePiston';
+
+const WeightContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding-top: 4px;
+  padding-bottom: 7px;
+  gap: 3px;
+`;
 
 const WeightValue = styled.span`
   font-family: 'ABC Diatype Mono';
@@ -43,15 +53,15 @@ const Label = styled.div`
 export const BrewCompleteScreen = () => {
   const dispatch = useAppDispatch();
 
-  const stats = useAppSelector((state) => state.stats);
-  const statsName = stats.name;
-  const brewTime = stats.time;
-  const lastBrewWeight = useRef(stats.sensors.w);
+  const statsName = useAppSelector((state) => state.stats.name);
+  const brewTime = useAppSelector((state) => state.stats.time);
+  const lastBrewWeight = useAppSelector((state) => state.stats.sensors.w);
 
   const weight =
-    Math.abs(lastBrewWeight.current) < 1000
-      ? lastBrewWeight.current.toFixed(1)
-      : lastBrewWeight.current.toFixed(0);
+    Math.abs(lastBrewWeight) < 1000
+      ? lastBrewWeight.toFixed(1)
+      : lastBrewWeight.toFixed(0);
+
   const isPurging = statsName === 'purge';
 
   useEffect(() => {
@@ -60,35 +70,23 @@ export const BrewCompleteScreen = () => {
     }
   }, [statsName]);
 
-  const stateLabel = useMemo(() => {
-    if (statsName === 'click to purge') return 'Push to purge';
+  const stateLabel =
+    statsName === 'click to purge'
+      ? 'Push to purge'
+      : statsName === 'remove cup'
+        ? 'Remove cup'
+        : '';
 
-    if (statsName === 'remove cup') return 'Remove cup';
-
-    return '';
-  }, [statsName]);
-
-  console.log(statsName);
   return (
     <ModularScreen>
       <ModularLeft>
         {isPurging ? <PurgePiston /> : <RemoveCupAnimation />}
       </ModularLeft>
       <ModularRight>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'start',
-            alignItems: 'flex-start',
-            paddingTop: 4,
-            paddingBottom: 7,
-            gap: 3
-          }}
-        >
+        <WeightContainer>
           <WeightValue>{weight}</WeightValue>
           <Unit>g</Unit>
-        </div>
+        </WeightContainer>
         <Label>{stateLabel}</Label>
       </ModularRight>
       <ModularFooter style={{ gap: 13 }}>

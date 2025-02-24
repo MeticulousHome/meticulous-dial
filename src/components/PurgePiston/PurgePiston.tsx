@@ -5,7 +5,6 @@ import blink from './blink.json';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setScreen } from '../../../src/components/store/features/screens/screens-slice';
 import { useSocket } from '../../../src/components/store/SocketManager';
-import './piston.css';
 
 // This is not absolute max but the maximum we choose for the sake of animation
 const MAX_POSITION = 74;
