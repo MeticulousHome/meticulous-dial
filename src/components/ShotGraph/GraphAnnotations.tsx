@@ -116,7 +116,7 @@ export const SelectionIndicator = ({
       {valueText(
         selectedPointX + 5 + simulatedFontCenter,
         -5,
-        (data[selectedPointIndex]?.time / 100 || 0.0).toFixed(1),
+        (data[selectedPointIndex]?.time / 1000 || 0.0).toFixed(1),
         's',
         'middle'
       )}
