@@ -8,6 +8,7 @@ import {
   useUpdateSettings,
   useRootPassword
 } from '../../../hooks/useSettings';
+import { useManufacturingItems } from '../../../hooks/useManufacturing';
 import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useDeviceInfo } from '../../../hooks/useDeviceOSStatus';
@@ -84,20 +85,25 @@ const initialSettings: SettingsItem[] = [
 
 export const AdvancedSettings = () => {
   const dispatch = useAppDispatch();
-  const { data: globalSettings, isSuccess } = useSettings();
+  const { data: globalSettings, isSuccess: isSettingsSuccess } = useSettings();
   const updateSettings = useUpdateSettings();
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { refetch: fetchDeviceStatus } = useDeviceInfo();
   const { data: rootPW } = useRootPassword();
 
+  const {
+    data: manufacturingSettings = [],
+    isSuccess: isManufacturingSuccess
+  } = useManufacturingItems();
+  console.log('manufacturingSettings ---> ', manufacturingSettings);
   const updatedSettings = useMemo(() => {
-    if (!isSuccess) {
+    if (!isSettingsSuccess) {
       return initialSettings.map((item) => ({
         ...item
       }));
     }
-    return initialSettings.map((item) => ({
+    const formattedInitialSettings = initialSettings.map((item) => ({
       ...item,
       label:
         item.key === 'root_password'
@@ -106,7 +112,22 @@ export const AdvancedSettings = () => {
             ? `${item.label}: ${item.getLabel(globalSettings)}`
             : item.label
     }));
-  }, [globalSettings, isSuccess, rootPW]);
+
+    const initialWithoutBack = formattedInitialSettings.filter(
+      (item) => item.key !== 'back'
+    );
+
+    const backItem = formattedInitialSettings.find(
+      (item) => item.key === 'back'
+    );
+
+    return [...initialWithoutBack, ...manufacturingSettings, backItem];
+  }, [
+    globalSettings,
+    isManufacturingSuccess,
+    isSettingsSuccess,
+    manufacturingSettings
+  ]);
 
   useHandleGestures(
     {
