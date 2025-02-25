@@ -11,6 +11,7 @@ import { useConnectToWiFi, useNetworkConfig } from '../../hooks/useWifi';
 import { useEffect, useMemo, useState } from 'react';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useDimScreen } from '../../hooks/useDimScreen';
 
 import './wifiResult.css';
 
@@ -29,6 +30,7 @@ export function EnterWifiPassword(): JSX.Element {
 
   const { data, isLoading } = useNetworkConfig();
   const connectToWifiMutation = useConnectToWiFi();
+  useDimScreen();
   useHandleGestures({
     pressDown() {
       if (connectToWifiMutation.isSuccess || connectToWifiMutation.isError) {
