@@ -1,5 +1,5 @@
 // Core modules imports are same as usual
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
 import { Pagination as PaginationSwiper } from 'swiper/modules';
 import SwiperS from 'swiper';
@@ -38,9 +38,9 @@ import { TitleCircle } from './Title';
 import { loadProfileData, startProfile } from '../../api/profile';
 import { useSocket } from '../store/SocketManager';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
-import classNames from 'classnames';
 import { useSettings } from '../../hooks/useSettings';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
+import { styled } from 'styled-components';
 
 interface AnimationData {
   circlekey: number;
@@ -68,6 +68,39 @@ const initialValue: AnimationData = {
   extraDelay: 500
 };
 
+const PresetTitle = styled.div<{
+  size: 'default' | 'small' | 'very-small';
+  temp?: boolean;
+  visible: boolean;
+}>`
+  position: absolute;
+  z-index: 10;
+  width: 100%;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  top: ${(props) => (props.visible ? '-68px' : '-80px')};
+  opacity: ${(props) => (props.visible ? '1' : '0')};
+  transition:
+    top 180ms linear,
+    opacity 150ms ease;
+
+  font-size: ${(props) =>
+    props.size === 'default'
+      ? '30px'
+      : props.size === 'small'
+        ? '20px'
+        : '17px'};
+  font-weight: 400;
+
+  color: ${(props) => (props.temp ? '#e74d4d' : '#e0dcd0')};
+  letter-spacing: -0.025em;
+
+  white-space: nowrap;
+`;
+
 export function Pressets({ transitioning }: RouteProps): JSX.Element {
   const dispatch = useAppDispatch();
   const presets = useAppSelector((state) => state.presets);
@@ -92,53 +125,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
     animating: false
   });
 
-  const navigationTitleParentRef = useRef<HTMLDivElement | null>(null);
-  const navigationTitleRef = useRef<HTMLDivElement | null>(null);
-  const pressetsTitleContentRef = useRef<HTMLDivElement | null>(null);
   const [percentaje, setPercentaje] = useState(0);
   const [startCoffe, setStartCoffe] = useState(false);
   const ready = useRef(false);
   const currentScreen = useAppSelector((state) => state.screen.value);
-  const pressetTitleContenExistValidation = useCallback(() => {
-    if (!pressetsTitleContentRef.current) {
-      const element = document.getElementById('pressets-title-content');
-
-      if (!element) return false;
-
-      pressetsTitleContentRef.current = element as HTMLDivElement;
-    }
-    return true;
-  }, []);
-
-  const navigationTitleExistValidation = useCallback((): boolean => {
-    if (!navigationTitleRef.current) {
-      if (!navigationTitleParentExistValidation()) return false;
-
-      const element: HTMLDivElement = navigationTitleParentRef.current
-        .nextElementSibling as HTMLDivElement;
-
-      if (!element || !element.classList.contains('navigation-title'))
-        return false;
-
-      navigationTitleRef.current = element;
-    }
-
-    return true;
-  }, []);
-
-  const navigationTitleParentExistValidation = useCallback((): boolean => {
-    if (!navigationTitleParentRef.current) {
-      const element: HTMLDivElement = document.querySelector(
-        'div.navigation-title.parent'
-      );
-
-      if (!element) return false;
-
-      navigationTitleParentRef.current = element;
-    }
-
-    return true;
-  }, []);
 
   const sendCurrentPressetId = (index: number, focus: boolean) => {
     const mPresset = presets.value[index];
@@ -197,18 +187,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
       animating: true
     });
 
-    if (pressetTitleContenExistValidation()) {
-      pressetsTitleContentRef.current.classList.remove(
-        'animation-pressets-content-bottom'
-      );
-      pressetsTitleContentRef.current.classList.remove(
-        'animation-pressets-content-top'
-      );
-      pressetsTitleContentRef.current.classList.add(
-        'animation-pressets-content-top'
-      );
-    }
-
     clearSlides(pressetSwiper);
 
     handleAddIncreseAnimation(pressetSwiper);
@@ -243,22 +221,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           screen: 'PRESSETS',
           animating: true
         });
-
-        if (!navigationTitleExistValidation()) {
-          navigationTitleParentRef.current = null;
-        }
-
-        if (pressetTitleContenExistValidation()) {
-          pressetsTitleContentRef.current.classList.remove(
-            'animation-pressets-content-bottom'
-          );
-          pressetsTitleContentRef.current.classList.remove(
-            'animation-pressets-content-top'
-          );
-          pressetsTitleContentRef.current.classList.add(
-            'animation-pressets-content-bottom'
-          );
-        }
 
         clearSlides(pressetSwiper);
 
@@ -299,22 +261,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           screen: 'PRESSETS',
           animating: true
         });
-
-        if (!navigationTitleExistValidation()) {
-          navigationTitleParentRef.current = null;
-        }
-
-        if (pressetTitleContenExistValidation()) {
-          pressetsTitleContentRef.current.classList.remove(
-            'animation-pressets-content-bottom'
-          );
-          pressetsTitleContentRef.current.classList.remove(
-            'animation-pressets-content-top'
-          );
-          pressetsTitleContentRef.current.classList.add(
-            'animation-pressets-content-bottom'
-          );
-        }
 
         clearSlides(pressetSwiper);
 
@@ -383,10 +329,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           }
           case 'PRESSETS': {
             if (presets.activeIndexSwiper === presets.value.length) {
-              if (navigationTitleExistValidation()) {
-                navigationTitleRef.current.classList.add('title-bottom');
-              }
-
               return dispatch(setScreen('defaultProfiles'));
             }
 
@@ -476,12 +418,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
         clearSlides(pressetSwiper);
         handleAddIncreseAnimation(pressetSwiper);
         handleAddLeaveAnimation(pressetSwiper);
-
-        if (pressetTitleContenExistValidation()) {
-          pressetsTitleContentRef.current.classList.add(
-            'animation-pressets-content-top'
-          );
-        }
       }
     }
   }, [pressetSwiper]);
@@ -635,22 +571,21 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                 >
                   {() => (
                     <div>
-                      <div className="title-swiper">
-                        {option.screen === 'PRESSETS' && !transitioning && (
-                          <div
-                            className={classNames('presset-title-top', {
-                              'presset-title-temp': preset.isTemporary,
-                              'presset-title-small': preset.name.length > 30,
-                              'presset-title-very-small':
-                                preset.name.length > 40
-                            })}
-                          >
-                            {preset.name.length > 70
-                              ? `${preset.name.substring(0, 70)}...`
-                              : preset.name}
-                          </div>
-                        )}
-                      </div>
+                      <PresetTitle
+                        temp={preset.isTemporary}
+                        size={
+                          preset.name.length > 40
+                            ? 'very-small'
+                            : preset.name.length > 30
+                              ? 'small'
+                              : 'default'
+                        }
+                        visible={option.screen === 'PRESSETS' && !transitioning}
+                      >
+                        {preset.name.length > 70
+                          ? `${preset.name.substring(0, 70)}...`
+                          : preset.name}
+                      </PresetTitle>
                       <ProfileImage preset={preset} />
                     </div>
                   )}
@@ -659,28 +594,24 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             <SwiperSlide key="new">
               {() => (
                 <div style={{ display: 'block' }}>
-                  <div
-                    className={classNames('title-swiper', { transitioning })}
-                  >
-                    <div className="presset-title-top">New</div>
-                  </div>
-                  <div className="presset-image">
-                    <div className="presset-icon">
-                      <svg
-                        width="204"
-                        height="204"
-                        viewBox="0 0 204 204"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          clipRule="evenodd"
-                          d="M104.745 99.2547V32H99.2551V99.2547H32V104.745H99.2551V172H104.745V104.745H172V99.2547H104.745Z"
-                          fill="white"
-                        />
-                      </svg>
-                    </div>
+                  <PresetTitle size="default" visible={true}>
+                    New
+                  </PresetTitle>
+                  <div className="presset-icon">
+                    <svg
+                      width="204"
+                      height="204"
+                      viewBox="0 0 204 204"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M104.745 99.2547V32H99.2551V99.2547H32V104.745H99.2551V172H104.745V104.745H172V99.2547H104.745Z"
+                        fill="white"
+                      />
+                    </svg>
                   </div>
                 </div>
               )}
