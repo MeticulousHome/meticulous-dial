@@ -6,7 +6,7 @@ import {
   setBubbleDisplay,
   setScreen
 } from '../store/features/screens/screens-slice';
-import { useSocket } from '../store/SocketManager';
+import { useContinueBrewAction, useSocket } from '../store/SocketManager';
 
 import { useOSStatus } from '../../hooks/useDeviceOSStatus';
 import { routes } from '../../navigation/routes';
@@ -92,10 +92,32 @@ const defaultSettings: QuickSettingOption[] = [
   }
 ];
 
+const inBrewSettings: QuickSettingOption[] = [
+  {
+    key: 'skip_step',
+    label: 'Skip this step'
+  },
+  {
+    key: 'abort_brew',
+    label: 'Abort Brew',
+    longpress: true,
+    hasSeparator: true
+  },
+  {
+    key: 'config',
+    label: 'config'
+  },
+  {
+    key: 'exit',
+    label: 'exit'
+  }
+];
+
 type holdAnimationState = 'stopped' | 'running' | 'finished';
 
 export function QuickSettings(): JSX.Element {
   const socket = useSocket();
+  const skipStep = useContinueBrewAction();
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
 
@@ -152,6 +174,12 @@ export function QuickSettings(): JSX.Element {
         deletePresetMutation.mutate(localProfile?.id);
         dispatch(setScreen('profileHome'));
         dispatch(setBubbleDisplay({ visible: false, component: null }));
+        break;
+      }
+      case 'abort_brew': {
+        socket.emit('action', 'home');
+        dispatch(setBubbleDisplay({ visible: false, component: null }));
+        break;
       }
     }
   };
@@ -274,6 +302,14 @@ export function QuickSettings(): JSX.Element {
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
+
+          // In Brew Settings
+          case 'skip_step': {
+            skipStep();
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
+          // abort_brew is a longpress option
         }
       }
     },
@@ -310,6 +346,11 @@ export function QuickSettings(): JSX.Element {
             : []),
           ...defaultSettings
         ]);
+        break;
+      case 'heating':
+      case 'brewComplete':
+      case 'barometer':
+        setSettings(inBrewSettings);
         break;
       default:
         setSettings([
