@@ -16,6 +16,7 @@ import {
 import { formatTime } from '../../utils';
 import { BUBBLES_WIDTH, LottieBubbleAnimation } from './LottieBubbleAnimation';
 import { notificationSelector } from '../store/features/notifications/notification-slice';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
 
 const PushToStartLabel = styled.div`
   font-size: 20px;
@@ -60,7 +61,7 @@ export const HeatingScreen = () => {
   const hasNotifications = useAppSelector(
     notificationSelector.selectHasNotifications
   );
-
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   // The stages dont necessarily correctly report the temperature target
   // so we need to cache it with the state below
   const temperatureTargetStatus = useAppSelector(
@@ -120,6 +121,21 @@ export const HeatingScreen = () => {
     transition: `transform ${transitionDuration / 1000}s`
   };
 
+  useHandleGestures(
+    {
+      pressDown() {
+        console.log('HeatingScreen::pressDown');
+      },
+      left() {
+        console.log('HeatingScreen::left');
+      },
+      right() {
+        console.log('HeatingScreen::right');
+      }
+    },
+    bubbleDisplay.visible
+  );
+
   return (
     <ModularScreen>
       <ModularLeft style={transitionStyle}>
@@ -129,20 +145,21 @@ export const HeatingScreen = () => {
         />
       </ModularLeft>
       <ModularRight style={transitionStyle}>
-        {/* <CSSTransition
+        <CSSTransition
           in={!heatingFinished}
           unmountOnExit
           timeout={transitionDuration}
           classNames="fade-options"
         >
-          <ModularRightOptions
+          {/* <ModularRightOptions
             options={OPTIONS}
             value={globalSettings?.auto_start_shot ? 'auto' : 'manual'}
             onValueChange={(value) => {
               updateSettings.mutate({ auto_start_shot: value === 'auto' });
             }}
-          />
-        </CSSTransition> */}
+            shouldIgnoreGesture={bubbleDisplay.visible}
+          /> */}
+        </CSSTransition>
         <div
           style={{
             display: 'flex',

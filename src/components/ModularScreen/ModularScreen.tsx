@@ -52,11 +52,13 @@ export function ModularRightOptions<
 >({
   options,
   value,
-  onValueChange
+  onValueChange,
+  shouldIgnoreGesture
 }: {
   options: T;
   value: T[number]['id'];
   onValueChange: (value: T[number]['id']) => void;
+  shouldIgnoreGesture?: boolean;
 }) {
   const handleTurn = (delta: -1 | 1) => {
     const currentIndex = options.findIndex(({ id }) => id === value);
@@ -65,14 +67,17 @@ export function ModularRightOptions<
       onValueChange(options[newIndex].id);
     }
   };
-  useHandleGestures({
-    left: () => {
-      handleTurn(-1);
+  useHandleGestures(
+    {
+      left: () => {
+        handleTurn(-1);
+      },
+      right: () => {
+        handleTurn(1);
+      }
     },
-    right: () => {
-      handleTurn(1);
-    }
-  });
+    shouldIgnoreGesture
+  );
 
   return (
     <div className="modular-options">
