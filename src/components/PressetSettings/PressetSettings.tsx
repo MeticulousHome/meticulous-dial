@@ -123,6 +123,7 @@ export function PressetSettings(): JSX.Element {
 
   const activeSetting = settings[presets.activeSetting];
 
+  useDimScreen();
   useHandleGestures(
     {
       left() {
