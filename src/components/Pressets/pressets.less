@@ -62,8 +62,8 @@
 }
 
 .swiper-horizontal .presset-icon svg {
-  height: 166px;
-  width: 166px;
+  height: 178px;
+  width: 178px;
   max-width: 100%;
   max-height: 100%;
 }
@@ -111,67 +111,6 @@
 .preset-wrapper .swiper-horizontal .swiper-slide-next,
 .preset-wrapper .swiper-horizontal .swiper-slide-active {
   transition: opacity 0.4s ease;
-}
-
-.title-swiper {
-  position: absolute;
-  z-index: 10;
-  top: -68px;
-  width: 100%;
-  height: 60px;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.presset-title-top {
-  font-size: 30px !important;
-  font-weight: 400;
-  color: #e0dcd0;
-  letter-spacing: -0.025em;
-  text-align: center;
-  text-overflow: ellipsis;
-  padding-left: 5px;
-  padding-right: 5px;
-  white-space: nowrap;
-}
-
-.pressets-title-active {
-  margin-left: -150px;
-  margin-right: -150px;
-}
-
-.presset-title-small {
-  font-size: 20px !important;
-}
-
-.presset-title-very-small {
-  font-size: 17px !important;
-}
-
-.presset-title-temp {
-  color: #e74d4d;
-}
-
-.title-swiper .small-title {
-  font-size: 16px;
-}
-
-.title-swiper.transitioning::before,
-.title-swiper.transitioning {
-  opacity: 0;
-}
-
-.title-swiper:before {
-  position: absolute;
-  content: '';
-  display: block;
-  left: 0;
-  right: 0;
-  top: 80px;
-  /* height: 50px; */
-  background-color: black;
 }
 
 .preset-wrapper .navigation-title {
@@ -332,153 +271,6 @@
   top: 353px;
 }
 
-@keyframes moveTitleTop {
-  0% {
-    top: 106px;
-    opacity: 1;
-    font-size: 30px;
-    z-index: 99;
-    opacity: 0;
-    border: none;
-    text-transform: capitalize;
-  }
-  40% {
-    opacity: 0.5;
-  }
-  100% {
-    z-index: 99;
-    opacity: 0;
-    top: 50px;
-    font-size: 30px;
-    border: none;
-    text-transform: capitalize;
-  }
-}
-
-.animation-move-title-top {
-  animation: moveTitleTop 200ms linear forwards;
-}
-
-@keyframes moveTitleTopTwo {
-  0% {
-    top: 110px;
-    font-size: 30px;
-    z-index: 99;
-    border: none;
-    text-transform: capitalize;
-  }
-  100% {
-    top: 63px;
-    font-size: 20px;
-    z-index: 99;
-    border: 1px solid #5d5d5d;
-    text-transform: capitalize;
-  }
-}
-
-.animation-move-title-top-two {
-  animation: moveTitleTopTwo 280ms forwards;
-}
-
-@keyframes moveTitleBottom {
-  0% {
-    top: 50px;
-    font-size: 30px;
-    z-index: 99;
-    opacity: 0;
-    border: none;
-    text-transform: capitalize;
-    text-overflow: initial;
-  }
-  50% {
-    opacity: 0;
-  }
-  70% {
-    top: 109px;
-    opacity: 0;
-  }
-  80% {
-    top: 108px;
-    opacity: 0;
-  }
-  90% {
-    top: 107px;
-    opacity: 0;
-  }
-  100% {
-    top: 106px;
-    opacity: 1;
-    font-size: 30px;
-    z-index: 99;
-    opacity: 0;
-    border: none;
-    text-transform: capitalize;
-  }
-}
-
-.title-bottom {
-  top: 110px;
-  opacity: 1;
-  font-size: 30px;
-  z-index: 99;
-  opacity: 0;
-  border: none;
-  text-transform: capitalize;
-}
-
-.animation-move-title-bottom {
-  animation: moveTitleBottom 280 forwards;
-}
-
-.title-opacity-zero {
-  opacity: 0;
-}
-
-.fade-in-title() {
-  0% {
-    opacity: 0;
-  }
-  70% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes titleOpacityOne {
-  .fade-in-title();
-  .spring-interpolate-keyframes(translate-y, -52px, 0px);
-}
-
-.animation-title-opacity-one {
-  animation: titleOpacityOne 280ms forwards;
-}
-
-.fade-out-title() {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.1;
-  }
-  60% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes titleOpacityZero {
-  .fade-out-title();
-  .spring-interpolate-keyframes(translate-y, 0px, -52px);
-}
-
-.animation-title-opacity-zero {
-  animation: titleOpacityZero 280ms forwards;
-}
-
 .swiper-pagination {
   position: absolute !important;
   top: 352px !important;
@@ -509,28 +301,6 @@ span.swiper-pagination-bullet-active {
 
 .swiper-slide > div {
   transform: translateY(2px);
-}
-
-.pressets-title {
-  height: 22px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-@keyframes pressets-title-content-bottom {
-  .spring-interpolate-keyframes(translate-y, -22px, 0);
-}
-
-@keyframes pressets-title-content-top {
-  .spring-interpolate-keyframes(translate-y, 0, -22px);
-}
-
-.animation-pressets-content-top {
-  animation: pressets-title-content-top 280ms forwards;
-}
-
-.animation-pressets-content-bottom {
-  animation: pressets-title-content-bottom 280ms forwards;
 }
 
 @keyframes presset-selected-decrese {
