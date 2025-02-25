@@ -9,6 +9,7 @@ import { DigitalClock } from './DigitalClock';
 import { BaristaClock } from './BaristaClock';
 import { DVDIdleScreen } from './DVD';
 import { useSettings } from '../../hooks/useSettings';
+import { routes } from '../../navigation/routes';
 
 export function IdleScreen(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -25,8 +26,10 @@ export function IdleScreen(): JSX.Element {
   }, []);
   useEffect(() => {
     if (shouldGoToIdle || prevScreen === 'idle') return;
-
-    dispatch(setScreen(prevScreen || 'pressets'));
+    if (!prevScreen || routes[prevScreen].ignoreAsPrevious) {
+      dispatch(setScreen('pressets'));
+    }
+    dispatch(setScreen(prevScreen));
     setBrightness({ brightness: 1 });
   }, [shouldGoToIdle]);
 
