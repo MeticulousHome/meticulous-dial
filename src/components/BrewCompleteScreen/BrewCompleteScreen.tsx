@@ -14,7 +14,7 @@ import { useEffect } from 'react';
 import { PurgePiston } from '../PurgePiston/PurgePiston';
 import { notificationSelector } from '../store/features/notifications/notification-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { useSocket } from '../store/SocketManager';
+import { useContinueBrewAction } from '../store/SocketManager';
 
 const WeightContainer = styled.div`
   display: flex;
@@ -62,7 +62,7 @@ const PurgeEmbedding = styled.div`
 
 export const BrewCompleteScreen = () => {
   const dispatch = useAppDispatch();
-  const socket = useSocket();
+  const continueBrew = useContinueBrewAction();
   const statsName = useAppSelector((state) => state.stats.name);
   const brewTime = useAppSelector((state) => state.stats.time);
   const lastBrewWeight = useAppSelector((state) => state.stats.sensors.w);
@@ -85,6 +85,17 @@ export const BrewCompleteScreen = () => {
     }
   }, [statsName]);
 
+  useHandleGestures(
+    {
+      pressDown() {
+        if (statsName === 'click to purge') {
+          continueBrew();
+        }
+      }
+    },
+    bubbleDisplay.visible
+  );
+
   const stateLabel =
     statsName === 'click to purge'
       ? 'Push to purge'
@@ -96,7 +107,7 @@ export const BrewCompleteScreen = () => {
     {
       pressDown() {
         if (!isPurging) {
-          socket.emit('action', 'continue');
+          continueBrew();
           console.log('action,continue');
         }
       }
