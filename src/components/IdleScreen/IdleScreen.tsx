@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 
-import { setBrightness } from '../../api/api';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -9,6 +8,7 @@ import { DigitalClock } from './DigitalClock';
 import { BaristaClock } from './BaristaClock';
 import { DVDIdleScreen } from './DVD';
 import { useSettings } from '../../hooks/useSettings';
+import { updateBrightness } from '../../hooks/useDimScreen';
 import { routes } from '../../navigation/routes';
 
 export function IdleScreen(): JSX.Element {
@@ -18,12 +18,13 @@ export function IdleScreen(): JSX.Element {
   const { data: globalSettings } = useSettings();
 
   useEffect(() => {
-    setBrightness({ brightness: 0 });
+    updateBrightness({ brightness: 0 });
 
     return () => {
-      setBrightness({ brightness: 1 });
+      updateBrightness({ brightness: 1 });
     };
   }, []);
+
   useEffect(() => {
     if (shouldGoToIdle || prevScreen === 'idle') return;
     if (!prevScreen || routes[prevScreen].ignoreAsPrevious) {
