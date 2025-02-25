@@ -21,6 +21,11 @@ const initialSettings: SettingsItem[] = [
     getLabel: (settings) => settings.usb_mode
   },
   {
+    key: 'ssh_enabled',
+    label: 'SSH',
+    getLabel: (settings) => (settings.ssh_enabled ? 'ENABLED' : 'DISABLED')
+  },
+  {
     key: 'master_calibration',
     label: 'ACAIA master calibration',
     visible: true
@@ -29,7 +34,7 @@ const initialSettings: SettingsItem[] = [
     key: 'save_debug_shot_data',
     label: 'Save debug shot data',
     getLabel: (settings) =>
-      `${settings.save_debug_shot_data ? 'ENABLED' : 'DISABLED'}`,
+      settings.save_debug_shot_data ? 'ENABLED' : 'DISABLED',
     visible: true
   },
   {
@@ -99,6 +104,11 @@ export const AdvancedSettings = () => {
             );
             break;
           }
+          case 'ssh':
+            updateSettings.mutate({
+              ssh_enabled: !globalSettings.ssh_enabled
+            });
+            break;
           case 'save_debug_shot_data':
             updateSettings.mutate({
               save_debug_shot_data: !globalSettings.save_debug_shot_data
