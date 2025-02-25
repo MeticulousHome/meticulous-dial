@@ -19,7 +19,6 @@ import './pressets.less';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import {
   cleanupInternalProfile,
-  resetActiveSetting,
   setActiveIndexSwiper,
   setNextPreset,
   setOptionPressets,
@@ -459,12 +458,6 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
           rotateLeft();
         } else {
           rotateRight();
-        }
-      },
-      longEncoder() {
-        if (option.screen === 'HOME') {
-          dispatch(resetActiveSetting());
-          dispatch(setScreen('pressetSettings'));
         }
       }
     },
