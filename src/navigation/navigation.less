@@ -53,6 +53,8 @@
 @zoom-in-scale: 0.3;
 @navigation-title-font-size: 16px;
 @navigation-title-top: 60px;
+@navigation-title-width: 230px;
+@navigation-title-left-right: ((480px-@navigation-title-width)/2);
 @navigation-title-parent-font-size: 16px;
 @navigation-title-parent-top: 60px;
 @navigation-title-shared-top: 60px;
@@ -141,7 +143,7 @@
   font-size: @navigation-title-parent-font-size;
   font-style: normal;
   font-family: 'ABC Diatype Mono';
-  font-weight: 200;
+  font-weight: 300;
   letter-spacing: 0.2em;
   line-height: 22px;
   white-space: nowrap;
@@ -194,8 +196,8 @@
 .navigation-title.shared.enter.in {
   position: absolute;
   top: @navigation-title-top;
-  left: 155px;
-  right: 155px;
+  left: @navigation-title-left-right;
+  right: @navigation-title-left-right;
   text-align: center;
   font-size: @navigation-title-font-size;
   z-index: 10;
@@ -207,14 +209,14 @@
   text-align: center;
   text-transform: uppercase;
   font-family: 'ABC Diatype Mono';
-  font-weight: 200;
+  font-weight: 300;
   letter-spacing: 0.2em;
 }
 
 .navigation-title.shared {
   font-size: @navigation-title-parent-font-size;
   font-style: normal;
-  font-weight: 200;
+  font-weight: 300;
   top: @navigation-title-shared-top;
   letter-spacing: 0.2em;
   max-width: 45%;

@@ -13,7 +13,7 @@ import { EnterWifiPassword } from '../components/Wifi/EnterWifiPassword';
 import { WifiDetails } from '../components/Wifi/WifiDetails';
 import { RootState } from '../components/store/store';
 import { Notification } from '../components/Notification/Notification';
-import { getTitlePressets } from '../components/Pressets/TitlePressets';
+import { getProfileTitle } from '../components/Pressets/ProfileTitle';
 import { ConnectWifiViaApp } from '../components/Wifi/ConnetWifiViaApp';
 import { OSStatus } from '../components/OSStatus/OSStatus';
 import { QuickSettings } from '../../src/components/QuickSettings/QuickSettings';
@@ -121,7 +121,7 @@ export const routes: Record<ScreenType, Route> = {
   },
   pressets: {
     component: Pressets,
-    parentTitle: getTitlePressets,
+    parentTitle: getProfileTitle,
     title: null
   },
   barometer: {
