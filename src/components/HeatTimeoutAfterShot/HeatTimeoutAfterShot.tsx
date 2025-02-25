@@ -9,6 +9,8 @@ import {
 } from '../store/features/screens/screens-slice';
 import { AppDispatch } from '../store/store';
 
+import { useDimScreen } from '../../hooks/useDimScreen';
+
 const MAX_TIMEOUT = 10; // 60 minutes
 const INTERVAL = 1; // 1 minute intervals
 
@@ -20,6 +22,8 @@ export const HeatTimeoutAfterShot: React.FC = () => {
   const [localHeatingTimeout, setLocalHeatingTimeout] = useState(
     globalSettings.heating_timeout
   );
+
+  useDimScreen();
 
   useHandleGestures({
     left() {
