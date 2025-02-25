@@ -18,7 +18,7 @@ import { BUBBLES_WIDTH, LottieBubbleAnimation } from './LottieBubbleAnimation';
 import { notificationSelector } from '../store/features/notifications/notification-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { OptionsMenu } from './OptionsMenu';
-import { useSocket } from '../store/SocketManager';
+import { useContinueBrewAction } from '../store/SocketManager';
 
 const PushToStartLabel = styled.div`
   font-size: 20px;
@@ -45,6 +45,8 @@ const transitionDuration = 600;
 
 export const HeatingScreen = () => {
   const dispatch = useAppDispatch();
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const continueBrew = useContinueBrewAction();
   const waterStatus = useAppSelector((state) => state.stats.waterStatus);
   const temperature =
     useAppSelector((state) => Math.round(state.stats.sensors.t)) || 0;
@@ -53,7 +55,6 @@ export const HeatingScreen = () => {
   );
   const [autostart, setAutostart] = useState(false);
 
-  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   // The stages dont necessarily correctly report the temperature target
   // so we need to cache it with the state below
   const temperatureTargetStatus = useAppSelector(
@@ -93,7 +94,6 @@ export const HeatingScreen = () => {
 
   const statsName = useAppSelector((state) => state.stats.name);
   const heatingFinished = statsName === 'click to start';
-  const socket = useSocket();
 
   useEffect(() => {
     if (statsName === 'idle' && !hasNotifications) {
@@ -111,7 +111,7 @@ export const HeatingScreen = () => {
 
     // At this point heating has finished and we can descide if we want to auto-start
     if (autostart) {
-      socket.emit('action', 'continue');
+      continueBrew();
       console.log('action,continue');
     }
   }, [heatingFinished, autostart]);
@@ -143,7 +143,7 @@ export const HeatingScreen = () => {
     {
       pressDown() {
         if (heatingFinished && !autostart) {
-          socket.emit('action', 'continue');
+          continueBrew();
           console.log('action,continue');
         }
       }

@@ -10,6 +10,13 @@ export const useSocket = () => {
   return useContext(SocketContext);
 };
 
+export const useContinueBrewAction = () => {
+  const socket = useSocket();
+  return () => {
+    socket.emit('action', 'continue');
+  };
+};
+
 export const SocketManager = ({
   children
 }: {
