@@ -14,7 +14,7 @@ function formatTime() {
   const pm = localeString.includes('PM') && 'PM';
   const midday = am || pm;
   return {
-    hours: midday ? time.getHours() % 12 : time.getHours(),
+    hours: midday ? ((time.getHours() + 11) % 12) + 1 : time.getHours(),
     minutes: time.getMinutes(),
     seconds: time.getSeconds(),
     midday: midday
