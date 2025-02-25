@@ -59,6 +59,7 @@ interface Route {
   bottomTitle?: string;
   props?: object;
   animationDirectionFrom?: Partial<Record<ScreenType, 'in' | 'out'>>;
+  ignoreAsPrevious?: boolean;
 }
 
 const selectActivePresetName = (state: RootState) =>
@@ -110,7 +111,8 @@ export const routes: Record<ScreenType, Route> = {
   },
   ready: {
     component: ReadyAnimation,
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    ignoreAsPrevious: true
   },
   settings: {
     component: Settings,
@@ -246,7 +248,8 @@ export const routes: Record<ScreenType, Route> = {
   },
   notifications: {
     component: Notification,
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    ignoreAsPrevious: true
   },
   wifiSettings: {
     component: WifiSettings,
@@ -337,7 +340,8 @@ export const routes: Record<ScreenType, Route> = {
   },
   idle: {
     component: IdleScreen,
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    ignoreAsPrevious: true
   },
   usbSettings: {
     component: USBSettings,
@@ -350,7 +354,8 @@ export const routes: Record<ScreenType, Route> = {
   preheatScreen: {
     component: PreheatScreen,
     title: 'pre-heat',
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    ignoreAsPrevious: true
   },
   scrollDirections: {
     component: ScrollDirectionSettings,

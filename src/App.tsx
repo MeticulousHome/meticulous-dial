@@ -17,6 +17,7 @@ import { IdleTimerProvider } from './hooks/useIdleTimer';
 import { setBrightness } from './api/api';
 import { Scale } from './components/Scale/Scale';
 import { VisibilityProvider } from './navigation/VisibilityContext';
+import { routes } from './navigation/routes';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,7 +62,12 @@ const App = (): JSX.Element => {
     }
 
     if (notifications.length === 0 && screen.value === 'notifications') {
-      dispatch(setScreen(screen.prev));
+      // Dont return to the idle screen
+      if (!screen.prev || routes[screen.prev].ignoreAsPrevious) {
+        dispatch(setScreen('pressets'));
+      } else {
+        dispatch(setScreen(screen.prev));
+      }
     }
   }, [notifications]);
 
