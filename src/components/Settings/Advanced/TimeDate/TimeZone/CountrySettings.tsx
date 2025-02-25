@@ -7,6 +7,7 @@ import { setScreen } from '../../../../store/features/screens/screens-slice';
 import { setCountry } from '../../../../store/features/settings/settings-slice';
 import { getTimezoneRegion } from '../../../../../api/api';
 import { Regions } from '@meticulous-home/espresso-api';
+import { useDimScreen } from '../../../../../hooks/useDimScreen';
 
 export default function CountrySettings() {
   const [swiper, setSwiper] = useState(null);
@@ -21,6 +22,8 @@ export default function CountrySettings() {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
 
   const dispatch = useAppDispatch();
+
+  useDimScreen();
 
   useEffect(() => {
     if (swiper) swiper.slideTo(activeIndex);

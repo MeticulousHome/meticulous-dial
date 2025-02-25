@@ -10,6 +10,7 @@ import { Option, TextContainer, Title } from './Timezone.styled';
 import { getTimezoneRegion, setTimezone } from '../../../../../api/api';
 import { styled } from 'styled-components';
 import { Regions } from '@meticulous-home/espresso-api';
+import { useDimScreen } from '../../../../../hooks/useDimScreen';
 
 const TimeZone = styled.span<{ isactive?: boolean }>`
   color: #f3f4f6;
@@ -28,6 +29,8 @@ export default function TimeZoneSettings() {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
 
   const dispatch = useAppDispatch();
+
+  useDimScreen();
 
   useEffect(() => {
     if (swiper) swiper.slideTo(activeIndex);
