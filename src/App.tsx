@@ -77,7 +77,7 @@ const App = (): JSX.Element => {
     const scheduleHide = () =>
       setTimeout(() => {
         setScaleState((state) => ({ ...state, visible: false }));
-      }, 1500);
+      }, 10000);
     let timer = scheduleHide();
 
     let lastSignificantWeight = store.getState().stats.sensors.w;
@@ -100,10 +100,8 @@ const App = (): JSX.Element => {
     {
       // TODO: Ideally we'd get tare up/down events so we can zoom in full the scale gradually
       singleTare() {
-        setScaleState(({ visible, size }) => ({
-          // this builds a tristate via the old values
-          // tap -> small -> tap -> full -> tap -> dismiss
-          visible: visible && size === 'full' ? false : true,
+        setScaleState(({ visible }) => ({
+          visible: true,
           size: visible ? 'full' : 'small'
         }));
       },
@@ -114,9 +112,9 @@ const App = (): JSX.Element => {
         }));
       },
       doubleTare() {
-        setScaleState(({ visible, size }) => ({
-          visible: !visible || size === 'small',
-          size: 'full'
+        setScaleState(({ size }) => ({
+          visible: false,
+          size
         }));
       },
       context() {
