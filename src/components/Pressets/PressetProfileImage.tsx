@@ -13,6 +13,7 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { IPresetImage, IPresetSetting } from '../../types';
 import { useDispatch } from 'react-redux';
 import { updatePresetSetting } from '../store/features/preset/preset-slice';
+import { useDimScreen } from '../../hooks/useDimScreen';
 import { api } from '../../api/api';
 
 const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
@@ -31,6 +32,7 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
   const presetSwiperRef = useRef<SwiperRef | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  useDimScreen();
   const updateSetting = (updatedText: string) => {
     const updatedSetting = {
       ...setting,

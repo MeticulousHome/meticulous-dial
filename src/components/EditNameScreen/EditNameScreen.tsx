@@ -7,7 +7,7 @@ import { useAppSelector } from '../store/hooks';
 import { updatePresetSetting } from '../store/features/preset/preset-slice';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { CircleKeyboard } from '../CircleKeyboard/CircleKeyboard';
-
+import { useDimScreen } from '../../hooks/useDimScreen';
 export function EditNameScreen(): JSX.Element {
   const { presets } = useAppSelector((state) => state);
   const setting = presets.updatingSettings.settings[
@@ -16,6 +16,8 @@ export function EditNameScreen(): JSX.Element {
   const originalName = presets.activePreset.name;
 
   const dispatch = useDispatch();
+
+  useDimScreen();
 
   const updateSetting = (updatedText: string) => {
     const updatedSetting = {

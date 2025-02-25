@@ -13,6 +13,7 @@ import { updatePresetSetting } from '../store/features/preset/preset-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { useAppSelector } from '../store/hooks';
+import { useDimScreen } from '../../hooks/useDimScreen';
 
 interface ISettingConfig {
   interval: number;
@@ -80,6 +81,8 @@ export function SettingNumerical({ type }: Props): JSX.Element {
   };
 
   const dispatch = useDispatch();
+
+  useDimScreen();
 
   const updateValue = (gesture: 'left' | 'right') => {
     if (
