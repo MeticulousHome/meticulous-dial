@@ -13,7 +13,11 @@ export type GestureType =
   | 'longTare'
   | 'longEncoder'
   | 'pressDown'
-  | 'pressUp';
+  | 'pressUp'
+  | 'tareDown'
+  | 'tareUp'
+  | 'contextDown'
+  | 'contextUp';
 
 export type IPresetSettings = string[];
 
