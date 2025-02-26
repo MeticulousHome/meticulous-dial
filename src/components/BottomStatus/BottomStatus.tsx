@@ -15,6 +15,8 @@ export const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
     (state) => state.stats.preheatTimeLeft
   );
 
+  const motorHot = useAppSelector((state) => state.settings.motorHot);
+
   return (
     <div
       className={classNames('bottom-status', {
@@ -55,6 +57,11 @@ export const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
             </div>
           )}
         </div>
+        {motorHot ? (
+          <div style={{ fontSize: '16px', color: '#f44336' }}>
+            Motor temperature too high
+          </div>
+        ) : null}
       </div>
     </div>
   );
