@@ -132,8 +132,6 @@ export const SocketProviderValue = () => {
       (data: { type: string; time_since_last_event: number }) => {
         resetIdleTimer();
 
-        console.log('Receive: button', data);
-
         const eventGestureMap: Record<string, GestureType> = {
           ENCODER_CLOCKWISE: 'right',
           ENCODER_COUNTERCLOCKWISE: 'left',
@@ -150,7 +148,6 @@ export const SocketProviderValue = () => {
 
         const gesture = eventGestureMap[data.type];
         if (gesture) {
-          console.log('gesture:', gesture);
           handleEvents.emit('gesture', gesture, data.time_since_last_event);
         }
       }
