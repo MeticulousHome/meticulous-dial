@@ -294,7 +294,7 @@ export function QuickSettings(): JSX.Element {
         }
       }
     },
-    !bubbleDisplay.visible || waitingForActionAlreadySent
+    !bubbleDisplay.visible
   );
 
   const requiresProfileContext: boolean =
