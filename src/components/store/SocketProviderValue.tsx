@@ -21,15 +21,16 @@ import {
 import { handleEvents } from '../../HandleEvents';
 import {
   addOneNotification,
+  removeOneNotification,
+  setMotorHot,
   NotificationItem,
-  removeOneNotification
+  processNotification
 } from './features/notifications/notification-slice';
 import { api } from '../../api/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { OS_UPDATE_STATUS } from '../../hooks/useDeviceOSStatus';
 import { OSStatusResponse } from '@meticulous-home/espresso-api';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
-import { setMotorHot } from './features/settings/settings-slice';
 
 const SERVER_URL: string = window.env?.SERVER_URL || 'http://localhost:8080';
 const socket: Socket | null = io(SERVER_URL);
@@ -37,11 +38,6 @@ const socket: Socket | null = io(SERVER_URL);
 const isBrewComplete = (state: string) => {
   return state === 'remove cup' || state === 'click to purge';
 };
-
-const MOTOR_HOT_KEY = 'motor_hot;';
-const MOTOR_COLD_KEY = 'motor_cold;';
-const cleanMessage = (message: string, key: string | null): string =>
-  key ? message.replace(key, '').trim() : message;
 
 export const SocketProviderValue = () => {
   const dispatch = useAppDispatch();
@@ -58,22 +54,10 @@ export const SocketProviderValue = () => {
 
       const oNotification: NotificationItem = JSON.parse(notification);
 
-      console.log('Receive: notification', oNotification);
-      const keys = [MOTOR_HOT_KEY, MOTOR_COLD_KEY];
-      const detectedKey =
-        keys.find((key) => oNotification.message.includes(key)) || null;
-      console.log('Clave detectada:', detectedKey);
+      const { updatedNotification, isMotorHot } =
+        processNotification(oNotification);
 
-      const updatedNotification: NotificationItem = {
-        ...oNotification,
-        message: cleanMessage(oNotification.message, detectedKey)
-      };
-
-      if (detectedKey === MOTOR_HOT_KEY) {
-        dispatch(setMotorHot(true));
-      } else if (detectedKey === MOTOR_COLD_KEY) {
-        dispatch(setMotorHot(false));
-      }
+      if (isMotorHot !== null) dispatch(setMotorHot(isMotorHot));
 
       if (!updatedNotification.message && !updatedNotification.image) {
         dispatch(removeOneNotification(updatedNotification.id));

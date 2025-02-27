@@ -3,6 +3,7 @@ import classNames from 'classnames';
 import { formatStatValue, hidden_ui_elements_enabled } from '../../utils';
 import { useSettings } from '../../hooks/useSettings';
 import { useAppSelector } from '../store/hooks';
+import { notificationSelector } from '../store/features/notifications/notification-slice';
 import './bottom-status.css';
 import Funnel from './Funnel';
 
@@ -15,7 +16,7 @@ export const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
     (state) => state.stats.preheatTimeLeft
   );
 
-  const motorHot = useAppSelector((state) => state.settings.motorHot);
+  const motorHot = useAppSelector(notificationSelector.selectMotorHot);
 
   return (
     <div
