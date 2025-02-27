@@ -6,24 +6,33 @@ import { memo } from 'react';
 
 const Weight = () => {
   const weight = useAppSelector((state) => state.stats.sensors.w || 0);
-  const formatted = weight.toFixed(1);
+  const scaleConnected = !isNaN(weight);
+  const formatted = scaleConnected ? weight.toFixed(1) : '';
   const padded = formatted.padStart(5, '0');
 
   return (
     <div className="scale-weight">
-      <span className="weight">
-        {padded.split('').map((char, i) => (
-          <span
-            key={i}
-            className={
-              i < padded.length - formatted.length ? 'dimmed' : undefined
-            }
-          >
-            {char}
+      {scaleConnected ? (
+        <div>
+          <span className="weight">
+            {padded.split('').map((char, i) => (
+              <span
+                key={i}
+                className={
+                  i < padded.length - formatted.length ? 'dimmed' : undefined
+                }
+              >
+                {char}
+              </span>
+            ))}
           </span>
-        ))}
-      </span>
-      <div className="weight-unit">g</div>
+          <div className="weight-unit">g</div>
+        </div>
+      ) : (
+        <div style={{ fontSize: '30px', color: '#f44336' }}>
+          Scale not connected
+        </div>
+      )}
     </div>
   );
 };
