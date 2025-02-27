@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
-import { Pagination as PaginationSwiper } from 'swiper/modules';
+import {
+  Pagination as PaginationSwiper,
+  EffectCoverflow
+} from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 
@@ -100,7 +103,7 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
           modifier: 1.0,
           slideShadows: false
         }}
-        slidesPerView={2}
+        slidesPerView={8}
         spaceBetween={20}
         initialSlide={activeIndex}
         centeredSlides={true}
@@ -110,7 +113,7 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
           clearSlides(e);
           handlePresetSlideChange(e);
         }}
-        modules={[PaginationSwiper]}
+        modules={[PaginationSwiper, EffectCoverflow]}
         pagination={{
           type: 'fraction'
         }}
