@@ -63,3 +63,35 @@ export async function setTime(dateTime: Date): Promise<Settings> {
     }
   }
 }
+
+export async function getRootPassword(): Promise<string> {
+  try {
+    const response = await api.getRootPassword();
+    const data = response.data;
+
+    if (data && 'error' in data) {
+      throw new Error((data as APIError).error);
+    }
+
+    if (data && 'status' in data && 'root_password' in data) {
+      if (data.status === 'success' && data.root_password) {
+        return data.root_password;
+      }
+    }
+
+    throw new Error('Invalid response format');
+  } catch (error) {
+    if (error.response) {
+      console.error('Error getting root password: ', error.response.data);
+      throw new Error(
+        error.response.data?.message || 'Error getting root password.'
+      );
+    } else {
+      console.error(
+        'Network error while getting root password: ',
+        error.message
+      );
+      throw new Error('Network error while getting root password.');
+    }
+  }
+}

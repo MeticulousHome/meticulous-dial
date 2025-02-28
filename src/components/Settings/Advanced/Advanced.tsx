@@ -14,6 +14,8 @@ import Styled, {
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
 import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSetting';
 
+import { useRootPassword } from '../../../hooks/useSettings';
+
 const initialSettings: SettingsItem[] = [
   {
     key: 'usb_mode',
@@ -51,6 +53,11 @@ const initialSettings: SettingsItem[] = [
     visible: true
   },
   {
+    key: 'root_password',
+    label: 'Root Password',
+    visible: true
+  },
+  {
     key: 'back',
     label: 'Back',
     visible: true
@@ -64,6 +71,7 @@ export const AdvancedSettings = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { refetch: fetchDeviceStatus } = useDeviceInfo();
+  const { data: rootPW } = useRootPassword();
 
   const updatedSettings = useMemo(() => {
     if (!isSuccess) {
@@ -71,13 +79,21 @@ export const AdvancedSettings = () => {
         ...item
       }));
     }
-    return initialSettings.map((item) => ({
-      ...item,
-      label: item.getLabel
-        ? `${item.label}: ${item.getLabel(globalSettings)}`
-        : item.label
-    }));
-  }, [globalSettings, isSuccess]);
+    return initialSettings.map((item) => {
+      if (item.key === 'root_password') {
+        return {
+          ...item,
+          label: `${item.label}: ${rootPW || 'Loading...'}`
+        };
+      }
+      return {
+        ...item,
+        label: item.getLabel
+          ? `${item.label}: ${item.getLabel(globalSettings)}`
+          : item.label
+      };
+    });
+  }, [globalSettings, isSuccess, rootPW]);
 
   useHandleGestures(
     {
@@ -104,7 +120,7 @@ export const AdvancedSettings = () => {
             );
             break;
           }
-          case 'ssh':
+          case 'ssh_enabled':
             updateSettings.mutate({
               ssh_enabled: !globalSettings.ssh_enabled
             });
