@@ -50,6 +50,13 @@ const Label = styled.div`
   text-transform: uppercase;
 `;
 
+const PurgeEmbedding = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100%;
+  right: -20px;
+`;
+
 export const BrewCompleteScreen = () => {
   const dispatch = useAppDispatch();
 
@@ -80,7 +87,13 @@ export const BrewCompleteScreen = () => {
   return (
     <ModularScreen>
       <ModularLeft>
-        {isPurging ? <PurgePiston /> : <RemoveCupAnimation />}
+        {isPurging ? (
+          <PurgeEmbedding>
+            <PurgePiston />
+          </PurgeEmbedding>
+        ) : (
+          <RemoveCupAnimation />
+        )}
       </ModularLeft>
       <ModularRight>
         <WeightContainer>
