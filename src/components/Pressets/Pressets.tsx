@@ -409,7 +409,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   useEffect(() => {
     const index = presets.activeIndexSwiper;
     presetSwiperRef.current?.swiper.slideTo(index);
-  }, [presets.activeIndexSwiper]);
+  }, [presets.activeIndexSwiper, presetSwiperRef.current]);
 
   useEffect(() => {
     if (pressetSwiper) {
@@ -478,10 +478,10 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
 
     setOption((prev) => ({ ...prev, animating: false }));
     const myIndex = presets.value.findIndex((e) => e.id === profileHoverId);
-    presetSwiperRef.current.swiper.slideTo(myIndex);
+    presetSwiperRef.current?.swiper.slideTo(myIndex);
     dispatch(setActiveIndexSwiper(myIndex));
     setOption({ screen: 'PRESSETS', animating: false });
-  }, [profileHoverId]);
+  }, [profileHoverId, presetSwiperRef.current]);
 
   useEffect(() => {
     if (profileFocusId === '' || profileFocusId === undefined) {
