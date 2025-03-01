@@ -7,25 +7,6 @@
   color: #686868;
 }
 
-.presset-option-value,
-.presset-option-unit {
-  color: #f5c444;
-  visibility: hidden;
-}
-
-.presset-option-unit {
-  font-size: 17px;
-  position: absolute;
-  top: -7px;
-}
-
-.presset-option-value.active,
-.presset-option-unit.active {
-  visibility: visible;
-  font-family: 'ABC Diatype Mono';
-  letter-spacing: -0.5px;
-}
-
 .presset-option-value.defaultProfileActive {
   color: black !important;
   visibility: visible;
