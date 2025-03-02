@@ -1,6 +1,6 @@
 import { Freeze } from 'react-freeze';
 import { ScreenType } from '../components/store/features/screens/screens-slice';
-import BottomStatus from '../components/BottomStatus';
+import { BottomStatus } from '../components/BottomStatus/BottomStatus';
 import { Transitioner } from './Transitioner';
 import { memo, useEffect } from 'react';
 import { useAppSelector } from '../components/store/hooks';

@@ -4,10 +4,12 @@ import { formatStatValue } from '../../utils';
 import { useAppSelector } from '../store/hooks';
 import './bottom-status.css';
 import Funnel from './Funnel';
+import { itsAprilYet } from '../../App';
 
-const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
+export const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
   const stats = useAppSelector((state) => state.stats);
   const scaleConnected = !isNaN(stats.sensors.w);
+
   const PreheatTimeLeft = useAppSelector(
     (state) => state.stats.preheatTimeLeft
   );
@@ -34,6 +36,7 @@ const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
             </div>
           )}
         </div>
+
         <div className="bottom-item">
           {scaleConnected ? (
             <div className="status-value">
@@ -45,10 +48,13 @@ const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
               Scale not connected
             </div>
           )}
+          {itsAprilYet() && (
+            <div style={{ fontSize: '24px', color: '#FFFFFF' }}>
+              Refill magenta
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
-
-export default BottomStatus;
