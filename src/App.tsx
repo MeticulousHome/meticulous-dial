@@ -19,6 +19,11 @@ import { Scale } from './components/Scale/Scale';
 import { VisibilityProvider } from './navigation/VisibilityContext';
 import { routes } from './navigation/routes';
 
+export const itsAprilYet = () => {
+  const today = new Date();
+  return today.getDate() === 1 && today.getMonth() === 3;
+};
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -158,6 +163,22 @@ const App = (): JSX.Element => {
               <Scale {...scaleState} />
             </SocketManager>
           </IdleTimerProvider>
+          {itsAprilYet() && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundColor: '#FF00FF',
+                pointerEvents: 'none',
+                mixBlendMode: 'color',
+                filter: 'hue-rotate(180deg) saturate(200%)',
+                zIndex: 9999
+              }}
+            />
+          )}
         </div>
       </div>
     </QueryClientProvider>
