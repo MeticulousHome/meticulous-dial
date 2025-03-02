@@ -54,8 +54,9 @@ const initialSettings: SettingsItem[] = [
   },
   {
     key: 'root_password',
-    label: 'Root Password',
-    visible: true
+    label: 'ROOT PASSWORD',
+    visible: true,
+    caseSensitive: true
   },
   {
     key: 'back',
@@ -192,7 +193,11 @@ export const AdvancedSettings = () => {
         <Styled.OptionsContainer $translateY={optionPositionOutter}>
           {updatedSettings.map((option) => (
             <Styled.Option key={option.key}>
-              <span>{option.label}</span>
+              <span
+                style={option.caseSensitive ? { textTransform: 'none' } : {}}
+              >
+                {option.label}
+              </span>{' '}
             </Styled.Option>
           ))}
         </Styled.OptionsContainer>
@@ -209,7 +214,11 @@ export const AdvancedSettings = () => {
                   option.label.length > MARQUEE_MIN_TEXT_LENGTH
                 }
               >
-                <span>{option.label}</span>
+                <span
+                  style={option.caseSensitive ? { textTransform: 'none' } : {}}
+                >
+                  {option.label}
+                </span>
               </Styled.Option>
             ))}
           </Styled.OptionsContainer>

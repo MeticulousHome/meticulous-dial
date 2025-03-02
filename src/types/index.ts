@@ -163,6 +163,7 @@ export type SettingsItem = {
   shortLabel?: string;
   visible?: boolean;
   hasSeparator?: boolean;
+  caseSensitive?: boolean;
 };
 
 export enum YesNoEnum {
