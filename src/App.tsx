@@ -19,11 +19,6 @@ import { Scale } from './components/Scale/Scale';
 import { VisibilityProvider } from './navigation/VisibilityContext';
 import { routes } from './navigation/routes';
 
-export const itsAprilYet = () => {
-  const today = new Date();
-  return today.getDate() === 1 && today.getMonth() === 3;
-};
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -148,38 +143,20 @@ const App = (): JSX.Element => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div>
-        <div className="meticulous-main-canvas">
-          {dev && <div className="main-circle-overlay" />}
-          <IdleTimerProvider>
-            <SocketManager>
-              {/* Mark router as not visible when scale is overlaid to avoid gesture handlers firing */}
-              <VisibilityProvider value={!scaleState.visible}>
-                <Router
-                  currentScreen={screen.value}
-                  previousScreen={screen.prev}
-                />
-              </VisibilityProvider>
-              <Scale {...scaleState} />
-            </SocketManager>
-          </IdleTimerProvider>
-          {itsAprilYet() && (
-            <div
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                backgroundColor: '#FF00FF',
-                pointerEvents: 'none',
-                mixBlendMode: 'color',
-                filter: 'hue-rotate(180deg) saturate(200%)',
-                zIndex: 9999
-              }}
-            />
-          )}
-        </div>
+      <div className="meticulous-main-canvas">
+        {dev && <div className="main-circle-overlay" />}
+        <IdleTimerProvider>
+          <SocketManager>
+            {/* Mark router as not visible when scale is overlaid to avoid gesture handlers firing */}
+            <VisibilityProvider value={!scaleState.visible}>
+              <Router
+                currentScreen={screen.value}
+                previousScreen={screen.prev}
+              />
+            </VisibilityProvider>
+            <Scale {...scaleState} />
+          </SocketManager>
+        </IdleTimerProvider>
       </div>
     </QueryClientProvider>
   );

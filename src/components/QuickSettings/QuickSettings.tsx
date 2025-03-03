@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useSettings, useUpdateSettings } from '../../hooks/useSettings';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   setBubbleDisplay,
@@ -22,7 +23,7 @@ import Styled, {
   MenuAnnotation
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
-import { formatTime } from '../../utils';
+import { formatTime, hidden_ui_elements_enabled } from '../../utils';
 
 export type QuickSettingOption = {
   key: string;
@@ -53,6 +54,12 @@ const profileContextSettings: QuickSettingOption[] = [
 const prevScreenSetting: QuickSettingOption = {
   key: 'prevScreen',
   label: 'Back',
+  hasSeparator: true
+};
+
+const disable_ui_features: QuickSettingOption = {
+  key: 'disable_ui_features',
+  label: 'Magenta was refilled',
   hasSeparator: true
 };
 
@@ -101,6 +108,9 @@ export function QuickSettings(): JSX.Element {
   const waitingForActionAlreadySent = useAppSelector(
     (state) => state.stats.waitingForActionAlreadySent
   );
+  const { data: globalSettings } = useSettings();
+  const updateSettings = useUpdateSettings();
+
   const preheatTimeLeft = useAppSelector(
     (state) => state.stats.preheatTimeLeft
   );
@@ -215,6 +225,13 @@ export function QuickSettings(): JSX.Element {
             );
             break;
           }
+          case 'disable_ui_features': {
+            updateSettings.mutate({
+              disable_ui_features: true
+            });
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
           case 'edit': {
             dispatch(resetActiveSetting());
             dispatch(setScreen('pressetSettings'));
@@ -300,6 +317,9 @@ export function QuickSettings(): JSX.Element {
           ...(osStatusSettingOption ? [osStatusSettingOption] : []),
           ...[{ key: 'details', label: 'Show details' }],
           ...(backAvailable ? [prevScreenSetting] : []),
+          ...(hidden_ui_elements_enabled(globalSettings)
+            ? [disable_ui_features]
+            : []),
           ...defaultSettings
         ]);
         break;
@@ -308,6 +328,9 @@ export function QuickSettings(): JSX.Element {
           ...(osStatusSettingOption ? [osStatusSettingOption] : []),
           ...(requiresProfileContext === true ? context : []),
           ...(backAvailable ? [prevScreenSetting] : []),
+          ...(hidden_ui_elements_enabled(globalSettings)
+            ? [disable_ui_features]
+            : []),
           ...defaultSettings
         ]);
         break;

@@ -1,13 +1,14 @@
 import React from 'react';
 import classNames from 'classnames';
-import { formatStatValue } from '../../utils';
+import { formatStatValue, hidden_ui_elements_enabled } from '../../utils';
+import { useSettings } from '../../hooks/useSettings';
 import { useAppSelector } from '../store/hooks';
 import './bottom-status.css';
 import Funnel from './Funnel';
-import { itsAprilYet } from '../../App';
 
 export const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
   const stats = useAppSelector((state) => state.stats);
+  const { data: globalSettings } = useSettings();
   const scaleConnected = !isNaN(stats.sensors.w);
 
   const PreheatTimeLeft = useAppSelector(
@@ -48,7 +49,7 @@ export const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
               Scale not connected
             </div>
           )}
-          {itsAprilYet() && (
+          {hidden_ui_elements_enabled(globalSettings) && (
             <div style={{ fontSize: '24px', color: '#FFFFFF' }}>
               Refill magenta
             </div>
