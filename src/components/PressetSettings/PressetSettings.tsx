@@ -15,6 +15,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { css, keyframes, styled } from 'styled-components';
 import { api } from '../../api/api';
 import { IPresetNumericalUnit } from '../../types';
+import { useDimScreen } from '../../hooks/useDimScreen';
 
 const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
 
