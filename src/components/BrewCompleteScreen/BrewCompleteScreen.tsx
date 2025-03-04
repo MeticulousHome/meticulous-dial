@@ -12,6 +12,7 @@ import { RemoveCupAnimation } from './RemoveCupAnimation';
 import { formatTime } from '../../utils';
 import { useEffect } from 'react';
 import { PurgePiston } from '../PurgePiston/PurgePiston';
+import { notificationSelector } from '../store/features/notifications/notification-slice';
 
 const WeightContainer = styled.div`
   display: flex;
@@ -63,6 +64,9 @@ export const BrewCompleteScreen = () => {
   const statsName = useAppSelector((state) => state.stats.name);
   const brewTime = useAppSelector((state) => state.stats.time);
   const lastBrewWeight = useAppSelector((state) => state.stats.sensors.w);
+  const hasNotifications = useAppSelector(
+    notificationSelector.selectHasNotifications
+  );
 
   const weight =
     Math.abs(lastBrewWeight) < 1000
@@ -72,7 +76,7 @@ export const BrewCompleteScreen = () => {
   const isPurging = statsName === 'purge';
 
   useEffect(() => {
-    if (statsName === 'idle') {
+    if (statsName === 'idle' && !hasNotifications) {
       dispatch(setScreen('pressets'));
     }
   }, [statsName]);

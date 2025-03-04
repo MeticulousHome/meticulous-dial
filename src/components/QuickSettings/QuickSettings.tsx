@@ -112,9 +112,7 @@ export function QuickSettings(): JSX.Element {
     ...allDefaultProfiles.default,
     ...allDefaultProfiles.community
   ];
-  const waitingForActionAlreadySent = useAppSelector(
-    (state) => state.stats.waitingForActionAlreadySent
-  );
+
   const { data: globalSettings } = useSettings();
   const updateSettings = useUpdateSettings();
 

@@ -15,6 +15,7 @@ import {
 } from '../ModularScreen/ModularScreen';
 import { formatTime } from '../../utils';
 import { BUBBLES_WIDTH, LottieBubbleAnimation } from './LottieBubbleAnimation';
+import { notificationSelector } from '../store/features/notifications/notification-slice';
 
 const PushToStartLabel = styled.div`
   font-size: 20px;
@@ -55,6 +56,9 @@ export const HeatingScreen = () => {
   const waterStatus = useAppSelector((state) => state.stats.waterStatus);
   const temperature = useAppSelector((state) =>
     Math.round(state.stats.sensors.t)
+  );
+  const hasNotifications = useAppSelector(
+    notificationSelector.selectHasNotifications
   );
 
   // The stages dont necessarily correctly report the temperature target
@@ -97,7 +101,7 @@ export const HeatingScreen = () => {
   // const updateSettings = useUpdateSettings();
 
   useEffect(() => {
-    if (statsName === 'idle') {
+    if (statsName === 'idle' && !hasNotifications) {
       dispatch(setScreen('pressets'));
     }
   }, [statsName]);
