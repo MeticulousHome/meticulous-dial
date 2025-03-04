@@ -41,6 +41,8 @@
 
 .notification-message.scrollable {
   justify-content: flex-start;
+  padding-top: 20px;
+  padding-bottom: 40px;
   mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
 }
@@ -52,6 +54,7 @@
   margin: 0;
   hyphens: auto;
   word-break: break-word;
+  white-space: pre-line;
 }
 
 .notification-image-container {

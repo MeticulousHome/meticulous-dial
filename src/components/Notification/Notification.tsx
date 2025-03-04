@@ -16,7 +16,7 @@ export function Notification(): JSX.Element {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const messageRef = useRef<HTMLDivElement>(null);
   const notifications = useSelector(notificationSelector.selectAll);
-  const [currentNotification] = notifications;
+  const [currentNotification] = notifications.slice(-1);
   const [isScrollable, setIsScrollable] = useState(false);
   const [selectedOption, setSelectedOption] = useState(0);
   const [canSelectOption, setCanSelectOption] = useState(false);
