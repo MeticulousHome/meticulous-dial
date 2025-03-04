@@ -184,8 +184,6 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
                                 : ''
                             }`}
                           >
-                            {index > allDefaultProfiles.default.length - 1 &&
-                              'Community: '}
                             {preset.name}
                           </span>
                           <span className="default-profile-container__content__info__text">
