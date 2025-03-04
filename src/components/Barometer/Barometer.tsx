@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { Meter } from './Meter';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
+import { notificationSelector } from '../store/features/notifications/notification-slice';
 
 export interface IBarometerProps {
   maxValue?: number;
@@ -13,9 +14,16 @@ export interface IBarometerProps {
 export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
   const stats = useAppSelector((state) => state.stats);
   const dispatch = useAppDispatch();
+  const hasNotifications = useAppSelector(
+    notificationSelector.selectHasNotifications
+  );
 
   useEffect(() => {
-    if (stats.name === 'idle' && !stats.waitingForActionAlreadySent) {
+    if (
+      stats.name === 'idle' &&
+      !stats.waitingForActionAlreadySent &&
+      !hasNotifications
+    ) {
       dispatch(setScreen('pressets'));
     }
   }, [stats.name, stats.waitingForActionAlreadySent]);

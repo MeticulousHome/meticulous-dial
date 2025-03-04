@@ -86,7 +86,11 @@ export const notificationSelector = {
   ...notificationAdapter.getSelectors<RootState>(
     (state) => state.notifications
   ),
-  selectMotorHot: (state: RootState) => state.notifications.motorHot
+  selectMotorHot: (state: RootState) => state.notifications.motorHot,
+  selectHasNotifications: (state: RootState) =>
+    notificationAdapter
+      .getSelectors<RootState>((s) => s.notifications)
+      .selectTotal(state) > 0
 };
 
 export default notificationSlice.reducer;
