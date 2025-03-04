@@ -134,8 +134,10 @@ const Option = styled.div<{
   $isAnimating?: boolean;
   $isMarquee?: boolean;
   $isMultiItem?: boolean;
+  $caseSensitive?: boolean;
 }>`
-  text-transform: uppercase;
+  text-transform: ${({ $caseSensitive }) =>
+    $caseSensitive ? 'none' : 'uppercase'};
   border-radius: 4px;
   font-size: 22px;
   text-align: left;

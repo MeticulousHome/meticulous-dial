@@ -3,7 +3,11 @@ import { startMasterCalibration } from '../../../api/api';
 
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { SettingsItem } from '../../../types';
-import { useSettings, useUpdateSettings } from '../../../hooks/useSettings';
+import {
+  useSettings,
+  useUpdateSettings,
+  useRootPassword
+} from '../../../hooks/useSettings';
 import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useDeviceInfo } from '../../../hooks/useDeviceOSStatus';
@@ -21,6 +25,11 @@ const initialSettings: SettingsItem[] = [
     getLabel: (settings) => settings.usb_mode
   },
   {
+    key: 'ssh_enabled',
+    label: 'SSH',
+    getLabel: (settings) => (settings.ssh_enabled ? 'ENABLED' : 'DISABLED')
+  },
+  {
     key: 'master_calibration',
     label: 'ACAIA master calibration',
     visible: true
@@ -29,7 +38,7 @@ const initialSettings: SettingsItem[] = [
     key: 'save_debug_shot_data',
     label: 'Save debug shot data',
     getLabel: (settings) =>
-      `${settings.save_debug_shot_data ? 'ENABLED' : 'DISABLED'}`,
+      settings.save_debug_shot_data ? 'ENABLED' : 'DISABLED',
     visible: true
   },
   {
@@ -46,6 +55,12 @@ const initialSettings: SettingsItem[] = [
     visible: true
   },
   {
+    key: 'root_password',
+    label: 'ROOT PASSWORD',
+    visible: true,
+    caseSensitive: true
+  },
+  {
     key: 'back',
     label: 'Back',
     visible: true
@@ -59,6 +74,7 @@ export const AdvancedSettings = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { refetch: fetchDeviceStatus } = useDeviceInfo();
+  const { data: rootPW } = useRootPassword();
 
   const updatedSettings = useMemo(() => {
     if (!isSuccess) {
@@ -68,11 +84,14 @@ export const AdvancedSettings = () => {
     }
     return initialSettings.map((item) => ({
       ...item,
-      label: item.getLabel
-        ? `${item.label}: ${item.getLabel(globalSettings)}`
-        : item.label
+      label:
+        item.key === 'root_password'
+          ? `${item.label}: ${rootPW || 'Loading...'}`
+          : item.getLabel
+            ? `${item.label}: ${item.getLabel(globalSettings)}`
+            : item.label
     }));
-  }, [globalSettings, isSuccess]);
+  }, [globalSettings, isSuccess, rootPW]);
 
   useHandleGestures(
     {
@@ -99,6 +118,11 @@ export const AdvancedSettings = () => {
             );
             break;
           }
+          case 'ssh_enabled':
+            updateSettings.mutate({
+              ssh_enabled: !globalSettings.ssh_enabled
+            });
+            break;
           case 'save_debug_shot_data':
             updateSettings.mutate({
               save_debug_shot_data: !globalSettings.save_debug_shot_data
@@ -165,7 +189,10 @@ export const AdvancedSettings = () => {
       <Styled.Viewport>
         <Styled.OptionsContainer $translateY={optionPositionOutter}>
           {updatedSettings.map((option) => (
-            <Styled.Option key={option.key}>
+            <Styled.Option
+              key={option.key}
+              $caseSensitive={option.caseSensitive}
+            >
               <span>{option.label}</span>
             </Styled.Option>
           ))}
@@ -182,6 +209,7 @@ export const AdvancedSettings = () => {
                   activeIndex === index &&
                   option.label.length > MARQUEE_MIN_TEXT_LENGTH
                 }
+                $caseSensitive={option.caseSensitive}
               >
                 <span>{option.label}</span>
               </Styled.Option>

@@ -1,8 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { getSettings, setTime, updateSettings } from '../api/settings';
+import {
+  getSettings,
+  setTime,
+  updateSettings,
+  getRootPassword
+} from '../api/settings';
 
 const USER_SETTINGS_QUERY_KEY = 'user-settings';
+const ROOT_PASSWORD_QUERY_KEY = 'root-password';
 
 // Hook to fetch user Settings
 export const useSettings = () => {
@@ -37,5 +43,14 @@ export const useSetTime = () => {
     onError: (error) => {
       console.error('Error updating User Settings:', error);
     }
+  });
+};
+
+// Hook to get the root password
+export const useRootPassword = () => {
+  return useQuery({
+    queryKey: [ROOT_PASSWORD_QUERY_KEY],
+    queryFn: getRootPassword,
+    staleTime: 60000 // La contraseña no cambia con frecuencia
   });
 };
