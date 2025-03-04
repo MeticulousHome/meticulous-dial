@@ -5,6 +5,7 @@ import {
 } from '../components/store/features/preset/preset-slice';
 import { useAppDispatch, useAppSelector } from '../components/store/hooks';
 import { api } from '../api/api';
+import { loadNotifications } from '../components/store/features/notifications/notification-slice';
 
 const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
 
@@ -24,6 +25,7 @@ export function useFetchData(onReady?: () => void) {
   useEffect(() => {
     dispatch(getPresets({}));
     dispatch(loadDefaultProfiles());
+    dispatch(loadNotifications());
   }, []);
 
   useEffect(() => {

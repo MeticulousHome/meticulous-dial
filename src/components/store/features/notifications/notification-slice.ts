@@ -1,9 +1,12 @@
 import {
   createEntityAdapter,
   createSlice,
-  PayloadAction
+  PayloadAction,
+  createAsyncThunk
 } from '@reduxjs/toolkit';
 import { RootState } from '../../store';
+import { api } from '../../../../api/api';
+import { APIError } from '@meticulous-home/espresso-api/dist';
 
 type ResponseOption = 'Update' | 'Auto Update' | 'Skip';
 
@@ -17,6 +20,23 @@ export interface NotificationItem {
   responses: ResponseOption[];
   timestamp: Date;
 }
+
+export const loadNotifications = createAsyncThunk(
+  'notificationData/loadNotifications',
+  async () => {
+    const notifications = (await api.getNotifications(false)).data;
+
+    if ((notifications as APIError)?.error) {
+      throw new Error((notifications as APIError).error);
+    }
+
+    if (notifications == undefined) {
+      throw new Error('No notifications found');
+    }
+
+    return notifications as unknown as NotificationItem[];
+  }
+);
 
 const notificationAdapter = createEntityAdapter({
   selectId: (notification: NotificationItem) => notification.id
@@ -72,9 +92,13 @@ const notificationSlice = createSlice({
     setMotorHot: (state, action: PayloadAction<boolean>) => {
       state.motorHot = action.payload;
     }
+  },
+  extraReducers: (builder) => {
+    builder.addCase(loadNotifications.fulfilled, (state, action) => {
+      notificationAdapter.setAll(state, action.payload);
+    });
   }
 });
-
 export const {
   addOneNotification,
   removeOneNotification,
