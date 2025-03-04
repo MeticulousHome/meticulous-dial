@@ -31,7 +31,6 @@ export function IdleScreen(): JSX.Element {
       dispatch(setScreen('pressets'));
     }
     dispatch(setScreen(prevScreen));
-    setBrightness({ brightness: 1 });
   }, [shouldGoToIdle]);
 
   switch (globalSettings?.idle_screen) {
