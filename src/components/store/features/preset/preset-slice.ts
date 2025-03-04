@@ -29,6 +29,7 @@ import {
   getProfileDefaultImages
 } from '../../../../api/profile';
 import { addVariablesToSettings } from '../../../../utils/preset';
+import { DefaultProfiles } from '@meticulous-home/espresso-api/dist';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -61,7 +62,7 @@ export function cleanupInternalProfile(profile: ProfileValue) {
 export interface PresetsState extends PresetSettingInterface {
   value: Array<ProfileValue>;
   defaultProfilesInfo: {
-    defaultProfiles: Array<Profile>;
+    defaultProfiles: DefaultProfiles;
     defaultProfileSelected?: Profile;
     defaultProfileActiveIndexSwiper: number;
     status: 'ready' | 'pending' | 'failed';
@@ -78,24 +79,29 @@ export interface PresetsState extends PresetSettingInterface {
 export const loadDefaultProfiles = createAsyncThunk(
   'presetData/loadDefaultProfiles',
   async (_, { rejectWithValue }) => {
-    let profiles = await getDefaultProfiles();
+    const profiles = await getDefaultProfiles();
 
-    if (profiles.length === 0) return rejectWithValue(null);
+    if (profiles.default.length === 0) return rejectWithValue(null);
 
-    const missingImage = profiles.some((profile) => !profile.display.image);
+    const images = await getProfileDefaultImages();
 
-    if (missingImage) {
-      const images = await getProfileDefaultImages();
+    profiles.default = profiles.default.map((profile, index) => ({
+      ...profile,
+      display: {
+        ...profile.display,
+        image: profile.display.image ?? images[index % images.length]
+      }
+    }));
 
-      profiles = profiles.map((profile, index) => ({
-        ...profile,
-        display: {
-          ...profile.display,
-          image: profile.display.image ?? images[index]
-        }
-      }));
-    }
-
+    profiles.community = profiles.community.map((profile, index) => ({
+      ...profile,
+      display: {
+        ...profile.display,
+        image:
+          profile.display.image ??
+          images[(profiles.default.length + index) % images.length]
+      }
+    }));
     return profiles;
   }
 );
@@ -454,7 +460,7 @@ const initialState: PresetsState = {
   // default profiles
   defaultProfilesInfo: {
     defaultProfileActiveIndexSwiper: 0,
-    defaultProfiles: [],
+    defaultProfiles: { default: [], community: [] },
     status: 'pending',
     defaultProfileSelected: null
   },
@@ -491,7 +497,8 @@ const presetSlice = createSlice({
     setNextDefaultProfileOption: (state) => {
       state.defaultProfilesInfo.defaultProfileActiveIndexSwiper = Math.min(
         state.defaultProfilesInfo.defaultProfileActiveIndexSwiper + 1,
-        state.defaultProfilesInfo.defaultProfiles.length
+        state.defaultProfilesInfo.defaultProfiles.default.length +
+          state.defaultProfilesInfo.defaultProfiles.community.length
       );
     },
     setPrevDefaultProfileOption: (state) => {

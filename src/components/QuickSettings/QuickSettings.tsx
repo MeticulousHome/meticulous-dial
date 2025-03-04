@@ -103,8 +103,15 @@ export function QuickSettings(): JSX.Element {
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const {
-    defaultProfilesInfo: { defaultProfileActiveIndexSwiper, defaultProfiles }
+    defaultProfilesInfo: {
+      defaultProfileActiveIndexSwiper,
+      defaultProfiles: allDefaultProfiles
+    }
   } = useAppSelector((state) => state.presets);
+  const defaultProfiles = [
+    ...allDefaultProfiles.default,
+    ...allDefaultProfiles.community
+  ];
   const waitingForActionAlreadySent = useAppSelector(
     (state) => state.stats.waitingForActionAlreadySent
   );

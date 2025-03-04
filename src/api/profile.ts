@@ -1,14 +1,18 @@
-import { APIError, LastProfileIdent } from '@meticulous-home/espresso-api';
+import {
+  APIError,
+  DefaultProfiles,
+  LastProfileIdent
+} from '@meticulous-home/espresso-api';
 import { Profile } from '@meticulous-home/espresso-profile';
 import { api } from './api';
 
-export const getDefaultProfiles = async (): Promise<Profile[]> => {
+export const getDefaultProfiles = async (): Promise<DefaultProfiles> => {
   try {
     const { data } = await api.getDefaultProfiles();
-    return data as Profile[];
+    return data as DefaultProfiles;
   } catch (error) {
     console.error('GetDefaultProfiles error: ', error.message);
-    return [];
+    return { default: [], community: [] };
   }
 };
 
