@@ -160,6 +160,20 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
                             marginLeft: '10px'
                           }}
                         >
+                          {index > allDefaultProfiles.default.length - 1 && (
+                            <span
+                              style={{
+                                fontSize: '15px'
+                              }}
+                              className={`default-profile-container__content__info__text ${
+                                activeIndex === index
+                                  ? 'default-profile-container__content__info__text--active'
+                                  : ''
+                              }`}
+                            >
+                              Community Profile:
+                            </span>
+                          )}
                           <span
                             style={{
                               fontSize: '20px'
