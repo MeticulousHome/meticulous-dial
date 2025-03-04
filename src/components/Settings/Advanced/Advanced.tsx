@@ -3,7 +3,11 @@ import { startMasterCalibration } from '../../../api/api';
 
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { SettingsItem } from '../../../types';
-import { useSettings, useUpdateSettings } from '../../../hooks/useSettings';
+import {
+  useSettings,
+  useUpdateSettings,
+  useRootPassword
+} from '../../../hooks/useSettings';
 import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useDeviceInfo } from '../../../hooks/useDeviceOSStatus';
@@ -13,8 +17,6 @@ import Styled, {
 } from '../../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
 import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSetting';
-
-import { useRootPassword } from '../../../hooks/useSettings';
 
 const initialSettings: SettingsItem[] = [
   {
@@ -80,20 +82,15 @@ export const AdvancedSettings = () => {
         ...item
       }));
     }
-    return initialSettings.map((item) => {
-      if (item.key === 'root_password') {
-        return {
-          ...item,
-          label: `${item.label}: ${rootPW || 'Loading...'}`
-        };
-      }
-      return {
-        ...item,
-        label: item.getLabel
-          ? `${item.label}: ${item.getLabel(globalSettings)}`
-          : item.label
-      };
-    });
+    return initialSettings.map((item) => ({
+      ...item,
+      label:
+        item.key === 'root_password'
+          ? `${item.label}: ${rootPW || 'Loading...'}`
+          : item.getLabel
+            ? `${item.label}: ${item.getLabel(globalSettings)}`
+            : item.label
+    }));
   }, [globalSettings, isSuccess, rootPW]);
 
   useHandleGestures(
@@ -192,12 +189,11 @@ export const AdvancedSettings = () => {
       <Styled.Viewport>
         <Styled.OptionsContainer $translateY={optionPositionOutter}>
           {updatedSettings.map((option) => (
-            <Styled.Option key={option.key}>
-              <span
-                style={option.caseSensitive ? { textTransform: 'none' } : {}}
-              >
-                {option.label}
-              </span>{' '}
+            <Styled.Option
+              key={option.key}
+              $caseSensitive={option.caseSensitive}
+            >
+              <span>{option.label}</span>
             </Styled.Option>
           ))}
         </Styled.OptionsContainer>
@@ -213,12 +209,9 @@ export const AdvancedSettings = () => {
                   activeIndex === index &&
                   option.label.length > MARQUEE_MIN_TEXT_LENGTH
                 }
+                $caseSensitive={option.caseSensitive}
               >
-                <span
-                  style={option.caseSensitive ? { textTransform: 'none' } : {}}
-                >
-                  {option.label}
-                </span>
+                <span>{option.label}</span>
               </Styled.Option>
             ))}
           </Styled.OptionsContainer>
