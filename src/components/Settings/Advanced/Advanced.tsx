@@ -42,6 +42,13 @@ const initialSettings: SettingsItem[] = [
     visible: true
   },
   {
+    key: 'telemetry_opt_in',
+    label: 'Share debug motor data',
+    getLabel: (settings) =>
+      settings.allow_debug_sending ? 'ENABLED' : 'DISABLED',
+    visible: true
+  },
+  {
     key: 'set_update_channel',
     label: 'Update channel',
     getLabel: (settings) => settings.update_channel,
@@ -126,6 +133,11 @@ export const AdvancedSettings = () => {
           case 'save_debug_shot_data':
             updateSettings.mutate({
               save_debug_shot_data: !globalSettings.save_debug_shot_data
+            });
+            break;
+          case 'telemetry_opt_in':
+            updateSettings.mutate({
+              allow_debug_sending: !globalSettings.allow_debug_sending
             });
             break;
           case 'set_update_channel':
