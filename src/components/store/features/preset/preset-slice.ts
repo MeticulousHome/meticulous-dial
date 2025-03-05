@@ -78,8 +78,10 @@ export interface PresetsState extends PresetSettingInterface {
 
 export const loadDefaultProfiles = createAsyncThunk(
   'presetData/loadDefaultProfiles',
-  async () => {
+  async (_, { rejectWithValue }) => {
     const profiles = await getDefaultProfiles();
+    if (!profiles || !profiles.default || profiles.default.length === 0)
+      return rejectWithValue(null);
 
     const images = await getProfileDefaultImages();
     profiles.default = profiles.default.map((profile, index) => ({

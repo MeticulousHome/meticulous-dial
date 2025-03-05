@@ -10,6 +10,7 @@ import { setScreen } from '../store/features/screens/screens-slice';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import {
   addPresetNewOne,
+  loadDefaultProfiles,
   resetDefaultProfileConfig,
   setNextDefaultProfileOption,
   setPrevDefaultProfileOption
@@ -40,7 +41,6 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
   const dispatch = useAppDispatch();
 
   const presetSwiperRef = useRef<SwiperRef | null>(null);
-  const titleSwiperRef = useRef<SwiperRef | null>(null);
 
   useDimScreen();
 
@@ -86,8 +86,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
   );
 
   useEffect(() => {
-    presetSwiperRef.current?.swiper.slideTo(activeIndex);
-    titleSwiperRef.current?.swiper.slideTo(activeIndex);
+    presetSwiperRef.current?.swiper?.slideTo(activeIndex);
   }, [activeIndex]);
 
   useEffect(() => {
@@ -98,10 +97,11 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
   }, [isLoading, defaultProfiles]);
 
   useEffect(() => {
+    dispatch(loadDefaultProfiles());
     dispatch(resetDefaultProfileConfig());
   }, []);
 
-  if (isLoading) {
+  if (isLoading && !defaultProfiles) {
     return <LoadingScreen />;
   }
 
