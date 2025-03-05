@@ -8,6 +8,7 @@ import LoadingAnimation from './LoadingAnimation.json';
 import ReadyAnimation1Data from './ReadyAnimation1.json';
 import ReadyAnimation2Data from './ReadyAnimation2.json';
 import { useFetchData } from '../../hooks/useFetchData';
+import { loadNotifications } from '../store/features/notifications/notification-slice';
 
 export function ReadyAnimation(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -18,6 +19,7 @@ export function ReadyAnimation(): JSX.Element {
   function handleReadyAnimation2Completed(): void {
     animation.current?.destroy();
     dispatch(setScreen('pressets'));
+    dispatch(loadNotifications());
   }
 
   function handleReadyAnimation1Completed(): void {
