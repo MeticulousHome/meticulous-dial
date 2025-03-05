@@ -11,7 +11,7 @@ import Styled, {
 } from '../../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
 
-const UPDATE_CHANNELS = ['stable', 'beta', 'rel', 'nightly'];
+const UPDATE_CHANNELS = ['stable', 'beta', 'nightly'];
 
 export const UpdateChannel = () => {
   const dispatch = useAppDispatch();
