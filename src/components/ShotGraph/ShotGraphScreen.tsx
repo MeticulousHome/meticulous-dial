@@ -91,7 +91,7 @@ type PathsType = Record<DataTypeKey, { path: string; maskPath: string }>;
 
 export const ShotGraphScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
-
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [paths, setPaths] = useState<PathsType>({
     flow: { path: '', maskPath: '' },
     pressure: { path: '', maskPath: '' },
@@ -132,16 +132,23 @@ export const ShotGraphScreen = () => {
     dispatch(setBubbleDisplay({ visible: false, component: null }));
   }, [shouldGoToIdle]);
 
-  useHandleGestures({
-    left() {
-      setSelectedPointIndex((prev) => Math.max(0, prev - gestureProgress));
+  useHandleGestures(
+    {
+      left() {
+        setSelectedPointIndex((prev) => Math.max(0, prev - gestureProgress));
+      },
+      right() {
+        setSelectedPointIndex((prev) =>
+          Math.min(prev + gestureProgress, displayShot?.data.length - 1)
+        );
+      },
+      doubleClick() {
+        dispatch(setBubbleDisplay({ visible: false, component: null }));
+        dispatch(setScreen('pressets'));
+      }
     },
-    right() {
-      setSelectedPointIndex((prev) =>
-        Math.min(prev + gestureProgress, displayShot?.data.length - 1)
-      );
-    }
-  });
+    bubbleDisplay.visible
+  );
 
   useEffect(() => {
     if (!displayShot) {
