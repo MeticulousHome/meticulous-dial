@@ -34,21 +34,18 @@ export default function Bubble() {
     memoizedRoutes[bubbleDisplay.component || prevComponentRef.current]
       ?.component;
 
-  useHandleGestures(
-    {
-      context() {
-        dispatch(
-          setBubbleDisplay({
-            visible: !bubbleDisplay.visible,
-            component: !bubbleDisplay.visible
-              ? 'quick-settings'
-              : bubbleDisplay.component
-          })
-        );
-      }
-    },
-    prevComponentRef.current !== null
-  );
+  useHandleGestures({
+    context() {
+      dispatch(
+        setBubbleDisplay({
+          visible: !bubbleDisplay.visible,
+          component: !bubbleDisplay.visible
+            ? 'quick-settings'
+            : bubbleDisplay.component
+        })
+      );
+    }
+  });
 
   if (!animationState.isVisible && !animationState.isAnimating) return null;
 
