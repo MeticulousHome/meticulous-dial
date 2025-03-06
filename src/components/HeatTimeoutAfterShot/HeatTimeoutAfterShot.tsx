@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { useSettings, useUpdateSettings } from '../..//hooks/useSettings';
 import { Gauge } from '../../components/SettingNumerical/Gauge';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
@@ -7,7 +6,7 @@ import {
   setBubbleDisplay,
   setScreen
 } from '../store/features/screens/screens-slice';
-import { AppDispatch } from '../store/store';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 
 import { useDimScreen } from '../../hooks/useDimScreen';
 
@@ -15,7 +14,8 @@ const MAX_TIMEOUT = 10; // 60 minutes
 const INTERVAL = 1; // 1 minute intervals
 
 export const HeatTimeoutAfterShot: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { data: globalSettings } = useSettings();
   const updateSettings = useUpdateSettings();
 
@@ -25,21 +25,26 @@ export const HeatTimeoutAfterShot: React.FC = () => {
 
   useDimScreen();
 
-  useHandleGestures({
-    left() {
-      const newValue = Math.max(localHeatingTimeout - INTERVAL, 0);
-      setLocalHeatingTimeout(newValue);
+  useHandleGestures(
+    {
+      left() {
+        const newValue = Math.max(localHeatingTimeout - INTERVAL, 0);
+        setLocalHeatingTimeout(newValue);
+      },
+      right() {
+        const newValue = Math.min(localHeatingTimeout + INTERVAL, MAX_TIMEOUT);
+        setLocalHeatingTimeout(newValue);
+      },
+      pressDown() {
+        updateSettings.mutate({ heating_timeout: localHeatingTimeout });
+        dispatch(setScreen('pressets'));
+        dispatch(
+          setBubbleDisplay({ visible: true, component: 'brewSettings' })
+        );
+      }
     },
-    right() {
-      const newValue = Math.min(localHeatingTimeout + INTERVAL, MAX_TIMEOUT);
-      setLocalHeatingTimeout(newValue);
-    },
-    pressDown() {
-      updateSettings.mutate({ heating_timeout: localHeatingTimeout });
-      dispatch(setScreen('pressets'));
-      dispatch(setBubbleDisplay({ visible: true, component: 'brewSettings' }));
-    }
-  });
+    bubbleDisplay.visible
+  );
 
   return (
     <div className="gauge-container">
