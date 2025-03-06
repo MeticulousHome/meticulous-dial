@@ -145,21 +145,21 @@ export const HeatingScreen = () => {
         />
       </ModularLeft>
       <ModularRight style={transitionStyle}>
-        <CSSTransition
+        {/* <CSSTransition
           in={!heatingFinished}
           unmountOnExit
           timeout={transitionDuration}
           classNames="fade-options"
         >
-          {/* <ModularRightOptions
+          <ModularRightOptions
             options={OPTIONS}
             value={globalSettings?.auto_start_shot ? 'auto' : 'manual'}
             onValueChange={(value) => {
               updateSettings.mutate({ auto_start_shot: value === 'auto' });
             }}
             shouldIgnoreGesture={bubbleDisplay.visible}
-          /> */}
-        </CSSTransition>
+          />
+        </CSSTransition> */}
         <div
           style={{
             display: 'flex',
