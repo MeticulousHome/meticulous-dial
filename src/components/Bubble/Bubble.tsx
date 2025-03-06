@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, createElement } from 'react';
 import { useHandleGestures } from '../../../src/hooks/useHandleGestures';
 import { memoizedRoutes } from '../../../src/utils';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
@@ -13,11 +13,11 @@ export default function Bubble() {
     isAnimating: false
   });
 
-  const componentRef = useRef(null);
+  const prevComponentRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (bubbleDisplay.component) componentRef.current = bubbleDisplay.component;
-  }, [bubbleDisplay.component]);
+  if (bubbleDisplay.component) {
+    prevComponentRef.current = bubbleDisplay.component;
+  }
 
   useEffect(() => {
     if (bubbleDisplay.visible)
@@ -30,22 +30,25 @@ export default function Bubble() {
       setAnimationState((prev) => ({ ...prev, isAnimating: true }));
   }, [bubbleDisplay.visible]);
 
-  const route = componentRef.current
-    ? memoizedRoutes[componentRef.current]
-    : null;
+  const ActiveComponent =
+    memoizedRoutes[bubbleDisplay.component || prevComponentRef.current]
+      ?.component;
 
-  useHandleGestures({
-    context() {
-      dispatch(
-        setBubbleDisplay({
-          visible: !bubbleDisplay.visible,
-          component: !bubbleDisplay.visible
-            ? 'quick-settings'
-            : bubbleDisplay.component
-        })
-      );
-    }
-  });
+  useHandleGestures(
+    {
+      context() {
+        dispatch(
+          setBubbleDisplay({
+            visible: !bubbleDisplay.visible,
+            component: !bubbleDisplay.visible
+              ? 'quick-settings'
+              : bubbleDisplay.component
+          })
+        );
+      }
+    },
+    prevComponentRef.current !== null
+  );
 
   if (!animationState.isVisible && !animationState.isAnimating) return null;
 
@@ -75,7 +78,9 @@ export default function Bubble() {
       } large`}
       onAnimationEnd={handleAnimationEnd}
     >
-      <div className="bubble-container">{route && <route.component />}</div>
+      <div className="bubble-container">
+        {ActiveComponent && createElement(ActiveComponent)}
+      </div>
     </div>
   );
 }
