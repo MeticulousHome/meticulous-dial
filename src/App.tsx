@@ -51,7 +51,7 @@ const App = (): JSX.Element => {
     setBrightness({ brightness: 1 });
   }, []);
 
-  const isIdle = useAppSelector((state) => state.stats?.name === 'idle');
+  const isExtracting = useAppSelector((state) => state.stats?.extracting);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const notifications = useSelector(notificationSelector.selectAll);
 
@@ -136,7 +136,7 @@ const App = (): JSX.Element => {
         );
       }
     },
-    !isIdle || bubbleDisplay.visible
+    isExtracting || bubbleDisplay.visible
   );
 
   const dev = !!window.env?.SHOW_CIRCLE_OVERLAY;
