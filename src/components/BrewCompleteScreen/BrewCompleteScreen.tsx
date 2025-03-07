@@ -68,10 +68,11 @@ export const BrewCompleteScreen = () => {
     notificationSelector.selectHasNotifications
   );
 
-  const weight =
-    Math.abs(lastBrewWeight) < 1000
+  const weight = !isNaN(lastBrewWeight)
+    ? Math.abs(lastBrewWeight) < 1000
       ? lastBrewWeight.toFixed(1)
-      : lastBrewWeight.toFixed(0);
+      : lastBrewWeight.toFixed(0)
+    : lastBrewWeight;
 
   const isPurging = statsName === 'purge';
 
