@@ -69,9 +69,9 @@ const initialValue: AnimationData = {
 };
 
 const PresetTitle = styled.div<{
-  size: 'default' | 'small' | 'very-small';
-  temp?: boolean;
-  visible: boolean;
+  $size: 'default' | 'small' | 'very-small';
+  $temp?: boolean;
+  $visible: boolean;
 }>`
   position: absolute;
   z-index: 10;
@@ -81,21 +81,21 @@ const PresetTitle = styled.div<{
   justify-content: center;
   align-items: center;
 
-  top: ${(props) => (props.visible ? '-68px' : '-80px')};
-  opacity: ${(props) => (props.visible ? '1' : '0')};
+  top: ${(props) => (props.$visible ? '-68px' : '-80px')};
+  opacity: ${(props) => (props.$visible ? '1' : '0')};
   transition:
     top 180ms linear,
     opacity 150ms ease;
 
   font-size: ${(props) =>
-    props.size === 'default'
+    props.$size === 'default'
       ? '30px'
-      : props.size === 'small'
+      : props.$size === 'small'
         ? '20px'
         : '17px'};
   font-weight: 400;
 
-  color: ${(props) => (props.temp ? '#e74d4d' : '#e0dcd0')};
+  color: ${(props) => (props.$temp ? '#e74d4d' : '#e0dcd0')};
   letter-spacing: -0.025em;
 
   white-space: nowrap;
@@ -572,15 +572,17 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
                   {() => (
                     <div>
                       <PresetTitle
-                        temp={preset.isTemporary}
-                        size={
+                        $temp={preset.isTemporary}
+                        $size={
                           preset.name.length > 40
                             ? 'very-small'
                             : preset.name.length > 30
                               ? 'small'
                               : 'default'
                         }
-                        visible={option.screen === 'PRESSETS' && !transitioning}
+                        $visible={
+                          option.screen === 'PRESSETS' && !transitioning
+                        }
                       >
                         {preset.name.length > 70
                           ? `${preset.name.substring(0, 70)}...`
@@ -594,7 +596,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
             <SwiperSlide key="new">
               {() => (
                 <div style={{ display: 'block' }}>
-                  <PresetTitle size="default" visible={true}>
+                  <PresetTitle $size="default" $visible={true}>
                     New
                   </PresetTitle>
                   <div className="presset-icon">
