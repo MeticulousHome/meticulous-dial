@@ -39,7 +39,7 @@ const unitSettingConfigMap: Record<NumericalSettingType, ISettingConfig> = {
     maxValue: 99
   },
   output: {
-    interval: 1,
+    interval: 0.5,
     unit: 'gram',
     maxValue: 100
   },
