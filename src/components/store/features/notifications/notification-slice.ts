@@ -86,7 +86,15 @@ const notificationSlice = createSlice({
   name: 'notifications',
   initialState,
   reducers: {
-    addOneNotification: notificationAdapter.upsertOne,
+    /*When the firmware is updated, two notifications are sent. 
+      It is literally impossible to click "Accept" on the first one because the mechanism responsible for gestures is not active.
+      When the second notification is displayed, the first one disappears but is not removed, leaving it lagging behind and keeping it in the notifications array.
+      To avoid that, before adding a new notification, we will clear any previous ones that may have been left behind.
+    */
+    addOneNotification: (state, action) => {
+      notificationAdapter.removeAll(state);
+      notificationAdapter.upsertOne(state, action.payload);
+    },
     removeOneNotification: notificationAdapter.removeOne,
     removeAllNotications: notificationAdapter.removeAll,
     setMotorHot: (state, action: PayloadAction<boolean>) => {
