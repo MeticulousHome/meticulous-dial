@@ -139,6 +139,12 @@ const App = (): JSX.Element => {
     isExtracting || bubbleDisplay.visible
   );
 
+  useEffect(() => {
+    if (isExtracting) {
+      setScaleState({ visible: false, size: 'small' });
+    }
+  }, [isExtracting]);
+
   const dev = !!window.env?.SHOW_CIRCLE_OVERLAY;
 
   return (
