@@ -6,8 +6,10 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { setBubbleDisplay } from '../../../store/features/screens/screens-slice';
 import '../../../OSStatus/OSStatus.css';
 
-import { SettingsItem } from '../../../../types';
+import type { SettingsItem, TimeDateValues } from '../../../../types';
+import type { Settings } from '@meticulous-home/espresso-api';
 import { useSettings } from '../../../../hooks/useSettings';
+import { useCurrentTime } from '../../../../hooks/useCurrentTime';
 
 import Styled, {
   VIEWPORT_HEIGHT,
@@ -19,17 +21,20 @@ const initialSettings: SettingsItem[] = [
   {
     key: 'time_zone',
     label: 'Set time zone',
-    getLabel: (settings) => `${settings.time_zone || 'Not set'}`
+    getLabel: (settings: Settings) => `${settings.time_zone || 'Not set'}`
   },
   {
     key: 'set_time',
     label: 'Set Time',
     visible: true,
+    getLabel: ({ hours, minutes }: TimeDateValues) => `${hours}:${minutes}`,
     value: false
   },
   {
     key: 'set_date',
     label: 'Set Date',
+    getLabel: ({ day, month, year }: TimeDateValues) =>
+      `${day}/${month}/${year}`,
     visible: true,
     value: false
   },
@@ -45,19 +50,26 @@ export function TimeDate(): JSX.Element {
   const [activeIndex, setActiveIndex] = useState(0);
   const { data: globalSettings, isSuccess } = useSettings();
 
+  const { hours, minutes, day, month, year } = useCurrentTime();
+
   const settings = useMemo(() => {
     if (!isSuccess) {
       return initialSettings.map((item) => ({
         ...item
       }));
     }
+
     return initialSettings.map((item) => ({
       ...item,
       label: item.getLabel
-        ? `${item.label}: ${item.getLabel(globalSettings)}`
+        ? `${item.label}: ${item.getLabel(
+            item.key === 'set_time' || item.key === 'set_date'
+              ? { hours, minutes, day, month, year }
+              : globalSettings
+          )}`
         : item.label
     }));
-  }, [globalSettings, isSuccess]);
+  }, [globalSettings, isSuccess, hours, minutes, day, month, year]);
 
   useHandleGestures(
     {

@@ -155,11 +155,19 @@ export interface PressetSettings {
   settings: Record<SettingsKeys, string | number>[];
 }
 
+export type TimeDateValues = {
+  hours: string;
+  minutes: string;
+  day: string;
+  month: string;
+  year: string;
+};
+
 export type SettingsItem = {
   value?: number | string | boolean;
   key: string;
   label?: string;
-  getLabel?: (settings: Settings) => string;
+  getLabel?: (values: Settings | TimeDateValues) => string;
   shortLabel?: string;
   visible?: boolean;
   hasSeparator?: boolean;
