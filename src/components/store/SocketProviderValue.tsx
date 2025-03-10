@@ -113,7 +113,7 @@ export const SocketProviderValue = () => {
         }
 
         // When the machine is not in idle, lock the screen at Barometer
-        if (data?.name !== 'idle') {
+        if (data?.name !== 'idle' && data?.name !== 'boot') {
           dispatch(setScreen('barometer'));
         }
       }
