@@ -14,18 +14,19 @@ import Styled, {
   MARQUEE_MIN_TEXT_LENGTH
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
+import type { Settings } from '@meticulous-home/espresso-api';
 
 const initialSettings: SettingsItem[] = [
   {
     key: 'home',
     label: 'Profiles',
-    getLabel: (settings) =>
+    getLabel: (settings: Settings) =>
       `${settings.reverse_scrolling.home ? 'Reversed' : 'Classic'}`
   },
   {
     key: 'keyboard',
     label: 'Keyboard',
-    getLabel: (settings) =>
+    getLabel: (settings: Settings) =>
       `${settings.reverse_scrolling.keyboard ? 'Reversed' : 'Classic'}`
   },
   {

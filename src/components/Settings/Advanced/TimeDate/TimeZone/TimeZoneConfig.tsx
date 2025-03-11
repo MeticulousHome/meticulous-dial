@@ -15,12 +15,13 @@ import Styled, {
   MARQUEE_MIN_TEXT_LENGTH
 } from '../../../../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../../../../styles/utils/calculateOptionPosition';
+import type { Settings } from '@meticulous-home/espresso-api';
 
 const initialSettings: SettingsItem[] = [
   {
     key: 'timezone_sync',
     label: 'Automatic',
-    getLabel: (settings) =>
+    getLabel: (settings: Settings) =>
       settings.timezone_sync === 'automatic' ? 'ENABLED' : 'DISABLED',
     visible: true
   },

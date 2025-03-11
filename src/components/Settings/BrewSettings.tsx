@@ -17,24 +17,25 @@ import Styled, {
   MARQUEE_MIN_TEXT_LENGTH
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
+import type { Settings } from '@meticulous-home/espresso-api';
 
 const initialSettings: SettingsItem[] = [
   {
     key: 'auto_start_shot',
     label: 'Start',
-    getLabel: (settings) =>
+    getLabel: (settings: Settings) =>
       `${settings.auto_start_shot ? 'Automatic' : 'On button press'}`
   },
   {
     key: 'auto_purge_after_shot',
     label: 'Purge',
-    getLabel: (settings) =>
+    getLabel: (settings: Settings) =>
       `${settings.auto_purge_after_shot ? 'Automatic' : 'On button press'}`
   },
   {
     key: 'heat_timeout_after_shot',
     label: 'Pre/Post-heat',
-    getLabel: (settings) => `${settings.heating_timeout} min`,
+    getLabel: (settings: Settings) => `${settings.heating_timeout} min`,
     visible: true
   },
   {
