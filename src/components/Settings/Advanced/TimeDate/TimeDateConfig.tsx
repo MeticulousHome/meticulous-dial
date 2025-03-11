@@ -34,7 +34,7 @@ const initialSettings: SettingsItem[] = [
     key: 'set_date',
     label: 'Set Date',
     getLabel: ({ day, month, year }: TimeDateValues) =>
-      `${day}/${month}/${year}`,
+      `${year}-${month}-${day}`,
     visible: true,
     value: false
   },
