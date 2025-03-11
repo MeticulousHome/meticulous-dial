@@ -14,6 +14,7 @@ import type { SettingsItem } from '../../types';
 
 import Styled, { VIEWPORT_HEIGHT } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
+import type { Settings } from '@meticulous-home/espresso-api';
 
 const initialSettings: SettingsItem[] = [
   {
@@ -29,7 +30,7 @@ const initialSettings: SettingsItem[] = [
   {
     key: 'enable_sounds',
     label: 'sounds',
-    getLabel: (settings) =>
+    getLabel: (settings: Settings) =>
       `${settings.enable_sounds ? 'ENABLED' : 'DISABLED'}`,
     visible: true
   },
