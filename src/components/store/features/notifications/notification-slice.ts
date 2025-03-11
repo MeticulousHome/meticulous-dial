@@ -10,8 +10,8 @@ import { APIError } from '@meticulous-home/espresso-api/dist';
 
 type ResponseOption = 'Update' | 'Auto Update' | 'Skip';
 
-export const MOTOR_HOT_KEY = 'motor_hot;';
-export const MOTOR_COLD_KEY = 'motor_cold;';
+export const MOTOR_HOT_KEY = 'motor_hot';
+export const MOTOR_COLD_KEY = 'motor_cold';
 
 export interface NotificationItem {
   id: string;
