@@ -78,12 +78,11 @@ const App = (): JSX.Element => {
 
   const isQuickScaleVisible = scaleState.visible && scaleState.size === 'small';
   useEffect(() => {
-    if (!isQuickScaleVisible) return;
-
+    const hide_timer = isQuickScaleVisible ? 10000 : 2 * 60 * 1000;
     const scheduleHide = () =>
       setTimeout(() => {
         setScaleState((state) => ({ ...state, visible: false }));
-      }, 10000);
+      }, hide_timer);
     let timer = scheduleHide();
 
     let lastSignificantWeight = store.getState().stats.sensors.w;
