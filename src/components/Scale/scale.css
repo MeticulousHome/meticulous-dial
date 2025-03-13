@@ -73,7 +73,7 @@
 
 .scale-weight .weight-unit {
   position: absolute;
+  top: 60px;
   left: 100%;
-  margin-left: 5px;
-  font-size: 64px;
+  font-size: 50px;
 }
