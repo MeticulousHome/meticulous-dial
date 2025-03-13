@@ -106,7 +106,7 @@ const App = (): JSX.Element => {
       // TODO: Ideally we'd get tare up/down events so we can zoom in full the scale gradually
       singleTare() {
         setScaleState(({ visible }) => ({
-          visible: true,
+          visible: screen.value !== 'calibrateScale',
           size: visible ? 'full' : 'small'
         }));
       },
