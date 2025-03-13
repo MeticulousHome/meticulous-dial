@@ -76,9 +76,8 @@ const App = (): JSX.Element => {
     size: 'small' | 'full';
   }>({ visible: false, size: 'small' });
 
-  const isQuickScaleVisible = scaleState.visible && scaleState.size === 'small';
   useEffect(() => {
-    const hide_timer = isQuickScaleVisible ? 10000 : 2 * 60 * 1000;
+    const hide_timer = scaleState.size === 'small' ? 10000 : 2 * 60 * 10000;
     const scheduleHide = () =>
       setTimeout(() => {
         setScaleState((state) => ({ ...state, visible: false }));
@@ -99,7 +98,7 @@ const App = (): JSX.Element => {
       clearTimeout(timer);
       subscription();
     };
-  }, [isQuickScaleVisible]);
+  }, [scaleState]);
 
   useHandleGestures(
     {
