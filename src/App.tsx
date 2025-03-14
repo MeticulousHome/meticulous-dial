@@ -1,23 +1,22 @@
 import { useEffect, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import { Provider, useSelector, useStore } from 'react-redux';
+import { Provider, useStore } from 'react-redux';
 
 import { useAppDispatch, useAppSelector } from './components/store/hooks';
 import { SocketManager } from './components/store/SocketManager';
 import { RootState, store } from './components/store/store';
 import { useHandleGestures } from './hooks/useHandleGestures';
-import {
-  setBubbleDisplay,
-  setScreen
-} from './components/store/features/screens/screens-slice';
+import { setBubbleDisplay } from './components/store/features/screens/screens-slice';
 import { Router } from './navigation/Router';
-import { notificationSelector } from './components/store/features/notifications/notification-slice';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { IdleTimerProvider } from './hooks/useIdleTimer';
 import { setBrightness } from './api/api';
 import { Scale } from './components/Scale/Scale';
 import { VisibilityProvider } from './navigation/VisibilityContext';
-import { routes } from './navigation/routes';
+import {
+  useNotification,
+  useNotificationHandler
+} from './hooks/useNotification';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,9 +52,11 @@ const App = (): JSX.Element => {
 
   const isExtracting = useAppSelector((state) => state.stats?.extracting);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const notifications = useSelector(notificationSelector.selectAll);
-
-  useEffect(() => {
+  // Inicializar notificaciones
+  useNotification();
+  // Manejar cambios de pantalla basados en notificaciones
+  useNotificationHandler();
+  /*  useEffect(() => {
     if (notifications.length > 0 && screen.value !== 'notifications') {
       dispatch(setScreen('notifications'));
       dispatch(setBubbleDisplay({ visible: false, component: null }));
@@ -69,7 +70,7 @@ const App = (): JSX.Element => {
         dispatch(setScreen(screen.prev));
       }
     }
-  }, [notifications]);
+  }, [notifications]); */
 
   const [scaleState, setScaleState] = useState<{
     visible: boolean;

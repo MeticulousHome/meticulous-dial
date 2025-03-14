@@ -139,8 +139,8 @@ export function PurgePiston(): JSX.Element {
 
   useEffect(() => {
     return () => {
-      pistonContainer.current.destroy();
-      blinkContainer.current.destroy();
+      pistonContainer.current?.destroy();
+      blinkContainer.current?.destroy();
     };
   }, []);
 
