@@ -52,25 +52,9 @@ const App = (): JSX.Element => {
 
   const isExtracting = useAppSelector((state) => state.stats?.extracting);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  // Inicializar notificaciones
-  useNotification();
-  // Manejar cambios de pantalla basados en notificaciones
-  useNotificationHandler();
-  /*  useEffect(() => {
-    if (notifications.length > 0 && screen.value !== 'notifications') {
-      dispatch(setScreen('notifications'));
-      dispatch(setBubbleDisplay({ visible: false, component: null }));
-    }
 
-    if (notifications.length === 0 && screen.value === 'notifications') {
-      // Dont return to the idle screen
-      if (!screen.prev || routes[screen.prev].ignoreAsPrevious) {
-        dispatch(setScreen('pressets'));
-      } else {
-        dispatch(setScreen(screen.prev));
-      }
-    }
-  }, [notifications]); */
+  useNotification();
+  useNotificationHandler();
 
   const [scaleState, setScaleState] = useState<{
     visible: boolean;
