@@ -22,6 +22,7 @@ import {
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useSettings } from '../../hooks/useSettings';
 import { useAppSelector } from '../store/hooks';
+import { GlobeAlt } from './GlobeAlt';
 
 interface IKeyboardProps {
   name: string;
@@ -406,15 +407,13 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         );
       case 'keyboardType':
         return (
-          <text
-            key={index}
-            y={-44}
-            textAnchor="-120%"
+          <GlobeAlt
+            width="6"
+            height="6"
+            x="-3.5"
+            y="-48.5"
             className="letter-space letter-keyboard-type"
-            fill="white"
-          >
-            🌐
-          </text>
+          />
         );
       case 'cancel':
         return (
@@ -488,7 +487,9 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
                 <span className="main-letter__label main-letter__label--top-62 main-letter__label--rigth-46">
                   Special Characters
                 </span>
-                <div>&#127760;</div>
+                <div>
+                  <GlobeAlt width="55" />
+                </div>
               </div>
             </div>
           </>
