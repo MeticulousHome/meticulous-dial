@@ -6,7 +6,11 @@ import { useAppDispatch, useAppSelector } from './components/store/hooks';
 import { SocketManager } from './components/store/SocketManager';
 import { RootState, store } from './components/store/store';
 import { useHandleGestures } from './hooks/useHandleGestures';
-import { setBubbleDisplay } from './components/store/features/screens/screens-slice';
+import {
+  ScreenType,
+  setBubbleDisplay,
+  setScreen
+} from './components/store/features/screens/screens-slice';
 import { Router } from './navigation/Router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { IdleTimerProvider } from './hooks/useIdleTimer';
@@ -127,6 +131,23 @@ const App = (): JSX.Element => {
       setScaleState({ visible: false, size: 'small' });
     }
   }, [isExtracting]);
+
+  useEffect(() => {
+    const screens = [
+      'pressets',
+      'heating',
+      'barometer',
+      'brewComplete'
+    ] as ScreenType[];
+    let currentIndex = 0;
+
+    const timer = setInterval(() => {
+      currentIndex = (currentIndex + 1) % screens.length;
+      dispatch(setScreen(screens[currentIndex]));
+    }, 500);
+
+    return () => clearInterval(timer);
+  }, [dispatch]);
 
   const dev = !!window.env?.SHOW_CIRCLE_OVERLAY;
 
