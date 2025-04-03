@@ -5,15 +5,9 @@ import {
   PayloadAction
 } from '@reduxjs/toolkit';
 import { Profile } from '@meticulous-home/espresso-profile';
-import equal from 'fast-deep-equal';
 
-import { settingsDefaultNewPreset } from '../../../../utils/mock';
 import { simpleJson } from '../../../../utils/preheat';
-import {
-  IPresetSetting,
-  IPresetsSettingData,
-  ProfileCause
-} from '../../../../types/index';
+import { IPresetSetting, IPresetsSettingData } from '../../../../types/index';
 import { RootState } from '../../store';
 import {
   DEFAULT_SETTING,
@@ -22,14 +16,10 @@ import {
 import { setScreen } from '../screens/screens-slice';
 import {
   saveProfile,
-  getProfiles,
   deleteProfile,
-  getLastProfile,
   getDefaultProfiles,
   getProfileDefaultImages
 } from '../../../../api/profile';
-import { addVariablesToSettings } from '../../../../utils/preset';
-import { DefaultProfiles } from '@meticulous-home/espresso-api/dist';
 
 export interface PresetSettingInterface {
   activeSetting: number;
@@ -370,87 +360,6 @@ export const savePreset = createAsyncThunk(
         ...presetState
       })
     );
-  }
-);
-
-export const getPresets = createAsyncThunk(
-  'presetData/getData',
-  async (
-    params: {
-      cause?: ProfileCause;
-      change_id?: string;
-      profile_id?: string;
-    },
-    { getState, rejectWithValue }
-  ) => {
-    const state = getState() as RootState;
-
-    let defaultIndex =
-      state.screen.value !== 'profileHome' &&
-      params.cause !== 'delete' &&
-      params.cause !== 'create' &&
-      params.cause !== 'load'
-        ? state.presets.activeIndexSwiper
-        : 0;
-
-    const data = await getProfiles();
-    if (data === undefined) {
-      return rejectWithValue('Profile loading failed');
-    }
-    const lastProfile = await getLastProfile();
-    const { cause, profile_id: profileId } = params;
-    let isLastProfileKnown = false;
-    let currentProfileWasModified = false;
-
-    if (Array.isArray(data)) {
-      if (profileId && cause) {
-        currentProfileWasModified =
-          state.presets.activePreset.id === profileId &&
-          (cause === 'delete' || cause === 'update');
-      }
-
-      try {
-        if (lastProfile?.profile?.id) {
-          const lastProfilePotentialIndex = data.findIndex((p) => {
-            let idToCompare = lastProfile.profile.id;
-            if (profileId) idToCompare = profileId;
-            return p.id === idToCompare;
-          });
-
-          if (lastProfilePotentialIndex >= 0) {
-            isLastProfileKnown = equal(
-              data[lastProfilePotentialIndex],
-              lastProfile.profile
-            );
-
-            defaultIndex = lastProfilePotentialIndex;
-          }
-        } else {
-          // There's no last profile
-          const lastProfilePotentialIndex = data.findIndex(
-            (profile) => profile.id === profileId
-          );
-
-          if (lastProfilePotentialIndex >= 0) {
-            defaultIndex = lastProfilePotentialIndex;
-          }
-        }
-      } catch (e) {
-        console.log(
-          'Error getting last profile and comparing comparison: ' + e
-        );
-      }
-    }
-
-    return {
-      data,
-      defaultIndex,
-      lastProfile,
-      isLastProfileKnown,
-      cause,
-      currentProfileWasModified,
-      profileId
-    };
   }
 );
 

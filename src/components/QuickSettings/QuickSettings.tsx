@@ -11,7 +11,6 @@ import { useSocket } from '../store/SocketManager';
 import {
   deletePreset,
   resetActiveSetting,
-  setDefaultProfileSelected,
   setOptionPressets,
   discardSettings
 } from '../store/features/preset/preset-slice';
