@@ -74,6 +74,7 @@ export interface PresetsState extends PresetSettingInterface {
   option: 'HOME' | 'PRESSETS';
   profileHover: string;
   profileFocus: string;
+  profileFocused: boolean;
 }
 
 export const loadDefaultProfiles = createAsyncThunk(
@@ -205,7 +206,7 @@ export const deletePreset = createAsyncThunk(
 
     await deleteProfile(presetState.activePreset.id.toString());
 
-    dispatch(setScreen('pressets'));
+    dispatch(setScreen('profileHome'));
   }
 );
 
@@ -387,7 +388,7 @@ export const getPresets = createAsyncThunk(
     const state = getState() as RootState;
 
     let defaultIndex =
-      state.screen.value !== 'pressets' &&
+      state.screen.value !== 'profileHome' &&
       params.cause !== 'delete' &&
       params.cause !== 'create' &&
       params.cause !== 'load'

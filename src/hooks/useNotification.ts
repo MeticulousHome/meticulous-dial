@@ -32,7 +32,7 @@ export const useNotificationHandler = () => {
       if (notifications.length === 0 && screen.value === 'notifications') {
         const targetScreen =
           !screen.prev || routes[screen.prev]?.ignoreAsPrevious
-            ? 'pressets'
+            ? 'profileHome'
             : screen.prev;
 
         dispatch(setScreen(targetScreen));

@@ -34,7 +34,7 @@ export function EnterWifiPassword(): JSX.Element {
   useHandleGestures({
     pressDown() {
       if (connectToWifiMutation.isSuccess || connectToWifiMutation.isError) {
-        dispatch(setScreen('pressets'));
+        dispatch(setScreen('profileHome'));
       }
     }
   });

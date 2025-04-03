@@ -159,7 +159,7 @@ export function QuickSettings(): JSX.Element {
     switch (settings[activeOption].key) {
       case 'delete': {
         dispatch(deletePreset());
-        dispatch(setScreen('pressets'));
+        dispatch(setScreen('profileHome'));
         dispatch(setOptionPressets('PRESSETS'));
         dispatch(setBubbleDisplay({ visible: false, component: null }));
       }
@@ -189,7 +189,7 @@ export function QuickSettings(): JSX.Element {
       },
       pressUp() {
         if (holdAnimation == 'finished') {
-          dispatch(setScreen('pressets'));
+          dispatch(setScreen('profileHome'));
           dispatch(setBubbleDisplay({ visible: false, component: null }));
         }
         setHoldAnimation('stopped');
@@ -298,13 +298,7 @@ export function QuickSettings(): JSX.Element {
   );
 
   const requiresProfileContext: boolean =
-    (!(
-      presets.value.length === 0 ||
-      presets.activeIndexSwiper === presets.value.length ||
-      (presets.option !== 'HOME' && presets.option !== 'PRESSETS')
-    ) &&
-      currentScreen === 'pressets') ||
-    (profiles?.length > 0 && currentScreen === 'profileHome');
+    profiles?.length > 0 && currentScreen === 'profileHome';
 
   useEffect(() => {
     const context: QuickSettingOption[] = profileContextSettings;

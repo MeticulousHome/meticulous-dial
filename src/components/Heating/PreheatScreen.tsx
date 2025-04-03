@@ -119,13 +119,13 @@ export const PreheatScreen = () => {
   // Give the user an easy exit strategy
   useHandleGestures({
     left() {
-      dispatch(setScreen('pressets'));
+      dispatch(setScreen('profileHome'));
     },
     right() {
-      dispatch(setScreen('pressets'));
+      dispatch(setScreen('profileHome'));
     },
     pressDown() {
-      dispatch(setScreen('pressets'));
+      dispatch(setScreen('profileHome'));
     }
   });
 
@@ -151,7 +151,7 @@ export const PreheatScreen = () => {
     if (colorIndex >= gradients.length - 1) {
       // go back to the presets screen after a short moment of finishing the animation
       const timeoutRef = setTimeout(() => {
-        dispatch(setScreen('pressets'));
+        dispatch(setScreen('profileHome'));
       }, 900);
       return () => {
         clearTimeout(timeoutRef);

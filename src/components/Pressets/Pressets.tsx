@@ -148,7 +148,7 @@ export function Pressets({ transitioning }: RouteProps): JSX.Element {
   }, [presets.option]);
 
   useEffect(() => {
-    if (currentScreen === 'pressets') {
+    if (currentScreen === 'profileHome') {
       return;
     }
     animationInProgress.current = false;
