@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { api } from '../../api/api';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
+import { useProfileDefaultImages } from '../../hooks/useProfiles';
 
 const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
 
@@ -11,9 +12,11 @@ const SCROLL_VALUE = 50;
 export const DefaultProfileDetails = () => {
   const dispatch = useAppDispatch();
 
-  const defaultProfile = useAppSelector(
-    (state) => state.presets.defaultProfilesInfo.defaultProfileSelected
-  );
+  const {
+    defaultProfileSelected: defaultProfile,
+    defaultProfileActiveIndexSwiper
+  } = useAppSelector((state) => state.presets.defaultProfilesInfo);
+  const { data: defaultImages } = useProfileDefaultImages();
 
   const mainContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -30,6 +33,10 @@ export const DefaultProfileDetails = () => {
       );
     }
   });
+
+  const profile_url =
+    defaultProfile.display?.image ||
+    defaultImages[defaultProfileActiveIndexSwiper % defaultImages.length];
 
   const mainContainerScroll = (up: boolean) => {
     if (!mainContainerRef.current) {
@@ -62,16 +69,14 @@ export const DefaultProfileDetails = () => {
           }}
         >
           <img
-            src={`${API_URL}${api.getProfileImageUrl(
-              defaultProfile.display.image
-            )}`}
+            src={`${API_URL}${api.getProfileImageUrl(profile_url)}`}
             alt="No image"
             width="50"
             height="50"
             className="profile-image image-prev"
             style={{
               border: `8px solid ${
-                defaultProfile.display.accentColor ?? '#e0dcd0'
+                defaultProfile.display?.accentColor ?? '#e0dcd0'
               }`,
               display: 'block',
               position: 'relative'
@@ -89,7 +94,7 @@ export const DefaultProfileDetails = () => {
           }}
           ref={mainContainerRef}
         >
-          {defaultProfile.display.description}
+          {defaultProfile.display?.description}
           <div
             className={`settings-item active-setting`}
             style={{

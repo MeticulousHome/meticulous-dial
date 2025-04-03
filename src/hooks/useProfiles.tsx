@@ -1,13 +1,19 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
-import { getProfilesForReactQueryy as getProfilesForReactQuery } from '../api/profile';
+import {
+  getDefaultProfileImages,
+  getDefaultProfiles,
+  getProfilesForReactQueryy as getProfilesForReactQuery
+} from '../api/profile';
 
 import { addVariablesToSettings } from '../utils/preset';
 
 import { Profile } from '@meticulous-home/espresso-profile';
 
 export const PROFILES_QUERY_KEY = 'profiles';
+export const DEFAULT_PROFILES_QUERY_KEY = 'default_profiles';
 export const LAST_PROFILE_QUERY_KEY = 'lastProfile';
+export const DEFAULT_PROFILE_IMAGES_QUERY_KEY = 'default_profile_images';
 
 /**
  * Receives a `profile` and returns it with the `settings[]` property added. The content of this property is adjusted according to the variables that the profile contains.
@@ -64,6 +70,26 @@ export const useProfiles = () => {
     queryFn: getProfilesForReactQuery,
     placeholderData: keepPreviousData,
     select: (data: Profile[]) => data.map(addSettingsToProfile),
+    refetchOnReconnect: 'always',
+    refetchOnWindowFocus: false
+  });
+};
+
+export const useDefaultProfiles = () => {
+  return useQuery({
+    queryKey: [DEFAULT_PROFILES_QUERY_KEY],
+    queryFn: getDefaultProfiles,
+    placeholderData: keepPreviousData,
+    refetchOnReconnect: 'always',
+    refetchOnWindowFocus: false
+  });
+};
+
+export const useProfileDefaultImages = () => {
+  return useQuery({
+    queryKey: [DEFAULT_PROFILE_IMAGES_QUERY_KEY],
+    queryFn: getDefaultProfileImages,
+    placeholderData: [],
     refetchOnReconnect: 'always',
     refetchOnWindowFocus: false
   });

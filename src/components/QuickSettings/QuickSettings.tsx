@@ -103,16 +103,6 @@ export function QuickSettings(): JSX.Element {
   const socket = useSocket();
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const {
-    defaultProfilesInfo: {
-      defaultProfileActiveIndexSwiper,
-      defaultProfiles: allDefaultProfiles
-    }
-  } = useAppSelector((state) => state.presets);
-  const defaultProfiles = [
-    ...allDefaultProfiles.default,
-    ...allDefaultProfiles.community
-  ];
   const { data: profiles } = useProfiles();
 
   const { data: globalSettings } = useSettings();
@@ -219,11 +209,6 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'details': {
-            dispatch(
-              setDefaultProfileSelected(
-                defaultProfiles[defaultProfileActiveIndexSwiper]
-              )
-            );
             dispatch(
               setBubbleDisplay({
                 visible: true,

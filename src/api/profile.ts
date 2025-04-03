@@ -16,16 +16,21 @@ export const getDefaultProfiles = async (): Promise<DefaultProfiles> => {
     return data as DefaultProfiles;
   } catch (error) {
     console.error('GetDefaultProfiles error: ', error.message);
-    return { default: [], community: [] };
+    throw new Error('Network error while fetching Default Profiles.');
   }
 };
 
-export const getProfiles = async () => {
+export const getDefaultProfileImages = async (): Promise<string[]> => {
   try {
-    const { data } = await api.fetchAllProfiles();
-    return data as Profile[] | APIError;
+    const response = await api.getProfileDefaultImages();
+    const data = response.data as string[] | APIError;
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
+    return data as string[];
   } catch (error) {
-    console.error('GetProfiles error: ', error.message);
+    console.error('getDefaultProfileImages error: ', error.message);
+    throw new Error('Network error while fetching Default Profile Images');
   }
 };
 
