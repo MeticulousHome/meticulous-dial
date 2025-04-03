@@ -136,10 +136,10 @@ export function PressetSettings(): JSX.Element {
       pressDown() {
         if (activeSetting.key === 'save') {
           dispatch(savePreset());
-          dispatch(setScreen('pressets'));
+          dispatch(setScreen('profileHome'));
         } else if (activeSetting.key == 'discard') {
           dispatch(discardSettings());
-          dispatch(setScreen('pressets'));
+          dispatch(setScreen('profileHome'));
         } else if (activeSetting.key === 'name') {
           dispatch(setScreen('name'));
         } else if (activeSetting.key === 'output') {

@@ -103,7 +103,7 @@ export const HeatingScreen = () => {
 
   useEffect(() => {
     if (statsName === 'idle' && !hasNotifications) {
-      dispatch(setScreen('pressets'));
+      dispatch(setScreen('profileHome'));
     }
   }, [statsName]);
 

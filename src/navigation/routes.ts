@@ -1,6 +1,5 @@
 import { ComponentType } from 'react';
 import { Barometer } from '../components/Barometer/Barometer';
-import { Pressets } from '../components/Pressets/Pressets';
 import { PressetSettings } from '../components/PressetSettings/PressetSettings';
 import { SettingNumerical } from '../components/SettingNumerical/SettingNumerical';
 import { Settings } from '../components/Settings/Settings';
@@ -13,7 +12,6 @@ import { EnterWifiPassword } from '../components/Wifi/EnterWifiPassword';
 import { WifiDetails } from '../components/Wifi/WifiDetails';
 import { RootState } from '../components/store/store';
 import { Notification } from '../components/Notification/Notification';
-import { getProfileTitle } from '../components/Pressets/ProfileTitle';
 import { ConnectWifiViaApp } from '../components/Wifi/ConnetWifiViaApp';
 import { OSStatus } from '../components/OSStatus/OSStatus';
 import { QuickSettings } from '../../src/components/QuickSettings/QuickSettings';
@@ -49,7 +47,7 @@ import { ShotGraphScreen } from '../components/ShotGraph/ShotGraphScreen';
 import { ScrollDirectionSettings } from '../components/Settings/ScrollDirection';
 import { BrewCompleteScreen } from '../components/BrewCompleteScreen/BrewCompleteScreen';
 import { ProfileHomeScreen } from '../components/ProfileHomeScreen/ProfileHomeScreen';
-import { getProfilesTitle as getProfileTitle } from '../components/ProfileHomeScreen/ProfileTitle';
+import { getProfilesTitle } from '../components/ProfileHomeScreen/ProfileTitle';
 
 interface Route {
   component: ComponentType;
@@ -121,14 +119,9 @@ export const routes: Record<ScreenType, Route> = {
     title: 'settings',
     bottomStatusHidden: true
   },
-  pressets: {
-    component: Pressets,
-    parentTitle: getProfileTitle,
-    title: null
-  },
   profileHome: {
     component: ProfileHomeScreen,
-    parentTitle: getProfileTitle,
+    parentTitle: getProfilesTitle,
     title: null
   },
   barometer: {
@@ -145,7 +138,7 @@ export const routes: Record<ScreenType, Route> = {
     component: PressetSettings,
     title: selectActivePresetName,
     bottomStatusHidden: true,
-    parent: 'pressets'
+    parent: 'profileHome'
   },
   pressure: {
     component: SettingNumerical,
@@ -299,7 +292,7 @@ export const routes: Record<ScreenType, Route> = {
   enterWifiPassword: {
     component: EnterWifiPassword,
     bottomStatusHidden: true,
-    parent: 'pressets'
+    parent: 'profileHome'
   },
   'quick-settings': {
     component: QuickSettings
@@ -310,7 +303,7 @@ export const routes: Record<ScreenType, Route> = {
   },
   snake: {
     component: SnakeGame,
-    parent: 'pressets'
+    parent: 'profileHome'
   },
   advancedSettings: {
     component: AdvancedSettings
@@ -333,7 +326,7 @@ export const routes: Record<ScreenType, Route> = {
   defaultProfiles: {
     component: DefaultProfiles,
     bottomStatusHidden: true,
-    parent: 'pressets'
+    parent: 'profileHome'
   },
   defaultProfileDetails: {
     component: DefaultProfileDetails,
@@ -342,7 +335,7 @@ export const routes: Record<ScreenType, Route> = {
   shot_history: {
     component: ShotGraphScreen,
     title: selectActivePresetName,
-    parent: 'pressets',
+    parent: 'profileHome',
     bottomStatusHidden: true
   },
   idle: {

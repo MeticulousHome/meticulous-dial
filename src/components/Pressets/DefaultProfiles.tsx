@@ -50,7 +50,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
         if (transitioning) return;
 
         if (activeIndex === defaultProfiles.length)
-          dispatch(setScreen('pressets'));
+          dispatch(setScreen('profileHome'));
 
         if (defaultProfiles && defaultProfiles[activeIndex]) {
           const { ...profileSelected } = defaultProfiles[
@@ -68,7 +68,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
               } as unknown as Profile
             })
           );
-          dispatch(setScreen('pressets'));
+          dispatch(setScreen('profileHome'));
         }
       },
       left() {
@@ -92,7 +92,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
   useEffect(() => {
     if (!isLoading && defaultProfiles.length === 0) {
       // if there is not default profile user is sent to pressets screen
-      dispatch(setScreen('pressets'));
+      dispatch(setScreen('profileHome'));
     }
   }, [isLoading, defaultProfiles]);
 

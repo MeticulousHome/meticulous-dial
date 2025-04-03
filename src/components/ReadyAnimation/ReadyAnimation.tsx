@@ -18,7 +18,7 @@ export function ReadyAnimation(): JSX.Element {
 
   function handleReadyAnimation2Completed(): void {
     animation.current?.destroy();
-    dispatch(setScreen('pressets'));
+    dispatch(setScreen('profileHome'));
     dispatch(loadNotifications());
   }
 

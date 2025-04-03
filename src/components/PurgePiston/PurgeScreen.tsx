@@ -18,7 +18,7 @@ export function PurgeScreen(): JSX.Element {
 
   useEffect(() => {
     if (statsName === 'idle' && !hasNotifications) {
-      dispatch(setScreen('pressets'));
+      dispatch(setScreen('profileHome'));
     }
   }, [statsName]);
 

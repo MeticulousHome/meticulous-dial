@@ -28,7 +28,7 @@ export function IdleScreen(): JSX.Element {
   useEffect(() => {
     if (shouldGoToIdle || prevScreen === 'idle') return;
     if (!prevScreen || routes[prevScreen].ignoreAsPrevious) {
-      dispatch(setScreen('pressets'));
+      dispatch(setScreen('profileHome'));
     }
     dispatch(setScreen(prevScreen));
   }, [shouldGoToIdle]);

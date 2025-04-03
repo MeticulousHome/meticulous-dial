@@ -128,7 +128,7 @@ export function PurgePiston(): JSX.Element {
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       if (position === -1) {
-        dispatch(setScreen('pressets'));
+        dispatch(setScreen('profileHome'));
       }
     }, 2000);
 

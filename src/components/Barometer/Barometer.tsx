@@ -24,7 +24,7 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
       !stats.waitingForActionAlreadySent &&
       !hasNotifications
     ) {
-      dispatch(setScreen('pressets'));
+      dispatch(setScreen('profileHome'));
     }
   }, [stats.name, stats.waitingForActionAlreadySent]);
 

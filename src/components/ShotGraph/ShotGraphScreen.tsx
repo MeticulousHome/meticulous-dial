@@ -107,7 +107,7 @@ export const ShotGraphScreen = () => {
 
   if (!activeProfile) {
     console.error('History was opened without a profile selected');
-    dispatch(setScreen('pressets'));
+    dispatch(setScreen('profileHome'));
   }
 
   const { data: profileHistory, isLoading } = useHistoryShot(
@@ -144,7 +144,7 @@ export const ShotGraphScreen = () => {
       },
       doubleClick() {
         dispatch(setBubbleDisplay({ visible: false, component: null }));
-        dispatch(setScreen('pressets'));
+        dispatch(setScreen('profileHome'));
       }
     },
     bubbleDisplay.visible
