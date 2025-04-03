@@ -15,6 +15,7 @@ import { useDispatch } from 'react-redux';
 import { updatePresetSetting } from '../store/features/preset/preset-slice';
 import { useDimScreen } from '../../hooks/useDimScreen';
 import { api } from '../../api/api';
+import { useProfileDefaultImages } from '../../hooks/useProfiles';
 
 const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
 
@@ -27,8 +28,8 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
     presets.activeSetting
   ] as IPresetImage;
 
-  const [isLoadingImages, setIsLoadingImages] = useState(true);
-  const [images, setImages] = useState<string[]>([]);
+  const { data: images, isLoading: isLoadingImages } =
+    useProfileDefaultImages();
   const presetSwiperRef = useRef<SwiperRef | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -43,14 +44,6 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
     dispatch(updatePresetSetting(updatedSetting));
     dispatch(setScreen('pressetSettings'));
   };
-
-  const loadImages = useCallback(async () => {
-    const images = await getProfileDefaultImages();
-    if (images.length <= 0) return setScreen('pressetSettings');
-
-    setImages(images);
-    setIsLoadingImages(false);
-  }, []);
 
   useHandleGestures(
     {
@@ -71,10 +64,6 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
     },
     bubbleDisplay.visible
   );
-
-  useEffect(() => {
-    loadImages();
-  }, []);
 
   useEffect(() => {
     if (currentScreen !== 'pressetProfileImage') {

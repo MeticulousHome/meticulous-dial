@@ -62,10 +62,8 @@ export function cleanupInternalProfile(profile: ProfileValue) {
 export interface PresetsState extends PresetSettingInterface {
   value: Array<ProfileValue>;
   defaultProfilesInfo: {
-    defaultProfiles: DefaultProfiles;
     defaultProfileSelected?: Profile;
     defaultProfileActiveIndexSwiper: number;
-    status: 'ready' | 'pending' | 'failed';
   };
   defaultPresetIndex: number;
   activeIndexSwiper: number;
@@ -461,8 +459,6 @@ const initialState: PresetsState = {
   // default profiles
   defaultProfilesInfo: {
     defaultProfileActiveIndexSwiper: 0,
-    defaultProfiles: { default: [], community: [] },
-    status: 'pending',
     defaultProfileSelected: null
   },
   // end default profiles
@@ -491,22 +487,12 @@ const presetSlice = createSlice({
   name: 'presets',
   initialState,
   reducers: {
-    resetDefaultProfileConfig: (state) => {
-      state.defaultProfilesInfo.defaultProfileActiveIndexSwiper = 0;
-      state.defaultProfilesInfo.defaultProfileSelected = null;
-    },
-    setNextDefaultProfileOption: (state) => {
-      state.defaultProfilesInfo.defaultProfileActiveIndexSwiper = Math.min(
-        state.defaultProfilesInfo.defaultProfileActiveIndexSwiper + 1,
-        state.defaultProfilesInfo.defaultProfiles.default.length +
-          state.defaultProfilesInfo.defaultProfiles.community.length
-      );
-    },
-    setPrevDefaultProfileOption: (state) => {
-      state.defaultProfilesInfo.defaultProfileActiveIndexSwiper = Math.max(
-        state.defaultProfilesInfo.defaultProfileActiveIndexSwiper - 1,
-        0
-      );
+    setDefaultProfileActiveIndex: (
+      state: Draft<typeof initialState>,
+      action: PayloadAction<number>
+    ) => {
+      state.defaultProfilesInfo.defaultProfileActiveIndexSwiper =
+        action.payload;
     },
     setDefaultProfileSelected: (
       state: Draft<typeof initialState>,
@@ -544,203 +530,6 @@ const presetSlice = createSlice({
     ) => {
       state.option = action.payload;
     }
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(addPresetNewOne.fulfilled, (state, action) => {
-        // FIXME show an error notification here
-        if (!action.payload) return;
-
-        state.value.push({
-          // eslint-disable-next-line
-          // @ts-ignore
-          ...action.payload.profile,
-          settings: settingsDefaultNewPreset
-        });
-        state.activeIndexSwiper = state.value.length - 1;
-        state.activePreset = state.value[state.value.length - 1];
-        state.defaultPresetIndex = state.value.length - 1;
-        state.updatingSettings = {
-          presetId: state.activePreset.id.toString(),
-          settings: state.activePreset.settings
-        };
-      })
-      .addCase(getPresets.pending, (state) => {
-        state.status = 'pending';
-      })
-      .addCase(getPresets.fulfilled, (state, action) => {
-        state.status = 'ready';
-
-        if (!action.payload || !Array.isArray(action.payload.data)) {
-          state.status = 'failed';
-          return;
-        }
-
-        const payload: ProfileValue[] = action.payload.data.map(
-          (preset: ProfileValue) => {
-            return { settings: [], ...preset };
-          }
-        );
-        const profileCount = payload.length;
-        const { isLastProfileKnown } = action.payload;
-        // const lastProfileData: ProfileValue = {
-        //   settings: [],
-        //   ...lastProfile?.profile
-        // };
-
-        const reloadCause = action.payload.cause;
-
-        let defaultIndex = Number(action.payload.defaultIndex);
-        if (isLastProfileKnown) {
-          payload[defaultIndex].isLast = true;
-        }
-        // if (!isLastProfileKnown && lastProfile) {
-        //   // FIXME: if a temporary profile should be shown should be a config option in the backend
-        //   // This is currently causing sync/caching issues on real hardware while it works on desktop
-        //   lastProfileData.isTemporary = true;
-        //   lastProfileData.isLast = true;
-        //   payload.push(lastProfileData);
-        // }
-
-        // A new profile was added
-        if (reloadCause) {
-          switch (reloadCause) {
-            case 'create':
-              defaultIndex = profileCount - 1;
-              break;
-
-            case 'delete': {
-              // Does the last selected profile still exist? Follow it
-              const lastSelectedProfileSpot = payload.findIndex(
-                (profile) =>
-                  profile.id === state.activePreset.id &&
-                  state.activePreset.isTemporary === profile.isTemporary
-              );
-
-              // Another profile was deleted
-              if (lastSelectedProfileSpot !== -1) {
-                console.log(
-                  `Profile ${state.activePreset.id} still exists in stop ${lastSelectedProfileSpot}`
-                );
-                defaultIndex = lastSelectedProfileSpot;
-              } else {
-                // The last selected profile was deleted, select the next one
-                // Dont select the temporary profile untill absolutely necessary
-                defaultIndex = Math.min(
-                  profileCount > 0 ? profileCount - 1 : payload.length - 1,
-                  state.activeIndexSwiper + 1
-                );
-              }
-              break;
-            }
-            case 'load': {
-              if (!isLastProfileKnown) {
-                defaultIndex = payload.length - 1;
-              }
-              break;
-            }
-            default:
-              break;
-          }
-        }
-
-        state.value = payload;
-
-        if (state.value.length) {
-          if (defaultIndex !== -1) {
-            state.defaultPresetIndex = defaultIndex;
-            state.allSettings = payload.map((preset) => {
-              preset.settings = [
-                {
-                  id: 1,
-                  type: 'text',
-                  key: 'name',
-                  label: 'name',
-                  value: preset.name,
-                  isInternal: true
-                },
-                {
-                  id: 2,
-                  type: 'numerical',
-                  key: 'temperature',
-                  label: 'temperature',
-                  value: preset.temperature || 85,
-                  unit: '°c',
-                  isInternal: true
-                },
-                {
-                  id: 3,
-                  type: 'numerical',
-                  key: 'output',
-                  label: 'output',
-                  value: preset.final_weight || 36,
-                  unit: 'g',
-                  isInternal: true
-                },
-                {
-                  id: 4,
-                  type: 'image',
-                  key: 'image',
-                  label: 'Select image',
-                  value: preset.display.image.replace(
-                    '/api/v1/profile/image/',
-                    ''
-                  ),
-                  isInternal: true
-                },
-                // eslint-disable-next-line
-                // @ts-ignore
-                ...addVariablesToSettings({
-                  variables: preset.variables,
-                  nextId: 5
-                })
-              ];
-
-              return {
-                presetId: preset.id.toString(),
-                settings: preset.settings
-              };
-            });
-
-            state.activePreset = payload[defaultIndex];
-            const { settings } = state.allSettings.find(
-              (item) => item.presetId === payload[defaultIndex].id.toString()
-            );
-            state.updatingSettings = {
-              presetId: payload[defaultIndex]?.id.toString(),
-              settings: settings || [...settingsDefaultNewPreset]
-            };
-            state.activeIndexSwiper = defaultIndex;
-            // state.activePresetIndex = defaultIndex;
-          }
-        } else {
-          state.defaultPresetIndex = 0;
-          state.activeIndexSwiper = 0;
-        }
-      })
-      .addCase(getPresets.rejected, (state) => {
-        state.status = 'failed';
-      })
-      .addCase(setNextPreset.rejected, (state, action) => {
-        console.log(action);
-      })
-      .addCase(savePreset.rejected, (state, action) => {
-        console.log('save error', action);
-      })
-      .addCase(loadDefaultProfiles.pending, (state) => {
-        state.defaultProfilesInfo.status = 'pending';
-        state.pending = true;
-      })
-      .addCase(loadDefaultProfiles.fulfilled, (state, action) => {
-        state.defaultProfilesInfo.status = 'ready';
-        state.pending = false;
-        state.defaultProfilesInfo.defaultProfiles = action.payload;
-      })
-      .addCase(loadDefaultProfiles.rejected, (state) => {
-        state.defaultProfilesInfo.status = 'failed';
-        state.pending = false;
-        state.error = true;
-      });
   }
 });
 
@@ -749,9 +538,7 @@ export const {
   setPresetState,
   setOptionPressets,
   setDefaultProfileSelected,
-  setNextDefaultProfileOption,
-  setPrevDefaultProfileOption,
-  resetDefaultProfileConfig,
+  setDefaultProfileActiveIndex,
   setProfileHover,
   setFocusProfile
 } = presetSlice.actions;

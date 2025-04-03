@@ -1,69 +1,35 @@
-import { useEffect, useState } from 'react';
-import {
-  getPresets,
-  loadDefaultProfiles
-} from '../components/store/features/preset/preset-slice';
-import { useAppDispatch, useAppSelector } from '../components/store/hooks';
-import { api } from '../api/api';
+import { useEffect } from 'react';
+import { useAppDispatch } from '../components/store/hooks';
 import { loadNotifications } from '../components/store/features/notifications/notification-slice';
-
-const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
+import { useProfiles } from './useProfiles';
 
 export function useFetchData(onReady?: () => void) {
   const dispatch = useAppDispatch();
-  const presetsState = useAppSelector((state) => state.presets.status);
-  const defaultProfileState = useAppSelector(
-    (state) => state.presets.defaultProfilesInfo.status
-  );
-  const activePreset = useAppSelector((state) => state.presets.activePreset);
-
-  const presetID = useAppSelector(
-    (state) => state.presets.activePreset?.id || -1
-  );
-  const [profileImageReady, setProfileImageReady] = useState(false);
+  const {
+    data: profiles,
+    isError: profilesError,
+    refetch: profilesRefetch
+  } = useProfiles();
 
   useEffect(() => {
-    dispatch(getPresets({}));
-    dispatch(loadDefaultProfiles());
     dispatch(loadNotifications());
   }, []);
 
   useEffect(() => {
-    if (presetsState === 'failed') {
+    if (profilesError) {
       setTimeout(() => {
-        dispatch(getPresets({}));
+        profilesRefetch();
+        dispatch(loadNotifications());
       }, 1000);
     }
-  }, [presetsState]);
+  }, [profilesError]);
 
   useEffect(() => {
-    if (defaultProfileState === 'failed') {
-      setTimeout(() => {
-        dispatch(loadDefaultProfiles());
-      }, 1000);
-    }
-  }, [defaultProfileState]);
-
-  useEffect(() => {
-    console.log('presets Ready', presetsState, presetID);
-
-    if (presetID != -1 || presetsState === 'ready') {
-      if (activePreset?.display?.image && !profileImageReady) {
-        const img = new Image();
-        img.onload = () => {
-          setProfileImageReady(true);
-        };
-        // Just in case the image URL is bad we dont want to get stuck!
-        img.onerror = img.onload;
-        img.src = `${API_URL}${api.getProfileImageUrl(
-          activePreset.display.image
-        )}`;
-      } else {
-        console.log('calling onReady');
-        if (onReady) {
-          onReady();
-        }
+    if (profiles && !profilesError) {
+      console.log('calling onReady');
+      if (onReady) {
+        onReady();
       }
     }
-  }, [activePreset, presetsState, presetID, profileImageReady]);
+  }, [profiles, profilesError]);
 }
