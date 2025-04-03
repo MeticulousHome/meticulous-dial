@@ -1,11 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-import {
-  GestureType,
-  ISensorDataAndMachineState,
-  ProfileCause
-} from '../../types/index';
+import { GestureType, ISensorDataAndMachineState } from '../../types/index';
 import { useAppDispatch } from './hooks';
 import {
   setStats,
@@ -14,7 +10,6 @@ import {
 } from './features/stats/stats-slice';
 import { setScreen } from './features/screens/screens-slice';
 import {
-  getPresets,
   setFocusProfile,
   setProfileHover
 } from './features/preset/preset-slice';
@@ -130,17 +125,9 @@ export const SocketProviderValue = () => {
       dispatch(setWaterStatus(data));
     });
 
-    socket.on(
-      'profile',
-      (data: {
-        change: ProfileCause;
-        change_id: string;
-        profile_id: string;
-      }) => {
-        dispatch(getPresets({ ...data, cause: data.change }));
-        queryClient.invalidateQueries({ queryKey: [PROFILES_QUERY_KEY] });
-      }
-    );
+    socket.on('profile', () => {
+      queryClient.invalidateQueries({ queryKey: [PROFILES_QUERY_KEY] });
+    });
 
     socket.on(
       'button',

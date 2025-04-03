@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
 import { Pagination as PaginationSwiper } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 
-import { getProfileDefaultImages } from '../../api/profile';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { clearSlides, handlePresetSlideChange } from '../../utils/preset';
 import { RouteProps } from '../../navigation';
