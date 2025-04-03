@@ -107,7 +107,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
       },
       right() {
         if (transitioning) return;
-        const next = Math.min(activeIndex + 1, defaultProfiles.length - 1);
+        const next = Math.min(activeIndex + 1, defaultProfiles.length);
 
         dispatch(setDefaultProfileActiveIndex(next));
         dispatch(setDefaultProfileSelected(defaultProfiles[next]));
@@ -154,7 +154,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
             <DefaultProfileEntry key={index}>
               <div className="default-profile-container__content__info">
                 <img
-                  src={API_URL + api.getProfileImageUrl(profile_url)}
+                  src={API_URL + api.getProfileImageUrl(profile_url || '')}
                   alt="No image"
                   width="60"
                   height="60"
@@ -209,6 +209,31 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
             </DefaultProfileEntry>
           );
         })}
+        <DefaultProfileEntry key={'back'}>
+          <div className="default-profile-container__content__info">
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-start',
+                marginLeft: '10px'
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '20px'
+                }}
+                className={`default-profile-container__content__info__text default-profile-container__content__info__text--mb-10 ${
+                  activeIndex === activeIndex
+                    ? 'default-profile-container__content__info__text--active'
+                    : ''
+                }`}
+              >
+                Back
+              </span>
+            </div>
+          </div>
+        </DefaultProfileEntry>
       </Viewport>
     </Container>
   );
