@@ -8,7 +8,11 @@ import { api } from './api';
 
 export const getDefaultProfiles = async (): Promise<DefaultProfiles> => {
   try {
-    const { data } = await api.getDefaultProfiles();
+    const response = await api.getDefaultProfiles();
+    const data = response.data as DefaultProfiles | APIError;
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
     return data as DefaultProfiles;
   } catch (error) {
     console.error('GetDefaultProfiles error: ', error.message);
