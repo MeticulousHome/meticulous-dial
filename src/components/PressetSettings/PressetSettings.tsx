@@ -5,6 +5,7 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { getPresetSettings } from '../../utils/preset';
 import {
   discardSettings,
+  runPresetOnce,
   savePreset,
   setNextSettingOption,
   setPrevSettingOption
@@ -139,6 +140,9 @@ export function PressetSettings(): JSX.Element {
           dispatch(setScreen('profileHome'));
         } else if (activeSetting.key == 'discard') {
           dispatch(discardSettings());
+          dispatch(setScreen('profileHome'));
+        } else if (activeSetting.key === 'brew_once') {
+          dispatch(runPresetOnce());
           dispatch(setScreen('profileHome'));
         } else if (activeSetting.key === 'name') {
           dispatch(setScreen('name'));

@@ -18,7 +18,8 @@ import {
   saveProfile,
   deleteProfile,
   getDefaultProfiles,
-  getProfileDefaultImages
+  getProfileDefaultImages,
+  loadProfileData
 } from '../../../../api/profile';
 
 export interface PresetSettingInterface {
@@ -294,64 +295,70 @@ export const resetActiveSetting = createAsyncThunk(
   }
 );
 
+const getEditPreset = (presetState: PresetsState) => {
+  const updateSetting = presetState.updatingSettings;
+  const nameSetting = updateSetting.settings.find(
+    (setting) => setting.key === 'name' && setting.isInternal
+  );
+  const temperatureSetting = updateSetting.settings.find(
+    (setting) => setting.key === 'temperature' && setting.isInternal
+  );
+  const weight = updateSetting.settings.find(
+    (setting) => setting.key === 'output' && setting.isInternal
+  );
+
+  const display = updateSetting.settings.find(
+    (setting) => setting.key === 'image' && setting.isInternal
+  );
+
+  const profileSettings =
+    updateSetting.settings.filter((setting) => !setting.isInternal) || [];
+
+  const activePreset = {
+    ...presetState.activePreset,
+    settings: [...updateSetting.settings],
+    name: nameSetting.value as string
+  };
+
+  presetState.activePreset = { ...activePreset };
+
+  const activeIndex = presetState.activeIndexSwiper;
+  const copyListPresets = [...presetState.value];
+  copyListPresets[activeIndex] = {
+    ...copyListPresets[activeIndex],
+    name: updateSetting.settings[0]?.value.toString(),
+    settings: [...updateSetting.settings]
+  };
+  presetState.value = [...copyListPresets];
+
+  const body = cleanupInternalProfile({
+    ...presetState.activePreset,
+    display: {
+      ...presetState.activePreset.display,
+      image: display
+        ? `${display.value}`
+        : presetState.activePreset.display.image
+    },
+    temperature: temperatureSetting.value as number,
+    stages: presetState.activePreset.stages ?? simpleJson.stages,
+    final_weight: weight.value as number,
+    variables: profileSettings.map((p) => ({
+      name: p.label,
+      key: p.key,
+      type: p.externalType,
+      value: p.value as number
+    }))
+  });
+
+  return body;
+};
+
 export const savePreset = createAsyncThunk(
   'presetData/savePreset',
   async (_, { getState, dispatch }) => {
     const state = getState() as RootState;
     const presetState = { ...state.presets };
-    const updateSetting = presetState.updatingSettings;
-    const nameSetting = updateSetting.settings.find(
-      (setting) => setting.key === 'name' && setting.isInternal
-    );
-    const temperatureSetting = updateSetting.settings.find(
-      (setting) => setting.key === 'temperature' && setting.isInternal
-    );
-    const weight = updateSetting.settings.find(
-      (setting) => setting.key === 'output' && setting.isInternal
-    );
-
-    const display = updateSetting.settings.find(
-      (setting) => setting.key === 'image' && setting.isInternal
-    );
-
-    const profileSettings =
-      updateSetting.settings.filter((setting) => !setting.isInternal) || [];
-
-    const activePreset = {
-      ...presetState.activePreset,
-      settings: [...updateSetting.settings],
-      name: nameSetting.value as string
-    };
-
-    presetState.activePreset = { ...activePreset };
-
-    const activeIndex = presetState.activeIndexSwiper;
-    const copyListPresets = [...presetState.value];
-    copyListPresets[activeIndex] = {
-      ...copyListPresets[activeIndex],
-      name: updateSetting.settings[0]?.value.toString(),
-      settings: [...updateSetting.settings]
-    };
-    presetState.value = [...copyListPresets];
-
-    const body = cleanupInternalProfile({
-      ...presetState.activePreset,
-      display: {
-        ...presetState.activePreset.display,
-        image: display
-          ? `${display.value}`
-          : presetState.activePreset.display.image
-      },
-      temperature: temperatureSetting.value as number,
-      stages: presetState.activePreset.stages ?? simpleJson.stages,
-      final_weight: weight.value as number,
-      variables: profileSettings.map((p) => ({
-        name: p.label,
-        key: p.key,
-        type: p.externalType,
-        value: p.value as number
-      }))
-    });
+    const body = getEditPreset(presetState);
 
     await saveProfile(body);
 
@@ -360,6 +367,17 @@ export const savePreset = createAsyncThunk(
         ...presetState
       })
     );
+  }
+);
+
+export const runPresetOnce = createAsyncThunk(
+  'presetData/runPresetOnce',
+  async (_, { getState }) => {
+    const state = getState() as RootState;
+    const presetState = { ...state.presets };
+    const body = getEditPreset(presetState);
+
+    await loadProfileData(body);
   }
 );
 
