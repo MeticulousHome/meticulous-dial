@@ -134,10 +134,10 @@ export const ProfileHomeScreen = () => {
       setZoomedIn(false);
       return;
     }
-    if (activeOption !== 0) {
-      setTransitionDirection('left');
+    if (activeOption !== profiles?.length) {
+      setTransitionDirection('right');
     }
-    setActiveOption((prev) => Math.max(prev - 1, 0));
+    setActiveOption((prev) => Math.min(prev + 1, profiles?.length || 0));
   };
 
   const rotateRight = () => {
@@ -145,10 +145,10 @@ export const ProfileHomeScreen = () => {
       setZoomedIn(false);
       return;
     }
-    if (activeOption !== profiles?.length) {
-      setTransitionDirection('right');
+    if (activeOption !== 0) {
+      setTransitionDirection('left');
     }
-    setActiveOption((prev) => Math.min(prev + 1, profiles?.length || 0));
+    setActiveOption((prev) => Math.max(prev - 1, 0));
   };
 
   useHandleGestures(
