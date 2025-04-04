@@ -116,7 +116,10 @@ export const ProfileEntry = forwardRef<HTMLDivElement, ProfileEntryProps>(
           classNames="zoom"
           nodeRef={contentRef}
         >
-          <OuterContainer ref={contentRef} className={positionClasses}>
+          <OuterContainer
+            ref={contentRef}
+            className={`${positionClasses} ${contentClassNames || ''}`}
+          >
             <CSSTransition
               in={!(zoomedIn && distanceToActive == 0)}
               timeout={400}
@@ -134,12 +137,7 @@ export const ProfileEntry = forwardRef<HTMLDivElement, ProfileEntryProps>(
                 </PressetTitleTop>
               </TitleContainer>
             </CSSTransition>
-            <InnerContainer
-              style={containerStyle}
-              className={contentClassNames}
-            >
-              {children}
-            </InnerContainer>
+            <InnerContainer style={containerStyle}>{children}</InnerContainer>
           </OuterContainer>
         </CSSTransition>
       </div>

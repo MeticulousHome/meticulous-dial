@@ -83,8 +83,6 @@ export const ProfileHomeScreen = () => {
   //FIXME legacy
   const presetState = useAppSelector((state) => state.presets);
 
-  console.log('state', presetState.activePreset.name);
-
   const animationFinished = async () => {
     setCoffeeLoading(true);
     console.log('starting coffee');
