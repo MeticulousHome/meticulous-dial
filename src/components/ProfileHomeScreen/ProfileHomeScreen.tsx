@@ -16,6 +16,7 @@ import {
   setPresetState
 } from '../store/features/preset/preset-slice';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import { useSettings } from '../../hooks/useSettings';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -60,6 +61,7 @@ const InnerList = styled(TransitionGroup)<{
 export const ProfileHomeScreen = () => {
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const { data: globalSettings } = useSettings();
   const [transitionDirection, setTransitionDirection] = useState<
     'left' | 'right' | 'none'
   >('none');
@@ -127,27 +129,43 @@ export const ProfileHomeScreen = () => {
     );
   }, [profiles, activeOption, zoomedIn]);
 
+  const rotateLeft = () => {
+    if (zoomedIn) {
+      setZoomedIn(false);
+      return;
+    }
+    if (activeOption !== 0) {
+      setTransitionDirection('left');
+    }
+    setActiveOption((prev) => Math.max(prev - 1, 0));
+  };
+
+  const rotateRight = () => {
+    if (zoomedIn) {
+      setZoomedIn(false);
+      return;
+    }
+    if (activeOption !== profiles?.length) {
+      setTransitionDirection('right');
+    }
+    setActiveOption((prev) => Math.min(prev + 1, profiles?.length || 0));
+  };
+
   useHandleGestures(
     {
       left() {
-        if (zoomedIn) {
-          setZoomedIn(false);
-          return;
+        if (globalSettings?.reverse_scrolling.home) {
+          rotateRight();
+        } else {
+          rotateLeft();
         }
-        if (activeOption !== 0) {
-          setTransitionDirection('left');
-        }
-        setActiveOption((prev) => Math.max(prev - 1, 0));
       },
       right() {
-        if (zoomedIn) {
-          setZoomedIn(false);
-          return;
+        if (globalSettings?.reverse_scrolling.home) {
+          rotateLeft();
+        } else {
+          rotateRight();
         }
-        if (activeOption !== profiles?.length) {
-          setTransitionDirection('right');
-        }
-        setActiveOption((prev) => Math.min(prev + 1, profiles?.length || 0));
       },
       pressDown() {
         // New profile button
@@ -169,7 +187,7 @@ export const ProfileHomeScreen = () => {
     bubbleDisplay.visible || coffeeLoading
   );
 
-  if (!profiles) {
+  if (!profiles || !globalSettings) {
     return <LoadingScreen />;
   }
 
