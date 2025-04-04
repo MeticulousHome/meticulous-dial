@@ -39,13 +39,16 @@ export async function getDeviceInfo(): Promise<DeviceInfo> {
     return data as DeviceInfo;
   } catch (error) {
     if (error.response) {
-      console.error('Error connecting to Wi-Fi: ', error.response.data);
+      console.error('Error fetching device Info: ', error.response.data);
       throw new Error(
-        error.response.data?.message || 'Error connecting to Wi-Fi.'
+        error.response.data?.message || 'Error fetching device Info'
       );
     } else {
-      console.error('Network error while connecting to Wi-Fi: ', error.message);
-      throw new Error('Network error while connecting to Wi-Fi.');
+      console.error(
+        'Network error while fetching device Info: ',
+        error.message
+      );
+      throw new Error('Network error while fetching device Info.');
     }
   }
 }

@@ -11,13 +11,13 @@ export async function getSettings(): Promise<Settings> {
     return data as Settings;
   } catch (error) {
     if (error.response) {
-      console.error('Error connecting to Wi-Fi: ', error.response.data);
+      console.error('Error getting Settings: ', error.response.data);
       throw new Error(
-        error.response.data?.message || 'Error connecting to Wi-Fi.'
+        error.response.data?.message || 'Error getting Settings.'
       );
     } else {
-      console.error('Network error while connecting to Wi-Fi: ', error.message);
-      throw new Error('Network error while connecting to Wi-Fi.');
+      console.error('Network error while getting Settings: ', error.message);
+      throw new Error('Network error while getting Settings.');
     }
   }
 }
@@ -34,13 +34,13 @@ export async function updateSettings(
     return data as Settings;
   } catch (error) {
     if (error.response) {
-      console.error('Error connecting to Wi-Fi: ', error.response.data);
+      console.error('Error updating settings: ', error.response.data);
       throw new Error(
-        error.response.data?.message || 'Error connecting to Wi-Fi.'
+        error.response.data?.message || 'Error updating settings.'
       );
     } else {
-      console.error('Network error while connecting to Wi-Fi: ', error.message);
-      throw new Error('Network error while connecting to Wi-Fi.');
+      console.error('Network error while updating settings:', error.message);
+      throw new Error('Network error while updating settings.');
     }
   }
 }
