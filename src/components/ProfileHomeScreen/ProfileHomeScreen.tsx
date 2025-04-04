@@ -135,7 +135,10 @@ export const ProfileHomeScreen = () => {
       return;
     }
     if (activeOption !== profiles?.length) {
-      setTransitionDirection('right');
+      setTransitionDirection('none');
+      requestAnimationFrame(() => {
+        setTransitionDirection('right');
+      });
     }
     setActiveOption((prev) => Math.min(prev + 1, profiles?.length || 0));
   };
@@ -146,7 +149,11 @@ export const ProfileHomeScreen = () => {
       return;
     }
     if (activeOption !== 0) {
-      setTransitionDirection('left');
+      setTransitionDirection('none');
+
+      requestAnimationFrame(() => {
+        setTransitionDirection('left');
+      });
     }
     setActiveOption((prev) => Math.max(prev - 1, 0));
   };
@@ -216,7 +223,7 @@ export const ProfileHomeScreen = () => {
                     ref={itemRef}
                     contentClassNames={
                       !zoomedIn &&
-                      index === activeOption &&
+                      Math.abs(index - activeOption) < 2 &&
                       `animation-bounce-${transitionDirection}`
                     }
                     containerStyle={{ backgroundColor }}
@@ -238,7 +245,7 @@ export const ProfileHomeScreen = () => {
               title={'new'}
               contentClassNames={
                 !zoomedIn &&
-                profiles.length === activeOption &&
+                Math.abs(profiles.length - activeOption) < 2 &&
                 `animation-bounce-${transitionDirection}`
               }
               distanceToActive={profiles.length - activeOption}
