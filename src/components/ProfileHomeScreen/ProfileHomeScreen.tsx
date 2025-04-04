@@ -103,6 +103,12 @@ export const ProfileHomeScreen = () => {
       return;
     }
 
+    // We are never zoomed in on the new button
+    if (activeOption == profiles.length) {
+      setZoomedIn(false);
+      return;
+    }
+
     //FIXME legacy code. Can be fully removed in the end
     const state_copy = { ...presetState };
     if (activeOption < profiles.length) {
