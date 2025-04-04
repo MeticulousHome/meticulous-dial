@@ -5,7 +5,6 @@ export type ScreenType =
   | 'ready'
   | 'barometer'
   | 'profileHome'
-  | 'profileHome'
   | 'pressetSettings'
   | 'name'
   | 'pressure'
