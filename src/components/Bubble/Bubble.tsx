@@ -1,9 +1,35 @@
-import { useEffect, useState, useRef, createElement } from 'react';
+import {
+  useEffect,
+  useState,
+  useRef,
+  createElement,
+  createContext,
+  useContext,
+  RefObject
+} from 'react';
 import { useHandleGestures } from '../../../src/hooks/useHandleGestures';
 import { memoizedRoutes } from '../../../src/utils';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import './bubble.less';
+
+type BubbleContextType = {
+  bubbleContainerRef: RefObject<HTMLDivElement> | null;
+};
+
+export const BubbleContext = createContext<BubbleContextType | undefined>(
+  undefined
+);
+
+//We use a context to give the children of the Bubble component access to certain properties—in this particular case, to give them access to a DOM element so they can modify its styles.
+export const useBubbleContext = () => {
+  const context = useContext(BubbleContext);
+  if (!context)
+    throw new Error(
+      'useBubbleContext must be used within <BubbleContext.Provider>'
+    );
+  return context;
+};
 
 export default function Bubble() {
   const dispatch = useAppDispatch();
@@ -14,6 +40,7 @@ export default function Bubble() {
   });
 
   const prevComponentRef = useRef<string | null>(null);
+  const bubbleContainerRef = useRef<HTMLDivElement>(null);
 
   if (bubbleDisplay.component) {
     prevComponentRef.current = bubbleDisplay.component;
@@ -67,17 +94,19 @@ export default function Bubble() {
   };
 
   return (
-    <div
-      className={`main-bubble main-layout ${
-        !animationState.isAnimating
-          ? 'bubble-enter-animation'
-          : 'bubble-leave-animation'
-      } large`}
-      onAnimationEnd={handleAnimationEnd}
-    >
-      <div className="bubble-container">
-        {ActiveComponent && createElement(ActiveComponent)}
+    <BubbleContext.Provider value={{ bubbleContainerRef }}>
+      <div
+        className={`main-bubble main-layout ${
+          !animationState.isAnimating
+            ? 'bubble-enter-animation'
+            : 'bubble-leave-animation'
+        } large`}
+        onAnimationEnd={handleAnimationEnd}
+      >
+        <div className="bubble-container" ref={bubbleContainerRef}>
+          {ActiveComponent && createElement(ActiveComponent)}
+        </div>
       </div>
-    </div>
+    </BubbleContext.Provider>
   );
 }
