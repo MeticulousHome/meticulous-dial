@@ -131,6 +131,13 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
 
   useEffect(() => {
     dispatch(setDefaultProfileActiveIndex(0));
+    return () => {
+      // Reset active index when unmounting
+      // This is important to avoid keeping the last selected profile when navigating back
+      // to the default profiles screen
+      dispatch(setDefaultProfileActiveIndex(0));
+      dispatch(setDefaultProfileSelected(null));
+    };
   }, []);
 
   if (isLoading || defaultImagesLoading) {
