@@ -122,6 +122,9 @@ export function QuickSettings(): JSX.Element {
   const { data: osStatusData, error: osStatusError } = useOSStatus();
   const osStatusVisible = osStatusData.status !== 'IDLE';
   const [activeOption, setActiveOption] = useState(0);
+  const defaultProfileSelectedForDetails = useAppSelector(
+    (state) => state.presets.defaultProfilesInfo.defaultProfileSelected
+  );
 
   useEffect(() => {
     setActiveOption(osStatusVisible ? 1 : 0);
@@ -302,7 +305,9 @@ export function QuickSettings(): JSX.Element {
       case 'defaultProfiles':
         setSettings([
           ...(osStatusSettingOption ? [osStatusSettingOption] : []),
-          ...[{ key: 'details', label: 'Show details' }],
+          ...(defaultProfileSelectedForDetails
+            ? [{ key: 'details', label: 'Show details' }]
+            : []),
           ...(backAvailable ? [prevScreenSetting] : []),
           ...(hidden_ui_elements_enabled(globalSettings)
             ? [disable_ui_features]

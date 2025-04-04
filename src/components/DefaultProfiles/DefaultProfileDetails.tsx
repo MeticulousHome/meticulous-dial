@@ -36,7 +36,8 @@ export const DefaultProfileDetails = () => {
 
   const profile_url =
     defaultProfile.display?.image ||
-    defaultImages[defaultProfileActiveIndexSwiper % defaultImages.length];
+    defaultImages[defaultProfileActiveIndexSwiper % defaultImages.length] ||
+    '';
 
   const mainContainerScroll = (up: boolean) => {
     if (!mainContainerRef.current) {

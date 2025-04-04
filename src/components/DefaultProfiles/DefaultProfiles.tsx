@@ -103,18 +103,24 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
         if (transitioning) return;
         const next = Math.max(activeIndex - 1, 0);
         dispatch(setDefaultProfileActiveIndex(next));
-        dispatch(setDefaultProfileSelected(defaultProfiles[next]));
       },
       right() {
         if (transitioning) return;
         const next = Math.min(activeIndex + 1, defaultProfiles.length);
 
         dispatch(setDefaultProfileActiveIndex(next));
-        dispatch(setDefaultProfileSelected(defaultProfiles[next]));
       }
     },
     bubbleDisplay.visible
   );
+
+  useEffect(() => {
+    if (activeIndex !== defaultProfiles.length) {
+      dispatch(setDefaultProfileSelected(defaultProfiles[activeIndex]));
+    } else {
+      dispatch(setDefaultProfileSelected(null));
+    }
+  }, [activeIndex]);
 
   useEffect(() => {
     if (!isLoading && defaultProfiles.length === 0) {
