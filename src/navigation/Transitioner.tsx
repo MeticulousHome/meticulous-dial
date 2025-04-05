@@ -8,7 +8,7 @@ interface TransitionerProps {
   children: ReactElement;
   direction: 'in' | 'out';
   parentTitle?: string | JSX.Element;
-  title?: string;
+  title?: string | JSX.Element;
   bottomTitle?: string;
   titleShared?: boolean;
 }

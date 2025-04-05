@@ -1,15 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { RouteProps } from '../../navigation';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
-import {
-  addPresetNewOne,
-  setDefaultProfileActiveIndex,
-  setDefaultProfileSelected
-} from '../store/features/preset/preset-slice';
+
 import './defaultProfile.css';
 import { api } from '../../api/api';
 import { Profile } from '@meticulous-home/espresso-profile';
@@ -17,9 +13,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { useDimScreen } from '../../hooks/useDimScreen';
 import { styled } from 'styled-components';
 import {
+  useSavePreset,
   useDefaultProfiles,
   useProfileDefaultImages
 } from '../../hooks/useProfiles';
+import { useProfileContext } from '../../context/ProfileContext';
 
 const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
 
@@ -62,9 +60,9 @@ const DefaultProfileEntry = styled.div`
 `;
 
 export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
-  const activeIndex = useAppSelector(
-    (state) => state.presets.defaultProfilesInfo.defaultProfileActiveIndexSwiper
-  );
+  const { setDefaultProfileSelected } = useProfileContext();
+  const createProfile = useSavePreset();
+  const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
 
   const { data: allDefaultProfiles, isLoading } = useDefaultProfiles();
@@ -88,27 +86,25 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
           const { ...profileSelected } = defaultProfiles[
             activeIndex
           ] as Profile;
-          dispatch(
-            addPresetNewOne({
-              profile: {
-                ...profileSelected,
-                id: uuidv4()
-              } as unknown as Profile
-            })
-          );
+          createProfile.mutate({
+            profile: {
+              ...profileSelected,
+              id: uuidv4()
+            } as unknown as Profile
+          });
           dispatch(setScreen('profileHome'));
         }
       },
       left() {
         if (transitioning) return;
         const next = Math.max(activeIndex - 1, 0);
-        dispatch(setDefaultProfileActiveIndex(next));
+        setActiveIndex(next);
       },
       right() {
         if (transitioning) return;
         const next = Math.min(activeIndex + 1, defaultProfiles.length);
 
-        dispatch(setDefaultProfileActiveIndex(next));
+        setActiveIndex(next);
       }
     },
     bubbleDisplay.visible
@@ -116,9 +112,15 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
 
   useEffect(() => {
     if (activeIndex !== defaultProfiles.length) {
-      dispatch(setDefaultProfileSelected(defaultProfiles[activeIndex]));
+      setDefaultProfileSelected({
+        ...defaultProfiles[activeIndex],
+        display: {
+          ...defaultProfiles[activeIndex].display,
+          image: defaultImages[activeIndex % defaultImages.length]
+        }
+      });
     } else {
-      dispatch(setDefaultProfileSelected(null));
+      setDefaultProfileSelected(null);
     }
   }, [activeIndex, defaultProfiles]);
 
@@ -130,13 +132,13 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
   }, [isLoading, defaultProfiles]);
 
   useEffect(() => {
-    dispatch(setDefaultProfileActiveIndex(0));
+    setActiveIndex(0);
     return () => {
       // Reset active index when unmounting
       // This is important to avoid keeping the last selected profile when navigating back
       // to the default profiles screen
-      dispatch(setDefaultProfileActiveIndex(0));
-      dispatch(setDefaultProfileSelected(null));
+      setActiveIndex(0);
+      setDefaultProfileSelected(null);
     };
   }, []);
 
@@ -237,7 +239,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
                   fontSize: '20px'
                 }}
                 className={`default-profile-container__content__info__text default-profile-container__content__info__text--mb-10 ${
-                  activeIndex === activeIndex
+                  activeIndex === defaultProfiles.length
                     ? 'default-profile-container__content__info__text--active'
                     : ''
                 }`}

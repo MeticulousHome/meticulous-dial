@@ -1,4 +1,4 @@
-import { useAppSelector } from '../store/hooks';
+import { useProfileContext } from '../../context/ProfileContext';
 import { styled } from 'styled-components';
 
 const PressetsTitle = styled.div<{ $scroll: boolean }>`
@@ -13,15 +13,19 @@ const PressetsTitle = styled.div<{ $scroll: boolean }>`
 `;
 
 export const getProfilesTitle = () => <TitleProfiles />;
+export const getActiveProfilesTitle = () => <TitleProfiles />;
 
 export const TitleProfiles = () => {
-  // FIXME Remove this legacy code
-  const presets = useAppSelector((state) => state.presets);
-
+  const { localHoverState, localProfile } = useProfileContext();
   return (
-    <PressetsTitle $scroll={presets.profileFocused}>
+    <PressetsTitle $scroll={localHoverState}>
       <span>Catalog</span>
-      <span>{presets.activePreset.name}</span>
+      <span>{localProfile?.name || ''}</span>
     </PressetsTitle>
   );
+};
+
+export const ActiveProfileTitle = () => {
+  const { localProfile } = useProfileContext();
+  return <span>{localProfile?.name || ''}</span>;
 };

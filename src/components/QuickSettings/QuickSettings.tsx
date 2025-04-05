@@ -8,12 +8,6 @@ import {
 } from '../store/features/screens/screens-slice';
 import { useSocket } from '../store/SocketManager';
 
-import {
-  deletePreset,
-  resetActiveSetting,
-  setOptionPressets,
-  discardSettings
-} from '../store/features/preset/preset-slice';
 import { useOSStatus } from '../../hooks/useDeviceOSStatus';
 import { routes } from '../../navigation/routes';
 import Styled, {
@@ -23,7 +17,9 @@ import Styled, {
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
 import { formatTime, hidden_ui_elements_enabled } from '../../utils';
-import { useProfiles } from '../../hooks/useProfiles';
+import { useProfileContext } from '../../context/ProfileContext';
+import { useDeletePreset } from '../../hooks/useProfiles';
+import { addSettingsToProfile } from '../../utils/profiles';
 
 export type QuickSettingOption = {
   key: string;
@@ -102,7 +98,6 @@ export function QuickSettings(): JSX.Element {
   const socket = useSocket();
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const { data: profiles } = useProfiles();
 
   const { data: globalSettings } = useSettings();
   const updateSettings = useUpdateSettings();
@@ -112,7 +107,14 @@ export function QuickSettings(): JSX.Element {
   );
   const [settings, setSettings] = useState(defaultSettings);
 
-  const presets = useAppSelector((state) => state.presets);
+  const {
+    profileQuery: { data: profiles },
+    localProfile,
+    defaultProfileSelected: defaultProfileSelectedForDetails,
+    setSettingsIndex: setProfileSettingsIndex,
+    setSettingsProfile: setProfileSettings
+  } = useProfileContext();
+  const deletePresetMutation = useDeletePreset();
   const currentScreen = useAppSelector((state) => state.screen.value);
 
   const [counterESGG, setCounterESGG] = useState(0);
@@ -122,9 +124,6 @@ export function QuickSettings(): JSX.Element {
   const { data: osStatusData, error: osStatusError } = useOSStatus();
   const osStatusVisible = osStatusData.status !== 'IDLE';
   const [activeOption, setActiveOption] = useState(0);
-  const defaultProfileSelectedForDetails = useAppSelector(
-    (state) => state.presets.defaultProfilesInfo.defaultProfileSelected
-  );
 
   useEffect(() => {
     setActiveOption(osStatusVisible ? 1 : 0);
@@ -150,9 +149,8 @@ export function QuickSettings(): JSX.Element {
     console.log('Termino la animacion ✔');
     switch (settings[activeOption].key) {
       case 'delete': {
-        dispatch(deletePreset());
+        deletePresetMutation.mutate(localProfile?.id);
         dispatch(setScreen('profileHome'));
-        dispatch(setOptionPressets('PRESSETS'));
         dispatch(setBubbleDisplay({ visible: false, component: null }));
       }
     }
@@ -197,8 +195,6 @@ export function QuickSettings(): JSX.Element {
               console.error("return to previous screen doesn't exist");
               break;
             }
-            if (currentScreen === 'pressetSettings')
-              dispatch(discardSettings());
 
             dispatch(setScreen(routes[currentScreen].parent));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
@@ -227,7 +223,12 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'edit': {
-            dispatch(resetActiveSetting());
+            if (!localProfile) {
+              console.error('No profile selected');
+              break;
+            }
+            setProfileSettingsIndex(0);
+            setProfileSettings(addSettingsToProfile(localProfile));
             dispatch(setScreen('pressetSettings'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
@@ -327,14 +328,7 @@ export function QuickSettings(): JSX.Element {
         ]);
         break;
     }
-  }, [
-    presets.value.length,
-    presets.activeIndexSwiper,
-    presets.option,
-    currentScreen,
-    osStatusInfo,
-    osStatusVisible
-  ]);
+  }, [currentScreen, osStatusInfo, osStatusVisible]);
 
   useEffect(() => {
     if (counterESGG >= 20) {

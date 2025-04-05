@@ -22,6 +22,7 @@ import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../store/store';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
+import { useProfileContext } from '../../context/ProfileContext';
 
 const GRAPH_WIDTH = 270;
 const GRAPH_WRAPPER_HEIGHT = 220;
@@ -103,7 +104,7 @@ export const ShotGraphScreen = () => {
     null
   );
 
-  const activeProfile = useAppSelector((state) => state.presets.activePreset);
+  const { localProfile: activeProfile } = useProfileContext();
 
   if (!activeProfile) {
     console.error('History was opened without a profile selected');

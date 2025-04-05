@@ -9,10 +9,7 @@ import {
   updatePreheatTimeLeft
 } from './features/stats/stats-slice';
 import { setScreen } from './features/screens/screens-slice';
-import {
-  setFocusProfile,
-  setProfileHover
-} from './features/preset/preset-slice';
+
 import { handleEvents } from '../../HandleEvents';
 import {
   addOneNotification,
@@ -24,9 +21,10 @@ import {
 import { api } from '../../api/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { OS_UPDATE_STATUS } from '../../hooks/useDeviceOSStatus';
-import { OSStatusResponse } from '@meticulous-home/espresso-api';
+import { OSStatusResponse, ProfileUpdate } from '@meticulous-home/espresso-api';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
-import { PROFILES_QUERY_KEY } from '../../hooks/useProfiles';
+import { LASTS_PROFILE_QUERY_KEY } from '../../hooks/useProfiles';
+import { useProfileContext } from '../../context/ProfileContext';
 
 const SERVER_URL: string = window.env?.SERVER_URL || 'http://localhost:8080';
 const socket: Socket | null = io(SERVER_URL);
@@ -40,6 +38,8 @@ export const SocketProviderValue = () => {
   const previousStateName = useRef<string>('idle');
   const queryClient = useQueryClient();
   const { resetTimer: resetIdleTimer } = useIdleTimer();
+  const { setProfileStarting, onProfileEvent, onProfileHover } =
+    useProfileContext();
 
   // For development purpose
   useSocketKeyboardListeners();
@@ -76,6 +76,8 @@ export const SocketProviderValue = () => {
       if (previousState !== data?.name) {
         // Every status change resets the idle timer
         resetIdleTimer();
+        queryClient.invalidateQueries({ queryKey: [LASTS_PROFILE_QUERY_KEY] });
+        setProfileStarting(false);
 
         if (data?.name === 'heating') {
           dispatch(setWaterStatus(true));
@@ -125,8 +127,9 @@ export const SocketProviderValue = () => {
       dispatch(setWaterStatus(data));
     });
 
-    socket.on('profile', () => {
-      queryClient.invalidateQueries({ queryKey: [PROFILES_QUERY_KEY] });
+    socket.on('profile', (event: ProfileUpdate) => {
+      console.log('ProfileUpdate', event);
+      onProfileEvent(event);
     });
 
     socket.on(
@@ -163,14 +166,7 @@ export const SocketProviderValue = () => {
         if (data.from === 'dial') {
           return;
         }
-
-        if (data.type === 'scroll') {
-          dispatch(setProfileHover(data.id));
-        }
-
-        if (data.type === 'focus') {
-          dispatch(setFocusProfile(data.id));
-        }
+        onProfileHover(data.type, data.id);
       }
     );
   }, []);

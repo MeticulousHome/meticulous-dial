@@ -55,6 +55,30 @@ export async function getProfilesForReactQueryy(): Promise<Profile[]> {
   }
 }
 
+export async function getLastProfile(): Promise<LastProfileIdent> {
+  try {
+    const response = await api.getLastProfile();
+    const data = response.data;
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
+    return data;
+  } catch (error) {
+    if (error.response) {
+      console.error('Error fetching last profile: ', error.response.data);
+      throw new Error(
+        error.response.data?.message || 'Error fetching last profile.'
+      );
+    } else {
+      console.error(
+        'Network error while fetching last profile: ',
+        error.message
+      );
+      throw new Error('Network error while fetching last profile.');
+    }
+  }
+}
+
 export const saveProfile = async (body: Profile) => {
   try {
     const { data } = await api.saveProfile(body);
@@ -88,15 +112,6 @@ export const startProfile = async () => {
     return data;
   } catch (error) {
     console.error('Start profile error: ', error.message);
-  }
-};
-
-export const getLastProfile = async () => {
-  try {
-    const { data } = await api.getLastProfile();
-    return data as LastProfileIdent;
-  } catch (error) {
-    console.error('Get last Profile error: ', error.message);
   }
 };
 

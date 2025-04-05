@@ -47,12 +47,18 @@ import { ShotGraphScreen } from '../components/ShotGraph/ShotGraphScreen';
 import { ScrollDirectionSettings } from '../components/Settings/ScrollDirection';
 import { BrewCompleteScreen } from '../components/BrewCompleteScreen/BrewCompleteScreen';
 import { ProfileHomeScreen } from '../components/ProfileHomeScreen/ProfileHomeScreen';
-import { getProfilesTitle } from '../components/ProfileHomeScreen/ProfileTitle';
+import {
+  getActiveProfilesTitle,
+  getProfilesTitle
+} from '../components/ProfileHomeScreen/ProfileTitle';
 
 interface Route {
   component: ComponentType;
   parentTitle?: string | ((state: RootState) => string) | (() => JSX.Element);
-  title?: string | ((state: RootState) => string);
+  title?:
+    | string
+    | ((state: RootState) => string)
+    | ((state: RootState) => JSX.Element);
   titleShared?: boolean;
   parent?: ScreenType;
   bottomStatusHidden?: boolean;
@@ -61,9 +67,6 @@ interface Route {
   animationDirectionFrom?: Partial<Record<ScreenType, 'in' | 'out'>>;
   ignoreAsPrevious?: boolean;
 }
-
-const selectActivePresetName = (state: RootState) =>
-  state.presets.activePreset.name;
 
 const selectPurgeTitle = (state: RootState) => {
   const machine_state = state.stats.state;
@@ -80,8 +83,7 @@ const selectPurgeTitle = (state: RootState) => {
 
 // Profile from "start" event may not exist in LCD. Prefer using
 // that profile name over selected preset
-const selectStatProfileName = (state: RootState) =>
-  state.stats.profile || state.presets.activePreset.name;
+const selectStatProfileName = (state: RootState) => state.stats.profile;
 
 export const routes: Record<ScreenType, Route> = {
   timeZoneConfig: {
@@ -136,13 +138,13 @@ export const routes: Record<ScreenType, Route> = {
   },
   pressetSettings: {
     component: PressetSettings,
-    title: selectActivePresetName,
+    title: getActiveProfilesTitle,
     bottomStatusHidden: true,
     parent: 'profileHome'
   },
   pressure: {
     component: SettingNumerical,
-    title: selectActivePresetName,
+    title: getActiveProfilesTitle,
     bottomTitle: 'pressure',
     props: {
       type: 'pressure'
@@ -152,7 +154,7 @@ export const routes: Record<ScreenType, Route> = {
   },
   time: {
     component: SettingNumerical,
-    title: selectActivePresetName,
+    title: getActiveProfilesTitle,
     bottomTitle: 'time',
     props: {
       type: 'time'
@@ -162,7 +164,7 @@ export const routes: Record<ScreenType, Route> = {
   },
   weight: {
     component: SettingNumerical,
-    title: selectActivePresetName,
+    title: getActiveProfilesTitle,
     bottomTitle: 'weight',
     props: {
       type: 'weight'
@@ -172,7 +174,7 @@ export const routes: Record<ScreenType, Route> = {
   },
   flow: {
     component: SettingNumerical,
-    title: selectActivePresetName,
+    title: getActiveProfilesTitle,
     bottomTitle: 'flow',
     props: {
       type: 'flow'
@@ -183,7 +185,7 @@ export const routes: Record<ScreenType, Route> = {
 
   temperature: {
     component: SettingNumerical,
-    title: selectActivePresetName,
+    title: getActiveProfilesTitle,
     bottomTitle: 'temperature',
     props: {
       type: 'temperature'
@@ -192,7 +194,7 @@ export const routes: Record<ScreenType, Route> = {
     parent: 'pressetSettings'
   },
   output: {
-    title: selectActivePresetName,
+    title: getActiveProfilesTitle,
     component: SettingNumerical,
     bottomTitle: 'output',
     props: {
@@ -212,7 +214,7 @@ export const routes: Record<ScreenType, Route> = {
   },
   heating: {
     component: HeatingScreen,
-    title: selectActivePresetName,
+    title: getActiveProfilesTitle,
     bottomStatusHidden: true,
     animationDirectionFrom: {
       barometer: 'in',
@@ -226,7 +228,7 @@ export const routes: Record<ScreenType, Route> = {
   dose: {
     component: () => null, // Multiple choice to be implemented
     title: 'dose',
-    parentTitle: selectActivePresetName,
+    parentTitle: getActiveProfilesTitle,
     parent: 'pressetSettings'
   },
   name: {
@@ -310,7 +312,7 @@ export const routes: Record<ScreenType, Route> = {
   },
   pressetProfileImage: {
     component: PressetProfileImage,
-    title: selectActivePresetName,
+    title: getActiveProfilesTitle,
     bottomStatusHidden: true,
     parent: 'pressetSettings'
   },
@@ -334,7 +336,7 @@ export const routes: Record<ScreenType, Route> = {
   },
   shot_history: {
     component: ShotGraphScreen,
-    title: selectActivePresetName,
+    title: getActiveProfilesTitle,
     parent: 'profileHome',
     bottomStatusHidden: true
   },
