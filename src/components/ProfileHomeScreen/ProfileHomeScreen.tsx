@@ -2,7 +2,10 @@ import { createRef, Ref, useEffect, useRef, useState } from 'react';
 import { styled } from 'styled-components';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
-import { setScreen } from '../store/features/screens/screens-slice';
+import {
+  setBubbleDisplay,
+  setScreen
+} from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { PROFILE_ENTRY_SIZE, ProfileEntry } from './ProfileEntry';
 import { ProfileImage } from './ProfileImage';
@@ -13,6 +16,7 @@ import './transitions.less';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { useSettings } from '../../hooks/useSettings';
 import { useProfileContext } from '../../context/ProfileContext';
+import { useIdleTimer } from '../../hooks/useIdleTimer';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -58,6 +62,7 @@ export const ProfileHomeScreen = () => {
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { data: globalSettings } = useSettings();
+  const { isIdle: shouldGoToIdle } = useIdleTimer();
 
   const profileState = useProfileContext();
 
@@ -94,6 +99,13 @@ export const ProfileHomeScreen = () => {
       await startProfile();
     }
   };
+
+  useEffect(() => {
+    if (!shouldGoToIdle) return;
+
+    dispatch(setScreen('idle'));
+    dispatch(setBubbleDisplay({ visible: false, component: null }));
+  }, [shouldGoToIdle]);
 
   useEffect(() => {
     if (!profiles) {
