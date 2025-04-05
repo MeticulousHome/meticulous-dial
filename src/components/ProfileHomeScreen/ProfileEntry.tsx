@@ -1,8 +1,8 @@
 import classNames from 'classnames';
 import { styled } from 'styled-components';
 
-import { forwardRef, CSSProperties, useRef, useEffect } from 'react';
-import { CSSTransition, Transition } from 'react-transition-group';
+import { forwardRef, CSSProperties, useRef } from 'react';
+import { Transition } from 'react-transition-group';
 
 import './transitions.less';
 
