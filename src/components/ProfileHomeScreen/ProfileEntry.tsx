@@ -1,8 +1,8 @@
 import classNames from 'classnames';
 import { styled } from 'styled-components';
 
-import { forwardRef, CSSProperties, useRef } from 'react';
-import { CSSTransition } from 'react-transition-group';
+import { forwardRef, CSSProperties, useRef, useEffect } from 'react';
+import { CSSTransition, Transition } from 'react-transition-group';
 
 import './transitions.less';
 
@@ -86,7 +86,6 @@ interface ProfileEntryProps {
   zoomedIn: boolean;
   children: React.ReactNode;
 }
-
 export const ProfileEntry = forwardRef<HTMLDivElement, ProfileEntryProps>(
   (
     {
@@ -99,10 +98,11 @@ export const ProfileEntry = forwardRef<HTMLDivElement, ProfileEntryProps>(
     },
     ref
   ) => {
-    const titelRef = useRef(null);
+    const titleRef = useRef(null);
     const contentRef = useRef(null);
+
     const positionClasses =
-      distanceToActive == 0
+      distanceToActive === 0
         ? 'active'
         : distanceToActive > 0
           ? 'rightOf'
@@ -110,36 +110,52 @@ export const ProfileEntry = forwardRef<HTMLDivElement, ProfileEntryProps>(
 
     return (
       <div ref={ref}>
-        <CSSTransition
-          in={zoomedIn}
-          timeout={300}
-          classNames="zoom"
-          nodeRef={contentRef}
-        >
-          <OuterContainer
-            ref={contentRef}
-            className={`${positionClasses} ${contentClassNames || ''}`}
-          >
-            <CSSTransition
-              in={!(zoomedIn && distanceToActive == 0)}
-              timeout={400}
-              classNames="title"
-              nodeRef={titelRef}
+        <Transition in={zoomedIn} timeout={0} nodeRef={contentRef}>
+          {(state) => (
+            <OuterContainer
+              ref={contentRef}
+              className={`
+                ${positionClasses}
+                ${contentClassNames || ''}
+                ${state === 'entering' ? 'zoom-enter' : ''}
+                ${state === 'entered' ? 'zoom-enter-active' : ''}
+                ${state === 'exiting' ? 'zoom-exit' : ''}
+                ${state === 'exited' ? 'zoom-exit-done' : ''}
+              `}
             >
-              <TitleContainer ref={titelRef}>
-                <PressetTitleTop
-                  className={classNames({
-                    'presset-title-small': title.length > 30,
-                    'presset-title-very-small': title.length > 40
-                  })}
-                >
-                  {title.length > 70 ? `${title.substring(0, 70)}...` : title}
-                </PressetTitleTop>
-              </TitleContainer>
-            </CSSTransition>
-            <InnerContainer style={containerStyle}>{children}</InnerContainer>
-          </OuterContainer>
-        </CSSTransition>
+              <Transition
+                in={!(zoomedIn && distanceToActive === 0)}
+                timeout={400}
+                nodeRef={titleRef}
+              >
+                {(titleState) => (
+                  <TitleContainer
+                    ref={titleRef}
+                    className={`
+                      ${titleState === 'entering' ? 'title-enter-active' : ''}
+                      ${titleState === 'entered' ? 'title-enter-active' : ''}
+                      ${titleState === 'exiting' ? 'title-exit-done' : ''}
+                      ${titleState === 'exited' ? 'title-exit-done' : ''}
+                    `}
+                  >
+                    <PressetTitleTop
+                      className={classNames({
+                        'presset-title-small': title.length > 30,
+                        'presset-title-very-small': title.length > 40
+                      })}
+                    >
+                      {title.length > 70
+                        ? `${title.substring(0, 70)}...`
+                        : title}
+                    </PressetTitleTop>
+                  </TitleContainer>
+                )}
+              </Transition>
+
+              <InnerContainer style={containerStyle}>{children}</InnerContainer>
+            </OuterContainer>
+          )}
+        </Transition>
       </div>
     );
   }
