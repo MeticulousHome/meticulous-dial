@@ -1,7 +1,6 @@
 import { createRef, Ref, useEffect, useRef, useState } from 'react';
 import { styled } from 'styled-components';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { useProfiles } from '../../hooks/useProfiles';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -11,12 +10,9 @@ import { ProfileImage } from './ProfileImage';
 import { loadProfileData, startProfile } from '../../api/profile';
 import { CircleOverlay } from './CircleOverlay';
 import './transitions.less';
-import {
-  ProfileValue,
-  setPresetState
-} from '../store/features/preset/preset-slice';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { useSettings } from '../../hooks/useSettings';
+import { useProfileContext } from '../../context/ProfileContext';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -62,9 +58,24 @@ export const ProfileHomeScreen = () => {
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { data: globalSettings } = useSettings();
+
+  const profileState = useProfileContext();
+
+  const { data: profiles } = profileState.profileQuery;
+  const {
+    localProfileIndex: activeOption,
+    setLocalProfileIndex: setActiveOption,
+    profileStarting,
+    setProfileStarting,
+    localHoverState,
+    setLocalHoverState
+  } = profileState;
+
   const [transitionDirection, setTransitionDirection] = useState<
     'left' | 'right' | 'none'
   >('none');
+  const [isPressingDown, setIsPressingDown] = useState(false);
+
   const nodeRefs = useRef<Record<string, Ref<HTMLDivElement>>>({});
 
   const getOrCreateRef = (id: string) => {
@@ -74,19 +85,8 @@ export const ProfileHomeScreen = () => {
     return nodeRefs.current[id];
   };
 
-  const [isPressingDown, setIsPressingDown] = useState(false);
-
-  // TODO these should come from a context where they are synced with the server
-  const { data: profiles } = useProfiles();
-  const [zoomedIn, setZoomedIn] = useState(false);
-  const [activeOption, setActiveOption] = useState(0);
-  const [coffeeLoading, setCoffeeLoading] = useState(false);
-
-  //FIXME legacy
-  const presetState = useAppSelector((state) => state.presets);
-
   const animationFinished = async () => {
-    setCoffeeLoading(true);
+    setProfileStarting(true);
     console.log('starting coffee');
     const profile = profiles?.[activeOption];
     const data = await loadProfileData(profile);
@@ -107,31 +107,14 @@ export const ProfileHomeScreen = () => {
 
     // We are never zoomed in on the new button
     if (activeOption == profiles.length) {
-      setZoomedIn(false);
+      setLocalHoverState(false);
       return;
     }
-
-    //FIXME legacy code. Can be fully removed in the end
-    const state_copy = { ...presetState };
-    if (activeOption < profiles.length) {
-      state_copy.activePreset = profiles[activeOption] as ProfileValue;
-      state_copy.updatingSettings = {
-        presetId: state_copy.activePreset.id.toString(),
-        settings: state_copy.activePreset.settings || []
-      };
-    }
-    state_copy.activeIndexSwiper = activeOption;
-    state_copy.profileFocused = zoomedIn;
-    dispatch(
-      setPresetState({
-        ...state_copy
-      })
-    );
-  }, [profiles, activeOption, zoomedIn]);
+  }, [profiles, activeOption]);
 
   const rotateLeft = () => {
-    if (zoomedIn) {
-      setZoomedIn(false);
+    if (localHoverState) {
+      setLocalHoverState(false);
       return;
     }
     if (activeOption !== profiles?.length) {
@@ -144,8 +127,8 @@ export const ProfileHomeScreen = () => {
   };
 
   const rotateRight = () => {
-    if (zoomedIn) {
-      setZoomedIn(false);
+    if (localHoverState) {
+      setLocalHoverState(false);
       return;
     }
     if (activeOption !== 0) {
@@ -179,8 +162,8 @@ export const ProfileHomeScreen = () => {
         if (activeOption == profiles?.length) {
           dispatch(setScreen('defaultProfiles'));
         } else {
-          if (!zoomedIn) {
-            setZoomedIn(true);
+          if (!localHoverState) {
+            setLocalHoverState(true);
             setTransitionDirection('none');
           } else {
             setIsPressingDown(true);
@@ -191,7 +174,7 @@ export const ProfileHomeScreen = () => {
         setIsPressingDown(false);
       }
     },
-    bubbleDisplay.visible || coffeeLoading
+    bubbleDisplay.visible || profileStarting
   );
 
   if (!profiles || !globalSettings) {
@@ -222,14 +205,14 @@ export const ProfileHomeScreen = () => {
                   <ProfileEntry
                     ref={itemRef}
                     contentClassNames={
-                      !zoomedIn &&
+                      !localHoverState &&
                       Math.abs(index - activeOption) < 2 &&
                       `animation-bounce-${transitionDirection}`
                     }
                     containerStyle={{ backgroundColor }}
                     title={profile.name}
                     distanceToActive={index - activeOption}
-                    zoomedIn={zoomedIn}
+                    zoomedIn={localHoverState}
                   >
                     {/* Only render images in those that are close to the active option */}
                     {Math.abs(index - activeOption) < 2 && (
@@ -244,12 +227,12 @@ export const ProfileHomeScreen = () => {
               key={'new'}
               title={'new'}
               contentClassNames={
-                !zoomedIn &&
+                !localHoverState &&
                 Math.abs(profiles.length - activeOption) < 2 &&
                 `animation-bounce-${transitionDirection}`
               }
               distanceToActive={profiles.length - activeOption}
-              zoomedIn={zoomedIn}
+              zoomedIn={localHoverState}
             >
               <svg
                 width="166"
@@ -270,7 +253,7 @@ export const ProfileHomeScreen = () => {
         </Viewport>
       </Container>
       <CircleOverlay
-        shouldAnimate={zoomedIn && isPressingDown}
+        shouldAnimate={localHoverState && isPressingDown}
         onAnimationFinished={animationFinished}
       />
     </>

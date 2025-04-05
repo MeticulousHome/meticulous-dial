@@ -1,20 +1,6 @@
 // eslint-disable-next-line import/no-named-as-default
 import Swiper from 'swiper';
 
-import {
-  ActionKey,
-  IPresetAction,
-  IPresetBaseNumerical,
-  IPresetSetting
-} from '../types';
-import {
-  DEFAULT_SETTING,
-  StaticAction,
-  TEMPORARY_SETTINGS
-} from '../constants/setting';
-import { PresetsState } from '../components/store/features/preset/preset-slice';
-import { Variable } from '@meticulous-home/espresso-profile';
-
 export const handleRemovePresetsAnimation = (
   swiper: Swiper,
   orientation: 'horizontal' | 'vertical' = 'horizontal'
@@ -325,69 +311,4 @@ export const handlePresetSlideChange = (
       handleAddPresetAnimation(swiper, orientation);
     }, 20);
   }
-};
-
-export const generateStaticActions = (
-  settings: StaticAction[],
-  length: number
-) => {
-  const actions: IPresetAction[] = settings.map((action) => ({
-    ...action,
-    id: length + 1,
-    isInternal: true
-  }));
-  return actions;
-};
-
-export const filterSettingAction = (
-  settings: StaticAction[],
-  data: IPresetSetting[] = []
-) => {
-  const listActions = settings.map((action) => action.key);
-  const newData = data.filter((setting) => {
-    return !listActions.includes(setting.key as ActionKey);
-  });
-
-  return newData;
-};
-
-export const getPresetSettings = (presets: PresetsState): IPresetSetting[] => {
-  if (presets.updatingSettings.settings) {
-    const presetsLength = presets.updatingSettings.settings.length;
-
-    const defaultSettings = generateStaticActions(
-      presets.activePreset.isTemporary ? TEMPORARY_SETTINGS : DEFAULT_SETTING,
-      presetsLength
-    ).flat() as IPresetSetting[];
-
-    return [
-      ...(presets.updatingSettings.settings || []).filter(
-        (setting) => !setting.hidden
-      ),
-      ...defaultSettings
-    ];
-  }
-};
-
-export const addVariablesToSettings = ({
-  variables,
-  nextId
-}: {
-  variables: Variable[];
-  nextId: number;
-}) => {
-  if (!variables) return [];
-  if (!variables.length) return [];
-
-  const settings: IPresetBaseNumerical[] = variables.map((variable, index) => ({
-    id: index + nextId,
-    type: 'numerical',
-    isInternal: false,
-    externalType: variable.type,
-    key: variable.key,
-    label: variable.name,
-    value: variable.value
-  }));
-
-  return settings;
 };

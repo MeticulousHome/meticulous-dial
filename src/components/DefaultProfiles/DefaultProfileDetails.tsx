@@ -1,9 +1,9 @@
 import { useRef } from 'react';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { useAppDispatch } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { api } from '../../api/api';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
-import { useProfileDefaultImages } from '../../hooks/useProfiles';
+import { useProfileContext } from '../../context/ProfileContext';
 
 const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
 
@@ -12,11 +12,7 @@ const SCROLL_VALUE = 50;
 export const DefaultProfileDetails = () => {
   const dispatch = useAppDispatch();
 
-  const {
-    defaultProfileSelected: defaultProfile,
-    defaultProfileActiveIndexSwiper
-  } = useAppSelector((state) => state.presets.defaultProfilesInfo);
-  const { data: defaultImages } = useProfileDefaultImages();
+  const { defaultProfileSelected: defaultProfile } = useProfileContext();
 
   const mainContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -34,10 +30,7 @@ export const DefaultProfileDetails = () => {
     }
   });
 
-  const profile_url =
-    defaultProfile.display?.image ||
-    defaultImages[defaultProfileActiveIndexSwiper % defaultImages.length] ||
-    '';
+  const profile_url = defaultProfile.display?.image || '';
 
   const mainContainerScroll = (up: boolean) => {
     if (!mainContainerRef.current) {

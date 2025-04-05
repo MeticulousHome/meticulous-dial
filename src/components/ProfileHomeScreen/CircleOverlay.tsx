@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './transitions.less';
 
 import { styled } from 'styled-components';
-import { useAppSelector } from '../store/hooks';
+import { useProfileContext } from '../../context/ProfileContext';
 
 const CircleText = styled.div`
   position: absolute;
@@ -59,10 +59,7 @@ export function CircleOverlay({
     }
   }
 
-  // FIXME Remove this legacy code
-  const profileFocused = useAppSelector(
-    (state) => state.presets.profileFocused
-  );
+  const { localHoverState } = useProfileContext();
 
   useEffect(() => {
     if (!isDrawn) {
@@ -110,7 +107,7 @@ export function CircleOverlay({
         />
       </svg>
       <CircleText
-        className={profileFocused && wasLetGo ? 'animateTextOpacityUp' : ''}
+        className={localHoverState && wasLetGo ? 'animateTextOpacityUp' : ''}
         onAnimationEnd={() => setWasLetGo(false)}
       >
         Hold to start

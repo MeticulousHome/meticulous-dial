@@ -17,6 +17,7 @@ import {
   useNotification,
   useNotificationHandler
 } from './hooks/useNotification';
+import { ProfileProvider } from './context/ProfileContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -135,16 +136,18 @@ const App = (): JSX.Element => {
       <div className="meticulous-main-canvas">
         {dev && <div className="main-circle-overlay" />}
         <IdleTimerProvider>
-          <SocketManager>
-            {/* Mark router as not visible when scale is overlaid to avoid gesture handlers firing */}
-            <VisibilityProvider value={!scaleState.visible}>
-              <Router
-                currentScreen={screen.value}
-                previousScreen={screen.prev}
-              />
-            </VisibilityProvider>
-            <Scale {...scaleState} />
-          </SocketManager>
+          <ProfileProvider>
+            <SocketManager>
+              {/* Mark router as not visible when scale is overlaid to avoid gesture handlers firing */}
+              <VisibilityProvider value={!scaleState.visible}>
+                <Router
+                  currentScreen={screen.value}
+                  previousScreen={screen.prev}
+                />
+              </VisibilityProvider>
+              <Scale {...scaleState} />
+            </SocketManager>
+          </ProfileProvider>
         </IdleTimerProvider>
       </div>
     </QueryClientProvider>

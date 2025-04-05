@@ -7,6 +7,7 @@ import {
   selectByProfileId
 } from '../store/features/images/images-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { useProfileContext } from '../../context/ProfileContext';
 
 const colors: string[] = [
   '#FFFFFF',
@@ -46,9 +47,8 @@ export const ProfileImage = ({ preset }: { preset: IProfileImage }) => {
     useAppSelector((state) => selectByProfileId(state, preset.id.toString())) ||
     null;
   const dispatch = useAppDispatch();
-  const { value: presets } = useAppSelector((state) => state.presets);
-  const currentIndex = presets.findIndex((e) => preset.id === e.id) + 1;
-  const presetIndex = currentIndex % cLength || cLength;
+  const { localProfileIndex } = useProfileContext();
+  const presetIndex = localProfileIndex % cLength || cLength;
   const [image, setImage] = useState(
     preset.display?.image
       ? `${API_URL}${api.getProfileImageUrl(preset.display.image)}`

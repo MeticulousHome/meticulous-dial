@@ -1,14 +1,7 @@
-import { useMemo } from 'react';
 import 'swiper/css';
 
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { getPresetSettings } from '../../utils/preset';
-import {
-  discardSettings,
-  savePreset,
-  setNextSettingOption,
-  setPrevSettingOption
-} from '../store/features/preset/preset-slice';
+
 import { setScreen } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 
@@ -16,6 +9,9 @@ import { css, keyframes, styled } from 'styled-components';
 import { api } from '../../api/api';
 import { IPresetNumericalUnit } from '../../types';
 import { useDimScreen } from '../../hooks/useDimScreen';
+import { useProfileContext } from '../../context/ProfileContext';
+import { useSavePreset } from '../../hooks/useProfiles';
+import { applySettingsToProfile } from '../../utils/profiles';
 
 const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
 
@@ -116,29 +112,34 @@ const SettingsUnit = styled.span`
 export function PressetSettings(): JSX.Element {
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const presets = useAppSelector((state) => state.presets);
+  const { settingsIndex, setSettingsIndex, settingsProfile } =
+    useProfileContext();
+  const settings = settingsProfile.settings;
+  const activeSetting = settings[settingsIndex];
 
-  const settings = useMemo(() => {
-    return getPresetSettings(presets);
-  }, [presets.updatingSettings.settings]);
-
-  const activeSetting = settings[presets.activeSetting];
+  console.log('settings', settings);
+  const saveProfile = useSavePreset();
 
   useDimScreen();
   useHandleGestures(
     {
       left() {
-        dispatch(setPrevSettingOption());
+        setSettingsIndex((prev) => Math.max(prev - 1, 0));
       },
       right() {
-        dispatch(setNextSettingOption());
+        setSettingsIndex((prev) => Math.min(prev + 1, settings.length - 1));
       },
       pressDown() {
         if (activeSetting.key === 'save') {
-          dispatch(savePreset());
+          const cleaned = { ...settingsProfile };
+          delete cleaned.settings;
+          const profile = applySettingsToProfile(
+            cleaned,
+            settingsProfile.settings
+          );
+          saveProfile.mutate({ profile });
           dispatch(setScreen('profileHome'));
         } else if (activeSetting.key == 'discard') {
-          dispatch(discardSettings());
           dispatch(setScreen('profileHome'));
         } else if (activeSetting.key === 'name') {
           dispatch(setScreen('name'));
@@ -176,12 +177,10 @@ export function PressetSettings(): JSX.Element {
           zIndex: 1
         }}
       />
-      <Viewport
-        $translateY={-presets.activeSetting * (OPTIONS_HEIGHT + CARD_GAP)}
-      >
+      <Viewport $translateY={-settingsIndex * (OPTIONS_HEIGHT + CARD_GAP)}>
         {settings.map((setting, index: number) => {
           const { label, value, type } = setting;
-          const isActive = settings[presets.activeSetting].label === label;
+          const isActive = activeSetting.label === label;
           const isImage = type === 'image';
           const showValue =
             isActive &&

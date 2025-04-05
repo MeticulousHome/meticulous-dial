@@ -11,10 +11,10 @@ import { useAppSelector } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { IPresetImage, IPresetSetting } from '../../types';
 import { useDispatch } from 'react-redux';
-import { updatePresetSetting } from '../store/features/preset/preset-slice';
 import { useDimScreen } from '../../hooks/useDimScreen';
 import { api } from '../../api/api';
 import { useProfileDefaultImages } from '../../hooks/useProfiles';
+import { useProfileContext } from '../../context/ProfileContext';
 
 const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
 
@@ -22,10 +22,9 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
   const dispatch = useDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { value: currentScreen } = useAppSelector((state) => state.screen);
-  const presets = useAppSelector((state) => state.presets);
-  const setting = presets.updatingSettings.settings[
-    presets.activeSetting
-  ] as IPresetImage;
+  const { settingsIndex, settingsProfile, setSettingsProfile } =
+    useProfileContext();
+  const setting = settingsProfile.settings[settingsIndex] as IPresetImage;
 
   const { data: images, isLoading: isLoadingImages } =
     useProfileDefaultImages();
@@ -40,7 +39,14 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
         ? updatedText.replace('/api/v1/profile/image/', '')
         : ''
     } as IPresetSetting;
-    dispatch(updatePresetSetting(updatedSetting));
+    setSettingsProfile((prev) => ({
+      ...prev,
+      settings: [
+        ...prev.settings.slice(0, settingsIndex),
+        updatedSetting,
+        ...prev.settings.slice(settingsIndex + 1)
+      ]
+    }));
     dispatch(setScreen('pressetSettings'));
   };
 

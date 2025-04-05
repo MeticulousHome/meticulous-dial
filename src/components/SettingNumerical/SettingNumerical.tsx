@@ -7,13 +7,12 @@ import {
   ISettingType
 } from '../../types';
 import { roundPrecision } from '../../utils';
-import { useReduxSelector } from '../store/store';
 import { Gauge, Unit } from './Gauge';
-import { updatePresetSetting } from '../store/features/preset/preset-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { useAppSelector } from '../store/hooks';
 import { useDimScreen } from '../../hooks/useDimScreen';
+import { useProfileContext } from '../../context/ProfileContext';
 
 interface ISettingConfig {
   interval: number;
@@ -65,10 +64,9 @@ interface Props {
 }
 
 export function SettingNumerical({ type }: Props): JSX.Element {
-  const setting = useReduxSelector(
-    (state) =>
-      state.presets.updatingSettings.settings[state.presets.activeSetting]
-  );
+  const { settingsIndex, settingsProfile, setSettingsProfile } =
+    useProfileContext();
+  const setting = settingsProfile.settings[settingsIndex];
 
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const total = Number(setting?.value || 0);
@@ -93,15 +91,21 @@ export function SettingNumerical({ type }: Props): JSX.Element {
     }
     const mTotal = total + (gesture === 'left' ? -interval : +interval);
     const value = type === 'output' ? mTotal : roundPrecision(mTotal, 1);
-    dispatch(
-      updatePresetSetting({
-        ...setting,
-        value
-      } as unknown as
-        | IPresetNumericalTemperature
-        | IPresetNumericalPressure
-        | IPresetNumericalOutput)
-    );
+    const updatedSetting = {
+      ...setting,
+      value
+    } as unknown as
+      | IPresetNumericalTemperature
+      | IPresetNumericalPressure
+      | IPresetNumericalOutput;
+    setSettingsProfile((prev) => ({
+      ...prev,
+      settings: [
+        ...prev.settings.slice(0, settingsIndex),
+        updatedSetting,
+        ...prev.settings.slice(settingsIndex + 1)
+      ]
+    }));
   };
 
   useHandleGestures(
