@@ -9,3 +9,10 @@
   font-family: 'ABC Diatype Mono';
   height: fit-content;
 }
+
+.wifi-connect-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 10px;
+}
