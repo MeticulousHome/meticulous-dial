@@ -45,6 +45,7 @@ const GraphContainer = styled.div`
   align-items: center;
   gap: 10px;
   border-radius: 8px;
+  text-size: 20px;
 `;
 
 const GraphLabels = styled.div`
@@ -190,6 +191,15 @@ export const ShotGraphScreen = () => {
 
   if (isLoading) {
     return <LoadingScreen />;
+  }
+
+  if (displayShot === undefined) {
+    return (
+      <GraphContainer>
+        <span>Not historicial shot available for this profile</span>
+        <span>Select a different one</span>
+      </GraphContainer>
+    );
   }
 
   return (
