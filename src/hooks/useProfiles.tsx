@@ -5,7 +5,7 @@ import {
   getDefaultProfileImages,
   getDefaultProfiles,
   getLastProfile,
-  getProfilesForReactQueryy as getProfilesForReactQuery,
+  getProfiles,
   saveProfile
 } from '../api/profile';
 
@@ -20,7 +20,7 @@ export const DEFAULT_PROFILE_IMAGES_QUERY_KEY = 'default_profile_images';
 export const useProfiles = () => {
   return useQuery({
     queryKey: [PROFILES_QUERY_KEY],
-    queryFn: getProfilesForReactQuery,
+    queryFn: getProfiles,
     placeholderData: keepPreviousData,
     refetchOnReconnect: 'always',
     refetchOnWindowFocus: false
