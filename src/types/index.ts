@@ -55,7 +55,7 @@ export type DoseKey = 'dose';
 
 export type OutputKey = 'output';
 
-export type ActionKey = 'save' | 'discard' | 'brew_once' | 'delete';
+export type ActionKey = 'save' | 'discard' | 'delete';
 
 export type IPresetText = {
   type: 'text';
