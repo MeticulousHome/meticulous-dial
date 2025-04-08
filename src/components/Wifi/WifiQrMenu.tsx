@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
@@ -12,8 +11,6 @@ import { api } from '../../api/api';
 const items = [{ key: 'back' }];
 
 export const WifiQrMenu = (): JSX.Element => {
-  const [swiper, setSwiper] = useState(null);
-  const [activeIndex, setActiveIndex] = useState(items.length - 1);
   const dispatch = useAppDispatch();
 
   //Auto-exit timer
@@ -27,31 +24,10 @@ export const WifiQrMenu = (): JSX.Element => {
   }, []);
 
   useHandleGestures({
-    left() {
-      setActiveIndex((prev) => Math.max(prev - 1, 0));
-    },
-    right() {
-      setActiveIndex((prev) => Math.min(prev + 1, items.length - 1));
-    },
     pressDown() {
-      switch (items[activeIndex].key) {
-        case 'back':
-          dispatch(
-            setBubbleDisplay({ visible: true, component: 'wifiSettings' })
-          );
-          break;
-
-        default:
-          break;
-      }
+      dispatch(setBubbleDisplay({ visible: true, component: 'wifiSettings' }));
     }
   });
-
-  useEffect(() => {
-    if (swiper) {
-      swiper.slideTo(activeIndex, 0, false);
-    }
-  }, [activeIndex, swiper]);
 
   return (
     <div className="main-quick-settings settings-explanation">
