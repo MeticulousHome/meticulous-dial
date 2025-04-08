@@ -34,7 +34,7 @@ export const getDefaultProfileImages = async (): Promise<string[]> => {
   }
 };
 
-export async function getProfilesForReactQueryy(): Promise<Profile[]> {
+export async function getProfiles(): Promise<Profile[]> {
   try {
     const response = await api.fetchAllProfiles();
     const data = response.data;
