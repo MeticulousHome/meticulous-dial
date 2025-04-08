@@ -20,7 +20,7 @@ import { KnownWifi } from '../../src/components/Wifi/KnownWifi';
 import { DeleteWifiMenu } from '../components/Wifi/DeleteWifiMenu';
 import { AdvancedSettings } from '../components/Settings/Advanced/Advanced';
 import { WifiQrMenu } from '../../src/components/Wifi/WifiQrMenu';
-import { PressetProfileImage } from '../../src/components/Pressets/PressetProfileImage';
+import { PressetProfileImage } from '../components/PressetSettings/PressetProfileImage';
 import { DeviceInfoScreen } from '../components/Settings/Advanced/DeviceInfoScreen';
 import { DefaultProfiles } from '../components/DefaultProfiles/DefaultProfiles';
 import { DefaultProfileDetails } from '../components/DefaultProfiles/DefaultProfileDetails';
