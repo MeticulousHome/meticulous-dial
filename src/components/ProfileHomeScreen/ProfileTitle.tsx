@@ -24,8 +24,3 @@ export const TitleProfiles = () => {
     </PressetsTitle>
   );
 };
-
-export const ActiveProfileTitle = () => {
-  const { localProfile } = useProfileContext();
-  return <span>{localProfile?.name || ''}</span>;
-};
