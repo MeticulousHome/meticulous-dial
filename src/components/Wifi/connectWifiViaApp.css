@@ -3,16 +3,11 @@
   font-size: 22px;
   color: #dddddd;
   text-align: left;
-  width: 100%;
   justify-content: start;
   font-weight: 400;
   font-family: 'ABC Diatype Mono';
   height: fit-content;
-}
-
-.wifi-connect-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-left: 10px;
+  display: block;
+  padding-top: 20px;
+  padding-right: 20px;
 }

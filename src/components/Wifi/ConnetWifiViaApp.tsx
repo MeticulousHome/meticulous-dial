@@ -21,29 +21,27 @@ export const ConnectWifiViaApp = (): JSX.Element => {
       <div className="settings-explanation">
         <div className="settings-explanation-shaper-left" />
         <div className="settings-explanation-shaper-right" />
-        <div className="wifi-connect-container">
-          <div className="wifi-help-text">
-            To connect the machine to your existing WiFi download the meticulous
-            App in the AppStore or PlayStore and select "Add Device" in the
-            settings menu. An authentication will be requested if needed and the
-            app will quide you through the process.
-          </div>
+        <span className="wifi-help-text">
+          To connect the machine to your existing WiFi download the meticulous
+          App in the AppStore or PlayStore and select "Add Device" in the
+          settings menu. An authentication will be requested if needed and the
+          app will quide you through the process.
+        </span>
 
+        <div
+          className={`settings-item active-setting`}
+          style={{
+            marginTop: 50,
+            marginBottom: 80
+          }}
+        >
           <div
-            className={`settings-item active-setting`}
+            className="settings-entry"
             style={{
-              marginTop: 80,
-              marginBottom: 80
+              padding: '6px'
             }}
           >
-            <div
-              className="settings-entry"
-              style={{
-                padding: '6px'
-              }}
-            >
-              <span>Back</span>
-            </div>
+            <span>Back</span>
           </div>
         </div>
       </div>
