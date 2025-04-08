@@ -54,37 +54,33 @@ export const WifiQrMenu = (): JSX.Element => {
   }, [activeIndex, swiper]);
 
   return (
-    <div className="main-quick-settings">
-      <Swiper
-        onSwiper={setSwiper}
-        slidesPerView={8}
-        allowTouchMove={false}
-        direction="vertical"
-        spaceBetween={16}
-        autoHeight={false}
-        initialSlide={activeIndex}
-        centeredSlides={true}
-        style={{ paddingLeft: '29px', top: '-20px' }}
+    <div className="main-quick-settings settings-explanation">
+      <div
+        className="settings-explanation-container"
+        style={{ justifyContent: 'center', alignItems: 'center' }}
       >
-        <SwiperSlide key="qr" style={{ paddingBottom: '130px' }}>
-          <QrImage
-            src={`${api.getWiFiQRURL()}`}
-            size={280}
-            style={{ paddingRight: '40px' }}
-            description="Scan with meticulous App to connect to the machine"
-          />
-        </SwiperSlide>
-        <SwiperSlide
-          key="back"
-          className={`settings-item ${
-            items[activeIndex].key === 'back' ? 'active-setting' : ''
-          }`}
+        <QrImage
+          src={`${api.getWiFiQRURL()}`}
+          size={280}
+          style={{ paddingRight: '100px' }}
+          description="Scan with meticulous App to connect to the machine"
+        />
+        <div
+          className={`settings-item active-setting`}
+          style={{
+            marginBottom: 80
+          }}
         >
-          <div className="settings-entry">
+          <div
+            className="settings-entry"
+            style={{
+              padding: '6px'
+            }}
+          >
             <span>Back</span>
           </div>
-        </SwiperSlide>
-      </Swiper>
+        </div>
+      </div>
     </div>
   );
 };
