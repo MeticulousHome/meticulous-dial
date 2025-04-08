@@ -122,7 +122,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
     } else {
       setDefaultProfileSelected(null);
     }
-  }, [activeIndex, defaultProfiles]);
+  }, [activeIndex, defaultProfiles.length]);
 
   useEffect(() => {
     if (!isLoading && defaultProfiles.length === 0) {
