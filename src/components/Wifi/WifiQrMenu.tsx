@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import 'swiper/css';
 
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
@@ -7,8 +7,6 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { QrImage } from './QrImage';
 import './wifiDetails.css';
 import { api } from '../../api/api';
-
-const items = [{ key: 'back' }];
 
 export const WifiQrMenu = (): JSX.Element => {
   const dispatch = useAppDispatch();
