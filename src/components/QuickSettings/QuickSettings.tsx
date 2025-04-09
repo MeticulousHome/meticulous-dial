@@ -207,12 +207,7 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'details': {
-            dispatch(
-              setBubbleDisplay({
-                visible: true,
-                component: 'defaultProfileDetails'
-              })
-            );
+            dispatch(setScreen('defaultProfileDetails'));
             break;
           }
           case 'disable_ui_features': {

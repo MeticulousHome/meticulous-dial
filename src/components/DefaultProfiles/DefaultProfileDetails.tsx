@@ -1,102 +1,145 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { api } from '../../api/api';
-import { setBubbleDisplay } from '../store/features/screens/screens-slice';
+import {
+  setBubbleDisplay,
+  setScreen
+} from '../store/features/screens/screens-slice';
 import { useProfileContext } from '../../context/ProfileContext';
-import { useBubbleContext } from '../Bubble/Bubble';
-import { styled } from 'styled-components';
+import { styled, keyframes } from 'styled-components';
 
 const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
 
 const SCROLL_VALUE = 50;
-export const MainQuickSettings = styled.div`
-  height: 480px;
-  align-items: center;
-`;
 
-export const Wrapper = styled.div`
+const Container = styled.div`
+  position: relative;
   width: 100%;
-  padding: 24px;
+  height: 100%;
   display: flex;
-  justify-content: center;
   flex-direction: column;
   align-items: center;
+  padding: 24px;
+  box-sizing: border-box;
 `;
 
-export const ImageWrapper = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
+const ImageWrapper = styled.div`
   margin-top: 32px;
+  margin-bottom: 24px;
 `;
 
-export const ProfileImage = styled.img<{ borderColor: string }>`
-  border: 8px solid ${(props) => props.borderColor};
-  display: block;
-  position: relative;
-  width: 66px;
-  height: 66px;
+const ImageContainer = styled.div<{ accentColor: string }>`
+  width: 80px;
+  height: 80px;
+  border: 8px solid ${({ accentColor }) => accentColor};
+  border-radius: 4px;
 `;
 
-export const Name = styled.p`
+const ProfileImage = styled.img<{ src: string; alt: string }>`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const Name = styled.h2`
   text-align: center;
   font-size: 24px;
   font-weight: bold;
+  margin: 0 0 16px 0;
 `;
 
-export const Description = styled.p`
+const Description = styled.p`
+  position: relative;
   white-space: pre-wrap;
   overflow: hidden;
   scroll-behavior: smooth;
-  max-height: 283px;
+  height: 180px;
+  width: 100%;
   max-width: 85%;
-  margin: 0;
+  margin: 0 0 64px 0;
+  padding: 0 16px;
+  color: #e6e6e6;
 `;
 
-export const BackButtonContainer = styled.div`
-  margin-top: 80px;
-  margin-bottom: 80px;
-  max-width: 40%;
-  border-radius: 9999px;
-  margin-inline: auto;
-  padding: 0;
-`;
-
-export const BackButtonInner = styled.div`
-  padding: 8px 32px;
-  width: auto;
+const BackButtonContainer = styled.div`
+  position: absolute;
+  bottom: 32px;
+  left: 0;
+  right: 0;
+  display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
+`;
+
+const BackButtonInner = styled.button`
+  background-color: #f5c444;
+  color: #000000;
+  font-weight: bold;
+  padding: 8px 32px;
+  border-radius: 9999px;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 16px;
+  border: none;
+`;
+
+const bounce = keyframes`
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+`;
+
+const ScrollIndicatorWrapper = styled.div<{ visible: boolean }>`
+  position: absolute;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  display: ${(props) => (props.visible ? 'flex' : 'none')};
+  justify-content: center;
+  color: #f5c444;
+`;
+
+const BouncingArrow = styled.svg`
+  animation: ${bounce} 2s infinite;
 `;
 
 export const DefaultProfileDetails = () => {
-  const { bubbleContainerRef } = useBubbleContext();
-
   const dispatch = useAppDispatch();
+  console.log('DefaultProfileDetails component rendered');
 
   const { defaultProfileSelected: defaultProfile } = useProfileContext();
 
-  const mainContainerRef = useRef<HTMLDivElement | null>(null);
+  const descriptionDivRef = useRef<HTMLDivElement | null>(null);
 
-  //When our component is mounted, we modify the styles of its container — the Bubble component in this case.
-  //Once it is unmounted, we restore it to its original state.
+  const prevScreen = useAppSelector((state) => state.screen.prev);
+  const currentScreen = useAppSelector((state) => state.screen.value);
+  const [isScrollable, setIsScrollable] = useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(false);
+
+  console.log('prevScreen :: => ', prevScreen);
+  console.log('currentScreen :: => ', currentScreen);
+  console.log('defaultProfile :: => ', defaultProfile);
+
   useEffect(() => {
-    const $bubbleContainer = bubbleContainerRef?.current;
-    if (!$bubbleContainer) return;
-    const originalWidth = $bubbleContainer.style.width;
-    const originalPadding = $bubbleContainer.style.padding;
+    console.log('defaultProfile triggers effect 😪 :: => ', defaultProfile);
+  }, [defaultProfile]);
 
-    $bubbleContainer.style.width = '100%';
-    $bubbleContainer.style.padding = '0px';
-
-    return () => {
-      $bubbleContainer.style.width = originalWidth;
-      $bubbleContainer.style.padding = originalPadding;
-    };
+  useEffect(() => {
+    dispatch(setBubbleDisplay({ visible: false, component: 'quick-settings' }));
   }, []);
+
+  // Scroll control
+  const mainContainerScroll = (up: boolean) => {
+    if (!descriptionDivRef.current) return;
+    descriptionDivRef.current.scrollTop += up ? -SCROLL_VALUE : SCROLL_VALUE;
+  };
 
   useHandleGestures({
     left: () => {
@@ -106,60 +149,94 @@ export const DefaultProfileDetails = () => {
       mainContainerScroll(false);
     },
     pressDown: async () => {
+      dispatch(setScreen(prevScreen));
       dispatch(
-        setBubbleDisplay({ visible: true, component: 'quick-settings' })
+        setBubbleDisplay({ visible: false, component: 'quick-settings' })
       );
     }
   });
 
-  const profile_url = defaultProfile.display?.image || '';
+  // Check scrollability and scroll position
+  useEffect(() => {
+    const $descriptionDiv = descriptionDivRef.current;
+    if (!$descriptionDiv) return;
 
-  const mainContainerScroll = (up: boolean) => {
-    if (!mainContainerRef.current) {
-      return;
-    }
+    const SCROLL_BOTTOM_THRESHOLD = 5;
 
-    mainContainerRef.current.scrollTop += up ? -SCROLL_VALUE : SCROLL_VALUE;
-  };
+    const checkScrollState = () => {
+      setIsScrollable(
+        $descriptionDiv.scrollHeight > $descriptionDiv.clientHeight
+      );
+      const atBottom =
+        $descriptionDiv.scrollHeight - $descriptionDiv.scrollTop <=
+        $descriptionDiv.clientHeight + SCROLL_BOTTOM_THRESHOLD;
+      setIsAtBottom(atBottom);
+    };
+
+    checkScrollState();
+    $descriptionDiv.addEventListener('scroll', checkScrollState);
+
+    return () =>
+      $descriptionDiv.removeEventListener('scroll', checkScrollState);
+  }, []);
+
+  const profileUrl = defaultProfile?.display?.image || '';
+  const profileDescription =
+    defaultProfile?.display?.description ||
+    'Shared by a member of the community, this profile is ready for you to discover in the cup. Perfect for those who enjoy exploring new extractions and finding their own balance.';
+
+  console.log('profile_url :: => ', profileUrl);
 
   return (
-    <MainQuickSettings className="main-quick-settings">
-      <Wrapper>
-        <ImageWrapper>
+    <Container>
+      <ImageWrapper>
+        <ImageContainer
+          accentColor={defaultProfile?.display?.accentColor ?? '#e0dcd0'}
+        >
           <ProfileImage
-            src={`${API_URL}${api.getProfileImageUrl(profile_url)}`}
+            src={`${API_URL}${api.getProfileImageUrl(profileUrl)}`}
             alt="No image"
-            width="50"
-            height="50"
-            className="profile-image image-prev"
-            borderColor={defaultProfile?.display?.accentColor ?? '#e0dcd0'}
           />
-        </ImageWrapper>
-        <Name>{defaultProfile?.name}</Name>
-        <Description ref={mainContainerRef}>
-          {defaultProfile?.display?.description ||
-            'Shared by a member of the community, this profile is ready for you to discover in the cup. Perfect for those who enjoy exploring new extractions and finding their own balance.'}
-          <BackButtonContainer className="settings-item active-setting">
-            <BackButtonInner className="settings-entry">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m12 19-7-7 7-7" />
-                <path d="M19 12H5" />
-              </svg>
-              <span>Back</span>
-            </BackButtonInner>
-          </BackButtonContainer>
-        </Description>
-      </Wrapper>
-    </MainQuickSettings>
+        </ImageContainer>
+      </ImageWrapper>
+      <Name>{defaultProfile?.name}</Name>
+      <Description ref={descriptionDivRef}>{profileDescription}</Description>
+
+      <ScrollIndicatorWrapper visible={isScrollable && !isAtBottom}>
+        <BouncingArrow
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </BouncingArrow>
+      </ScrollIndicatorWrapper>
+
+      <BackButtonContainer>
+        <BackButtonInner>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m12 19-7-7 7-7" />
+            <path d="M19 12H5" />
+          </svg>
+          <span>Back</span>
+        </BackButtonInner>
+      </BackButtonContainer>
+    </Container>
   );
 };
