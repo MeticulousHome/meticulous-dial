@@ -112,30 +112,19 @@ const BouncingArrow = styled.svg`
 
 export const DefaultProfileDetails = () => {
   const dispatch = useAppDispatch();
-  console.log('DefaultProfileDetails component rendered');
 
   const { defaultProfileSelected: defaultProfile } = useProfileContext();
 
   const descriptionDivRef = useRef<HTMLDivElement | null>(null);
 
   const prevScreen = useAppSelector((state) => state.screen.prev);
-  const currentScreen = useAppSelector((state) => state.screen.value);
   const [isScrollable, setIsScrollable] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(false);
-
-  console.log('prevScreen :: => ', prevScreen);
-  console.log('currentScreen :: => ', currentScreen);
-  console.log('defaultProfile :: => ', defaultProfile);
-
-  useEffect(() => {
-    console.log('defaultProfile triggers effect 😪 :: => ', defaultProfile);
-  }, [defaultProfile]);
 
   useEffect(() => {
     dispatch(setBubbleDisplay({ visible: false, component: 'quick-settings' }));
   }, []);
 
-  // Scroll control
   const mainContainerScroll = (up: boolean) => {
     if (!descriptionDivRef.current) return;
     descriptionDivRef.current.scrollTop += up ? -SCROLL_VALUE : SCROLL_VALUE;
@@ -184,8 +173,6 @@ export const DefaultProfileDetails = () => {
   const profileDescription =
     defaultProfile?.display?.description ||
     'Shared by a member of the community, this profile is ready for you to discover in the cup. Perfect for those who enjoy exploring new extractions and finding their own balance.';
-
-  console.log('profile_url :: => ', profileUrl);
 
   return (
     <Container>
