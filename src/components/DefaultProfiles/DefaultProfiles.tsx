@@ -64,6 +64,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
   const createProfile = useSavePreset();
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const currentScreen = useAppSelector((state) => state.screen.value);
 
   const { data: allDefaultProfiles, isLoading } = useDefaultProfiles();
   const defaultProfiles = allDefaultProfiles
@@ -138,7 +139,8 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
       // This is important to avoid keeping the last selected profile when navigating back
       // to the default profiles screen
       setActiveIndex(0);
-      setDefaultProfileSelected(null);
+      //Since DefaultProfileDetails is now treated as a screen and not as an element within the bubble display, we need to retain the selected profile so that the information is preserved when viewing its details.
+      if (currentScreen === 'profileHome') setDefaultProfileSelected(null); //
     };
   }, []);
 
