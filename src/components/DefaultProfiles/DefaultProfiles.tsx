@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 import { RouteProps } from '../../navigation';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
@@ -67,9 +67,13 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
   const currentScreen = useAppSelector((state) => state.screen.value);
 
   const { data: allDefaultProfiles, isLoading } = useDefaultProfiles();
-  const defaultProfiles = allDefaultProfiles
-    ? [...allDefaultProfiles.default, ...allDefaultProfiles.community]
-    : [];
+  const defaultProfiles = useMemo(
+    () =>
+      allDefaultProfiles
+        ? [...allDefaultProfiles.default, ...allDefaultProfiles.community]
+        : [],
+    [allDefaultProfiles]
+  );
 
   const dispatch = useAppDispatch();
   const { data: defaultImages, isLoading: defaultImagesLoading } =
@@ -123,7 +127,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
     } else {
       setDefaultProfileSelected(null);
     }
-  }, [activeIndex, defaultProfiles.length]);
+  }, [activeIndex, defaultProfiles.length, defaultImages.length]);
 
   useEffect(() => {
     if (!isLoading && defaultProfiles.length === 0) {

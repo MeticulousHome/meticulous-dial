@@ -15,8 +15,24 @@ import { useDimScreen } from '../../hooks/useDimScreen';
 import { api } from '../../api/api';
 import { useProfileDefaultImages } from '../../hooks/useProfiles';
 import { useProfileContext } from '../../context/ProfileContext';
+import { styled } from 'styled-components';
 
 const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
+
+const SwiperWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+
+  .swiper-pagination {
+    top: 352px;
+    line-height: 0;
+  }
+
+  .swiper {
+    width: 100%;
+    height: 100%;
+  }
+`;
 
 export const PressetProfileImage = ({ transitioning }: RouteProps) => {
   const dispatch = useDispatch();
@@ -85,7 +101,7 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
   }
 
   return (
-    <div className="image-swiper">
+    <SwiperWrapper>
       <Swiper
         effect={'coverflow'}
         coverflowEffect={{
@@ -113,7 +129,15 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
       >
         {images.length &&
           images.map((image) => (
-            <SwiperSlide key={image}>
+            <SwiperSlide
+              key={image}
+              style={{
+                textAlign: 'center',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
               {() => (
                 <div>
                   <img
@@ -131,6 +155,6 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
             </SwiperSlide>
           ))}
       </Swiper>
-    </div>
+    </SwiperWrapper>
   );
 };
