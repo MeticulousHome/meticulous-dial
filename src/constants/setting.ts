@@ -9,6 +9,11 @@ export type StaticAction = {
 export const DEFAULT_SETTING: StaticAction[] = [
   {
     type: 'action',
+    key: 'brew_once',
+    label: 'brew without saving'
+  },
+  {
+    type: 'action',
     key: 'save',
     label: 'save'
   },
@@ -20,6 +25,11 @@ export const DEFAULT_SETTING: StaticAction[] = [
 ];
 
 export const TEMPORARY_SETTINGS: StaticAction[] = [
+  {
+    type: 'action',
+    key: 'brew_once',
+    label: 'brew without saving'
+  },
   {
     type: 'action',
     key: 'save',

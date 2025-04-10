@@ -11,7 +11,12 @@ import { IPresetNumericalUnit } from '../../types';
 import { useDimScreen } from '../../hooks/useDimScreen';
 import { useProfileContext } from '../../context/ProfileContext';
 import { useSavePreset } from '../../hooks/useProfiles';
-import { applySettingsToProfile } from '../../utils/profiles';
+import {
+  applySettingsToProfile,
+  generateStaticActions
+} from '../../utils/profiles';
+import { DEFAULT_SETTING } from '../../constants/setting';
+import { loadProfileData, startProfile } from '../../api/profile';
 
 const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
 
@@ -112,12 +117,19 @@ const SettingsUnit = styled.span`
 export function PressetSettings(): JSX.Element {
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const { settingsIndex, setSettingsIndex, settingsProfile } =
-    useProfileContext();
-  const settings = settingsProfile.settings;
+  const {
+    settingsIndex,
+    setSettingsIndex,
+    settingsProfile,
+    setProfileStarting
+  } = useProfileContext();
+
+  const settings = [
+    ...settingsProfile.settings,
+    ...generateStaticActions(DEFAULT_SETTING, settingsProfile.settings.length)
+  ];
   const activeSetting = settings[settingsIndex];
 
-  console.log('settings', settings);
   const saveProfile = useSavePreset();
 
   useDimScreen();
@@ -129,17 +141,27 @@ export function PressetSettings(): JSX.Element {
       right() {
         setSettingsIndex((prev) => Math.min(prev + 1, settings.length - 1));
       },
-      pressDown() {
+      async pressDown() {
         if (activeSetting.key === 'save') {
-          const cleaned = { ...settingsProfile };
-          delete cleaned.settings;
           const profile = applySettingsToProfile(
-            cleaned,
+            { ...settingsProfile },
             settingsProfile.settings
           );
+
           saveProfile.mutate({ profile });
           dispatch(setScreen('profileHome'));
         } else if (activeSetting.key == 'discard') {
+          dispatch(setScreen('profileHome'));
+        } else if (activeSetting.key === 'brew_once') {
+          const profile = applySettingsToProfile(
+            { ...settingsProfile },
+            settingsProfile.settings
+          );
+          setProfileStarting(true);
+          const data = await loadProfileData(profile);
+          if (data) {
+            await startProfile();
+          }
           dispatch(setScreen('profileHome'));
         } else if (activeSetting.key === 'name') {
           dispatch(setScreen('name'));

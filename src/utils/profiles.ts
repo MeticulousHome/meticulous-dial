@@ -1,6 +1,6 @@
 import { Profile, Variable } from '@meticulous-home/espresso-profile/dist';
 import { IPresetAction, IPresetBaseNumerical, IPresetSetting } from '../types';
-import { DEFAULT_SETTING, StaticAction } from '../constants/setting';
+import { StaticAction } from '../constants/setting';
 
 export const generateStaticActions = (
   settings: StaticAction[],
@@ -65,10 +65,7 @@ export const addSettingsToProfile = (profile: Profile) => {
   };
   return {
     ...p,
-    settings: [
-      ...(p.settings as IPresetSetting[]),
-      ...generateStaticActions(DEFAULT_SETTING, p.settings.length)
-    ]
+    settings: [...(p.settings as IPresetSetting[])]
   };
 };
 
