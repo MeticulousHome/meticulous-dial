@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import './transitions.less';
 
 import { styled } from 'styled-components';
@@ -74,6 +74,11 @@ export function CircleOverlay({
     }
   }, [shouldAnimate, isDrawn]);
 
+  // Reset the circle if we zoom out
+  useEffect(() => {
+    setWasLetGo(false);
+  }, [localHoverState]);
+
   return (
     <>
       <svg
@@ -107,7 +112,11 @@ export function CircleOverlay({
         />
       </svg>
       <CircleText
-        className={localHoverState && wasLetGo ? 'animateTextOpacityUp' : ''}
+        className={
+          localHoverState && wasLetGo && !shouldAnimate
+            ? 'animateTextOpacityUp'
+            : ''
+        }
         onAnimationEnd={() => setWasLetGo(false)}
       >
         Hold to start
