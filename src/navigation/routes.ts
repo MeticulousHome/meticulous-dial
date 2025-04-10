@@ -51,6 +51,7 @@ import {
   getActiveProfilesTitle,
   getProfilesTitle
 } from '../components/ProfileHomeScreen/ProfileTitle';
+import { FactoryReset } from '../components/Settings/Advanced/FactoryReset';
 
 interface Route {
   component: ComponentType;
@@ -366,6 +367,10 @@ export const routes: Record<ScreenType, Route> = {
   brewComplete: {
     title: 'Brew complete',
     component: BrewCompleteScreen,
+    bottomStatusHidden: true
+  },
+  factoryReset: {
+    component: FactoryReset,
     bottomStatusHidden: true
   }
 };

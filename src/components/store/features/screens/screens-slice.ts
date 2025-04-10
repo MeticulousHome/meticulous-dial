@@ -53,6 +53,7 @@ export type ScreenType =
   | 'scrollDirections'
   | 'preheatScreen'
   | 'brewComplete'
+  | 'factoryReset'
   | 'usbSettings';
 
 interface ScreenState {
