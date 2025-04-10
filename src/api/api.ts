@@ -104,3 +104,24 @@ export const setTimezoneSync = async (new_timezonesync: string) => {
     throw new Error(error);
   }
 };
+
+// The API package doesn't expose this endpoint
+export const factoryReset = async () => {
+  try {
+    const server = window.env?.SERVER_URL || 'http://localhost:8080/';
+    const url = server + `/api/v1/machine/factory_reset?confirm=true`;
+
+    const response = await fetch(url, { method: 'GET' });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
+    return data;
+  } catch (error) {
+    console.error('Error factory resetting', error);
+    throw new Error(error);
+  }
+};
