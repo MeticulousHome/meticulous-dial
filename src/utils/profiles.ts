@@ -112,6 +112,7 @@ export const applySettingsToProfile = (
 
   const profileSettings =
     settings.filter((setting) => !setting.isInternal) || [];
+  delete (profile as Profile & { settings: IPresetSetting[] }).settings;
 
   return {
     ...profile,
