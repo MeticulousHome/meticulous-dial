@@ -17,21 +17,21 @@ export function IdleScreen(): JSX.Element {
   const prevScreen = useAppSelector((state) => state.screen.prev);
   const { data: globalSettings } = useSettings();
 
-  useEffect(() => {
+  /* useEffect(() => {
     updateBrightness({ brightness: 0 });
 
     return () => {
       updateBrightness({ brightness: 1 });
     };
-  }, []);
+  }, []); */
 
-  useEffect(() => {
+  /* useEffect(() => {
     if (shouldGoToIdle || prevScreen === 'idle') return;
     if (!prevScreen || routes[prevScreen].ignoreAsPrevious) {
       dispatch(setScreen('profileHome'));
     }
     dispatch(setScreen(prevScreen));
-  }, [shouldGoToIdle]);
+  }, [shouldGoToIdle]); */
 
   switch (globalSettings?.idle_screen) {
     case 'baristaBarista':

@@ -66,7 +66,7 @@ export const SocketProviderValue = () => {
       dispatch(updatePreheatTimeLeft(timeLeft));
     });
 
-    socket.on('status', (data: ISensorDataAndMachineState) => {
+    /* socket.on('status', (data: ISensorDataAndMachineState) => {
       const previousState = previousStateName.current;
       if (data) {
         previousStateName.current = data?.name;
@@ -120,7 +120,7 @@ export const SocketProviderValue = () => {
           dispatch(setScreen('barometer'));
         }
       }
-    });
+    }); */
 
     socket.on('water_status', (data: boolean) => {
       resetIdleTimer();
@@ -132,7 +132,7 @@ export const SocketProviderValue = () => {
       onProfileEvent(event);
     });
 
-    socket.on(
+    /* socket.on(
       'button',
       (data: { type: string; time_since_last_event: number }) => {
         resetIdleTimer();
@@ -156,7 +156,7 @@ export const SocketProviderValue = () => {
           handleEvents.emit('gesture', gesture, data.time_since_last_event);
         }
       }
-    );
+    ); */
 
     socket.on(
       'profileHover',

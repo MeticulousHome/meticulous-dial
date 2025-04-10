@@ -11,6 +11,7 @@ import { useFetchData } from '../../hooks/useFetchData';
 import { loadNotifications } from '../store/features/notifications/notification-slice';
 
 export function ReadyAnimation(): JSX.Element {
+  console.log('ReadyAnimation', 'Loading animation started');
   const dispatch = useAppDispatch();
 
   const animation = useRef<AnimationItem | null>(null);
@@ -18,7 +19,7 @@ export function ReadyAnimation(): JSX.Element {
 
   function handleReadyAnimation2Completed(): void {
     animation.current?.destroy();
-    dispatch(setScreen('profileHome'));
+    dispatch(setScreen('idle'));
     dispatch(loadNotifications());
   }
 
