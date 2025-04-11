@@ -106,7 +106,7 @@ export function CircleOverlay({
             transform: 'rotate(90deg)',
             strokeDasharray: circumference,
             strokeDashoffset: strokeDashOffset,
-            transition: 'stroke-dashoffset 1.5s ease-out'
+            transition: 'stroke-dashoffset 1.0s cubic-bezier(.58,.94,.84,.68)'
           }}
           onTransitionEnd={handleTransitionEnd}
         />
