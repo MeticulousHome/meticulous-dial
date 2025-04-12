@@ -1,4 +1,4 @@
-import { CSSProperties, useCallback, useEffect, useState } from 'react';
+import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
 import { styled } from 'styled-components';
 import { SwitchTransition, CSSTransition } from 'react-transition-group';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -17,6 +17,8 @@ import { formatTime } from '../../utils';
 import { BUBBLES_WIDTH, LottieBubbleAnimation } from './LottieBubbleAnimation';
 import { notificationSelector } from '../store/features/notifications/notification-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { OptionsMenu } from './OptionsMenu';
+import { useSocket } from '../store/SocketManager';
 
 const PushToStartLabel = styled.div`
   font-size: 20px;
@@ -40,17 +42,6 @@ const StatusLabel = styled.span`
 `;
 
 const transitionDuration = 600;
-
-// const OPTIONS = [
-//   {
-//     id: 'auto',
-//     label: 'Auto brew'
-//   },
-//   {
-//     id: 'manual',
-//     label: 'Push to brew'
-//   }
-// ] as const;
 
 export const HeatingScreen = () => {
   const dispatch = useAppDispatch();
@@ -100,15 +91,31 @@ export const HeatingScreen = () => {
 
   const statsName = useAppSelector((state) => state.stats.name);
   const heatingFinished = statsName === 'click to start';
-
-  // const { data: globalSettings } = useSettings();
-  // const updateSettings = useUpdateSettings();
+  const optionsMenuRef = useRef(null);
+  const socket = useSocket();
 
   useEffect(() => {
     if (statsName === 'idle' && !hasNotifications) {
       dispatch(setScreen('profileHome'));
     }
   }, [statsName]);
+
+  // Automatically start the shot based on options menu selected
+  useEffect(() => {
+    if (!heatingFinished) {
+      return;
+    }
+    // At this point heating has finished and we can descide if we want to auto-start
+    if (!optionsMenuRef.current) {
+      // If we dont have an options menu we wait for the user to press the button
+      // This should never happen in practice
+      return;
+    }
+    if (optionsMenuRef.current.autostart) {
+      socket.emit('action', 'continue');
+      console.log('action,continue');
+    }
+  }, [heatingFinished]);
 
   useEffect(() => {
     if (
@@ -127,13 +134,10 @@ export const HeatingScreen = () => {
   useHandleGestures(
     {
       pressDown() {
-        console.log('HeatingScreen::pressDown');
-      },
-      left() {
-        console.log('HeatingScreen::left');
-      },
-      right() {
-        console.log('HeatingScreen::right');
+        if (heatingFinished) {
+          socket.emit('action', 'continue');
+          console.log('action,continue');
+        }
       }
     },
     bubbleDisplay.visible
@@ -148,21 +152,14 @@ export const HeatingScreen = () => {
         />
       </ModularLeft>
       <ModularRight style={transitionStyle}>
-        {/* <CSSTransition
+        <CSSTransition
           in={!heatingFinished}
           unmountOnExit
           timeout={transitionDuration}
           classNames="fade-options"
         >
-          <ModularRightOptions
-            options={OPTIONS}
-            value={globalSettings?.auto_start_shot ? 'auto' : 'manual'}
-            onValueChange={(value) => {
-              updateSettings.mutate({ auto_start_shot: value === 'auto' });
-            }}
-            shouldIgnoreGesture={bubbleDisplay.visible}
-          />
-        </CSSTransition> */}
+          <OptionsMenu ref={optionsMenuRef} ignoreGestures={heatingFinished} />
+        </CSSTransition>
         <div
           style={{
             display: 'flex',
