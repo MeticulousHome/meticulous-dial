@@ -60,7 +60,7 @@ const DefaultProfileEntry = styled.div`
 `;
 
 export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
-  const { setDefaultProfileSelected } = useProfileContext();
+  const { setDetailsProfileSelected } = useProfileContext();
   const createProfile = useSavePreset();
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
@@ -117,7 +117,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
 
   useEffect(() => {
     if (activeIndex !== defaultProfiles.length) {
-      setDefaultProfileSelected({
+      setDetailsProfileSelected({
         ...defaultProfiles[activeIndex],
         display: {
           ...defaultProfiles[activeIndex].display,
@@ -125,7 +125,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
         }
       });
     } else {
-      setDefaultProfileSelected(null);
+      setDetailsProfileSelected(null);
     }
   }, [activeIndex, defaultProfiles.length, defaultImages.length]);
 
@@ -144,7 +144,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
       // to the default profiles screen
       setActiveIndex(0);
       //Since DefaultProfileDetails is now treated as a screen and not as an element within the bubble display, we need to retain the selected profile so that the information is preserved when viewing its details.
-      if (currentScreen === 'profileHome') setDefaultProfileSelected(null); //
+      if (currentScreen === 'profileHome') setDetailsProfileSelected(null);
     };
   }, []);
 

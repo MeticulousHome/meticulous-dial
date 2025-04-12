@@ -23,7 +23,7 @@ import { WifiQrMenu } from '../../src/components/Wifi/WifiQrMenu';
 import { PressetProfileImage } from '../components/PressetSettings/PressetProfileImage';
 import { DeviceInfoScreen } from '../components/Settings/Advanced/DeviceInfoScreen';
 import { DefaultProfiles } from '../components/DefaultProfiles/DefaultProfiles';
-import { DefaultProfileDetails } from '../components/DefaultProfiles/DefaultProfileDetails';
+import { ProfileDetails } from '../components/DefaultProfiles/DefaultProfileDetails';
 import { PurgeScreen } from '../components/PurgePiston/PurgeScreen';
 import { UpdateChannel } from '../components/Settings/Advanced/UpdateChannel';
 import { ReadyAnimation } from '../components/ReadyAnimation/ReadyAnimation';
@@ -332,7 +332,7 @@ export const routes: Record<ScreenType, Route> = {
     parent: 'profileHome'
   },
   defaultProfileDetails: {
-    component: DefaultProfileDetails,
+    component: ProfileDetails,
     bottomStatusHidden: true
   },
   shot_history: {

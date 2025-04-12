@@ -110,10 +110,10 @@ const BouncingArrow = styled.svg`
   animation: ${bounce} 2s infinite;
 `;
 
-export const DefaultProfileDetails = () => {
+export const ProfileDetails = () => {
   const dispatch = useAppDispatch();
 
-  const { defaultProfileSelected: defaultProfile } = useProfileContext();
+  const { detailProfileSelected: profile } = useProfileContext();
 
   const descriptionDivRef = useRef<HTMLDivElement | null>(null);
 
@@ -169,16 +169,16 @@ export const DefaultProfileDetails = () => {
       $descriptionDiv.removeEventListener('scroll', checkScrollState);
   }, []);
 
-  const profileUrl = defaultProfile?.display?.image || '';
+  const profileUrl = profile?.display?.image || '';
   const profileDescription =
-    defaultProfile?.display?.description ||
+    profile?.display?.description ||
     'Shared by a member of the community, this profile is ready for you to discover in the cup. Perfect for those who enjoy exploring new extractions and finding their own balance.';
 
   return (
     <Container>
       <ImageWrapper>
         <ImageContainer
-          accentColor={defaultProfile?.display?.accentColor ?? '#e0dcd0'}
+          accentColor={profile?.display?.accentColor ?? '#e0dcd0'}
         >
           <ProfileImage
             src={`${API_URL}${api.getProfileImageUrl(profileUrl)}`}
@@ -186,7 +186,7 @@ export const DefaultProfileDetails = () => {
           />
         </ImageContainer>
       </ImageWrapper>
-      <Name>{defaultProfile?.name}</Name>
+      <Name>{profile?.name}</Name>
       <Description ref={descriptionDivRef}>{profileDescription}</Description>
 
       <ScrollIndicatorWrapper visible={isScrollable && !isAtBottom}>
