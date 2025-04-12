@@ -22,8 +22,8 @@ type ProfileContextType = {
   setLocalHoverState: React.Dispatch<React.SetStateAction<boolean | null>>;
 
   // Default profile state
-  defaultProfileSelected: Profile | null;
-  setDefaultProfileSelected: React.Dispatch<
+  detailProfileSelected: Profile | null;
+  setDetailsProfileSelected: React.Dispatch<
     React.SetStateAction<Profile | null>
   >;
 
@@ -197,8 +197,8 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     localHoverState,
     setLocalHoverState,
 
-    defaultProfileSelected,
-    setDefaultProfileSelected,
+    detailProfileSelected: defaultProfileSelected,
+    setDetailsProfileSelected: setDefaultProfileSelected,
 
     settingsIndex,
     setSettingsIndex,

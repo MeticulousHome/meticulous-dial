@@ -110,7 +110,7 @@ export function QuickSettings(): JSX.Element {
   const {
     profileQuery: { data: profiles },
     localProfile,
-    defaultProfileSelected: defaultProfileSelectedForDetails,
+    detailProfileSelected: defaultProfileSelectedForDetails,
     setSettingsIndex: setProfileSettingsIndex,
     setSettingsProfile: setProfileSettings
   } = useProfileContext();
