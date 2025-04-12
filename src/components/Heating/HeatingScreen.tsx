@@ -55,9 +55,8 @@ const transitionDuration = 600;
 export const HeatingScreen = () => {
   const dispatch = useAppDispatch();
   const waterStatus = useAppSelector((state) => state.stats.waterStatus);
-  const temperature = useAppSelector((state) =>
-    Math.round(state.stats.sensors.t)
-  );
+  const temperature =
+    useAppSelector((state) => Math.round(state.stats.sensors.t)) || 0;
   const hasNotifications = useAppSelector(
     notificationSelector.selectHasNotifications
   );
@@ -71,7 +70,11 @@ export const HeatingScreen = () => {
   const [temperatureTarget, setTemperatureTarget] = useState(
     temperatureTargetStatus || 0
   );
+
   const preheatTimeLeft = useCallback(() => {
+    if (!waterStatus) {
+      return <ModularFooterText>Tap to retry</ModularFooterText>;
+    }
     if (!temperatureTargetStatus) {
       return <ModularFooterText>stabilizing...</ModularFooterText>;
     }
@@ -93,7 +96,7 @@ export const HeatingScreen = () => {
       Math.ceil((diff * timePerDegree + stabilizingTime) / timeIncrements) *
       timeIncrements;
     return <ModularFooterTime>{formatTime(timeLeft)}</ModularFooterTime>;
-  }, [temperatureTarget, temperature, temperatureTargetStatus]);
+  }, [temperatureTarget, temperature, temperatureTargetStatus, waterStatus]);
 
   const statsName = useAppSelector((state) => state.stats.name);
   const heatingFinished = statsName === 'click to start';
@@ -175,7 +178,7 @@ export const HeatingScreen = () => {
               timeout={transitionDuration / 2}
               classNames="fade"
             >
-              {waterStatus ? (
+              {waterStatus || heatingFinished ? (
                 <Temperature value={temperature} animated />
               ) : (
                 <StatusLabel>No water</StatusLabel>
@@ -214,12 +217,10 @@ export const HeatingScreen = () => {
             {heatingFinished ? (
               <PushToStartLabel>Push to brew</PushToStartLabel>
             ) : (
-              waterStatus && (
-                <>
-                  <Label>Estimated time</Label>
-                  {preheatTimeLeft()}
-                </>
-              )
+              <>
+                <Label>{waterStatus ? 'Estimated time' : 'Waiting...'}</Label>
+                {preheatTimeLeft()}
+              </>
             )}
           </ModularFooter>
         </CSSTransition>
