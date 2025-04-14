@@ -3,16 +3,14 @@ import { useHandleGestures } from '../../../src/hooks/useHandleGestures';
 import { memoizedRoutes } from '../../../src/utils';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { CSSTransition } from 'react-transition-group';
 import './bubble.less';
 
 export default function Bubble() {
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const [animationState, setAnimationState] = useState({
-    isVisible: false,
-    isAnimating: false
-  });
 
+  const [showBubble, setShowBubble] = useState(false);
   const prevComponentRef = useRef<string | null>(null);
 
   if (bubbleDisplay.component) {
@@ -20,14 +18,7 @@ export default function Bubble() {
   }
 
   useEffect(() => {
-    if (bubbleDisplay.visible)
-      setAnimationState({
-        isVisible: true,
-        isAnimating: false
-      });
-
-    if (!bubbleDisplay.visible && animationState.isVisible)
-      setAnimationState((prev) => ({ ...prev, isAnimating: true }));
+    setShowBubble(bubbleDisplay.visible);
   }, [bubbleDisplay.visible]);
 
   const ActiveComponent =
@@ -47,37 +38,28 @@ export default function Bubble() {
     }
   });
 
-  if (!animationState.isVisible && !animationState.isAnimating) return null;
-
-  const handleAnimationEnd = () => {
-    if (!animationState.isAnimating) return;
-
-    setAnimationState({
-      isVisible: false,
-      isAnimating: false
-    });
-
-    if (bubbleDisplay.component)
-      dispatch(
-        setBubbleDisplay({
-          visible: false,
-          component: null
-        })
-      );
+  const handleExited = () => {
+    dispatch(
+      setBubbleDisplay({
+        visible: false,
+        component: null
+      })
+    );
   };
 
   return (
-    <div
-      className={`main-bubble main-layout ${
-        !animationState.isAnimating
-          ? 'bubble-enter-animation'
-          : 'bubble-leave-animation'
-      } large`}
-      onAnimationEnd={handleAnimationEnd}
+    <CSSTransition
+      in={showBubble}
+      timeout={450}
+      classNames="bubble"
+      unmountOnExit
+      onExited={handleExited}
     >
-      <div className="bubble-container">
-        {ActiveComponent && createElement(ActiveComponent)}
+      <div className="main-bubble main-layout large">
+        <div className="bubble-container">
+          {ActiveComponent && createElement(ActiveComponent)}
+        </div>
       </div>
-    </div>
+    </CSSTransition>
   );
 }
