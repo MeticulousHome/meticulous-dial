@@ -3,7 +3,10 @@ import { SettingsItem } from '../../../types';
 import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
-import { useManufacturingSchema } from '../../../hooks/useManufacturing';
+import {
+  useManufacturingSchema,
+  useUpdateManufacturingSettings
+} from '../../../hooks/useManufacturing';
 import { updateManufacturingSettings } from '../../../api/api';
 import { ManufacturingSettings } from '@meticulous-home/espresso-api/dist';
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
@@ -38,6 +41,9 @@ export const Manufacturing = () => {
     isSuccess: isManufacturingSuccess,
     isLoading: manufacturingSchemaLoading
   } = useManufacturingSchema();
+
+  const mutateManufacturingSettings =
+    useUpdateManufacturingSettings(setManufacturing);
 
   /**
    * Although semantically incorrect, for now it is the mechanism that provides the information I need.
@@ -92,7 +98,19 @@ export const Manufacturing = () => {
       },
       pressDown() {
         const activeItem = updatedSettings[activeIndex].key;
+        console.log('activeItem', activeItem);
         switch (activeItem) {
+          //case for enable/disable manufacturing mode
+          case 'enabled':
+            mutateManufacturingSettings.mutate({
+              enabled: !manufacturing.enabled
+            });
+            break;
+          case 'skip_stage':
+            mutateManufacturingSettings.mutate({
+              skip_stage: !manufacturing.skip_stage
+            });
+            break;
           case 'back':
             dispatch(
               setBubbleDisplay({ visible: true, component: 'advancedSettings' })
