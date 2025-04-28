@@ -18,18 +18,18 @@ import Styled, {
 } from '../../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
 import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSetting';
-import type { ExtendedSettings } from '../../../api/settings';
+import type { Settings } from '@meticulous-home/espresso-api';
 
 const initialSettings: SettingsItem[] = [
   {
     key: 'usb_mode',
     label: 'USB mode',
-    getLabel: (settings: ExtendedSettings) => settings.usb_mode
+    getLabel: (settings: Settings) => settings.usb_mode
   },
   {
     key: 'ssh_enabled',
     label: 'SSH',
-    getLabel: (settings: ExtendedSettings) =>
+    getLabel: (settings: Settings) =>
       settings.ssh_enabled ? 'ENABLED' : 'DISABLED'
   },
   {
@@ -40,27 +40,27 @@ const initialSettings: SettingsItem[] = [
   {
     key: 'save_debug_shot_data',
     label: 'Save debug shot data',
-    getLabel: (settings: ExtendedSettings) =>
+    getLabel: (settings: Settings) =>
       settings.save_debug_shot_data ? 'ENABLED' : 'DISABLED',
     visible: true
   },
   {
     key: 'telemetry_opt_in',
     label: 'Share debug motor data',
-    getLabel: (settings: ExtendedSettings) =>
+    getLabel: (settings: Settings) =>
       settings.allow_debug_sending ? 'ENABLED' : 'DISABLED',
     visible: true
   },
   {
     key: 'set_update_channel',
     label: 'Update channel',
-    getLabel: (settings: ExtendedSettings) => settings.update_channel,
+    getLabel: (settings: Settings) => settings.update_channel,
     visible: true
   },
   {
     key: 'idle_screen',
     label: 'Select Idle Screen',
-    getLabel: (settings: ExtendedSettings) =>
+    getLabel: (settings: Settings) =>
       IdleScreens.find((item) => item.key === settings.idle_screen)?.shortLabel,
     visible: true
   },
