@@ -1,14 +1,15 @@
 import { APIError, Settings } from '@meticulous-home/espresso-api';
 import { api } from './api';
 
-export async function getSettings(): Promise<Settings> {
+export type ExtendedSettings = Settings & { allow_stage_skipping: boolean };
+export async function getSettings(): Promise<ExtendedSettings> {
   try {
     const response = await api.getSettings();
     const data = response.data;
     if (data && 'error' in data) {
       throw new Error((data as APIError).error);
     }
-    return data as Settings;
+    return data as ExtendedSettings;
   } catch (error) {
     if (error.response) {
       console.error('Error getting Settings: ', error.response.data);
@@ -23,15 +24,15 @@ export async function getSettings(): Promise<Settings> {
 }
 
 export async function updateSettings(
-  update: Partial<Settings>
-): Promise<Settings> {
+  update: Partial<ExtendedSettings>
+): Promise<ExtendedSettings> {
   try {
     const response = await api.updateSetting(update);
     const data = response.data;
     if (data && 'error' in data) {
       throw new Error((data as APIError).error);
     }
-    return data as Settings;
+    return data as ExtendedSettings;
   } catch (error) {
     if (error.response) {
       console.error('Error updating settings: ', error.response.data);
