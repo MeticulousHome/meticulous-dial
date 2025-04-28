@@ -52,6 +52,7 @@ import {
   getProfilesTitle
 } from '../components/ProfileHomeScreen/ProfileTitle';
 import { FactoryReset } from '../components/Settings/Advanced/FactoryReset';
+import { Manufacturing } from '../components/Settings/Advanced/Manufacturing';
 
 interface Route {
   component: ComponentType;
@@ -310,6 +311,9 @@ export const routes: Record<ScreenType, Route> = {
   },
   advancedSettings: {
     component: AdvancedSettings
+  },
+  manufacturingSettings: {
+    component: Manufacturing
   },
   pressetProfileImage: {
     component: PressetProfileImage,
