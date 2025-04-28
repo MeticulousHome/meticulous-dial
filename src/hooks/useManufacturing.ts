@@ -1,23 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { getManufacturingMenuItems } from '../api/api';
-import { SettingsItem } from '../types';
+import { getManufacturingSchema } from '../api/api';
 
-const MANUFACTURING_ITEMS_QUERY_KEY = 'manufacturing-items';
+const MANUFACTURING_SCHEMA_QUERY_KEY = 'manufacturing-schema';
 
-export const useManufacturingItems = () => {
-  return useQuery<SettingsItem[]>({
-    queryKey: [MANUFACTURING_ITEMS_QUERY_KEY],
-    queryFn: async () => {
-      const { Elements } = await getManufacturingMenuItems();
-
-      return Elements.map((menuItem) => {
-        return {
-          key: menuItem.key,
-          label: `${menuItem.label}: UNSET`
-          /* getLabel: (settings) =>
-            `${settings[menuItem.key as keyof ManufacturingSettings] ? 'ENABLED' : 'DISABLED'}`, */
-        };
-      });
-    }
+export function useManufacturingSchema() {
+  return useQuery({
+    queryKey: [MANUFACTURING_SCHEMA_QUERY_KEY],
+    queryFn: getManufacturingSchema,
+    retry: false
   });
-};
+}

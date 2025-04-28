@@ -107,23 +107,24 @@ export const setTimezoneSync = async (new_timezonesync: string) => {
   }
 };
 
-export const getManufacturingMenuItems =
-  async (): Promise<ManufacturingMenuItems> => {
+export const getManufacturingSchema =
+  async (): Promise<ManufacturingMenuItems | null> => {
     try {
       const response = await api.getManufacturingMenuItems();
+
       if (response.status === 204) {
-        return { Elements: [] };
+        return null;
       }
 
-      if ('error' in response.data) {
-        const apiError = response.data as APIError;
-        throw new Error(`${apiError.error}: ${apiError.description}`);
+      if (response.status === 200) {
+        return response.data as ManufacturingMenuItems;
       }
 
-      return response.data;
+      throw new Error(`Unexpected response status: ${response.status}`);
     } catch (error) {
-      console.error('Error fetching manufacturing settings', error);
-      return { Elements: [] };
+      throw new Error(
+        `Failed to fetch manufacturing schema: ${error?.message ?? 'Unknown error'}`
+      );
     }
   };
 

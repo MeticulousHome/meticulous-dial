@@ -8,7 +8,7 @@ import {
   useUpdateSettings,
   useRootPassword
 } from '../../../hooks/useSettings';
-import { useManufacturingItems } from '../../../hooks/useManufacturing';
+import { useManufacturingSchema } from '../../../hooks/useManufacturing';
 import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useDeviceInfo } from '../../../hooks/useDeviceOSStatus';
@@ -75,13 +75,10 @@ const initialSettings: SettingsItem[] = [
     label: 'Factory reset',
     visible: true,
     caseSensitive: false
-  },
-  {
-    key: 'back',
-    label: 'Back',
-    visible: true
   }
 ];
+
+type ExtendedSettings = Settings & { allow_stage_skipping: boolean };
 
 export const AdvancedSettings = () => {
   const dispatch = useAppDispatch();
@@ -92,11 +89,9 @@ export const AdvancedSettings = () => {
   const { refetch: fetchDeviceStatus } = useDeviceInfo();
   const { data: rootPW } = useRootPassword();
 
-  const {
-    data: manufacturingSettings = [],
-    isSuccess: isManufacturingSuccess
-  } = useManufacturingItems();
-  console.log('manufacturingSettings ---> ', manufacturingSettings);
+  const { data: manufacturingSettings, isSuccess: isManufacturingSuccess } =
+    useManufacturingSchema();
+
   const updatedSettings = useMemo(() => {
     if (!isSettingsSuccess) {
       return initialSettings.map((item) => ({
@@ -107,26 +102,45 @@ export const AdvancedSettings = () => {
       ...item,
       label:
         item.key === 'root_password'
-          ? `${item.label}: ${rootPW || 'Loading...'}`
+          ? `${item.label}: ${rootPW || '*****'}`
           : item.getLabel
             ? `${item.label}: ${item.getLabel(globalSettings)}`
             : item.label
     }));
 
-    const initialWithoutBack = formattedInitialSettings.filter(
-      (item) => item.key !== 'back'
-    );
+    const manufacturingFormatted: SettingsItem[] =
+      isManufacturingSuccess && manufacturingSettings
+        ? manufacturingSettings.Elements.map((element) => {
+            const labelSuffix =
+              element.key === 'enabled'
+                ? 'ENABLED'
+                : (globalSettings as ExtendedSettings).allow_stage_skipping
+                  ? 'ENABLED'
+                  : 'DISABLED';
 
-    const backItem = formattedInitialSettings.find(
-      (item) => item.key === 'back'
-    );
+            return {
+              key: element.key,
+              label: `${element.label}: ${labelSuffix}`,
+              visible: true
+            };
+          })
+        : [];
 
-    return [...initialWithoutBack, ...manufacturingSettings, backItem];
+    return [
+      ...formattedInitialSettings,
+      ...manufacturingFormatted,
+      {
+        key: 'back',
+        label: 'Back',
+        visible: true
+      }
+    ];
   }, [
     globalSettings,
     isManufacturingSuccess,
     isSettingsSuccess,
-    manufacturingSettings
+    manufacturingSettings,
+    rootPW
   ]);
 
   useHandleGestures(
