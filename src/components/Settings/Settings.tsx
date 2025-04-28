@@ -98,16 +98,7 @@ export function Settings(): JSX.Element {
             );
             break;
           }
-          case 'save': {
-            const {
-              PreheatTimeLeft,
-              country,
-              countryLetter,
-              tempHeatingTimeout,
-              deviceInfo,
-              ...filteredGlobalSetings
-            } = globalSettings;
-            dispatch(updateSettings(filteredGlobalSetings));
+          case 'usb_mode': {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'usbSettings' })
             );

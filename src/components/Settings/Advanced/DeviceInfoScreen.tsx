@@ -43,7 +43,7 @@ export const DeviceInfoScreen = () => {
 
     const basicInfo = Object.entries(basicData).map(([key, value]) => ({
       key,
-      label: `${key}: ${value || 'UNSET'}`
+      label: `${key}: ${typeof value === 'boolean' ? `${value ? 'ENABLED' : 'DISABLED'}` : (value ?? 'UNSET')}`
     }));
 
     const keysToFilter = ['backend', 'dial', 'firmware'];
