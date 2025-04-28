@@ -106,27 +106,28 @@ export const AdvancedSettings = () => {
             : item.label
     }));
 
-    const manufacturingFormatted: SettingsItem[] =
-      isManufacturingSuccess && manufacturingSettings
-        ? manufacturingSettings.Elements.map((element) => {
-            const labelSuffix =
-              element.key === 'enabled'
-                ? 'ENABLED'
-                : globalSettings.allow_stage_skipping
-                  ? 'ENABLED'
-                  : 'DISABLED';
+    const manufacturingOption =
+      manufacturingSettings != null
+        ? {
+            key: 'manufacturing',
+            label: 'Manufacturing Options'
+          }
+        : manufacturingSettings;
 
-            return {
-              key: element.key,
-              label: `${element.label}: ${labelSuffix}`,
-              visible: true
-            };
-          })
-        : [];
+    if (manufacturingOption) {
+      return [
+        ...formattedInitialSettings,
+        manufacturingOption as SettingsItem,
+        {
+          key: 'back',
+          label: 'Back',
+          visible: true
+        }
+      ];
+    }
 
     return [
       ...formattedInitialSettings,
-      ...manufacturingFormatted,
       {
         key: 'back',
         label: 'Back',
@@ -202,10 +203,13 @@ export const AdvancedSettings = () => {
               })
             );
             break;
-          case 'skip_stage':
-            updateSettings.mutate({
-              allow_stage_skipping: !globalSettings.allow_stage_skipping
-            });
+          case 'manufacturing':
+            dispatch(
+              setBubbleDisplay({
+                visible: true,
+                component: 'manufacturingSettings'
+              })
+            );
             break;
           case 'back':
             dispatch(

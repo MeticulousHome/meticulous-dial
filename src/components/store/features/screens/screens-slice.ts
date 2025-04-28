@@ -54,7 +54,8 @@ export type ScreenType =
   | 'preheatScreen'
   | 'brewComplete'
   | 'factoryReset'
-  | 'usbSettings';
+  | 'usbSettings'
+  | 'manufacturingSettings';
 
 interface ScreenState {
   value: ScreenType;
