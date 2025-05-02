@@ -1,7 +1,10 @@
 import { useEffect } from 'react';
 
 import { useIdleTimer } from '../../hooks/useIdleTimer';
-import { setScreen } from '../store/features/screens/screens-slice';
+import {
+  setBubbleDisplay,
+  setScreen
+} from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { AnalogClock } from './AnalogClock';
 import { DigitalClock } from './DigitalClock';
@@ -13,15 +16,29 @@ import { routes } from '../../navigation/routes';
 
 export function IdleScreen(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { isIdle: shouldGoToIdle } = useIdleTimer();
+  const {
+    isIdle: shouldGoToIdle,
+    forceBubbleReopen,
+    setForceBubbleReopen
+  } = useIdleTimer();
   const prevScreen = useAppSelector((state) => state.screen.prev);
   const { data: globalSettings } = useSettings();
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
 
   useEffect(() => {
     updateBrightness({ brightness: 0 });
 
     return () => {
       updateBrightness({ brightness: 1 });
+      if (forceBubbleReopen) {
+        dispatch(
+          setBubbleDisplay({
+            visible: true,
+            component: bubbleDisplay.previousComponent
+          })
+        );
+      }
+      setForceBubbleReopen(false);
     };
   }, []);
 
@@ -29,6 +46,14 @@ export function IdleScreen(): JSX.Element {
     if (shouldGoToIdle || prevScreen === 'idle') return;
     if (!prevScreen || routes[prevScreen].ignoreAsPrevious) {
       dispatch(setScreen('profileHome'));
+    }
+    if (bubbleDisplay.visible) {
+      dispatch(
+        setBubbleDisplay({
+          visible: false,
+          component: bubbleDisplay.previousComponent
+        })
+      );
     }
     dispatch(setScreen(prevScreen));
   }, [shouldGoToIdle]);
