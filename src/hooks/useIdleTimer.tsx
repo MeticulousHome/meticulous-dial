@@ -11,6 +11,9 @@ interface TimerContextType {
   resetTimer: () => void;
   setTimer: (timeout: number) => void;
   isIdle: boolean;
+  forceIdle: () => void;
+  forceBubbleReopen: boolean;
+  setForceBubbleReopen: (value: boolean) => void;
 }
 
 const TimerContext = createContext<TimerContextType | undefined>(undefined);
@@ -36,6 +39,8 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
   const [idleTime, setIdleTime] = useState(DEFAULT_TIMEOUT);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isIdle, setIsIdle] = useState(false);
+  const [forceBubbleReopen, setForceBubbleReopen] = useState(false);
+
   const startTimer = useCallback(() => {
     timeoutRef.current = setTimeout(() => {
       setIsIdle(true);
@@ -59,9 +64,23 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
     };
   }, [idleTime]);
 
+  const forceIdle = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    setIsIdle(true);
+  }, []);
+
   return (
     <TimerContext.Provider
-      value={{ resetTimer, setTimer: setIdleTime, isIdle }}
+      value={{
+        resetTimer,
+        setTimer: setIdleTime,
+        isIdle,
+        forceIdle,
+        forceBubbleReopen,
+        setForceBubbleReopen
+      }}
     >
       {children}
     </TimerContext.Provider>

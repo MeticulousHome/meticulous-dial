@@ -20,6 +20,7 @@ import { formatTime, hidden_ui_elements_enabled } from '../../utils';
 import { useProfileContext } from '../../context/ProfileContext';
 import { useDeletePreset } from '../../hooks/useProfiles';
 import { addSettingsToProfile } from '../../utils/profiles';
+import { useIdleTimer } from '../../hooks/useIdleTimer';
 
 export type QuickSettingOption = {
   key: string;
@@ -60,6 +61,10 @@ const disable_ui_features: QuickSettingOption = {
 };
 
 const defaultSettings: QuickSettingOption[] = [
+  {
+    key: 'sleep',
+    label: 'sleep'
+  },
   {
     key: 'raise',
     label: 'raise'
@@ -142,6 +147,8 @@ export function QuickSettings(): JSX.Element {
   const [counterESGG, setCounterESGG] = useState(0);
   const [holdAnimation, setHoldAnimation] =
     useState<holdAnimationState>('stopped');
+
+  const { forceIdle } = useIdleTimer();
 
   const { data: osStatusData, error: osStatusError } = useOSStatus();
   const osStatusVisible = osStatusData.status !== 'IDLE';
@@ -226,6 +233,11 @@ export function QuickSettings(): JSX.Element {
 
             dispatch(setScreen(routes[currentScreen].parent));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
+          case 'sleep': {
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            forceIdle();
             break;
           }
           case 'raise': {

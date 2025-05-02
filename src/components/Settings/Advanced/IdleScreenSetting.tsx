@@ -10,6 +10,7 @@ import Styled, {
   MenuAnnotation
 } from '../../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
+import { useIdleTimer } from '../../../hooks/useIdleTimer';
 
 export const IdleScreens: SettingsItem[] = [
   {
@@ -44,6 +45,7 @@ export const IdleScreenSetting = () => {
   const updateSettings = useUpdateSettings();
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const { forceIdle, setForceBubbleReopen } = useIdleTimer();
 
   const settings = [
     ...IdleScreens,
@@ -73,6 +75,8 @@ export const IdleScreenSetting = () => {
           default: {
             const screen = settings[activeIndex].key;
             updateSettings.mutate({ idle_screen: screen });
+            forceIdle();
+            setForceBubbleReopen(true);
             break;
           }
         }
