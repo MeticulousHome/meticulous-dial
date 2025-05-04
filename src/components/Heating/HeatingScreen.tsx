@@ -1,4 +1,4 @@
-import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
+import { CSSProperties, useCallback, useEffect, useState } from 'react';
 import { styled } from 'styled-components';
 import { SwitchTransition, CSSTransition } from 'react-transition-group';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -51,6 +51,8 @@ export const HeatingScreen = () => {
   const hasNotifications = useAppSelector(
     notificationSelector.selectHasNotifications
   );
+  const [autostart, setAutostart] = useState(false);
+
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   // The stages dont necessarily correctly report the temperature target
   // so we need to cache it with the state below
@@ -91,7 +93,6 @@ export const HeatingScreen = () => {
 
   const statsName = useAppSelector((state) => state.stats.name);
   const heatingFinished = statsName === 'click to start';
-  const optionsMenuRef = useRef(null);
   const socket = useSocket();
 
   useEffect(() => {
@@ -102,20 +103,27 @@ export const HeatingScreen = () => {
 
   // Automatically start the shot based on options menu selected
   useEffect(() => {
+    console.log('heatingFinished', heatingFinished);
+    console.log('autostart', autostart);
     if (!heatingFinished) {
       return;
     }
+
     // At this point heating has finished and we can descide if we want to auto-start
-    if (!optionsMenuRef.current) {
-      // If we dont have an options menu we wait for the user to press the button
-      // This should never happen in practice
-      return;
-    }
-    if (optionsMenuRef.current.autostart) {
+    if (autostart) {
       socket.emit('action', 'continue');
       console.log('action,continue');
     }
-  }, [heatingFinished]);
+  }, [heatingFinished, autostart]);
+
+  const onOptionChange = (option_key: string) => {
+    if (option_key === 'auto_start') {
+      setAutostart(true);
+    }
+    if (option_key === 'push_to_brew') {
+      setAutostart(false);
+    }
+  };
 
   useEffect(() => {
     if (
@@ -153,12 +161,15 @@ export const HeatingScreen = () => {
       </ModularLeft>
       <ModularRight style={transitionStyle}>
         <CSSTransition
-          in={!heatingFinished}
+          in={!heatingFinished || autostart}
           unmountOnExit
           timeout={transitionDuration}
           classNames="fade-options"
         >
-          <OptionsMenu ref={optionsMenuRef} ignoreGestures={heatingFinished} />
+          <OptionsMenu
+            ignoreGestures={heatingFinished}
+            onOptionChange={onOptionChange}
+          />
         </CSSTransition>
         <div
           style={{

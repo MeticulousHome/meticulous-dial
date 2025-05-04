@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-  forwardRef,
-  useImperativeHandle
-} from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { styled } from 'styled-components';
 import { useSettings } from '../../hooks/useSettings';
@@ -68,77 +62,65 @@ const MenuEntry = styled.div<{ $active?: boolean }>`
   letter-spacing: 4px;
   text-transform: uppercase;
 `;
+export const OptionsMenu = ({
+  ignoreGestures,
+  onOptionChange
+}: {
+  ignoreGestures: boolean;
+  onOptionChange: (option_key: string) => void;
+}) => {
+  const { data: globalSettings } = useSettings();
+  const [activeIndex, setActiveIndex] = useState(0);
 
-export const OptionsMenu = forwardRef(
-  (
-    { ignoreGestures }: { ignoreGestures: boolean },
-    ref: React.Ref<{ autostart: boolean }>
-  ) => {
-    const { data: globalSettings } = useSettings();
-
-    const [activeIndex, setActiveIndex] = useState(0);
-    const [autostart, setAutostart] = useState(false);
-
-    const OPTIONS = useMemo(
-      () => [
-        {
-          key: 'auto_start',
-          label: 'Auto brew'
-        },
-        {
-          key: 'push_to_brew',
-          label: 'Push to brew'
-        }
-      ],
-      []
-    );
-
-    useEffect(() => {
-      if (!globalSettings) {
-        return;
-      }
-      if (globalSettings.auto_start_shot) {
-        setActiveIndex(0);
-        setAutostart(true);
-      } else {
-        setActiveIndex(1);
-        setAutostart(false);
-      }
-    }, [globalSettings?.auto_start_shot]);
-
-    useEffect(() => {
-      const activeItem = OPTIONS[activeIndex].key;
-      if (activeItem === 'auto_start') {
-        setAutostart(true);
-      } else if (activeItem === 'push_to_brew') {
-        setAutostart(false);
-      }
-    }, [activeIndex]);
-
-    useHandleGestures(
+  const OPTIONS = useMemo(
+    () => [
       {
-        left: () => {
-          setActiveIndex((prev) => Math.max(prev - 1, 0));
-        },
-        right: () => {
-          setActiveIndex((prev) => Math.min(prev + 1, OPTIONS.length - 1));
-        }
+        key: 'auto_start',
+        label: 'Auto brew'
       },
-      ignoreGestures
-    );
+      {
+        key: 'push_to_brew',
+        label: 'Push to brew'
+      }
+    ],
+    []
+  );
 
-    useImperativeHandle(ref, () => ({
-      autostart
-    }));
+  useEffect(() => {
+    if (!globalSettings) {
+      return;
+    }
+    if (globalSettings.auto_start_shot) {
+      setActiveIndex(0);
+    } else {
+      setActiveIndex(1);
+    }
+  }, [globalSettings?.auto_start_shot]);
 
-    return (
-      <MenuContainer $num_options={OPTIONS.length}>
-        {OPTIONS.map((option, index) => (
-          <MenuEntry key={index} $active={index === activeIndex}>
-            {option.label}
-          </MenuEntry>
-        ))}
-      </MenuContainer>
-    );
-  }
-);
+  useEffect(() => {
+    const activeItem = OPTIONS[activeIndex].key;
+    onOptionChange(activeItem);
+  }, [activeIndex, OPTIONS, onOptionChange]);
+
+  useHandleGestures(
+    {
+      left: () => {
+        setActiveIndex((prev) => Math.max(prev - 1, 0));
+      },
+      right: () => {
+        setActiveIndex((prev) => Math.min(prev + 1, OPTIONS.length - 1));
+      }
+    },
+    ignoreGestures
+  );
+
+  return (
+    <MenuContainer $num_options={OPTIONS.length}>
+      {OPTIONS.map((option, index) => (
+        <MenuEntry key={index} $active={index === activeIndex}>
+          {option.label}
+        </MenuEntry>
+      ))}
+    </MenuContainer>
+  );
+};
