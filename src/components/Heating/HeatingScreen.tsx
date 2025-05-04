@@ -142,7 +142,7 @@ export const HeatingScreen = () => {
   useHandleGestures(
     {
       pressDown() {
-        if (heatingFinished) {
+        if (heatingFinished && !autostart) {
           socket.emit('action', 'continue');
           console.log('action,continue');
         }

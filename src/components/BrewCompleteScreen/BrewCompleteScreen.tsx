@@ -13,6 +13,8 @@ import { formatTime } from '../../utils';
 import { useEffect } from 'react';
 import { PurgePiston } from '../PurgePiston/PurgePiston';
 import { notificationSelector } from '../store/features/notifications/notification-slice';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useSocket } from '../store/SocketManager';
 
 const WeightContainer = styled.div`
   display: flex;
@@ -60,13 +62,14 @@ const PurgeEmbedding = styled.div`
 
 export const BrewCompleteScreen = () => {
   const dispatch = useAppDispatch();
-
+  const socket = useSocket();
   const statsName = useAppSelector((state) => state.stats.name);
   const brewTime = useAppSelector((state) => state.stats.time);
   const lastBrewWeight = useAppSelector((state) => state.stats.sensors.w);
   const hasNotifications = useAppSelector(
     notificationSelector.selectHasNotifications
   );
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
 
   const weight = !isNaN(lastBrewWeight)
     ? Math.abs(lastBrewWeight) < 1000
@@ -88,6 +91,18 @@ export const BrewCompleteScreen = () => {
       : statsName === 'remove cup'
         ? 'Remove cup'
         : '';
+
+  useHandleGestures(
+    {
+      pressDown() {
+        if (!isPurging) {
+          socket.emit('action', 'continue');
+          console.log('action,continue');
+        }
+      }
+    },
+    bubbleDisplay.visible
+  );
 
   return (
     <ModularScreen>
