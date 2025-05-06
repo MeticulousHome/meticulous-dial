@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { setBrightness } from '../../api/api';
 import { useNetworkConfig } from '../../hooks/useWifi';
-import Lottie, { AnimationItem } from 'lottie-web';
-import './DigitalClock.css';
-import MetCat from './MetCat.json';
 
-function formatTime() {
+import { MetCatClock } from './MetCatClock';
+import { DigitalClockBase } from './DigitalClockBase';
+import './DigitalClock.css';
+
+export function formatTime() {
   const time = new Date();
   const localeString = time.toLocaleTimeString().toUpperCase();
   // This would be the perfect usecase for a regex. But it is somehow significantly slower :C
@@ -31,9 +32,6 @@ export function DigitalClock({
   const { data: networkConfig, refetch: refetchNetworkConfig } =
     useNetworkConfig();
 
-  const animation = useRef<AnimationItem | null>(null);
-  const animationDiv = useRef<HTMLDivElement | null>(null);
-
   useEffect(() => {
     refetchNetworkConfig();
     setBrightness({ brightness: 0 });
@@ -42,35 +40,11 @@ export function DigitalClock({
     return () => {
       setBrightness({ brightness: 1 });
       clearInterval(intervalId);
-      animation.current?.destroy();
     };
   }, []);
 
   const isWifiConnected = networkConfig?.status.connected;
-
-  useEffect(() => {
-    if (!animation.current) {
-      animation.current = Lottie.loadAnimation({
-        container: animationDiv.current,
-        animationData: MetCat,
-        renderer: 'svg',
-        loop: false,
-        autoplay: false
-      });
-      animation.current.playSegments(
-        [
-          [0, 120],
-          [120, 313]
-        ],
-        true
-      );
-
-      animation.current.addEventListener('segmentStart', () => {
-        animation.current.setSegment(120, 313);
-        animation.current.loop = true;
-      });
-    }
-  }, [animationDiv]);
+  const ClockComponent = useMetCat ? MetCatClock : DigitalClockBase;
 
   return (
     <div className="idle-wrapper">
@@ -86,24 +60,7 @@ export function DigitalClock({
         )}
         {isWifiConnected ? 'Ready' : 'Not connected'}
       </div>
-      {useMetCat ? (
-        <div className="clock-wrapper">
-          <div className="clock miniclock">
-            {time.hours.toString().padStart(2, '0')}:
-            {time.minutes.toString().padStart(2, '0')}
-          </div>
-          <div className="metcat" ref={animationDiv} />
-        </div>
-      ) : (
-        <div className="clock-wrapper">
-          <div className="clock">{time.hours.toString().padStart(2, '0')}</div>
-          <div className="clock">
-            {' '}
-            {time.minutes.toString().padStart(2, '0')}
-          </div>
-          <div className="clock midday">{time.midday}</div>
-        </div>
-      )}
+      {<ClockComponent time={time} />}
     </div>
   );
 }

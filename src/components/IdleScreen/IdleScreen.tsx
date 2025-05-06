@@ -62,9 +62,9 @@ export function IdleScreen(): JSX.Element {
     case 'baristaBarista':
       return <BaristaClock />;
     case 'metCat':
-      return <DigitalClock useMetCat={true} />;
+      return <DigitalClock key="metcat" useMetCat={true} />;
     case 'digital':
-      return <DigitalClock useMetCat={false} />;
+      return <DigitalClock key="digital" useMetCat={false} />;
     case 'dvd':
       return <DVDIdleScreen />;
     case 'analog':
