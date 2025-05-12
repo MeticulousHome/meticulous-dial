@@ -103,8 +103,6 @@ export const HeatingScreen = () => {
 
   // Automatically start the shot based on options menu selected
   useEffect(() => {
-    console.log('heatingFinished', heatingFinished);
-    console.log('autostart', autostart);
     if (!heatingFinished) {
       return;
     }
@@ -161,7 +159,7 @@ export const HeatingScreen = () => {
       </ModularLeft>
       <ModularRight style={transitionStyle}>
         <CSSTransition
-          in={!heatingFinished || (heatingFinished && !autostart)}
+          in={!heatingFinished || (heatingFinished && autostart)}
           unmountOnExit
           timeout={transitionDuration}
           classNames="fade-options"
