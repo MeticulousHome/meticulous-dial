@@ -161,7 +161,7 @@ export const HeatingScreen = () => {
       </ModularLeft>
       <ModularRight style={transitionStyle}>
         <CSSTransition
-          in={!heatingFinished || autostart}
+          in={!heatingFinished || (heatingFinished && !autostart)}
           unmountOnExit
           timeout={transitionDuration}
           classNames="fade-options"
