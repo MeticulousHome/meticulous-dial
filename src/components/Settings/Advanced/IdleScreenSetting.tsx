@@ -73,10 +73,23 @@ export const IdleScreenSetting = () => {
             );
             break;
           default: {
+            // Ignore
+          }
+        }
+      },
+      pressUp() {
+        const activeItem = settings[activeIndex].key;
+        switch (activeItem) {
+          case 'back':
+            // Ignore
+            break;
+          default: {
             const screen = settings[activeIndex].key;
             updateSettings.mutate({ idle_screen: screen });
-            forceIdle();
-            setForceBubbleReopen(true);
+            setTimeout(() => {
+              forceIdle();
+              setForceBubbleReopen(true);
+            }, 300);
             break;
           }
         }
