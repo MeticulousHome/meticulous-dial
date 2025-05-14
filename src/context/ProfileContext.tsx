@@ -4,7 +4,8 @@ import React, {
   useContext,
   useState,
   ReactNode,
-  useEffect
+  useEffect,
+  useMemo
 } from 'react';
 import { useLastProfile, useProfiles } from '../hooks/useProfiles';
 import { ProfileUpdate } from '@meticulous-home/espresso-api/dist';
@@ -42,7 +43,10 @@ type ProfileContextType = {
   // Update functions
   onProfileEvent: (profile: ProfileUpdate) => void;
   onProfileHover: (type: string, profile_id: string) => void;
+  mergedProfiles: ExtendedProfile[];
 };
+
+export type ExtendedProfile = Profile & { isLast?: boolean };
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
@@ -71,73 +75,97 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     (Profile & { settings: IPresetSetting[] }) | null
   >(null);
 
-  // If the last profile changes scroll to the last profile
-  useEffect(() => {
-    if (!lastProfile?.profile?.id) {
-      return;
+  const [hasJustHandledProfileEvent, setHasJustHandledProfileEvent] =
+    useState(false);
+  // const hasJustHandledProfileEvent = useRef(false);
+
+  const mergedProfiles = useMemo<ExtendedProfile[]>(() => {
+    if (!profiles) return [];
+
+    const last = lastProfile?.profile;
+    if (!last) return profiles;
+
+    const exists = profiles.some((p) => p.id === last.id);
+
+    const enhanced = profiles.map((p) => ({
+      ...p,
+      isLast: p.id === last.id
+    }));
+
+    if (!exists) {
+      enhanced.push({
+        ...last,
+        isLast: true
+      });
     }
 
-    if (!profiles || profiles.length === 0) {
+    return enhanced;
+  }, [profiles, lastProfile?.profile]);
+
+  // If the last profile changes scroll to the last profile
+  useEffect(() => {
+    if (hasJustHandledProfileEvent) {
+      setHasJustHandledProfileEvent(false);
       return;
     }
-    const profileIndex = profiles.findIndex(
-      (profile) => profile.id === lastProfile.profile.id
-    );
+    if (!mergedProfiles || mergedProfiles.length === 0) return;
+
+    const profileIndex = mergedProfiles.findIndex((profile) => profile.isLast);
+
     if (profileIndex !== -1) {
       setLocalProfileIndex(profileIndex);
-      setLocalProfile(profiles[profileIndex]);
+      setLocalProfile(mergedProfiles[profileIndex]);
     } else {
       setLocalProfileIndex(0);
-      setLocalProfile(profiles[0]);
+      setLocalProfile(mergedProfiles[0]);
     }
     setLocalHoverState(true);
-  }, [!!profiles, lastProfile?.profile?.id]);
+  }, [mergedProfiles]);
 
   // If the profile index changes, update the local profile
   useEffect(() => {
-    if (!profiles) {
+    if (!mergedProfiles) {
       return;
     }
     if (profileIdToFind) {
-      const profileIndex = profiles.findIndex(
+      const profileIndex = mergedProfiles.findIndex(
         (profile) => profile.id === profileIdToFind
       );
       if (profileIndex !== -1) {
         setLocalProfileIndex(profileIndex);
-        setLocalProfile(profiles[profileIndex]);
+        setLocalProfile(mergedProfiles[profileIndex]);
         setProfileIdToFind(null);
         return;
       }
     }
 
-    if (localProfileIndex > profiles.length) {
-      setLocalProfileIndex(profiles.length);
+    if (localProfileIndex > mergedProfiles.length) {
+      setLocalProfileIndex(mergedProfiles.length);
       setLocalProfile(null);
-    } else if (localProfileIndex < profiles.length) {
-      setLocalProfile(profiles[localProfileIndex]);
+    } else if (localProfileIndex < mergedProfiles.length) {
+      setLocalProfile(mergedProfiles[localProfileIndex]);
     }
-  }, [localProfileIndex, profiles, profileIdToFind]);
+  }, [localProfileIndex, profileIdToFind, mergedProfiles]);
 
   // When the profile event is received, refetch the profiles and if necessary update the local state
   useEffect(() => {
-    if (!profileEvent) {
-      return;
-    }
-    console.log('ProfileEvent effect', profileEvent);
+    if (!profileEvent) return;
+
     profileQuery.refetch();
-
     setProfileEvent(null);
+    setHasJustHandledProfileEvent(true);
 
-    if (!profiles) {
+    if (!mergedProfiles || mergedProfiles.length === 0) {
       console.error('No profiles available');
       return;
     }
     const profile_id = profileEvent.profile_id || '';
+    const index = mergedProfiles.findIndex(
+      (profile) => profile.id === profile_id
+    );
+
     switch (profileEvent.change) {
       case 'update': {
-        const index = profiles.findIndex(
-          (profile) => profile.id === profile_id
-        );
         if (index !== -1) {
           setLocalProfileIndex(index);
         } else {
@@ -148,22 +176,14 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         break;
       }
       case 'delete': {
-        const index = profiles.findIndex(
-          (profile) => profile.id === profile_id
-        );
-        if (index !== -1) {
-          if (index < localProfileIndex) {
-            setLocalProfileIndex((prev) => Math.max(prev - 1, 0));
-          }
+        if (index !== -1 && index < localProfileIndex) {
+          setLocalProfileIndex((prev) => Math.max(prev - 1, 0));
         }
         // We dont handle the else case because not finding a deleted profile is good
         // and we do boundary checks above
         break;
       }
       case 'create': {
-        const index = profiles.findIndex(
-          (profile) => profile.id === profile_id
-        );
         if (index !== -1) {
           setLocalProfileIndex(index);
         } else {
@@ -176,7 +196,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
       default:
         break;
     }
-  }, [profiles, profileEvent, profileQuery]);
+  }, [mergedProfiles, profileEvent, profileQuery]);
 
   const onProfileHover = (type: string, profile_id: string) => {
     setLocalHoverState(type === 'focus');
@@ -208,7 +228,8 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     profileStarting,
     setProfileStarting,
     onProfileEvent,
-    onProfileHover
+    onProfileHover,
+    mergedProfiles
   };
 
   return (
