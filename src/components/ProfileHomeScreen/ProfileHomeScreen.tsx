@@ -17,6 +17,8 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { useSettings } from '../../hooks/useSettings';
 import { useProfileContext } from '../../context/ProfileContext';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
+import { PlusIcon } from './PlusIcon';
+import { LastLabel } from './LastLabel';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -66,14 +68,14 @@ export const ProfileHomeScreen = () => {
 
   const profileState = useProfileContext();
 
-  const { data: profiles } = profileState.profileQuery;
   const {
     localProfileIndex: activeOption,
     setLocalProfileIndex: setActiveOption,
     profileStarting,
     setProfileStarting,
     localHoverState,
-    setLocalHoverState
+    setLocalHoverState,
+    mergedProfiles
   } = profileState;
 
   const [transitionDirection, setTransitionDirection] = useState<
@@ -92,8 +94,7 @@ export const ProfileHomeScreen = () => {
 
   const animationFinished = async () => {
     setProfileStarting(true);
-    console.log('starting coffee');
-    const profile = profiles?.[activeOption];
+    const profile = mergedProfiles?.[activeOption];
     const data = await loadProfileData(profile);
     if (data) {
       await startProfile();
@@ -108,34 +109,32 @@ export const ProfileHomeScreen = () => {
   }, [shouldGoToIdle]);
 
   useEffect(() => {
-    if (!profiles) {
-      return;
-    }
+    if (!mergedProfiles) return;
 
-    if (activeOption > profiles.length) {
-      setActiveOption(profiles.length);
+    if (activeOption > mergedProfiles.length) {
+      setActiveOption(mergedProfiles.length);
       return;
     }
 
     // We are never zoomed in on the new button
-    if (activeOption == profiles.length) {
+    if (activeOption == mergedProfiles.length) {
       setLocalHoverState(false);
       return;
     }
-  }, [profiles, activeOption]);
+  }, [mergedProfiles, activeOption]);
 
   const rotateLeft = () => {
     if (localHoverState) {
       setLocalHoverState(false);
       return;
     }
-    if (activeOption !== profiles?.length) {
+    if (activeOption !== mergedProfiles?.length) {
       setTransitionDirection('none');
       requestAnimationFrame(() => {
         setTransitionDirection('right');
       });
     }
-    setActiveOption((prev) => Math.min(prev + 1, profiles?.length || 0));
+    setActiveOption((prev) => Math.min(prev + 1, mergedProfiles?.length || 0));
   };
 
   const rotateRight = () => {
@@ -171,7 +170,7 @@ export const ProfileHomeScreen = () => {
       },
       pressDown() {
         // New profile button
-        if (activeOption == profiles?.length) {
+        if (activeOption == mergedProfiles?.length) {
           dispatch(setScreen('defaultProfiles'));
         } else {
           if (!localHoverState) {
@@ -189,7 +188,7 @@ export const ProfileHomeScreen = () => {
     bubbleDisplay.visible || profileStarting
   );
 
-  if (!profiles || !globalSettings) {
+  if (!mergedProfiles || !globalSettings) {
     return <LoadingScreen />;
   }
 
@@ -201,7 +200,7 @@ export const ProfileHomeScreen = () => {
             $translateX={CARD_PADDING - activeOption * CARD_SIZE}
             component={'div'}
           >
-            {profiles.map((profile, index) => {
+            {mergedProfiles.map((profile, index) => {
               const itemRef = getOrCreateRef(index.toString());
               const backgroundColor = profile.display?.accentColor
                 ? profile.display?.accentColor
@@ -214,23 +213,26 @@ export const ProfileHomeScreen = () => {
                   timeout={500}
                   classNames="slide"
                 >
-                  <ProfileEntry
-                    ref={itemRef}
-                    contentClassNames={
-                      !localHoverState &&
-                      Math.abs(index - activeOption) < 2 &&
-                      `animation-bounce-${transitionDirection}`
-                    }
-                    containerStyle={{ backgroundColor }}
-                    title={profile.name}
-                    distanceToActive={index - activeOption}
-                    zoomedIn={localHoverState}
-                  >
-                    {/* Only render images in those that are close to the active option */}
-                    {Math.abs(index - activeOption) < 2 && (
-                      <ProfileImage profile={profile} />
-                    )}
-                  </ProfileEntry>
+                  <div>
+                    <ProfileEntry
+                      ref={itemRef}
+                      contentClassNames={
+                        !localHoverState &&
+                        Math.abs(index - activeOption) < 2 &&
+                        `animation-bounce-${transitionDirection}`
+                      }
+                      containerStyle={{ backgroundColor, position: 'relative' }}
+                      title={profile.name}
+                      distanceToActive={index - activeOption}
+                      zoomedIn={localHoverState}
+                    >
+                      {/* Only render images in those that are close to the active option */}
+                      {Math.abs(index - activeOption) < 2 && (
+                        <ProfileImage profile={profile} />
+                      )}
+                      {profile.isLast && <LastLabel />}
+                    </ProfileEntry>
+                  </div>
                 </CSSTransition>
               );
             })}
@@ -240,26 +242,13 @@ export const ProfileHomeScreen = () => {
               title={'new'}
               contentClassNames={
                 !localHoverState &&
-                Math.abs(profiles.length - activeOption) < 2 &&
+                Math.abs(mergedProfiles.length - activeOption) < 2 &&
                 `animation-bounce-${transitionDirection}`
               }
-              distanceToActive={profiles.length - activeOption}
+              distanceToActive={mergedProfiles.length - activeOption}
               zoomedIn={localHoverState}
             >
-              <svg
-                width="166"
-                height="166"
-                viewBox="0 0 204 204"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M104.745 99.2547V32H99.2551V99.2547H32V104.745H99.2551V172H104.745V104.745H172V99.2547H104.745Z"
-                  fill="white"
-                />
-              </svg>
+              <PlusIcon />
             </ProfileEntry>
           </InnerList>
         </Viewport>
