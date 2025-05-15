@@ -10,7 +10,7 @@ import React, {
 import { useLastProfile, useProfiles } from '../hooks/useProfiles';
 import { ProfileUpdate } from '@meticulous-home/espresso-api/dist';
 import { IPresetAction, IPresetSetting } from '../types';
-import { deepEqual } from '../utils/';
+import { deepEqual } from 'fast-equals';
 
 type ProfileContextType = {
   profileQuery: ReturnType<typeof useProfiles>;
