@@ -95,7 +95,10 @@ export const ProfileHomeScreen = () => {
   const animationFinished = async () => {
     setProfileStarting(true);
     const profile = mergedProfiles?.[activeOption];
-    const data = await loadProfileData(profile);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { isLast, temporary, ...cleanProfile } = profile;
+    const data = await loadProfileData(cleanProfile);
     if (data) {
       await startProfile();
     }
@@ -230,7 +233,9 @@ export const ProfileHomeScreen = () => {
                       {Math.abs(index - activeOption) < 2 && (
                         <ProfileImage profile={profile} />
                       )}
-                      {profile.isLast && <LastLabel />}
+                      {profile.isLast && (
+                        <LastLabel isTemporary={profile.temporary} />
+                      )}
                     </ProfileEntry>
                   </div>
                 </CSSTransition>
