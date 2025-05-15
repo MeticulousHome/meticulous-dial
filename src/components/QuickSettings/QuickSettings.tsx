@@ -175,7 +175,7 @@ export function QuickSettings(): JSX.Element {
 
   const handleAnimationEnd = () => {
     setHoldAnimation('finished');
-    console.log('Termino la animacion ✔');
+    if (localProfile.temporary) return; //To prevent deleting an existing profile based on a temporary profile that has modifications.
     switch (settings[activeOption].key) {
       case 'delete': {
         deletePresetMutation.mutate(localProfile?.id);
@@ -365,15 +365,20 @@ export function QuickSettings(): JSX.Element {
         setSettings(inBrewSettings);
         break;
       default:
-        setSettings([
-          ...(osStatusSettingOption ? [osStatusSettingOption] : []),
-          ...(requiresProfileContext === true ? context : []),
-          ...(backAvailable ? [prevScreenSetting] : []),
-          ...(hidden_ui_elements_enabled(globalSettings)
-            ? [disable_ui_features]
-            : []),
-          ...defaultSettings
-        ]);
+        {
+          const newContext = localProfile.temporary
+            ? context.filter((c) => c.key !== 'delete')
+            : context;
+          setSettings([
+            ...(osStatusSettingOption ? [osStatusSettingOption] : []),
+            ...(requiresProfileContext ? newContext : []),
+            ...(backAvailable ? [prevScreenSetting] : []),
+            ...(hidden_ui_elements_enabled(globalSettings)
+              ? [disable_ui_features]
+              : []),
+            ...defaultSettings
+          ]);
+        }
         break;
     }
   }, [currentScreen, osStatusInfo, osStatusVisible]);
@@ -463,9 +468,6 @@ export function QuickSettings(): JSX.Element {
                   $isMarquee={
                     activeOption === index &&
                     option.label.length > MARQUEE_MIN_TEXT_LENGTH
-                  }
-                  onAnimationEnd={() =>
-                    console.log('Termino la animacion Option::Inner ❌')
                   }
                   $isMultiItem={option.longpress}
                 >

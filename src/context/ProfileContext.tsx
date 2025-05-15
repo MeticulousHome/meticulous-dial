@@ -10,6 +10,7 @@ import React, {
 import { useLastProfile, useProfiles } from '../hooks/useProfiles';
 import { ProfileUpdate } from '@meticulous-home/espresso-api/dist';
 import { IPresetAction, IPresetSetting } from '../types';
+import { deepEqual } from '../utils/';
 
 type ProfileContextType = {
   profileQuery: ReturnType<typeof useProfiles>;
@@ -17,25 +18,27 @@ type ProfileContextType = {
   // Local profile state
   localProfileIndex: number | null;
   setLocalProfileIndex: React.Dispatch<React.SetStateAction<number | null>>;
-  localProfile: Profile | null;
-  setLocalProfile: React.Dispatch<React.SetStateAction<Profile | null>>;
+  localProfile: ExtendedProfile | null;
+  setLocalProfile: React.Dispatch<React.SetStateAction<ExtendedProfile | null>>;
   localHoverState: boolean;
   setLocalHoverState: React.Dispatch<React.SetStateAction<boolean | null>>;
 
   // Default profile state
-  detailProfileSelected: Profile | null;
+  detailProfileSelected: ExtendedProfile | null;
   setDetailsProfileSelected: React.Dispatch<
-    React.SetStateAction<Profile | null>
+    React.SetStateAction<ExtendedProfile | null>
   >;
 
   // Profile Editing
   settingsIndex: number;
   setSettingsIndex: React.Dispatch<React.SetStateAction<number>>;
   settingsProfile:
-    | (Profile & { settings: (IPresetSetting | IPresetAction)[] })
+    | (ExtendedProfile & { settings: (IPresetSetting | IPresetAction)[] })
     | null;
   setSettingsProfile: React.Dispatch<
-    React.SetStateAction<(Profile & { settings: IPresetSetting[] }) | null>
+    React.SetStateAction<
+      (ExtendedProfile & { settings: IPresetSetting[] }) | null
+    >
   >;
 
   profileStarting: boolean;
@@ -46,7 +49,10 @@ type ProfileContextType = {
   mergedProfiles: ExtendedProfile[];
 };
 
-export type ExtendedProfile = Profile & { isLast?: boolean };
+export type ExtendedProfile = Profile & {
+  isLast?: boolean;
+  temporary?: boolean;
+};
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
@@ -61,23 +67,24 @@ export const useProfileContext = () => {
 export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const profileQuery = useProfiles();
   const [defaultProfileSelected, setDefaultProfileSelected] =
-    useState<Profile | null>(null);
+    useState<ExtendedProfile | null>(null);
   const { data: profiles } = profileQuery;
   const { data: lastProfile } = useLastProfile();
   const [localProfileIndex, setLocalProfileIndex] = useState<number>(0);
-  const [localProfile, setLocalProfile] = useState<Profile | null>(null);
+  const [localProfile, setLocalProfile] = useState<ExtendedProfile | null>(
+    null
+  );
   const [localHoverState, setLocalHoverState] = useState<boolean>(false);
   const [profileIdToFind, setProfileIdToFind] = useState<string | null>(null);
   const [profileEvent, setProfileEvent] = useState<ProfileUpdate | null>(null);
   const [profileStarting, setProfileStarting] = useState(false);
   const [settingsIndex, setSettingsIndex] = useState(0);
   const [settingsProfile, setSettingsProfile] = useState<
-    (Profile & { settings: IPresetSetting[] }) | null
+    (ExtendedProfile & { settings: IPresetSetting[] }) | null
   >(null);
 
   const [hasJustHandledProfileEvent, setHasJustHandledProfileEvent] =
     useState(false);
-  // const hasJustHandledProfileEvent = useRef(false);
 
   const mergedProfiles = useMemo<ExtendedProfile[]>(() => {
     if (!profiles) return [];
@@ -85,21 +92,33 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     const last = lastProfile?.profile;
     if (!last) return profiles;
 
-    const exists = profiles.some((p) => p.id === last.id);
+    const existingIndex = profiles.findIndex((p) => p.id === last.id);
+    const existing = existingIndex !== -1 ? profiles[existingIndex] : null;
 
-    const enhanced = profiles.map((p) => ({
+    const profilesExtended = profiles.map((p) => ({
       ...p,
-      isLast: p.id === last.id
+      isLast: false,
+      temporary: false
     }));
 
-    if (!exists) {
-      enhanced.push({
-        ...last,
+    //It exists in profiles and is identical.
+    if (existing && deepEqual(existing, last)) {
+      profilesExtended[existingIndex] = {
+        ...profilesExtended[existingIndex],
         isLast: true
-      });
+      };
+      return profilesExtended;
     }
 
-    return enhanced;
+    //Add to the end (different content or does not exist)
+    return [
+      ...profilesExtended,
+      {
+        ...last,
+        isLast: true,
+        temporary: true
+      }
+    ];
   }, [profiles, lastProfile?.profile]);
 
   // If the last profile changes scroll to the last profile
@@ -153,7 +172,11 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
     profileQuery.refetch();
     setProfileEvent(null);
-    setHasJustHandledProfileEvent(true);
+    if (profileEvent.change === 'load') {
+      setHasJustHandledProfileEvent(false);
+    } else {
+      setHasJustHandledProfileEvent(true);
+    }
 
     if (!mergedProfiles || mergedProfiles.length === 0) {
       console.error('No profiles available');
