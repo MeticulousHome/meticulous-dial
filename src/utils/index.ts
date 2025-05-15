@@ -88,3 +88,32 @@ export const formatTime = (seconds: number): string => {
   const remainingSeconds = Math.floor(seconds % 60);
   return `${String(minutes).padStart(1, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
 };
+
+export const deepEqual = (obj1: unknown, obj2: unknown): boolean => {
+  if (obj1 === obj2) return true;
+
+  if (
+    typeof obj1 !== 'object' ||
+    obj1 === null ||
+    typeof obj2 !== 'object' ||
+    obj2 === null
+  ) {
+    return false;
+  }
+
+  const obj1Typed = obj1 as Record<string, unknown>;
+  const obj2Typed = obj2 as Record<string, unknown>;
+
+  const keys1 = Object.keys(obj1Typed);
+  const keys2 = Object.keys(obj2Typed);
+
+  if (keys1.length !== keys2.length) return false;
+
+  for (const key of keys1) {
+    if (!keys2.includes(key)) return false;
+
+    if (!deepEqual(obj1Typed[key], obj2Typed[key])) return false;
+  }
+
+  return true;
+};
