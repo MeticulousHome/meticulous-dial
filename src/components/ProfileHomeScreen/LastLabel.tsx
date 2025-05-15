@@ -16,9 +16,11 @@ const Label = styled.span`
   color: rgb(224, 220, 208);
 `;
 
-export const LastLabel: React.FC = () => (
+export const LastLabel: React.FC<{
+  isTemporary: boolean;
+}> = ({ isTemporary }) => (
   <Wrapper>
     <Label>Last</Label>
-    <ClockIcon />
+    {isTemporary && <ClockIcon />}
   </Wrapper>
 );
