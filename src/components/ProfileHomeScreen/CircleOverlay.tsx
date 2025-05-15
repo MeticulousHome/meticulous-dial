@@ -3,6 +3,8 @@ import './transitions.less';
 
 import { styled } from 'styled-components';
 import { useProfileContext } from '../../context/ProfileContext';
+import { useSettings } from '../../hooks/useSettings';
+import { Settings } from '@meticulous-home/espresso-api/dist';
 
 const CircleText = styled.div`
   position: absolute;
@@ -34,6 +36,10 @@ export function CircleOverlay({
   shouldAnimate: boolean;
   onAnimationFinished?: () => void;
 }) {
+  const { data: globalSettings } = useSettings();
+  const ease_curve =
+    (globalSettings as Settings & { circle_curve: string })?.circle_curve || '';
+
   // Circle configuration
   const stroke = 5;
   const radius = (480 - stroke * 2) / 2;
@@ -106,7 +112,7 @@ export function CircleOverlay({
             transform: 'rotate(90deg)',
             strokeDasharray: circumference,
             strokeDashoffset: strokeDashOffset,
-            transition: 'stroke-dashoffset 1.0s ease-out'
+            transition: ease_curve
           }}
           onTransitionEnd={handleTransitionEnd}
         />
