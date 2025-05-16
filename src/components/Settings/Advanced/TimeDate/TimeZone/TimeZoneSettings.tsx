@@ -114,7 +114,7 @@ export default function TimeZoneSettings() {
               $active={isActive}
               key={index}
             >
-              <SettingsLabel $active={isActive}>{country}</SettingsLabel>
+              <SettingsLabel $active={isActive}>{city}</SettingsLabel>
               <TimeZone isactive={isActive}>{tz_name}</TimeZone>
             </SettingsEntry>
           );

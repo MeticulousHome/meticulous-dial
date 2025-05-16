@@ -52,7 +52,7 @@ export const SettingsEntry = styled.div<{
   display: flex;
   flex-direction: row;
   justify-content: left;
-  align-items: center;
+  align-items: baseline;
   height: ${OPTIONS_HEIGHT}px;
   width: 100%;
 
@@ -72,7 +72,7 @@ export const SettingsEntry = styled.div<{
 
 export const SettingsLabel = styled.span<{ $active?: boolean }>`
   padding-right: 8px;
-  color: ${(props) => (props.$active ? 'white' : '#e7e7e790')};
+  color: ${(props) => (props.$active ? '#f5c444' : '#e7e7e790')};
 `;
 
 export const Title = styled.span`
