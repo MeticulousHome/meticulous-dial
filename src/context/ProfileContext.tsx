@@ -172,11 +172,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
     profileQuery.refetch();
     setProfileEvent(null);
-    if (profileEvent.change === 'load') {
-      setHasJustHandledProfileEvent(false);
-    } else {
-      setHasJustHandledProfileEvent(true);
-    }
+    setHasJustHandledProfileEvent(profileEvent.change !== 'load'); //We added this condition to return to the last used profile once a brew has been completed.
 
     if (!mergedProfiles || mergedProfiles.length === 0) {
       console.error('No profiles available');
