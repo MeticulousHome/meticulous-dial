@@ -216,28 +216,26 @@ export const ProfileHomeScreen = () => {
                   timeout={500}
                   classNames="slide"
                 >
-                  <div>
-                    <ProfileEntry
-                      ref={itemRef}
-                      contentClassNames={
-                        !localHoverState &&
-                        Math.abs(index - activeOption) < 2 &&
-                        `animation-bounce-${transitionDirection}`
-                      }
-                      containerStyle={{ backgroundColor, position: 'relative' }}
-                      title={profile.name}
-                      distanceToActive={index - activeOption}
-                      zoomedIn={localHoverState}
-                    >
-                      {/* Only render images in those that are close to the active option */}
-                      {Math.abs(index - activeOption) < 2 && (
-                        <ProfileImage profile={profile} />
-                      )}
-                      {profile.isLast && (
-                        <LastLabel isTemporary={profile.temporary} />
-                      )}
-                    </ProfileEntry>
-                  </div>
+                  <ProfileEntry
+                    ref={itemRef}
+                    contentClassNames={
+                      !localHoverState &&
+                      Math.abs(index - activeOption) < 2 &&
+                      `animation-bounce-${transitionDirection}`
+                    }
+                    containerStyle={{ backgroundColor, position: 'relative' }}
+                    title={profile.name}
+                    distanceToActive={index - activeOption}
+                    zoomedIn={localHoverState}
+                  >
+                    {/* Only render images in those that are close to the active option */}
+                    {Math.abs(index - activeOption) < 2 && (
+                      <ProfileImage profile={profile} />
+                    )}
+                    {profile.isLast && (
+                      <LastLabel isTemporary={profile.temporary} />
+                    )}
+                  </ProfileEntry>
                 </CSSTransition>
               );
             })}
