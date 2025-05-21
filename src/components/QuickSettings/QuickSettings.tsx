@@ -169,6 +169,8 @@ export function QuickSettings(): JSX.Element {
         return `Downloading Update: ${Math.round(osStatusData.progress)}%`;
       case 'INSTALLING':
         return `Installing Update: ${Math.round(osStatusData.progress)}%`;
+      case 'FAILED':
+        return `Update Failed: ${osStatusData.info}%`;
     }
     return '';
   }, [osStatusData, osStatusError]);
