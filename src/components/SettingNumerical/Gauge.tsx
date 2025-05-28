@@ -37,9 +37,11 @@ const formatValue = (value: number, precision: number) => {
 };
 
 export const getDashArray = (value: number, maxValue: number) => {
-  const mI = (360 / maxValue) * (Math.min(value, maxValue) / 100);
-  const fA = mI * 100;
-  const marc = circumference * (fA / 360);
+  if (maxValue === 0) {
+    return `0 ${circumference}`;
+  }
+  const percentage = Math.min(value, maxValue) / maxValue;
+  const marc = circumference * percentage;
 
   return `${marc} ${circumference}`;
 };
