@@ -173,6 +173,10 @@ export function PressetSettings(): JSX.Element {
           dispatch(setScreen('time'));
         } else if (activeSetting.key.includes('weight')) {
           dispatch(setScreen('weight'));
+        } else if (activeSetting.key.includes('piston_position')) {
+          dispatch(setScreen('piston_position'));
+        } else if (activeSetting.key.includes('power')) {
+          dispatch(setScreen('motor_power'));
         } else if (activeSetting.key.includes('flow')) {
           dispatch(setScreen('flow'));
         } else if (activeSetting.key === 'temperature') {

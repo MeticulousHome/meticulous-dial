@@ -55,6 +55,10 @@ export type DoseKey = 'dose';
 
 export type OutputKey = 'output';
 
+export type PistonPosKey = 'pistor_position';
+
+export type MotorPowerKey = 'motor_power';
+
 export type ActionKey = 'brew_once' | 'save' | 'discard' | 'delete';
 
 export type IPresetText = {

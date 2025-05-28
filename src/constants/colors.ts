@@ -20,3 +20,4 @@ export const colorDataRed = '#FF5844';
 export const colorDataGreenLight = '#7BEEBF';
 export const colorDataYellow = '#FDC352';
 export const colorDataWhite = '#FFFFFF';
+export const colorDataYellowBright = '#F0F000';

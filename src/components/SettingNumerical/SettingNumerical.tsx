@@ -17,6 +17,7 @@ import { useProfileContext } from '../../context/ProfileContext';
 interface ISettingConfig {
   interval: number;
   unit: Unit;
+  minValue?: number;
   maxValue: number;
 }
 type NumericalSettingType =
@@ -25,12 +26,25 @@ type NumericalSettingType =
   | 'output'
   | 'flow'
   | 'time'
+  | 'piston_position'
+  | 'motor_power'
   | 'weight';
 const unitSettingConfigMap: Record<NumericalSettingType, ISettingConfig> = {
   pressure: {
     interval: 0.1,
     unit: 'bar',
     maxValue: 13
+  },
+  piston_position: {
+    interval: 1,
+    unit: 'percentage',
+    maxValue: 100
+  },
+  motor_power: {
+    interval: 1,
+    unit: 'percentage',
+    minValue: -99,
+    maxValue: 100
   },
   temperature: {
     interval: 0.5,
@@ -70,7 +84,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
 
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const total = Number(setting?.value || 0);
-  const { interval, maxValue, unit } = unitSettingConfigMap[
+  const { interval, maxValue, unit, minValue } = unitSettingConfigMap[
     type as NumericalSettingType
   ] ?? {
     interval: 0,
@@ -85,7 +99,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
   const updateValue = (gesture: 'left' | 'right') => {
     if (
       (total === maxValue && gesture === 'right') ||
-      (total === 0 && gesture === 'left')
+      (total === (minValue || 0) && gesture === 'left')
     ) {
       return;
     }
@@ -126,6 +140,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
   return (
     <Gauge
       unit={unit}
+      minValue={minValue}
       maxValue={maxValue}
       precision={interval < 1 ? 1 : 0}
       value={total}

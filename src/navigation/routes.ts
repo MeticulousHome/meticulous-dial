@@ -154,6 +154,26 @@ export const routes: Record<ScreenType, Route> = {
     bottomStatusHidden: true,
     parent: 'pressetSettings'
   },
+  piston_position: {
+    component: SettingNumerical,
+    title: getActiveProfilesTitle,
+    bottomTitle: 'piston position',
+    props: {
+      type: 'piston_position'
+    },
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
+  },
+  motor_power: {
+    component: SettingNumerical,
+    title: getActiveProfilesTitle,
+    bottomTitle: 'motor power',
+    props: {
+      type: 'motor_power'
+    },
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
+  },
   time: {
     component: SettingNumerical,
     title: getActiveProfilesTitle,
