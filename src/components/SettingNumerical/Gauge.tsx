@@ -7,7 +7,14 @@ export const circumference = radius * 2 * Math.PI;
 const transform = `rotate(90, ${radius}, ${radius})`;
 const minDigits = 3;
 
-export type Unit = 'bar' | 'celcius' | 'gram' | 'sec' | 'ml' | 'min';
+export type Unit =
+  | 'bar'
+  | 'celcius'
+  | 'gram'
+  | 'sec'
+  | 'ml'
+  | 'min'
+  | 'percentage';
 
 const unitNameMap: Record<Unit, string> = {
   bar: 'bar',
@@ -15,6 +22,7 @@ const unitNameMap: Record<Unit, string> = {
   gram: 'g',
   sec: 's',
   ml: 'ml/s',
+  percentage: '%',
   min: 'min'
 };
 
@@ -24,6 +32,7 @@ const unitClassNameMap: Record<Unit, string> = {
   gram: 'scale-weight-limit',
   sec: 'scale-time',
   ml: 'scale-flow',
+  percentage: 'scale-percentile',
   min: 'scale-time'
 };
 
@@ -36,18 +45,30 @@ const formatValue = (value: number, precision: number) => {
   return { valueOnly, padded };
 };
 
-export const getDashArray = (value: number, maxValue: number) => {
-  if (maxValue === 0) {
-    return `0 ${circumference}`;
+export const getDashArray = (
+  value: number,
+  maxValue: number,
+  minValue?: number
+) => {
+  if (value >= 0) {
+    if (maxValue === 0) {
+      return `0 ${circumference}`;
+    }
+    const percentage = Math.min(value, maxValue) / maxValue;
+    const marc = circumference * percentage;
+    return `${marc} ${circumference}`;
+  } else {
+    const percentage =
+      Math.abs(Math.max(value, minValue | 0)) / Math.abs(minValue);
+    const marc = percentage * circumference;
+    const space = circumference - marc;
+    return `0 ${space} ${marc}`;
   }
-  const percentage = Math.min(value, maxValue) / maxValue;
-  const marc = circumference * percentage;
-
-  return `${marc} ${circumference}`;
 };
 
 interface GaugeProps {
   value: number;
+  minValue?: number;
   maxValue: number;
   precision: number;
   unit: Unit;
@@ -55,6 +76,7 @@ interface GaugeProps {
 
 export function Gauge({
   value,
+  minValue,
   maxValue,
   precision,
   unit
@@ -93,7 +115,7 @@ export function Gauge({
           r={radius}
           stroke="#F5C444"
           strokeWidth={strokeWidth}
-          strokeDasharray={getDashArray(value, maxValue)}
+          strokeDasharray={getDashArray(value, maxValue, minValue)}
           transform={transform}
         />
       </svg>

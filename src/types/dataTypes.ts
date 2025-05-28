@@ -2,10 +2,16 @@ import {
   colorDataBlueLight,
   colorDataGreenLight,
   colorDataRed,
-  colorDataYellow
+  colorDataYellow,
+  colorDataWhite,
+  colorDataYellowBright
 } from '../constants/colors';
 
 export type DataTypeKey = 'weight' | 'pressure' | 'flow';
+export type ExtraSettingType =
+  | 'piston_position'
+  | 'motor_power'
+  | 'temperature';
 
 export interface DataType {
   minValue: number;
@@ -17,7 +23,25 @@ export interface DataType {
   precision: 0 | 1;
 }
 
-export const dataTypes: Record<DataTypeKey | 'temperature', DataType> = {
+export const dataTypes: Record<DataTypeKey | ExtraSettingType, DataType> = {
+  piston_position: {
+    name: 'piston position',
+    minValue: 0,
+    maxValue: 100,
+    axisLabelStep: 25,
+    unit: '%',
+    color: colorDataWhite,
+    precision: 1
+  },
+  motor_power: {
+    name: 'motor power',
+    minValue: 0,
+    maxValue: 100,
+    axisLabelStep: 25,
+    unit: '%',
+    color: colorDataYellowBright,
+    precision: 1
+  },
   weight: {
     name: 'Weight',
     minValue: 0,

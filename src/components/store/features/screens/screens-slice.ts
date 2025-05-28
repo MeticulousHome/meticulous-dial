@@ -12,6 +12,8 @@ export type ScreenType =
   | 'weight'
   | 'flow'
   | 'temperature'
+  | 'piston_position'
+  | 'motor_power'
   | 'dose'
   | 'output'
   | 'settings'
