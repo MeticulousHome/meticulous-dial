@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { routes } from '../../src/navigation/routes';
 import { IPresetsSettingData } from '../../src/types';
+import { Settings } from '@meticulous-home/espresso-api';
 
 const regex = /^-?[0-9]+$/;
 
@@ -17,19 +18,11 @@ export const addRightComplement = (value: string) => {
 };
 
 export const formatStatValue = (
-  value: string,
+  value: number,
   padEnd: number,
   fixpointFactor = 1.0
 ) => {
-  let fValue = 0.0;
-
-  try {
-    fValue = parseFloat(value);
-  } catch {
-    return fValue;
-  }
-
-  const finalNumber = roundPrecision(fValue / fixpointFactor, 1).toString();
+  const finalNumber = roundPrecision(value / fixpointFactor, 1).toString();
   if (regex.test(finalNumber)) {
     return finalNumber + '.' + '0'.repeat(padEnd);
   }
@@ -73,6 +66,16 @@ export const mergeSettings = (currentJson: string, defaultJson: string) => {
   return JSON.stringify(mSettings);
 };
 
+export const hidden_ui_elements_enabled = (settings: Settings) => {
+  if (!settings) return false;
+  const today = new Date();
+  return (
+    today.getDate() === 1 &&
+    today.getMonth() === 3 &&
+    !settings.disable_ui_features
+  );
+};
+
 export const memoizedRoutes = Object.fromEntries(
   Object.entries(routes).map(([key, { component, ...route }]) => [
     key,
@@ -83,5 +86,5 @@ export const memoizedRoutes = Object.fromEntries(
 export const formatTime = (seconds: number): string => {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = Math.floor(seconds % 60);
-  return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+  return `${String(minutes).padStart(1, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
 };

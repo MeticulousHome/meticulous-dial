@@ -1,43 +1,64 @@
+import { useEffect, useState, useRef, createElement } from 'react';
 import { useHandleGestures } from '../../../src/hooks/useHandleGestures';
 import { memoizedRoutes } from '../../../src/utils';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { CSSTransition } from 'react-transition-group';
 import './bubble.less';
-
-export const durationAnimation = 450;
-const animationStyle = { animationDuration: `${durationAnimation / 1000}s` };
 
 export default function Bubble() {
   const dispatch = useAppDispatch();
-  const Bubble = useAppSelector((state) => state.screen.bubbleDisplay);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const route = memoizedRoutes[Bubble.component];
+
+  const [showBubble, setShowBubble] = useState(false);
+  const prevComponentRef = useRef<string | null>(null);
+
+  if (bubbleDisplay.component) {
+    prevComponentRef.current = bubbleDisplay.component;
+  }
+
+  useEffect(() => {
+    setShowBubble(bubbleDisplay.visible);
+  }, [bubbleDisplay.visible]);
+
+  const ActiveComponent =
+    memoizedRoutes[bubbleDisplay.component || prevComponentRef.current]
+      ?.component;
 
   useHandleGestures({
     context() {
       dispatch(
         setBubbleDisplay({
           visible: !bubbleDisplay.visible,
-          component: !bubbleDisplay.visible ? 'quick-settings' : null
+          component: !bubbleDisplay.visible
+            ? 'quick-settings'
+            : bubbleDisplay.component
         })
       );
     }
   });
 
-  if (!Bubble || !Bubble.component) return <></>;
-
+  const handleExited = () => {
+    dispatch(
+      setBubbleDisplay({
+        visible: false,
+        component: null
+      })
+    );
+  };
   return (
-    <div
-      className={`main-bubble main-layout ${
-        Bubble && Bubble.visible
-          ? 'bubble-enter-animation'
-          : 'bubble-leave-animation'
-      } large`}
-      style={animationStyle}
+    <CSSTransition
+      in={showBubble}
+      timeout={450}
+      classNames="bubble"
+      unmountOnExit
+      onExited={handleExited}
     >
-      <div className="bubble-container">
-        <route.component />
+      <div className="main-bubble main-layout large">
+        <div className="bubble-container">
+          {ActiveComponent && createElement(ActiveComponent)}
+        </div>
       </div>
-    </div>
+    </CSSTransition>
   );
 }

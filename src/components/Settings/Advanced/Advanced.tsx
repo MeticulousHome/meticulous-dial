@@ -1,97 +1,151 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
+import { useMemo, useState, useEffect } from 'react';
 import { startMasterCalibration } from '../../../api/api';
-import 'swiper/css';
 
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
-import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { SettingsItem } from '../../../types';
+import {
+  useSettings,
+  useUpdateSettings,
+  useRootPassword
+} from '../../../hooks/useSettings';
+import { useManufacturingSchema } from '../../../hooks/useManufacturing';
 import {
   setBubbleDisplay,
   setScreen
 } from '../../store/features/screens/screens-slice';
-import { marqueeIfNeeded } from '../../shared/MarqueeValue';
-import { SettingsKey } from '@meticulous-home/espresso-api';
-import {
-  updateItemSetting,
-  updateSettings,
-  setTempHeatingTimeout
-} from '../../../../src/components/store/features/settings/settings-slice';
-import { SettingsItem } from '../../../types';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useDeviceInfo } from '../../../hooks/useDeviceOSStatus';
+import Styled, {
+  VIEWPORT_HEIGHT,
+  MARQUEE_MIN_TEXT_LENGTH
+} from '../../../styles/utils/mixins';
+import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
+import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSetting';
+import type { Settings } from '@meticulous-home/espresso-api';
+
+const initialSettings: SettingsItem[] = [
+  {
+    key: 'usb_mode',
+    label: 'USB mode',
+    getLabel: (settings: Settings) => settings.usb_mode
+  },
+  {
+    key: 'ssh_enabled',
+    label: 'SSH',
+    getLabel: (settings: Settings) =>
+      settings.ssh_enabled ? 'ENABLED' : 'DISABLED'
+  },
+  {
+    key: 'master_calibration',
+    label: 'ACAIA master calibration',
+    visible: true
+  },
+  {
+    key: 'save_debug_shot_data',
+    label: 'Save debug shot data',
+    getLabel: (settings: Settings) =>
+      settings.save_debug_shot_data ? 'ENABLED' : 'DISABLED',
+    visible: true
+  },
+  {
+    key: 'telemetry_opt_in',
+    label: 'Share debug motor data',
+    getLabel: (settings: Settings) =>
+      settings.allow_debug_sending ? 'ENABLED' : 'DISABLED',
+    visible: true
+  },
+  {
+    key: 'set_update_channel',
+    label: 'Update channel',
+    getLabel: (settings: Settings) => settings.update_channel,
+    visible: true
+  },
+  {
+    key: 'idle_screen',
+    label: 'Select Idle Screen',
+    getLabel: (settings: Settings) =>
+      IdleScreens.find((item) => item.key === settings.idle_screen)?.shortLabel,
+    visible: true
+  },
+  {
+    key: 'root_password',
+    label: 'ROOT PASSWORD',
+    visible: true,
+    caseSensitive: true
+  },
+  {
+    key: 'factory_reset',
+    label: 'Factory reset',
+    visible: true,
+    caseSensitive: false
+  }
+];
 
 export const AdvancedSettings = () => {
   const dispatch = useAppDispatch();
-  const globalSettings = useAppSelector((state) => state.settings);
-  const [swiper, setSwiper] = useState(null);
+  const { data: globalSettings, isSuccess: isSettingsSuccess } = useSettings();
+  const updateSettings = useUpdateSettings();
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [counterHiddenMenu, setCounterHiddenMenu] = useState(0);
+  const { refetch: fetchDeviceStatus } = useDeviceInfo();
+  const { data: rootPW } = useRootPassword();
 
-  const settings: SettingsItem[] = [
-    {
-      key: 'device_info',
-      label: 'Device Info',
-      visible: true
-    },
-    {
-      key: 'enable_sounds',
-      label: 'sounds',
-      value: globalSettings.enable_sounds,
-      visible: true
-    },
-    {
-      key: 'master_calibration',
-      label: 'ACAIA master calibration',
-      visible: true
-    },
-    {
-      key: 'save_debug_shot_data',
-      label: 'Save debug shot data',
-      value: globalSettings.save_debug_shot_data,
-      visible: true
-    },
-    {
-      key: 'set_update_channel',
-      label: 'Set update channel',
-      value: globalSettings.update_channel,
-      visible: true
-    },
-    {
-      key: 'heat_timeout_after_shot',
-      label: 'Heat timeout after shot',
-      visible: true
-    },
-    {
-      key: 'save',
-      label: 'Save',
-      visible: true
-    },
-    {
-      key: 'back',
-      label: 'Back',
-      visible: true
+  const { data: manufacturingSettings, isSuccess: isManufacturingSuccess } =
+    useManufacturingSchema();
+
+  const updatedSettings = useMemo(() => {
+    if (!isSettingsSuccess) {
+      return initialSettings.map((item) => ({
+        ...item
+      }));
     }
-  ];
+    const formattedInitialSettings = initialSettings.map((item) => ({
+      ...item,
+      label:
+        item.key === 'root_password'
+          ? `${item.label}: ${rootPW || '*****'}`
+          : item.getLabel
+            ? `${item.label}: ${item.getLabel(globalSettings)}`
+            : item.label
+    }));
 
-  const showValue = useCallback(
-    (isActive: boolean, item: SettingsItem) => {
-      if (!item) return <></>;
-      let val = item.label.toUpperCase();
-      if (globalSettings) {
-        if (item.key === 'heat_timeout_after_shot') {
-          val = `${val}: ${globalSettings.tempHeatingTimeout ?? globalSettings.heating_timeout} MIN`;
-        } else if (
-          typeof globalSettings[item.key as SettingsKey] === 'boolean'
-        ) {
-          val = globalSettings[item.key as SettingsKey]
-            ? val + ': ENABLED'
-            : val + ': DISABLED';
+    const manufacturingOption =
+      manufacturingSettings != null
+        ? {
+            key: 'manufacturing',
+            label: 'Manufacturing Options'
+          }
+        : manufacturingSettings;
+
+    if (manufacturingOption) {
+      return [
+        ...formattedInitialSettings,
+        manufacturingOption as SettingsItem,
+        {
+          key: 'back',
+          label: 'Back',
+          visible: true
         }
+      ];
+    }
 
-        return marqueeIfNeeded({ enabled: isActive, val });
+    return [
+      ...formattedInitialSettings,
+      {
+        key: 'back',
+        label: 'Back',
+        visible: true
       }
-    },
-    [globalSettings]
-  );
+    ];
+  }, [
+    globalSettings,
+    isManufacturingSuccess,
+    isSettingsSuccess,
+    manufacturingSettings,
+    rootPW
+  ]);
+
   useHandleGestures(
     {
       left() {
@@ -99,56 +153,71 @@ export const AdvancedSettings = () => {
         setCounterHiddenMenu(0);
       },
       right() {
-        setActiveIndex((prev) => Math.min(prev + 1, settings.length - 1));
         setCounterHiddenMenu(counterHiddenMenu + 1);
+        setActiveIndex((prev) =>
+          Math.min(prev + 1, updatedSettings.length - 1)
+        );
       },
       pressDown() {
-        const activeItem = settings[activeIndex].key;
+        const activeItem = updatedSettings[activeIndex].key;
         switch (activeItem) {
-          case 'enable_sounds':
+          case 'device_info':
+            fetchDeviceStatus();
             dispatch(
-              updateItemSetting({
-                key: 'enable_sounds',
-                value: !globalSettings.enable_sounds
-              })
+              setBubbleDisplay({ visible: true, component: 'deviceInfo' })
             );
             break;
-
-          case 'save_debug_shot_data':
+          case 'usb_mode': {
             dispatch(
-              updateItemSetting({
-                key: 'save_debug_shot_data',
-                value: !globalSettings.save_debug_shot_data
-              })
+              setBubbleDisplay({ visible: true, component: 'usbSettings' })
             );
+            break;
+          }
+          case 'ssh_enabled':
+            updateSettings.mutate({
+              ssh_enabled: !globalSettings.ssh_enabled
+            });
+            break;
+          case 'save_debug_shot_data':
+            updateSettings.mutate({
+              save_debug_shot_data: !globalSettings.save_debug_shot_data
+            });
+            break;
+          case 'telemetry_opt_in':
+            updateSettings.mutate({
+              allow_debug_sending: !globalSettings.allow_debug_sending
+            });
             break;
           case 'set_update_channel':
             dispatch(
               setBubbleDisplay({ visible: true, component: 'updateChannel' })
             );
             break;
-          case 'device_info':
+          case 'idle_screen':
             dispatch(
-              setBubbleDisplay({ visible: true, component: 'deviceInfo' })
+              setBubbleDisplay({
+                visible: true,
+                component: 'idleScreenSettings'
+              })
+            );
+            break;
+          case 'factory_reset':
+            dispatch(
+              setBubbleDisplay({
+                visible: true,
+                component: 'factoryReset'
+              })
+            );
+            break;
+          case 'manufacturing':
+            dispatch(
+              setBubbleDisplay({
+                visible: true,
+                component: 'manufacturingSettings'
+              })
             );
             break;
           case 'back':
-            dispatch(setTempHeatingTimeout(null)); // Clear temporary value without saving
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'settings' })
-            );
-            break;
-          case 'save':
-            dispatch(
-              updateSettings({
-                enable_sounds: globalSettings.enable_sounds,
-                save_debug_shot_data: globalSettings.save_debug_shot_data,
-                heating_timeout:
-                  globalSettings.tempHeatingTimeout ??
-                  globalSettings.heating_timeout
-              })
-            );
-            dispatch(setTempHeatingTimeout(null)); // Clear temporary value after saving
             dispatch(
               setBubbleDisplay({ visible: true, component: 'settings' })
             );
@@ -162,10 +231,6 @@ export const AdvancedSettings = () => {
                 console.log(err);
               });
             break;
-          case 'heat_timeout_after_shot':
-            dispatch(setScreen('heat_timeout_after_shot'));
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
-            break;
           default: {
             break;
           }
@@ -175,11 +240,24 @@ export const AdvancedSettings = () => {
     !bubbleDisplay.visible
   );
 
-  useEffect(() => {
-    if (swiper) {
-      swiper.slideTo(activeIndex, 0, false);
-    }
-  }, [activeIndex, swiper]);
+  const optionPositionOutter = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        settings: updatedSettings
+      }),
+    [activeIndex, updatedSettings]
+  );
+
+  const optionPositionInner = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        adjustmentFn: (position) => position - VIEWPORT_HEIGHT / 2,
+        settings: updatedSettings
+      }),
+    [activeIndex, updatedSettings]
+  );
 
   useEffect(() => {
     if (counterHiddenMenu >= 14) {
@@ -190,39 +268,38 @@ export const AdvancedSettings = () => {
   }, [counterHiddenMenu]);
 
   return (
-    <div className="main-quick-settings">
-      <Swiper
-        onSwiper={setSwiper}
-        slidesPerView={8}
-        allowTouchMove={false}
-        direction="vertical"
-        spaceBetween={25}
-        autoHeight={false}
-        centeredSlides={true}
-        initialSlide={activeIndex}
-        style={{ paddingLeft: '29px', top: '-4px' }}
-      >
-        {settings.map((item, index: number) => {
-          const isActive = index === activeIndex;
-          return (
-            <SwiperSlide
-              key={index}
-              className={`settings-item ${isActive ? 'active-setting' : ''}`}
+    <Styled.SettingsContainer>
+      <Styled.Viewport>
+        <Styled.OptionsContainer $translateY={optionPositionOutter}>
+          {updatedSettings.map((option) => (
+            <Styled.Option
+              key={option.key}
+              $caseSensitive={option.caseSensitive}
             >
-              <div style={{ height: '30px' }}>
-                <div className="settings-entry text-container">
-                  <span
-                    className="settings-text"
-                    style={{ wordBreak: 'break-word' }}
-                  >
-                    {showValue(isActive, item)}
-                  </span>
-                </div>
-              </div>
-            </SwiperSlide>
-          );
-        })}
-      </Swiper>
-    </div>
+              <span>{option.label}</span>
+            </Styled.Option>
+          ))}
+        </Styled.OptionsContainer>
+        <Styled.ActiveIndicator>
+          <Styled.OptionsContainer
+            $translateY={optionPositionInner}
+            $isInner={true}
+          >
+            {updatedSettings.map((option, index) => (
+              <Styled.Option
+                key={option.key}
+                $isMarquee={
+                  activeIndex === index &&
+                  option.label.length > MARQUEE_MIN_TEXT_LENGTH
+                }
+                $caseSensitive={option.caseSensitive}
+              >
+                <span>{option.label}</span>
+              </Styled.Option>
+            ))}
+          </Styled.OptionsContainer>
+        </Styled.ActiveIndicator>
+      </Styled.Viewport>
+    </Styled.SettingsContainer>
   );
 };

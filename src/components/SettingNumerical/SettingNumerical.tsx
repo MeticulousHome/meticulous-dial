@@ -7,16 +7,17 @@ import {
   ISettingType
 } from '../../types';
 import { roundPrecision } from '../../utils';
-import { useReduxSelector } from '../store/store';
 import { Gauge, Unit } from './Gauge';
-import { updatePresetSetting } from '../store/features/preset/preset-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { useAppSelector } from '../store/hooks';
+import { useDimScreen } from '../../hooks/useDimScreen';
+import { useProfileContext } from '../../context/ProfileContext';
 
 interface ISettingConfig {
   interval: number;
   unit: Unit;
+  minValue?: number;
   maxValue: number;
 }
 type NumericalSettingType =
@@ -25,6 +26,8 @@ type NumericalSettingType =
   | 'output'
   | 'flow'
   | 'time'
+  | 'piston_position'
+  | 'motor_power'
   | 'weight';
 const unitSettingConfigMap: Record<NumericalSettingType, ISettingConfig> = {
   pressure: {
@@ -32,13 +35,24 @@ const unitSettingConfigMap: Record<NumericalSettingType, ISettingConfig> = {
     unit: 'bar',
     maxValue: 13
   },
+  piston_position: {
+    interval: 1,
+    unit: 'percentage',
+    maxValue: 100
+  },
+  motor_power: {
+    interval: 1,
+    unit: 'percentage',
+    minValue: -99,
+    maxValue: 100
+  },
   temperature: {
     interval: 0.5,
     unit: 'celcius',
     maxValue: 99
   },
   output: {
-    interval: 1,
+    interval: 0.5,
     unit: 'gram',
     maxValue: 100
   },
@@ -64,14 +78,13 @@ interface Props {
 }
 
 export function SettingNumerical({ type }: Props): JSX.Element {
-  const setting = useReduxSelector(
-    (state) =>
-      state.presets.updatingSettings.settings[state.presets.activeSetting]
-  );
+  const { settingsIndex, settingsProfile, setSettingsProfile } =
+    useProfileContext();
+  const setting = settingsProfile.settings[settingsIndex];
 
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const total = Number(setting?.value || 0);
-  const { interval, maxValue, unit } = unitSettingConfigMap[
+  const { interval, maxValue, unit, minValue } = unitSettingConfigMap[
     type as NumericalSettingType
   ] ?? {
     interval: 0,
@@ -81,24 +94,32 @@ export function SettingNumerical({ type }: Props): JSX.Element {
 
   const dispatch = useDispatch();
 
+  useDimScreen();
+
   const updateValue = (gesture: 'left' | 'right') => {
     if (
       (total === maxValue && gesture === 'right') ||
-      (total === 0 && gesture === 'left')
+      (total === (minValue || 0) && gesture === 'left')
     ) {
       return;
     }
     const mTotal = total + (gesture === 'left' ? -interval : +interval);
     const value = type === 'output' ? mTotal : roundPrecision(mTotal, 1);
-    dispatch(
-      updatePresetSetting({
-        ...setting,
-        value
-      } as unknown as
-        | IPresetNumericalTemperature
-        | IPresetNumericalPressure
-        | IPresetNumericalOutput)
-    );
+    const updatedSetting = {
+      ...setting,
+      value
+    } as unknown as
+      | IPresetNumericalTemperature
+      | IPresetNumericalPressure
+      | IPresetNumericalOutput;
+    setSettingsProfile((prev) => ({
+      ...prev,
+      settings: [
+        ...prev.settings.slice(0, settingsIndex),
+        updatedSetting,
+        ...prev.settings.slice(settingsIndex + 1)
+      ]
+    }));
   };
 
   useHandleGestures(
@@ -119,6 +140,7 @@ export function SettingNumerical({ type }: Props): JSX.Element {
   return (
     <Gauge
       unit={unit}
+      minValue={minValue}
       maxValue={maxValue}
       precision={interval < 1 ? 1 : 0}
       value={total}

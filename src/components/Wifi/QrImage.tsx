@@ -35,7 +35,8 @@ export const QrImage = ({
         <span
           style={{
             paddingTop: '5px',
-            fontSize: '16px'
+            fontSize: '16px',
+            paddingLeft: '20px'
           }}
         >
           {description}

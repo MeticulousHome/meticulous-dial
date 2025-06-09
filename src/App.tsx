@@ -1,88 +1,117 @@
-import { useRef, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import { Provider, useSelector } from 'react-redux';
+import { Provider, useStore } from 'react-redux';
 
 import { useAppDispatch, useAppSelector } from './components/store/hooks';
 import { SocketManager } from './components/store/SocketManager';
-import { store } from './components/store/store';
-import { useFetchData } from './hooks/useFetchData';
+import { RootState, store } from './components/store/store';
 import { useHandleGestures } from './hooks/useHandleGestures';
-import {
-  setBubbleDisplay,
-  setScreen
-} from './components/store/features/screens/screens-slice';
+import { setBubbleDisplay } from './components/store/features/screens/screens-slice';
 import { Router } from './navigation/Router';
-import { notificationSelector } from './components/store/features/notifications/notification-slice';
-import { durationAnimation } from './navigation/Transitioner';
-import { Splash } from './components/Splash/Splash';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { IdleTimerProvider } from './hooks/useIdleTimer';
 import { setBrightness } from './api/api';
+import { Scale } from './components/Scale/Scale';
+import { VisibilityProvider } from './navigation/VisibilityContext';
+import {
+  useNotification,
+  useNotificationHandler
+} from './hooks/useNotification';
+import { ProfileProvider } from './context/ProfileContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false // default: true
+      refetchOnWindowFocus: false,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      enabled: true,
+      networkMode: 'always'
+    },
+    mutations: {
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      networkMode: 'always'
     }
   }
 });
 
 const App = (): JSX.Element => {
   const dispatch = useAppDispatch();
+  const store = useStore<RootState>();
   const screen = useAppSelector(
     (state) => state.screen,
     (prev, next) => prev === next
   );
 
   useEffect(() => {
-    window.electron.ipcRenderer.sendMessage('ready');
+    if (window.electron) {
+      window.electron.ipcRenderer.sendMessage('ready');
+    }
     setBrightness({ brightness: 1 });
   }, []);
 
-  const presetsStatus = useAppSelector((state) => state.presets.status);
-
-  const stats = useAppSelector((state) => state.stats);
+  const isExtracting = useAppSelector((state) => state.stats?.extracting);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const notifications = useSelector(notificationSelector.selectAll);
-  const [splashAnimationLooping, setSplashAnimationLooping] = useState(false);
-  const [backendReady, setBackendReady] = useState(false);
+
+  useNotification();
+  useNotificationHandler();
+
+  const [scaleState, setScaleState] = useState<{
+    visible: boolean;
+    size: 'small' | 'full';
+  }>({ visible: false, size: 'small' });
 
   useEffect(() => {
-    if (notifications.length > 0 && screen.value !== 'notifications') {
-      dispatch(setScreen('notifications'));
-      dispatch(setBubbleDisplay({ visible: false, component: null }));
-    }
+    const hide_timer = scaleState.size === 'small' ? 10000 : 2 * 60 * 10000;
+    const scheduleHide = () =>
+      setTimeout(() => {
+        setScaleState((state) => ({ ...state, visible: false }));
+      }, hide_timer);
+    let timer = scheduleHide();
 
-    if (notifications.length === 0 && screen.value === 'notifications') {
-      dispatch(setScreen(screen.prev));
-    }
-  }, [notifications]);
+    let lastSignificantWeight = store.getState().stats.sensors.w;
+    const subscription = store.subscribe(() => {
+      const weight = store.getState().stats.sensors.w;
+      if (Math.abs(weight - lastSignificantWeight) > 2) {
+        lastSignificantWeight = weight;
+        clearTimeout(timer);
+        timer = scheduleHide();
+      }
+    });
 
-  const getureTimeAgo = useRef(new Date());
+    return () => {
+      clearTimeout(timer);
+      subscription();
+    };
+  }, [scaleState]);
 
-  useFetchData(() => setBackendReady(true));
   useHandleGestures(
     {
+      // TODO: Ideally we'd get tare up/down events so we can zoom in full the scale gradually
+      singleTare() {
+        setScaleState(({ visible }) => ({
+          visible: screen.value !== 'calibrateScale',
+          size: visible ? 'full' : 'small'
+        }));
+      },
+      longTare() {
+        setScaleState(({ visible, size }) => ({
+          visible: !visible || size === 'small',
+          size: 'full'
+        }));
+      },
       doubleTare() {
-        const gestureTime = new Date();
-
-        const timeDiff = +gestureTime - +getureTimeAgo.current;
-
-        if (timeDiff < durationAnimation + 50) return;
-
-        getureTimeAgo.current = gestureTime;
-
-        dispatch(
-          setScreen(
-            screen.value === 'scale'
-              ? screen.prev === 'settings'
-                ? 'barometer'
-                : screen.prev
-              : 'scale'
-          )
-        );
+        setScaleState(({ size }) => ({
+          visible: false,
+          size
+        }));
       },
       context() {
+        setScaleState(({ size }) => ({
+          visible: false,
+          size
+        }));
         dispatch(
           setBubbleDisplay({
             visible: !bubbleDisplay.visible,
@@ -91,34 +120,35 @@ const App = (): JSX.Element => {
         );
       }
     },
-    stats?.name !== 'idle' || bubbleDisplay.visible
+    isExtracting || bubbleDisplay.visible
   );
 
-  const dev = !!window.env.npm_lifecycle_event;
+  useEffect(() => {
+    if (isExtracting) {
+      setScaleState({ visible: false, size: 'small' });
+    }
+  }, [isExtracting]);
+
+  const dev = !!window.env?.SHOW_CIRCLE_OVERLAY;
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div>
-        <div className="meticulous-main-canvas">
-          {dev && <div className="main-circle-overlay" />}
-          {backendReady && splashAnimationLooping ? (
-            <IdleTimerProvider>
-              <SocketManager>
+      <div className="meticulous-main-canvas">
+        {dev && <div className="main-circle-overlay" />}
+        <IdleTimerProvider>
+          <ProfileProvider>
+            <SocketManager>
+              {/* Mark router as not visible when scale is overlaid to avoid gesture handlers firing */}
+              <VisibilityProvider value={!scaleState.visible}>
                 <Router
                   currentScreen={screen.value}
                   previousScreen={screen.prev}
                 />
-              </SocketManager>
-            </IdleTimerProvider>
-          ) : (
-            <Splash
-              onAnimationFinished={() => {
-                setSplashAnimationLooping(true);
-                return presetsStatus !== 'ready';
-              }}
-            />
-          )}
-        </div>
+              </VisibilityProvider>
+              <Scale {...scaleState} />
+            </SocketManager>
+          </ProfileProvider>
+        </IdleTimerProvider>
       </div>
     </QueryClientProvider>
   );

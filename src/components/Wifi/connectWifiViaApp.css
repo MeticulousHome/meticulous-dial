@@ -3,9 +3,11 @@
   font-size: 22px;
   color: #dddddd;
   text-align: left;
-  width: 100%;
   justify-content: start;
   font-weight: 400;
-  font-family: 'Abc_mono';
+  font-family: 'ABC Diatype Mono';
   height: fit-content;
+  display: block;
+  padding-top: 20px;
+  padding-right: 20px;
 }

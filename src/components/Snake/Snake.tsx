@@ -64,7 +64,7 @@ const isOutsideCircle = (
   return pointsOutside >= 3;
 };
 
-const APPLE_IMAGE = 'assets/images/logo.png';
+const APPLE_IMAGE = 'assets/logo.png';
 
 export const SnakeGame: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -212,7 +212,7 @@ export const SnakeGame: React.FC = () => {
     },
     doubleClick() {
       dispatch(setBubbleDisplay({ visible: false, component: null }));
-      dispatch(setScreen('pressets'));
+      dispatch(setScreen('profileHome'));
     }
   });
 

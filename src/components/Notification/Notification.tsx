@@ -16,7 +16,7 @@ export function Notification(): JSX.Element {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const messageRef = useRef<HTMLDivElement>(null);
   const notifications = useSelector(notificationSelector.selectAll);
-  const [currentNotification] = notifications;
+  const [currentNotification] = notifications.slice(-1);
   const [isScrollable, setIsScrollable] = useState(false);
   const [selectedOption, setSelectedOption] = useState(0);
   const [canSelectOption, setCanSelectOption] = useState(false);
@@ -60,7 +60,7 @@ export function Notification(): JSX.Element {
           const { id, responses } = currentNotification;
           await acknowledgeNotification({
             id,
-            response: responses[selectedOption]
+            response: responses && responses[selectedOption]
           });
           dispatch(removeOneNotification(id));
         }
@@ -97,7 +97,7 @@ export function Notification(): JSX.Element {
   };
 
   const renderOptions = () => {
-    if (responses.length === 1) {
+    if (responses?.length === 1) {
       return (
         <button className="notification-button selected">
           {responses[0] || 'OK'}
@@ -116,9 +116,9 @@ export function Notification(): JSX.Element {
           </button>
         )}
         <button className="notification-button center selected">
-          {responses[selectedOption]}
+          {responses && responses[selectedOption]}
         </button>
-        {selectedOption < responses.length - 1 && (
+        {selectedOption < responses?.length - 1 && (
           <button
             className="notification-button right"
             disabled={!canSelectOption}

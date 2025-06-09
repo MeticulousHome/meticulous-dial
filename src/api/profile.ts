@@ -1,25 +1,83 @@
-import { APIError, LastProfileIdent } from '@meticulous-home/espresso-api';
+import {
+  APIError,
+  DefaultProfiles,
+  LastProfileIdent
+} from '@meticulous-home/espresso-api';
 import { Profile } from '@meticulous-home/espresso-profile';
 import { api } from './api';
 
-export const getDefaultProfiles = async (): Promise<Profile[]> => {
+export const getDefaultProfiles = async (): Promise<DefaultProfiles> => {
   try {
-    const { data } = await api.getDefaultProfiles();
-    return data as Profile[];
+    const response = await api.getDefaultProfiles();
+    const data = response.data as DefaultProfiles | APIError;
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
+    return data as DefaultProfiles;
   } catch (error) {
     console.error('GetDefaultProfiles error: ', error.message);
-    return [];
+    throw new Error('Network error while fetching Default Profiles.');
   }
 };
 
-export const getProfiles = async () => {
+export const getDefaultProfileImages = async (): Promise<string[]> => {
   try {
-    const { data } = await api.fetchAllProfiles();
-    return data as Profile[] | APIError;
+    const response = await api.getProfileDefaultImages();
+    const data = response.data as string[] | APIError;
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
+    return data as string[];
   } catch (error) {
-    console.error('GetProfiles error: ', error.message);
+    console.error('getDefaultProfileImages error: ', error.message);
+    throw new Error('Network error while fetching Default Profile Images');
   }
 };
+
+export async function getProfiles(): Promise<Profile[]> {
+  try {
+    const response = await api.fetchAllProfiles();
+    const data = response.data;
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
+    return data;
+  } catch (error) {
+    if (error.response) {
+      console.error('Error fetching Profiles: ', error.response.data);
+      throw new Error(
+        error.response.data?.message || 'Error fetching Profiles.'
+      );
+    } else {
+      console.error('Network error while fetching Profiles: ', error.message);
+      throw new Error('Network error while fetching Profiles.');
+    }
+  }
+}
+
+export async function getLastProfile(): Promise<LastProfileIdent> {
+  try {
+    const response = await api.getLastProfile();
+    const data = response.data;
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
+    return data;
+  } catch (error) {
+    if (error.response) {
+      console.error('Error fetching last profile: ', error.response.data);
+      throw new Error(
+        error.response.data?.message || 'Error fetching last profile.'
+      );
+    } else {
+      console.error(
+        'Network error while fetching last profile: ',
+        error.message
+      );
+      throw new Error('Network error while fetching last profile.');
+    }
+  }
+}
 
 export const saveProfile = async (body: Profile) => {
   try {
@@ -54,15 +112,6 @@ export const startProfile = async () => {
     return data;
   } catch (error) {
     console.error('Start profile error: ', error.message);
-  }
-};
-
-export const getLastProfile = async () => {
-  try {
-    const { data } = await api.getLastProfile();
-    return data as LastProfileIdent;
-  } catch (error) {
-    console.error('Get last Profile error: ', error.message);
   }
 };
 

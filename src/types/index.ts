@@ -1,33 +1,5 @@
 import { VariableType } from '@meticulous-home/espresso-profile';
-
-interface JSONObject {
-  [x: string]: JSONValue;
-}
-
-export type JSONValue =
-  | string
-  | number
-  | boolean
-  | JSONObject
-  | Array<JSONValue>;
-
-export type ActionType =
-  | 'Home'
-  | 'Scale'
-  | 'Purge'
-  | 'Tare'
-  | 'Exit'
-  | 'Start'
-  | 'Stop'
-  | '';
-
-export type StageType =
-  | 'idle'
-  | 'initialize'
-  | 'purge'
-  | 'tare'
-  | 'home'
-  | 'heating';
+import { StatusData, Settings } from '@meticulous-home/espresso-api';
 
 export type GestureType =
   | 'right'
@@ -37,25 +9,22 @@ export type GestureType =
   | 'doubleClick'
   | 'context'
   | 'start'
+  | 'singleTare'
   | 'longTare'
   | 'longEncoder'
   | 'pressDown'
-  | 'pressUp';
+  | 'pressUp'
+  | 'tareDown'
+  | 'tareUp'
+  | 'contextDown'
+  | 'contextUp';
 
 export type IPresetSettings = string[];
 
-export interface ISensorData {
-  time: string;
-  name: StageType | string;
+export interface ISensorDataAndMachineState extends StatusData {
   waitingForActionAlreadySent: boolean;
-  sensors: {
-    p: string; // Pressure - Bars
-    t: string; // Temperature - degrees celsius
-    w: string; // Weight - grams
-    f: string; // Flow - ml/s
-  };
-  profile: string;
   waterStatus: boolean;
+  preheatTimeLeft: number;
 }
 
 export interface IPreset {
@@ -84,17 +53,13 @@ export type TemperatureKey = 'temperature';
 
 export type DoseKey = 'dose';
 
-export type RatioKey = 'ratio';
-
-export type PurgeKey = 'purge';
-
 export type OutputKey = 'output';
 
-export type PreInfusionKey = 'pre-infusion';
+export type PistonPosKey = 'pistor_position';
 
-export type PreHeatKey = 'pre-heat';
+export type MotorPowerKey = 'motor_power';
 
-export type ActionKey = 'save' | 'discard' | 'delete';
+export type ActionKey = 'brew_once' | 'save' | 'discard' | 'delete';
 
 export type IPresetText = {
   type: 'text';
@@ -150,34 +115,11 @@ export type IPresetMultipleOption = {
   type: 'multiple-option';
   value: string;
 };
-export type PresetMultipleOptionRatio = IPresetMultipleOption & {
-  key: RatioKey;
-};
-export interface IPresetMultipleOptionRatio
-  extends IBasePresset,
-    PresetMultipleOptionRatio {}
-
-export type PresetMultipleOptionPurge = IPresetMultipleOption & {
-  key: PurgeKey;
-};
-export interface IPresetMultipleOptionPurge
-  extends IBasePresset,
-    PresetMultipleOptionPurge {}
 
 export type PresetOnOff = {
   type: 'on-off';
   value: string;
 };
-
-export type PresetOnOffPreinfusion = PresetOnOff & { key: PreInfusionKey };
-
-export type PresetOnOffPreHeat = PresetOnOff & { key: PreHeatKey };
-
-export interface IPresetOnOffPreinfusion
-  extends IBasePresset,
-    PresetOnOffPreinfusion {}
-
-export interface IPresetOnOffPreheat extends IBasePresset, PresetOnOffPreHeat {}
 
 export type PresetAction = {
   type: 'action';
@@ -193,10 +135,6 @@ export type IPresetSetting =
   | IPresetNumericalTemperature
   | IPresetNumericalDose
   | IPresetNumericalOutput
-  | IPresetMultipleOptionRatio
-  | IPresetMultipleOptionPurge
-  | IPresetOnOffPreinfusion
-  | IPresetOnOffPreheat
   | IPresetAction
   | IProfilePresetImage;
 
@@ -210,19 +148,10 @@ export type IPresetType =
   | PressureKey
   | TemperatureKey
   | OutputKey
-  | RatioKey
-  | PurgeKey
-  | PreInfusionKey
-  | PreHeatKey
   | ActionKey
   | '';
 
-export type ISettingType =
-  | PressureKey
-  | TemperatureKey
-  | OutputKey
-  | PreHeatKey
-  | PreInfusionKey;
+export type ISettingType = PressureKey | TemperatureKey | OutputKey;
 
 type SettingsKeys = 'key' | 'value';
 export interface PressetSettings {
@@ -230,12 +159,24 @@ export interface PressetSettings {
   settings: Record<SettingsKeys, string | number>[];
 }
 
-export interface SettingsItem {
+export type TimeDateValues = {
+  hours: string;
+  minutes: string;
+  day: string;
+  month: string;
+  year: string;
+};
+
+export type SettingsItem = {
   value?: number | string | boolean;
   key: string;
   label?: string;
+  getLabel?: (values: Settings | TimeDateValues) => string;
+  shortLabel?: string;
   visible?: boolean;
-}
+  hasSeparator?: boolean;
+  caseSensitive?: boolean;
+};
 
 export enum YesNoEnum {
   Yes = 'yes',

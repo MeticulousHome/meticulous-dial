@@ -1,36 +1,45 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-import { GestureType, ISensorData, ProfileCause } from '../../types/index';
-import { useAppDispatch, useAppSelector } from './hooks';
-import { setStats, setWaterStatus } from './features/stats/stats-slice';
-import { setScreen } from './features/screens/screens-slice';
+import { GestureType, ISensorDataAndMachineState } from '../../types/index';
+import { useAppDispatch } from './hooks';
 import {
-  getPresets,
-  setFocusProfile,
-  setProfileHover
-} from './features/preset/preset-slice';
+  setStats,
+  setWaterStatus,
+  updatePreheatTimeLeft
+} from './features/stats/stats-slice';
+import { setScreen } from './features/screens/screens-slice';
+
 import { handleEvents } from '../../HandleEvents';
 import {
   addOneNotification,
+  removeOneNotification,
+  setMotorHot,
   NotificationItem,
-  removeOneNotification
+  processNotification
 } from './features/notifications/notification-slice';
 import { api } from '../../api/api';
 import { useQueryClient } from '@tanstack/react-query';
-import { OS_UPDATE_STATUS } from '../../hooks/useOSStatus';
-import { OSStatusResponse } from '@meticulous-home/espresso-api';
-import { updatePreheatTimeLeft } from './features/settings/settings-slice';
+import { OS_UPDATE_STATUS } from '../../hooks/useDeviceOSStatus';
+import { OSStatusResponse, ProfileUpdate } from '@meticulous-home/espresso-api';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
+import { LASTS_PROFILE_QUERY_KEY } from '../../hooks/useProfiles';
+import { useProfileContext } from '../../context/ProfileContext';
 
-const SERVER_URL: string = window.env.SERVER_URL ?? 'http://localhost:8080';
+const SERVER_URL: string = window.env?.SERVER_URL || 'http://localhost:8080';
 const socket: Socket | null = io(SERVER_URL);
+
+const isBrewComplete = (state: string) => {
+  return state === 'remove cup' || state === 'click to purge';
+};
 
 export const SocketProviderValue = () => {
   const dispatch = useAppDispatch();
-  const currentStateName = useAppSelector((state) => state.stats.name);
+  const previousStateName = useRef<string>('idle');
   const queryClient = useQueryClient();
   const { resetTimer: resetIdleTimer } = useIdleTimer();
+  const { setProfileStarting, onProfileEvent, onProfileHover } =
+    useProfileContext();
 
   // For development purpose
   useSocketKeyboardListeners();
@@ -38,12 +47,18 @@ export const SocketProviderValue = () => {
   useEffect(() => {
     socket.on('notification', (notification: string) => {
       resetIdleTimer();
+
       const oNotification: NotificationItem = JSON.parse(notification);
 
-      if (!oNotification.message && !oNotification.image) {
-        dispatch(removeOneNotification(oNotification.id));
+      const { updatedNotification, isMotorHot } =
+        processNotification(oNotification);
+
+      if (isMotorHot !== null) dispatch(setMotorHot(isMotorHot));
+
+      if (!updatedNotification.message && !updatedNotification.image) {
+        dispatch(removeOneNotification(updatedNotification.id));
       } else {
-        dispatch(addOneNotification(oNotification));
+        dispatch(addOneNotification(updatedNotification));
       }
     });
 
@@ -51,22 +66,57 @@ export const SocketProviderValue = () => {
       dispatch(updatePreheatTimeLeft(timeLeft));
     });
 
-    socket.on('status', (data: ISensorData) => {
+    socket.on('status', (data: ISensorDataAndMachineState) => {
+      const previousState = previousStateName.current;
+      if (data) {
+        previousStateName.current = data?.name;
+      }
       dispatch(setStats(data));
-      // When stat is not in idle, lock the screen at Barometer
 
-      if (currentStateName !== data?.name) {
+      if (previousState !== data?.name) {
+        // Every status change resets the idle timer
+        resetIdleTimer();
+        queryClient.invalidateQueries({ queryKey: [LASTS_PROFILE_QUERY_KEY] });
+        setProfileStarting(false);
+
+        if (data?.name === 'heating') {
+          dispatch(setWaterStatus(true));
+          dispatch(setScreen('heating'));
+          return;
+        }
+        // FIXME: We desperately need to refactor the machines statemachine -_-'
+        if (data?.name === 'Pour water and click to continue') {
+          dispatch(setWaterStatus(false));
+          dispatch(setScreen('heating'));
+          return;
+        }
+        if (data?.name === 'click to start') {
+          dispatch(setWaterStatus(true));
+          dispatch(setScreen('heating'));
+          return;
+        }
+
+        if (
+          isBrewComplete(data?.name) ||
+          (isBrewComplete(previousState) && data?.name === 'purge')
+        ) {
+          dispatch(setScreen('brewComplete'));
+          return;
+        }
+
+        // Brew complete screen takes precedence here when purging
         if (data?.name === 'purge' || data?.name === 'home') {
           dispatch(setScreen('manual-purge'));
           return;
         }
 
-        if (
-          currentStateName === 'idle' &&
-          data?.name !== 'idle' &&
-          data?.name !== 'simultaneous_control' &&
-          data?.name !== 'starting...'
-        ) {
+        // We ignore the boot state but ensure the machine is in idle
+        if (data?.name === 'boot' && data?.state === 'idle') {
+          return;
+        }
+
+        // When the machine is not in idle, lock the screen at Barometer
+        if (data?.name !== 'idle' && data?.name !== 'boot') {
           dispatch(setScreen('barometer'));
         }
       }
@@ -77,23 +127,15 @@ export const SocketProviderValue = () => {
       dispatch(setWaterStatus(data));
     });
 
-    socket.on(
-      'profile',
-      (data: {
-        change: ProfileCause;
-        change_id: string;
-        profile_id: string;
-      }) => {
-        dispatch(getPresets({ ...data, cause: data.change }));
-      }
-    );
+    socket.on('profile', (event: ProfileUpdate) => {
+      console.log('ProfileUpdate', event);
+      onProfileEvent(event);
+    });
 
     socket.on(
       'button',
       (data: { type: string; time_since_last_event: number }) => {
         resetIdleTimer();
-
-        console.log('Receive: button', data);
 
         const eventGestureMap: Record<string, GestureType> = {
           ENCODER_CLOCKWISE: 'right',
@@ -101,6 +143,7 @@ export const SocketProviderValue = () => {
           ENCODER_PUSH: 'click',
           ENCODER_DOUBLE: 'doubleClick',
           ENCODER_LONG: 'longEncoder',
+          TARE: 'singleTare',
           TARE_DOUBLE: 'doubleTare',
           TARE_LONG: 'longTare',
           CONTEXT: 'context',
@@ -110,7 +153,6 @@ export const SocketProviderValue = () => {
 
         const gesture = eventGestureMap[data.type];
         if (gesture) {
-          console.log('gesture:', gesture);
           handleEvents.emit('gesture', gesture, data.time_since_last_event);
         }
       }
@@ -124,14 +166,7 @@ export const SocketProviderValue = () => {
         if (data.from === 'dial') {
           return;
         }
-
-        if (data.type === 'scroll') {
-          dispatch(setProfileHover(data.id));
-        }
-
-        if (data.type === 'focus') {
-          dispatch(setFocusProfile(data.id));
-        }
+        onProfileHover(data.type, data.id);
       }
     );
   }, []);
@@ -153,6 +188,7 @@ const keyDownGestureMap: Record<string, GestureType> = {
   ArrowRight: 'right',
   Space: 'pressDown',
   Enter: 'context',
+  KeyT: 'tareUp',
   KeyS: 'longTare',
   KeyE: 'longEncoder',
   KeyD: 'doubleTare',
@@ -162,7 +198,8 @@ const keyDownGestureMap: Record<string, GestureType> = {
 };
 
 const keyUpGestureMap: Record<string, GestureType[]> = {
-  Space: ['pressUp', 'click']
+  Space: ['pressUp', 'click'],
+  KeyT: ['tareDown', 'singleTare']
 };
 
 export const useSocketKeyboardListeners = () => {

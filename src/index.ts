@@ -69,6 +69,10 @@ const createWindow = (): void => {
 
   ipcMain.on('ready', async () => {
     console.log('React indicates it is ready');
+
+    const status = app.getGPUFeatureStatus();
+    console.log('GPU Feature Status:', status);
+
     if (!app.isPackaged) {
       return;
     }

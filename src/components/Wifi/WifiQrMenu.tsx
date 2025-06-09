@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
+import { useEffect } from 'react';
 import 'swiper/css';
 
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
@@ -9,11 +8,7 @@ import { QrImage } from './QrImage';
 import './wifiDetails.css';
 import { api } from '../../api/api';
 
-const items = [{ key: 'back' }];
-
 export const WifiQrMenu = (): JSX.Element => {
-  const [swiper, setSwiper] = useState(null);
-  const [activeIndex, setActiveIndex] = useState(items.length - 1);
   const dispatch = useAppDispatch();
 
   //Auto-exit timer
@@ -27,64 +22,39 @@ export const WifiQrMenu = (): JSX.Element => {
   }, []);
 
   useHandleGestures({
-    left() {
-      setActiveIndex((prev) => Math.max(prev - 1, 0));
-    },
-    right() {
-      setActiveIndex((prev) => Math.min(prev + 1, items.length - 1));
-    },
     pressDown() {
-      switch (items[activeIndex].key) {
-        case 'back':
-          dispatch(
-            setBubbleDisplay({ visible: true, component: 'wifiSettings' })
-          );
-          break;
-
-        default:
-          break;
-      }
+      dispatch(setBubbleDisplay({ visible: true, component: 'wifiSettings' }));
     }
   });
 
-  useEffect(() => {
-    if (swiper) {
-      swiper.slideTo(activeIndex, 0, false);
-    }
-  }, [activeIndex, swiper]);
-
   return (
-    <div className="main-quick-settings">
-      <Swiper
-        onSwiper={setSwiper}
-        slidesPerView={8}
-        allowTouchMove={false}
-        direction="vertical"
-        spaceBetween={25}
-        autoHeight={false}
-        initialSlide={activeIndex}
-        centeredSlides={true}
-        style={{ paddingLeft: '29px', top: '-20px' }}
+    <div className="main-quick-settings settings-explanation">
+      <div
+        className="settings-explanation-container"
+        style={{ justifyContent: 'center', alignItems: 'center' }}
       >
-        <SwiperSlide key="qr" style={{ paddingBottom: '130px' }}>
-          <QrImage
-            src={`${api.getWiFiQRURL()}`}
-            size={280}
-            style={{ paddingRight: '40px' }}
-            description="Scan with meticulous App to connect to the machine"
-          />
-        </SwiperSlide>
-        <SwiperSlide
-          key="back"
-          className={`settings-item ${
-            items[activeIndex].key === 'back' ? 'active-setting' : ''
-          }`}
+        <QrImage
+          src={`${api.getWiFiQRURL()}`}
+          size={280}
+          style={{ paddingRight: '100px' }}
+          description="Scan with meticulous App to connect to the machine"
+        />
+        <div
+          className={`settings-item active-setting`}
+          style={{
+            marginBottom: 80
+          }}
         >
-          <div className="settings-entry">
+          <div
+            className="settings-entry"
+            style={{
+              padding: '6px'
+            }}
+          >
             <span>Back</span>
           </div>
-        </SwiperSlide>
-      </Swiper>
+        </div>
+      </div>
     </div>
   );
 };

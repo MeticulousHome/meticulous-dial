@@ -34,4 +34,8 @@ console.log(
   '👋 This message is being logged by "renderer.js", included via webpack'
 );
 
-console.log('Electron version: ', window.electron_version);
+if (window.electron_version) {
+  console.log('Electron version: ', window.electron_version);
+} else {
+  console.log('Not running inside an electron');
+}

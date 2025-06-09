@@ -11,6 +11,7 @@ import { useConnectToWiFi, useNetworkConfig } from '../../hooks/useWifi';
 import { useEffect, useMemo, useState } from 'react';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useDimScreen } from '../../hooks/useDimScreen';
 
 import './wifiResult.css';
 
@@ -29,10 +30,11 @@ export function EnterWifiPassword(): JSX.Element {
 
   const { data, isLoading } = useNetworkConfig();
   const connectToWifiMutation = useConnectToWiFi();
+  useDimScreen();
   useHandleGestures({
     pressDown() {
       if (connectToWifiMutation.isSuccess || connectToWifiMutation.isError) {
-        dispatch(setScreen('pressets'));
+        dispatch(setScreen('profileHome'));
       }
     }
   });
@@ -117,6 +119,10 @@ export function EnterWifiPassword(): JSX.Element {
       defaultValue={knownPassword?.split('')}
       onSubmit={updateSetting}
       onCancel={onCancel}
+      onChange={(text: string) => {
+        setKnownPassword(text);
+      }}
+      capitalizeFirstLetter={false}
     />
   );
 }

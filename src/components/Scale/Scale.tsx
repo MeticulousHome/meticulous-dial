@@ -1,47 +1,63 @@
-import { useCallback } from 'react';
+import { CSSTransition, SwitchTransition } from 'react-transition-group';
 import { useAppSelector } from '../store/hooks';
-import { roundPrecision, addRightComplement } from '../../utils';
 import './scale.css';
+import { Fragment } from 'react/jsx-runtime';
+import { memo } from 'react';
 
-export function Scale(): JSX.Element {
-  const { stats } = useAppSelector((state) => state);
-
-  const getTotalScale = useCallback(() => {
-    const toLayout = addRightComplement(
-      roundPrecision(parseFloat(stats.sensors.w) || 0, 1).toString()
-    );
-    const withPads = toLayout.padStart(5, '0');
-
-    if (/^0*$/.test(toLayout.replace('.', ''))) {
-      return <span>{withPads}</span>;
-    }
-
-    const pads: JSX.Element[] = [];
-    withPads.split(toLayout).map((i: string) => {
-      for (let y = 1; y <= i.length; y++) {
-        pads.push(<span>0</span>);
-      }
-    });
-
-    pads.push(<>{toLayout}</>);
-    return pads;
-  }, [stats.sensors.w]);
+const Weight = () => {
+  const weight = useAppSelector((state) => state.stats.sensors.w || 0);
+  const scaleConnected = !isNaN(weight);
+  const formatted = scaleConnected ? weight.toFixed(1) : '';
+  const padded = formatted.padStart(5, '0');
 
   return (
-    <div
-      className={`main-layout`}
-      style={{
-        zIndex: 50
-      }}
-    >
-      <div className="main-layout-content">
-        <div className="pressets-options-conainer">
-          <div className="scale-weight">
-            <div className="weight">{getTotalScale()}</div>
-            <div className="weight-data">g</div>
-          </div>
+    <div className="scale-weight">
+      {scaleConnected ? (
+        <div>
+          <span className="weight">
+            {padded.split('').map((char, i) => (
+              <span
+                key={i}
+                className={
+                  i < padded.length - formatted.length ? 'dimmed' : undefined
+                }
+              >
+                {char}
+              </span>
+            ))}
+          </span>
+          <div className="weight-unit">g</div>
         </div>
-      </div>
+      ) : (
+        <div style={{ fontSize: '30px', color: '#f44336' }}>
+          Scale not connected
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export const Scale = memo(
+  ({ visible, size }: { visible: boolean; size: 'small' | 'full' }) => (
+    <SwitchTransition>
+      <CSSTransition
+        key={visible ? 'off' : 'on'}
+        in={visible}
+        timeout={300}
+        classNames="animate"
+      >
+        {visible ? (
+          <div
+            className={`main-layout scale-container scale-container--${size}`}
+          >
+            <div className="main-layout-content">
+              <Weight />
+            </div>
+          </div>
+        ) : (
+          <Fragment />
+        )}
+      </CSSTransition>
+    </SwitchTransition>
+  )
+);

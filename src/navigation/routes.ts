@@ -1,11 +1,7 @@
 import { ComponentType } from 'react';
 import { Barometer } from '../components/Barometer/Barometer';
-import { Pressets } from '../components/Pressets/Pressets';
-import { Scale } from '../components/Scale/Scale';
 import { PressetSettings } from '../components/PressetSettings/PressetSettings';
 import { SettingNumerical } from '../components/SettingNumerical/SettingNumerical';
-import { OnOff } from '../components/OnOff/OnOff';
-import { Purge } from '../components/Purge/Purge';
 import { Settings } from '../components/Settings/Settings';
 import { ScreenType } from '../components/store/features/screens/screens-slice';
 import { EditNameScreen } from '../components/EditNameScreen/EditNameScreen';
@@ -16,7 +12,6 @@ import { EnterWifiPassword } from '../components/Wifi/EnterWifiPassword';
 import { WifiDetails } from '../components/Wifi/WifiDetails';
 import { RootState } from '../components/store/store';
 import { Notification } from '../components/Notification/Notification';
-import { getTitlePressets } from '../components/Pressets/TitlePressets';
 import { ConnectWifiViaApp } from '../components/Wifi/ConnetWifiViaApp';
 import { OSStatus } from '../components/OSStatus/OSStatus';
 import { QuickSettings } from '../../src/components/QuickSettings/QuickSettings';
@@ -25,11 +20,11 @@ import { KnownWifi } from '../../src/components/Wifi/KnownWifi';
 import { DeleteWifiMenu } from '../components/Wifi/DeleteWifiMenu';
 import { AdvancedSettings } from '../components/Settings/Advanced/Advanced';
 import { WifiQrMenu } from '../../src/components/Wifi/WifiQrMenu';
-import { PressetProfileImage } from '../../src/components/Pressets/PressetProfileImage';
-import { DeviceInfo } from '../../src/components/Settings/Advanced/DeviceInfo';
-import { DefaultProfiles } from '../components/Pressets/DefaultProfiles';
-import { DefaultProfileDetails } from '../../src/components/Pressets/DefaultProfileDetails';
-import { PurgePiston } from '../components/PurgePiston/PurgePiston';
+import { PressetProfileImage } from '../components/PressetSettings/PressetProfileImage';
+import { DeviceInfoScreen } from '../components/Settings/Advanced/DeviceInfoScreen';
+import { DefaultProfiles } from '../components/DefaultProfiles/DefaultProfiles';
+import { ProfileDetails } from '../components/DefaultProfiles/DefaultProfileDetails';
+import { PurgeScreen } from '../components/PurgePiston/PurgeScreen';
 import { UpdateChannel } from '../components/Settings/Advanced/UpdateChannel';
 import { ReadyAnimation } from '../components/ReadyAnimation/ReadyAnimation';
 import { HeatTimeoutAfterShot } from '../components/HeatTimeoutAfterShot/HeatTimeoutAfterShot';
@@ -37,28 +32,85 @@ import { IdleScreen } from '../components/IdleScreen/IdleScreen';
 import { HiddenMenu } from '../components/HiddenMenu/HiddenMenu';
 import { TestOptions } from '../components/HiddenMenu/TestOptions/TestOptions';
 import { ControlPanel } from '../components/HiddenMenu/ControlPanel/ControlPanel';
+import { HeatingScreen } from '../components/Heating/HeatingScreen';
+import { PreheatScreen } from '../components/Heating/PreheatScreen';
+import { TimeDate } from '../components/Settings/Advanced/TimeDate/TimeDateConfig';
+import { TimeZoneConfig } from '../components/Settings/Advanced/TimeDate/TimeZone/TimeZoneConfig';
+import SelectLetterCountry from '../components/Settings/Advanced/TimeDate/TimeZone/SelectLetterCountry';
+import CountrySettings from '../components/Settings/Advanced/TimeDate/TimeZone/CountrySettings';
+import TimeZoneSettings from '../components/Settings/Advanced/TimeDate/TimeZone/TimeZoneSettings';
+import { IdleScreenSetting } from '../components/Settings/Advanced/IdleScreenSetting';
+
+import CalibrateScale from '../components/Scale/CalibrateScale';
+import { USBSettings } from '../components/Settings/USBSettings';
+import { BrewSettings } from '../components/Settings/BrewSettings';
+import { TimeConfig } from '../components/Settings/Advanced/TimeDate/TimeConfig';
+import { DateConfig } from '../components/Settings/Advanced/TimeDate/DateConfig';
+import { ShotGraphScreen } from '../components/ShotGraph/ShotGraphScreen';
+import { ScrollDirectionSettings } from '../components/Settings/ScrollDirection';
+import { BrewCompleteScreen } from '../components/BrewCompleteScreen/BrewCompleteScreen';
+import { ProfileHomeScreen } from '../components/ProfileHomeScreen/ProfileHomeScreen';
+import {
+  getActiveProfilesTitle,
+  getProfilesTitle
+} from '../components/ProfileHomeScreen/ProfileTitle';
+import { FactoryReset } from '../components/Settings/Advanced/FactoryReset';
+import { Manufacturing } from '../components/Settings/Advanced/Manufacturing';
 
 interface Route {
   component: ComponentType;
   parentTitle?: string | ((state: RootState) => string) | (() => JSX.Element);
-  title?: string | ((state: RootState) => string);
+  title?:
+    | string
+    | ((state: RootState) => string)
+    | ((state: RootState) => JSX.Element);
   titleShared?: boolean;
   parent?: ScreenType;
   bottomStatusHidden?: boolean;
   bottomTitle?: string;
   props?: object;
   animationDirectionFrom?: Partial<Record<ScreenType, 'in' | 'out'>>;
+  ignoreAsPrevious?: boolean;
 }
 
-const selectActivePresetName = (state: RootState) =>
-  state.presets.activePreset.name;
+const selectPurgeTitle = (state: RootState) => {
+  const machine_state = state.stats.state;
+  if (machine_state == 'brewing') {
+    return state.stats.profile;
+  }
+
+  if (state.stats.name === 'home') {
+    return 'Raising';
+  }
+
+  return 'Purging';
+};
 
 // Profile from "start" event may not exist in LCD. Prefer using
 // that profile name over selected preset
-const selectStatProfileName = (state: RootState) =>
-  state.stats.profile || state.presets.activePreset.name;
+const selectStatProfileName = (state: RootState) => state.stats.profile;
 
 export const routes: Record<ScreenType, Route> = {
+  timeZoneConfig: {
+    component: TimeZoneConfig,
+    title: 'timeZoneConfig',
+    bottomStatusHidden: true
+  },
+  timeDate: {
+    component: TimeDate,
+    title: 'TimeDate',
+    bottomStatusHidden: true
+  },
+  timeConfig: {
+    component: TimeConfig,
+    title: 'Time',
+    bottomStatusHidden: true
+  },
+  dateConfig: {
+    component: DateConfig,
+    title: 'Time',
+    bottomStatusHidden: true
+  },
   OSStatus: {
     component: OSStatus,
     title: 'OSStatus',
@@ -66,138 +118,165 @@ export const routes: Record<ScreenType, Route> = {
   },
   ready: {
     component: ReadyAnimation,
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    ignoreAsPrevious: true
   },
   settings: {
     component: Settings,
     title: 'settings',
     bottomStatusHidden: true
   },
-  scale: {
-    component: Scale,
-    title: 'scale',
-    bottomStatusHidden: true
-  },
-  pressets: {
-    component: Pressets,
-    parentTitle: getTitlePressets,
+  profileHome: {
+    component: ProfileHomeScreen,
+    parentTitle: getProfilesTitle,
     title: null
   },
   barometer: {
     component: Barometer,
     parentTitle: null,
     title: selectStatProfileName,
-    // titleShared: true,
     bottomStatusHidden: true,
     animationDirectionFrom: {
-      'manual-purge': 'in'
+      'manual-purge': 'in',
+      heating: 'in'
     }
   },
   pressetSettings: {
     component: PressetSettings,
-    title: selectActivePresetName,
-    bottomStatusHidden: true
+    title: getActiveProfilesTitle,
+    bottomStatusHidden: true,
+    parent: 'profileHome'
   },
   pressure: {
     component: SettingNumerical,
-    title: selectActivePresetName,
+    title: getActiveProfilesTitle,
     bottomTitle: 'pressure',
     props: {
       type: 'pressure'
     },
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
+  },
+  piston_position: {
+    component: SettingNumerical,
+    title: getActiveProfilesTitle,
+    bottomTitle: 'piston position',
+    props: {
+      type: 'piston_position'
+    },
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
+  },
+  motor_power: {
+    component: SettingNumerical,
+    title: getActiveProfilesTitle,
+    bottomTitle: 'motor power',
+    props: {
+      type: 'motor_power'
+    },
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
   },
   time: {
     component: SettingNumerical,
-    title: selectActivePresetName,
+    title: getActiveProfilesTitle,
     bottomTitle: 'time',
     props: {
       type: 'time'
     },
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
   },
   weight: {
     component: SettingNumerical,
-    title: selectActivePresetName,
+    title: getActiveProfilesTitle,
     bottomTitle: 'weight',
     props: {
       type: 'weight'
     },
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
   },
   flow: {
     component: SettingNumerical,
-    title: selectActivePresetName,
+    title: getActiveProfilesTitle,
     bottomTitle: 'flow',
     props: {
       type: 'flow'
     },
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
   },
 
   temperature: {
     component: SettingNumerical,
-    title: selectActivePresetName,
+    title: getActiveProfilesTitle,
     bottomTitle: 'temperature',
-    // parent: 'pressetSettings',
     props: {
       type: 'temperature'
     },
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
   },
   output: {
-    title: selectActivePresetName,
+    title: getActiveProfilesTitle,
     component: SettingNumerical,
     bottomTitle: 'output',
-    // parent: 'pressetSettings',
     props: {
       type: 'output'
     },
-    bottomStatusHidden: true
-  },
-  purge: {
-    component: Purge,
-    title: selectActivePresetName
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
   },
   'manual-purge': {
-    component: PurgePiston,
+    component: PurgeScreen,
+    bottomStatusHidden: true,
+    title: selectPurgeTitle,
+    animationDirectionFrom: {
+      barometer: 'in',
+      heating: 'in'
+    }
+  },
+  heating: {
+    component: HeatingScreen,
+    title: getActiveProfilesTitle,
     bottomStatusHidden: true,
     animationDirectionFrom: {
-      barometer: 'in'
+      barometer: 'in',
+      'manual-purge': 'in'
     }
+  },
+  calibrateScale: {
+    component: CalibrateScale,
+    bottomStatusHidden: true
   },
   dose: {
     component: () => null, // Multiple choice to be implemented
     title: 'dose',
-    parent: 'pressetSettings'
-  },
-  ratio: {
-    component: () => null, // Multiple choice to be implemented
-    title: 'ratio',
+    parentTitle: getActiveProfilesTitle,
     parent: 'pressetSettings'
   },
   name: {
     component: EditNameScreen,
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
+  },
+  selectLetterCountry: {
+    component: SelectLetterCountry,
     bottomStatusHidden: true
   },
-  'pre-infusion': {
-    component: OnOff,
-    title: selectActivePresetName,
-    props: {
-      type: 'pre-infusion'
-    }
+  countrySettings: {
+    component: CountrySettings,
+    bottomStatusHidden: true
   },
-  'pre-heat': {
-    component: OnOff,
-    title: selectActivePresetName,
-    // parent: 'pressetSettings',
-    props: {
-      type: 'pre-heat'
-    }
+  timeZoneSettings: {
+    component: TimeZoneSettings,
+    bottomStatusHidden: true
   },
   notifications: {
     component: Notification,
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    ignoreAsPrevious: true
   },
   wifiSettings: {
     component: WifiSettings,
@@ -239,7 +318,8 @@ export const routes: Record<ScreenType, Route> = {
   },
   enterWifiPassword: {
     component: EnterWifiPassword,
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'profileHome'
   },
   'quick-settings': {
     component: QuickSettings
@@ -249,32 +329,75 @@ export const routes: Record<ScreenType, Route> = {
     bottomStatusHidden: true
   },
   snake: {
-    component: SnakeGame
+    component: SnakeGame,
+    parent: 'profileHome'
   },
   advancedSettings: {
     component: AdvancedSettings
   },
+  manufacturingSettings: {
+    component: Manufacturing
+  },
   pressetProfileImage: {
     component: PressetProfileImage,
-    title: selectActivePresetName,
-    bottomStatusHidden: true
+    title: getActiveProfilesTitle,
+    bottomStatusHidden: true,
+    parent: 'pressetSettings'
   },
   deviceInfo: {
-    component: DeviceInfo
+    component: DeviceInfoScreen
   },
   updateChannel: {
     component: UpdateChannel
   },
+  idleScreenSettings: {
+    component: IdleScreenSetting
+  },
   defaultProfiles: {
     component: DefaultProfiles,
-    bottomStatusHidden: true
+    bottomStatusHidden: true,
+    parent: 'profileHome'
   },
   defaultProfileDetails: {
-    component: DefaultProfileDetails,
+    component: ProfileDetails,
+    bottomStatusHidden: true
+  },
+  shot_history: {
+    component: ShotGraphScreen,
+    title: getActiveProfilesTitle,
+    parent: 'profileHome',
     bottomStatusHidden: true
   },
   idle: {
     component: IdleScreen,
+    bottomStatusHidden: true,
+    ignoreAsPrevious: true
+  },
+  usbSettings: {
+    component: USBSettings,
+    bottomStatusHidden: true
+  },
+  brewSettings: {
+    component: BrewSettings,
+    bottomStatusHidden: true
+  },
+  preheatScreen: {
+    component: PreheatScreen,
+    title: 'pre-heat',
+    bottomStatusHidden: true,
+    ignoreAsPrevious: true
+  },
+  scrollDirections: {
+    component: ScrollDirectionSettings,
+    bottomStatusHidden: true
+  },
+  brewComplete: {
+    title: 'Brew complete',
+    component: BrewCompleteScreen,
+    bottomStatusHidden: true
+  },
+  factoryReset: {
+    component: FactoryReset,
     bottomStatusHidden: true
   },
   hiddenMenu: {

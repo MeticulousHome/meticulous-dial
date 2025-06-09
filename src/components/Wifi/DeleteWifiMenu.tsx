@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
+import { useMemo, useState } from 'react';
 
 import {
   setBubbleDisplay,
@@ -13,12 +12,17 @@ import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 
 import './wifiResult.css';
 import { useQueryClient } from '@tanstack/react-query';
+import Styled, { VIEWPORT_HEIGHT } from '../../styles/utils/mixins';
+import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
 
-const items = [{ key: 'connect' }, { key: 'delete' }, { key: 'back' }];
+const items = [
+  { key: 'connect', label: 'connect' },
+  { key: 'delete', label: 'delete' },
+  { key: 'back', label: 'back' }
+];
 
 export const DeleteWifiMenu = (): JSX.Element => {
   const dispatch = useAppDispatch();
-  const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const { selectedWifiToDelete } = useAppSelector((state) => state.wifi);
   const queryClient = useQueryClient();
@@ -57,15 +61,28 @@ export const DeleteWifiMenu = (): JSX.Element => {
     }
   });
 
-  useEffect(() => {
-    if (swiper) {
-      swiper.slideTo(activeIndex, 0, false);
-    }
-  }, [activeIndex, swiper]);
-
   if (deleteKnownWifiMutation.isSuccess) {
     dispatch(setBubbleDisplay({ visible: true, component: 'KnownWifi' }));
   }
+
+  const optionPositionOutter = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        settings: items
+      }),
+    [activeIndex, items]
+  );
+
+  const optionPositionInner = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        adjustmentFn: (position) => position - VIEWPORT_HEIGHT / 2,
+        settings: items
+      }),
+    [activeIndex, items]
+  );
 
   if (deleteKnownWifiMutation.isPending) {
     return <LoadingScreen />;
@@ -89,43 +106,28 @@ export const DeleteWifiMenu = (): JSX.Element => {
   }
 
   return (
-    <div className="main-quick-settings">
-      <Swiper
-        onSwiper={setSwiper}
-        slidesPerView={8}
-        allowTouchMove={false}
-        direction="vertical"
-        spaceBetween={25}
-        autoHeight={false}
-        centeredSlides={true}
-        initialSlide={activeIndex}
-        style={{ paddingLeft: '29px', top: '-4px' }}
-      >
-        <SwiperSlide
-          key="connect"
-          className={`settings-item ${
-            items[activeIndex].key === 'connect' ? 'active-setting' : ''
-          }`}
-        >
-          <div>Connect</div>
-        </SwiperSlide>
-        <SwiperSlide
-          key="delete"
-          className={`settings-item ${
-            items[activeIndex].key === 'delete' ? 'active-setting' : ''
-          }`}
-        >
-          <div>Delete</div>
-        </SwiperSlide>
-        <SwiperSlide
-          key="back"
-          className={`settings-item ${
-            items[activeIndex].key === 'back' ? 'active-setting' : ''
-          }`}
-        >
-          <div style={{ height: '30px' }}>Back</div>
-        </SwiperSlide>
-      </Swiper>
-    </div>
+    <Styled.SettingsContainer>
+      <Styled.Viewport>
+        <Styled.OptionsContainer $translateY={optionPositionOutter}>
+          {items.map((option) => (
+            <Styled.Option key={option.key}>
+              <span>{option.label}</span>
+            </Styled.Option>
+          ))}
+        </Styled.OptionsContainer>
+        <Styled.ActiveIndicator>
+          <Styled.OptionsContainer
+            $translateY={optionPositionInner}
+            $isInner={true}
+          >
+            {items.map((option) => (
+              <Styled.Option key={option.key}>
+                <span>{option.label}</span>
+              </Styled.Option>
+            ))}
+          </Styled.OptionsContainer>
+        </Styled.ActiveIndicator>
+      </Styled.Viewport>
+    </Styled.SettingsContainer>
   );
 };

@@ -7,7 +7,7 @@ on:
 jobs:
   verify-base-branch:
     name: Verify base branch is beta
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check base branch
         if: github.head_ref != 'beta'

@@ -13,13 +13,16 @@ export function useHandleGestures(
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  useEffect(
-    () =>
-      handleEvents.on('gesture', (gesture, time_since_last_event) => {
-        if (stateRef.current.isVisible && !shouldIgnoreGesture) {
-          stateRef.current.gestureHandlers[gesture]?.(time_since_last_event);
-        }
-      }),
-    [stateRef, shouldIgnoreGesture]
-  );
+  useEffect(() => {
+    const handler = (gesture: GestureType, time_since_last_event: number) => {
+      if (stateRef.current.isVisible && !shouldIgnoreGesture)
+        stateRef.current.gestureHandlers[gesture]?.(time_since_last_event);
+    };
+
+    const unsubscribe = handleEvents.on('gesture', handler);
+
+    return () => {
+      unsubscribe();
+    };
+  }, [shouldIgnoreGesture]);
 }

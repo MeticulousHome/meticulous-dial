@@ -22,7 +22,7 @@
   height: 100%;
   width: 100%;
   position: absolute;
-  z-index: 1;
+  z-index: 10;
   top: 0;
   left: 0;
   display: flex;
@@ -30,7 +30,7 @@
 }
 
 .bubble-container {
-  background: #1d1d1d;
+  background: #0f0f0f;
   height: 100%;
   width: 420px;
 }
@@ -39,14 +39,14 @@
   .spring-interpolate-keyframes(100%, 1% )
 }
 
-.bubble-enter-animation {
-  animation: bubbleEnter 20ms forwards;
+.bubble-enter {
+  animation: bubbleEnter 450ms forwards;
 }
 
 @keyframes bubbleLeave {
   .spring-interpolate-keyframes(1%, 100% )
 }
 
-.bubble-leave-animation {
-  animation: bubbleLeave 20ms forwards;
+.bubble-exit {
+  animation: bubbleLeave 450ms forwards;
 }

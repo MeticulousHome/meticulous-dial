@@ -1,33 +1,35 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-
-import './quick-settings.css';
+import { useEffect, useMemo, useState } from 'react';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useSettings, useUpdateSettings } from '../../hooks/useSettings';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   setBubbleDisplay,
   setScreen
 } from '../store/features/screens/screens-slice';
-import { useSocket } from '../store/SocketManager';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import '../OSStatus/OSStatus.css';
+import { useContinueBrewAction, useSocket } from '../store/SocketManager';
 
-import {
-  deletePreset,
-  resetActiveSetting,
-  setDefaultProfileSelected,
-  setOptionPressets
-} from '../store/features/preset/preset-slice';
+import { useOSStatus } from '../../hooks/useDeviceOSStatus';
+import { routes } from '../../navigation/routes';
+import Styled, {
+  VIEWPORT_HEIGHT,
+  MARQUEE_MIN_TEXT_LENGTH,
+  MenuAnnotation
+} from '../../styles/utils/mixins';
+import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
+import { formatTime, hidden_ui_elements_enabled } from '../../utils';
+import { useProfileContext } from '../../context/ProfileContext';
+import { useDeletePreset } from '../../hooks/useProfiles';
+import { addSettingsToProfile } from '../../utils/profiles';
+import { useIdleTimer } from '../../hooks/useIdleTimer';
 
-import { useOSStatus } from '../../hooks/useOSStatus';
-import { marqueeIfNeeded } from '../shared/MarqueeValue';
-import { formatTime } from '../../utils';
-
-interface QuickSettingOption {
+export type QuickSettingOption = {
   key: string;
   label: string;
   longpress?: boolean;
-}
+  hasSeparator?: boolean;
+  isStatusInfo?: boolean;
+  status?: string;
+};
 
 const profileContextSettings: QuickSettingOption[] = [
   {
@@ -35,16 +37,37 @@ const profileContextSettings: QuickSettingOption[] = [
     label: 'Edit profile'
   },
   {
+    key: 'last_shot',
+    label: 'Last shot'
+  },
+  {
     key: 'delete',
-    label: 'Hold to delete profile',
-    longpress: true
+    label: 'Delete profile',
+    longpress: true,
+    hasSeparator: true
   }
 ];
 
+const prevScreenSetting: QuickSettingOption = {
+  key: 'prevScreen',
+  label: 'Back',
+  hasSeparator: true
+};
+
+const disable_ui_features: QuickSettingOption = {
+  key: 'disable_ui_features',
+  label: 'Magenta was refilled',
+  hasSeparator: true
+};
+
 const defaultSettings: QuickSettingOption[] = [
   {
-    key: 'home',
-    label: 'home'
+    key: 'sleep',
+    label: 'sleep'
+  },
+  {
+    key: 'raise',
+    label: 'raise'
   },
   {
     key: 'purge',
@@ -52,15 +75,38 @@ const defaultSettings: QuickSettingOption[] = [
   },
   {
     key: 'preheat',
-    label: 'Preheat brew chamber'
+    label: ''
   },
   {
-    key: 'calibrate',
-    label: 'calibrate scale'
+    key: 'brew_config',
+    label: 'Brew Settings',
+    hasSeparator: true
   },
   {
     key: 'wifi',
     label: 'wifi'
+  },
+
+  {
+    key: 'config',
+    label: 'config'
+  },
+  {
+    key: 'exit',
+    label: 'exit'
+  }
+];
+
+const inBrewSettings: QuickSettingOption[] = [
+  {
+    key: 'skip_step',
+    label: 'Skip this step'
+  },
+  {
+    key: 'abort_brew',
+    label: 'Abort Brew',
+    longpress: true,
+    hasSeparator: true
   },
   {
     key: 'config',
@@ -76,27 +122,42 @@ type holdAnimationState = 'stopped' | 'running' | 'finished';
 
 export function QuickSettings(): JSX.Element {
   const socket = useSocket();
+  const skipStep = useContinueBrewAction();
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const {
-    defaultProfilesInfo: { defaultProfileActiveIndexSwiper, defaultProfiles }
-  } = useAppSelector((state) => state.presets);
-  const [swiper, setSwiper] = useState(null);
-  const [activeIndex, setActiveIndex] = useState(1);
-  const stats = useAppSelector((state) => state.stats);
-  const PreheatTimeLeft = useAppSelector(
-    (state) => state.settings.PreheatTimeLeft
+
+  const { data: globalSettings } = useSettings();
+  const updateSettings = useUpdateSettings();
+
+  const preheatTimeLeft = useAppSelector(
+    (state) => state.stats.preheatTimeLeft
   );
   const [settings, setSettings] = useState(defaultSettings);
 
-  const presets = useAppSelector((state) => state.presets);
+  const {
+    profileQuery: { data: profiles },
+    localProfile,
+    detailProfileSelected: defaultProfileSelectedForDetails,
+    setSettingsIndex: setProfileSettingsIndex,
+    setSettingsProfile: setProfileSettings
+  } = useProfileContext();
+  const deletePresetMutation = useDeletePreset();
   const currentScreen = useAppSelector((state) => state.screen.value);
+
   const [counterESGG, setCounterESGG] = useState(0);
   const [holdAnimation, setHoldAnimation] =
     useState<holdAnimationState>('stopped');
 
+  const { forceIdle } = useIdleTimer();
+
   const { data: osStatusData, error: osStatusError } = useOSStatus();
   const osStatusVisible = osStatusData.status !== 'IDLE';
+  const [activeOption, setActiveOption] = useState(0);
+
+  useEffect(() => {
+    setActiveOption(osStatusVisible ? 1 : 0);
+  }, [osStatusVisible]);
+
   const osStatusInfo = useMemo(() => {
     if (osStatusError) {
       return '';
@@ -108,18 +169,26 @@ export function QuickSettings(): JSX.Element {
         return `Downloading Update: ${Math.round(osStatusData.progress)}%`;
       case 'INSTALLING':
         return `Installing Update: ${Math.round(osStatusData.progress)}%`;
+      case 'FAILED':
+        return `Update Failed: ${osStatusData.info}%`;
     }
     return '';
   }, [osStatusData, osStatusError]);
 
   const handleAnimationEnd = () => {
     setHoldAnimation('finished');
-    switch (settings[activeIndex].key) {
+    if (localProfile.temporary) return; //To prevent deleting an existing profile based on a temporary profile that has modifications.
+    switch (settings[activeOption].key) {
       case 'delete': {
-        dispatch(deletePreset());
-        dispatch(setScreen('pressets'));
-        dispatch(setOptionPressets('PRESSETS'));
+        deletePresetMutation.mutate(localProfile?.id);
+        dispatch(setScreen('profileHome'));
         dispatch(setBubbleDisplay({ visible: false, component: null }));
+        break;
+      }
+      case 'abort_brew': {
+        socket.emit('action', 'home');
+        dispatch(setBubbleDisplay({ visible: false, component: null }));
+        break;
       }
     }
   };
@@ -127,7 +196,6 @@ export function QuickSettings(): JSX.Element {
   useHandleGestures(
     {
       context() {
-        setActiveIndex(1);
         dispatch(
           setBubbleDisplay({
             visible: !bubbleDisplay.visible,
@@ -136,50 +204,74 @@ export function QuickSettings(): JSX.Element {
         );
       },
       left() {
-        setActiveIndex((prev) => Math.max(prev - 1, 1));
+        const minIndex = osStatusVisible ? 1 : 0;
+        setActiveOption((prev) => Math.max(prev - 1, minIndex));
         setCounterESGG(0);
       },
       right() {
-        setActiveIndex((prev) => Math.min(prev + 1, settings.length - 1));
-        if (settings[activeIndex].key === 'exit') {
+        setActiveOption((prev) => Math.min(prev + 1, settings.length - 1));
+        if (settings[activeOption].key === 'exit') {
           setCounterESGG(counterESGG + 1);
         }
       },
       pressUp() {
         if (holdAnimation == 'finished') {
-          dispatch(setScreen('pressets'));
+          dispatch(setScreen('profileHome'));
           dispatch(setBubbleDisplay({ visible: false, component: null }));
         }
         setHoldAnimation('stopped');
       },
       pressDown() {
-        if (settings[activeIndex].longpress) {
+        if (settings[activeOption].longpress) {
           setHoldAnimation('running');
           return;
         }
-        switch (settings[activeIndex].key) {
-          case 'home': {
+        switch (settings[activeOption].key) {
+          case 'prevScreen': {
+            if (!routes[currentScreen].parent) {
+              console.error("return to previous screen doesn't exist");
+              break;
+            }
+
+            dispatch(setScreen(routes[currentScreen].parent));
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
+          case 'sleep': {
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            forceIdle();
+            break;
+          }
+          case 'raise': {
             socket.emit('action', 'home');
+            console.log('raise/home');
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
           case 'details': {
-            dispatch(
-              setDefaultProfileSelected(
-                defaultProfiles[defaultProfileActiveIndexSwiper]
-              )
-            );
-            dispatch(
-              setBubbleDisplay({
-                visible: true,
-                component: 'defaultProfileDetails'
-              })
-            );
+            dispatch(setScreen('defaultProfileDetails'));
+            break;
+          }
+          case 'disable_ui_features': {
+            updateSettings.mutate({
+              disable_ui_features: true
+            });
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
           case 'edit': {
-            dispatch(resetActiveSetting());
+            if (!localProfile) {
+              console.error('No profile selected');
+              break;
+            }
+            setProfileSettingsIndex(0);
+            setProfileSettings(addSettingsToProfile(localProfile));
             dispatch(setScreen('pressetSettings'));
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
+          case 'last_shot': {
+            dispatch(setScreen('shot_history'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
@@ -190,11 +282,15 @@ export function QuickSettings(): JSX.Element {
           }
           case 'preheat': {
             socket.emit('action', 'preheat');
+            if (preheatTimeLeft <= 0) {
+              dispatch(setScreen('preheatScreen'));
+              dispatch(setBubbleDisplay({ visible: false, component: null }));
+            }
             break;
           }
           case 'calibrate': {
-            socket.emit('calibrate', '');
             dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(setScreen('calibrateScale'));
             break;
           }
           case 'wifi': {
@@ -209,137 +305,184 @@ export function QuickSettings(): JSX.Element {
             );
             break;
           }
+          case 'brew_config': {
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'brewSettings' })
+            );
+            break;
+          }
 
           case 'exit': {
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
           }
+
+          // In Brew Settings
+          case 'skip_step': {
+            skipStep();
+            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          }
+          // abort_brew is a longpress option
         }
       }
     },
-    !bubbleDisplay.visible || stats.waitingForActionAlreadySent
+    !bubbleDisplay.visible
   );
 
-  const indexSeparator = useMemo(() => {
-    const contextSettings = profileContextSettings;
-
-    if (contextSettings?.length > 0) {
-      return settings.indexOf(contextSettings[contextSettings.length - 1]);
-    }
-    return undefined;
-  }, [settings.length]);
+  const requiresProfileContext: boolean =
+    profiles?.length > 0 && currentScreen === 'profileHome';
 
   useEffect(() => {
     const context: QuickSettingOption[] = profileContextSettings;
 
-    const requiresProfileContext: boolean = !(
-      presets.value.length === 0 ||
-      presets.activeIndexSwiper === presets.value.length ||
-      (presets.option !== 'HOME' && presets.option !== 'PRESSETS')
-    );
+    const backAvailable = !!routes[currentScreen].parent;
 
-    const osStatusSettingOption: QuickSettingOption = {
-      key: 'os_update',
-      label: osStatusInfo
-    };
+    const osStatusSettingOption: QuickSettingOption | null = osStatusVisible
+      ? {
+          key: 'os_update',
+          label: osStatusInfo,
+          isStatusInfo: true,
+          status: osStatusData.status.toLowerCase()
+        }
+      : null;
 
     switch (currentScreen) {
       case 'defaultProfiles':
         setSettings([
-          osStatusSettingOption,
-          ...[{ key: 'details', label: 'Show details' }],
+          ...(osStatusSettingOption ? [osStatusSettingOption] : []),
+          ...(defaultProfileSelectedForDetails
+            ? [{ key: 'details', label: 'Show details' }]
+            : []),
+          ...(backAvailable ? [prevScreenSetting] : []),
+          ...(hidden_ui_elements_enabled(globalSettings)
+            ? [disable_ui_features]
+            : []),
           ...defaultSettings
         ]);
+        break;
+      case 'heating':
+      case 'brewComplete':
+      case 'barometer':
+        setSettings(inBrewSettings);
         break;
       default:
-        setSettings([
-          osStatusSettingOption,
-          ...(requiresProfileContext === true ? context : []),
-          ...defaultSettings
-        ]);
+        {
+          const newContext = localProfile.temporary
+            ? context.filter((c) => c.key !== 'delete')
+            : context;
+          setSettings([
+            ...(osStatusSettingOption ? [osStatusSettingOption] : []),
+            ...(requiresProfileContext ? newContext : []),
+            ...(backAvailable ? [prevScreenSetting] : []),
+            ...(hidden_ui_elements_enabled(globalSettings)
+              ? [disable_ui_features]
+              : []),
+            ...defaultSettings
+          ]);
+        }
         break;
     }
-  }, [
-    presets.value.length,
-    presets.activeIndexSwiper,
-    presets.option,
-    currentScreen,
-    osStatusInfo
-  ]);
-
-  useEffect(() => {
-    if (swiper) {
-      swiper.slideTo(activeIndex, 0, false);
-    }
-  }, [activeIndex, swiper]);
+  }, [currentScreen, osStatusInfo, osStatusVisible]);
 
   useEffect(() => {
     if (counterESGG >= 20) {
-      console.log('Easter Egg on');
       dispatch(setBubbleDisplay({ visible: false, component: null }));
       dispatch(setScreen('snake'));
     }
   }, [counterESGG]);
 
-  const getSettingClasses = useCallback(
-    (isActive: boolean, key: string) => {
-      return `
-      settings-item ${isActive ? 'active-setting' : ''}
-      ${isActive && holdAnimation === 'running' ? 'animated-setting' : ''}
-      ${key === 'os_update' ? `os-info-${osStatusData.status.toLowerCase()}` : ''}
-      `;
-    },
-    [holdAnimation, osStatusData]
+  const optionPositionOutter = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeOption,
+        settings
+      }),
+    [activeOption, settings]
   );
 
+  const optionPositionInner = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeOption,
+        adjustmentFn: (position) => position - VIEWPORT_HEIGHT / 2,
+        settings
+      }),
+    [activeOption, settings]
+  );
+
+  const preheatTimer = useMemo(
+    () =>
+      preheatTimeLeft > 0
+        ? `Stop pre-heat ${formatTime(preheatTimeLeft)}`
+        : 'Pre-heat',
+    [preheatTimeLeft]
+  );
   return (
-    <div className="main-quick-settings">
-      <Swiper
-        onSwiper={setSwiper}
-        slidesPerView={8}
-        allowTouchMove={false}
-        direction="vertical"
-        spaceBetween={25}
-        autoHeight={false}
-        centeredSlides={true}
-        initialSlide={activeIndex}
-        style={{ paddingLeft: '29px', top: '-4px' }}
-      >
-        {settings.map((setting, index: number) => {
-          const isActive = index === activeIndex;
-          if (setting.key === 'os_update' && !osStatusVisible) {
-            return <></>;
-          }
-          return (
-            <div key={`option-${index}-${setting.key}`}>
-              <SwiperSlide
-                className={getSettingClasses(isActive, setting.key)}
-                key={`option-${index}-${setting.key}`}
+    <Styled.SettingsContainer>
+      <Styled.Viewport>
+        <Styled.OptionsContainer
+          $translateY={optionPositionOutter}
+          $bringToFront={holdAnimation === 'running'}
+        >
+          {settings.map((option) =>
+            option.key === 'os_update' ? (
+              <Styled.OsStatusOption
+                key={option.key}
+                $status={option.status}
+                $hasSeparator={option.hasSeparator}
+              >
+                <span>{option.label}</span>
+              </Styled.OsStatusOption>
+            ) : (
+              <Styled.Option
+                key={option.key}
+                $hasSeparator={option.hasSeparator}
+                $isAnimating={holdAnimation === 'running' && option.longpress}
                 onAnimationEnd={handleAnimationEnd}
               >
-                <div className="text-container">
-                  {marqueeIfNeeded({
-                    enabled: isActive,
-                    val:
-                      setting.key === 'preheat'
-                        ? PreheatTimeLeft > 0
-                          ? `Stop preheat ${formatTime(PreheatTimeLeft)}`
-                          : 'Preheat brew chamber'
-                        : setting.label
-                  })}
-                </div>
-              </SwiperSlide>
+                <span>
+                  {option.key === 'preheat' ? preheatTimer : option.label}
+                </span>
+              </Styled.Option>
+            )
+          )}
+        </Styled.OptionsContainer>
 
-              {indexSeparator === index && (
-                <SwiperSlide
-                  key={`seperator-${index}`}
-                  className="separator"
-                ></SwiperSlide>
-              )}
-            </div>
-          );
-        })}
-      </Swiper>
-    </div>
+        <Styled.ActiveIndicator $holdAnimation={holdAnimation}>
+          <Styled.OptionsContainer
+            $translateY={optionPositionInner}
+            $isInner={true}
+          >
+            {settings.map((option, index) =>
+              option.key === 'os_update' ? (
+                <Styled.OsStatusOption
+                  key={option.key}
+                  $status={option.status}
+                  $hasSeparator={option.hasSeparator}
+                >
+                  <span>{option.label}</span>
+                </Styled.OsStatusOption>
+              ) : (
+                <Styled.Option
+                  key={option.key}
+                  $hasSeparator={option.hasSeparator}
+                  $isMarquee={
+                    activeOption === index &&
+                    option.label.length > MARQUEE_MIN_TEXT_LENGTH
+                  }
+                  $isMultiItem={option.longpress}
+                >
+                  <span>
+                    {option.key === 'preheat' ? preheatTimer : option.label}
+                  </span>
+                  {option.longpress && <MenuAnnotation>HOLD</MenuAnnotation>}
+                </Styled.Option>
+              )
+            )}
+          </Styled.OptionsContainer>
+        </Styled.ActiveIndicator>
+      </Styled.Viewport>
+    </Styled.SettingsContainer>
   );
 }

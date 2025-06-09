@@ -1,52 +1,53 @@
 import '../../assets/fonts/custom/css/fontello.css';
 
 import { useDispatch } from 'react-redux';
-import { IPresetName, IPresetSetting } from '../../types';
+import { IPresetSetting } from '../../types';
 
-import { useAppSelector } from '../store/hooks';
-import { updatePresetSetting } from '../store/features/preset/preset-slice';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { CircleKeyboard } from '../CircleKeyboard/CircleKeyboard';
-
+import { useDimScreen } from '../../hooks/useDimScreen';
+import { useProfileContext } from '../../context/ProfileContext';
+import { useState } from 'react';
 export function EditNameScreen(): JSX.Element {
-  const { presets } = useAppSelector((state) => state);
-  const setting = presets.updatingSettings.settings[
-    presets.activeSetting
-  ] as IPresetName;
-  const originalName = presets.activePreset.name;
+  const { settingsIndex, settingsProfile, setSettingsProfile } =
+    useProfileContext();
+  const setting = settingsProfile.settings[settingsIndex];
+  const [updatedName, setUpdatedName] = useState<string>(
+    setting.value.toString()
+  );
 
   const dispatch = useDispatch();
+
+  useDimScreen();
 
   const updateSetting = (updatedText: string) => {
     const updatedSetting = {
       ...setting,
       value: updatedText
     } as IPresetSetting;
-    dispatch(updatePresetSetting(updatedSetting));
+    setSettingsProfile((prev) => ({
+      ...prev,
+      settings: [
+        ...prev.settings.slice(0, settingsIndex),
+        updatedSetting,
+        ...prev.settings.slice(settingsIndex + 1)
+      ]
+    }));
     dispatch(setScreen('pressetSettings'));
   };
 
   const onCancel = () => {
-    const updatedSetting = {
-      ...setting,
-      value: originalName
-    } as IPresetSetting;
-    dispatch(updatePresetSetting(updatedSetting));
     dispatch(setScreen('pressetSettings'));
   };
 
   return (
     <CircleKeyboard
       name="name"
-      defaultValue={setting.value.toString().split('')}
+      defaultValue={updatedName.split('')}
       onSubmit={updateSetting}
       onCancel={onCancel}
       onChange={(text: string) => {
-        const updatedSetting = {
-          ...setting,
-          value: text
-        } as IPresetSetting;
-        dispatch(updatePresetSetting(updatedSetting));
+        setUpdatedName(text);
       }}
     />
   );

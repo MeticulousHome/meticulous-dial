@@ -4,12 +4,10 @@ export const LAST_KEY = 'cancel';
 export enum KEYBOARD_TYPE {
   Default = 'DEFAULT',
   AccentCharacters = 'ACCENT',
-  SpecialCharacters = 'SPECIAL'
+  SpecialCharacters = 'SPECIAL',
+  OnlyLetters = 'ONLY_LETTERS'
 }
-
-//NOTE: We use ROTATE_VALUE x alphabet(items) to have x + JUMP_ROTATE = 360 degrees
-export const ROTATE_VALUE = 7.25;
-export const DEFAULT_ALPHABET = [
+const ALPHABETH = [
   'a',
   'b',
   'c',
@@ -35,7 +33,18 @@ export const DEFAULT_ALPHABET = [
   'w',
   'x',
   'y',
-  'z',
+  'z'
+];
+
+export const ALPHABETH_ONLY_LETTERS = [...ALPHABETH, 'cancel'];
+
+//NOTE: We use ROTATE_VALUE x alphabet(items) to have x + JUMP_ROTATE = 360 degrees
+export const ROTATE_VALUE = 7.25;
+export const JUMP_ROTATE_LETTERS = 90;
+export const ROTATE_VALUE_LETTERS =
+  (360 - JUMP_ROTATE_LETTERS) / ALPHABETH_ONLY_LETTERS.length;
+export const DEFAULT_ALPHABET = [
+  ...ALPHABETH,
   '1',
   '2',
   '3',
@@ -186,12 +195,15 @@ export const getJumpRotate = (keyboardType: KEYBOARD_TYPE) => {
   const characters =
     keyboardType === KEYBOARD_TYPE.Default
       ? DEFAULT_ALPHABET
-      : CAPITAL_ACCENT_CHARACTERS;
-  return (
-    360 -
-    ROTATE_VALUE *
-      characters.filter((alphabetItem) => alphabetItem.trim() !== '').length
-  );
+      : keyboardType === KEYBOARD_TYPE.OnlyLetters
+        ? ALPHABETH_ONLY_LETTERS
+        : CAPITAL_ACCENT_CHARACTERS;
+  return keyboardType === KEYBOARD_TYPE.OnlyLetters
+    ? JUMP_ROTATE_LETTERS
+    : 360 -
+        ROTATE_VALUE *
+          characters.filter((alphabetItem) => alphabetItem.trim() !== '')
+            .length;
 };
 
 export const massageAlphabetWithMainChar = (

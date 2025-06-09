@@ -5,7 +5,6 @@
   width: 100%;
   justify-content: center;
 }
-
 .quick-settings {
   height: 247px;
   width: 350px;
@@ -15,7 +14,6 @@
   gap: 16px;
   margin-left: 29px;
 }
-
 .settings-item {
   text-transform: uppercase;
   border-radius: 4px;
@@ -27,11 +25,10 @@
   justify-content: start;
   font-weight: 400;
   letter-spacing: 1.3px;
-  font-family: 'Abc_mono';
+  font-family: 'ABC Diatype Mono';
   padding-left: 18px;
   white-space: nowrap;
 }
-
 .settings-entry {
   align-self: center;
   height: auto;
@@ -41,13 +38,14 @@
 }
 
 .active-setting {
-  color: #1d1d1d;
+  color: #0f0f0f;
   background: #f5c444;
   background: #f5c444;
+  /* Use the color beneath */
   background: linear-gradient(
     90deg,
-    #1d1d1d 0%,
-    #1d1d1d 50%,
+    transparent 0%,
+    transparent 50%,
     #f5c444 50%,
     #f5c444 100%
   );
@@ -55,22 +53,18 @@
   background-position: 100% 100%;
   overflow: hidden;
 }
-
 .animated-setting {
   animation: ActiveBackground 1s ease normal;
 }
-
 @keyframes ActiveBackground {
   0% {
     background-position: 100% 100%;
   }
-
   100% {
     background-position: 0% 100%;
     color: #ffffff;
   }
 }
-
 .separator {
   height: 2px !important;
   margin-bottom: 20px !important;
@@ -79,7 +73,6 @@
   border-top: 2px dashed #f5c44480;
   width: 80%;
 }
-
 .text-container {
   width: 100%;
   min-width: 0;
@@ -89,7 +82,6 @@
 .text-container > span {
   display: inline-block;
 }
-
 @keyframes leftright {
   0% {
     transform: translateX(0%);
@@ -98,9 +90,40 @@
     transform: translateX(calc(320px - 100%));
   }
 }
-
 .animate-marquee {
   position: relative;
   display: inline-block;
   animation: leftright 6s infinite alternate ease-in-out;
+}
+.option-delete {
+  margin-bottom: 35px !important;
+}
+.option-delete::after {
+  content: '';
+  position: absolute;
+  bottom: -18px;
+  left: 12px;
+  width: 75%;
+  border-top: 2px dashed rgba(245, 196, 68, 0.5);
+  z-index: 1;
+}
+.active-indicator {
+  position: absolute;
+  left: 228px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 95%;
+  height: 38px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 50%,
+    #f5c444 50%,
+    #f5c444 100%
+  );
+  background-size: 200% 100%;
+  background-position: 100% 100%;
+  border-radius: 4px;
+  z-index: 2;
+  overflow: hidden;
 }

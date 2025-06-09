@@ -4,13 +4,16 @@ import React, {
   useEffect,
   useContext,
   ReactNode,
-  useRef
+  useRef,
+  useCallback
 } from 'react';
-
 interface TimerContextType {
   resetTimer: () => void;
   setTimer: (timeout: number) => void;
   isIdle: boolean;
+  forceIdle: () => void;
+  forceBubbleReopen: boolean;
+  setForceBubbleReopen: (value: boolean) => void;
 }
 
 const TimerContext = createContext<TimerContextType | undefined>(undefined);
@@ -28,39 +31,56 @@ type IdleTimerProviderProps = {
 };
 
 // 5 minutes default timeout
-const DEFAULT_TIMEOUT = 5 * 60;
+const DEFAULT_TIMEOUT = 5 * 60 * 1000;
 
 export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
   children
 }): JSX.Element => {
   const [idleTime, setIdleTime] = useState(DEFAULT_TIMEOUT);
-  const time = useRef(0);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isIdle, setIsIdle] = useState(false);
+  const [forceBubbleReopen, setForceBubbleReopen] = useState(false);
 
-  const resetTimer = () => {
-    time.current = 0;
+  const startTimer = useCallback(() => {
+    timeoutRef.current = setTimeout(() => {
+      setIsIdle(true);
+    }, idleTime);
+  }, []);
+
+  const resetTimer = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     setIsIdle(false);
-  };
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      time.current += 1;
-    }, 1000);
-    return () => clearInterval(intervalId);
+    startTimer();
   }, []);
 
   useEffect(() => {
-    if (!time.current) {
-      return;
+    startTimer();
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [idleTime]);
+
+  const forceIdle = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
-    if (time.current >= idleTime) {
-      setIsIdle(true);
-    }
-  }, [time.current, idleTime]);
+    setIsIdle(true);
+  }, []);
 
   return (
     <TimerContext.Provider
-      value={{ resetTimer, setTimer: setIdleTime, isIdle }}
+      value={{
+        resetTimer,
+        setTimer: setIdleTime,
+        isIdle,
+        forceIdle,
+        forceBubbleReopen,
+        setForceBubbleReopen
+      }}
     >
       {children}
     </TimerContext.Provider>

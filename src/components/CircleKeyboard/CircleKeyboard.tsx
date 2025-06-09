@@ -14,9 +14,15 @@ import {
   CASE_ACCENT_TO_UPPERCASE_MAPPING,
   CASE_ACCENT_TO_LOWERCASE_MAPPING,
   massageAlphabetWithMainChar,
-  SPECIAL_CHARACTERS
+  SPECIAL_CHARACTERS,
+  ALPHABETH_ONLY_LETTERS,
+  ROTATE_VALUE_LETTERS,
+  JUMP_ROTATE_LETTERS
 } from './Keys';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useSettings } from '../../hooks/useSettings';
+import { useAppSelector } from '../store/hooks';
+import { GlobeAlt } from './GlobeAlt';
 
 interface IKeyboardProps {
   name: string;
@@ -24,16 +30,22 @@ interface IKeyboardProps {
   onSubmit: (text: string) => void;
   onCancel: () => void;
   onChange?: (text: string) => void;
+  onlyLetters?: boolean;
+  capitalizeFirstLetter?: boolean;
 }
 
 export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
+  const { data: globalSettings } = useSettings();
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [rotate, setRotate] = useState<number>(FIRST_POSITION);
-  const [keyboardType, setKeyboardType] = useState<KEYBOARD_TYPE>(
-    KEYBOARD_TYPE.Default
+  const [keyboardType, setKeyboardType] = useState<KEYBOARD_TYPE>(() =>
+    props.onlyLetters ? KEYBOARD_TYPE.OnlyLetters : KEYBOARD_TYPE.Default
   );
-  const [alphabet, setAlphabet] = useState<string[]>(
-    massageAlphabetWithMainChar(DEFAULT_ALPHABET, 0)
-  );
+  const [alphabet, setAlphabet] = useState<string[]>(() => {
+    return props.onlyLetters
+      ? massageAlphabetWithMainChar(ALPHABETH_ONLY_LETTERS, 0)
+      : massageAlphabetWithMainChar(DEFAULT_ALPHABET, 0);
+  });
   const [mainLetter, setMainLetter] = useState<string>('a');
   const [capsLockActive, setCapsLockActive] = useState<{
     active: boolean;
@@ -57,7 +69,9 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       ? DEFAULT_ALPHABET[0]
       : keyboardType === KEYBOARD_TYPE.AccentCharacters
         ? SMALL_ACCENT_CHARACTERS[0]
-        : SPECIAL_CHARACTERS[0];
+        : keyboardType === KEYBOARD_TYPE.OnlyLetters
+          ? ALPHABETH_ONLY_LETTERS[0]
+          : SPECIAL_CHARACTERS[0];
 
   const { name, defaultValue, onSubmit, onCancel, onChange } = props;
   const inputLimit = 64;
@@ -75,7 +89,10 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       return element.toLowerCase() === mainLetter.toLowerCase();
     });
     const pm2 = i + (!right ? -2 : +2);
-    const pmr = rotate + (right ? -ROTATE_VALUE : +ROTATE_VALUE);
+    const pmr =
+      keyboardType === KEYBOARD_TYPE.OnlyLetters
+        ? rotate + (right ? -ROTATE_VALUE_LETTERS : +ROTATE_VALUE_LETTERS)
+        : rotate + (right ? -ROTATE_VALUE : +ROTATE_VALUE);
     const newLetter = alphabet[pm2];
     const p1 = i + 1;
     const m1 = i - 1;
@@ -99,11 +116,23 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       setMainLetter(toUpperOrLowerCase(!right ? LAST_KEY : firstKey) as string);
 
       const jumpRotate = getJumpRotate(keyboardType);
-      setRotate(
-        !right
-          ? rotate + ROTATE_VALUE + jumpRotate
-          : rotate - ROTATE_VALUE - jumpRotate
-      );
+      console.log('jumpRotate: ', jumpRotate);
+      const new_rotate =
+        keyboardType === KEYBOARD_TYPE.OnlyLetters
+          ? !right
+            ? rotate + ROTATE_VALUE_LETTERS + JUMP_ROTATE_LETTERS
+            : rotate - (ROTATE_VALUE_LETTERS + JUMP_ROTATE_LETTERS)
+          : !right
+            ? rotate + ROTATE_VALUE + jumpRotate
+            : rotate - ROTATE_VALUE - jumpRotate;
+      console.log('new rotate', new_rotate);
+      // setRotate(
+      //   !right
+      //     ? rotate + ROTATE_VALUE + jumpRotate
+      //     : rotate - ROTATE_VALUE - jumpRotate
+      // );
+
+      setRotate(new_rotate);
       return;
     }
 
@@ -129,140 +158,151 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
     }
   };
 
-  useHandleGestures({
-    left() {
-      moveElements(true);
-    },
-    right() {
-      moveElements(false);
-    },
-    doubleClick() {
-      if (mainLetter === 'capslock') {
-        if (capsLockActive.active && caption.length === 0) {
-          setCapsLockActive({ ...capsLockActive, keep: true });
-          return;
+  useHandleGestures(
+    {
+      left() {
+        if (globalSettings?.reverse_scrolling.keyboard) {
+          moveElements(false);
+        } else {
+          moveElements(true);
         }
-
-        setCapsLockActive({
-          active: !capsLockActive.active,
-          keep: !capsLockActive.keep
-        });
-      }
-    },
-    pressDown() {
-      if (caption.length >= inputLimit && mainLetter !== 'backspace') {
-        if (mainLetter === 'ok') {
-          onSubmit(caption.join('').trim());
+      },
+      right() {
+        if (globalSettings?.reverse_scrolling.keyboard) {
+          moveElements(true);
+        } else {
+          moveElements(false);
         }
-        if (mainLetter === 'cancel') {
-          setCaption(defaultValue);
-          onCancel();
-        }
-        return;
-      }
-      if (captionRef.current) {
-        //remove class to trigger animation if caption is empty next time
-        captionRef.current.classList.remove('caption_shake');
-      }
-      switch (mainLetter) {
-        case 'space': {
-          if (caption.length >= inputLimit - 1) {
-            addAnimation();
+      },
+      doubleClick() {
+        if (mainLetter === 'capslock') {
+          if (capsLockActive.active && caption.length === 0) {
+            setCapsLockActive({ ...capsLockActive, keep: true });
             return;
           }
 
-          if (
-            caption.length < inputLimit &&
-            caption.join('').trim().length === 0
-          ) {
-            addAnimation();
-            return;
-          }
-          const captioValue = caption.concat(' ');
-          setCaption(captioValue);
-          if (onChange) onChange(captioValue.join(''));
-          return;
-        }
-        case 'ok':
-          if (caption.length === 0 || caption.join('').trim().length === 0) {
-            addAnimation();
-            return;
-          }
-          onSubmit(caption.join('').trim());
-          return;
-        case 'backspace':
-          if (caption.length > 0) {
-            const captionValue = caption.slice(0, -1);
-            setCaption(captionValue);
-            if (onChange) onChange(captionValue.join(''));
-          }
-          return;
-        case 'cancel':
-          onCancel();
-          return;
-        case 'capslock':
           setCapsLockActive({
             active: !capsLockActive.active,
-            keep: capsLockActive.keep ? false : capsLockActive.keep
+            keep: !capsLockActive.keep
           });
-          return;
-        case 'keyboardType':
-          if (keyboardType === KEYBOARD_TYPE.Default) {
-            setKeyboardType(KEYBOARD_TYPE.AccentCharacters);
-            if (capsLockActive.active) {
-              setAlphabet(
-                massageAlphabetWithMainChar(
-                  CAPITAL_ACCENT_CHARACTERS,
-                  CAPITAL_ACCENT_CHARACTERS.length - 2
-                )
-              );
-            } else {
-              setAlphabet(
-                massageAlphabetWithMainChar(
-                  SMALL_ACCENT_CHARACTERS,
-                  SMALL_ACCENT_CHARACTERS.length - 2
-                )
-              );
-            }
-            setRotate(467);
-          } else if (keyboardType === KEYBOARD_TYPE.AccentCharacters) {
-            setKeyboardType(KEYBOARD_TYPE.SpecialCharacters);
-            setAlphabet(
-              massageAlphabetWithMainChar(
-                SPECIAL_CHARACTERS,
-                SPECIAL_CHARACTERS.length - 2
-              )
-            );
-            setRotate(466);
-          } else {
-            setKeyboardType(KEYBOARD_TYPE.Default);
-            setAlphabet(
-              massageAlphabetWithMainChar(
-                DEFAULT_ALPHABET,
-                DEFAULT_ALPHABET.length - 2
-              )
-            );
-            setRotate(423);
+        }
+      },
+      pressDown() {
+        if (caption.length >= inputLimit && mainLetter !== 'backspace') {
+          if (mainLetter === 'ok') {
+            onSubmit(caption.join('').trim());
+          }
+          if (mainLetter === 'cancel') {
+            setCaption(defaultValue);
+            onCancel();
           }
           return;
-        default: {
-          const captionValue = caption.concat(mainLetter);
-          setCaption(captionValue);
-          if (onChange) onChange(captionValue.join(''));
-          if (!/^[A-Za-z]$/.test(mainLetter) && capsLockActive.active) {
+        }
+        if (captionRef.current) {
+          //remove class to trigger animation if caption is empty next time
+          captionRef.current.classList.remove('caption_shake');
+        }
+        switch (mainLetter) {
+          case 'space': {
+            if (caption.length >= inputLimit - 1) {
+              addAnimation();
+              return;
+            }
+
+            if (
+              caption.length < inputLimit &&
+              caption.join('').trim().length === 0
+            ) {
+              addAnimation();
+              return;
+            }
+            const captioValue = caption.concat(' ');
+            setCaption(captioValue);
+            if (onChange) onChange(captioValue.join(''));
             return;
           }
-          if (!capsLockActive.keep && capsLockActive.active) {
+          case 'ok':
+            if (caption.length === 0 || caption.join('').trim().length === 0) {
+              addAnimation();
+              return;
+            }
+            onSubmit(caption.join('').trim());
+            return;
+          case 'backspace':
+            if (caption.length > 0) {
+              const captionValue = caption.slice(0, -1);
+              setCaption(captionValue);
+              if (onChange) onChange(captionValue.join(''));
+            }
+            return;
+          case 'cancel':
+            onCancel();
+            return;
+          case 'capslock':
             setCapsLockActive({
-              ...capsLockActive,
-              active: false
+              active: !capsLockActive.active,
+              keep: capsLockActive.keep ? false : capsLockActive.keep
             });
+            return;
+          case 'keyboardType':
+            if (keyboardType === KEYBOARD_TYPE.Default) {
+              setKeyboardType(KEYBOARD_TYPE.AccentCharacters);
+              if (capsLockActive.active) {
+                setAlphabet(
+                  massageAlphabetWithMainChar(
+                    CAPITAL_ACCENT_CHARACTERS,
+                    CAPITAL_ACCENT_CHARACTERS.length - 2
+                  )
+                );
+              } else {
+                setAlphabet(
+                  massageAlphabetWithMainChar(
+                    SMALL_ACCENT_CHARACTERS,
+                    SMALL_ACCENT_CHARACTERS.length - 2
+                  )
+                );
+              }
+              setRotate(467);
+            } else if (keyboardType === KEYBOARD_TYPE.AccentCharacters) {
+              setKeyboardType(KEYBOARD_TYPE.SpecialCharacters);
+              setAlphabet(
+                massageAlphabetWithMainChar(
+                  SPECIAL_CHARACTERS,
+                  SPECIAL_CHARACTERS.length - 2
+                )
+              );
+              setRotate(466);
+            } else {
+              setKeyboardType(KEYBOARD_TYPE.Default);
+              setAlphabet(
+                massageAlphabetWithMainChar(
+                  DEFAULT_ALPHABET,
+                  DEFAULT_ALPHABET.length - 2
+                )
+              );
+              setRotate(423);
+            }
+            return;
+          default: {
+            const captionValue = caption.concat(mainLetter);
+            setCaption(captionValue);
+            if (onChange) onChange(captionValue.join(''));
+            if (!/^[A-Za-z]$/.test(mainLetter) && capsLockActive.active) {
+              return;
+            }
+            if (!capsLockActive.keep && capsLockActive.active) {
+              setCapsLockActive({
+                ...capsLockActive,
+                active: false
+              });
+            }
+            break;
           }
-          break;
         }
       }
-    }
-  });
+    },
+    bubbleDisplay.visible
+  );
 
   const toUpperOrLowerCase = (
     cpAlphabet: string[] | string
@@ -303,7 +343,10 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
   // Recalculate caption style when the caption changes length
   useEffect(() => {
     if (caption.length === 0) {
-      setCapsLockActive({ ...capsLockActive, active: true });
+      setCapsLockActive({
+        ...capsLockActive,
+        active: props.capitalizeFirstLetter ?? true
+      });
     }
 
     if (captionRef.current) {
@@ -364,15 +407,13 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         );
       case 'keyboardType':
         return (
-          <text
-            key={index}
-            y={-44}
-            textAnchor="-120%"
+          <GlobeAlt
+            width="6"
+            height="6"
+            x="-3.5"
+            y="-48.5"
             className="letter-space letter-keyboard-type"
-            fill="white"
-          >
-            🌐
-          </text>
+          />
         );
       case 'cancel':
         return (
@@ -446,7 +487,9 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
                 <span className="main-letter__label main-letter__label--top-62 main-letter__label--rigth-46">
                   Special Characters
                 </span>
-                <div>&#127760;</div>
+                <div>
+                  <GlobeAlt width="55" />
+                </div>
               </div>
             </div>
           </>
@@ -513,7 +556,10 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
                 return;
               }
               return (
-                <g transform={`rotate(${index * 7.24})`} key={index}>
+                <g
+                  transform={`rotate(${index * (keyboardType === KEYBOARD_TYPE.OnlyLetters ? ROTATE_VALUE_LETTERS : ROTATE_VALUE)})`}
+                  key={index}
+                >
                   {parseCharacter(letter, index)}
                 </g>
               );

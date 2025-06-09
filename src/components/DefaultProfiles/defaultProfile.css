@@ -1,0 +1,18 @@
+.default-profile-container__content__info {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.default-profile-container__content__info__text {
+  display: block;
+  text-align: left;
+  word-break: break-word;
+  word-break: auto-phrase; /* Not supported outside of chrome based browsers as of early 2025 */
+}
+.default-profile-container__content__info__text--active {
+  color: #f5c444;
+}
+.default-profile-container__content__info__text--mb-10 {
+  margin-bottom: 10px;
+}

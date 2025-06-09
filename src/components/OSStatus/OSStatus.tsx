@@ -5,7 +5,7 @@ import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useAppDispatch } from '../store/hooks';
 
 import './OSStatus.css';
-import { useOSStatus } from '../../hooks/useOSStatus';
+import { useOSStatus } from '../../hooks/useDeviceOSStatus';
 
 const items = [{ key: 'content' }, { key: 'back' }];
 
@@ -64,7 +64,7 @@ export const OSStatus = (): JSX.Element => {
         slidesPerView={8}
         allowTouchMove={false}
         direction="vertical"
-        spaceBetween={25}
+        spaceBetween={16}
         autoHeight={false}
         initialSlide={activeIndex}
         centeredSlides={true}
