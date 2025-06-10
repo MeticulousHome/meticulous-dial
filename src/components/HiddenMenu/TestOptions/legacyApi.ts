@@ -39,7 +39,7 @@ export const getCurrentBrightness = async () => {
 
     const data = await response.json();
     // Convert device value (0-4095) to percentage (0-100)
-    return Math.round((data.brightness * 100) / 4095);
+    return Math.round(data.brightness);
   } catch (error) {
     console.error('Error getting current brightness:', error);
     throw error;
@@ -54,7 +54,7 @@ export const setLCDBrightnessTesting = async (value: number) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        brightness_testing: Math.round((value * 4095) / 100)
+        brightness_testing: Math.round(value)
       })
     });
 

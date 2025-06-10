@@ -1,6 +1,4 @@
-import { useEffect, useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
+import { useEffect, useState, useMemo } from 'react';
 
 import './TestOptions.css';
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
@@ -10,6 +8,8 @@ import {
   setScreen
 } from '../../store/features/screens/screens-slice';
 import { Gauge } from '../../SettingNumerical/Gauge';
+import Styled, { VIEWPORT_HEIGHT } from '../../../styles/utils/mixins';
+import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
 import {
   enableLegacyJson,
   sendLegacyJson,
@@ -134,9 +134,7 @@ const getUnitForGauge = (unit: '%' | 'PWM'): 'percentage' | 'pwm' => {
 export function TestOptions(): JSX.Element {
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const [swiper, setSwiper] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [animationStyle, setAnimationStyle] = useState('');
   const [currentValue, setCurrentValue] = useState<number | boolean>(0);
   const [isGaugeVisible, setIsGaugeVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -165,6 +163,25 @@ export function TestOptions(): JSX.Element {
   });
 
   const currentTest = defaultTests[activeIndex];
+
+  const optionPositionOutter = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        settings: defaultTests
+      }),
+    [activeIndex]
+  );
+
+  const optionPositionInner = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        adjustmentFn: (position) => position - VIEWPORT_HEIGHT / 2,
+        settings: defaultTests
+      }),
+    [activeIndex]
+  );
 
   const loadInitialStatus = async () => {
     try {
@@ -388,18 +405,6 @@ export function TestOptions(): JSX.Element {
       loadingState.isLoading
   );
 
-  useEffect(() => {
-    if (swiper) {
-      swiper.slideTo(activeIndex);
-    }
-  }, [activeIndex, swiper]);
-
-  useEffect(() => {
-    return () => {
-      setAnimationStyle('');
-    };
-  }, []);
-
   if (showWiFiMenu) {
     return (
       <WiFiTestMenu
@@ -443,7 +448,7 @@ export function TestOptions(): JSX.Element {
   }
 
   return (
-    <div className="presset-container">
+    <Styled.SettingsContainer>
       {(isGaugeVisible || loadingState.isLoading) && !showBooleanScreen && (
         <div className="gauge-overlay">
           {isLoading || loadingState.isLoading ? (
@@ -470,41 +475,38 @@ export function TestOptions(): JSX.Element {
         </div>
       )}
 
-      <div className="presset-options">
-        <Swiper
-          onSwiper={setSwiper}
-          slidesPerView={9}
-          allowTouchMove={false}
-          direction="vertical"
-          autoHeight={false}
-          centeredSlides={true}
-          initialSlide={activeIndex}
-          onSlideNextTransitionStart={() => {
-            setAnimationStyle('animation-next');
-          }}
-          onSlidePrevTransitionStart={() => setAnimationStyle('animation-prev')}
-          onSlideChangeTransitionEnd={() => setAnimationStyle('')}
-        >
-          {defaultTests.map((item, index) => (
-            <SwiperSlide
-              className="presset-option-item"
-              key={`option-${index}`}
-            >
-              <div className={animationStyle}>
+      <Styled.Viewport>
+        <Styled.OptionsContainer $translateY={optionPositionOutter}>
+          {defaultTests.map((option, index) => (
+            <Styled.Option key={option.key}>
+              <TextContainer
+                text={option.label}
+                isActive={index === activeIndex}
+                option={option}
+                statusValues={statusValues}
+              />
+            </Styled.Option>
+          ))}
+        </Styled.OptionsContainer>
+        <Styled.ActiveIndicator>
+          <Styled.OptionsContainer
+            $translateY={optionPositionInner}
+            $isInner={true}
+          >
+            {defaultTests.map((option, index) => (
+              <Styled.Option key={option.key}>
                 <TextContainer
-                  text={item.label}
+                  text={option.label}
                   isActive={index === activeIndex}
-                  option={item}
+                  option={option}
                   statusValues={statusValues}
                 />
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </div>
-      <div className="fade fade-top"></div>
-      <div className="fade fade-bottom"></div>
-    </div>
+              </Styled.Option>
+            ))}
+          </Styled.OptionsContainer>
+        </Styled.ActiveIndicator>
+      </Styled.Viewport>
+    </Styled.SettingsContainer>
   );
 }
 
