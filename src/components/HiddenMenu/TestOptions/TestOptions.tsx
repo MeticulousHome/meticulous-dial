@@ -120,10 +120,10 @@ const TextContainer = ({
   );
 };
 
-const getUnitForGauge = (unit: '%' | 'PWM'): 'percent' | 'pwm' => {
+const getUnitForGauge = (unit: '%' | 'PWM'): 'percentage' | 'pwm' => {
   switch (unit) {
     case '%':
-      return 'percent';
+      return 'percentage';
     case 'PWM':
       return 'pwm';
     default:
@@ -359,11 +359,11 @@ export function TestOptions(): JSX.Element {
                 });
               });
 
-              dispatch(setScreen('pressets'));
+              dispatch(setScreen('profileHome'));
               dispatch(setBubbleDisplay({ visible: false, component: null }));
             } catch (error) {
               console.error('Error during exit:', error);
-              dispatch(setScreen('pressets'));
+              dispatch(setScreen('profileHome'));
               dispatch(setBubbleDisplay({ visible: false, component: null }));
             } finally {
               setLoadingState({

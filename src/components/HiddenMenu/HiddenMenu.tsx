@@ -22,7 +22,7 @@ export function HiddenMenu(): JSX.Element {
   };
 
   const handleCancel = () => {
-    dispatch(setScreen('pressets'));
+    dispatch(setScreen('profileHome'));
   };
 
   return (
