@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 import { GestureType, ISensorDataAndMachineState } from '../../types/index';
-import { useAppDispatch } from './hooks';
+import { useAppDispatch, useAppSelector } from './hooks';
 import {
   setStats,
   setWaterStatus,
@@ -35,6 +35,11 @@ const isBrewComplete = (state: string) => {
 
 export const SocketProviderValue = () => {
   const dispatch = useAppDispatch();
+  const currentScreen = useAppSelector((state) => {
+    console.log('useAppSelector screen state:', state.screen);
+    return state.screen.value;
+  });
+  const currentScreenRef = useRef<string>(currentScreen);
   const previousStateName = useRef<string>('idle');
   const queryClient = useQueryClient();
   const { resetTimer: resetIdleTimer } = useIdleTimer();
@@ -44,34 +49,27 @@ export const SocketProviderValue = () => {
   // For development purpose
   useSocketKeyboardListeners();
 
+  // Update ref when currentScreen changes
   useEffect(() => {
-    socket.on('notification', (notification: string) => {
-      resetIdleTimer();
+    currentScreenRef.current = currentScreen;
+  }, [currentScreen]);
 
-      const oNotification: NotificationItem = JSON.parse(notification);
-
-      const { updatedNotification, isMotorHot } =
-        processNotification(oNotification);
-
-      if (isMotorHot !== null) dispatch(setMotorHot(isMotorHot));
-
-      if (!updatedNotification.message && !updatedNotification.image) {
-        dispatch(removeOneNotification(updatedNotification.id));
-      } else {
-        dispatch(addOneNotification(updatedNotification));
-      }
-    });
-
-    socket.on('heater_status', (timeLeft: number) => {
-      dispatch(updatePreheatTimeLeft(timeLeft));
-    });
-
-    socket.on('status', (data: ISensorDataAndMachineState) => {
+  useEffect(() => {
+    const handleMachineStatus = (data: ISensorDataAndMachineState) => {
       const previousState = previousStateName.current;
       if (data) {
         previousStateName.current = data?.name;
       }
       dispatch(setStats(data));
+
+      console.log(
+        'Machine state change:',
+        previousState,
+        '->',
+        data?.name,
+        'currentScreen:',
+        currentScreen
+      );
 
       if (previousState !== data?.name) {
         // Every status change resets the idle timer
@@ -116,11 +114,49 @@ export const SocketProviderValue = () => {
         }
 
         // When the machine is not in idle, lock the screen at Barometer
-        if (data?.name !== 'idle' && data?.name !== 'boot') {
+        // Exception: Don't redirect to barometer if we're in hidden menu screens
+        const currentScreenValue = currentScreenRef.current;
+        const isInHiddenMenu = [
+          'hiddenMenu',
+          'test-options',
+          'menu-motor-heater'
+        ].includes(currentScreenValue);
+        console.log(
+          'isInHiddenMenu',
+          isInHiddenMenu,
+          currentScreenValue,
+          'machine state:',
+          data?.name
+        );
+
+        if (data?.name !== 'idle' && data?.name !== 'boot' && !isInHiddenMenu) {
           dispatch(setScreen('barometer'));
         }
       }
+    };
+
+    socket.on('notification', (notification: string) => {
+      resetIdleTimer();
+
+      const oNotification: NotificationItem = JSON.parse(notification);
+
+      const { updatedNotification, isMotorHot } =
+        processNotification(oNotification);
+
+      if (isMotorHot !== null) dispatch(setMotorHot(isMotorHot));
+
+      if (!updatedNotification.message && !updatedNotification.image) {
+        dispatch(removeOneNotification(updatedNotification.id));
+      } else {
+        dispatch(addOneNotification(updatedNotification));
+      }
     });
+
+    socket.on('heater_status', (timeLeft: number) => {
+      dispatch(updatePreheatTimeLeft(timeLeft));
+    });
+
+    socket.on('status', handleMachineStatus);
 
     socket.on('water_status', (data: boolean) => {
       resetIdleTimer();

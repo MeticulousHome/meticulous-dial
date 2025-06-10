@@ -83,6 +83,12 @@ const screenSlice = createSlice({
   initialState,
   reducers: {
     setScreen: (state: ScreenState, action: PayloadAction<ScreenType>) => {
+      console.log(
+        'setScreen: changing from',
+        state.value,
+        'to',
+        action.payload
+      );
       state.prev = state.value;
       state.value = action.payload;
     },
