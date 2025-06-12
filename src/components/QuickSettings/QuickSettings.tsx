@@ -177,7 +177,7 @@ export function QuickSettings(): JSX.Element {
 
   const handleAnimationEnd = () => {
     setHoldAnimation('finished');
-    if (localProfile.temporary) return; //To prevent deleting an existing profile based on a temporary profile that has modifications.
+    if (localProfile?.temporary) return; //To prevent deleting an existing profile based on a temporary profile that has modifications.
     switch (settings[activeOption].key) {
       case 'delete': {
         deletePresetMutation.mutate(localProfile?.id);
@@ -368,7 +368,7 @@ export function QuickSettings(): JSX.Element {
         break;
       default:
         {
-          const newContext = localProfile.temporary
+          const newContext = localProfile?.temporary
             ? context.filter((c) => c.key !== 'delete')
             : context;
           setSettings([
