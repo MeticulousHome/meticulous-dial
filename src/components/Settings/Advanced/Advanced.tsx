@@ -38,13 +38,6 @@ const initialSettings: SettingsItem[] = [
     visible: true
   },
   {
-    key: 'save_debug_shot_data',
-    label: 'Save debug shot data',
-    getLabel: (settings: Settings) =>
-      settings.save_debug_shot_data ? 'ENABLED' : 'DISABLED',
-    visible: true
-  },
-  {
     key: 'telemetry_opt_in',
     label: 'Share debug motor data',
     getLabel: (settings: Settings) =>
@@ -170,11 +163,6 @@ export const AdvancedSettings = () => {
           case 'ssh_enabled':
             updateSettings.mutate({
               ssh_enabled: !globalSettings.ssh_enabled
-            });
-            break;
-          case 'save_debug_shot_data':
-            updateSettings.mutate({
-              save_debug_shot_data: !globalSettings.save_debug_shot_data
             });
             break;
           case 'telemetry_opt_in':
