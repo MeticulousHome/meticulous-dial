@@ -33,7 +33,7 @@ export function MetCatClock({ time }: { time: ReturnType<typeof formatTime> }) {
 
     return () => {
       animation.current?.destroy();
-      animation.current = null;
+      animation.current = undefined;
     };
   }, []);
 
