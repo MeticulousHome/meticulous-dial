@@ -119,6 +119,7 @@ export const LottieBubbleAnimation = memo(
       if (!animationDiv.current) {
         return () => {
           animation.current?.destroy();
+          animation.current = undefined;
         };
       }
       if (!animation.current) {
@@ -144,6 +145,7 @@ export const LottieBubbleAnimation = memo(
       }
       return () => {
         animation.current?.destroy();
+        animation.current = undefined;
       };
     }, [animationDiv]);
 

@@ -18,12 +18,14 @@ export function ReadyAnimation(): JSX.Element {
 
   function handleReadyAnimation2Completed(): void {
     animation.current?.destroy();
+    animation.current = undefined;
     dispatch(setScreen('profileHome'));
     dispatch(loadNotifications());
   }
 
   function handleReadyAnimation1Completed(): void {
     animation.current?.destroy();
+    animation.current = undefined;
     animation.current = Lottie.loadAnimation({
       container: animationDiv.current,
       animationData: ReadyAnimation2Data,
@@ -40,6 +42,7 @@ export function ReadyAnimation(): JSX.Element {
 
   function finishLoadingAnimation(): void {
     animation.current?.destroy();
+    animation.current = undefined;
     animation.current = Lottie.loadAnimation({
       container: animationDiv.current,
       animationData: ReadyAnimation1Data,
@@ -78,6 +81,7 @@ export function ReadyAnimation(): JSX.Element {
     }
     return () => {
       animation.current?.destroy();
+      animation.current = undefined;
     };
   }, [animationDiv]);
 
