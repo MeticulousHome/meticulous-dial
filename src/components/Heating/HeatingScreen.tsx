@@ -34,12 +34,33 @@ const PushToStartLabel = styled.div`
 const StatusLabel = styled.span`
   padding-top: 4px;
   padding-bottom: 8px;
+  padding-horizontal: 2px;
   text-transform: uppercase;
   color: #ffffff;
-  font-size: 20px;
+  font-size: 16px;
   letter-spacing: 3px;
   line-height: 120%;
 `;
+
+// enum TemperatureErrors
+// {
+//     TEMP_ERROR_NONE = 0,
+//     TEMP_ERROR_OFFLINE = 1000,
+//     TEMP_ERROR_NO_SENSORS = 2000,
+//     TEMP_ERROR_NAN = 4000,
+// };
+const SensorErrorLabel = ({ temperature }: { temperature: number }) => {
+  // Comparing floats is never precise, so we use a threshold
+  if (Math.abs(temperature - 4000) < 1) {
+    return <StatusLabel>Temperature calculation failed</StatusLabel>;
+  } else if (Math.abs(temperature - 2000) < 1) {
+    return <StatusLabel>Waiting for sensor data to become valid</StatusLabel>;
+  } else if (Math.abs(temperature - 1000) < 1) {
+    return <StatusLabel>All sensors offline. Please restart</StatusLabel>;
+  } else {
+    return <StatusLabel>Unknown sensor error</StatusLabel>;
+  }
+};
 
 const transitionDuration = 600;
 
@@ -185,7 +206,11 @@ export const HeatingScreen = () => {
               classNames="fade"
             >
               {waterStatus || heatingFinished ? (
-                <Temperature value={temperature} animated />
+                temperature <= 500 ? (
+                  <Temperature value={temperature} animated />
+                ) : (
+                  <SensorErrorLabel temperature={temperature} />
+                )
               ) : (
                 <StatusLabel>No water</StatusLabel>
               )}
@@ -207,8 +232,12 @@ export const HeatingScreen = () => {
                 paddingBottom: 7
               }}
             >
-              <Label>Target</Label>
-              <Temperature value={temperatureTarget} small />
+              {temperature > 0 && temperature <= 500 && (
+                <>
+                  <Label>Target</Label>
+                  <Temperature value={temperatureTarget} small />
+                </>
+              )}
             </div>
           </CSSTransition>
         </div>
