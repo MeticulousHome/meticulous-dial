@@ -135,8 +135,6 @@ export const SocketProviderValue = () => {
     socket.on(
       'button',
       (data: { type: string; time_since_last_event: number }) => {
-        resetIdleTimer();
-
         const eventGestureMap: Record<string, GestureType> = {
           ENCODER_CLOCKWISE: 'right',
           ENCODER_COUNTERCLOCKWISE: 'left',
@@ -153,6 +151,13 @@ export const SocketProviderValue = () => {
 
         const gesture = eventGestureMap[data.type];
         if (gesture) {
+          if (
+            gesture === 'right' ||
+            gesture === 'left' ||
+            gesture === 'pressDown'
+          ) {
+            resetIdleTimer();
+          }
           handleEvents.emit('gesture', gesture, data.time_since_last_event);
         }
       }
