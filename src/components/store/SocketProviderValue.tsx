@@ -154,7 +154,9 @@ export const SocketProviderValue = () => {
           if (
             gesture === 'right' ||
             gesture === 'left' ||
-            gesture === 'pressDown'
+            gesture === 'pressDown' ||
+            gesture === 'context' ||
+            gesture === 'singleTare'
           ) {
             resetIdleTimer();
           }
