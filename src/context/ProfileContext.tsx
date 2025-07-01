@@ -10,7 +10,6 @@ import React, {
 import { useLastProfile, useProfiles } from '../hooks/useProfiles';
 import { ProfileUpdate } from '@meticulous-home/espresso-api/dist';
 import { IPresetAction, IPresetSetting } from '../types';
-import { deepEqual } from 'fast-equals';
 
 type ProfileContextType = {
   profileQuery: ReturnType<typeof useProfiles>;
@@ -102,23 +101,23 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     }));
 
     //It exists in profiles and is identical.
-    if (existing && deepEqual(existing, last)) {
+    // To re-add temporary profiles use  deepEqual(existing, last)
+    if (existing) {
       profilesExtended[existingIndex] = {
         ...profilesExtended[existingIndex],
         isLast: true
       };
-      return profilesExtended;
     }
-
-    //Add to the end (different content or does not exist)
-    return [
-      ...profilesExtended,
-      {
-        ...last,
-        isLast: true,
-        temporary: true
-      }
-    ];
+    //Else: Add to the end (different content or does not exist)
+    // return [
+    //   ...profilesExtended,
+    //   {
+    //     ...last,
+    //     isLast: true,
+    //     temporary: true
+    //   }
+    // ];
+    return profilesExtended;
   }, [profiles, lastProfile?.profile]);
 
   // If the last profile changes scroll to the last profile
