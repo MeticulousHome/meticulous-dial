@@ -8,11 +8,15 @@ import React, {
   useMemo
 } from 'react';
 import { useLastProfile, useProfiles } from '../hooks/useProfiles';
-import { ProfileUpdate } from '@meticulous-home/espresso-api/dist';
+import {
+  LastProfileIdent,
+  ProfileUpdate
+} from '@meticulous-home/espresso-api/dist';
 import { IPresetAction, IPresetSetting } from '../types';
 
 type ProfileContextType = {
   profileQuery: ReturnType<typeof useProfiles>;
+  lastProfile: LastProfileIdent | null;
 
   // Local profile state
   localProfileIndex: number | null;
@@ -227,6 +231,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
   const value: ProfileContextType = {
     profileQuery,
+    lastProfile,
 
     localProfileIndex,
     setLocalProfileIndex,

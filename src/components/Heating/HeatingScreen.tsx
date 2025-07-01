@@ -19,6 +19,7 @@ import { notificationSelector } from '../store/features/notifications/notificati
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { OptionsMenu } from './OptionsMenu';
 import { useContinueBrewAction } from '../store/SocketManager';
+import { useProfileContext } from '../../context/ProfileContext';
 
 const PushToStartLabel = styled.div`
   font-size: 20px;
@@ -66,6 +67,7 @@ const transitionDuration = 600;
 
 export const HeatingScreen = () => {
   const dispatch = useAppDispatch();
+  const { lastProfile } = useProfileContext();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const continueBrew = useContinueBrewAction();
   const waterStatus = useAppSelector((state) => state.stats.waterStatus);
@@ -85,6 +87,18 @@ export const HeatingScreen = () => {
   const [temperatureTarget, setTemperatureTarget] = useState(
     temperatureTargetStatus || 0
   );
+
+  useEffect(() => {
+    if (lastProfile && lastProfile.profile && temperatureTarget == 0) {
+      setTemperatureTarget(lastProfile?.profile?.temperature || 0);
+    }
+  }, [lastProfile]);
+
+  useEffect(() => {
+    if (temperatureTargetStatus && temperatureTargetStatus > 0) {
+      setTemperatureTarget(temperatureTargetStatus);
+    }
+  }, [temperatureTargetStatus]);
 
   const preheatTimeLeft = useCallback(() => {
     if (!waterStatus) {
