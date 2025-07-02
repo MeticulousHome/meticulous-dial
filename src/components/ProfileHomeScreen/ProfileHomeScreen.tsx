@@ -82,6 +82,7 @@ export const ProfileHomeScreen = () => {
     'left' | 'right' | 'none'
   >('none');
   const [isPressingDown, setIsPressingDown] = useState(false);
+  const pressThroughTimer = useRef<NodeJS.Timeout | null>(null);
 
   const nodeRefs = useRef<Record<string, Ref<HTMLDivElement>>>({});
 
@@ -179,12 +180,19 @@ export const ProfileHomeScreen = () => {
           if (!localHoverState) {
             setLocalHoverState(true);
             setTransitionDirection('none');
+            pressThroughTimer.current = setTimeout(() => {
+              setIsPressingDown(true);
+            }, 300);
           } else {
             setIsPressingDown(true);
           }
         }
       },
       pressUp() {
+        if (pressThroughTimer.current) {
+          clearTimeout(pressThroughTimer.current);
+          pressThroughTimer.current = null;
+        }
         setIsPressingDown(false);
       }
     },
@@ -257,7 +265,7 @@ export const ProfileHomeScreen = () => {
         </Viewport>
       </Container>
       <CircleOverlay
-        shouldAnimate={localHoverState && isPressingDown}
+        shouldAnimate={isPressingDown}
         onAnimationFinished={animationFinished}
       />
     </>
