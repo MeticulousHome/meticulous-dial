@@ -12,7 +12,7 @@ const TitleContainer = styled.div`
   position: absolute;
   z-index: 10;
   top: -68px;
-  width: 100%;
+  width: 150%;
   height: 60px;
   text-align: center;
   display: flex;
@@ -25,6 +25,8 @@ const TitleContainer = styled.div`
 `;
 
 const PressetTitleTop = styled.div`
+  max-height: 100%;
+  max-width: 100%;
   font-size: 30px !important;
   font-weight: 400;
   color: #e0dcd0;
@@ -33,7 +35,12 @@ const PressetTitleTop = styled.div`
   text-overflow: ellipsis;
   padding-left: 5px;
   padding-right: 5px;
-  white-space: nowrap;
+
+  white-space: normal;
+
+  /* Allow breaking only if it doesn't fit any other way */
+  word-break: auto-phrase;
+  overflow-wrap: anywhere;
 
   &.presset-title-small {
     font-size: 20px !important;
