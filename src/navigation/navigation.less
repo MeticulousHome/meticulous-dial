@@ -139,7 +139,7 @@
   animation-fill-mode: forwards;
   border: 1px solid #5d5d5d;
   border-radius: 12px;
-  height: 22px;
+  max-height: 22px;
   font-size: @navigation-title-parent-font-size;
   font-style: normal;
   font-family: 'ABC Diatype Mono';
@@ -152,22 +152,22 @@
   text-transform: uppercase;
 }
 
-.navigation-title::after {
-  content: '';
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    90deg,
-    #000 2%,
-    rgba(0, 0, 0, 0) 10%,
-    rgba(0, 0, 0, 0) 90%,
-    #000 98%
-  );
-}
+// .navigation-title::after {
+//   content: '';
+//   display: block;
+//   position: absolute;
+//   top: 0;
+//   left: 0;
+//   right: 0;
+//   bottom: 0;
+//   background: linear-gradient(
+//     90deg,
+//     #000 2%,
+//     rgba(0, 0, 0, 0) 10%,
+//     rgba(0, 0, 0, 0) 90%,
+//     #000 98%
+//   );
+// }
 
 .navigation-title.enter {
   animation-name: title-fade-in;
