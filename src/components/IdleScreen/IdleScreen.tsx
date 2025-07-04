@@ -100,9 +100,6 @@ export function IdleScreen(): JSX.Element {
 
   useEffect(() => {
     updateBrightness({ brightness: isScreenDim ? 0.03 : 0.33 });
-    return () => {
-      updateBrightness({ brightness: 1 });
-    };
   }, [isScreenDim]);
 
   useEffect(() => {
