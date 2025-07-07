@@ -24,7 +24,6 @@ const PresetTitleMarquee = (width: number) => keyframes`
   }
 `;
 
-const TITLE_MAX_WIDTH = 400; // Maximum width for the title
 const TITLE_GAP = 40;
 
 const PresetTitle = styled.span<{ $marqueeWidth?: number }>`
