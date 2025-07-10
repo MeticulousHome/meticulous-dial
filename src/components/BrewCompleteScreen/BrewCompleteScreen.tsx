@@ -76,7 +76,7 @@ export const BrewCompleteScreen = () => {
       ? lastBrewWeight.toFixed(1)
       : lastBrewWeight.toFixed(0)
     : lastBrewWeight;
-
+  const scaleConnected = !isNaN(lastBrewWeight);
   const isPurging = statsName === 'purge';
 
   useEffect(() => {
@@ -128,8 +128,14 @@ export const BrewCompleteScreen = () => {
       </ModularLeft>
       <ModularRight>
         <WeightContainer>
-          <WeightValue>{weight}</WeightValue>
-          <Unit>g</Unit>
+          {scaleConnected ? (
+            <>
+              <WeightValue>{weight}</WeightValue>
+              <Unit>g</Unit>
+            </>
+          ) : (
+            <Label style={{ color: '#f44336' }}>Scale not connected</Label>
+          )}
         </WeightContainer>
         <Label>{stateLabel}</Label>
       </ModularRight>
