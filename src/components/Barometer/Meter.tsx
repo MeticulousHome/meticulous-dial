@@ -74,7 +74,8 @@ export function Meter({ min, max, value, step, className }: MeterProps) {
           transform: `rotate(${Math.round(
             needleAngle * (CIRCLE_DEG / CIRCLE)
           )}deg)`,
-          transformOrigin: 'left center'
+          transformOrigin: 'left center',
+          zIndex: 99999
         }}
       />
     </div>
