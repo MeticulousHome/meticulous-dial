@@ -22,7 +22,7 @@ export function PurgePiston(): JSX.Element {
   const [initialPosition, setInitialPosition] = useState<number | null>(null);
   const [prevPosition, setPrevPosition] = useState<number | null>(null);
   const [prevTime, setPrevTime] = useState<number | null>(null);
-  const [position, setPosition] = useState<number>(-1);
+  const [position, setPosition] = useState<number>(NaN);
   const intervalRef = useRef(null);
 
   const dispatch = useAppDispatch();
@@ -71,7 +71,7 @@ export function PurgePiston(): JSX.Element {
     if (stats.name === 'home') {
       blinkAnimator.current.style.top = '-206.5px';
     }
-    socket.on('actuators', (data: { m_pos: number }) => {
+    socket.on('sensors', (data: { m_pos: number }) => {
       if (data.m_pos < 0) {
         return;
       }
@@ -96,7 +96,7 @@ export function PurgePiston(): JSX.Element {
   };
 
   useEffect(() => {
-    if (position === -1) {
+    if (Number.isNaN(position)) {
       return;
     }
 
@@ -126,8 +126,9 @@ export function PurgePiston(): JSX.Element {
   }, [position, animateToPosition, initialPosition]);
 
   useEffect(() => {
+    // If we didnt get a position within 2 seconds we exit the animation
     intervalRef.current = setInterval(() => {
-      if (position === -1) {
+      if (Number.isNaN(position)) {
         dispatch(setScreen('profileHome'));
       }
     }, 2000);

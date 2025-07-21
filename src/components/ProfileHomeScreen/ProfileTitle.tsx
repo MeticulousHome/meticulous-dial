@@ -56,7 +56,6 @@ export const TitleProfiles = () => {
     if (titleRef.current) {
       const width = titleRef.current.offsetWidth;
       const parentWidth = titleRef.current.parentElement?.offsetWidth || 0;
-      console.log('Title width:', width, 'Parent width:', parentWidth);
       setMarqueeWidth(width > parentWidth ? width : 0);
     }
   }, [localProfile?.name, titleRef.current]);
