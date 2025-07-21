@@ -186,7 +186,7 @@ export function QuickSettings(): JSX.Element {
         break;
       }
       case 'abort_brew': {
-        socket.emit('action', 'home');
+        socket.emit('action', 'abort');
         dispatch(setBubbleDisplay({ visible: false, component: null }));
         break;
       }
