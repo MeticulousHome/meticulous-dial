@@ -103,7 +103,6 @@ export const SocketProviderValue = () => {
           dispatch(setScreen('brewComplete'));
           return;
         }
-
         // Brew complete screen takes precedence here when purging
         if (data?.name === 'purge' || data?.name === 'home') {
           dispatch(setScreen('manual-purge'));
