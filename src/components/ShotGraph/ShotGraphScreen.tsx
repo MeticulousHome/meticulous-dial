@@ -147,6 +147,10 @@ export const ShotGraphScreen = () => {
       doubleClick() {
         dispatch(setBubbleDisplay({ visible: false, component: null }));
         dispatch(setScreen('profileHome'));
+      },
+      pressDown() {
+        dispatch(setBubbleDisplay({ visible: false, component: null }));
+        dispatch(setScreen('profileHome'));
       }
     },
     bubbleDisplay.visible
