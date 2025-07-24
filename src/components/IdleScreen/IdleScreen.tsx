@@ -111,8 +111,6 @@ export function IdleScreen(): JSX.Element {
     }, SCREEN_TIMEOUT);
 
     return () => {
-      updateBrightness({ brightness: 1 });
-
       if (screenDimTimeoutRef.current) {
         clearTimeout(screenDimTimeoutRef.current);
       }
@@ -131,6 +129,7 @@ export function IdleScreen(): JSX.Element {
 
   useEffect(() => {
     if (shouldGoToIdle || prevScreen === 'idle') return;
+    updateBrightness({ brightness: 1 });
     if (!prevScreen || routes[prevScreen].ignoreAsPrevious) {
       dispatch(setScreen('profileHome'));
     }
