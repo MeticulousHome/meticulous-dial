@@ -87,20 +87,18 @@ export function IdleScreen(): JSX.Element {
       // Screen is dark, dim up for 5 seconds
       if (prev) {
         screenDimTimeoutRef.current = setTimeout(() => {
+          updateBrightness({ brightness: 0.03 });
           cycleScreenDim();
         }, 5 * 1000);
       } else {
         screenDimTimeoutRef.current = setTimeout(() => {
+          updateBrightness({ brightness: 0.33 });
           cycleScreenDim();
         }, 55 * 1000);
       }
       return !prev;
     });
   };
-
-  useEffect(() => {
-    updateBrightness({ brightness: isScreenDim ? 0.03 : 0.33 });
-  }, [isScreenDim]);
 
   useEffect(() => {
     updateBrightness({ brightness: 0.33 });
