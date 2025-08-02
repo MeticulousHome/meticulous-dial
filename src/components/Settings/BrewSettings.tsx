@@ -33,6 +33,11 @@ const initialSettings: SettingsItem[] = [
       `${settings.auto_purge_after_shot ? 'Automatic' : 'On button press'}`
   },
   {
+    key: 'partial_retraction',
+    label: 'Initial Retraction',
+    getLabel: (settings: Settings) => `${settings.partial_retraction}mm`
+  },
+  {
     key: 'heat_timeout_after_shot',
     label: 'Pre/Post-heat',
     getLabel: (settings: Settings) => `${settings.heating_timeout} min`,
@@ -81,6 +86,12 @@ export function BrewSettings(): JSX.Element {
           case 'heat_timeout_after_shot':
             dispatch(setScreen('heat_timeout_after_shot'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
+            break;
+          case 'partial_retraction':
+            updateSettings.mutate({
+              partial_retraction:
+                globalSettings['partial_retraction'] < 70 ? 70 : 45
+            });
             break;
           case 'back':
             dispatch(
