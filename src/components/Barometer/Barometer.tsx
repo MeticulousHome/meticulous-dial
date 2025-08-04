@@ -56,7 +56,7 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
           <div className="column-item">
             <div className="column-label">Time</div>
             <div className="column-value">
-              {formatStatValue(stats.time, 1, 1000)}
+              {formatStatValue(stats.profile_time, 1, 1000)}
               <div className="column-unit">sec</div>
             </div>
           </div>

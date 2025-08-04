@@ -14,6 +14,7 @@ const initialState: ISensorDataAndMachineState = {
     g: 0
   },
   time: 0,
+  profile_time: 0,
   profile: undefined,
   setpoints: {},
   loaded_profile: '',
