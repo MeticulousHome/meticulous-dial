@@ -64,7 +64,7 @@ export const BrewCompleteScreen = () => {
   const dispatch = useAppDispatch();
   const continueBrew = useContinueBrewAction();
   const statsName = useAppSelector((state) => state.stats.name);
-  const brewTime = useAppSelector((state) => state.stats.time);
+  const brewTime = useAppSelector((state) => state.stats.profile_time);
   const lastBrewWeight = useAppSelector((state) => state.stats.sensors.w);
   const hasNotifications = useAppSelector(
     notificationSelector.selectHasNotifications
