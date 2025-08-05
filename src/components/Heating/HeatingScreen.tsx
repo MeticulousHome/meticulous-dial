@@ -76,7 +76,7 @@ export const HeatingScreen = () => {
   const hasNotifications = useAppSelector(
     notificationSelector.selectHasNotifications
   );
-  const [autostart, setAutostart] = useState(false);
+  const [optionSeletected, setOptionSelected] = useState(null);
 
   // The stages dont necessarily correctly report the temperature target
   // so we need to cache it with the state below
@@ -143,21 +143,21 @@ export const HeatingScreen = () => {
     }
 
     // At this point heating has finished and we can descide if we want to auto-start
-    if (autostart) {
+    if (optionSeletected == 'auto_start') {
       continueBrew();
       console.log('action,continue');
     }
-  }, [heatingFinished, autostart]);
+  }, [heatingFinished, optionSeletected]);
 
   const onOptionChange = (option_key: string) => {
-    if (option_key === 'auto_start') {
-      setAutostart(true);
-    }
-    if (option_key === 'push_to_brew') {
-      setAutostart(false);
+    setOptionSelected(option_key);
+  };
+  const onOptionHold = (option_key: string) => {
+    if (option_key === 'brew_now' && !heatingFinished) {
+      continueBrew();
+      console.log('action,continue');
     }
   };
-
   useEffect(() => {
     if (
       !!temperatureTargetStatus &&
@@ -175,7 +175,7 @@ export const HeatingScreen = () => {
   useHandleGestures(
     {
       pressDown() {
-        if (heatingFinished && !autostart) {
+        if (heatingFinished && optionSeletected == 'push_to_brew') {
           continueBrew();
           console.log('action,continue');
         }
@@ -194,7 +194,10 @@ export const HeatingScreen = () => {
       </ModularLeft>
       <ModularRight style={transitionStyle}>
         <CSSTransition
-          in={!heatingFinished || (heatingFinished && autostart)}
+          in={
+            !heatingFinished ||
+            (heatingFinished && optionSeletected == 'auto_start')
+          }
           unmountOnExit
           timeout={transitionDuration}
           classNames="fade-options"
@@ -202,6 +205,7 @@ export const HeatingScreen = () => {
           <OptionsMenu
             ignoreGestures={heatingFinished}
             onOptionChange={onOptionChange}
+            onOptionHold={onOptionHold}
           />
         </CSSTransition>
         <div

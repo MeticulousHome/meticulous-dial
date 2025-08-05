@@ -118,7 +118,7 @@ const inBrewSettings: QuickSettingOption[] = [
   }
 ];
 
-type holdAnimationState = 'stopped' | 'running' | 'finished';
+export type holdAnimationState = 'stopped' | 'running' | 'finished';
 
 export function QuickSettings(): JSX.Element {
   const socket = useSocket();
