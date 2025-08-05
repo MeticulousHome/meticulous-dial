@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { styled } from 'styled-components';
+import { css, keyframes, styled } from 'styled-components';
 import { useSettings } from '../../hooks/useSettings';
+import { holdAnimationState } from '../QuickSettings/QuickSettings';
 
 const OPTION_HEIGHT = 38;
 
@@ -43,17 +44,39 @@ const MenuContainer = styled.div<{ $num_options: number }>`
   }
 `;
 
-const MenuEntry = styled.div<{ $active?: boolean }>`
-  min-width: 250px;
+const BackgroundAnimation = keyframes`
+  0% {
+    background-position: 100% 100%;
+    color: #FFFFFF;
+  }
+  100% {
+    background-position: 0% 100%;
+    color: #000000;
+  }
+`;
+
+const MenuEntry = styled.div<{
+  $active?: boolean;
+  $holdAnimation?: string;
+}>`
+  min-width: 220px;
   height: ${OPTION_HEIGHT}px;
   flex-shrink: 0;
   border-radius: 4px;
-  background: ${({ $active }) => ($active ? '#F5C444' : 'transparent')};
-  color: ${({ $active }) => ($active ? '#000000' : '#FFFFFF')};
+  background: linear-gradient(
+    90deg,
+    #f5c444 0%,
+    #f5c444 50%,
+    transparent 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  background-position: ${({ $active, $holdAnimation }) => ($active && $holdAnimation == null ? '0% 100%' : '100% 100%')};
+  color: ${({ $active, $holdAnimation }) => ($active && $holdAnimation == null ? '#000000' : '#FFFFFF')};
 
   line-height: 1;
   letter-spacing: 0;
-  padding-left: 20px;
+  padding-left: 20px;$holdAnimation
   font-family: 'ABC Diatype';
   font-size: 20px;
   font-style: normal;
@@ -61,16 +84,27 @@ const MenuEntry = styled.div<{ $active?: boolean }>`
   line-height: 200%;
   letter-spacing: 4px;
   text-transform: uppercase;
+  animation: ${({ $active, $holdAnimation }) =>
+    $active && $holdAnimation == 'running'
+      ? css`
+          ${BackgroundAnimation} 2s linear normal
+        `
+      : 'none'};
 `;
+
 export const OptionsMenu = ({
   ignoreGestures,
-  onOptionChange
+  onOptionChange,
+  onOptionHold
 }: {
   ignoreGestures: boolean;
   onOptionChange: (option_key: string) => void;
+  onOptionHold: (option_key: string) => void;
 }) => {
   const { data: globalSettings } = useSettings();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [holdAnimation, setHoldAnimation] =
+    useState<holdAnimationState>('stopped');
 
   const OPTIONS = useMemo(
     () => [
@@ -81,6 +115,11 @@ export const OptionsMenu = ({
       {
         key: 'push_to_brew',
         label: 'Push to brew'
+      },
+      {
+        key: 'brew_now',
+        label: 'Brew now',
+        auto_activate: true
       }
     ],
     []
@@ -100,6 +139,11 @@ export const OptionsMenu = ({
   useEffect(() => {
     const activeItem = OPTIONS[activeIndex].key;
     onOptionChange(activeItem);
+    if (OPTIONS[activeIndex].auto_activate) {
+      setHoldAnimation('running');
+    } else {
+      setHoldAnimation('stopped');
+    }
   }, [activeIndex, OPTIONS, onOptionChange]);
 
   useHandleGestures(
@@ -114,10 +158,20 @@ export const OptionsMenu = ({
     ignoreGestures
   );
 
+  const handleAnimationEnd = () => {
+    setHoldAnimation('finished');
+    onOptionHold(OPTIONS[activeIndex].key);
+  };
+
   return (
     <MenuContainer $num_options={OPTIONS.length}>
       {OPTIONS.map((option, index) => (
-        <MenuEntry key={index} $active={index === activeIndex}>
+        <MenuEntry
+          key={index}
+          $active={index === activeIndex}
+          $holdAnimation={option.auto_activate ? holdAnimation : null}
+          onAnimationEnd={handleAnimationEnd}
+        >
           {option.label}
         </MenuEntry>
       ))}

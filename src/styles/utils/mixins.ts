@@ -1,3 +1,4 @@
+import { holdAnimationState } from '../../components/QuickSettings/QuickSettings';
 import { styled, keyframes, css } from 'styled-components';
 
 /**
@@ -80,7 +81,7 @@ const LeftRightAnimation = keyframes`
   }
 `;
 
-const ActiveIndicator = styled.div<{ $holdAnimation?: string }>`
+const ActiveIndicator = styled.div<{ $holdAnimation?: holdAnimationState }>`
   position: absolute;
   left: 228px;
   top: 50%;
