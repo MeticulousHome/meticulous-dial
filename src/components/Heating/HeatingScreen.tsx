@@ -175,7 +175,10 @@ export const HeatingScreen = () => {
   useHandleGestures(
     {
       pressDown() {
-        if (heatingFinished && optionSeletected == 'push_to_brew') {
+        if (
+          heatingFinished &&
+          ['push_to_brew', 'brew_now'].includes(optionSeletected)
+        ) {
           continueBrew();
           console.log('action,continue');
         }
