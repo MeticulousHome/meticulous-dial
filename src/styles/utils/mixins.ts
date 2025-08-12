@@ -33,6 +33,8 @@ export const EXTRA_MARGIN_AFTER_BORDER = 10;
  */
 export const MARQUEE_MIN_TEXT_LENGTH = 22;
 
+const TOP_MARGIN_FOR_LIST_SEPARATION = 130;
+
 const SettingsContainer = styled.div`
   display: flex;
   align-items: center;
@@ -195,6 +197,10 @@ const Option = styled.div<{
   }
 `;
 
+const SWVersionOption = styled(Option)`
+  margin-top: ${TOP_MARGIN_FOR_LIST_SEPARATION}px;
+`;
+
 const OsStatusOption = styled(Option)<{ $status?: string }>`
   text-transform: none;
   ${({ $status }) => $status === 'complete' && `color: #ffc107`}
@@ -227,6 +233,22 @@ export const MenuAnnotation = styled.span<{ $marginRigth?: string }>`
   margin-right: ${({ $marginRigth }) => $marginRigth || '0'};
 `;
 
+export const SWVersionMenuAnnotation = styled.span<{ $marginRigth?: string }>`
+  display: flex;
+  align-items: center;
+  height: ${ITEM_HEIGHT}px;
+  font-size: 22px;
+  text-align: left;
+  font-family: 'ABC Diatype Mono';
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 5px 5px 2px 5px;
+  text-transform: none;
+  line-height: normal;
+  margin-top: -5px;
+  margin-right: ${({ $marginRigth }) => $marginRigth || '0'};
+`;
+
 const SelectedOption = styled(Option)<{ $gapValue?: string }>`
   justify-content: space-between;
 `;
@@ -239,5 +261,6 @@ export default {
   Option,
   OsStatusOption,
   NetworkOption,
+  SWVersionOption,
   SelectedOption
 };

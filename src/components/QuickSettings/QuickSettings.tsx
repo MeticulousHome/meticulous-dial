@@ -9,11 +9,12 @@ import {
 } from '../store/features/screens/screens-slice';
 import { useContinueBrewAction, useSocket } from '../store/SocketManager';
 
-import { useOSStatus } from '../../hooks/useDeviceOSStatus';
+import { useOSStatus, useDeviceInfo } from '../../hooks/useDeviceOSStatus';
 import { routes } from '../../navigation/routes';
 import Styled, {
   VIEWPORT_HEIGHT,
   MARQUEE_MIN_TEXT_LENGTH,
+  SWVersionMenuAnnotation,
   MenuAnnotation
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
@@ -89,6 +90,10 @@ const defaultSettings: QuickSettingOption[] = [
   {
     key: 'exit',
     label: 'exit'
+  },
+  {
+    key: 'sw_version',
+    label: 'Version: '
   }
 ];
 
@@ -110,6 +115,10 @@ const inBrewSettings: QuickSettingOption[] = [
   {
     key: 'exit',
     label: 'exit'
+  },
+  {
+    key: 'sw_version',
+    label: 'Version: '
   }
 ];
 
@@ -145,6 +154,7 @@ export function QuickSettings(): JSX.Element {
 
   const { forceIdle } = useIdleTimer();
 
+  const { data: deviceInfo, isPending } = useDeviceInfo();
   const { data: osStatusData, error: osStatusError } = useOSStatus();
 
   const HIDDEN_OS_STATUS_SCREENS: ScreenType[] = [
@@ -197,6 +207,16 @@ export function QuickSettings(): JSX.Element {
     }
   };
 
+  const versionVisibleInCurrentMenu: boolean = useMemo(() => {
+    const isVersionPresent = settings.find(
+      (value) => value.key === 'sw_version'
+    );
+    if (isVersionPresent) {
+      return true;
+    }
+    return false;
+  }, [settings]);
+
   useHandleGestures(
     {
       context() {
@@ -213,7 +233,10 @@ export function QuickSettings(): JSX.Element {
         setCounterESGG(0);
       },
       right() {
-        setActiveOption((prev) => Math.min(prev + 1, settings.length - 1));
+        const maxIndexOffset = versionVisibleInCurrentMenu ? 2 : 1;
+        setActiveOption((prev) =>
+          Math.min(prev + 1, settings.length - maxIndexOffset)
+        );
         if (settings[activeOption].key === 'exit') {
           setCounterESGG(counterESGG + 1);
         }
@@ -451,28 +474,43 @@ export function QuickSettings(): JSX.Element {
           $translateY={optionPositionOutter}
           $bringToFront={holdAnimation === 'running'}
         >
-          {settings.map((option) =>
-            option.key === 'os_update' ? (
-              <Styled.OsStatusOption
-                key={option.key}
-                $status={option.status}
-                $hasSeparator={option.hasSeparator}
-              >
-                <span>{option.label}</span>
-              </Styled.OsStatusOption>
-            ) : (
-              <Styled.Option
-                key={option.key}
-                $hasSeparator={option.hasSeparator}
-                $isAnimating={holdAnimation === 'running' && option.longpress}
-                onAnimationEnd={handleAnimationEnd}
-              >
-                <span>
-                  {option.key === 'preheat' ? preheatTimer : option.label}
-                </span>
-              </Styled.Option>
-            )
-          )}
+          {settings.map((option) => {
+            switch (option.key) {
+              case 'os_update':
+                return (
+                  <Styled.OsStatusOption
+                    key={option.key}
+                    $status={option.status}
+                    $hasSeparator={option.hasSeparator}
+                  >
+                    <span>{option.label}</span>
+                  </Styled.OsStatusOption>
+                );
+              case 'sw_version':
+                return (
+                  <Styled.SWVersionOption>
+                    <SWVersionMenuAnnotation>
+                      {`${!isPending ? deviceInfo.software_version : 'loading ...'}`}
+                    </SWVersionMenuAnnotation>
+                  </Styled.SWVersionOption>
+                );
+              default:
+                return (
+                  <Styled.Option
+                    key={option.key}
+                    $hasSeparator={option.hasSeparator}
+                    $isAnimating={
+                      holdAnimation === 'running' && option.longpress
+                    }
+                    onAnimationEnd={handleAnimationEnd}
+                  >
+                    <span>
+                      {option.key === 'preheat' ? preheatTimer : option.label}
+                    </span>
+                  </Styled.Option>
+                );
+            }
+          })}
         </Styled.OptionsContainer>
 
         <Styled.ActiveIndicator $holdAnimation={holdAnimation}>
@@ -480,32 +518,41 @@ export function QuickSettings(): JSX.Element {
             $translateY={optionPositionInner}
             $isInner={true}
           >
-            {settings.map((option, index) =>
-              option.key === 'os_update' ? (
-                <Styled.OsStatusOption
-                  key={option.key}
-                  $status={option.status}
-                  $hasSeparator={option.hasSeparator}
-                >
-                  <span>{option.label}</span>
-                </Styled.OsStatusOption>
-              ) : (
-                <Styled.Option
-                  key={option.key}
-                  $hasSeparator={option.hasSeparator}
-                  $isMarquee={
-                    activeOption === index &&
-                    option.label.length > MARQUEE_MIN_TEXT_LENGTH
-                  }
-                  $isMultiItem={option.longpress}
-                >
-                  <span>
-                    {option.key === 'preheat' ? preheatTimer : option.label}
-                  </span>
-                  {option.longpress && <MenuAnnotation>HOLD</MenuAnnotation>}
-                </Styled.Option>
-              )
-            )}
+            {settings.map((option, index) => {
+              switch (option.key) {
+                case 'os_update':
+                  return (
+                    <Styled.OsStatusOption
+                      key={option.key}
+                      $status={option.status}
+                      $hasSeparator={option.hasSeparator}
+                    >
+                      <span>{option.label}</span>
+                    </Styled.OsStatusOption>
+                  );
+                case 'sw_version':
+                  return <></>;
+                default:
+                  return (
+                    <Styled.Option
+                      key={option.key}
+                      $hasSeparator={option.hasSeparator}
+                      $isMarquee={
+                        activeOption === index &&
+                        option.label.length > MARQUEE_MIN_TEXT_LENGTH
+                      }
+                      $isMultiItem={option.longpress}
+                    >
+                      <span>
+                        {option.key === 'preheat' ? preheatTimer : option.label}
+                      </span>
+                      {option.longpress && (
+                        <MenuAnnotation>HOLD</MenuAnnotation>
+                      )}
+                    </Styled.Option>
+                  );
+              }
+            })}
           </Styled.OptionsContainer>
         </Styled.ActiveIndicator>
       </Styled.Viewport>
