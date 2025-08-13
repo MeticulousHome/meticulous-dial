@@ -68,6 +68,13 @@ const initialSettings: SettingsItem[] = [
     label: 'Factory reset',
     visible: true,
     caseSensitive: false
+  },
+  {
+    key: 'allow_skipping_stage',
+    label: 'Allow stage skip',
+    visible: true,
+    getLabel: (settings: Settings) => settings.allow_stage_skipping,
+    caseSensitive: false
   }
 ];
 
@@ -212,6 +219,11 @@ export const AdvancedSettings = () => {
               .catch((err) => {
                 console.log(err);
               });
+            break;
+          case 'allow_skipping_stage':
+            updateSettings.mutate({
+              allow_stage_skipping: !globalSettings.allow_stage_skipping
+            });
             break;
           default: {
             break;
