@@ -45,9 +45,7 @@ export const RetractionSettingGauge: React.FC = () => {
           Math.round((localRetractionVolume * 1000 * 100) / pi_r_squared) / 100
       });
       dispatch(setScreen(prevScreen));
-      dispatch(
-        setBubbleDisplay({ visible: true, component: 'advancedSettings' })
-      );
+      dispatch(setBubbleDisplay({ visible: true, component: 'brewSettings' }));
     }
   });
 
