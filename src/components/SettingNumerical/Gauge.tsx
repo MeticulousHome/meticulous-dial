@@ -14,6 +14,7 @@ export type Unit =
   | 'sec'
   | 'ml'
   | 'min'
+  | 'volume'
   | 'percentage';
 
 const unitNameMap: Record<Unit, string> = {
@@ -23,7 +24,8 @@ const unitNameMap: Record<Unit, string> = {
   sec: 's',
   ml: 'ml/s',
   percentage: '%',
-  min: 'min'
+  min: 'min',
+  volume: 'ml'
 };
 
 const unitClassNameMap: Record<Unit, string> = {
@@ -32,6 +34,7 @@ const unitClassNameMap: Record<Unit, string> = {
   gram: 'scale-weight-limit',
   sec: 'scale-time',
   ml: 'scale-flow',
+  volume: 'scale-flow',
   percentage: 'scale-percentile',
   min: 'scale-time'
 };
