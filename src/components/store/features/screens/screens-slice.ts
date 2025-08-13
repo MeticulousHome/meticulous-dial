@@ -57,6 +57,7 @@ export type ScreenType =
   | 'brewComplete'
   | 'factoryReset'
   | 'usbSettings'
+  | 'retraction_volume'
   | 'manufacturingSettings';
 
 interface ScreenState {

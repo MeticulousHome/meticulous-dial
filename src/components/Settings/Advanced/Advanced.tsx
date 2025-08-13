@@ -9,7 +9,10 @@ import {
   useRootPassword
 } from '../../../hooks/useSettings';
 import { useManufacturingSchema } from '../../../hooks/useManufacturing';
-import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
+import {
+  setBubbleDisplay,
+  setScreen
+} from '../../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useDeviceInfo } from '../../../hooks/useDeviceOSStatus';
 import Styled, {
@@ -19,6 +22,9 @@ import Styled, {
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
 import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSetting';
 import type { Settings } from '@meticulous-home/espresso-api';
+
+const cylinder_radius = 26.5; //ml
+const pi_r_squared = Math.PI * cylinder_radius * cylinder_radius;
 
 const initialSettings: SettingsItem[] = [
   {
@@ -68,6 +74,15 @@ const initialSettings: SettingsItem[] = [
     label: 'Factory reset',
     visible: true,
     caseSensitive: false
+  },
+  {
+    key: 'partial_retraction',
+    label: 'Shot volume',
+    getLabel: (settings: Settings) =>
+      ((settings.partial_retraction * pi_r_squared) / 1000.0)
+        .toFixed()
+        .toString() + ' ml',
+    visible: true
   }
 ];
 
@@ -214,6 +229,15 @@ export const AdvancedSettings = () => {
               .catch((err) => {
                 console.log(err);
               });
+            break;
+          case 'partial_retraction':
+            dispatch(setScreen('retraction_volume'));
+            dispatch(
+              setBubbleDisplay({
+                visible: false,
+                component: null
+              })
+            );
             break;
           default: {
             break;

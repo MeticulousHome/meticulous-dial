@@ -53,7 +53,7 @@ import {
 } from '../components/ProfileHomeScreen/ProfileTitle';
 import { FactoryReset } from '../components/Settings/Advanced/FactoryReset';
 import { Manufacturing } from '../components/Settings/Advanced/Manufacturing';
-
+import { RetractionSettingGauge } from '../components/Settings/Advanced/RetractionVolume';
 interface Route {
   component: ComponentType;
   parentTitle?: string | ((state: RootState) => string) | (() => JSX.Element);
@@ -161,6 +161,16 @@ export const routes: Record<ScreenType, Route> = {
     },
     bottomStatusHidden: true,
     parent: 'pressetSettings'
+  },
+  retraction_volume: {
+    component: RetractionSettingGauge,
+    title: 'retraction',
+    bottomTitle: 'retraction volume',
+    props: {
+      type: 'retraction_volume'
+    },
+    bottomStatusHidden: true,
+    parent: 'advancedSettings'
   },
   motor_power: {
     component: SettingNumerical,
