@@ -172,7 +172,7 @@ export const routes: Record<ScreenType, Route> = {
       type: 'retraction_volume'
     },
     bottomStatusHidden: true,
-    parent: 'advancedSettings'
+    parent: 'brewSettings'
   },
   motor_power: {
     component: SettingNumerical,

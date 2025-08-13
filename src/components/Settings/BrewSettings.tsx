@@ -19,6 +19,9 @@ import Styled, {
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
 import type { Settings } from '@meticulous-home/espresso-api';
 
+const cylinder_radius = 26.5; //ml
+const pi_r_squared = Math.PI * cylinder_radius * cylinder_radius;
+
 const initialSettings: SettingsItem[] = [
   {
     key: 'auto_start_shot',
@@ -33,9 +36,13 @@ const initialSettings: SettingsItem[] = [
       `${settings.auto_purge_after_shot ? 'Automatic' : 'On button press'}`
   },
   {
-    key: 'partial_retraction',
-    label: 'Initial Retraction',
-    getLabel: (settings: Settings) => `${settings.partial_retraction}mm`
+    key: 'shot_volume',
+    label: 'Shot volume',
+    getLabel: (settings: Settings) =>
+      ((settings.partial_retraction * pi_r_squared) / 1000.0)
+        .toFixed()
+        .toString() + ' ml',
+    visible: true
   },
   {
     key: 'heat_timeout_after_shot',
@@ -87,11 +94,14 @@ export function BrewSettings(): JSX.Element {
             dispatch(setScreen('heat_timeout_after_shot'));
             dispatch(setBubbleDisplay({ visible: false, component: null }));
             break;
-          case 'partial_retraction':
-            updateSettings.mutate({
-              partial_retraction:
-                globalSettings['partial_retraction'] < 70 ? 70 : 45
-            });
+          case 'shot_volume':
+            dispatch(setScreen('retraction_volume'));
+            dispatch(
+              setBubbleDisplay({
+                visible: false,
+                component: null
+              })
+            );
             break;
           case 'back':
             dispatch(
