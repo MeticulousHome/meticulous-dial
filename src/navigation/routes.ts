@@ -165,7 +165,7 @@ export const routes: Record<ScreenType, Route> = {
   retraction_volume: {
     component: RetractionSettingGauge,
     title: 'retraction',
-    bottomTitle: 'retraction volume',
+    bottomTitle: 'shot volume',
     props: {
       type: 'retraction_volume'
     },
