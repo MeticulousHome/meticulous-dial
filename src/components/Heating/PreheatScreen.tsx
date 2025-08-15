@@ -138,7 +138,7 @@ export const PreheatScreen = () => {
     }, 30);
 
     const counterRef = setInterval(() => {
-      setTargetTemperature((prev) => (prev < 65 ? prev + 1 : 65));
+      setTargetTemperature((prev) => (prev < 85 ? prev + 1 : 85));
     }, 40);
 
     return () => {
