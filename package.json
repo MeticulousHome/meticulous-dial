@@ -8,9 +8,10 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "docker": "docker build . -t rust_cross_compile/arm64 -f Dockerfile.arm64",
-    "package": "",
-    "package:arm64": "docker run --rm -ti -v `pwd`:/app rust_cross_compile/arm64"
+    "docker:arm64": "docker build . -t rust_native_compile/arm64 -f Dockerfile.arm64",
+    "docker:arm64-trixie": "docker build . -t rust_cross_compile_trixie/arm64 -f Dockerfile.arm64-trixie",
+    "package:arm64": "docker run --platform linux/arm64/v8 --rm -ti -v `pwd`:/app rust_native_compile/arm64",
+    "package:arm64-trixie": "docker run --rm -ti -v `pwd`:/app rust_cross_compile_trixie/arm64"
   },
   "dependencies": {
     "react": "^18.3.1",
