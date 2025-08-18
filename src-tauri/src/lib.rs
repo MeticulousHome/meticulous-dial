@@ -1,9 +1,16 @@
 use tauri::Manager;
+use tauri::AppHandle;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+fn ready(app_handle: AppHandle)  {
+    println!("React is reporting ready!");
+    let window = app_handle.get_webview_window("main").unwrap();
+    #[cfg(not(debug_assertions))]
+    {
+        window.set_fullscreen(true).unwrap();
+    }
+    window.show().unwrap();
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -16,14 +23,10 @@ pub fn run() {
             window.open_devtools();
             window.close_devtools();
             }
-            #[cfg(not(debug_assertions))]
-            {
-            window.set_fullscreen(true).unwrap();
-            }
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![ready])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
