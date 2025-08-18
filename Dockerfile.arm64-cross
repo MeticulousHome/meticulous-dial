@@ -13,7 +13,14 @@ RUN apt install -y \
     nodejs npm \
     xdg-utils \
     qemu-user-static \
-    lsb-release
+    binfmt-support \
+    lsb-release \
+    curl
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y 
+RUN $HOME/.cargo/bin/rustup target add aarch64-unknown-linux-gnu
+RUN $HOME/.cargo/bin/cargo install tauri-cli --git https://github.com/tauri-apps/tauri
+WORKDIR /app
 
 RUN apt install -y --no-install-recommends \
     libssl-dev:arm64 \
@@ -23,11 +30,6 @@ RUN apt install -y --no-install-recommends \
     patchelf:arm64 \
     librsvg2-dev:arm64 \
     libwebkit2gtk-4.1-dev:arm64
-
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y 
-RUN $HOME/.cargo/bin/rustup target add aarch64-unknown-linux-gnu
-RUN $HOME/.cargo/bin/cargo install tauri-cli --git https://github.com/tauri-apps/tauri
-WORKDIR /app
 
 ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc \
     CC_aarch64-unknown-linux-gnu=aarch64-linux-gnu-gcc \
