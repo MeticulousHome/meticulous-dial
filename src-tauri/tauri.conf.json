@@ -14,7 +14,8 @@
       {
         "title": "meticulous-dial-tauri",
         "width": 480,
-        "height": 480
+        "height": 480,
+        "visible": false
       }
     ],
     "security": {

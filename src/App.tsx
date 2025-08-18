@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { useEffect, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider, useStore } from 'react-redux';
@@ -18,6 +19,7 @@ import {
   useNotificationHandler
 } from './hooks/useNotification';
 import { ProfileProvider } from './context/ProfileContext';
+import { invoke } from '@tauri-apps/api/core';
 import './globals.css';
 
 const queryClient = new QueryClient({
@@ -37,6 +39,13 @@ const queryClient = new QueryClient({
   }
 });
 
+async function sendReady() {
+  if (!('__TAURI_INTERNALS__' in window)) {
+    return;
+  }
+  await invoke('ready');
+}
+
 const App = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const store = useStore<RootState>();
@@ -46,9 +55,7 @@ const App = (): JSX.Element => {
   );
 
   useEffect(() => {
-    if (window.electron) {
-      window.electron.ipcRenderer.sendMessage('ready');
-    }
+    sendReady();
     setBrightness({ brightness: 1 });
   }, []);
 
