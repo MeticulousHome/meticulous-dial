@@ -1,13 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface WifiState {
-  selectedWifi: string;
-  selectedWifiToDelete: string;
+  selectedWifi?: string;
+  selectedWifiToDelete?: string;
 }
 
 const initialState: WifiState = {
-  selectedWifi: null,
-  selectedWifiToDelete: null
+  selectedWifi: undefined,
+  selectedWifiToDelete: undefined
 };
 
 const wifiSlice = createSlice({

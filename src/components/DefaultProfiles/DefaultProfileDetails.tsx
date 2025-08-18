@@ -138,7 +138,7 @@ export const ProfileDetails = () => {
       mainContainerScroll(false);
     },
     pressDown: async () => {
-      dispatch(setScreen(prevScreen));
+      dispatch(setScreen(prevScreen || 'profileHome'));
       dispatch(
         setBubbleDisplay({ visible: false, component: 'quick-settings' })
       );

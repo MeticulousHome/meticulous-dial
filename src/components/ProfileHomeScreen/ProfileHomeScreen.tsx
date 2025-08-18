@@ -109,7 +109,7 @@ export const ProfileHomeScreen = () => {
     if (!shouldGoToIdle) return;
 
     dispatch(setScreen('idle'));
-    dispatch(setBubbleDisplay({ visible: false, component: null }));
+    dispatch(setBubbleDisplay({ visible: false, component: undefined }));
   }, [shouldGoToIdle]);
 
   useEffect(() => {

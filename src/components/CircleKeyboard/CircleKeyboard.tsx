@@ -56,7 +56,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
   });
 
   // the fontsize is initially filled from the first render
-  const [fontSize, setFontSize] = useState<string>(undefined);
+  const [fontSize, setFontSize] = useState<string | undefined>(undefined);
   const [maxFontSize, setMaxFontSize] = useState<number>(25);
 
   const maxCaptionCharactersBeforeShrink = 10;

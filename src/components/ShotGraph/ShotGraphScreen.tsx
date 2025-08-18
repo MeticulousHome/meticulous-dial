@@ -131,7 +131,7 @@ export const ShotGraphScreen = () => {
   useEffect(() => {
     if (!shouldGoToIdle) return;
     dispatch(setScreen('idle'));
-    dispatch(setBubbleDisplay({ visible: false, component: null }));
+    dispatch(setBubbleDisplay({ visible: false, component: undefined }));
   }, [shouldGoToIdle]);
 
   useHandleGestures(
@@ -145,11 +145,11 @@ export const ShotGraphScreen = () => {
         );
       },
       doubleClick() {
-        dispatch(setBubbleDisplay({ visible: false, component: null }));
+        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
         dispatch(setScreen('profileHome'));
       },
       pressDown() {
-        dispatch(setBubbleDisplay({ visible: false, component: null }));
+        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
         dispatch(setScreen('profileHome'));
       }
     },

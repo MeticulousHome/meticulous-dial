@@ -74,7 +74,7 @@ export function EnterWifiPassword(): JSX.Element {
   };
 
   const onCancel = () => {
-    dispatch(setScreen(screen.prev));
+    dispatch(setScreen(screen.prev || 'profileHome'));
     dispatch(
       setBubbleDisplay({
         visible: true,

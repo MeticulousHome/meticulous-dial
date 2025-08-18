@@ -116,7 +116,7 @@ const App = (): JSX.Element => {
         dispatch(
           setBubbleDisplay({
             visible: !bubbleDisplay.visible,
-            component: !bubbleDisplay.visible ? 'quick-settings' : null
+            component: !bubbleDisplay.visible ? 'quick-settings' : undefined
           })
         );
       }

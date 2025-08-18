@@ -207,7 +207,9 @@ export const AdvancedSettings = () => {
           case 'master_calibration':
             startMasterCalibration()
               .then(() => {
-                dispatch(setBubbleDisplay({ visible: false, component: null }));
+                dispatch(
+                  setBubbleDisplay({ visible: false, component: undefined })
+                );
               })
               .catch((err) => {
                 console.log(err);

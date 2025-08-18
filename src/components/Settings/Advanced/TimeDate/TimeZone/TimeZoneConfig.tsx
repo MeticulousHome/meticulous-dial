@@ -90,7 +90,9 @@ export const TimeZoneConfig = () => {
             break;
           }
           case 'time_zone_selector':
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
             dispatch(setScreen('selectLetterCountry'));
             break;
           case 'back':

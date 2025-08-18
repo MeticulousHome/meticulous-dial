@@ -26,7 +26,7 @@ export const useNotificationHandler = () => {
     const handleScreenChange = () => {
       if (notifications.length > 0 && screen.value !== 'notifications') {
         dispatch(setScreen('notifications'));
-        dispatch(setBubbleDisplay({ visible: false, component: null }));
+        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
       }
 
       if (notifications.length === 0 && screen.value === 'notifications') {
