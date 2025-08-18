@@ -95,7 +95,7 @@ export const DeleteWifiMenu = (): JSX.Element => {
           An error occured. Please try again
         </div>
         <div className={`connect-response error-entry`}>
-          {deleteKnownWifiMutation.failureReason.message}
+          {deleteKnownWifiMutation.failureReason?.message}
         </div>
         <br />
         <div key="back" className={`settings-item active-setting connect-item`}>
