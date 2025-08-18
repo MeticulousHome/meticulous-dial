@@ -132,7 +132,7 @@ export function AnalogClock() {
             top: '103px'
           }}
         >
-          <img src="assets/logo-white.svg" alt="Logo Meticulous white" />
+          <img src="/logo-white.svg" alt="Logo Meticulous white" />
         </div>
         <WifiIndicator
           enabled={isWifiConnected}

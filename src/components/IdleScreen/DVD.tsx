@@ -181,8 +181,8 @@ export const DVDIdleScreen: React.FC = () => {
 
   return (
     <Container $blurred={collision}>
-      <BouncyLogo position={metPosition} imageSrc="assets/logo.png" />
-      <BouncyLogo position={bqPosition} imageSrc="assets/BQLogo.png" />
+      <BouncyLogo position={metPosition} imageSrc="/logo.png" />
+      <BouncyLogo position={bqPosition} imageSrc="/BQLogo.png" />
     </Container>
   );
 };
