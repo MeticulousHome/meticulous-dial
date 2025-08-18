@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    meticulous_dial_tauri_lib::run()
+    meticulous_dial_lib::run()
 }

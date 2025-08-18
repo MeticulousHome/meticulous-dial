@@ -1,17 +1,16 @@
 [package]
-name = "meticulous-dial-tauri"
+name = "meticulous-dial"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-edition = "2021"
+description = "Meticulous on-machine Dial Application"
+authors = ["Johanna Schander <mimoja@meticuloushome.com>", "mimoja <coffee@mimoja.de>"]
+edition = "2024"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "meticulous_dial_tauri_lib"
+name = "meticulous_dial_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
