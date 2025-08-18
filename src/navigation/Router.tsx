@@ -6,7 +6,7 @@ import { memo, useEffect } from 'react';
 import { useSettings } from '../hooks/useSettings';
 import { useAppSelector } from '../components/store/hooks';
 import Bubble from '../../src/components/Bubble/Bubble';
-import { hidden_ui_elements_enabled, memoizedRoutes } from '../../src/utils';
+import { memoizedRoutes } from '../../src/utils';
 import { routes } from './routes';
 const routeKeys = Object.keys(routes);
 export interface RouteProps {
@@ -75,23 +75,6 @@ export const Router = memo(
         <Freeze freeze={route.bottomStatusHidden}>
           <BottomStatus hidden={route.bottomStatusHidden} />
         </Freeze>
-
-        {hidden_ui_elements_enabled(globalSettings) && (
-          <div
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              backgroundColor: '#FF00FF',
-              pointerEvents: 'none',
-              mixBlendMode: 'color',
-              filter: 'hue-rotate(180deg) saturate(200%)',
-              zIndex: 9999
-            }}
-          />
-        )}
       </>
     );
   }

@@ -16,7 +16,7 @@ import Styled, {
   MenuAnnotation
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
-import { formatTime, hidden_ui_elements_enabled } from '../../utils';
+import { formatTime } from '../../utils';
 import { useProfileContext } from '../../context/ProfileContext';
 import { useDeletePreset } from '../../hooks/useProfiles';
 import { addSettingsToProfile } from '../../utils/profiles';
@@ -51,12 +51,6 @@ const profileContextSettings: QuickSettingOption[] = [
 const prevScreenSetting: QuickSettingOption = {
   key: 'prevScreen',
   label: 'Back',
-  hasSeparator: true
-};
-
-const disable_ui_features: QuickSettingOption = {
-  key: 'disable_ui_features',
-  label: 'Magenta was refilled',
   hasSeparator: true
 };
 
@@ -126,7 +120,6 @@ export function QuickSettings(): JSX.Element {
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
 
-  const { data: globalSettings } = useSettings();
   const updateSettings = useUpdateSettings();
 
   const preheatTimeLeft = useAppSelector(
@@ -377,9 +370,6 @@ export function QuickSettings(): JSX.Element {
             ? [{ key: 'details', label: 'Show details' }]
             : []),
           ...(backAvailable ? [prevScreenSetting] : []),
-          ...(hidden_ui_elements_enabled(globalSettings)
-            ? [disable_ui_features]
-            : []),
           ...defaultSettings
         ]);
         break;
@@ -397,9 +387,6 @@ export function QuickSettings(): JSX.Element {
             ...(osStatusSettingOption ? [osStatusSettingOption] : []),
             ...(requiresProfileContext ? newContext : []),
             ...(backAvailable ? [prevScreenSetting] : []),
-            ...(hidden_ui_elements_enabled(globalSettings)
-              ? [disable_ui_features]
-              : []),
             ...defaultSettings
           ]);
         }
