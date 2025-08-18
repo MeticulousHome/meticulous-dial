@@ -29,9 +29,9 @@ fn get_profiles() -> Vec<serde_json::Value>  {
 pub fn run() {
     tauri::Builder::default()
       .setup(|app| {
-            let window = app.get_webview_window("main").unwrap();
             #[cfg(debug_assertions)]
             {
+            let window = app.get_webview_window("main").unwrap();
             window.open_devtools();
             window.close_devtools();
             }
