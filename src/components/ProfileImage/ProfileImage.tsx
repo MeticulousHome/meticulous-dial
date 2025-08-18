@@ -52,7 +52,7 @@ export const ProfileImage = ({ preset }: { preset: IProfileImage }) => {
   const [image, setImage] = useState(
     preset.display?.image
       ? `${API_URL}${api.getProfileImageUrl(preset.display.image)}`
-      : (pImage?.image ?? `assets/images/${presetIndex}.png`)
+      : (pImage?.image ?? `/images/${presetIndex}.png`)
   );
 
   const borderStyle = preset.display?.accentColor
@@ -73,7 +73,7 @@ export const ProfileImage = ({ preset }: { preset: IProfileImage }) => {
     setImage(
       preset.display?.image
         ? `${API_URL}${api.getProfileImageUrl(preset.display.image)}`
-        : (pImage?.image ?? `assets/images/${presetIndex}.png`)
+        : (pImage?.image ?? `/images/${presetIndex}.png`)
     );
   }, [preset.display?.image]);
 
@@ -84,7 +84,7 @@ export const ProfileImage = ({ preset }: { preset: IProfileImage }) => {
       width="164"
       height="164"
       className="profile-image"
-      onError={() => setImage(`assets/images/${presetIndex}.png`)}
+      onError={() => setImage(`/images/${presetIndex}.png`)}
       style={{ border: borderStyle }}
     />
   );
