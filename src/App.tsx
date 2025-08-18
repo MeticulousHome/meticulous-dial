@@ -18,6 +18,7 @@ import {
   useNotificationHandler
 } from './hooks/useNotification';
 import { ProfileProvider } from './context/ProfileContext';
+import './globals.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
