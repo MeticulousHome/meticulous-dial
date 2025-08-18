@@ -1986,7 +1986,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "meticulous-dial-tauri"
+name = "meticulous-dial"
 version = "0.1.0"
 dependencies = [
  "serde",
