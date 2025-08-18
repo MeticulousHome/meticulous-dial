@@ -1,0 +1,24 @@
+# check=skip=FromPlatformFlagConstDisallowed,JSONArgsRecommended
+FROM --platform=arm64 debian:bookworm
+
+RUN apt update && apt dist-upgrade -y
+RUN apt install -y\
+    curl \
+    libc6-dev \
+    libssl-dev \
+    build-essential \
+    pkg-config \
+    libbz2-dev \
+    ca-certificates \
+    nodejs npm \
+    xdg-utils \
+    libwebkit2gtk-4.1-dev \
+    lsb-release
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+RUN $HOME/.cargo/bin/cargo install tauri-cli --git https://github.com/tauri-apps/tauri
+WORKDIR /app/src-tauri
+
+CMD bash -c "OWNER=$(stat -c '%U:%G');\
+    /root/.cargo/bin/cargo tauri build --target aarch64-unknown-linux-gnu --bundles deb --verbose;\
+    chown -R $OWNER /app/;"
