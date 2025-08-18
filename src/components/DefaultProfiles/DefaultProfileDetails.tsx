@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { api } from '../../api/api';
+import { api, API_URL } from '../../api/api';
 import {
   setBubbleDisplay,
   setScreen
 } from '../store/features/screens/screens-slice';
 import { useProfileContext } from '../../context/ProfileContext';
 import { styled, keyframes } from 'styled-components';
-
-const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
 
 const SCROLL_VALUE = 50;
 

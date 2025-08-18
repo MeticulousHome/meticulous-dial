@@ -7,10 +7,10 @@ import Api, {
   ManufacturingMenuItems
 } from '@meticulous-home/espresso-api';
 
-export const api = new Api(
-  undefined,
-  window.env?.SERVER_URL || 'http://localhost:8080/'
-);
+export const API_URL =
+  import.meta.env.VITE_SERVER_URL || 'http://localhost:8080/';
+
+export const api = new Api(undefined, API_URL);
 
 export const startMasterCalibration = async () => {
   try {
@@ -143,7 +143,7 @@ export const updateManufacturingSettings = async (
 // The API package doesn't expose this endpoint
 export const factoryReset = async () => {
   try {
-    const server = window.env?.SERVER_URL || 'http://localhost:8080/';
+    const server = API_URL;
     const url = server + `/api/v1/machine/factory_reset?confirm=true`;
 
     const response = await fetch(url, { method: 'GET' });

@@ -6,7 +6,7 @@ import { setScreen } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 
 import { css, keyframes, styled } from 'styled-components';
-import { api } from '../../api/api';
+import { api, API_URL } from '../../api/api';
 import { IPresetNumericalUnit } from '../../types';
 import { useDimScreen } from '../../hooks/useDimScreen';
 import { useProfileContext } from '../../context/ProfileContext';
@@ -17,8 +17,6 @@ import {
 } from '../../utils/profiles';
 import { DEFAULT_SETTING } from '../../constants/setting';
 import { loadProfileData, startProfile } from '../../api/profile';
-
-const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
 
 const OPTIONS_HEIGHT = 50;
 const CARD_GAP = 2;
