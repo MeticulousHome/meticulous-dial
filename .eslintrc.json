@@ -32,5 +32,10 @@
         "alwaysTryTypes": true
       }
     }
-  }
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "src-tauri"
+  ]
 }
