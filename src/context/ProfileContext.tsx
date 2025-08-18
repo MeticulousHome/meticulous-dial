@@ -1,5 +1,5 @@
 import { Profile } from '@meticulous-home/espresso-profile/dist';
-import React, {
+import {
   createContext,
   useContext,
   useState,

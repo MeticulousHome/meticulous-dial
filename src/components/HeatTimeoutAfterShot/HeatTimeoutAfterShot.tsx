@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useSettings, useUpdateSettings } from '../..//hooks/useSettings';
 import { Gauge } from '../../components/SettingNumerical/Gauge';
 import { useHandleGestures } from '../../hooks/useHandleGestures';

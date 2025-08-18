@@ -1,4 +1,4 @@
-import React from 'react';
+import { FC } from 'react';
 import classNames from 'classnames';
 import './funnel.css';
 
@@ -6,7 +6,7 @@ interface FunnelProps {
   preheatEnabled: boolean;
 }
 
-const Funnel: React.FC<FunnelProps> = ({ preheatEnabled }) => (
+const Funnel: FC<FunnelProps> = ({ preheatEnabled }) => (
   <svg
     className="funnel-svg"
     width="27"

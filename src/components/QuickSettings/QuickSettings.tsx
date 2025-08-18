@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { useSettings, useUpdateSettings } from '../../hooks/useSettings';
+import { useUpdateSettings } from '../../hooks/useSettings';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   setBubbleDisplay,
