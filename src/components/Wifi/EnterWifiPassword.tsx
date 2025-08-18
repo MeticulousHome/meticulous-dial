@@ -99,7 +99,7 @@ export function EnterWifiPassword(): JSX.Element {
               An error occured. Please try again
             </div>
             <div className={`connect-response error-entry`}>
-              {connectToWifiMutation.failureReason.message}
+              {connectToWifiMutation.failureReason?.message}
             </div>
           </>
         )}

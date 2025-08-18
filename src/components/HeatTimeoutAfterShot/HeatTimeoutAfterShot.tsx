@@ -20,7 +20,7 @@ export const HeatTimeoutAfterShot: React.FC = () => {
   const updateSettings = useUpdateSettings();
 
   const [localHeatingTimeout, setLocalHeatingTimeout] = useState(
-    globalSettings.heating_timeout
+    globalSettings?.heating_timeout || MAX_TIMEOUT
   );
 
   useDimScreen();

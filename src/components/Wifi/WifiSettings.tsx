@@ -29,6 +29,9 @@ export const WifiSettings = (): JSX.Element => {
   }, [updateNetworkConfigMutation.status]);
 
   useEffect(() => {
+    if (!networkConfig?.config.mode) {
+      return;
+    }
     setNetworkConfigMode(networkConfig?.config.mode);
   }, [networkConfig]);
 
@@ -126,7 +129,7 @@ export const WifiSettings = (): JSX.Element => {
           }
           case 'save': {
             updateNetworkConfigMutation.mutate({
-              ...networkConfig.config,
+              ...networkConfig?.config,
               mode: networkConfigMode
             });
             setActiveIndex(0);
