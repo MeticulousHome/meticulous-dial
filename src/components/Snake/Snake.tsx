@@ -211,7 +211,7 @@ export const SnakeGame: React.FC = () => {
       handleTurn(true);
     },
     doubleClick() {
-      dispatch(setBubbleDisplay({ visible: false, component: null }));
+      dispatch(setBubbleDisplay({ visible: false, component: undefined }));
       dispatch(setScreen('profileHome'));
     }
   });

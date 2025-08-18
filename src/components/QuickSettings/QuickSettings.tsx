@@ -182,12 +182,12 @@ export function QuickSettings(): JSX.Element {
       case 'delete': {
         deletePresetMutation.mutate(localProfile?.id);
         dispatch(setScreen('profileHome'));
-        dispatch(setBubbleDisplay({ visible: false, component: null }));
+        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
         break;
       }
       case 'abort_brew': {
         socket.emit('action', 'abort');
-        dispatch(setBubbleDisplay({ visible: false, component: null }));
+        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
         break;
       }
     }
@@ -217,7 +217,7 @@ export function QuickSettings(): JSX.Element {
       pressUp() {
         if (holdAnimation == 'finished') {
           dispatch(setScreen('profileHome'));
-          dispatch(setBubbleDisplay({ visible: false, component: null }));
+          dispatch(setBubbleDisplay({ visible: false, component: undefined }));
         }
         setHoldAnimation('stopped');
       },
@@ -234,18 +234,24 @@ export function QuickSettings(): JSX.Element {
             }
 
             dispatch(setScreen(routes[currentScreen].parent));
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
             break;
           }
           case 'sleep': {
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
             forceIdle();
             break;
           }
           case 'raise': {
             socket.emit('action', 'home');
             console.log('raise/home');
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
             break;
           }
           case 'details': {
@@ -256,7 +262,9 @@ export function QuickSettings(): JSX.Element {
             updateSettings.mutate({
               disable_ui_features: true
             });
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
             break;
           }
           case 'edit': {
@@ -267,29 +275,39 @@ export function QuickSettings(): JSX.Element {
             setProfileSettingsIndex(0);
             setProfileSettings(addSettingsToProfile(localProfile));
             dispatch(setScreen('pressetSettings'));
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
             break;
           }
           case 'last_shot': {
             dispatch(setScreen('shot_history'));
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
             break;
           }
           case 'purge': {
             socket.emit('action', 'purge');
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
             break;
           }
           case 'preheat': {
             socket.emit('action', 'preheat');
             if (preheatTimeLeft <= 0) {
               dispatch(setScreen('preheatScreen'));
-              dispatch(setBubbleDisplay({ visible: false, component: null }));
+              dispatch(
+                setBubbleDisplay({ visible: false, component: undefined })
+              );
             }
             break;
           }
           case 'calibrate': {
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
             dispatch(setScreen('calibrateScale'));
             break;
           }
@@ -313,14 +331,18 @@ export function QuickSettings(): JSX.Element {
           }
 
           case 'exit': {
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
             break;
           }
 
           // In Brew Settings
           case 'skip_step': {
             skipStep();
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
             break;
           }
           // abort_brew is a longpress option
@@ -387,7 +409,7 @@ export function QuickSettings(): JSX.Element {
 
   useEffect(() => {
     if (counterESGG >= 20) {
-      dispatch(setBubbleDisplay({ visible: false, component: null }));
+      dispatch(setBubbleDisplay({ visible: false, component: undefined }));
       dispatch(setScreen('snake'));
     }
   }, [counterESGG]);

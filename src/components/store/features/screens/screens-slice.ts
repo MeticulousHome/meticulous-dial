@@ -61,17 +61,21 @@ export type ScreenType =
 
 interface ScreenState {
   value: ScreenType;
-  prev: ScreenType;
+  prev?: ScreenType;
   bubbleDisplay: {
     visible: boolean;
-    component: ScreenType | null;
-    previousComponent: ScreenType | null;
+    component?: ScreenType;
+    previousComponent?: ScreenType;
   };
 }
 
 const initialState: ScreenState = {
-  prev: null,
-  bubbleDisplay: { visible: false, component: null, previousComponent: null },
+  prev: undefined,
+  bubbleDisplay: {
+    visible: false,
+    component: undefined,
+    previousComponent: undefined
+  },
   value: 'ready'
 };
 
@@ -80,12 +84,16 @@ const screenSlice = createSlice({
   initialState,
   reducers: {
     setScreen: (state: ScreenState, action: PayloadAction<ScreenType>) => {
+      if (!action.payload) {
+        console.error('Setting screen to undefined! Aborting', action.payload);
+        return;
+      }
       state.prev = state.value;
       state.value = action.payload;
     },
     setBubbleDisplay: (
       state: ScreenState,
-      action: PayloadAction<{ visible: boolean; component: ScreenType }>
+      action: PayloadAction<{ visible: boolean; component?: ScreenType }>
     ) => {
       state.bubbleDisplay.visible = action.payload.visible;
       state.bubbleDisplay.previousComponent = state.bubbleDisplay.component;

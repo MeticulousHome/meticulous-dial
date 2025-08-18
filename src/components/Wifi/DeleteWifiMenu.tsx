@@ -42,7 +42,7 @@ export const DeleteWifiMenu = (): JSX.Element => {
       }
       switch (items[activeIndex].key) {
         case 'connect': {
-          dispatch(setBubbleDisplay({ visible: false, component: null }));
+          dispatch(setBubbleDisplay({ visible: false, component: undefined }));
           dispatch(selectWifi(selectedWifiToDelete));
           dispatch(setScreen('enterWifiPassword'));
           break;

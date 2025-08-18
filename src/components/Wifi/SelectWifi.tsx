@@ -47,7 +47,7 @@ export const SelectWifi = (): JSX.Element => {
           setBubbleDisplay({ visible: true, component: 'connectWifiMenu' })
         );
       } else {
-        dispatch(setBubbleDisplay({ visible: false, component: null }));
+        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
         dispatch(selectWifi(wifiList[activeIndex].key));
         dispatch(setScreen('enterWifiPassword'));
       }

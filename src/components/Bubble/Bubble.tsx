@@ -22,9 +22,8 @@ export default function Bubble() {
   }, [bubbleDisplay.visible]);
 
   const ActiveComponent =
-    memoizedRoutes[bubbleDisplay.component || prevComponentRef.current]
+    memoizedRoutes[bubbleDisplay.component || prevComponentRef.current || '']
       ?.component;
-
   useHandleGestures({
     context() {
       dispatch(
@@ -42,7 +41,7 @@ export default function Bubble() {
     dispatch(
       setBubbleDisplay({
         visible: false,
-        component: null
+        component: undefined
       })
     );
   };

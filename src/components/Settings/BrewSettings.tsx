@@ -85,7 +85,9 @@ export function BrewSettings(): JSX.Element {
         switch (activeItem.key) {
           case 'heat_timeout_after_shot':
             dispatch(setScreen('heat_timeout_after_shot'));
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
             break;
           case 'partial_retraction':
             updateSettings.mutate({

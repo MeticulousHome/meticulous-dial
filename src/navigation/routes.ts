@@ -125,12 +125,10 @@ export const routes: Record<ScreenType, Route> = {
   },
   profileHome: {
     component: ProfileHomeScreen,
-    parentTitle: getProfilesTitle,
-    title: null
+    parentTitle: getProfilesTitle
   },
   barometer: {
     component: Barometer,
-    parentTitle: null,
     title: selectStatProfileName,
     bottomStatusHidden: true,
     animationDirectionFrom: {

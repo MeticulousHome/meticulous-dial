@@ -21,7 +21,10 @@ interface RouterProps {
 export const Router = memo(
   ({ currentScreen, previousScreen }: RouterProps): JSX.Element => {
     const route = memoizedRoutes[currentScreen];
-    const { data: globalSettings } = useSettings();
+    if (!route || !route.component) {
+      console.error('Route not found:', currentScreen);
+      return <div>Error: Route not found "{currentScreen}"</div>;
+    }
     const RouteComponent = route.component;
     const title = useAppSelector((state) =>
       typeof route.title === 'function' ? route.title(state) : route.title

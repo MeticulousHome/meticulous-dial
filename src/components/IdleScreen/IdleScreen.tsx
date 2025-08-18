@@ -128,9 +128,7 @@ export function IdleScreen(): JSX.Element {
   useEffect(() => {
     if (shouldGoToIdle || prevScreen === 'idle') return;
     updateBrightness({ brightness: 1 });
-    if (!prevScreen || routes[prevScreen].ignoreAsPrevious) {
-      dispatch(setScreen('profileHome'));
-    }
+
     if (bubbleDisplay.visible) {
       dispatch(
         setBubbleDisplay({
@@ -138,6 +136,10 @@ export function IdleScreen(): JSX.Element {
           component: bubbleDisplay.previousComponent
         })
       );
+    }
+    if (!prevScreen || routes[prevScreen].ignoreAsPrevious) {
+      dispatch(setScreen('profileHome'));
+      return;
     }
     dispatch(setScreen(prevScreen));
   }, [shouldGoToIdle]);

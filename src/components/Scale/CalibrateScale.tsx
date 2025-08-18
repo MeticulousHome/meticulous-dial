@@ -168,7 +168,7 @@ export default function CalibrateScale() {
     if (!isCalibrated) return;
 
     const timeoutId = setTimeout(() => {
-      dispatch(setBubbleDisplay({ visible: false, component: null }));
+      dispatch(setBubbleDisplay({ visible: false, component: undefined }));
       dispatch(setScreen('profileHome'));
     }, 5000);
 
@@ -180,7 +180,7 @@ export default function CalibrateScale() {
       setIsTaring(true);
     },
     doubleClick() {
-      dispatch(setBubbleDisplay({ visible: false, component: null }));
+      dispatch(setBubbleDisplay({ visible: false, component: undefined }));
       dispatch(setScreen('profileHome'));
     },
     pressDown() {

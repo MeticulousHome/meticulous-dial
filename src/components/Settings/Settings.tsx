@@ -105,7 +105,9 @@ export function Settings(): JSX.Element {
             break;
           }
           case 'calibrate': {
-            dispatch(setBubbleDisplay({ visible: false, component: null }));
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
             dispatch(setScreen('calibrateScale'));
             break;
           }
