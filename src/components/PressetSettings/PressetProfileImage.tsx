@@ -12,12 +12,10 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { IPresetImage, IPresetSetting } from '../../types';
 import { useDispatch } from 'react-redux';
 import { useDimScreen } from '../../hooks/useDimScreen';
-import { api } from '../../api/api';
+import { api, API_URL } from '../../api/api';
 import { useProfileDefaultImages } from '../../hooks/useProfiles';
 import { useProfileContext } from '../../context/ProfileContext';
 import { styled } from 'styled-components';
-
-const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
 
 const SwiperWrapper = styled.div`
   width: 100%;

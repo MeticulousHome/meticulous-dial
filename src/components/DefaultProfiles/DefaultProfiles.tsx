@@ -7,7 +7,7 @@ import { setScreen } from '../store/features/screens/screens-slice';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 
 import './defaultProfile.css';
-import { api } from '../../api/api';
+import { api, API_URL } from '../../api/api';
 import { Profile } from '@meticulous-home/espresso-profile';
 import { v4 as uuidv4 } from 'uuid';
 import { useDimScreen } from '../../hooks/useDimScreen';
@@ -18,8 +18,6 @@ import {
   useProfileDefaultImages
 } from '../../hooks/useProfiles';
 import { useProfileContext } from '../../context/ProfileContext';
-
-const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
 
 const OPTIONS_HEIGHT = 86;
 const CARD_GAP = 10;

@@ -137,7 +137,7 @@ const App = (): JSX.Element => {
     }
   }, [isExtracting]);
 
-  const dev = !!window.env?.SHOW_CIRCLE_OVERLAY;
+  const dev = import.meta.env.VITE_SHOW_CIRCLE;
 
   return (
     <QueryClientProvider client={queryClient}>

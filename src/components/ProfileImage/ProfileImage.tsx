@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Profile } from '@meticulous-home/espresso-profile';
-import { api } from '../../api/api';
+import { api, API_URL } from '../../api/api';
 
 import {
   addNewImageProfile,
@@ -42,7 +42,6 @@ const cLength = colors.length - 1;
 type IProfileImage = Profile & Partial<{ borderColor: string; image: string }>;
 
 export const ProfileImage = ({ preset }: { preset: IProfileImage }) => {
-  const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
   const pImage =
     useAppSelector((state) => selectByProfileId(state, preset.id.toString())) ||
     null;

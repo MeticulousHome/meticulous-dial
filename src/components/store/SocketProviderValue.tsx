@@ -18,7 +18,7 @@ import {
   NotificationItem,
   processNotification
 } from './features/notifications/notification-slice';
-import { api } from '../../api/api';
+import { api, API_URL } from '../../api/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { OS_UPDATE_STATUS } from '../../hooks/useDeviceOSStatus';
 import { OSStatusResponse, ProfileUpdate } from '@meticulous-home/espresso-api';
@@ -26,8 +26,7 @@ import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { LASTS_PROFILE_QUERY_KEY } from '../../hooks/useProfiles';
 import { useProfileContext } from '../../context/ProfileContext';
 
-const SERVER_URL: string = window.env?.SERVER_URL || 'http://localhost:8080';
-const socket: Socket | null = io(SERVER_URL);
+const socket: Socket | null = io(API_URL);
 
 const isBrewComplete = (state: string) => {
   return state === 'remove cup' || state === 'click to purge';

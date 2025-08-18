@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Profile } from '@meticulous-home/espresso-profile';
-import { api } from '../../api/api';
+import { api, API_URL } from '../../api/api';
 
 export const PROFILE_IMAGE_SIZE = 164;
 
@@ -14,8 +14,6 @@ const Image = styled.img`
 `;
 
 export const ProfileImage = ({ profile: preset }: { profile: Profile }) => {
-  const API_URL = window.env?.SERVER_URL || 'http://localhost:8080';
-
   const [image, setImage] = useState(
     preset.display?.image &&
       `${API_URL}${api.getProfileImageUrl(preset.display.image)}`
