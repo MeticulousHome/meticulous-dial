@@ -1,4 +1,4 @@
-import React from 'react';
+import { FC } from 'react';
 import classNames from 'classnames';
 import { formatStatValue } from '../../utils';
 import { useAppSelector } from '../store/hooks';
@@ -6,7 +6,7 @@ import { notificationSelector } from '../store/features/notifications/notificati
 import './bottom-status.css';
 import Funnel from './Funnel';
 
-export const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
+export const BottomStatus: FC<{ hidden: boolean }> = ({ hidden }) => {
   const stats = useAppSelector((state) => state.stats);
   const scaleConnected = !isNaN(stats.sensors.w);
 

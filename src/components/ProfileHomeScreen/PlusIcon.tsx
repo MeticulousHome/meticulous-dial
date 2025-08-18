@@ -1,5 +1,3 @@
-import React from 'react';
-
 export const PlusIcon: React.FC = () => (
   <svg
     width="166"

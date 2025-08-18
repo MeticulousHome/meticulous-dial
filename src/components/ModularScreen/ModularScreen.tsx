@@ -1,4 +1,4 @@
-import React, { forwardRef, PropsWithChildren, ReactElement } from 'react';
+import { forwardRef, PropsWithChildren, ReactElement } from 'react';
 import './modular.less';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { styled } from 'styled-components';

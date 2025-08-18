@@ -3,7 +3,6 @@ import { ScreenType } from '../components/store/features/screens/screens-slice';
 import { BottomStatus } from '../components/BottomStatus/BottomStatus';
 import { Transitioner } from './Transitioner';
 import { memo, useEffect } from 'react';
-import { useSettings } from '../hooks/useSettings';
 import { useAppSelector } from '../components/store/hooks';
 import Bubble from '../../src/components/Bubble/Bubble';
 import { memoizedRoutes } from '../../src/utils';

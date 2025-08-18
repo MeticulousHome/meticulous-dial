@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import { routes } from '../../src/navigation/routes';
 import { IPresetsSettingData } from '../../src/types';
-import { Settings } from '@meticulous-home/espresso-api';
 
 const regex = /^-?[0-9]+$/;
 
