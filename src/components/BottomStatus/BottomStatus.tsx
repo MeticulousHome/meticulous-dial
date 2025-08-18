@@ -5,7 +5,7 @@ import { useAppSelector } from '../store/hooks';
 import { notificationSelector } from '../store/features/notifications/notification-slice';
 import './bottom-status.css';
 import Funnel from './Funnel';
-import { useIsOnline } from '../../hooks/useBackend';
+import { useIsOnline } from '../../hooks/useIsOnline';
 
 export const BottomStatus: FC<{ hidden: boolean }> = ({ hidden }) => {
   const stats = useAppSelector((state) => state.stats);

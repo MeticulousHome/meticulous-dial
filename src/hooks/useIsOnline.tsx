@@ -10,7 +10,12 @@ export const useIsOnline = () => {
   const [isOnline, setIsOnline] = useState<boolean>(false);
 
   useEffect(() => {
-    setIsOnline(socket.connected && !!settings.data && !!profiles.data);
+    // If we were online before we are okay with brief socket disconnects
+    // FIXME: use a timestamp or a timeout here to detect a crashing backend
+    // FIXME: Merge useFetchData and this hook
+    setIsOnline(
+      (prev) => (prev || socket.connected) && !!settings.data && !!profiles.data
+    );
   }, [socket.connected, !!settings.data, !!profiles.data]);
 
   return isOnline;

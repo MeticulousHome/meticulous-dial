@@ -19,7 +19,7 @@ import { useProfileContext } from '../../context/ProfileContext';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { PlusIcon } from './PlusIcon';
 import { LastLabel } from './LastLabel';
-import { useIsOnline } from '../../hooks/useBackend';
+import { useIsOnline } from '../../hooks/useIsOnline';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
