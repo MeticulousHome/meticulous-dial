@@ -66,16 +66,6 @@ export const mergeSettings = (currentJson: string, defaultJson: string) => {
   return JSON.stringify(mSettings);
 };
 
-export const hidden_ui_elements_enabled = (settings: Settings) => {
-  if (!settings) return false;
-  const today = new Date();
-  return (
-    today.getDate() === 1 &&
-    today.getMonth() === 3 &&
-    !settings.disable_ui_features
-  );
-};
-
 export const memoizedRoutes = Object.fromEntries(
   Object.entries(routes).map(([key, { component, ...route }]) => [
     key,

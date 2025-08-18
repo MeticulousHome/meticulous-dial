@@ -1,7 +1,6 @@
 import React from 'react';
 import classNames from 'classnames';
-import { formatStatValue, hidden_ui_elements_enabled } from '../../utils';
-import { useSettings } from '../../hooks/useSettings';
+import { formatStatValue } from '../../utils';
 import { useAppSelector } from '../store/hooks';
 import { notificationSelector } from '../store/features/notifications/notification-slice';
 import './bottom-status.css';
@@ -9,7 +8,6 @@ import Funnel from './Funnel';
 
 export const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
   const stats = useAppSelector((state) => state.stats);
-  const { data: globalSettings } = useSettings();
   const scaleConnected = !isNaN(stats.sensors.w);
 
   const PreheatTimeLeft = useAppSelector(
@@ -50,11 +48,6 @@ export const BottomStatus: React.FC<{ hidden: boolean }> = ({ hidden }) => {
           ) : (
             <div style={{ fontSize: '24px', color: '#f44336' }}>
               Scale not connected
-            </div>
-          )}
-          {hidden_ui_elements_enabled(globalSettings) && (
-            <div style={{ fontSize: '24px', color: '#FFFFFF' }}>
-              Refill magenta
             </div>
           )}
         </div>
