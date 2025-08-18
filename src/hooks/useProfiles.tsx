@@ -1,9 +1,4 @@
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient
-} from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
 
 import {
   deleteProfile,
@@ -16,7 +11,7 @@ import {
 import { invoke } from '@tauri-apps/api/core';
 
 import { Profile } from '@meticulous-home/espresso-profile';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export const PROFILES_QUERY_KEY = 'profiles';
 export const LASTS_PROFILE_QUERY_KEY = 'last_profile';
