@@ -33,9 +33,5 @@
       }
     }
   },
-  "ignorePatterns": [
-    "node_modules/",
-    "dist/",
-    "src-tauri"
-  ]
+  "ignorePatterns": ["node_modules/", "dist/", "src-tauri"]
 }
