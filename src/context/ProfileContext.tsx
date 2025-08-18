@@ -131,7 +131,6 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     if (!mergedProfiles || mergedProfiles.length === 0) return;
-
     const profileIndex = mergedProfiles.findIndex((profile) => profile.isLast);
 
     if (profileIndex !== -1) {

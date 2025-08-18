@@ -50,13 +50,9 @@ export function DigitalClock({
     <div className="idle-wrapper">
       <div className="indicators indicators-top">
         {isWifiConnected ? (
-          <img className="indicators-icon" src={'assets/wifi.png'} alt="wifi" />
+          <img className="indicators-icon" src={'/wifi.png'} alt="wifi" />
         ) : (
-          <img
-            className="indicators-icon"
-            src={'assets/no-wifi.png'}
-            alt="wifi"
-          />
+          <img className="indicators-icon" src={'/no-wifi.png'} alt="wifi" />
         )}
         {isWifiConnected ? 'Ready' : 'Not connected'}
       </div>

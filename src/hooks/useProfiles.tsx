@@ -1,4 +1,9 @@
-import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient
+} from '@tanstack/react-query';
 
 import {
   deleteProfile,
@@ -8,8 +13,10 @@ import {
   getProfiles,
   saveProfile
 } from '../api/profile';
+import { invoke } from '@tauri-apps/api/core';
 
 import { Profile } from '@meticulous-home/espresso-profile';
+import { useEffect, useState } from 'react';
 
 export const PROFILES_QUERY_KEY = 'profiles';
 export const LASTS_PROFILE_QUERY_KEY = 'last_profile';
@@ -18,9 +25,31 @@ export const LAST_PROFILE_QUERY_KEY = 'lastProfile';
 export const DEFAULT_PROFILE_IMAGES_QUERY_KEY = 'default_profile_images';
 
 export const useProfiles = () => {
+  const [prefetchedProfiles, setPrefetchedProfiles] = useState<
+    Profile[] | undefined
+  >(undefined);
+  const fetch_profiles = async () => {
+    try {
+      const profiles = await getProfiles();
+      setPrefetchedProfiles(profiles);
+      return profiles;
+    } catch (error) {
+      console.error('Error fetching profiles:', error);
+      if (!('__TAURI_INTERNALS__' in window)) {
+        throw error;
+      }
+      if (prefetchedProfiles) {
+        return prefetchedProfiles;
+      }
+      const profiles = await invoke('get_profiles');
+      setPrefetchedProfiles(profiles as Profile[]);
+      return profiles as Profile[];
+    }
+  };
+
   return useQuery({
     queryKey: [PROFILES_QUERY_KEY],
-    queryFn: getProfiles,
+    queryFn: fetch_profiles,
     placeholderData: keepPreviousData,
     refetchOnReconnect: 'always',
     refetchOnWindowFocus: false

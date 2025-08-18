@@ -19,6 +19,7 @@ import { useProfileContext } from '../../context/ProfileContext';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { PlusIcon } from './PlusIcon';
 import { LastLabel } from './LastLabel';
+import { useIsOnline } from '../../hooks/useBackend';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -65,6 +66,7 @@ export const ProfileHomeScreen = () => {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { data: globalSettings } = useSettings();
   const { isIdle: shouldGoToIdle } = useIdleTimer();
+  const isOnline = useIsOnline();
 
   const profileState = useProfileContext();
 
@@ -175,15 +177,18 @@ export const ProfileHomeScreen = () => {
       pressDown() {
         // New profile button
         if (activeOption == mergedProfiles?.length) {
+          if (!isOnline) return;
           dispatch(setScreen('defaultProfiles'));
         } else {
           if (!localHoverState) {
             setLocalHoverState(true);
             setTransitionDirection('none');
+            if (!isOnline) return;
             pressThroughTimer.current = setTimeout(() => {
               setIsPressingDown(true);
             }, 300);
           } else {
+            if (!isOnline) return;
             setIsPressingDown(true);
           }
         }
@@ -199,7 +204,7 @@ export const ProfileHomeScreen = () => {
     bubbleDisplay.visible || profileStarting
   );
 
-  if (!mergedProfiles || !globalSettings) {
+  if (!mergedProfiles) {
     return <LoadingScreen />;
   }
 
