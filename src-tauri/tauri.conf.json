@@ -15,7 +15,10 @@
         "title": "meticulous-dial",
         "width": 480,
         "height": 480,
-        "visible": false
+        "resizable": true,
+        "decorations": false,
+        "visible": false,
+        "backgroundColor": "#000"
       }
     ],
     "security": {
