@@ -30,12 +30,14 @@ export const useProfiles = () => {
       return profiles;
     } catch (error) {
       console.error('Error fetching profiles:', error);
+      if (!!prefetchedProfiles) {
+        return prefetchedProfiles;
+      }
       if (!('__TAURI_INTERNALS__' in window)) {
         throw error;
       }
-      if (prefetchedProfiles) {
-        return prefetchedProfiles;
-      }
+      throw new Error('Failed to fetch profiles');
+      // FIXME reenable the prefetching here later once we have the images available
       const profiles = await invoke('get_profiles');
       setPrefetchedProfiles(profiles as Profile[]);
       return profiles as Profile[];
