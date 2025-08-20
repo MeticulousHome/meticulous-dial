@@ -47,9 +47,7 @@ export const Scale = memo(
         classNames="animate"
       >
         {visible ? (
-          <div
-            className={`main-layout scale-container scale-container--${size}`}
-          >
+          <div className={`scale-container scale-container--${size}`}>
             <div className="main-layout-content">
               <Weight />
             </div>
