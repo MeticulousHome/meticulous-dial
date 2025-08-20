@@ -17,9 +17,13 @@ fn ready(app_handle: AppHandle)  {
 }
 
 #[tauri::command]
-fn get_profiles() -> Vec<serde_json::Value>  {
+fn get_profiles() -> Result<Vec<serde_json::Value>, String>  {
     let profiles = profiles::fetch_profiles();
-    println!("Fetched {} profiles", profiles.len());
+    if profiles.is_ok() {
+        println!("Profiles fetched successfully");
+    } else {
+        eprintln!("Failed to fetch profiles: {}", profiles.as_ref().err().unwrap());
+    }
     profiles
 }
 

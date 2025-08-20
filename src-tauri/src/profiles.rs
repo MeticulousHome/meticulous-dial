@@ -20,7 +20,7 @@ fn parse_json_file(path: &Path) -> Option<Value> {
     serde_json::from_str(&buf).ok()
 }
 
-pub fn scan_and_parse_profiles() -> Vec<Value> {
+pub fn scan_and_parse_profiles() -> Result<Vec<Value>, String> {
     let dir = profiles_dir();
     println!("Scanning profiles directory: {}", dir.display());
     let mut results = Vec::new();
@@ -43,18 +43,22 @@ pub fn scan_and_parse_profiles() -> Vec<Value> {
                 }
             }
         }
-        Err(e) => eprintln!("Unable to read profiles directory {}: {}", dir.display(), e),
+        Err(e) => return Err(e.to_string()),
     }
 
-    results
+    Ok(results)
 }
 
-pub fn fetch_profiles() -> Vec<Value> {
-    let mut profiles = scan_and_parse_profiles();
+pub fn fetch_profiles() -> Result<Vec<serde_json::Value>, String> {
+    let profiles = scan_and_parse_profiles();
+    if profiles.is_err() {
+        return Err(profiles.unwrap_err());
+    }
+    let mut profiles = profiles.unwrap();
     let config = config::parse_config();
     if config.is_err() {
         eprintln!("Failed to parse config: {}", config.unwrap_err());
-        return profiles;
+        return Err("Failed to parse config".to_string());
     }
     let profile_order = config.unwrap().user.profile_order;
     if !profile_order.is_empty() {
@@ -66,5 +70,5 @@ pub fn fetch_profiles() -> Vec<Value> {
         });
     }
 
-    profiles
+    Ok(profiles)
 }
