@@ -1,6 +1,7 @@
 .scale-container {
   z-index: 50;
   transition: all 0.3s;
+  position: absolute;
 }
 
 .scale-container--small {
