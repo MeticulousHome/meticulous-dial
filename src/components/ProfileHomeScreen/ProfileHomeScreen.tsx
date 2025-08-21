@@ -242,7 +242,7 @@ export const ProfileHomeScreen = () => {
                     zoomedIn={localHoverState}
                   >
                     {/* Only render images in those that are close to the active option */}
-                    {Math.abs(index - activeOption) < 2 && (
+                    {Math.abs(index - activeOption) < 4 && (
                       <ProfileImage profile={profile} />
                     )}
                     {profile.isLast && (
