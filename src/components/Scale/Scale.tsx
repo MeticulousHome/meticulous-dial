@@ -2,7 +2,22 @@ import { CSSTransition, SwitchTransition } from 'react-transition-group';
 import { useAppSelector } from '../store/hooks';
 import './scale.css';
 import { Fragment } from 'react/jsx-runtime';
-import { memo } from 'react';
+import {
+  motion,
+  useAnimationControls,
+  useMotionValue,
+  Variants
+} from 'framer-motion';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useRef, useState, useEffect, memo } from 'react';
+import { RootState } from '../store/store';
+import { useStore } from 'react-redux';
+import { useSocket } from '../store/SocketManager';
+
+export interface scaleState {
+  status: 'closed_cold' | 'closed_hot' | 'open';
+  size: 'small' | 'full' | undefined;
+}
 
 const Weight = () => {
   const weight = useAppSelector((state) => state.stats.sensors.w || 0);
@@ -37,25 +52,195 @@ const Weight = () => {
   );
 };
 
+const LARGE_SCALE_PRESS_THRESHOLD = 0.75; // seconds
+
 export const Scale = memo(
-  ({ visible, size }: { visible: boolean; size: 'small' | 'full' }) => (
-    <SwitchTransition>
-      <CSSTransition
-        key={visible ? 'off' : 'on'}
-        in={visible}
-        timeout={300}
-        classNames="animate"
+  ({
+    updateScaleVisibility
+  }: {
+    updateScaleVisibility: (new_state: boolean) => void;
+  }) => {
+    const store = useStore<RootState>();
+    const isExtracting = useAppSelector((state) => state.stats?.extracting);
+    const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+    const socket = useSocket();
+
+    const coolDownTimeMS = 1 * 60 * 1000; // 1 minute
+    const coolScaleTimer = useRef<NodeJS.Timeout | null>(null);
+    const tareHoldThreshold = 250;
+    const tareHoldThresholdTimer = useRef<NodeJS.Timeout | null>(null);
+
+    const [currentAnimation, setCurrentAnimation] = useState<
+      'pull' | 'springMini' | null
+    >(null);
+    const [scaleState, setScaleState] = useState<scaleState>({
+      status: 'closed_cold',
+      size: undefined
+    });
+
+    const closeScale = () => {
+      // avoid setting the state to closed_hot if called from closed_*
+      if (scaleState.status === 'open') {
+        coolScaleTimer.current = setTimeout(() => {
+          setScaleState((prev) => ({
+            ...prev,
+            status: 'closed_cold'
+          }));
+        }, coolDownTimeMS);
+        setScaleState({
+          status: 'closed_hot',
+          size: undefined
+        });
+        y.set(0);
+      }
+    };
+
+    const openScale = (size: 'full' | 'small') => {
+      clearTimeout(coolScaleTimer.current);
+      setScaleState({
+        status: 'open',
+        size: size
+      });
+    };
+
+    const controls = useAnimationControls();
+    const y = useMotionValue(0);
+
+    const animationVariants = {
+      pull: {
+        y: y.get() - 20,
+        transition: { duration: LARGE_SCALE_PRESS_THRESHOLD, ease: 'easeIn' }
+      },
+      springMini: {
+        y: 0,
+        transition: { type: 'spring', stiffness: 320, damping: 15 }
+      }
+    } as const satisfies Variants;
+
+    const startAnimation = (animation: 'pull' | 'springMini' | null) => {
+      setCurrentAnimation(animation);
+      if (animation !== null) {
+        controls.start(animation);
+      }
+    };
+
+    const handleAnimationComplete = () => {
+      console.log(`animation: ${currentAnimation} has ended`);
+      y.set(0);
+      switch (currentAnimation) {
+        case 'pull':
+          openScale('full');
+          break;
+      }
+      setCurrentAnimation(null);
+    };
+
+    useEffect(() => {
+      const hide_timer = scaleState.size === 'small' ? 10000 : 2 * 60 * 10000;
+      updateScaleVisibility(scaleState.status === 'open');
+
+      const scheduleHide = () => setTimeout(() => closeScale(), hide_timer);
+      let timer = scheduleHide();
+
+      let lastSignificantWeight = store.getState().stats.sensors.w;
+      const subscription = store.subscribe(() => {
+        const weight = store.getState().stats.sensors.w;
+        if (Math.abs(weight - lastSignificantWeight) > 2) {
+          lastSignificantWeight = weight;
+          clearTimeout(timer);
+          timer = scheduleHide();
+        }
+      });
+
+      return () => {
+        clearTimeout(timer);
+        subscription();
+      };
+    }, [scaleState]);
+
+    useHandleGestures(
+      {
+        tareDown() {
+          tareHoldThresholdTimer.current = setTimeout(() => {
+            if (scaleState.status !== 'open') {
+              openScale('small');
+            }
+            if (scaleState.status !== 'open' || scaleState.size === 'small') {
+              startAnimation('pull');
+            }
+          }, tareHoldThreshold);
+        },
+        tareUp() {
+          if (tareHoldThresholdTimer.current) {
+            clearTimeout(tareHoldThresholdTimer.current);
+            tareHoldThresholdTimer.current = null;
+          }
+          // if we cancel the pull
+          console.log(currentAnimation);
+          if (currentAnimation === 'pull') {
+            controls.stop();
+            startAnimation('springMini');
+          }
+        },
+        singleTare() {
+          switch (scaleState.status) {
+            case 'closed_cold':
+              openScale('small');
+              socket.emit('action', 'tare');
+              break;
+            case 'open':
+              socket.emit('action', 'tare');
+              break;
+            case 'closed_hot':
+              console.log('from from hot, opening mini scale');
+              openScale('small');
+              break;
+          }
+        },
+        doubleTare() {
+          closeScale();
+        },
+        context() {
+          closeScale();
+        }
+      },
+      isExtracting || bubbleDisplay.visible
+    );
+
+    useEffect(() => {
+      if (isExtracting && scaleState.status === 'open') {
+        closeScale();
+      }
+    }, [isExtracting]);
+
+    return (
+      <motion.div
+        variants={animationVariants}
+        style={{ y }}
+        animate={controls}
+        onAnimationComplete={handleAnimationComplete}
       >
-        {visible ? (
-          <div className={`scale-container scale-container--${size}`}>
-            <div className="main-layout-content">
-              <Weight />
-            </div>
-          </div>
-        ) : (
-          <Fragment />
-        )}
-      </CSSTransition>
-    </SwitchTransition>
-  )
+        <SwitchTransition>
+          <CSSTransition
+            key={scaleState.status === 'open' ? 'off' : 'on'}
+            in={scaleState.status === 'open'}
+            timeout={300}
+            classNames="animate"
+          >
+            {scaleState.status === 'open' ? (
+              <div
+                className={`main-layout scale-container scale-container--${scaleState.size}`}
+              >
+                <div className="main-layout-content">
+                  <Weight />
+                </div>
+              </div>
+            ) : (
+              <Fragment />
+            )}
+          </CSSTransition>
+        </SwitchTransition>
+      </motion.div>
+    );
+  }
 );
