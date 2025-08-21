@@ -143,6 +143,8 @@ export const SocketProviderValue = () => {
           TARE: 'singleTare',
           TARE_DOUBLE: 'doubleTare',
           TARE_LONG: 'longTare',
+          TARE_PRESSED: 'tareDown',
+          TARE_RELEASED: 'tareUp',
           CONTEXT: 'context',
           ENCODER_PRESSED: 'pressDown',
           ENCODER_RELEASED: 'pressUp'
