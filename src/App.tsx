@@ -1,11 +1,11 @@
 /// <reference types="vite/client" />
 import { useEffect, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import { Provider, useStore } from 'react-redux';
+import { Provider } from 'react-redux';
 
 import { useAppDispatch, useAppSelector } from './components/store/hooks';
 import { SocketManager } from './components/store/SocketManager';
-import { RootState, store } from './components/store/store';
+import { store } from './components/store/store';
 import { useHandleGestures } from './hooks/useHandleGestures';
 import { setBubbleDisplay } from './components/store/features/screens/screens-slice';
 import { Router } from './navigation/Router';
@@ -48,7 +48,6 @@ async function sendReady() {
 
 const App = (): JSX.Element => {
   const dispatch = useAppDispatch();
-  const store = useStore<RootState>();
   const screen = useAppSelector(
     (state) => state.screen,
     (prev, next) => prev === next
@@ -65,62 +64,9 @@ const App = (): JSX.Element => {
   useNotification();
   useNotificationHandler();
 
-  const [scaleState, setScaleState] = useState<{
-    visible: boolean;
-    size: 'small' | 'full';
-  }>({ visible: false, size: 'small' });
-
-  useEffect(() => {
-    const hide_timer = scaleState.size === 'small' ? 10000 : 2 * 60 * 10000;
-    const scheduleHide = () =>
-      setTimeout(() => {
-        setScaleState((state) => ({ ...state, visible: false }));
-      }, hide_timer);
-    let timer = scheduleHide();
-
-    let lastSignificantWeight = store.getState().stats.sensors.w;
-    const subscription = store.subscribe(() => {
-      const weight = store.getState().stats.sensors.w;
-      if (Math.abs(weight - lastSignificantWeight) > 2) {
-        lastSignificantWeight = weight;
-        clearTimeout(timer);
-        timer = scheduleHide();
-      }
-    });
-
-    return () => {
-      clearTimeout(timer);
-      subscription();
-    };
-  }, [scaleState]);
-
   useHandleGestures(
     {
-      // TODO: Ideally we'd get tare up/down events so we can zoom in full the scale gradually
-      singleTare() {
-        setScaleState(({ visible, size }) => ({
-          visible:
-            screen.value !== 'calibrateScale' && !(visible && size === 'full'),
-          size: visible ? 'full' : 'small'
-        }));
-      },
-      longTare() {
-        setScaleState(({ visible, size }) => ({
-          visible: !visible || size === 'small',
-          size: 'full'
-        }));
-      },
-      doubleTare() {
-        setScaleState(({ size }) => ({
-          visible: false,
-          size
-        }));
-      },
       context() {
-        setScaleState(({ size }) => ({
-          visible: false,
-          size
-        }));
         dispatch(
           setBubbleDisplay({
             visible: !bubbleDisplay.visible,
@@ -132,11 +78,11 @@ const App = (): JSX.Element => {
     isExtracting || bubbleDisplay.visible
   );
 
-  useEffect(() => {
-    if (isExtracting) {
-      setScaleState({ visible: false, size: 'small' });
-    }
-  }, [isExtracting]);
+  const [isScaleVisible, setIsScaleVisible] = useState<boolean>(false);
+
+  const updateScaleVisibility = (new_state: boolean) => {
+    setIsScaleVisible(new_state);
+  };
 
   const dev = import.meta.env.VITE_SHOW_CIRCLE;
 
@@ -148,13 +94,13 @@ const App = (): JSX.Element => {
           <ProfileProvider>
             <SocketManager>
               {/* Mark router as not visible when scale is overlaid to avoid gesture handlers firing */}
-              <VisibilityProvider value={!scaleState.visible}>
+              <VisibilityProvider value={!isScaleVisible}>
                 <Router
                   currentScreen={screen.value}
                   previousScreen={screen.prev}
                 />
               </VisibilityProvider>
-              <Scale {...scaleState} />
+              <Scale updateScaleVisibility={updateScaleVisibility} />
             </SocketManager>
           </ProfileProvider>
         </IdleTimerProvider>
