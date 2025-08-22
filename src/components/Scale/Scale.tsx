@@ -52,7 +52,7 @@ const Weight = () => {
   );
 };
 
-const LARGE_SCALE_PRESS_THRESHOLD = 0.75; // seconds
+const LARGE_SCALE_PRESS_THRESHOLD = 0.7; // seconds
 
 export const Scale = memo(
   ({
@@ -70,9 +70,7 @@ export const Scale = memo(
     const tareHoldThreshold = 250;
     const tareHoldThresholdTimer = useRef<NodeJS.Timeout | null>(null);
 
-    const [currentAnimation, setCurrentAnimation] = useState<
-      'pull' | 'springMini' | null
-    >(null);
+    const currentAnimation = useRef<'pull' | 'springMini' | null>(null);
     const [scaleState, setScaleState] = useState<scaleState>({
       status: 'closed_cold',
       size: undefined
@@ -108,7 +106,7 @@ export const Scale = memo(
 
     const animationVariants = {
       pull: {
-        y: y.get() - 20,
+        y: -20,
         transition: { duration: LARGE_SCALE_PRESS_THRESHOLD, ease: 'easeIn' }
       },
       springMini: {
@@ -118,21 +116,23 @@ export const Scale = memo(
     } as const satisfies Variants;
 
     const startAnimation = (animation: 'pull' | 'springMini' | null) => {
-      setCurrentAnimation(animation);
+      controls.stop();
+      console.log(`animation: ${animation} has started`);
+      currentAnimation.current = animation;
       if (animation !== null) {
         controls.start(animation);
       }
     };
 
     const handleAnimationComplete = () => {
-      console.log(`animation: ${currentAnimation} has ended`);
+      console.log(`animation: ${currentAnimation.current} has ended`);
       y.set(0);
-      switch (currentAnimation) {
+      switch (currentAnimation.current) {
         case 'pull':
           openScale('full');
+          currentAnimation.current = null;
           break;
       }
-      setCurrentAnimation(null);
     };
 
     useEffect(() => {
@@ -176,8 +176,7 @@ export const Scale = memo(
             tareHoldThresholdTimer.current = null;
           }
           // if we cancel the pull
-          console.log(currentAnimation);
-          if (currentAnimation === 'pull') {
+          if (currentAnimation.current === 'pull') {
             controls.stop();
             startAnimation('springMini');
           }
@@ -229,7 +228,7 @@ export const Scale = memo(
           >
             {scaleState.status === 'open' ? (
               <div
-                className={`main-layout scale-container scale-container--${scaleState.size}`}
+                className={`scale-container scale-container--${scaleState.size}`}
               >
                 <div className="main-layout-content">
                   <Weight />
