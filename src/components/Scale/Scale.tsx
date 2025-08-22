@@ -71,6 +71,7 @@ export const Scale = memo(
     const tareHoldThresholdTimer = useRef<NodeJS.Timeout | null>(null);
 
     const currentAnimation = useRef<'pull' | 'springMini' | null>(null);
+    const scaleHideTimer = useRef<NodeJS.Timeout | null>(null);
     const [scaleState, setScaleState] = useState<scaleState>({
       status: 'closed_cold',
       size: undefined
@@ -140,20 +141,20 @@ export const Scale = memo(
       updateScaleVisibility(scaleState.status === 'open');
 
       const scheduleHide = () => setTimeout(() => closeScale(), hide_timer);
-      let timer = scheduleHide();
+      scaleHideTimer.current = scheduleHide();
 
       let lastSignificantWeight = store.getState().stats.sensors.w;
       const subscription = store.subscribe(() => {
         const weight = store.getState().stats.sensors.w;
         if (Math.abs(weight - lastSignificantWeight) > 2) {
           lastSignificantWeight = weight;
-          clearTimeout(timer);
-          timer = scheduleHide();
+          clearTimeout(scaleHideTimer.current);
+          scaleHideTimer.current = scheduleHide();
         }
       });
 
       return () => {
-        clearTimeout(timer);
+        clearTimeout(scaleHideTimer.current);
         subscription();
       };
     }, [scaleState]);
@@ -161,6 +162,9 @@ export const Scale = memo(
     useHandleGestures(
       {
         tareDown() {
+          if (scaleHideTimer.current) {
+            clearTimeout(scaleHideTimer.current);
+          }
           tareHoldThresholdTimer.current = setTimeout(() => {
             if (scaleState.status !== 'open') {
               openScale('small');
