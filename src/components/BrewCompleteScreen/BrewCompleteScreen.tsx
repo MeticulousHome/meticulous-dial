@@ -11,7 +11,7 @@ import {
 import { RemoveCupAnimation } from './RemoveCupAnimation';
 import { formatTime } from '../../utils';
 import { useEffect, useState } from 'react';
-import { PurgePiston } from '../PurgePiston/PurgePiston';
+import { MiniPurgePiston } from '../MiniPurgePiston/MiniPurgePiston';
 import { notificationSelector } from '../store/features/notifications/notification-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useContinueBrewAction } from '../store/SocketManager';
@@ -57,9 +57,9 @@ const Label = styled.div`
 
 const PurgeEmbedding = styled.div`
   position: relative;
-  width: 60%;
-  height: 60%;
-  right: 19%;
+  width: 40%;
+  height: 40%;
+  right: 9%;
   top: -6%;
 `;
 
@@ -133,7 +133,7 @@ export const BrewCompleteScreen = () => {
           style={{ right: '0', alignItems: 'flex-start', padding: '0' }}
         >
           <PurgeEmbedding>
-            <PurgePiston />
+            <MiniPurgePiston />
           </PurgeEmbedding>
         </ModularLeft>
       ) : !isIdle ? (
