@@ -22,7 +22,10 @@ import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../store/store';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
-import { useProfileContext } from '../../context/ProfileContext';
+import {
+  ExtendedProfile,
+  useProfileContext
+} from '../../context/ProfileContext';
 
 const GRAPH_WIDTH = 270;
 const GRAPH_WRAPPER_HEIGHT = 220;
@@ -91,7 +94,13 @@ const GraphValueText = styled.span`
 
 type PathsType = Record<DataTypeKey, { path: string; maskPath: string }>;
 
-export const ShotGraphScreen = () => {
+export const ShotGraph = ({
+  profile,
+  isStatic
+}: {
+  profile: ExtendedProfile;
+  isStatic?: boolean;
+}) => {
   const dispatch = useDispatch<AppDispatch>();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [paths, setPaths] = useState<PathsType>({
@@ -105,15 +114,13 @@ export const ShotGraphScreen = () => {
     null
   );
 
-  const { localProfile: activeProfile } = useProfileContext();
-
-  if (!activeProfile) {
+  if (!profile) {
     console.error('History was opened without a profile selected');
     dispatch(setScreen('profileHome'));
   }
 
   const { data: profileHistory, isLoading } = useHistoryShot(
-    lastShotForProfileQuery(activeProfile)
+    lastShotForProfileQuery(profile)
   );
 
   const displayShot = profileHistory?.history[0];
@@ -126,14 +133,6 @@ export const ShotGraphScreen = () => {
     return Math.round(length / GRAPH_SCROLL_STEPS);
   }, [displayShot]);
 
-  const { isIdle: shouldGoToIdle } = useIdleTimer();
-
-  useEffect(() => {
-    if (!shouldGoToIdle) return;
-    dispatch(setScreen('idle'));
-    dispatch(setBubbleDisplay({ visible: false, component: undefined }));
-  }, [shouldGoToIdle]);
-
   useHandleGestures(
     {
       left() {
@@ -143,17 +142,9 @@ export const ShotGraphScreen = () => {
         setSelectedPointIndex((prev) =>
           Math.min(prev + gestureProgress, displayShot?.data.length - 1)
         );
-      },
-      doubleClick() {
-        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
-        dispatch(setScreen('profileHome'));
-      },
-      pressDown() {
-        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
-        dispatch(setScreen('profileHome'));
       }
     },
-    bubbleDisplay.visible
+    bubbleDisplay.visible || isStatic
   );
 
   useEffect(() => {
@@ -267,4 +258,40 @@ export const ShotGraphScreen = () => {
       </GraphLabels>
     </GraphContainer>
   );
+};
+
+export const ShotGraphScreen = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+
+  const { isIdle: shouldGoToIdle } = useIdleTimer();
+
+  const { localProfile: activeProfile } = useProfileContext();
+
+  if (!activeProfile) {
+    console.error('History was opened without a profile selected');
+    dispatch(setScreen('profileHome'));
+  }
+
+  useEffect(() => {
+    if (!shouldGoToIdle) return;
+    dispatch(setScreen('idle'));
+    dispatch(setBubbleDisplay({ visible: false, component: undefined }));
+  }, [shouldGoToIdle]);
+
+  useHandleGestures(
+    {
+      doubleClick() {
+        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
+        dispatch(setScreen('profileHome'));
+      },
+      pressDown() {
+        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
+        dispatch(setScreen('profileHome'));
+      }
+    },
+    bubbleDisplay.visible
+  );
+
+  return <ShotGraph profile={activeProfile} />;
 };
