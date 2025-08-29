@@ -10,11 +10,13 @@ import {
 } from '../ModularScreen/ModularScreen';
 import { RemoveCupAnimation } from './RemoveCupAnimation';
 import { formatTime } from '../../utils';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { PurgePiston } from '../PurgePiston/PurgePiston';
 import { notificationSelector } from '../store/features/notifications/notification-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useContinueBrewAction } from '../store/SocketManager';
+import { ShotGraph } from '../ShotGraph/ShotGraphScreen';
+import { useProfileContext } from '../../context/ProfileContext';
 
 const WeightContainer = styled.div`
   display: flex;
@@ -55,9 +57,10 @@ const Label = styled.div`
 
 const PurgeEmbedding = styled.div`
   position: relative;
-  width: 100%;
-  height: 100%;
-  right: -20px;
+  width: 60%;
+  height: 60%;
+  right: 19%;
+  top: -6%;
 `;
 
 export const BrewCompleteScreen = () => {
@@ -71,6 +74,13 @@ export const BrewCompleteScreen = () => {
   );
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
 
+  const { localProfile: activeProfile } = useProfileContext();
+
+  if (!activeProfile) {
+    console.error('History was opened without a profile selected');
+    dispatch(setScreen('profileHome'));
+  }
+
   const weight = !isNaN(lastBrewWeight)
     ? Math.abs(lastBrewWeight) < 1000
       ? lastBrewWeight.toFixed(1)
@@ -78,19 +88,32 @@ export const BrewCompleteScreen = () => {
     : lastBrewWeight;
   const scaleConnected = !isNaN(lastBrewWeight);
   const isPurging = statsName === 'purge';
+  const isIdle = statsName === 'idle' || statsName === 'END_STAGE';
+  const [keepGraph, setKeepGraph] = useState<boolean>(false);
 
   useEffect(() => {
-    if (statsName === 'idle' && !hasNotifications) {
-      dispatch(setScreen('profileHome'));
+    if (isIdle) {
+      if (!hasNotifications && !keepGraph) {
+        dispatch(setScreen('profileHome'));
+      }
     }
-  }, [statsName]);
+  }, [isIdle, keepGraph]);
 
   useHandleGestures(
     {
-      pressDown() {
+      click() {
         if (statsName === 'click to purge') {
           continueBrew();
         }
+        if (isIdle && keepGraph) {
+          setKeepGraph(false);
+        }
+      },
+      left() {
+        setKeepGraph(true);
+      },
+      right() {
+        setKeepGraph(true);
       }
     },
     bubbleDisplay.visible
@@ -103,46 +126,46 @@ export const BrewCompleteScreen = () => {
         ? 'Remove cup'
         : '';
 
-  useHandleGestures(
-    {
-      pressDown() {
-        if (!isPurging) {
-          continueBrew();
-          console.log('action,continue');
-        }
-      }
-    },
-    bubbleDisplay.visible
-  );
-
   return (
     <ModularScreen>
-      <ModularLeft>
-        {isPurging ? (
+      {isPurging ? (
+        <ModularLeft
+          style={{ right: '0', alignItems: 'flex-start', padding: '0' }}
+        >
           <PurgeEmbedding>
             <PurgePiston />
           </PurgeEmbedding>
-        ) : (
+        </ModularLeft>
+      ) : !isIdle ? (
+        <ModularLeft>
           <RemoveCupAnimation />
-        )}
-      </ModularLeft>
-      <ModularRight>
-        <WeightContainer>
-          {scaleConnected ? (
-            <>
-              <WeightValue>{weight}</WeightValue>
-              <Unit>g</Unit>
-            </>
-          ) : (
-            <Label style={{ color: '#f44336' }}>Scale not connected</Label>
-          )}
-        </WeightContainer>
-        <Label>{stateLabel}</Label>
-      </ModularRight>
-      <ModularFooter style={{ gap: 13 }}>
-        <Label>Brew time</Label>
-        <ModularFooterTime>{formatTime(brewTime / 1000)}</ModularFooterTime>
-      </ModularFooter>
+        </ModularLeft>
+      ) : null}
+      {isPurging || isIdle ? (
+        <ModularRight style={{ left: '0', padding: '0' }}>
+          <ShotGraph profile={activeProfile} />
+        </ModularRight>
+      ) : (
+        <>
+          <ModularRight>
+            <WeightContainer>
+              {scaleConnected ? (
+                <>
+                  <WeightValue>{weight}</WeightValue>
+                  <Unit>g</Unit>
+                </>
+              ) : (
+                <Label style={{ color: '#f44336' }}>Scale not connected</Label>
+              )}
+            </WeightContainer>
+            <Label>{stateLabel}</Label>
+          </ModularRight>
+          <ModularFooter style={{ gap: 13 }}>
+            <Label>Brew time</Label>
+            <ModularFooterTime>{formatTime(brewTime / 1000)}</ModularFooterTime>
+          </ModularFooter>
+        </>
+      )}
     </ModularScreen>
   );
 };

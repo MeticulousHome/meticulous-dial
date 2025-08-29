@@ -136,6 +136,7 @@ export function QuickSettings(): JSX.Element {
   } = useProfileContext();
   const deletePresetMutation = useDeletePreset();
   const currentScreen = useAppSelector((state) => state.screen.value);
+  const statsName = useAppSelector((state) => state.stats.name);
 
   const [counterESGG, setCounterESGG] = useState(0);
   const [holdAnimation, setHoldAnimation] =
@@ -375,6 +376,12 @@ export function QuickSettings(): JSX.Element {
         break;
       case 'heating':
       case 'brewComplete':
+        if (statsName === 'idle') {
+          setSettings(defaultSettings);
+        } else {
+          setSettings(inBrewSettings);
+        }
+        break;
       case 'barometer':
         setSettings(inBrewSettings);
         break;
