@@ -55,14 +55,6 @@ const Label = styled.div`
   text-transform: uppercase;
 `;
 
-const PurgeEmbedding = styled.div`
-  position: relative;
-  width: 40%;
-  height: 40%;
-  right: 9%;
-  top: -6%;
-`;
-
 export const BrewCompleteScreen = () => {
   const dispatch = useAppDispatch();
   const continueBrew = useContinueBrewAction();
@@ -130,11 +122,9 @@ export const BrewCompleteScreen = () => {
     <ModularScreen>
       {isPurging ? (
         <ModularLeft
-          style={{ right: '0', alignItems: 'flex-start', padding: '0' }}
+          style={{ alignItems: 'flex-start', left: '22px', top: '-18px' }}
         >
-          <PurgeEmbedding>
-            <MiniPurgePiston />
-          </PurgeEmbedding>
+          <MiniPurgePiston />
         </ModularLeft>
       ) : !isIdle ? (
         <ModularLeft>

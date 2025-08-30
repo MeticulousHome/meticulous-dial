@@ -69,7 +69,7 @@ export function MiniPurgePiston(): JSX.Element {
     pistonContainer.current = lottie.loadAnimation({
       container: pistonAnimator.current,
       animationData: piston,
-      renderer: 'canvas',
+      renderer: 'svg',
       loop: false,
       autoplay: false
     });
@@ -130,9 +130,5 @@ export function MiniPurgePiston(): JSX.Element {
     };
   }, []);
 
-  return (
-    <div>
-      <div id="piston" ref={pistonAnimator} className="lottie" />
-    </div>
-  );
+  return <div id="piston" ref={pistonAnimator} />;
 }
