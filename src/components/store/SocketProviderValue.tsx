@@ -25,6 +25,7 @@ import { OSStatusResponse, ProfileUpdate } from '@meticulous-home/espresso-api';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { LASTS_PROFILE_QUERY_KEY } from '../../hooks/useProfiles';
 import { useProfileContext } from '../../context/ProfileContext';
+import { HIDDEN_STAGES } from '../../constants/setting';
 
 const socket: Socket | null = io(API_URL);
 
@@ -113,12 +114,8 @@ export const SocketProviderValue = () => {
           return;
         }
 
-        // When the machine is not in idle, lock the screen at Barometer
-        if (
-          data?.name !== 'idle' &&
-          data?.name !== 'boot' &&
-          data?.name !== 'END_STAGE'
-        ) {
+        // When the machine is not in a hidden stage, lock the screen at Barometer
+        if (!HIDDEN_STAGES.includes(data?.name)) {
           dispatch(setScreen('barometer'));
         }
       }
