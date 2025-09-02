@@ -1,0 +1,30 @@
+.piston-fade-enter {
+  position: relative;
+  top: 400px;
+  opacity: 0;
+}
+.piston-fade-exit {
+  position: static;
+  opacity: 1;
+}
+.piston-fade-enter-active {
+  transition: opacity 100ms;
+  position: static;
+  opacity: 1;
+}
+
+.piston-fade-enter-done {
+  position: static;
+  opacity: 1;
+}
+
+.piston-fade-exit-done {
+  position: relative;
+  top: 400px;
+  opacity: 0;
+}
+.piston-fade-exit-active {
+  transition: opacity 250ms;
+  position: static;
+  opacity: 0;
+}
