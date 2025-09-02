@@ -41,3 +41,12 @@ export const TEMPORARY_SETTINGS: StaticAction[] = [
     label: 'discard'
   }
 ];
+
+// When the stage changes, if it is one of the followings
+// do not show the barometer
+export const HIDDEN_STAGES: string[] = [
+  'idle',
+  'boot',
+  'END_STAGE',
+  'starting...'
+];
