@@ -80,6 +80,7 @@ export const BrewCompleteScreen = () => {
     : lastBrewWeight;
   const scaleConnected = !isNaN(lastBrewWeight);
   const isPurging = statsName === 'purge';
+  const [showPlot, setShowPlot] = useState<boolean>(false);
   const isIdle = statsName === 'idle' || statsName === 'END_STAGE';
   const [keepGraph, setKeepGraph] = useState<boolean>(false);
 
@@ -118,25 +119,27 @@ export const BrewCompleteScreen = () => {
         ? 'Remove cup'
         : '';
 
+  useEffect(() => {
+    if (isPurging) {
+      setShowPlot(true);
+    }
+  }, [isPurging]);
   return (
     <ModularScreen>
-      {isPurging ? (
-        <ModularLeft
-          style={{ alignItems: 'flex-start', left: '22px', top: '-18px' }}
-        >
-          <MiniPurgePiston />
-        </ModularLeft>
-      ) : !isIdle ? (
-        <ModularLeft>
-          <RemoveCupAnimation />
-        </ModularLeft>
-      ) : null}
-      {isPurging || isIdle ? (
+      <ModularLeft
+        style={{ alignItems: 'flex-start', left: '22px', top: '-18px' }}
+      >
+        <MiniPurgePiston show={isPurging} />
+      </ModularLeft>
+      {showPlot ? (
         <ModularRight style={{ left: '0', padding: '0' }}>
           <ShotGraph profile={activeProfile} />
         </ModularRight>
       ) : (
         <>
+          <ModularLeft>
+            <RemoveCupAnimation />
+          </ModularLeft>
           <ModularRight>
             <WeightContainer>
               {scaleConnected ? (

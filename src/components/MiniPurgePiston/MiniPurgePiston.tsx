@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import lottie, { AnimationItem } from 'lottie-web';
 import piston from './miniPiston.json';
-import { useAppDispatch } from '../store/hooks';
-import { setScreen } from '../../../src/components/store/features/screens/screens-slice';
 import { useSocket } from '../../../src/components/store/SocketManager';
+import { CSSTransition } from 'react-transition-group';
+import './pistonTransitions.css';
 
 // This is not absolute max but the maximum we choose for the sake of animation
 const MAX_POSITION = 74;
 const TOTAL_FRAMES = 60.0;
 const NO_FRAMES = 1000;
 
-export function MiniPurgePiston(): JSX.Element {
+export function MiniPurgePiston({ show }): JSX.Element {
   const socket = useSocket();
   const pistonContainer = useRef<AnimationItem | null>(null);
   const pistonAnimator = useRef(null);
@@ -19,9 +19,7 @@ export function MiniPurgePiston(): JSX.Element {
   const [prevPosition, setPrevPosition] = useState<number | null>(null);
   const [prevTime, setPrevTime] = useState<number | null>(null);
   const [position, setPosition] = useState<number>(NaN);
-  const intervalRef = useRef(null);
-
-  const dispatch = useAppDispatch();
+  const [showPiston, setShowPiston] = useState<boolean>(show);
 
   const animateToPosition = useCallback((targetPosition: number) => {
     if (pistonContainer.current) {
@@ -54,6 +52,16 @@ export function MiniPurgePiston(): JSX.Element {
       requestAnimationFrame(animate);
     }
   }, []);
+
+  useEffect(() => {
+    if (show) {
+      setTimeout(() => {
+        setShowPiston(true);
+      }, 500);
+    } else {
+      setShowPiston(false);
+    }
+  }, [show]);
 
   useEffect(() => {
     socket.on('sensors', (data: { m_pos: number }) => {
@@ -111,24 +119,27 @@ export function MiniPurgePiston(): JSX.Element {
   }, [position, animateToPosition, initialPosition]);
 
   useEffect(() => {
-    // If we didnt get a position within 2 seconds we exit the animation
-    intervalRef.current = setInterval(() => {
-      if (Number.isNaN(position)) {
-        dispatch(setScreen('profileHome'));
-      }
-    }, 2000);
-
-    return () => {
-      clearInterval(intervalRef.current);
-    };
-  }, [position]);
-
-  useEffect(() => {
     return () => {
       pistonContainer.current?.destroy();
       pistonContainer.current = undefined;
     };
   }, []);
 
-  return <div id="piston" ref={pistonAnimator} />;
+  const transitionRef = useRef(null);
+
+  return (
+    <CSSTransition
+      classNames="piston-fade"
+      timeout={500}
+      in={showPiston}
+      nodeRef={transitionRef}
+    >
+      <div
+        ref={transitionRef}
+        className={showPiston ? '' : 'piston-fade-enter'}
+      >
+        <div id="piston" ref={pistonAnimator} />
+      </div>
+    </CSSTransition>
+  );
 }
