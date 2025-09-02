@@ -10,7 +10,6 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { PROFILE_ENTRY_SIZE, ProfileEntry } from './ProfileEntry';
 import { ProfileImage } from './ProfileImage';
 
-import { loadProfileData, startProfile } from '../../api/profile';
 import { CircleOverlay } from './CircleOverlay';
 import './transitions.less';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -97,14 +96,7 @@ export const ProfileHomeScreen = () => {
 
   const animationFinished = async () => {
     setProfileStarting(true);
-    const profile = mergedProfiles?.[activeOption];
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { isLast, temporary, ...cleanProfile } = profile;
-    const data = await loadProfileData(cleanProfile);
-    if (data) {
-      await startProfile();
-    }
+    dispatch(setScreen('heating'));
   };
 
   useEffect(() => {

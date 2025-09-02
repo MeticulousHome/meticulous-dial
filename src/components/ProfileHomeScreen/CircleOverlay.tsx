@@ -93,11 +93,9 @@ export function CircleOverlay({
           r={radius}
           fill="transparent"
           className={
-            isDrawn
-              ? 'animateCircleColor'
-              : shouldAnimate
-                ? 'animateCirlceOpacityUp'
-                : 'animateCirlceOpacityDown'
+            shouldAnimate
+              ? 'animateCirlceOpacityUp'
+              : 'animateCirlceOpacityDown'
           }
           strokeWidth={stroke}
           style={{
