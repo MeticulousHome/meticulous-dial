@@ -54,6 +54,7 @@ import {
 import { FactoryReset } from '../components/Settings/Advanced/FactoryReset';
 import { Manufacturing } from '../components/Settings/Advanced/Manufacturing';
 import { RetractionSettingGauge } from '../components/Settings/Advanced/RetractionVolume';
+import { useProfileContext } from '../context/ProfileContext';
 interface Route {
   component: ComponentType;
   parentTitle?: string | ((state: RootState) => string) | (() => JSX.Element);
@@ -72,8 +73,18 @@ interface Route {
 
 const selectPurgeTitle = (state: RootState) => {
   const machine_state = state.stats.state;
-  if (machine_state == 'brewing') {
+  if (machine_state == 'brewing' && state.stats.profile !== 'Init Profile') {
     return state.stats.profile;
+  }
+
+  const {
+    mergedProfiles,
+    localProfileIndex: activeProfile,
+    profileStarting
+  } = useProfileContext();
+
+  if (mergedProfiles && profileStarting) {
+    return mergedProfiles[activeProfile].name;
   }
 
   if (state.stats.name === 'home') {
