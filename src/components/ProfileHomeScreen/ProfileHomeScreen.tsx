@@ -19,6 +19,7 @@ import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { PlusIcon } from './PlusIcon';
 import { LastLabel } from './LastLabel';
 import { useIsOnline } from '../../hooks/useIsOnline';
+import { useSocket } from '../store/SocketManager';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -60,6 +61,8 @@ const InnerList = styled(TransitionGroup)<{
   transition: transform ${translationAnimationDuration}ms ease;
 `;
 
+const PISTON_ON_PURGE_POSITION = 76.8;
+
 export const ProfileHomeScreen = () => {
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
@@ -86,6 +89,8 @@ export const ProfileHomeScreen = () => {
   const pressThroughTimer = useRef<NodeJS.Timeout | null>(null);
 
   const nodeRefs = useRef<Record<string, Ref<HTMLDivElement>>>({});
+  const requiresPurge = useRef<boolean>(false);
+  const socket = useSocket();
 
   const getOrCreateRef = (id: string) => {
     if (!nodeRefs.current[id]) {
@@ -96,8 +101,20 @@ export const ProfileHomeScreen = () => {
 
   const animationFinished = async () => {
     setProfileStarting(true);
-    dispatch(setScreen('heating'));
+    if (!requiresPurge.current) {
+      dispatch(setScreen('heating'));
+    } else {
+      dispatch(setScreen('manual-purge'));
+    }
   };
+
+  useEffect(() => {
+    socket.on('sensors', (data: { m_pos: number }) => {
+      if (data.m_pos < PISTON_ON_PURGE_POSITION) {
+        requiresPurge.current = true;
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (!shouldGoToIdle) return;
