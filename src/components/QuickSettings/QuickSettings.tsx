@@ -3,6 +3,7 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useUpdateSettings } from '../../hooks/useSettings';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
+  ScreenType,
   setBubbleDisplay,
   setScreen
 } from '../store/features/screens/screens-slice';
@@ -145,7 +146,16 @@ export function QuickSettings(): JSX.Element {
   const { forceIdle } = useIdleTimer();
 
   const { data: osStatusData, error: osStatusError } = useOSStatus();
-  const osStatusVisible = osStatusData.status !== 'IDLE';
+
+  const HIDDEN_OS_STATUS_SCREENS: ScreenType[] = [
+    'heating',
+    'brewComplete',
+    'barometer'
+  ];
+
+  const osStatusVisible =
+    osStatusData.status !== 'IDLE' &&
+    !HIDDEN_OS_STATUS_SCREENS.includes(currentScreen);
   const [activeOption, setActiveOption] = useState(0);
 
   useEffect(() => {
