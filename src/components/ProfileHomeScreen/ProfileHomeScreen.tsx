@@ -60,6 +60,9 @@ const InnerList = styled(TransitionGroup)<{
   transform: ${({ $translateX }) => `translateX(${$translateX}px)`};
   transition: transform ${translationAnimationDuration}ms ease;
 `;
+type dialDirection = 'left' | 'right' | 'none';
+
+const MAX_PFP_LOADED = 20; // The mechanical encoder has 32 steps per revolution
 
 const PISTON_ON_PURGE_POSITION = 76.8;
 
@@ -82,9 +85,8 @@ export const ProfileHomeScreen = () => {
     mergedProfiles
   } = profileState;
 
-  const [transitionDirection, setTransitionDirection] = useState<
-    'left' | 'right' | 'none'
-  >('none');
+  const [transitionDirection, setTransitionDirection] =
+    useState<dialDirection>('none');
   const [isPressingDown, setIsPressingDown] = useState(false);
   const pressThroughTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -105,6 +107,30 @@ export const ProfileHomeScreen = () => {
       dispatch(setScreen('heating'));
     } else {
       dispatch(setScreen('manual-purge'));
+    }
+  };
+
+  const inDynamicWindow = (
+    index: number,
+    direction: dialDirection
+  ): boolean => {
+    switch (direction) {
+      case 'none':
+        return false;
+      case 'left':
+        return (
+          index >= Math.max(activeOption - 2, 0) &&
+          index <
+            Math.min(
+              activeOption + MAX_PFP_LOADED - 2,
+              mergedProfiles.length - 1
+            )
+        );
+      case 'right':
+        return (
+          index >= Math.max(activeOption - MAX_PFP_LOADED + 2, 0) &&
+          index < Math.min(activeOption + 2, mergedProfiles.length - 1)
+        );
     }
   };
 
@@ -144,7 +170,6 @@ export const ProfileHomeScreen = () => {
       return;
     }
     if (activeOption !== mergedProfiles?.length) {
-      setTransitionDirection('none');
       requestAnimationFrame(() => {
         setTransitionDirection('right');
       });
@@ -158,8 +183,6 @@ export const ProfileHomeScreen = () => {
       return;
     }
     if (activeOption !== 0) {
-      setTransitionDirection('none');
-
       requestAnimationFrame(() => {
         setTransitionDirection('left');
       });
@@ -251,7 +274,8 @@ export const ProfileHomeScreen = () => {
                     zoomedIn={localHoverState}
                   >
                     {/* Only render images in those that are close to the active option */}
-                    {Math.abs(index - activeOption) < 4 && (
+                    {(Math.abs(index - activeOption) < 4 ||
+                      inDynamicWindow(index, transitionDirection)) && (
                       <ProfileImage profile={profile} />
                     )}
                     {profile.isLast && (
