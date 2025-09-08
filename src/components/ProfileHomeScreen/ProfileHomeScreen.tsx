@@ -62,8 +62,6 @@ const InnerList = styled(TransitionGroup)<{
 `;
 type dialDirection = 'left' | 'right' | 'none';
 
-const MAX_PFP_LOADED = 20; // The mechanical encoder has 32 steps per revolution
-
 const PISTON_ON_PURGE_POSITION = 76.8;
 
 export const ProfileHomeScreen = () => {
@@ -89,6 +87,7 @@ export const ProfileHomeScreen = () => {
     useState<dialDirection>('none');
   const [isPressingDown, setIsPressingDown] = useState(false);
   const pressThroughTimer = useRef<NodeJS.Timeout | null>(null);
+  const [unsafeToUnmount, setUnsafeToUnmount] = useState<number[]>([]);
 
   const nodeRefs = useRef<Record<string, Ref<HTMLDivElement>>>({});
   const requiresPurge = useRef<boolean>(false);
@@ -107,30 +106,6 @@ export const ProfileHomeScreen = () => {
       dispatch(setScreen('heating'));
     } else {
       dispatch(setScreen('manual-purge'));
-    }
-  };
-
-  const inDynamicWindow = (
-    index: number,
-    direction: dialDirection
-  ): boolean => {
-    switch (direction) {
-      case 'none':
-        return false;
-      case 'left':
-        return (
-          index >= Math.max(activeOption - 2, 0) &&
-          index <
-            Math.min(
-              activeOption + MAX_PFP_LOADED - 2,
-              mergedProfiles.length - 1
-            )
-        );
-      case 'right':
-        return (
-          index >= Math.max(activeOption - MAX_PFP_LOADED + 2, 0) &&
-          index < Math.min(activeOption + 2, mergedProfiles.length - 1)
-        );
     }
   };
 
@@ -273,10 +248,28 @@ export const ProfileHomeScreen = () => {
                     distanceToActive={index - activeOption}
                     zoomedIn={localHoverState}
                   >
-                    {/* Only render images in those that are close to the active option */}
+                    {/* Only render images in those that are close to the active option 
+                        or are unsafe to remove*/}
+
                     {(Math.abs(index - activeOption) < 4 ||
-                      inDynamicWindow(index, transitionDirection)) && (
-                      <ProfileImage profile={profile} />
+                      unsafeToUnmount.includes(index)) && (
+                      <ProfileImage
+                        profile={profile}
+                        onEnteringViewport={() => {
+                          setUnsafeToUnmount((prev) => {
+                            if (prev.includes(index)) return prev;
+                            return [...prev, index];
+                          });
+                        }}
+                        onExitingViewport={() => {
+                          setUnsafeToUnmount((prev) =>
+                            prev.filter(
+                              (unsafe_index) =>
+                                Math.abs(unsafe_index - activeOption) < 4
+                            )
+                          );
+                        }}
+                      />
                     )}
                     {profile.isLast && (
                       <LastLabel isTemporary={profile.temporary} />
