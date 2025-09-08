@@ -60,6 +60,7 @@ const InnerList = styled(TransitionGroup)<{
   transform: ${({ $translateX }) => `translateX(${$translateX}px)`};
   transition: transform ${translationAnimationDuration}ms ease;
 `;
+type dialDirection = 'left' | 'right' | 'none';
 
 const PISTON_ON_PURGE_POSITION = 76.8;
 
@@ -82,9 +83,8 @@ export const ProfileHomeScreen = () => {
     mergedProfiles
   } = profileState;
 
-  const [transitionDirection, setTransitionDirection] = useState<
-    'left' | 'right' | 'none'
-  >('none');
+  const [transitionDirection, setTransitionDirection] =
+    useState<dialDirection>('none');
   const [isPressingDown, setIsPressingDown] = useState(false);
   const pressThroughTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -250,10 +250,7 @@ export const ProfileHomeScreen = () => {
                     distanceToActive={index - activeOption}
                     zoomedIn={localHoverState}
                   >
-                    {/* Only render images in those that are close to the active option */}
-                    {Math.abs(index - activeOption) < 4 && (
-                      <ProfileImage profile={profile} />
-                    )}
+                    <ProfileImage profile={profile} />
                     {profile.isLast && (
                       <LastLabel isTemporary={profile.temporary} />
                     )}
