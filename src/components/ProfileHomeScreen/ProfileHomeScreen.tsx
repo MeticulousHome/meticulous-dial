@@ -61,7 +61,7 @@ const InnerList = styled(TransitionGroup)<{
   transition: transform ${translationAnimationDuration}ms ease;
 `;
 
-const PISTON_ON_PURGE_POSITION = 76.8;
+const PISTON_ON_PURGE_POSITION = 73; // value gotten from ComplexProfileConverter.head_template on 'prepare' stage
 
 export const ProfileHomeScreen = () => {
   const dispatch = useAppDispatch();
