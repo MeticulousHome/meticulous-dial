@@ -19,6 +19,7 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
   const hasNotifications = useAppSelector(
     notificationSelector.selectHasNotifications
   );
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
 
   const continueBrew = useContinueBrewAction();
 
@@ -38,13 +39,16 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
     }
   }, [stats.name]);
 
-  useHandleGestures({
-    click() {
-      if (stats.name !== 'retracting') {
-        continueBrew();
+  useHandleGestures(
+    {
+      click() {
+        if (stats.name !== 'retracting') {
+          continueBrew();
+        }
       }
-    }
-  });
+    },
+    bubbleDisplay.visible
+  );
 
   return (
     <div className="barometer-container">
