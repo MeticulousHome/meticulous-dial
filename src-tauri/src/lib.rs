@@ -38,6 +38,7 @@ pub fn run() {
             let window = _app.get_webview_window("main").unwrap();
             window.open_devtools();
             window.close_devtools();
+            window.set_decorations(true);
             }
             Ok(())
         })
