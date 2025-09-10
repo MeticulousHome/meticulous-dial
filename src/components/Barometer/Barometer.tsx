@@ -6,6 +6,8 @@ import { setScreen } from '../store/features/screens/screens-slice';
 import { Meter } from './Meter';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
 import { notificationSelector } from '../store/features/notifications/notification-slice';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useContinueBrewAction } from '../store/SocketManager';
 
 export interface IBarometerProps {
   maxValue?: number;
@@ -17,6 +19,8 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
   const hasNotifications = useAppSelector(
     notificationSelector.selectHasNotifications
   );
+
+  const continueBrew = useContinueBrewAction();
 
   useEffect(() => {
     if (
@@ -33,6 +37,14 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
       dispatch(setWaitingForAction(false));
     }
   }, [stats.name]);
+
+  useHandleGestures({
+    click() {
+      if (stats.name !== 'retracting') {
+        continueBrew();
+      }
+    }
+  });
 
   return (
     <div className="barometer-container">
