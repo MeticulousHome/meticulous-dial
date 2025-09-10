@@ -56,6 +56,7 @@ import { Manufacturing } from '../components/Settings/Advanced/Manufacturing';
 import { RetractionSettingGauge } from '../components/Settings/Advanced/RetractionVolume';
 import { useProfileContext } from '../context/ProfileContext';
 import { DisplayAlignment } from '../components/Settings/Advanced/DisplayAlignment';
+import { UnlockScreen } from '../components/UnlockScreen/UnlockScreen';
 interface Route {
   component: ComponentType;
   parentTitle?: string | ((state: RootState) => string) | (() => JSX.Element);
@@ -420,5 +421,10 @@ export const routes: Record<ScreenType, Route> = {
   displayAlignment: {
     component: DisplayAlignment,
     bottomStatusHidden: true
+  },
+  unlock: {
+    component: UnlockScreen,
+    bottomStatusHidden: true,
+    ignoreAsPrevious: true
   }
 };

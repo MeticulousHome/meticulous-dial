@@ -13,6 +13,8 @@ import {
   ProfileUpdate
 } from '@meticulous-home/espresso-api/dist';
 import { IPresetAction, IPresetSetting } from '../types';
+import { useSettings } from '../hooks/useSettings';
+import demoProfile from '../assets/9BarItalian.json';
 
 type ProfileContextType = {
   profileQuery: ReturnType<typeof useProfiles>;
@@ -50,6 +52,7 @@ type ProfileContextType = {
   onProfileEvent: (profile: ProfileUpdate) => void;
   onProfileHover: (type: string, profile_id: string) => void;
   mergedProfiles: ExtendedProfile[];
+  limitedAccess: boolean;
 };
 
 export type ExtendedProfile = Profile & {
@@ -73,6 +76,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     useState<ExtendedProfile | null>(null);
   const { data: profiles } = profileQuery;
   const { data: lastProfile } = useLastProfile();
+  const { data: settings } = useSettings();
   const [localProfileIndex, setLocalProfileIndex] = useState<number>(0);
   const [localProfile, setLocalProfile] = useState<ExtendedProfile | null>(
     null
@@ -89,8 +93,11 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [hasJustHandledProfileEvent, setHasJustHandledProfileEvent] =
     useState(false);
 
+  const limitedAccess = settings?.update_channel === 'factory';
+
   const mergedProfiles = useMemo<ExtendedProfile[]>(() => {
     if (!profiles) return [];
+    if (limitedAccess) return [demoProfile as ExtendedProfile];
 
     const last = lastProfile?.profile;
     if (!last) return profiles;
@@ -122,7 +129,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     //   }
     // ];
     return profilesExtended;
-  }, [profiles, lastProfile?.profile]);
+  }, [profiles, lastProfile?.profile, limitedAccess]);
 
   // If the last profile changes scroll to the last profile
   useEffect(() => {
@@ -251,7 +258,8 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     setProfileStarting,
     onProfileEvent,
     onProfileHover,
-    mergedProfiles
+    mergedProfiles,
+    limitedAccess
   };
 
   return (
