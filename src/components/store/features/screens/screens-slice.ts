@@ -59,7 +59,8 @@ export type ScreenType =
   | 'usbSettings'
   | 'retraction_volume'
   | 'manufacturingSettings'
-  | 'displayAlignment';
+  | 'displayAlignment'
+  | 'unlock';
 
 interface ScreenState {
   value: ScreenType;

@@ -21,6 +21,7 @@ import { LastLabel } from './LastLabel';
 import { useIsOnline } from '../../hooks/useIsOnline';
 import { useSocket } from '../store/SocketManager';
 import { loadProfileData, startProfile } from '../../api/profile';
+import { DownloadIcon } from './DownloadIcon';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -81,7 +82,8 @@ export const ProfileHomeScreen = () => {
     setProfileStarting,
     localHoverState,
     setLocalHoverState,
-    mergedProfiles
+    mergedProfiles,
+    limitedAccess
   } = profileState;
 
   const [transitionDirection, setTransitionDirection] =
@@ -203,6 +205,10 @@ export const ProfileHomeScreen = () => {
         // New profile button
         if (activeOption == mergedProfiles?.length) {
           if (!isOnline) return;
+          if (limitedAccess) {
+            dispatch(setScreen('unlock'));
+            return;
+          }
           dispatch(setScreen('defaultProfiles'));
         } else {
           if (!localHoverState) {
@@ -228,7 +234,6 @@ export const ProfileHomeScreen = () => {
     },
     bubbleDisplay.interceptsGesture || profileStarting
   );
-
   if (!mergedProfiles) {
     return <LoadingScreen />;
   }
@@ -276,17 +281,16 @@ export const ProfileHomeScreen = () => {
             })}
             {/* New button */}
             <ProfileEntry
-              key={'new'}
-              title={'new'}
+              key={'unlock_new'}
+              title={limitedAccess ? 'unlock all features' : 'new'}
               contentClassNames={
-                !localHoverState &&
                 Math.abs(mergedProfiles.length - activeOption) < 2 &&
                 `animation-bounce-${transitionDirection}`
               }
               distanceToActive={mergedProfiles.length - activeOption}
-              zoomedIn={localHoverState}
+              zoomedIn={false}
             >
-              <PlusIcon />
+              {limitedAccess ? <DownloadIcon /> : <PlusIcon />}
             </ProfileEntry>
           </InnerList>
         </Viewport>
