@@ -111,10 +111,24 @@ const ActiveIndicator = styled.div<{ $holdAnimation?: holdAnimationState }>`
       : 'none'};
 `;
 
+const getOsStatusColor = (status: string): string => {
+  switch (status) {
+    case 'complete':
+    case 'downloading':
+    case 'installing':
+      return '#ffc107';
+    case 'failed':
+      return '#f44336';
+    default:
+      return '';
+  }
+};
 const OptionsContainer = styled.div<{
   $translateY: number;
   $isInner?: boolean;
   $bringToFront?: boolean;
+  $osStatus?: string | null;
+  $osInfo?: string | null;
 }>`
   position: absolute;
   width: 100%;
@@ -130,6 +144,62 @@ const OptionsContainer = styled.div<{
   ${({ $isInner }) => ($isInner ? 'color: #000;' : 'color: #565656;')}
   ${({ $isInner }) => $isInner && 'top: 50%; left: 50%;'}
   ${({ $bringToFront }) => ($bringToFront ? 'z-index: 20;' : 'z-index: 10;')}
+
+    ${({ $osStatus, $osInfo }) => {
+    console.log('$osStatus: ', $osStatus);
+    console.log('$osInfo: ', $osInfo);
+
+    return (
+      $osStatus !== null &&
+      `
+       &::before {
+         width: 90%;
+         content: "${$osInfo ? `${$osInfo}` : ''}";
+         text-transform: none;
+         letter-spacing: 2.2px;
+         font-size: 22px;
+         text-align: left;
+         padding: 0 16px;
+         margin-bottom: 16px;
+         height: ${ITEM_HEIGHT}px;
+         justify-content: start;
+         color: ${getOsStatusColor($osStatus)}};
+       }
+     `
+    );
+  }}
+
+  &::after {
+  }
+`;
+
+const QSContainer = styled.div<{
+  $osStatus: string | null;
+  $osInfo: string | null;
+}>`
+  width: 100%;
+
+  ${({ $osStatus, $osInfo }) => {
+    console.log('$osStatus: ', $osStatus);
+    console.log('$osInfo: ', $osInfo);
+
+    return (
+      $osStatus !== null &&
+      `
+       &::before {
+         content: "${$osInfo ? `${$osInfo}` : ''}";
+         text-transform: none;
+       ${({ $osStatus }) => $osStatus === 'complete' && `color: #ffc107`}
+       ${({ $osStatus }) => $osStatus === 'failed' && `color: #f44336`}
+       ${({ $osStatus }) => $osStatus === 'downloading' && `color: #ffc107`}
+       ${({ $osStatus }) => $osStatus === 'installing' && `color: #ffc107`}
+       }
+     `
+    );
+  }}
+
+  &::after {
+  }
 `;
 
 const Option = styled.div<{
@@ -262,5 +332,6 @@ export default {
   OsStatusOption,
   NetworkOption,
   SWVersionOption,
+  QSContainer,
   SelectedOption
 };
