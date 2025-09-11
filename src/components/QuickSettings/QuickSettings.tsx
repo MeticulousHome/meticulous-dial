@@ -92,10 +92,6 @@ const defaultSettings: QuickSettingOption[] = [
   {
     key: 'exit',
     label: 'exit'
-  },
-  {
-    key: 'sw_version',
-    label: 'Version: '
   }
 ];
 
@@ -113,10 +109,6 @@ const inBrewSettings: QuickSettingOption[] = [
   {
     key: 'exit',
     label: 'exit'
-  },
-  {
-    key: 'sw_version',
-    label: 'Version: '
   }
 ];
 
@@ -200,16 +192,6 @@ export function QuickSettings(): JSX.Element {
     }
   };
 
-  const versionVisibleInCurrentMenu: boolean = useMemo(() => {
-    const isVersionPresent = settings.find(
-      (value) => value.key === 'sw_version'
-    );
-    if (isVersionPresent) {
-      return true;
-    }
-    return false;
-  }, [settings]);
-
   useHandleGestures(
     {
       context() {
@@ -225,10 +207,7 @@ export function QuickSettings(): JSX.Element {
         setCounterESGG(0);
       },
       right() {
-        const maxIndexOffset = versionVisibleInCurrentMenu ? 2 : 1;
-        setActiveOption((prev) =>
-          Math.min(prev + 1, settings.length - maxIndexOffset)
-        );
+        setActiveOption((prev) => Math.min(prev + 1, settings.length - 1));
         if (settings[activeOption].key === 'exit') {
           setCounterESGG(counterESGG + 1);
         }
