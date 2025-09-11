@@ -33,7 +33,7 @@ export const EXTRA_MARGIN_AFTER_BORDER = 10;
  */
 export const MARQUEE_MIN_TEXT_LENGTH = 22;
 
-const TOP_MARGIN_FOR_LIST_SEPARATION = 130;
+const TOP_MARGIN_FOR_LIST_SEPARATION = 100;
 
 const SettingsContainer = styled.div`
   display: flex;
@@ -146,15 +146,14 @@ const OptionsContainer = styled.div<{
   ${({ $isInner }) => $isInner && 'top: 50%; left: 50%;'}
   ${({ $bringToFront }) => ($bringToFront ? 'z-index: 20;' : 'z-index: 10;')}
  
-  ${({ $SWVersion }) => {
-    return (
-      $SWVersion &&
-      `
+  ${({ $SWVersion }) =>
+    $SWVersion &&
+    `
         &::after{
           position: relative;
           content: "${$SWVersion}";
           text-transform: none;
-          font-size: 22px;
+          font-size: 20px;
           letter-spacing: 2.2px;
           text-align: left;
           padding: 3px 5px 0px 5px;
@@ -166,19 +165,13 @@ const OptionsContainer = styled.div<{
           font-family: 'ABC Diatype Mono';
           border: 1px solid currentColor;
           border-radius: 4px;
-          right: 35px;
+          right: 58px;
         }
-      `
-    );
-  }}
+      `}
 
-  ${({ $osStatus, $osInfo }) => {
-    console.log('$osStatus: ', $osStatus);
-    console.log('$osInfo: ', $osInfo);
-
-    return (
-      $osStatus &&
-      `
+  ${({ $osStatus, $osInfo }) =>
+    $osStatus &&
+    `
        &::before {
          width: 90%;
          content: "${$osInfo ? `${$osInfo}` : ''}";
@@ -192,9 +185,7 @@ const OptionsContainer = styled.div<{
          justify-content: start;
          color: ${getOsStatusColor($osStatus)}};
        }
-     `
-    );
-  }}
+     `}
 `;
 
 const Option = styled.div<{
