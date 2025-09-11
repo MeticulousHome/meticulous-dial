@@ -15,7 +15,9 @@ import Styled, {
   VIEWPORT_HEIGHT,
   MARQUEE_MIN_TEXT_LENGTH,
   SWVersionMenuAnnotation,
-  MenuAnnotation
+  MenuAnnotation,
+  ITEM_HEIGHT,
+  ITEM_MARGIN
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
 import { formatTime } from '../../utils';
@@ -168,10 +170,6 @@ export function QuickSettings(): JSX.Element {
     !HIDDEN_OS_STATUS_SCREENS.includes(currentScreen);
   const [activeOption, setActiveOption] = useState(0);
 
-  useEffect(() => {
-    setActiveOption(osStatusVisible ? 1 : 0);
-  }, [osStatusVisible]);
-
   const osStatusInfo = useMemo(() => {
     if (osStatusError) {
       return '';
@@ -228,8 +226,7 @@ export function QuickSettings(): JSX.Element {
         );
       },
       left() {
-        const minIndex = osStatusVisible ? 1 : 0;
-        setActiveOption((prev) => Math.max(prev - 1, minIndex));
+        setActiveOption((prev) => Math.max(prev - 1, 0));
         setCounterESGG(0);
       },
       right() {
@@ -387,19 +384,9 @@ export function QuickSettings(): JSX.Element {
 
     const backAvailable = !!routes[currentScreen].parent;
 
-    const osStatusSettingOption: QuickSettingOption | null = osStatusVisible
-      ? {
-          key: 'os_update',
-          label: osStatusInfo,
-          isStatusInfo: true,
-          status: osStatusData.status.toLowerCase()
-        }
-      : null;
-
     switch (currentScreen) {
       case 'defaultProfiles':
         setSettings([
-          ...(osStatusSettingOption ? [osStatusSettingOption] : []),
           ...(defaultProfileSelectedForDetails
             ? [{ key: 'details', label: 'Show details' }]
             : []),
@@ -424,7 +411,6 @@ export function QuickSettings(): JSX.Element {
             ? context.filter((c) => c.key !== 'delete')
             : context;
           setSettings([
-            ...(osStatusSettingOption ? [osStatusSettingOption] : []),
             ...(requiresProfileContext ? newContext : []),
             ...(backAvailable ? [prevScreenSetting] : []),
             ...defaultSettings
@@ -445,6 +431,8 @@ export function QuickSettings(): JSX.Element {
     () =>
       calculateOptionPosition({
         activeOptionIdx: activeOption,
+        adjustmentFn: (position) =>
+          osStatusVisible ? position - (ITEM_HEIGHT + ITEM_MARGIN) : position,
         settings
       }),
     [activeOption, settings]
@@ -454,7 +442,10 @@ export function QuickSettings(): JSX.Element {
     () =>
       calculateOptionPosition({
         activeOptionIdx: activeOption,
-        adjustmentFn: (position) => position - VIEWPORT_HEIGHT / 2,
+        adjustmentFn: (position) =>
+          osStatusVisible
+            ? position - (ITEM_HEIGHT + ITEM_MARGIN + VIEWPORT_HEIGHT / 2)
+            : position - VIEWPORT_HEIGHT / 2,
         settings
       }),
     [activeOption, settings]
@@ -469,23 +460,15 @@ export function QuickSettings(): JSX.Element {
   );
   return (
     <Styled.SettingsContainer>
-      <Styled.Viewport>
+      <Styled.Viewport className="Viewport">
         <Styled.OptionsContainer
           $translateY={optionPositionOutter}
           $bringToFront={holdAnimation === 'running'}
+          $osStatus={osStatusVisible ? osStatusData.status.toLowerCase() : null}
+          $osInfo={osStatusVisible ? osStatusInfo : null}
         >
           {settings.map((option) => {
             switch (option.key) {
-              case 'os_update':
-                return (
-                  <Styled.OsStatusOption
-                    key={option.key}
-                    $status={option.status}
-                    $hasSeparator={option.hasSeparator}
-                  >
-                    <span>{option.label}</span>
-                  </Styled.OsStatusOption>
-                );
               case 'sw_version':
                 return (
                   <Styled.SWVersionOption>
@@ -517,19 +500,13 @@ export function QuickSettings(): JSX.Element {
           <Styled.OptionsContainer
             $translateY={optionPositionInner}
             $isInner={true}
+            $osStatus={
+              osStatusVisible ? osStatusData.status.toLowerCase() : null
+            }
+            $osInfo={osStatusVisible ? osStatusInfo : null}
           >
             {settings.map((option, index) => {
               switch (option.key) {
-                case 'os_update':
-                  return (
-                    <Styled.OsStatusOption
-                      key={option.key}
-                      $status={option.status}
-                      $hasSeparator={option.hasSeparator}
-                    >
-                      <span>{option.label}</span>
-                    </Styled.OsStatusOption>
-                  );
                 case 'sw_version':
                   return <></>;
                 default:
