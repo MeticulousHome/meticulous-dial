@@ -14,7 +14,6 @@ import { routes } from '../../navigation/routes';
 import Styled, {
   VIEWPORT_HEIGHT,
   MARQUEE_MIN_TEXT_LENGTH,
-  SWVersionMenuAnnotation,
   MenuAnnotation,
   ITEM_HEIGHT,
   ITEM_MARGIN
@@ -445,34 +444,20 @@ export function QuickSettings(): JSX.Element {
           $bringToFront={holdAnimation === 'running'}
           $osStatus={osStatusVisible ? osStatusData.status.toLowerCase() : null}
           $osInfo={osStatusVisible ? osStatusInfo : null}
+          $SWVersion={`${!isPending ? deviceInfo.software_version : 'loading ...'}`}
         >
-          {settings.map((option) => {
-            switch (option.key) {
-              case 'sw_version':
-                return (
-                  <Styled.SWVersionOption>
-                    <SWVersionMenuAnnotation>
-                      {`${!isPending ? deviceInfo.software_version : 'loading ...'}`}
-                    </SWVersionMenuAnnotation>
-                  </Styled.SWVersionOption>
-                );
-              default:
-                return (
-                  <Styled.Option
-                    key={option.key}
-                    $hasSeparator={option.hasSeparator}
-                    $isAnimating={
-                      holdAnimation === 'running' && option.longpress
-                    }
-                    onAnimationEnd={handleAnimationEnd}
-                  >
-                    <span>
-                      {option.key === 'preheat' ? preheatTimer : option.label}
-                    </span>
-                  </Styled.Option>
-                );
-            }
-          })}
+          {settings.map((option) => (
+            <Styled.Option
+              key={option.key}
+              $hasSeparator={option.hasSeparator}
+              $isAnimating={holdAnimation === 'running' && option.longpress}
+              onAnimationEnd={handleAnimationEnd}
+            >
+              <span>
+                {option.key === 'preheat' ? preheatTimer : option.label}
+              </span>
+            </Styled.Option>
+          ))}
         </Styled.OptionsContainer>
 
         <Styled.ActiveIndicator $holdAnimation={holdAnimation}>
@@ -484,31 +469,22 @@ export function QuickSettings(): JSX.Element {
             }
             $osInfo={osStatusVisible ? osStatusInfo : null}
           >
-            {settings.map((option, index) => {
-              switch (option.key) {
-                case 'sw_version':
-                  return <></>;
-                default:
-                  return (
-                    <Styled.Option
-                      key={option.key}
-                      $hasSeparator={option.hasSeparator}
-                      $isMarquee={
-                        activeOption === index &&
-                        option.label.length > MARQUEE_MIN_TEXT_LENGTH
-                      }
-                      $isMultiItem={option.longpress}
-                    >
-                      <span>
-                        {option.key === 'preheat' ? preheatTimer : option.label}
-                      </span>
-                      {option.longpress && (
-                        <MenuAnnotation>HOLD</MenuAnnotation>
-                      )}
-                    </Styled.Option>
-                  );
-              }
-            })}
+            {settings.map((option, index) => (
+              <Styled.Option
+                key={option.key}
+                $hasSeparator={option.hasSeparator}
+                $isMarquee={
+                  activeOption === index &&
+                  option.label.length > MARQUEE_MIN_TEXT_LENGTH
+                }
+                $isMultiItem={option.longpress}
+              >
+                <span>
+                  {option.key === 'preheat' ? preheatTimer : option.label}
+                </span>
+                {option.longpress && <MenuAnnotation>HOLD</MenuAnnotation>}
+              </Styled.Option>
+            ))}
           </Styled.OptionsContainer>
         </Styled.ActiveIndicator>
       </Styled.Viewport>
