@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import './barometer.css';
 import { formatStatValue } from '../../utils';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -8,6 +8,7 @@ import { setWaitingForAction } from '../store/features/stats/stats-slice';
 import { notificationSelector } from '../store/features/notifications/notification-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useContinueBrewAction } from '../store/SocketManager';
+import { SkipOverIcon } from '../SkipOverIcon/SkipOverIcon';
 
 export interface IBarometerProps {
   maxValue?: number;
@@ -20,6 +21,7 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
     notificationSelector.selectHasNotifications
   );
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const [isHolding, setIsHolding] = useState(false);
 
   const continueBrew = useContinueBrewAction();
 
@@ -37,14 +39,18 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
     if (stats.name !== 'idle') {
       dispatch(setWaitingForAction(false));
     }
+    setIsHolding(false);
   }, [stats.name]);
 
   useHandleGestures(
     {
-      click() {
+      pressDown() {
         if (stats.name !== 'retracting') {
-          continueBrew();
+          setIsHolding(true);
         }
+      },
+      pressUp() {
+        setIsHolding(false);
       }
     },
     bubbleDisplay.visible
@@ -100,6 +106,15 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
         </div>
 
         <div className="bar-needle__status">{stats.name}</div>
+        <SkipOverIcon
+          isAnimating={isHolding}
+          onFinish={() => {
+            if (stats.name !== 'retracting') {
+              console.log('Skipping stage');
+              continueBrew();
+            }
+          }}
+        />
       </div>
     </div>
   );
