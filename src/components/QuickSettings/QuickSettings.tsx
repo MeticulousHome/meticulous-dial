@@ -7,7 +7,7 @@ import {
   setBubbleDisplay,
   setScreen
 } from '../store/features/screens/screens-slice';
-import { useContinueBrewAction, useSocket } from '../store/SocketManager';
+import { useSocket } from '../store/SocketManager';
 
 import { useOSStatus, useDeviceInfo } from '../../hooks/useDeviceOSStatus';
 import { routes } from '../../navigation/routes';
@@ -96,10 +96,6 @@ const defaultSettings: QuickSettingOption[] = [
 
 const inBrewSettings: QuickSettingOption[] = [
   {
-    key: 'skip_step',
-    label: 'Skip this step'
-  },
-  {
     key: 'abort_brew',
     label: 'Abort Brew',
     longpress: true,
@@ -119,7 +115,6 @@ export type holdAnimationState = 'stopped' | 'running' | 'finished';
 
 export function QuickSettings(): JSX.Element {
   const socket = useSocket();
-  const skipStep = useContinueBrewAction();
   const dispatch = useAppDispatch();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
 
@@ -333,15 +328,6 @@ export function QuickSettings(): JSX.Element {
           }
 
           case 'exit': {
-            dispatch(
-              setBubbleDisplay({ visible: false, component: undefined })
-            );
-            break;
-          }
-
-          // In Brew Settings
-          case 'skip_step': {
-            skipStep();
             dispatch(
               setBubbleDisplay({ visible: false, component: undefined })
             );

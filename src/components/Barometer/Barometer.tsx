@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import './barometer.css';
 import { formatStatValue } from '../../utils';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -6,6 +6,9 @@ import { setScreen } from '../store/features/screens/screens-slice';
 import { Meter } from './Meter';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
 import { notificationSelector } from '../store/features/notifications/notification-slice';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useContinueBrewAction } from '../store/SocketManager';
+import { SkipOverIcon } from '../SkipOverIcon/SkipOverIcon';
 
 export interface IBarometerProps {
   maxValue?: number;
@@ -17,6 +20,10 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
   const hasNotifications = useAppSelector(
     notificationSelector.selectHasNotifications
   );
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const [isHolding, setIsHolding] = useState(false);
+
+  const continueBrew = useContinueBrewAction();
 
   useEffect(() => {
     if (
@@ -32,7 +39,22 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
     if (stats.name !== 'idle') {
       dispatch(setWaitingForAction(false));
     }
+    setIsHolding(false);
   }, [stats.name]);
+
+  useHandleGestures(
+    {
+      pressDown() {
+        if (stats.name !== 'retracting') {
+          setIsHolding(true);
+        }
+      },
+      pressUp() {
+        setIsHolding(false);
+      }
+    },
+    bubbleDisplay.visible
+  );
 
   return (
     <div className="barometer-container">
@@ -84,6 +106,15 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
         </div>
 
         <div className="bar-needle__status">{stats.name}</div>
+        <SkipOverIcon
+          isAnimating={isHolding}
+          onFinish={() => {
+            if (stats.name !== 'retracting') {
+              console.log('Skipping stage');
+              continueBrew();
+            }
+          }}
+        />
       </div>
     </div>
   );
