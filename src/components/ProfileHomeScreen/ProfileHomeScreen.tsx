@@ -20,6 +20,7 @@ import { PlusIcon } from './PlusIcon';
 import { LastLabel } from './LastLabel';
 import { useIsOnline } from '../../hooks/useIsOnline';
 import { useSocket } from '../store/SocketManager';
+import { loadProfileData, startProfile } from '../../api/profile';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -100,7 +101,20 @@ export const ProfileHomeScreen = () => {
   };
 
   const animationFinished = async () => {
+    const loadAndStartProfile = async () => {
+      const profile = mergedProfiles?.[activeOption];
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { isLast, temporary, ...cleanProfile } = profile;
+      const data = await loadProfileData(cleanProfile);
+
+      if (data) {
+        await startProfile();
+      }
+    };
+
     setProfileStarting(true);
+    loadAndStartProfile();
     if (!requiresPurge.current) {
       dispatch(setScreen('heating'));
     } else {

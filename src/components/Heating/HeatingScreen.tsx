@@ -20,7 +20,6 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { OptionsMenu } from './OptionsMenu';
 import { useContinueBrewAction } from '../store/SocketManager';
 import { useProfileContext } from '../../context/ProfileContext';
-import { loadProfileData, startProfile } from '../../api/profile';
 
 const PushToStartLabel = styled.div`
   font-size: 20px;
@@ -68,16 +67,10 @@ const transitionDuration = 600;
 
 export const HeatingScreen = () => {
   const dispatch = useAppDispatch();
-  const {
-    lastProfile,
-    mergedProfiles,
-    localProfileIndex: activeProfile,
-    profileStarting
-  } = useProfileContext();
+  const { lastProfile, profileStarting } = useProfileContext();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const continueBrew = useContinueBrewAction();
   const waterStatus = useAppSelector((state) => state.stats.waterStatus);
-  const prevScreen = useAppSelector((state) => state.screen.prev);
   const temperature =
     useAppSelector((state) => Math.round(state.stats.sensors.t)) || 0;
   const hasNotifications = useAppSelector(
@@ -94,27 +87,6 @@ export const HeatingScreen = () => {
   const [temperatureTarget, setTemperatureTarget] = useState(
     temperatureTargetStatus || 0
   );
-
-  // send the profile and start it only when coming from profileHome and
-  // the profileStarting flag is set
-
-  useEffect(() => {
-    const loadAndStartProfile = async () => {
-      const profile = mergedProfiles?.[activeProfile];
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { isLast, temporary, ...cleanProfile } = profile;
-      const data = await loadProfileData(cleanProfile);
-
-      if (data) {
-        await startProfile();
-      }
-    };
-
-    if (prevScreen === 'profileHome' && profileStarting) {
-      loadAndStartProfile();
-    }
-  }, []);
 
   useEffect(() => {
     if (lastProfile && lastProfile.profile && temperatureTarget == 0) {
