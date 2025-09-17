@@ -84,7 +84,7 @@ export const IdleScreenSetting = () => {
         }
       }
     },
-    !bubbleDisplay.visible
+    !bubbleDisplay.interceptsGesture
   );
 
   const optionPositionOutter = useMemo(

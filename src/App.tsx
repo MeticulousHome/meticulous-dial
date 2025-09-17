@@ -75,7 +75,7 @@ const App = (): JSX.Element => {
         );
       }
     },
-    isExtracting || bubbleDisplay.visible
+    isExtracting || bubbleDisplay.interceptsGesture
   );
 
   const [isScaleVisible, setIsScaleVisible] = useState<boolean>(false);

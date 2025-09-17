@@ -76,7 +76,7 @@ export default function TimeZoneSettings() {
         }
       }
     },
-    bubbleDisplay.visible
+    bubbleDisplay.interceptsGesture
   );
   return (
     <Container>

@@ -93,7 +93,7 @@ export const DeviceInfoScreen = () => {
         }
       }
     },
-    !bubbleDisplay.visible
+    !bubbleDisplay.interceptsGesture
   );
   const optionPositionOutter = useMemo(
     () =>

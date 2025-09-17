@@ -210,7 +210,7 @@ export const ProfileHomeScreen = () => {
         setIsPressingDown(false);
       }
     },
-    bubbleDisplay.visible || profileStarting
+    bubbleDisplay.interceptsGesture || profileStarting
   );
 
   if (!mergedProfiles) {

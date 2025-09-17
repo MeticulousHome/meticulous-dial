@@ -108,7 +108,7 @@ export function TimeConfig(): JSX.Element {
         dispatch(setBubbleDisplay({ visible: true, component: 'timeDate' }));
       }
     },
-    !bubbleDisplay.visible
+    !bubbleDisplay.interceptsGesture
   );
 
   return (

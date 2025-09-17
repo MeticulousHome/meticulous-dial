@@ -301,7 +301,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         }
       }
     },
-    bubbleDisplay.visible
+    bubbleDisplay.interceptsGesture
   );
 
   const toUpperOrLowerCase = (

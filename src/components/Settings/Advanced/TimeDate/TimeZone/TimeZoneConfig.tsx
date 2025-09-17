@@ -103,7 +103,7 @@ export const TimeZoneConfig = () => {
         }
       }
     },
-    !bubbleDisplay.visible
+    !bubbleDisplay.interceptsGesture
   );
 
   const optionPositionOutter = useMemo(

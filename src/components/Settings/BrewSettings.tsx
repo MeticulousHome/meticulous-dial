@@ -124,7 +124,7 @@ export function BrewSettings(): JSX.Element {
         }
       }
     },
-    !bubbleDisplay.visible
+    !bubbleDisplay.interceptsGesture
   );
 
   const optionPositionOutter = useMemo(

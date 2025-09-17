@@ -70,7 +70,7 @@ export const FactoryReset = () => {
         }
       }
     },
-    !bubbleDisplay.visible
+    !bubbleDisplay.interceptsGesture
   );
 
   const optionPositionOutter = useMemo(

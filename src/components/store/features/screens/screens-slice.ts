@@ -64,6 +64,7 @@ interface ScreenState {
   value: ScreenType;
   prev?: ScreenType;
   bubbleDisplay: {
+    interceptsGesture: boolean;
     visible: boolean;
     component?: ScreenType;
     previousComponent?: ScreenType;
@@ -73,6 +74,7 @@ interface ScreenState {
 const initialState: ScreenState = {
   prev: undefined,
   bubbleDisplay: {
+    interceptsGesture: false,
     visible: false,
     component: undefined,
     previousComponent: undefined
@@ -94,11 +96,17 @@ const screenSlice = createSlice({
     },
     setBubbleDisplay: (
       state: ScreenState,
-      action: PayloadAction<{ visible: boolean; component?: ScreenType }>
+      action: PayloadAction<{
+        visible: boolean;
+        component?: ScreenType;
+        interceptsGesture?: boolean;
+      }>
     ) => {
       state.bubbleDisplay.visible = action.payload.visible;
       state.bubbleDisplay.previousComponent = state.bubbleDisplay.component;
       state.bubbleDisplay.component = action.payload.component;
+      state.bubbleDisplay.interceptsGesture =
+        action.payload.interceptsGesture || action.payload.visible;
     }
   }
 });

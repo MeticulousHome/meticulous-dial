@@ -184,7 +184,7 @@ export function PressetSettings(): JSX.Element {
         }
       }
     },
-    bubbleDisplay.visible
+    bubbleDisplay.interceptsGesture
   );
 
   return (
