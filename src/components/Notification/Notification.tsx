@@ -66,7 +66,7 @@ export function Notification(): JSX.Element {
         }
       }
     },
-    bubbleDisplay.visible
+    bubbleDisplay.interceptsGesture
   );
 
   if (!currentNotification) {

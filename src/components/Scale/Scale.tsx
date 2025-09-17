@@ -207,7 +207,7 @@ export const Scale = memo(
           closeScale();
         }
       },
-      isExtracting || bubbleDisplay.visible
+      isExtracting || bubbleDisplay.interceptsGesture
     );
 
     useEffect(() => {

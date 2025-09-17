@@ -108,7 +108,7 @@ export function TimeDate(): JSX.Element {
         }
       }
     },
-    !bubbleDisplay.visible
+    !bubbleDisplay.interceptsGesture
   );
 
   const optionPositionOutter = useMemo(

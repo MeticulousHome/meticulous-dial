@@ -43,7 +43,7 @@ export const HeatTimeoutAfterShot: React.FC = () => {
         );
       }
     },
-    bubbleDisplay.visible
+    bubbleDisplay.interceptsGesture
   );
 
   return (

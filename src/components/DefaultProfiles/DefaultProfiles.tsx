@@ -110,7 +110,7 @@ export const DefaultProfiles = ({ transitioning }: RouteProps): JSX.Element => {
         setActiveIndex(next);
       }
     },
-    bubbleDisplay.visible
+    bubbleDisplay.interceptsGesture
   );
 
   useEffect(() => {

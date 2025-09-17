@@ -63,7 +63,7 @@ export default function CountrySettings() {
         }
       }
     },
-    bubbleDisplay.visible
+    bubbleDisplay.interceptsGesture
   );
 
   return (

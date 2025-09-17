@@ -212,7 +212,7 @@ export const HeatingScreen = () => {
         }
       }
     },
-    bubbleDisplay.visible
+    bubbleDisplay.interceptsGesture
   );
 
   return (

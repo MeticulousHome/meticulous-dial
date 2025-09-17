@@ -49,7 +49,7 @@ export function OnOff({ type }: Props): JSX.Element {
         dispatch(setScreen('pressetSettings'));
       }
     },
-    bubbleDisplay.visible
+    bubbleDisplay.interceptsGesture
   );
 
   return (

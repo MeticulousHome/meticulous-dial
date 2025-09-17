@@ -90,7 +90,7 @@ export function ScrollDirectionSettings(): JSX.Element {
         }
       }
     },
-    !bubbleDisplay.visible
+    !bubbleDisplay.interceptsGesture
   );
 
   const optionPositionOutter = useMemo(

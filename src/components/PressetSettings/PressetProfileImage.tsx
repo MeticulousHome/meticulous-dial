@@ -81,7 +81,7 @@ export const PressetProfileImage = ({ transitioning }: RouteProps) => {
         }
       }
     },
-    bubbleDisplay.visible
+    bubbleDisplay.interceptsGesture
   );
 
   useEffect(() => {

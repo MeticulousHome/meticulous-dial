@@ -144,7 +144,7 @@ export const ShotGraph = ({
         );
       }
     },
-    bubbleDisplay.visible || isStatic
+    bubbleDisplay.interceptsGesture || isStatic
   );
 
   useEffect(() => {
@@ -290,7 +290,7 @@ export const ShotGraphScreen = () => {
         dispatch(setScreen('profileHome'));
       }
     },
-    bubbleDisplay.visible
+    bubbleDisplay.interceptsGesture
   );
 
   return <ShotGraph profile={activeProfile} />;

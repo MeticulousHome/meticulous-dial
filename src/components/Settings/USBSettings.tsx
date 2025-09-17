@@ -103,7 +103,7 @@ export const USBSettings = () => {
         }
       }
     },
-    !bubbleDisplay.visible
+    !bubbleDisplay.interceptsGesture
   );
 
   if (!globalSettings) {

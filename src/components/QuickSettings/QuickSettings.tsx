@@ -333,8 +333,20 @@ export function QuickSettings(): JSX.Element {
           }
 
           case 'exit': {
+            setTimeout(() => {
+              setBubbleDisplay({
+                visible: false,
+                component: undefined,
+                interceptsGesture: false
+              });
+            }, 100);
+
             dispatch(
-              setBubbleDisplay({ visible: false, component: undefined })
+              setBubbleDisplay({
+                visible: false,
+                component: undefined,
+                interceptsGesture: true
+              })
             );
             break;
           }
@@ -343,7 +355,10 @@ export function QuickSettings(): JSX.Element {
           case 'skip_step': {
             skipStep();
             dispatch(
-              setBubbleDisplay({ visible: false, component: undefined })
+              setBubbleDisplay({
+                visible: false,
+                component: undefined
+              })
             );
             break;
           }
@@ -351,7 +366,7 @@ export function QuickSettings(): JSX.Element {
         }
       }
     },
-    !bubbleDisplay.visible
+    !bubbleDisplay.interceptsGesture
   );
 
   const requiresProfileContext: boolean =

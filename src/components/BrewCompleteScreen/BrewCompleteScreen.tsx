@@ -109,7 +109,7 @@ export const BrewCompleteScreen = () => {
         setKeepGraph(true);
       }
     },
-    bubbleDisplay.visible
+    bubbleDisplay.interceptsGesture
   );
 
   const stateLabel =
