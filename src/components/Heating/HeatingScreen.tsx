@@ -206,7 +206,7 @@ export const HeatingScreen = () => {
           classNames="fade-options"
         >
           <OptionsMenu
-            ignoreGestures={heatingFinished}
+            ignoreGestures={heatingFinished || bubbleDisplay.interceptsGesture}
             onOptionChange={onOptionChange}
             onOptionHold={onOptionHold}
           />
