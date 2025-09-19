@@ -545,7 +545,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       <svg height="390" width="390">
         <svg viewBox="0 0 100 100">
           <g
-            transform={`translate(50 50) rotate(${rotate})`}
+            style={{ transform: `translate(50px, 50px) rotate(${rotate}deg)` }}
             dominantBaseline="text-bottom"
             textAnchor="middle"
             textLength="120%"
