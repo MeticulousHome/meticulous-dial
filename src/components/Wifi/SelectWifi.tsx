@@ -44,7 +44,7 @@ export const SelectWifi = (): JSX.Element => {
     pressDown() {
       if (wifiList[activeIndex].key === 'back') {
         dispatch(
-          setBubbleDisplay({ visible: true, component: 'connectWifiMenu' })
+          setBubbleDisplay({ visible: true, component: 'wifiSettings' })
         );
       } else {
         dispatch(setBubbleDisplay({ visible: false, component: undefined }));
