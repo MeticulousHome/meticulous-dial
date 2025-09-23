@@ -149,7 +149,7 @@ export const WifiSettings = (): JSX.Element => {
           }
           case 'connect_new_network': {
             dispatch(
-              setBubbleDisplay({ visible: true, component: 'connectWifiMenu' })
+              setBubbleDisplay({ visible: true, component: 'selectWifi' })
             );
             break;
           }
