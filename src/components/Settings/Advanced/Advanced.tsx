@@ -9,7 +9,10 @@ import {
   useRootPassword
 } from '../../../hooks/useSettings';
 import { useManufacturingSchema } from '../../../hooks/useManufacturing';
-import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
+import {
+  setBubbleDisplay,
+  setScreen
+} from '../../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useDeviceInfo } from '../../../hooks/useDeviceOSStatus';
 import Styled, {
@@ -35,6 +38,11 @@ const initialSettings: SettingsItem[] = [
   {
     key: 'master_calibration',
     label: 'ACAIA master calibration',
+    visible: true
+  },
+  {
+    key: 'displayAlignment',
+    label: 'Display Alignment Screen',
     visible: true
   },
   {
@@ -198,6 +206,15 @@ export const AdvancedSettings = () => {
                 component: 'manufacturingSettings'
               })
             );
+            break;
+          case 'displayAlignment':
+            dispatch(
+              setBubbleDisplay({
+                visible: false,
+                component: null
+              })
+            );
+            dispatch(setScreen('displayAlignment'));
             break;
           case 'back':
             dispatch(

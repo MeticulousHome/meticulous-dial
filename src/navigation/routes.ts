@@ -55,6 +55,7 @@ import { FactoryReset } from '../components/Settings/Advanced/FactoryReset';
 import { Manufacturing } from '../components/Settings/Advanced/Manufacturing';
 import { RetractionSettingGauge } from '../components/Settings/Advanced/RetractionVolume';
 import { useProfileContext } from '../context/ProfileContext';
+import { DisplayAlignment } from '../components/Settings/Advanced/DisplayAlignment';
 interface Route {
   component: ComponentType;
   parentTitle?: string | ((state: RootState) => string) | (() => JSX.Element);
@@ -414,6 +415,10 @@ export const routes: Record<ScreenType, Route> = {
   },
   factoryReset: {
     component: FactoryReset,
+    bottomStatusHidden: true
+  },
+  displayAlignment: {
+    component: DisplayAlignment,
     bottomStatusHidden: true
   }
 };
