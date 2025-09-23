@@ -459,7 +459,7 @@ export function QuickSettings(): JSX.Element {
           $bringToFront={holdAnimation === 'running'}
           $osStatus={osStatusVisible ? osStatusData.status.toLowerCase() : null}
           $osInfo={osStatusVisible ? osStatusInfo : null}
-          $SWVersion={`${!isPending ? deviceInfo.software_version : 'loading ...'}`}
+          $SWVersion={`${!isPending ? deviceInfo.image_version : 'loading ...'}`}
         >
           {settings.map((option) => (
             <Styled.Option
