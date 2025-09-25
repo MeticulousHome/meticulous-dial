@@ -13,11 +13,14 @@ import { useRef, useState, useEffect, memo } from 'react';
 import { RootState } from '../store/store';
 import { useStore } from 'react-redux';
 import { useSocket } from '../store/SocketManager';
+import { ScreenType } from '../store/features/screens/screens-slice';
 
 export interface scaleState {
   status: 'closed_cold' | 'closed_hot' | 'open';
   size: 'small' | 'full' | undefined;
 }
+
+const noScalePopUpScreens: ScreenType[] = ['calibrateScale'];
 
 const Weight = () => {
   const weight = useAppSelector((state) => state.stats.sensors.w || 0);
@@ -63,6 +66,8 @@ export const Scale = memo(
     const store = useStore<RootState>();
     const isExtracting = useAppSelector((state) => state.stats?.extracting);
     const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+    const currentScreen = useAppSelector((state) => state.screen.value);
+
     const socket = useSocket();
 
     const coolDownTimeMS = 1 * 60 * 1000; // 1 minute
@@ -207,7 +212,20 @@ export const Scale = memo(
           closeScale();
         }
       },
-      isExtracting || bubbleDisplay.interceptsGesture
+      isExtracting ||
+        bubbleDisplay.interceptsGesture ||
+        noScalePopUpScreens.includes(currentScreen)
+    );
+
+    useHandleGestures(
+      {
+        tareDown() {
+          socket.emit('action', 'tare');
+        }
+      },
+      isExtracting ||
+        bubbleDisplay.interceptsGesture ||
+        !noScalePopUpScreens.includes(currentScreen)
     );
 
     useEffect(() => {
