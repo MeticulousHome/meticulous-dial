@@ -196,7 +196,8 @@ const keyDownGestureMap: Record<string, GestureType> = {
   ArrowRight: 'right',
   Space: 'pressDown',
   Enter: 'context',
-  KeyT: 'tareUp',
+  KeyZ: 'tareUp',
+  KeyR: 'tareDown',
   KeyS: 'longTare',
   KeyE: 'longEncoder',
   KeyD: 'doubleTare',
@@ -207,7 +208,7 @@ const keyDownGestureMap: Record<string, GestureType> = {
 
 const keyUpGestureMap: Record<string, GestureType[]> = {
   Space: ['pressUp', 'click'],
-  KeyT: ['tareDown', 'singleTare']
+  KeyT: ['singleTare']
 };
 
 export const useSocketKeyboardListeners = () => {
