@@ -78,9 +78,11 @@ const App = (): JSX.Element => {
     isExtracting || bubbleDisplay.interceptsGesture
   );
 
-  const [isScaleVisible, setIsScaleVisible] = useState<boolean>(false);
+  const [isScaleVisible, setIsScaleVisible] = useState<
+    'small' | 'full' | 'closed'
+  >('closed');
 
-  const updateScaleVisibility = (new_state: boolean) => {
+  const updateScaleVisibility = (new_state: 'small' | 'full' | 'closed') => {
     setIsScaleVisible(new_state);
   };
 
@@ -94,7 +96,7 @@ const App = (): JSX.Element => {
           <ProfileProvider>
             <SocketManager>
               {/* Mark router as not visible when scale is overlaid to avoid gesture handlers firing */}
-              <VisibilityProvider value={!isScaleVisible}>
+              <VisibilityProvider value={isScaleVisible !== 'full'}>
                 <Router
                   currentScreen={screen.value}
                   previousScreen={screen.prev}

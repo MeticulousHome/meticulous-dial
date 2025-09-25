@@ -58,7 +58,7 @@ export const Scale = memo(
   ({
     updateScaleVisibility
   }: {
-    updateScaleVisibility: (new_state: boolean) => void;
+    updateScaleVisibility: (new_state: 'small' | 'full' | 'closed') => void;
   }) => {
     const store = useStore<RootState>();
     const isExtracting = useAppSelector((state) => state.stats?.extracting);
@@ -138,7 +138,9 @@ export const Scale = memo(
 
     useEffect(() => {
       const hide_timer = scaleState.size === 'small' ? 10000 : 2 * 60 * 10000;
-      updateScaleVisibility(scaleState.status === 'open');
+      updateScaleVisibility(
+        scaleState.status === 'open' ? scaleState.size : 'closed'
+      );
 
       const scheduleHide = () => setTimeout(() => closeScale(), hide_timer);
       scaleHideTimer.current = scheduleHide();
@@ -161,6 +163,9 @@ export const Scale = memo(
 
     useHandleGestures(
       {
+        pressDown() {
+          closeScale();
+        },
         tareDown() {
           if (scaleHideTimer.current) {
             clearTimeout(scaleHideTimer.current);
