@@ -122,6 +122,8 @@ export const ProfileHomeScreen = () => {
     }
   };
 
+  const lockMovement = useRef<boolean>(false);
+
   useEffect(() => {
     socket.on('sensors', (data: { m_pos: number }) => {
       if (data.m_pos < PISTON_ON_PURGE_POSITION) {
@@ -184,6 +186,7 @@ export const ProfileHomeScreen = () => {
   useHandleGestures(
     {
       left() {
+        if (lockMovement.current) return;
         if (globalSettings?.reverse_scrolling.home) {
           rotateRight();
         } else {
@@ -191,6 +194,7 @@ export const ProfileHomeScreen = () => {
         }
       },
       right() {
+        if (lockMovement.current) return;
         if (globalSettings?.reverse_scrolling.home) {
           rotateLeft();
         } else {
@@ -199,6 +203,7 @@ export const ProfileHomeScreen = () => {
       },
       pressDown() {
         // New profile button
+        lockMovement.current = true;
         if (activeOption == mergedProfiles?.length) {
           if (!isOnline) return;
           dispatch(setScreen('defaultProfiles'));
@@ -217,6 +222,7 @@ export const ProfileHomeScreen = () => {
         }
       },
       pressUp() {
+        lockMovement.current = false;
         if (pressThroughTimer.current) {
           clearTimeout(pressThroughTimer.current);
           pressThroughTimer.current = null;
