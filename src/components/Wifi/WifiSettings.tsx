@@ -25,7 +25,10 @@ export const WifiSettings = (): JSX.Element => {
   const updateNetworkConfigMutation = useUpdateNetworkConfig();
 
   useEffect(() => {
-    refetch();
+    const refetchInterval = setInterval(() => {
+      refetch();
+    }, 500);
+    return () => clearInterval(refetchInterval);
   }, [updateNetworkConfigMutation.status]);
 
   useEffect(() => {
