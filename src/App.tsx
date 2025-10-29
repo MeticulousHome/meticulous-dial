@@ -22,6 +22,8 @@ import { ProfileProvider } from './context/ProfileContext';
 import { invoke } from '@tauri-apps/api/core';
 import './globals.css';
 
+import { warn, debug, trace, info, error } from '@tauri-apps/plugin-log';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -110,6 +112,24 @@ const App = (): JSX.Element => {
     </QueryClientProvider>
   );
 };
+
+// redirect console messages to the tauri log targets
+function forwardConsole(
+  fnName: 'log' | 'debug' | 'info' | 'warn' | 'error',
+  logger: (message: string) => Promise<void>
+) {
+  const original = console[fnName];
+  console[fnName] = (message) => {
+    original(message);
+    logger(message);
+  };
+}
+
+forwardConsole('log', trace);
+forwardConsole('debug', debug);
+forwardConsole('info', info);
+forwardConsole('warn', warn);
+forwardConsole('error', error);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

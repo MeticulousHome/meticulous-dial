@@ -42,6 +42,10 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_log::Builder::new()                                                    // Add logging to tauri app
+            .clear_targets()                                                                        // Remove al log targets 
+            .target(tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout,))      // add the terminal (stdout) as log target
+            .build())
         .invoke_handler(tauri::generate_handler![ready, get_profiles])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
