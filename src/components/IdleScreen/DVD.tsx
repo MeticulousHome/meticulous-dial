@@ -126,19 +126,12 @@ const BouncyLogo: React.FC<{
 
     const animate = () => {
       if (elem) {
-        if (isPointOutsideCircle(x, y)) {
-          dirX = -dirX + (Math.random() * 2 - 1) * 0.3;
-          dirY = -dirY + (Math.random() * 2 - 1) * 0.3;
-          elem.style.backgroundColor = getNewRandomColor();
-        } else if (isPointOutsideCircle(x, y + LogoSize)) {
-          dirX = -dirX + (Math.random() * 2 - 1) * 0.3;
-          dirY = -dirY + (Math.random() * 2 - 1) * 0.3;
-          elem.style.backgroundColor = getNewRandomColor();
-        } else if (isPointOutsideCircle(x + LogoSize, y)) {
-          dirX = -dirX + (Math.random() * 2 - 1) * 0.3;
-          dirY = -dirY + (Math.random() * 2 - 1) * 0.3;
-          elem.style.backgroundColor = getNewRandomColor();
-        } else if (isPointOutsideCircle(x + LogoSize, y + LogoSize)) {
+        if (
+          isPointOutsideCircle(x, y) ||
+          isPointOutsideCircle(x, y + LogoSize) ||
+          isPointOutsideCircle(x + LogoSize, y) ||
+          isPointOutsideCircle(x + LogoSize, y + LogoSize)
+        ) {
           dirX = -dirX + (Math.random() * 2 - 1) * 0.3;
           dirY = -dirY + (Math.random() * 2 - 1) * 0.3;
           elem.style.backgroundColor = getNewRandomColor();
