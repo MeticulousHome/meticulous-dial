@@ -1,4 +1,4 @@
-import { MutableRefObject, useEffect, useRef } from 'react';
+import { MutableRefObject, useEffect, useRef, useState } from 'react';
 import { styled } from 'styled-components';
 
 const LogoSize = 60;
@@ -177,7 +177,20 @@ const BouncyLogo: React.FC<{
 export const DVDIdleScreen: React.FC = () => {
   const metPosition = useRef({ x: 0, y: 0 });
   const bqPosition = useRef({ x: 0, y: 0 });
-  const collision = doOverlap(metPosition.current, bqPosition.current);
+  const [collision, setCollision] = useState<boolean>(
+    doOverlap(metPosition.current, bqPosition.current)
+  );
+
+  useEffect(() => {
+    const check_overlap = () => {
+      const new_collision = doOverlap(metPosition.current, bqPosition.current);
+      if (collision !== new_collision) {
+        setCollision(new_collision);
+      }
+      requestAnimationFrame(check_overlap);
+    };
+    requestAnimationFrame(check_overlap);
+  });
 
   return (
     <Container $blurred={collision}>
