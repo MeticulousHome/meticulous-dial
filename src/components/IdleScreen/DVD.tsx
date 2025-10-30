@@ -3,7 +3,7 @@ import { styled } from 'styled-components';
 
 const LogoSize = 60;
 
-const Container = styled.div<{ $blurred: boolean }>`
+const Container = styled.div`
   height: 480px;
   width: 480px;
   background-color: #111;
@@ -11,7 +11,6 @@ const Container = styled.div<{ $blurred: boolean }>`
   margin: 0;
   overflow: hidden;
   position: relative;
-  ${(props) => (props.$blurred ? 'filter: blur(5px)' : '')};
 `;
 
 const Dvd = styled.div`
@@ -202,7 +201,7 @@ export const DVDIdleScreen: React.FC = () => {
   });
 
   return (
-    <Container $blurred={collision}>
+    <Container>
       <BouncyLogo position={metPosition} imageSrc="/logo.png" />
       <BouncyLogo position={bqPosition} imageSrc="/BQLogo.png" />
     </Container>
