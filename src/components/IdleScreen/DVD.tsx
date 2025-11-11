@@ -119,7 +119,7 @@ const BouncyLogo: React.FC<{
     let x = 100 + Math.random() * 100;
     let y = 100 + Math.random() * 100;
     position.current = { x, y };
-    let speed_angle = Math.random() * 2 * Math.PI;
+    const speed_angle = Math.random() * 2 * Math.PI;
     let dirX = ANIMATION_SPEED * Math.cos(speed_angle);
     let dirY = ANIMATION_SPEED * Math.sin(speed_angle);
 
