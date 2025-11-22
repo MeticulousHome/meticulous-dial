@@ -12,9 +12,12 @@ export function MetCatClock({ time }: { time: ReturnType<typeof formatTime> }) {
       animation.current = Lottie.loadAnimation({
         container: animationDiv.current,
         animationData: MetCat,
-        renderer: 'svg',
+        renderer: 'canvas',
         loop: false,
-        autoplay: false
+        autoplay: false,
+        rendererSettings: {
+          preserveAspectRatio: 'xMidYMid meet'
+        }
       });
 
       animation.current.playSegments(
@@ -43,7 +46,12 @@ export function MetCatClock({ time }: { time: ReturnType<typeof formatTime> }) {
         {time.hours.toString().padStart(2, '0')}:
         {time.minutes.toString().padStart(2, '0')}
       </div>
-      <div className="metcat" ref={animationDiv} />
+      <div
+        className="metcat"
+        ref={animationDiv}
+        // We need to set the style here for the renderer to pick it up immediately on render creation
+        style={{ height: 600, width: 600 }}
+      />
     </div>
   );
 }
