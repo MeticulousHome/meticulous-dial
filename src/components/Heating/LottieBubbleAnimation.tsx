@@ -126,7 +126,7 @@ export const LottieBubbleAnimation = memo(
         animation.current = Lottie.loadAnimation({
           container: animationDiv.current,
           animationData: BubbleAnimation,
-          renderer: 'canvas',
+          renderer: 'svg',
           loop: true,
           autoplay: true,
           initialSegment: [0, baseSegment[0]]
