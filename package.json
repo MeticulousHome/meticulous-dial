@@ -2,7 +2,7 @@
   "name": "meticulous-dial",
   "productName": "meticulous-dial",
   "version": "1.98.0",
-  "description": "My Electron application description",
+  "description": "Meticulous Dial Application",
   "main": ".webpack/main",
   "private": true,
   "scripts": {
