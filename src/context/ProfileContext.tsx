@@ -15,6 +15,7 @@ import {
 import { IPresetAction, IPresetSetting } from '../types';
 import { useSettings } from '../hooks/useSettings';
 import demoProfile from '../assets/9BarItalian.json';
+import { useAppSelector } from '../components/store/hooks';
 
 type ProfileContextType = {
   profileQuery: ReturnType<typeof useProfiles>;
@@ -77,6 +78,12 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const { data: profiles } = profileQuery;
   const { data: lastProfile } = useLastProfile();
   const { data: settings } = useSettings();
+  const currentScreen = useAppSelector((state) => state.screen.value);
+  const isBrewing =
+    currentScreen === 'heating' ||
+    currentScreen === 'barometer' ||
+    currentScreen === 'brewComplete';
+
   const [localProfileIndex, setLocalProfileIndex] = useState<number>(0);
   const [localProfile, setLocalProfile] = useState<ExtendedProfile | null>(
     null
@@ -152,7 +159,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
   // If the profile index changes, update the local profile
   useEffect(() => {
-    if (!mergedProfiles) {
+    if (!mergedProfiles || isBrewing) {
       return;
     }
     if (profileIdToFind) {
@@ -173,7 +180,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     } else if (localProfileIndex < mergedProfiles.length) {
       setLocalProfile(mergedProfiles[localProfileIndex]);
     }
-  }, [localProfileIndex, profileIdToFind, mergedProfiles]);
+  }, [localProfileIndex, profileIdToFind, mergedProfiles, isBrewing]);
 
   // When the profile event is received, refetch the profiles and if necessary update the local state
   useEffect(() => {
