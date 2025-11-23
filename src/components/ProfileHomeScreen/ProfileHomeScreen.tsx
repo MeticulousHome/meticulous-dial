@@ -280,18 +280,25 @@ export const ProfileHomeScreen = () => {
               );
             })}
             {/* New button */}
-            <ProfileEntry
+            <CSSTransition
               key={'unlock_new'}
-              title={limitedAccess ? 'unlock all features' : 'new'}
-              contentClassNames={
-                Math.abs(mergedProfiles.length - activeOption) < 2 &&
-                `animation-bounce-${transitionDirection}`
-              }
-              distanceToActive={mergedProfiles.length - activeOption}
-              zoomedIn={false}
+              nodeRef={getOrCreateRef('-1')} // Pass the ref here
+              timeout={500}
+              classNames="slide"
             >
-              {limitedAccess ? <DownloadIcon /> : <PlusIcon />}
-            </ProfileEntry>
+              <ProfileEntry
+                key={'unlock_new'}
+                title={limitedAccess ? 'unlock all features' : 'new'}
+                contentClassNames={
+                  Math.abs(mergedProfiles.length - activeOption) < 2 &&
+                  `animation-bounce-${transitionDirection}`
+                }
+                distanceToActive={mergedProfiles.length - activeOption}
+                zoomedIn={localHoverState}
+              >
+                {limitedAccess ? <DownloadIcon /> : <PlusIcon />}
+              </ProfileEntry>
+            </CSSTransition>
           </InnerList>
         </Viewport>
       </Container>
