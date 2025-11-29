@@ -376,19 +376,19 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
     switch (letter) {
       case 'space':
         return (
-          <text key={index} y={-44} textAnchor="-120%" className="letter-space">
+          <text key={index} y={-44} className="letter-space">
             &#xe800;
           </text>
         );
       case 'ok':
         return (
-          <text key={index} y={-44} textAnchor="-120%" className="letter-space">
+          <text key={index} y={-44} className="letter-space">
             &#xe801;
           </text>
         );
       case 'backspace':
         return (
-          <text key={index} y={-44} textAnchor="-120%" className="letter-space">
+          <text key={index} y={-44} className="letter-space">
             &#xf177;
           </text>
         );
@@ -397,7 +397,6 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
           <text
             key={index}
             y={-44}
-            textAnchor="-120%"
             className={`letter-space ${
               capsLockActive.active ? 'caps-active' : 'caps-inactive'
             }`}
@@ -417,7 +416,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         );
       case 'cancel':
         return (
-          <text key={index} y={-44} textAnchor="-120%" className="letter-space">
+          <text key={index} y={-44} className="letter-space">
             &#xe802;
           </text>
         );
@@ -427,7 +426,6 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
             key={index}
             y={-44}
             className="letter"
-            textAnchor="-120%"
             dangerouslySetInnerHTML={{ __html: letter }}
           />
         );
@@ -545,8 +543,10 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       <svg height="390" width="390">
         <svg viewBox="0 0 100 100">
           <g
-            style={{ transform: `translate(50px, 50px) rotate(${rotate}deg)` }}
-            dominantBaseline="text-bottom"
+            style={{
+              dominantBaseline: 'text-bottom',
+              transform: `translate(50px, 50px) rotate(${rotate}deg)`
+            }}
             textAnchor="middle"
             textLength="120%"
             className="transition-all"
