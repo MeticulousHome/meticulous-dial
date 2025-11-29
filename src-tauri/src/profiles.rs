@@ -1,11 +1,10 @@
+use crate::config;
 use serde_json::Value;
 use std::{
-    env,
-    fs,
+    env, fs,
     io::Read,
     path::{Path, PathBuf},
 };
-use crate::config;
 
 fn profiles_dir() -> PathBuf {
     env::var("PROFILE_PATH")
