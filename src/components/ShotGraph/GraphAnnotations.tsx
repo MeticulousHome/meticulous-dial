@@ -39,7 +39,7 @@ function valueText(
   y: number,
   dataValue: string,
   unitValue: string,
-  anchor?: string
+  anchor?: 'start' | 'middle' | 'end' | 'inherit'
 ) {
   return (
     <text
