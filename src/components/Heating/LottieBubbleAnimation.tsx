@@ -21,6 +21,10 @@ const BubbleContainer = styled.div`
 const Animation = styled.div`
   width: ${BUBBLES_WIDTH}px;
   height: ${BUBBLES_HEIGHT}px;
+
+  & svg {
+    transform: none !important;
+  }
 `;
 
 const gradientColors = [
