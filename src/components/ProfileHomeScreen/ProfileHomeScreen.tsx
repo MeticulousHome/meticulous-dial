@@ -288,7 +288,7 @@ export const ProfileHomeScreen = () => {
                 `animation-bounce-${transitionDirection}`
               }
               distanceToActive={mergedProfiles.length - activeOption}
-              zoomedIn={false}
+              zoomedIn={localHoverState}
             >
               {limitedAccess ? <DownloadIcon /> : <PlusIcon />}
             </ProfileEntry>
