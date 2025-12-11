@@ -56,7 +56,10 @@ import { Manufacturing } from '../components/Settings/Advanced/Manufacturing';
 import { RetractionSettingGauge } from '../components/Settings/Advanced/RetractionVolume';
 import { useProfileContext } from '../context/ProfileContext';
 import { DisplayAlignment } from '../components/Settings/Advanced/DisplayAlignment';
-import { UnlockScreen } from '../components/UnlockScreen/UnlockScreen';
+import {
+  UnlockScreen,
+  UnlockMasterCalibration
+} from '../components/UnlockScreen/UnlockScreen';
 interface Route {
   component: ComponentType;
   parentTitle?: string | ((state: RootState) => string) | (() => JSX.Element);
@@ -101,6 +104,11 @@ const selectPurgeTitle = (state: RootState) => {
 const selectStatProfileName = (state: RootState) => state.stats.profile;
 
 export const routes: Record<ScreenType, Route> = {
+  masterCalibrationLock: {
+    component: UnlockMasterCalibration,
+    title: '',
+    bottomStatusHidden: true
+  },
   timeZoneConfig: {
     component: TimeZoneConfig,
     title: 'timeZoneConfig',

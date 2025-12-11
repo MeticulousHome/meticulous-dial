@@ -60,6 +60,7 @@ export type ScreenType =
   | 'retraction_volume'
   | 'manufacturingSettings'
   | 'displayAlignment'
+  | 'masterCalibrationLock'
   | 'unlock';
 
 interface ScreenState {

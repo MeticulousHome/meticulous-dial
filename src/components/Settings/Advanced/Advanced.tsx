@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { startMasterCalibration } from '../../../api/api';
 
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { SettingsItem } from '../../../types';
@@ -22,6 +21,13 @@ import Styled, {
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
 import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSetting';
 import type { Settings } from '@meticulous-home/espresso-api';
+
+import {
+  NotificationItem,
+  processNotification,
+  addOneNotification
+} from '../../store/features/notifications/notification-slice';
+import { v4 as uuidv4 } from 'uuid';
 
 const initialSettings: SettingsItem[] = [
   {
@@ -222,15 +228,22 @@ export const AdvancedSettings = () => {
             );
             break;
           case 'master_calibration':
-            startMasterCalibration()
-              .then(() => {
-                dispatch(
-                  setBubbleDisplay({ visible: false, component: undefined })
-                );
-              })
-              .catch((err) => {
-                console.log(err);
-              });
+            {
+              const _date: Date = new Date();
+              const MasterCalibrationAlert: NotificationItem =
+                processNotification({
+                  id: uuidv4(),
+                  message:
+                    'WARNING: Proceeding incorrectly can permanently damage your scale and may make it unusable. Only continue if you fully understand this procedure and accept the risk.',
+                  responses: ['OK'],
+                  timestamp: _date
+                }).updatedNotification;
+              dispatch(
+                setBubbleDisplay({ visible: false, component: undefined })
+              );
+              dispatch(setScreen('masterCalibrationLock'));
+              dispatch(addOneNotification(MasterCalibrationAlert));
+            }
             break;
           default: {
             break;
