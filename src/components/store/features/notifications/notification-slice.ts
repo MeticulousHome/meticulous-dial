@@ -8,7 +8,7 @@ import { RootState } from '../../store';
 import { api } from '../../../../api/api';
 import { APIError } from '@meticulous-home/espresso-api/dist';
 
-type ResponseOption = 'Update' | 'Auto Update' | 'Skip';
+type ResponseOption = 'Update' | 'Auto Update' | 'Skip' | string;
 
 export const MOTOR_HOT_KEY = 'motor_hot';
 export const MOTOR_COLD_KEY = 'motor_cold';
@@ -42,9 +42,8 @@ const notificationAdapter = createEntityAdapter({
   selectId: (notification: NotificationItem) => notification.id
 });
 
-interface NotificationState extends ReturnType<
-  typeof notificationAdapter.getInitialState
-> {
+interface NotificationState
+  extends ReturnType<typeof notificationAdapter.getInitialState> {
   motorHot: boolean;
 }
 
