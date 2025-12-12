@@ -48,7 +48,7 @@ export const UnlockMasterCalibration: React.FC = () => {
   const onCancel = () => {
     dispatch(setScreen('profileHome'));
     dispatch(
-      setBubbleDisplay({ visible: true, component: 'advancedSettings' })
+      setBubbleDisplay({ visible: true, component: 'manufacturingSettings' })
     );
   };
 

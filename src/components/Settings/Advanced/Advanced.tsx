@@ -22,13 +22,6 @@ import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPo
 import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSetting';
 import type { Settings } from '@meticulous-home/espresso-api';
 
-import {
-  NotificationItem,
-  processNotification,
-  addOneNotification
-} from '../../store/features/notifications/notification-slice';
-import { v4 as uuidv4 } from 'uuid';
-
 const initialSettings: SettingsItem[] = [
   {
     key: 'usb_mode',
@@ -40,11 +33,6 @@ const initialSettings: SettingsItem[] = [
     label: 'SSH',
     getLabel: (settings: Settings) =>
       settings.ssh_enabled ? 'ENABLED' : 'DISABLED'
-  },
-  {
-    key: 'master_calibration',
-    label: 'ACAIA master calibration',
-    visible: true
   },
   {
     key: 'displayAlignment',
@@ -226,24 +214,6 @@ export const AdvancedSettings = () => {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'settings' })
             );
-            break;
-          case 'master_calibration':
-            {
-              const _date: Date = new Date();
-              const MasterCalibrationAlert: NotificationItem =
-                processNotification({
-                  id: uuidv4(),
-                  message:
-                    'WARNING: Proceeding incorrectly can permanently damage your scale and may make it unusable. Only continue if you fully understand this procedure and accept the risk.',
-                  responses: ['OK'],
-                  timestamp: _date
-                }).updatedNotification;
-              dispatch(
-                setBubbleDisplay({ visible: false, component: undefined })
-              );
-              dispatch(setScreen('masterCalibrationLock'));
-              dispatch(addOneNotification(MasterCalibrationAlert));
-            }
             break;
           default: {
             break;
