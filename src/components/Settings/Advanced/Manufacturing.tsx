@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SettingsItem } from '../../../types';
-import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
+import {
+  setBubbleDisplay,
+  setScreen
+} from '../../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import {
@@ -15,6 +18,12 @@ import Styled, {
   MARQUEE_MIN_TEXT_LENGTH
 } from '../../../styles/utils/mixins';
 import { LoadingScreen } from '../../LoadingScreen/LoadingScreen';
+import {
+  NotificationItem,
+  processNotification,
+  addOneNotification
+} from '../../store/features/notifications/notification-slice';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * "Technically, we won't reach this component if the option to access it from 'Advanced Settings' is not displayed,
@@ -79,6 +88,11 @@ export const Manufacturing = () => {
     return [
       ...manufacturingFormatted,
       {
+        key: 'master_calibration',
+        label: 'ACAIA master calibration',
+        visible: true
+      },
+      {
         key: 'back',
         label: 'Back',
         visible: true
@@ -115,6 +129,24 @@ export const Manufacturing = () => {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'advancedSettings' })
             );
+            break;
+          case 'master_calibration':
+            {
+              const _date: Date = new Date();
+              const MasterCalibrationAlert: NotificationItem =
+                processNotification({
+                  id: uuidv4(),
+                  message:
+                    'WARNING: Proceeding incorrectly can permanently damage your scale and may make it unusable. Only continue if you fully understand this procedure and accept the risk.',
+                  responses: ['OK'],
+                  timestamp: _date
+                }).updatedNotification;
+              dispatch(
+                setBubbleDisplay({ visible: false, component: undefined })
+              );
+              dispatch(setScreen('masterCalibrationLock'));
+              dispatch(addOneNotification(MasterCalibrationAlert));
+            }
             break;
           default:
             break;
