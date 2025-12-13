@@ -86,23 +86,27 @@ export interface IPresetNumericalUnit extends IPresetBaseNumerical {
 }
 
 export interface IPresetNumericalPressure
-  extends IBasePresset, IPresetNumericalUnit {
+  extends IBasePresset,
+    IPresetNumericalUnit {
   key: PressureKey;
   unit: 'bar';
 }
 export interface IPresetNumericalTemperature
-  extends IBasePresset, IPresetNumericalUnit {
+  extends IBasePresset,
+    IPresetNumericalUnit {
   key: TemperatureKey;
   unit: '°c';
 }
 export interface IPresetNumericalDose
-  extends IBasePresset, IPresetNumericalUnit {
+  extends IBasePresset,
+    IPresetNumericalUnit {
   key: DoseKey;
   unit: 'g';
 }
 
 export interface IPresetNumericalOutput
-  extends IBasePresset, IPresetNumericalUnit {
+  extends IBasePresset,
+    IPresetNumericalUnit {
   key: OutputKey;
   unit: 'g';
 }
