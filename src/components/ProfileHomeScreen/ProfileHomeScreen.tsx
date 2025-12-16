@@ -181,6 +181,12 @@ export const ProfileHomeScreen = () => {
     setActiveOption((prev) => Math.max(prev - 1, 0));
   };
 
+  useEffect(() => {
+    return () => {
+      if (pressThroughTimer.current) clearTimeout(pressThroughTimer.current);
+    };
+  });
+
   useHandleGestures(
     {
       left() {

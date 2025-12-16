@@ -11,7 +11,7 @@ const MAX_POSITION = 74;
 const TOTAL_FRAMES = 60.0;
 const NO_FRAMES = 1000;
 
-export function MiniPurgePiston({ show }): JSX.Element {
+export function MiniPurgePiston({ show }: { show: boolean }): JSX.Element {
   const pistonContainer = useRef<AnimationItem | null>(null);
   const pistonAnimator = useRef(null);
 
@@ -54,13 +54,13 @@ export function MiniPurgePiston({ show }): JSX.Element {
   }, []);
 
   useEffect(() => {
-    if (show) {
-      setTimeout(() => {
-        setShowPiston(true);
-      }, 500);
-    } else {
+    if (!show) {
       setShowPiston(false);
+      return;
     }
+
+    const timeoutRef = setTimeout(() => setShowPiston(true), 500);
+    return () => clearTimeout(timeoutRef);
   }, [show]);
 
   const initAnimation = (initial: number) => {
