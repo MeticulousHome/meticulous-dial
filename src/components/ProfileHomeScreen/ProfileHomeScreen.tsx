@@ -19,9 +19,9 @@ import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { PlusIcon } from './PlusIcon';
 import { LastLabel } from './LastLabel';
 import { useIsOnline } from '../../hooks/useIsOnline';
-import { useSocket } from '../store/SocketManager';
 import { loadProfileData, startProfile } from '../../api/profile';
 import { DownloadIcon } from './DownloadIcon';
+import { usePistonPosContext } from '../../context/PistonPositionContext';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -93,7 +93,7 @@ export const ProfileHomeScreen = () => {
 
   const nodeRefs = useRef<Record<string, Ref<HTMLDivElement>>>({});
   const requiresPurge = useRef<boolean>(false);
-  const socket = useSocket();
+  const { PistonPos } = usePistonPosContext();
 
   const getOrCreateRef = (id: string) => {
     if (!nodeRefs.current[id]) {
@@ -125,12 +125,10 @@ export const ProfileHomeScreen = () => {
   };
 
   useEffect(() => {
-    socket.on('sensors', (data: { m_pos: number }) => {
-      if (data.m_pos < PISTON_ON_PURGE_POSITION) {
-        requiresPurge.current = true;
-      }
-    });
-  }, []);
+    if (PistonPos && PistonPos < PISTON_ON_PURGE_POSITION) {
+      requiresPurge.current = true;
+    }
+  }, [PistonPos]);
 
   useEffect(() => {
     if (!shouldGoToIdle) return;
