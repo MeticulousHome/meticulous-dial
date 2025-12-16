@@ -26,6 +26,7 @@ import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { LASTS_PROFILE_QUERY_KEY } from '../../hooks/useProfiles';
 import { useProfileContext } from '../../context/ProfileContext';
 import { HIDDEN_STAGES } from '../../constants/setting';
+import { usePistonPosContext } from '../../context/PistonPositionContext';
 
 const socket: Socket | null = io(API_URL);
 
@@ -40,7 +41,7 @@ export const SocketProviderValue = () => {
   const { resetTimer: resetIdleTimer } = useIdleTimer();
   const { setProfileStarting, onProfileEvent, onProfileHover } =
     useProfileContext();
-
+  const { setPistonPos } = usePistonPosContext();
   // For development purpose
   useSocketKeyboardListeners();
 
@@ -64,6 +65,10 @@ export const SocketProviderValue = () => {
 
     socket.on('heater_status', (timeLeft: number) => {
       dispatch(updatePreheatTimeLeft(timeLeft));
+    });
+
+    socket.on('sensors', (data: { m_pos: number }) => {
+      setPistonPos(data.m_pos);
     });
 
     socket.on('status', (data: ISensorDataAndMachineState) => {

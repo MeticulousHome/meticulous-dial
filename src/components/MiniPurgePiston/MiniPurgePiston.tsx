@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import lottie, { AnimationItem } from 'lottie-web';
 import piston from './miniPiston.json';
-import { useSocket } from '../../../src/components/store/SocketManager';
 import { CSSTransition } from 'react-transition-group';
 import './pistonTransitions.css';
+
+import { usePistonPosContext } from '../../context/PistonPositionContext';
 
 // This is not absolute max but the maximum we choose for the sake of animation
 const MAX_POSITION = 74;
@@ -11,14 +12,13 @@ const TOTAL_FRAMES = 60.0;
 const NO_FRAMES = 1000;
 
 export function MiniPurgePiston({ show }): JSX.Element {
-  const socket = useSocket();
   const pistonContainer = useRef<AnimationItem | null>(null);
   const pistonAnimator = useRef(null);
 
   const [initialPosition, setInitialPosition] = useState<number | null>(null);
   const [prevPosition, setPrevPosition] = useState<number | null>(null);
   const [prevTime, setPrevTime] = useState<number | null>(null);
-  const [position, setPosition] = useState<number>(NaN);
+  const { PistonPos: position } = usePistonPosContext();
   const [showPiston, setShowPiston] = useState<boolean>(show);
 
   const animateToPosition = useCallback((targetPosition: number) => {
@@ -63,15 +63,6 @@ export function MiniPurgePiston({ show }): JSX.Element {
     }
   }, [show]);
 
-  useEffect(() => {
-    socket.on('sensors', (data: { m_pos: number }) => {
-      if (data.m_pos < 0) {
-        return;
-      }
-      setPosition(data.m_pos);
-    });
-  }, []);
-
   const initAnimation = (initial: number) => {
     setInitialPosition(initial);
     pistonContainer.current = lottie.loadAnimation({
@@ -89,7 +80,7 @@ export function MiniPurgePiston({ show }): JSX.Element {
   };
 
   useEffect(() => {
-    if (Number.isNaN(position)) {
+    if (Number.isNaN(position) || position < 0) {
       return;
     }
 
