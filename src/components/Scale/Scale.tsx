@@ -239,6 +239,14 @@ export const Scale = memo(
       }
     }, [isExtracting]);
 
+    useEffect(() => {
+      return () => {
+        if (coolScaleTimer.current) clearTimeout(coolScaleTimer.current);
+        if (tareHoldThresholdTimer.current)
+          clearTimeout(tareHoldThresholdTimer.current);
+      };
+    }, []);
+
     return (
       <motion.div
         variants={animationVariants}
