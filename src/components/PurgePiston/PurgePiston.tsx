@@ -4,7 +4,7 @@ import piston from './piston.json';
 import blink from './blink.json';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setScreen } from '../../../src/components/store/features/screens/screens-slice';
-import { useSocket } from '../../../src/components/store/SocketManager';
+import { usePistonPosContext } from '../../context/PistonPositionContext';
 
 // This is not absolute max but the maximum we choose for the sake of animation
 const MAX_POSITION = 74;
@@ -13,7 +13,7 @@ const NO_FRAMES = 1000;
 
 export function PurgePiston(): JSX.Element {
   const stats = useAppSelector((state) => state.stats);
-  const socket = useSocket();
+  const { PistonPos: position } = usePistonPosContext();
   const pistonContainer = useRef<AnimationItem | null>(null);
   const pistonAnimator = useRef(null);
   const blinkContainer = useRef<AnimationItem | null>(null);
@@ -22,7 +22,6 @@ export function PurgePiston(): JSX.Element {
   const [initialPosition, setInitialPosition] = useState<number | null>(null);
   const [prevPosition, setPrevPosition] = useState<number | null>(null);
   const [prevTime, setPrevTime] = useState<number | null>(null);
-  const [position, setPosition] = useState<number>(NaN);
   const intervalRef = useRef(null);
 
   const dispatch = useAppDispatch();
@@ -71,12 +70,6 @@ export function PurgePiston(): JSX.Element {
     if (stats.name === 'home') {
       blinkAnimator.current.style.top = '-206.5px';
     }
-    socket.on('sensors', (data: { m_pos: number }) => {
-      if (data.m_pos < 0) {
-        return;
-      }
-      setPosition(data.m_pos);
-    });
   }, []);
 
   const initAnimation = (initial: number) => {
@@ -96,7 +89,7 @@ export function PurgePiston(): JSX.Element {
   };
 
   useEffect(() => {
-    if (Number.isNaN(position)) {
+    if (Number.isNaN(position) || position < 0) {
       return;
     }
 
