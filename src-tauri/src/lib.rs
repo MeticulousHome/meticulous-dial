@@ -1,10 +1,75 @@
-use byte_unit::{Byte, Unit};
-use memory_stats::memory_stats;
+// use byte_unit::{Byte, Unit};
+// use memory_stats::memory_stats;
 use tauri::AppHandle;
 use tauri::Manager;
 
 mod config;
 mod profiles;
+use std::process::Command;
+
+fn format_bytes(bytes: u64) -> String {
+    // Uses 1024-base but labels KB/MB/GB (common in tooling).
+    let b = bytes as f64;
+    let kb = 1024.0;
+    let mb = kb * 1024.0;
+    let gb = mb * 1024.0;
+
+    let (val, suffix) = if b >= gb {
+        (b / gb, "GB")
+    } else if b >= mb {
+        (b / mb, "MB")
+    } else {
+        (b / kb, "KB")
+    };
+
+    // Trim trailing zeros nicely: 12.00 -> 12, 12.30 -> 12.3
+    let s = format!("{val:.2}");
+    let s = s.trim_end_matches('0').trim_end_matches('.');
+    format!("{s} {suffix}")
+}
+
+fn get_unit_memory(unit: &str) -> Option<String> {
+    let out = Command::new("systemctl")
+        .args(["show", unit, "-p", "LoadState", "-p", "MemoryCurrent", "--no-page"])
+        .output()
+        .ok()?;
+
+    // If systemctl itself failed, treat as unknown
+    if !out.status.success() {
+        return None;
+    }
+
+    let stdout = String::from_utf8_lossy(&out.stdout);
+
+    let mut load_state: Option<String> = None;
+    let mut mem_current: Option<u64> = None;
+
+    for line in stdout.lines() {
+        if let Some(v) = line.strip_prefix("LoadState=") {
+            load_state = Some(v.trim().to_string());
+        } else if let Some(v) = line.strip_prefix("MemoryCurrent=") {
+            let v = v.trim();
+            if !v.is_empty() {
+                mem_current = v.parse::<u64>().ok();
+            }
+        }
+    }
+
+    // Unit doesn't exist
+    if matches!(load_state.as_deref(), Some("not-found")) {
+        return None;
+    }
+
+    // If unit exists but memory not available, you can decide what you prefer.
+    // Here: treat missing/parse-fail as unknown.
+    let bytes = mem_current?;
+    Some(format_bytes(bytes))
+}
+
+#[tauri::command]
+fn meticulous_dial_memory() -> String {
+    get_unit_memory("meticulous-dial.service").unwrap_or_else(|| "UNKNOWN".to_string())
+}
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -32,30 +97,30 @@ fn get_profiles() -> Result<Vec<serde_json::Value>, String> {
     profiles
 }
 
-fn show_mem() {
-    loop {
-        if let Some(usage) = memory_stats() {
-            let physical = Byte::from_u64(usage.physical_mem as u64).get_adjusted_unit(Unit::MiB);
-            let virtual_mem = Byte::from_u64(usage.virtual_mem as u64).get_adjusted_unit(Unit::MiB);
-            log::info!("Memory usage: Physical: {:#.1} || Virtual: {:#.1}", physical, virtual_mem);
-            if physical.get_byte() > Byte::from_u64_with_unit(1000u64, Unit::MiB).unwrap() {
-                log::warn!("High memory usage detected!");
-                std::thread::sleep(std::time::Duration::from_secs(1));
-            } else {
-                std::thread::sleep(std::time::Duration::from_secs(10));
-            }
-        } else {
-            println!("Couldn't get the current memory usage :(");
-            std::thread::sleep(std::time::Duration::from_secs(30));
-        }
-    }
-}
+// fn show_mem() {
+//     loop {
+//         if let Some(usage) = memory_stats() {
+//             let physical = Byte::from_u64(usage.physical_mem as u64).get_adjusted_unit(Unit::MiB);
+//             let virtual_mem = Byte::from_u64(usage.virtual_mem as u64).get_adjusted_unit(Unit::MiB);
+//             log::info!("Memory usage: Physical: {:#.1} || Virtual: {:#.1}", physical, virtual_mem);
+//             if physical.get_byte() > Byte::from_u64_with_unit(1000u64, Unit::MiB).unwrap() {
+//                 log::warn!("High memory usage detected!");
+//                 std::thread::sleep(std::time::Duration::from_secs(1));
+//             } else {
+//                 std::thread::sleep(std::time::Duration::from_secs(10));
+//             }
+//         } else {
+//             println!("Couldn't get the current memory usage :(");
+//             std::thread::sleep(std::time::Duration::from_secs(30));
+//         }
+//     }
+// }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    std::thread::spawn(|| {
-        show_mem();
-    });
+    // std::thread::spawn(|| {
+    //     show_mem();
+    // });
     tauri::Builder::default()
         .setup(|_app| {
             #[cfg(debug_assertions)]
@@ -83,7 +148,7 @@ pub fn run() {
                 })
                 .build(),
         )
-        .invoke_handler(tauri::generate_handler![ready, get_profiles])
+        .invoke_handler(tauri::generate_handler![ready, get_profiles,meticulous_dial_memory])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
