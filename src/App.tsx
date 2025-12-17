@@ -58,7 +58,6 @@ function jsonBytes(obj: unknown) {
 // }
 
 const screens = [
-  'ready',
   'barometer',
   'profileHome',
   //  'pressetSettings',
@@ -83,7 +82,8 @@ const screens = [
   'retraction_volume',
   'displayAlignment',
   'masterCalibrationLock',
-  'unlock'
+  'unlock',
+  'ready'
 ] as ScreenType[];
 
 const context_screns = [
@@ -153,10 +153,15 @@ const App = (): JSX.Element => {
   useEffect(() => {
     let currentIndex = 0;
 
-    const timer = setInterval(
+    const memoryLogTimer = setInterval(async () => {
+      const memory = await invoke('meticulous_dial_memory');
+      console.warn(`memory used by meticulous-dial.service: ${memory}`);
+    }, 10 * 1000);
+
+    const rollingTimer = setInterval(
       async () => {
-        const memory = await invoke('meticulous_dial_memory');
-        console.warn(`memory used by meticulous-dial.service: ${memory}`);
+        // const memory = await invoke('meticulous_dial_memory');
+        // console.warn(`memory used by meticulous-dial.service: ${memory}`);
         if (screenTypeIter === 'screen') {
           console.log(`setting screen to ${screens[currentIndex]}`);
           if (screens[currentIndex] === 'notifications') {
@@ -210,7 +215,10 @@ const App = (): JSX.Element => {
       2 * 60 * 1000
     );
 
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(rollingTimer);
+      clearInterval(memoryLogTimer);
+    };
   }, [dispatch, screenTypeIter]);
 
   useEffect(() => {
