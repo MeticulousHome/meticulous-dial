@@ -207,7 +207,7 @@ const App = (): JSX.Element => {
           }
         }
       },
-      0.1 * 60 * 1000
+      2 * 60 * 1000
     );
 
     return () => clearInterval(timer);
