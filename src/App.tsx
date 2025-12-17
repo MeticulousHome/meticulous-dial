@@ -1,11 +1,13 @@
 /// <reference types="vite/client" />
 import { useEffect, useRef, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import { Provider, useStore } from 'react-redux';
+// import { Provider, useStore } from 'react-redux';
+import { Provider } from 'react-redux';
 
 import { useAppDispatch, useAppSelector } from './components/store/hooks';
 import { SocketManager } from './components/store/SocketManager';
-import { RootState, store } from './components/store/store';
+// import { RootState, store } from './components/store/store';
+import { store } from './components/store/store';
 import { useHandleGestures } from './hooks/useHandleGestures';
 import {
   ScreenType,
@@ -36,16 +38,16 @@ function jsonBytes(obj: unknown) {
   return new TextEncoder().encode(str).length;
 }
 
-function formatBytes(n: number) {
-  const units = ['B', 'KB', 'MB', 'GB'];
-  let i = 0,
-    v = n;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
-    i++;
-  }
-  return `${v.toFixed(2)} ${units[i]}`;
-}
+// function formatBytes(n: number) {
+//   const units = ['B', 'KB', 'MB', 'GB'];
+//   let i = 0,
+//     v = n;
+//   while (v >= 1024 && i < units.length - 1) {
+//     v /= 1024;
+//     i++;
+//   }
+//   return `${v.toFixed(2)} ${units[i]}`;
+// }
 
 const screens = [
   'ready',
@@ -127,7 +129,7 @@ async function sendReady() {
 
 const App = (): JSX.Element => {
   const dispatch = useAppDispatch();
-  const store = useStore<RootState>();
+  // const store = useStore<RootState>();
   const screen = useAppSelector(
     (state) => state.screen,
     (prev, next) => prev === next
@@ -137,7 +139,7 @@ const App = (): JSX.Element => {
     'screen' | 'setting' | undefined
   >('screen');
 
-  const lastReduxSize = useRef<number>(0);
+  // const lastReduxSize = useRef<number>(0);
   const lastQueriesSize = useRef<number>(0);
 
   useEffect(() => {
@@ -194,17 +196,17 @@ const App = (): JSX.Element => {
       // const bytes = jsonBytes(latest);
 
       const queries = queryClient.getQueryCache().getAll();
-      console.log(`updating query: ${event.query.queryKey}`);
+      // console.log(`updating query: ${event.query.queryKey}`);
       // let allQuerySize = 0;
       queries.forEach((query) => {
         const current_data = queryClient.getQueryData(query.queryKey);
         const bytes = jsonBytes(current_data);
         lastQueriesSize.current += bytes;
       });
-      console.log(`redux state size: ${formatBytes(lastReduxSize.current)}`);
-      console.log(
-        `all queries size: ${formatBytes(lastQueriesSize.current)}\n`
-      );
+      // console.log(`redux state size: ${formatBytes(lastReduxSize.current)}`);
+      // console.log(
+      //   `all queries size: ${formatBytes(lastQueriesSize.current)}\n`
+      // );
 
       lastQueriesSize.current = 0;
       // console.log(`${event.query.queryKey} query size: ${formatBytes(bytes)}`);
@@ -216,19 +218,19 @@ const App = (): JSX.Element => {
   useEffect(() => {
     sendReady();
     setBrightness({ brightness: 1 });
-    const unsibscribeToStore = store.subscribe(() => {
-      const bytes = jsonBytes(store.getState());
-      if (
-        bytes > lastReduxSize.current * 1.05 ||
-        bytes < lastReduxSize.current * 0.95
-      ) {
-        console.log(`-> redux state size: ${formatBytes(bytes)}`);
-        lastReduxSize.current = bytes;
-      }
-    });
-    return () => {
-      unsibscribeToStore();
-    };
+    // const unsibscribeToStore = store.subscribe(() => {
+    //   const bytes = jsonBytes(store.getState());
+    //   if (
+    //     bytes > lastReduxSize.current * 1.05 ||
+    //     bytes < lastReduxSize.current * 0.95
+    //   ) {
+    //     console.log(`-> redux state size: ${formatBytes(bytes)}`);
+    //     lastReduxSize.current = bytes;
+    //   }
+    // });
+    // return () => {
+    //   unsibscribeToStore();
+    // };
   }, []);
 
   const isExtracting = useAppSelector((state) => state.stats?.extracting);
