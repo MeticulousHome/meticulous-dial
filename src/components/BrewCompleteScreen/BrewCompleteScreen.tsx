@@ -1,6 +1,7 @@
 import { styled } from 'styled-components';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { setScreen } from '../store/features/screens/screens-slice';
+// import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { useAppSelector } from '../store/hooks';
+// import { setScreen } from '../store/features/screens/screens-slice';
 import {
   ModularFooter,
   ModularFooterTime,
@@ -56,7 +57,7 @@ const Label = styled.div`
 `;
 
 export const BrewCompleteScreen = () => {
-  const dispatch = useAppDispatch();
+  // const dispatch = useAppDispatch();
   const continueBrew = useContinueBrewAction();
   const statsName = useAppSelector((state) => state.stats.name);
   const brewTime = useAppSelector((state) => state.stats.profile_time);
@@ -70,7 +71,8 @@ export const BrewCompleteScreen = () => {
 
   if (!activeProfile) {
     console.error('History was opened without a profile selected');
-    dispatch(setScreen('profileHome'));
+
+    // dispatch(setScreen('profileHome'));
   }
 
   const weight = !isNaN(lastBrewWeight)
@@ -87,7 +89,7 @@ export const BrewCompleteScreen = () => {
   useEffect(() => {
     if (isIdle) {
       if (!hasNotifications && !keepGraph) {
-        dispatch(setScreen('profileHome'));
+        // dispatch(setScreen('profileHome'));
       }
     }
   }, [isIdle, keepGraph]);

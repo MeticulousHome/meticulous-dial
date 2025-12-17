@@ -1,17 +1,17 @@
 import Lottie, { AnimationItem } from 'lottie-web';
 import { useEffect, useRef } from 'react';
-import { setScreen } from '../store/features/screens/screens-slice';
-import { useAppDispatch } from '../store/hooks';
+// import { setScreen } from '../store/features/screens/screens-slice';
+// import { useAppDispatch } from '../store/hooks';
 import './ReadyAnimation.css';
 
 import LoadingAnimation from './LoadingAnimation.json';
 import ReadyAnimation1Data from './ReadyAnimation1.json';
 import ReadyAnimation2Data from './ReadyAnimation2.json';
 import { useFetchData } from '../../hooks/useFetchData';
-import { loadNotifications } from '../store/features/notifications/notification-slice';
+// import { loadNotifications } from '../store/features/notifications/notification-slice';
 
 export function ReadyAnimation(): JSX.Element {
-  const dispatch = useAppDispatch();
+  // const dispatch = useAppDispatch();
 
   const animation = useRef<AnimationItem | null>(null);
   const animationDiv = useRef<HTMLDivElement | null>(null);
@@ -19,8 +19,8 @@ export function ReadyAnimation(): JSX.Element {
   function handleReadyAnimation2Completed(): void {
     animation.current?.destroy();
     animation.current = undefined;
-    dispatch(setScreen('profileHome'));
-    dispatch(loadNotifications());
+    // dispatch(setScreen('profileHome'));
+    // dispatch(loadNotifications());
   }
 
   function handleReadyAnimation1Completed(): void {

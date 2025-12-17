@@ -1,15 +1,16 @@
 import { useEffect } from 'react';
 import { formatStatValue } from '../../utils';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
+// import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { useAppSelector } from '../store/hooks';
 import { PurgePiston } from './PurgePiston';
 import { notificationSelector } from '../store/features/notifications/notification-slice';
 
 import './piston.css';
-import { setScreen } from '../store/features/screens/screens-slice';
+// import { setScreen } from '../store/features/screens/screens-slice';
 import { useProfileContext } from '../../context/ProfileContext';
 
 export function PurgeScreen(): JSX.Element {
-  const dispatch = useAppDispatch();
+  // const dispatch = useAppDispatch();
 
   const { profileStarting } = useProfileContext();
 
@@ -21,7 +22,7 @@ export function PurgeScreen(): JSX.Element {
 
   useEffect(() => {
     if (statsName === 'idle' && !hasNotifications && !profileStarting) {
-      dispatch(setScreen('profileHome'));
+      // dispatch(setScreen('profileHome'));
     }
   }, [statsName]);
 

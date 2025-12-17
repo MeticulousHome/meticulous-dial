@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import './barometer.css';
 import { formatStatValue } from '../../utils';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { setScreen } from '../store/features/screens/screens-slice';
+// import { setScreen } from '../store/features/screens/screens-slice';
 import { Meter } from './Meter';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
 import { notificationSelector } from '../store/features/notifications/notification-slice';
@@ -24,7 +24,7 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
       !stats.waitingForActionAlreadySent &&
       !hasNotifications
     ) {
-      dispatch(setScreen('profileHome'));
+      // dispatch(setScreen('profileHome'));
     }
   }, [stats.name, stats.waitingForActionAlreadySent]);
 

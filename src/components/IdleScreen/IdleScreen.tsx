@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import {
-  setBubbleDisplay,
-  setScreen
+  setBubbleDisplay
+  // setScreen
 } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { AnalogClock } from './AnalogClock';
@@ -138,10 +138,10 @@ export function IdleScreen(): JSX.Element {
       );
     }
     if (!prevScreen || routes[prevScreen].ignoreAsPrevious) {
-      dispatch(setScreen('profileHome'));
+      // dispatch(setScreen('profileHome'));
       return;
     }
-    dispatch(setScreen(prevScreen));
+    // dispatch(setScreen(prevScreen));
   }, [shouldGoToIdle]);
 
   return (

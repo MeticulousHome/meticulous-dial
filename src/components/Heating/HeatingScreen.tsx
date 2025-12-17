@@ -1,8 +1,9 @@
 import { CSSProperties, useCallback, useEffect, useState } from 'react';
 import { styled } from 'styled-components';
 import { SwitchTransition, CSSTransition } from 'react-transition-group';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { setScreen } from '../store/features/screens/screens-slice';
+// import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { useAppSelector } from '../store/hooks';
+// import { setScreen } from '../store/features/screens/screens-slice';
 import { Label, Temperature } from './Temperatures';
 import './transitions.css';
 import {
@@ -66,7 +67,7 @@ const SensorErrorLabel = ({ temperature }: { temperature: number }) => {
 const transitionDuration = 600;
 
 export const HeatingScreen = () => {
-  const dispatch = useAppDispatch();
+  // const dispatch = useAppDispatch();
   const { lastProfile, profileStarting } = useProfileContext();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const continueBrew = useContinueBrewAction();
@@ -132,7 +133,7 @@ export const HeatingScreen = () => {
 
   useEffect(() => {
     if (statsName === 'idle' && !hasNotifications && !profileStarting) {
-      dispatch(setScreen('profileHome'));
+      // dispatch(setScreen('profileHome'));
     }
   }, [statsName]);
 
