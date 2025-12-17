@@ -158,6 +158,7 @@ const App = (): JSX.Element => {
         const memory = await invoke('meticulous_dial_memory');
         console.warn(`memory used by meticulous-dial.service: ${memory}`);
         if (screenTypeIter === 'screen') {
+          console.log(`setting screen to ${screens[currentIndex]}`);
           if (screens[currentIndex] === 'notifications') {
             // set a notification
             const _date = new Date();
@@ -175,7 +176,6 @@ const App = (): JSX.Element => {
               dispatch(removeAllNotications());
               //remove notification
             }
-            console.log(`setting screen to ${screens[currentIndex]}`);
             dispatch(setScreen(screens[currentIndex]));
             if (currentIndex === screens.length - 1) {
               currentIndex = 0;
