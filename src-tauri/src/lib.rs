@@ -74,6 +74,13 @@ pub fn run() {
                 .target(tauri_plugin_log::Target::new(
                     tauri_plugin_log::TargetKind::Stdout,
                 )) // add the terminal (stdout) as log target
+                .format(|out, message, record| {
+                    out.finish(format_args!(
+                    "[{}] {}",
+                    record.level(),
+                    message
+                    ))
+                })
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![ready, get_profiles])
