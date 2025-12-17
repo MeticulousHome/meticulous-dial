@@ -7,7 +7,11 @@ import { useAppDispatch, useAppSelector } from './components/store/hooks';
 import { SocketManager } from './components/store/SocketManager';
 import { RootState, store } from './components/store/store';
 import { useHandleGestures } from './hooks/useHandleGestures';
-import { setBubbleDisplay } from './components/store/features/screens/screens-slice';
+import {
+  ScreenType,
+  setBubbleDisplay,
+  setScreen
+} from './components/store/features/screens/screens-slice';
 import { Router } from './navigation/Router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { IdleTimerProvider } from './hooks/useIdleTimer';
@@ -43,6 +47,60 @@ function formatBytes(n: number) {
   return `${v.toFixed(2)} ${units[i]}`;
 }
 
+const screens = [
+  'ready',
+  'barometer',
+  'profileHome',
+  //  'pressetSettings',
+  'notifications',
+  'enterWifiPassword',
+  'quick-settings',
+  'snake',
+  //  'pressetProfileImage',
+  'defaultProfiles',
+  'defaultProfileDetails',
+  'manual-purge',
+  'heating',
+  'heat_timeout_after_shot',
+  'idle',
+  'selectLetterCountry',
+  'countrySettings',
+  'timeZoneSettings',
+  'calibrateScale',
+  'shot_history',
+  'preheatScreen',
+  'brewComplete',
+  'retraction_volume',
+  'displayAlignment',
+  'masterCalibrationLock',
+  'unlock'
+] as ScreenType[];
+
+const context_screns = [
+  'settings',
+  'timeDate',
+  'timeZoneConfig',
+  'wifiSettings',
+  'wifiQrMenu',
+  'wifiDetails',
+  'connectWifiMenu',
+  'selectWifi',
+  'connectWifiViaApp',
+  'brewSettings',
+  'KnownWifi',
+  'deleteKnowWifiMenu',
+  'advancedSettings',
+  'deviceInfo',
+  'updateChannel',
+  'idleScreenSettings',
+  'timeConfig',
+  'dateConfig',
+  'usbSettings',
+  'scrollDirections',
+  'factoryReset',
+  'manufacturingSettings'
+] as ScreenType[];
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -75,8 +133,57 @@ const App = (): JSX.Element => {
     (prev, next) => prev === next
   );
 
+  const [screenTypeIter, setScreenTypeIter] = useState<
+    'screen' | 'setting' | undefined
+  >('screen');
+
   const lastReduxSize = useRef<number>(0);
   const lastQueriesSize = useRef<number>(0);
+
+  useEffect(() => {
+    let currentIndex = 0;
+
+    const timer = setInterval(
+      async () => {
+        const memory = await invoke('meticulous_dial_memory');
+        console.warn(`memory used by meticulous-dial.service: ${memory}`);
+        if (screenTypeIter === 'screen') {
+          console.log(`setting screen to ${screens[currentIndex]}`);
+          dispatch(setScreen(screens[currentIndex]));
+          if (currentIndex === screens.length - 1) {
+            currentIndex = 0;
+            setScreenTypeIter('setting');
+          } else {
+            currentIndex++;
+          }
+        } else {
+          if (screen.value !== 'profileHome')
+            dispatch(setScreen('profileHome'));
+          console.log(
+            `setting context screen to ${context_screns[currentIndex]}`
+          );
+          dispatch(
+            setBubbleDisplay({
+              visible: true,
+              component: context_screns[currentIndex]
+            })
+          );
+          if (currentIndex === context_screns.length - 1) {
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
+            currentIndex = 0;
+            setScreenTypeIter('screen');
+          } else {
+            currentIndex++;
+          }
+        }
+      },
+      0.1 * 60 * 1000
+    );
+
+    return () => clearInterval(timer);
+  }, [dispatch, screenTypeIter]);
 
   useEffect(() => {
     const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
