@@ -275,7 +275,7 @@ export const ShotGraphScreen = () => {
 
   useEffect(() => {
     if (!shouldGoToIdle) return;
-    dispatch(setScreen('idle'));
+    // dispatch(setScreen('idle'));
     dispatch(setBubbleDisplay({ visible: false, component: undefined }));
   }, [shouldGoToIdle]);
 
