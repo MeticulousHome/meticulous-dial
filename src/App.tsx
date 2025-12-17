@@ -31,6 +31,14 @@ import './globals.css';
 import { warn, debug, trace, info, error } from '@tauri-apps/plugin-log';
 
 import { PistonPosProvider } from './context/PistonPositionContext';
+import {
+  NotificationItem,
+  processNotification,
+  addOneNotification,
+  removeAllNotications
+} from './components/store/features/notifications/notification-slice';
+
+import { v4 as uuidv4 } from 'uuid';
 
 function jsonBytes(obj: unknown) {
   // Rough bytes of UTF-8 string
@@ -150,13 +158,31 @@ const App = (): JSX.Element => {
         const memory = await invoke('meticulous_dial_memory');
         console.warn(`memory used by meticulous-dial.service: ${memory}`);
         if (screenTypeIter === 'screen') {
-          console.log(`setting screen to ${screens[currentIndex]}`);
-          dispatch(setScreen(screens[currentIndex]));
-          if (currentIndex === screens.length - 1) {
-            currentIndex = 0;
-            setScreenTypeIter('setting');
-          } else {
+          if (screens[currentIndex] === 'notifications') {
+            // set a notification
+            const _date = new Date();
+            const MasterCalibrationAlert: NotificationItem =
+              processNotification({
+                id: uuidv4(),
+                message: 'Notification screen test, DO NOT CLICK THE DIAL.',
+                responses: ['OK'],
+                timestamp: _date
+              }).updatedNotification;
+            dispatch(addOneNotification(MasterCalibrationAlert));
             currentIndex++;
+          } else {
+            if (screens[currentIndex - 1] === 'notifications') {
+              dispatch(removeAllNotications());
+              //remove notification
+            }
+            console.log(`setting screen to ${screens[currentIndex]}`);
+            dispatch(setScreen(screens[currentIndex]));
+            if (currentIndex === screens.length - 1) {
+              currentIndex = 0;
+              setScreenTypeIter('setting');
+            } else {
+              currentIndex++;
+            }
           }
         } else {
           if (screen.value !== 'profileHome')
