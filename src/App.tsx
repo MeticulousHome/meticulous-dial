@@ -1,11 +1,11 @@
 /// <reference types="vite/client" />
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import { Provider } from 'react-redux';
+import { Provider, useStore } from 'react-redux';
 
 import { useAppDispatch, useAppSelector } from './components/store/hooks';
 import { SocketManager } from './components/store/SocketManager';
-import { store } from './components/store/store';
+import { RootState, store } from './components/store/store';
 import { useHandleGestures } from './hooks/useHandleGestures';
 import { setBubbleDisplay } from './components/store/features/screens/screens-slice';
 import { Router } from './navigation/Router';
@@ -25,6 +25,23 @@ import './globals.css';
 import { warn, debug, trace, info, error } from '@tauri-apps/plugin-log';
 
 import { PistonPosProvider } from './context/PistonPositionContext';
+
+function jsonBytes(obj: unknown) {
+  // Rough bytes of UTF-8 string
+  const str = JSON.stringify(obj);
+  return new TextEncoder().encode(str).length;
+}
+
+function formatBytes(n: number) {
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let i = 0,
+    v = n;
+  while (v >= 1024 && i < units.length - 1) {
+    v /= 1024;
+    i++;
+  }
+  return `${v.toFixed(2)} ${units[i]}`;
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,14 +69,59 @@ async function sendReady() {
 
 const App = (): JSX.Element => {
   const dispatch = useAppDispatch();
+  const store = useStore<RootState>();
   const screen = useAppSelector(
     (state) => state.screen,
     (prev, next) => prev === next
   );
 
+  const lastReduxSize = useRef<number>(0);
+  const lastQueriesSize = useRef<number>(0);
+
+  useEffect(() => {
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      if (event?.type !== 'updated') return;
+
+      // after the cache update:
+      // const latest = queryClient.getQueryData(event.query.queryKey);
+      // const bytes = jsonBytes(latest);
+
+      const queries = queryClient.getQueryCache().getAll();
+      console.log(`updating query: ${event.query.queryKey}`);
+      // let allQuerySize = 0;
+      queries.forEach((query) => {
+        const current_data = queryClient.getQueryData(query.queryKey);
+        const bytes = jsonBytes(current_data);
+        lastQueriesSize.current += bytes;
+      });
+      console.log(`redux state size: ${formatBytes(lastReduxSize.current)}`);
+      console.log(
+        `all queries size: ${formatBytes(lastQueriesSize.current)}\n`
+      );
+
+      lastQueriesSize.current = 0;
+      // console.log(`${event.query.queryKey} query size: ${formatBytes(bytes)}`);
+    });
+
+    return unsubscribe;
+  }, [queryClient]);
+
   useEffect(() => {
     sendReady();
     setBrightness({ brightness: 1 });
+    const unsibscribeToStore = store.subscribe(() => {
+      const bytes = jsonBytes(store.getState());
+      if (
+        bytes > lastReduxSize.current * 1.05 ||
+        bytes < lastReduxSize.current * 0.95
+      ) {
+        console.log(`-> redux state size: ${formatBytes(bytes)}`);
+        lastReduxSize.current = bytes;
+      }
+    });
+    return () => {
+      unsibscribeToStore();
+    };
   }, []);
 
   const isExtracting = useAppSelector((state) => state.stats?.extracting);
