@@ -151,7 +151,7 @@ export const PreheatScreen = () => {
     if (colorIndex >= gradients.length - 1) {
       // go back to the presets screen after a short moment of finishing the animation
       const timeoutRef = setTimeout(() => {
-        dispatch(setScreen('profileHome'));
+        // dispatch(setScreen('profileHome'));
       }, 900);
       return () => {
         clearTimeout(timeoutRef);

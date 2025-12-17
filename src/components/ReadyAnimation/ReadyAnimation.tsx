@@ -1,5 +1,5 @@
 import Lottie, { AnimationItem } from 'lottie-web';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 // import { setScreen } from '../store/features/screens/screens-slice';
 // import { useAppDispatch } from '../store/hooks';
 import './ReadyAnimation.css';
@@ -15,10 +15,12 @@ export function ReadyAnimation(): JSX.Element {
 
   const animation = useRef<AnimationItem | null>(null);
   const animationDiv = useRef<HTMLDivElement | null>(null);
+  const [restartAnimation, setRestartAnimation] = useState<boolean>(false);
 
   function handleReadyAnimation2Completed(): void {
     animation.current?.destroy();
     animation.current = undefined;
+    setRestartAnimation((prev) => !prev);
     // dispatch(setScreen('profileHome'));
     // dispatch(loadNotifications());
   }
@@ -83,7 +85,7 @@ export function ReadyAnimation(): JSX.Element {
       animation.current?.destroy();
       animation.current = undefined;
     };
-  }, [animationDiv]);
+  }, [animationDiv, restartAnimation]);
 
   return (
     <div className="ready-container center">
