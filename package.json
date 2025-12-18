@@ -98,6 +98,7 @@
     "react-animated-counter": "^1.7.9",
     "react-dom": "^18.3.1",
     "react-freeze": "^1.0.4",
+    "react-qr-code": "^2.0.18",
     "react-redux": "^9.1.2",
     "react-transition-group": "^4.4.5",
     "socket.io-client": "^4.7.5",
