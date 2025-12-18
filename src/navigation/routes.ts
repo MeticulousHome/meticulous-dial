@@ -60,6 +60,8 @@ import {
   UnlockScreen,
   UnlockMasterCalibration
 } from '../components/UnlockScreen/UnlockScreen';
+import { InfoQRCode } from '../components/Settings/Advanced/InfoQrCode';
+
 interface Route {
   component: ComponentType;
   parentTitle?: string | ((state: RootState) => string) | (() => JSX.Element);
@@ -104,6 +106,11 @@ const selectPurgeTitle = (state: RootState) => {
 const selectStatProfileName = (state: RootState) => state.stats.profile;
 
 export const routes: Record<ScreenType, Route> = {
+  deviceInfoQR: {
+    component: InfoQRCode,
+    title: 'show device info code',
+    bottomStatusHidden: true
+  },
   masterCalibrationLock: {
     component: UnlockMasterCalibration,
     title: '',

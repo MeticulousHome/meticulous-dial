@@ -61,6 +61,7 @@ export type ScreenType =
   | 'manufacturingSettings'
   | 'displayAlignment'
   | 'masterCalibrationLock'
+  | 'deviceInfoQR'
   | 'unlock';
 
 interface ScreenState {

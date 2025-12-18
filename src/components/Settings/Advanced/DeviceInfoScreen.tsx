@@ -63,6 +63,10 @@ export const DeviceInfoScreen = () => {
       : [];
 
     return [
+      {
+        key: 'info_qr',
+        label: 'Show device info QR'
+      },
       ...basicInfo,
       ...repositoryInfo,
       ...[{ key: 'back', label: 'Back' }]
@@ -82,6 +86,11 @@ export const DeviceInfoScreen = () => {
       pressDown() {
         const activeItem = updatedDeviceInfo[activeIndex].key;
         switch (activeItem) {
+          case 'info_qr':
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'deviceInfoQR' })
+            );
+            break;
           case 'back':
             dispatch(
               setBubbleDisplay({ visible: true, component: 'settings' })
