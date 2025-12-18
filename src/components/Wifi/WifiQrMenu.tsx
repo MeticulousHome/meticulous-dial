@@ -4,7 +4,7 @@ import 'swiper/css';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useAppDispatch } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { QrImage } from './QrImage';
+import { QrImage } from '../QR/QrImage';
 import './wifiDetails.css';
 import { api } from '../../api/api';
 
