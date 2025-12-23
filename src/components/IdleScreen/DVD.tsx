@@ -113,6 +113,7 @@ const BouncyLogo: React.FC<{
   position: MutableRefObject<object>;
 }> = ({ imageSrc, position }) => {
   const logoRef = useRef<HTMLDivElement>(null);
+  const rAFref = useRef<null | number>(null);
   const lastInboundPos = useRef<point2D>({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -169,10 +170,12 @@ const BouncyLogo: React.FC<{
         elem.style.top = `${y}px`;
       }
 
-      requestAnimationFrame(animate);
+      rAFref.current = requestAnimationFrame(animate);
     };
 
-    requestAnimationFrame(animate);
+    rAFref.current = requestAnimationFrame(animate);
+
+    return () => rAFref.current && cancelAnimationFrame(rAFref.current);
   }, []);
 
   return (
@@ -185,6 +188,7 @@ const BouncyLogo: React.FC<{
 export const DVDIdleScreen: React.FC = () => {
   const metPosition = useRef({ x: 0, y: 0 });
   const bqPosition = useRef({ x: 0, y: 0 });
+  const rAFref = useRef<null | number>(null);
   const [collision, setCollision] = useState<boolean>(
     doOverlap(metPosition.current, bqPosition.current)
   );
@@ -195,10 +199,12 @@ export const DVDIdleScreen: React.FC = () => {
       if (collision !== new_collision) {
         setCollision(new_collision);
       }
-      requestAnimationFrame(check_overlap);
+      rAFref.current = requestAnimationFrame(check_overlap);
     };
-    requestAnimationFrame(check_overlap);
-  });
+    rAFref.current = requestAnimationFrame(check_overlap);
+
+    return () => rAFref.current && cancelAnimationFrame(rAFref.current);
+  }, []);
 
   return (
     <Container>
