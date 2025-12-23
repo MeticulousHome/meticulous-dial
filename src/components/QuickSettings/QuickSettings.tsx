@@ -19,7 +19,6 @@ import Styled, {
   ITEM_MARGIN
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
-import { formatTime } from '../../utils';
 import { useProfileContext } from '../../context/ProfileContext';
 import { useDeletePreset } from '../../hooks/useProfiles';
 import { addSettingsToProfile } from '../../utils/profiles';
@@ -121,9 +120,6 @@ export function QuickSettings(): JSX.Element {
 
   const updateSettings = useUpdateSettings();
 
-  const preheatTimeLeft = useAppSelector(
-    (state) => state.stats.preheatTimeLeft
-  );
   const [settings, setSettings] = useState(defaultSettings);
 
   const {
