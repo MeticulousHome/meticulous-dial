@@ -71,10 +71,6 @@ const defaultSettings: QuickSettingOption[] = [
     label: 'purge'
   },
   {
-    key: 'preheat',
-    label: ''
-  },
-  {
     key: 'brew_config',
     label: 'Brew Settings',
     hasSeparator: true
@@ -296,16 +292,6 @@ export function QuickSettings(): JSX.Element {
             );
             break;
           }
-          case 'preheat': {
-            socket.emit('action', 'preheat');
-            if (preheatTimeLeft <= 0) {
-              dispatch(setScreen('preheatScreen'));
-              dispatch(
-                setBubbleDisplay({ visible: false, component: undefined })
-              );
-            }
-            break;
-          }
           case 'calibrate': {
             dispatch(
               setBubbleDisplay({ visible: false, component: undefined })
@@ -444,13 +430,6 @@ export function QuickSettings(): JSX.Element {
     [activeOption, settings]
   );
 
-  const preheatTimer = useMemo(
-    () =>
-      preheatTimeLeft > 0
-        ? `Stop pre-heat ${formatTime(preheatTimeLeft)}`
-        : 'Pre-heat',
-    [preheatTimeLeft]
-  );
   return (
     <Styled.SettingsContainer>
       <Styled.Viewport className="Viewport">
@@ -468,9 +447,7 @@ export function QuickSettings(): JSX.Element {
               $isAnimating={holdAnimation === 'running' && option.longpress}
               onAnimationEnd={handleAnimationEnd}
             >
-              <span>
-                {option.key === 'preheat' ? preheatTimer : option.label}
-              </span>
+              <span>{option.label}</span>
             </Styled.Option>
           ))}
         </Styled.OptionsContainer>
@@ -494,9 +471,7 @@ export function QuickSettings(): JSX.Element {
                 }
                 $isMultiItem={option.longpress}
               >
-                <span>
-                  {option.key === 'preheat' ? preheatTimer : option.label}
-                </span>
+                <span>{option.label}</span>
                 {option.longpress && <MenuAnnotation>HOLD</MenuAnnotation>}
               </Styled.Option>
             ))}
