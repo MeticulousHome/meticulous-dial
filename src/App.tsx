@@ -84,7 +84,7 @@ const screens = [
   'masterCalibrationLock',
   'unlock',
   'ready'
-] as ScreenType[];
+].sort(() => Math.random() - 0.5) as ScreenType[]; // on every restart randomize the order of screens
 
 const context_screns = [
   'settings',
@@ -109,7 +109,7 @@ const context_screns = [
   'scrollDirections',
   'factoryReset',
   'manufacturingSettings'
-] as ScreenType[];
+].sort(() => Math.random() - 0.5) as ScreenType[];
 
 const queryClient = new QueryClient({
   defaultOptions: {
