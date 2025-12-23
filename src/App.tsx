@@ -71,7 +71,7 @@ const screens = [
   'manual-purge',
   'heating',
   'heat_timeout_after_shot',
-  'idle',
+  // 'idle',
   'selectLetterCountry',
   'countrySettings',
   'timeZoneSettings',
