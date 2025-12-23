@@ -53,7 +53,6 @@ export type ScreenType =
   | 'usbSettings'
   | 'shot_history'
   | 'scrollDirections'
-  | 'preheatScreen'
   | 'brewComplete'
   | 'factoryReset'
   | 'usbSettings'

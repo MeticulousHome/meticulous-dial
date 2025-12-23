@@ -30,7 +30,6 @@ import { ReadyAnimation } from '../components/ReadyAnimation/ReadyAnimation';
 import { HeatTimeoutAfterShot } from '../components/HeatTimeoutAfterShot/HeatTimeoutAfterShot';
 import { IdleScreen } from '../components/IdleScreen/IdleScreen';
 import { HeatingScreen } from '../components/Heating/HeatingScreen';
-import { PreheatScreen } from '../components/Heating/PreheatScreen';
 import { TimeDate } from '../components/Settings/Advanced/TimeDate/TimeDateConfig';
 import { TimeZoneConfig } from '../components/Settings/Advanced/TimeDate/TimeZone/TimeZoneConfig';
 import SelectLetterCountry from '../components/Settings/Advanced/TimeDate/TimeZone/SelectLetterCountry';
@@ -413,12 +412,6 @@ export const routes: Record<ScreenType, Route> = {
   brewSettings: {
     component: BrewSettings,
     bottomStatusHidden: true
-  },
-  preheatScreen: {
-    component: PreheatScreen,
-    title: 'pre-heat',
-    bottomStatusHidden: true,
-    ignoreAsPrevious: true
   },
   scrollDirections: {
     component: ScrollDirectionSettings,
