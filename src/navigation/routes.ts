@@ -100,6 +100,11 @@ const selectPurgeTitle = (state: RootState) => {
   return 'Purging';
 };
 
+const selectBrewCompleteTitle = (state: RootState) => {
+  const is_idle = state.stats.name === 'idle';
+  return (is_idle && 'Brew Complete') || 'Purging';
+};
+
 // Profile from "start" event may not exist in LCD. Prefer using
 // that profile name over selected preset
 const selectStatProfileName = (state: RootState) => state.stats.profile;
@@ -418,7 +423,7 @@ export const routes: Record<ScreenType, Route> = {
     bottomStatusHidden: true
   },
   brewComplete: {
-    title: 'Brew complete',
+    title: selectBrewCompleteTitle,
     component: BrewCompleteScreen,
     bottomStatusHidden: true
   },
