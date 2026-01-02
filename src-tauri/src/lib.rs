@@ -1,5 +1,5 @@
 use byte_unit::{Byte, Unit};
-use memory_stats::memory_stats;
+use std::process::Command;
 use tauri::AppHandle;
 use tauri::Manager;
 
@@ -32,20 +32,52 @@ fn get_profiles() -> Result<Vec<serde_json::Value>, String> {
     profiles
 }
 
+fn parse_mem() -> Option<u64> {
+    let output = Command::new("systemctl")
+        .args(&[
+            "show",
+            "--property=MemoryCurrent",
+            "meticulous-dial.service",
+        ])
+        .output();
+
+    if let Ok(output) = output.as_ref() {
+        if output.status.success() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if let Some(value) = stdout.strip_prefix("MemoryCurrent=") {
+                if value.trim() == "[not set]" {
+                    println!("Dial app memory current is not set. Not running?");
+                    return None;
+                }
+                if let Ok(bytes) = value.trim().parse::<u64>() {
+                    return Some(bytes);
+                } else {
+                    println!("Failed to parse memory value: {}", value);
+                }
+            } else {
+                println!("Unexpected output format: {}", stdout);
+            }
+        } else {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            println!("Error executing systemctl: {}", stderr);
+        }
+    } 
+        println!("Couldn't get the current memory usage...");
+    None
+}
+
 fn show_mem() {
     loop {
-        if let Some(usage) = memory_stats() {
-            let physical = Byte::from_u64(usage.physical_mem as u64).get_adjusted_unit(Unit::MiB);
-            let virtual_mem = Byte::from_u64(usage.virtual_mem as u64).get_adjusted_unit(Unit::MiB);
-            log::info!("Memory usage: Physical: {:#.1} || Virtual: {:#.1}", physical, virtual_mem);
-            if physical.get_byte() > Byte::from_u64_with_unit(1000u64, Unit::MiB).unwrap() {
+        if let Some(physical) = parse_mem() {
+            let physical = Byte::from_u64_with_unit(physical, Unit::B).unwrap();
+            log::info!("Current memory usage: {:#.1}", physical.get_adjusted_unit(Unit::MiB));
+            if physical > Byte::from_u64_with_unit(1000u64, Unit::MiB).unwrap() {
                 log::warn!("High memory usage detected!");
                 std::thread::sleep(std::time::Duration::from_secs(1));
             } else {
                 std::thread::sleep(std::time::Duration::from_secs(10));
             }
         } else {
-            println!("Couldn't get the current memory usage :(");
             std::thread::sleep(std::time::Duration::from_secs(30));
         }
     }
