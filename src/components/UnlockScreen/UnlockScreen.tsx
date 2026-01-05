@@ -14,9 +14,12 @@ export const UnlockScreen: React.FC = () => {
   const updateSettings = useUpdateSettings();
   const [password, setPassword] = useState<string>('');
   const { data: deviceInfo } = useDeviceInfo();
+  const deviceSerial = parseInt(deviceInfo?.serial) ?? 0;
+  const unlockCode = ((deviceSerial ^ 0xc0ffee) % 99999).toString();
 
   const updateSetting = (input: string) => {
-    if (input !== 'met') {
+    input = input.toLowerCase();
+    if (input !== 'met' && input !== unlockCode) {
       return;
     }
     updateSettings.mutate({ update_channel: 'stable' });
