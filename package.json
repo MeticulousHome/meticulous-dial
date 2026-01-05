@@ -1,7 +1,7 @@
 {
   "name": "meticulous-dial",
   "productName": "meticulous-dial",
-  "version": "1.100.0",
+  "version": "1.100.1",
   "description": "My Electron application description",
   "main": ".webpack/main",
   "private": true,
