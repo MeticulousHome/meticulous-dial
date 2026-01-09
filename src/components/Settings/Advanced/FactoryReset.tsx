@@ -6,7 +6,6 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useFactoryReset } from '../../../hooks/useMachine';
 import { LoadingScreen } from '../../../components/LoadingScreen/LoadingScreen';
 import { StaticSettingsItem } from '../USBSettings';
-import { marqueeIfNeeded } from '../../shared/MarqueeValue';
 
 export const FactoryReset = () => {
   const dispatch = useAppDispatch();
@@ -53,17 +52,6 @@ export const FactoryReset = () => {
     },
     !bubbleDisplay.interceptsGesture
   );
-
-  const showValue = (isActive: boolean, item: StaticSettingsItem) => {
-    if (!item) return <></>;
-    const val = item.label.toUpperCase();
-    return marqueeIfNeeded({
-      enabled: isActive,
-      val,
-      len: 18,
-      forceWidth: item.useableWidthPercentage + '%'
-    });
-  };
 
   if (factoryReset.isPending || factoryReset.isSuccess) {
     return <LoadingScreen />;
@@ -118,9 +106,7 @@ export const FactoryReset = () => {
                 paddingRight: `${90 - width}%`
               }}
             >
-              <span className="settings-fixed-item-text">
-                {showValue(isActive, item)}
-              </span>
+              <span className="settings-fixed-item-text">{item.label}</span>
             </div>
           );
         })}
