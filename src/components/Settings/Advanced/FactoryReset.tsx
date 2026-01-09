@@ -1,50 +1,31 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
-import { SettingsItem } from '../../../types';
 import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import Styled, { VIEWPORT_HEIGHT } from '../../../styles/utils/mixins';
-import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
 import { useFactoryReset } from '../../../hooks/useMachine';
 import { LoadingScreen } from '../../../components/LoadingScreen/LoadingScreen';
+import { StaticSettingsItem } from '../USBSettings';
+import { marqueeIfNeeded } from '../../shared/MarqueeValue';
 
 export const FactoryReset = () => {
   const dispatch = useAppDispatch();
   const factoryReset = useFactoryReset();
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(1);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
 
-  const settings: SettingsItem[] = [
-    {
-      key: 'back1',
-      label: 'Back',
-      visible: true
-    },
-    {
-      key: 'back2',
-      label: 'Back',
-      visible: true
-    },
+  const settings: StaticSettingsItem[] = [
     {
       key: 'factory_reset',
       label: '!! Factory reset !!',
-      visible: true
+      visible: true,
+      useableWidthPercentage: 81
     },
     {
       key: 'back3',
       label: 'Back',
-      visible: true
-    },
-    {
-      key: 'back4',
-      label: 'Back',
-      visible: true
-    },
-    {
-      key: 'back5',
-      label: 'Back',
-      visible: true
+      visible: true,
+      useableWidthPercentage: 81
     }
   ];
 
@@ -73,56 +54,70 @@ export const FactoryReset = () => {
     !bubbleDisplay.interceptsGesture
   );
 
-  const optionPositionOutter = useMemo(
-    () =>
-      calculateOptionPosition({
-        activeOptionIdx: activeIndex,
-        settings
-      }),
-    [activeIndex, settings]
-  );
-
-  const optionPositionInner = useMemo(
-    () =>
-      calculateOptionPosition({
-        activeOptionIdx: activeIndex,
-        adjustmentFn: (position) => position - VIEWPORT_HEIGHT / 2,
-        settings
-      }),
-    [activeIndex, settings]
-  );
+  const showValue = (isActive: boolean, item: StaticSettingsItem) => {
+    if (!item) return <></>;
+    const val = item.label.toUpperCase();
+    return marqueeIfNeeded({
+      enabled: isActive,
+      val,
+      len: 18,
+      forceWidth: item.useableWidthPercentage + '%'
+    });
+  };
 
   if (factoryReset.isPending || factoryReset.isSuccess) {
     return <LoadingScreen />;
   }
 
   return (
-    <Styled.SettingsContainer>
-      <Styled.Viewport>
-        <Styled.OptionsContainer $translateY={optionPositionOutter}>
-          {settings.map((option) => {
-            return (
-              <Styled.SelectedOption key={option.key}>
-                <span>{option.label}</span>
-              </Styled.SelectedOption>
-            );
-          })}
-        </Styled.OptionsContainer>
-        <Styled.ActiveIndicator>
-          <Styled.OptionsContainer
-            $translateY={optionPositionInner}
-            $isInner={true}
-          >
-            {settings.map((option) => {
-              return (
-                <Styled.SelectedOption key={option.key}>
-                  <span>{option.label}</span>
-                </Styled.SelectedOption>
-              );
-            })}
-          </Styled.OptionsContainer>
-        </Styled.ActiveIndicator>
-      </Styled.Viewport>
-    </Styled.SettingsContainer>
+    <div className="main-quick-settings settings-explanation-container">
+      <div className="settings-explanation">
+        <div className="settings-explanation-shaper-left" />
+        <div className="settings-explanation-shaper-right" />
+        <div>
+          <span>
+            <strong>Warning</strong>
+          </span>
+        </div>
+        <div>
+          <span>
+            <strong>This operation cannot be undone</strong>, <b>before</b>{' '}
+            continuing make sure to do the following:
+            <br /> <br />• Back up your profiles
+            <br /> • Back up the machine Logs
+          </span>
+        </div>
+        <div style={{ marginTop: '10px' }}>
+          <span>
+            If You are experiencing any kind of issue please reach out to{' '}
+            <b>Customer Support</b> first
+          </span>
+        </div>
+      </div>
+      <div
+        className="settings-fixed-item-container"
+        style={{ marginBottom: '50px' }}
+      >
+        {settings.map((item, index: number) => {
+          const isActive = index === activeIndex;
+          const width = item.useableWidthPercentage || 90;
+          return (
+            <div
+              key={index}
+              className={`settings-fixed-item  settings-item ${isActive ? 'active-setting' : ''}`}
+              style={{
+                marginBottom: '5px',
+                width: `${width}%`,
+                paddingRight: `${90 - width}%`
+              }}
+            >
+              <span className="settings-fixed-item-text">
+                {showValue(isActive, item)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 };
