@@ -74,24 +74,31 @@ export const FactoryReset = () => {
       <div className="settings-explanation">
         <div className="settings-explanation-shaper-left" />
         <div className="settings-explanation-shaper-right" />
-        <div>
-          <span>
-            <strong>Warning</strong>
-          </span>
-        </div>
-        <div>
-          <span>
-            <strong>This operation cannot be undone</strong>, <b>before</b>{' '}
-            continuing make sure to do the following:
-            <br /> <br />• Back up your profiles
-            <br /> • Back up the machine Logs
-          </span>
-        </div>
         <div style={{ marginTop: '10px' }}>
           <span>
-            If You are experiencing any kind of issue please reach out to{' '}
-            <b>Customer Support</b> first
+            <strong>WARNING</strong>
+            <br />
           </span>
+          <div style={{ marginTop: '10px' }}>
+            <span>
+              <strong>This operation cannot be undone</strong> <br />
+              Before continuing make sure to do the following:
+            </span>
+          </div>
+
+          <div style={{ marginTop: '10px' }}>
+            <span>
+              • Back up your profiles
+              <br /> • Back up the machine Logs
+            </span>
+          </div>
+
+          <div style={{ marginTop: '10px' }}>
+            <span>
+              If You are experiencing any kind of issue please reach out to{' '}
+              <b>Customer Support</b> first
+            </span>
+          </div>
         </div>
       </div>
       <div
