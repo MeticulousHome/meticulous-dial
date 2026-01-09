@@ -10,16 +10,16 @@ import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { MenuAnnotation } from '../../styles/utils/mixins';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 
+export type StaticSettingsItem = SettingsItem & {
+  useableWidthPercentage?: number;
+};
+
 export const USBSettings = () => {
   const dispatch = useAppDispatch();
   const { data: globalSettings } = useSettings();
   const updateSettings = useUpdateSettings();
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-
-  type StaticSettingsItem = SettingsItem & {
-    useableWidthPercentage?: number;
-  };
 
   const settings: StaticSettingsItem[] = [
     {
