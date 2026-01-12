@@ -21,6 +21,32 @@ export type GestureType =
 
 export type IPresetSettings = string[];
 
+export interface ISensorData {
+  t_ext_1: number;
+  t_ext_2: number;
+  t_bar_up: number;
+  t_bar_mu: number;
+  t_bar_md: number;
+  t_bar_down: number;
+  t_tube: number;
+  t_motor_temp: number;
+  lam_temp: number;
+  p: number;
+  a_0: number;
+  a_1: number;
+  a_2: number;
+  a_3: number;
+  m_pos: number;
+  m_spd: number;
+  m_pwr: number;
+  m_cur: number;
+  bh_pwr: number;
+  bh_cur: number;
+  w_stat: number;
+  motor_temp: number;
+  weight_pred: number;
+}
+
 export interface ISensorDataAndMachineState extends StatusData {
   waitingForActionAlreadySent: boolean;
   waterStatus: boolean;

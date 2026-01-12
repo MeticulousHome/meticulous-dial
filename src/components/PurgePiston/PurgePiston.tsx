@@ -4,7 +4,6 @@ import piston from './piston.json';
 import blink from './blink.json';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setScreen } from '../../../src/components/store/features/screens/screens-slice';
-import { usePistonPosContext } from '../../context/PistonPositionContext';
 
 // This is not absolute max but the maximum we choose for the sake of animation
 const MAX_POSITION = 74;
@@ -13,7 +12,7 @@ const NO_FRAMES = 1000;
 
 export function PurgePiston(): JSX.Element {
   const stats = useAppSelector((state) => state.stats);
-  const { PistonPos: position } = usePistonPosContext();
+  const position = useAppSelector((state) => state.stats.sensorData.m_pos);
   const pistonContainer = useRef<AnimationItem | null>(null);
   const pistonAnimator = useRef(null);
   const blinkContainer = useRef<AnimationItem | null>(null);
