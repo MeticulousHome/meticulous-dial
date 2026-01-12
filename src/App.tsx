@@ -24,8 +24,6 @@ import './globals.css';
 
 import { warn, debug, trace, info, error } from '@tauri-apps/plugin-log';
 
-import { PistonPosProvider } from './context/PistonPositionContext';
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -98,18 +96,16 @@ const App = (): JSX.Element => {
         {dev && <div className="main-circle-overlay" />}
         <IdleTimerProvider>
           <ProfileProvider>
-            <PistonPosProvider>
-              <SocketManager>
-                <VisibilityProvider value={isScaleVisible !== 'full'}>
-                  <Router
-                    currentScreen={screen.value}
-                    previousScreen={screen.prev}
-                  />
-                </VisibilityProvider>
-                {/* Mark router as not visible when scale is overlaid to avoid gesture handlers firing */}
-                <Scale updateScaleVisibility={updateScaleVisibility} />
-              </SocketManager>
-            </PistonPosProvider>
+            <SocketManager>
+              <VisibilityProvider value={isScaleVisible !== 'full'}>
+                <Router
+                  currentScreen={screen.value}
+                  previousScreen={screen.prev}
+                />
+              </VisibilityProvider>
+              {/* Mark router as not visible when scale is overlaid to avoid gesture handlers firing */}
+              <Scale updateScaleVisibility={updateScaleVisibility} />
+            </SocketManager>
           </ProfileProvider>
         </IdleTimerProvider>
       </div>

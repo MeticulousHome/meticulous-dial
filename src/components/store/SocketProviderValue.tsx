@@ -1,9 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-import { GestureType, ISensorDataAndMachineState } from '../../types/index';
+import {
+  GestureType,
+  ISensorData,
+  ISensorDataAndMachineState
+} from '../../types/index';
 import { useAppDispatch } from './hooks';
 import {
+  setSensors,
   setStats,
   setWaterStatus,
   updatePreheatTimeLeft
@@ -26,7 +31,6 @@ import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { LASTS_PROFILE_QUERY_KEY } from '../../hooks/useProfiles';
 import { useProfileContext } from '../../context/ProfileContext';
 import { HIDDEN_STAGES } from '../../constants/setting';
-import { usePistonPosContext } from '../../context/PistonPositionContext';
 
 const socket: Socket | null = io(API_URL);
 
@@ -41,7 +45,6 @@ export const SocketProviderValue = () => {
   const { resetTimer: resetIdleTimer } = useIdleTimer();
   const { setProfileStarting, onProfileEvent, onProfileHover } =
     useProfileContext();
-  const { setPistonPos } = usePistonPosContext();
   // For development purpose
   useSocketKeyboardListeners();
 
@@ -67,8 +70,8 @@ export const SocketProviderValue = () => {
       dispatch(updatePreheatTimeLeft(timeLeft));
     });
 
-    socket.on('sensors', (data: { m_pos: number }) => {
-      setPistonPos(data.m_pos);
+    socket.on('sensors', (data: ISensorData) => {
+      dispatch(setSensors(data));
     });
 
     socket.on('status', (data: ISensorDataAndMachineState) => {

@@ -21,7 +21,6 @@ import { LastLabel } from './LastLabel';
 import { useIsOnline } from '../../hooks/useIsOnline';
 import { loadProfileData, startProfile } from '../../api/profile';
 import { DownloadIcon } from './DownloadIcon';
-import { usePistonPosContext } from '../../context/PistonPositionContext';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -93,7 +92,7 @@ export const ProfileHomeScreen = () => {
 
   const nodeRefs = useRef<Record<string, Ref<HTMLDivElement>>>({});
   const requiresPurge = useRef<boolean>(false);
-  const { PistonPos } = usePistonPosContext();
+  const PistonPos = useAppSelector((state) => state.stats.sensorData.m_pos);
 
   const getOrCreateRef = (id: string) => {
     if (!nodeRefs.current[id]) {

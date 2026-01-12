@@ -4,7 +4,7 @@ import piston from './miniPiston.json';
 import { CSSTransition } from 'react-transition-group';
 import './pistonTransitions.css';
 
-import { usePistonPosContext } from '../../context/PistonPositionContext';
+import { useAppSelector } from '../store/hooks';
 
 // This is not absolute max but the maximum we choose for the sake of animation
 const MAX_POSITION = 74;
@@ -18,7 +18,7 @@ export function MiniPurgePiston({ show }): JSX.Element {
   const [initialPosition, setInitialPosition] = useState<number | null>(null);
   const [prevPosition, setPrevPosition] = useState<number | null>(null);
   const [prevTime, setPrevTime] = useState<number | null>(null);
-  const { PistonPos: position } = usePistonPosContext();
+  const position = useAppSelector((state) => state.stats.sensorData.m_pos);
   const [showPiston, setShowPiston] = useState<boolean>(show);
 
   const animateToPosition = useCallback((targetPosition: number) => {
