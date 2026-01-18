@@ -11,6 +11,7 @@ import {
 
 import { useSettings, useUpdateSettings } from '../../hooks/useSettings';
 import type { SettingsItem } from '../../types';
+import { useSoundVolume } from '../../hooks/useSoundVolume.tsx'
 
 import Styled, { VIEWPORT_HEIGHT } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
@@ -35,6 +36,12 @@ const initialSettings: SettingsItem[] = [
     visible: true
   },
   {
+    key: 'sound_volume',
+    label: 'Sound Volume',
+    visible: true,
+    getLabel: () => '' 
+  },
+  {
     key: 'calibrate',
     label: 'calibrate scale'
   },
@@ -54,6 +61,7 @@ const initialSettings: SettingsItem[] = [
 
 export function Settings(): JSX.Element {
   const { data: globalSettings, isSuccess } = useSettings();
+  const { data: soundVolume } = useSoundVolume();
 
   const dispatch = useAppDispatch();
   const [activeIndex, setActiveIndex] = useState(0);
@@ -68,11 +76,14 @@ export function Settings(): JSX.Element {
     }
     return initialSettings.map((item) => ({
       ...item,
-      label: item.getLabel
-        ? `${item.label}: ${item.getLabel(globalSettings)}`
-        : item.label
+      label:
+        item.key === 'sound_volume'
+          ? `${item.label}${soundVolume !== undefined && typeof soundVolume === 'number' ? `: ${Math.round(soundVolume)}%` : ''}`
+          : item.getLabel
+            ? `${item.label}: ${item.getLabel(globalSettings)}`
+            : item.label
     }));
-  }, [globalSettings, isSuccess]);
+  }, [globalSettings, isSuccess, soundVolume]);
 
   useHandleGestures(
     {
@@ -116,6 +127,12 @@ export function Settings(): JSX.Element {
               enable_sounds: !globalSettings.enable_sounds
             });
             break;
+            case 'sound_volume':
+              dispatch(
+                setBubbleDisplay({ visible: false, component: undefined })
+              );
+              dispatch(setScreen('soundVolume'));
+              break;
           case 'time_date':
             dispatch(
               setBubbleDisplay({ visible: true, component: 'timeDate' })

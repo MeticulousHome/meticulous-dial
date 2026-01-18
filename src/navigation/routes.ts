@@ -32,6 +32,7 @@ import { IdleScreen } from '../components/IdleScreen/IdleScreen';
 import { HeatingScreen } from '../components/Heating/HeatingScreen';
 import { TimeDate } from '../components/Settings/Advanced/TimeDate/TimeDateConfig';
 import { TimeZoneConfig } from '../components/Settings/Advanced/TimeDate/TimeZone/TimeZoneConfig';
+import { SoundVolumeGauge } from '../components/Settings/SoundVolume.tsx';
 import SelectLetterCountry from '../components/Settings/Advanced/TimeDate/TimeZone/SelectLetterCountry';
 import CountrySettings from '../components/Settings/Advanced/TimeDate/TimeZone/CountrySettings';
 import TimeZoneSettings from '../components/Settings/Advanced/TimeDate/TimeZone/TimeZoneSettings';
@@ -434,5 +435,12 @@ export const routes: Record<ScreenType, Route> = {
     component: UnlockScreen,
     bottomStatusHidden: true,
     ignoreAsPrevious: true
+  },
+  soundVolume: {
+    component: SoundVolumeGauge,
+    title: 'Sound Volume',
+    bottomStatusHidden: true,
+    bottomTitle: 'Volume',
+    parent: 'settings'
   }
 };

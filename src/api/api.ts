@@ -63,6 +63,52 @@ export const setBrightness = async ({ brightness }: BrightnessRequest) => {
   }
 };
 
+export const getSoundVolume = async (): Promise<number> => {
+  try {
+    const server = API_URL;
+    const url = server + `/api/v1/sounds/volume`;
+    const response = await fetch(url, { method: 'GET' });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
+    return data.volume;
+  } catch (error) {
+    console.error('Error getting sound volume', error);
+    throw error;
+  }
+};
+
+export const setSoundVolume = async (volume: number): Promise<void> => {
+  try {
+    const server = API_URL;
+    const url = server + `/api/v1/sounds/volume`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ volume })
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `HTTP error! status: ${response.status}, body: ${errorText}`
+      );
+    }
+    const data = await response.json();
+    if ('error' in data) {
+      throw new Error((data as APIError).error);
+    }
+  } catch (error) {
+    console.error('Error setting sound volume', error);
+    throw error;
+  }
+};
+
 export const getTimezoneRegion = async (
   region_type: regionType,
   filter: string
