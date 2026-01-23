@@ -109,17 +109,20 @@ export const ProfileHomeScreen = () => {
       const { isLast, temporary, ...cleanProfile } = profile;
       const data = await loadProfileData(cleanProfile);
 
-      if (data) {
+      if ('profile' in data) {
         await startProfile();
+        return true;
       }
+      return false;
     };
 
     setProfileStarting(true);
-    loadAndStartProfile();
-    if (!requiresPurge.current) {
-      dispatch(setScreen('heating'));
-    } else {
-      dispatch(setScreen('manual-purge'));
+    if (await loadAndStartProfile()) {
+      if (!requiresPurge.current) {
+        dispatch(setScreen('heating'));
+      } else {
+        dispatch(setScreen('manual-purge'));
+      }
     }
   };
 
