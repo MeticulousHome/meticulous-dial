@@ -109,21 +109,33 @@ export const ProfileHomeScreen = () => {
       const { isLast, temporary, ...cleanProfile } = profile;
       const data = await loadProfileData(cleanProfile);
 
-      if ('profile' in data) {
+      if (typeof data === 'object' && 'profile' in data) {
         await startProfile();
         return true;
       }
       return false;
     };
+    // If the request response takes longer than 500ms
+    // most likelly has succedded the `refusal` stage in the backend
+    // If it returned quicker, might be an error
+    // This is to keep the ilusion of continuity in the UI, and not have a loading screen
+    // while the profile is being parsed by the backend and the ESP
 
-    setProfileStarting(true);
-    if (await loadAndStartProfile()) {
+    const timeout = setTimeout(() => {
+      setProfileStarting(true);
       if (!requiresPurge.current) {
         dispatch(setScreen('heating'));
       } else {
         dispatch(setScreen('manual-purge'));
       }
-    }
+    }, 500);
+
+    await loadAndStartProfile();
+    clearTimeout(timeout);
+    setProfileStarting(false);
+    setIsPressingDown(false);
+    if (pressThroughTimer.current) clearTimeout(pressThroughTimer.current);
+    pressThroughTimer.current = null;
   };
 
   useEffect(() => {

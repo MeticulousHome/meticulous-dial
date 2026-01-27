@@ -155,9 +155,9 @@ export function PressetSettings(): JSX.Element {
             { ...settingsProfile },
             settingsProfile.settings
           );
-          setProfileStarting(true);
           const data = await loadProfileData(profile);
-          if (data) {
+          if (typeof data === 'object' && 'profile' in data) {
+            setProfileStarting(true);
             await startProfile();
           }
           dispatch(setScreen('profileHome'));
