@@ -2,23 +2,36 @@ import { useEffect, useState } from 'react';
 
 import { setBrightness } from '../../api/api';
 import { useNetworkConfig } from '../../hooks/useWifi';
+import { useSettings } from '../../hooks/useSettings';
 
 import { MetCatClock } from './MetCatClock';
 import { DigitalClockBase } from './DigitalClockBase';
 import './DigitalClock.css';
 
-export function formatTime() {
+export function formatTime(use24Hour?: boolean) {
   const time = new Date();
-  const localeString = time.toLocaleTimeString().toUpperCase();
-  // This would be the perfect usecase for a regex. But it is somehow significantly slower :C
-  const am = localeString.includes('AM') && 'AM';
-  const pm = localeString.includes('PM') && 'PM';
-  const midday = am || pm;
+  const hours24 = time.getHours();
+  
+  let hours: number;
+  let midday: string | undefined;
+  
+  if (use24Hour) {
+    hours = hours24;
+    midday = undefined;
+  } else {
+    const localeString = time.toLocaleTimeString().toUpperCase();
+    // This would be the perfect usecase for a regex. But it is somehow significantly slower :C
+    const am = localeString.includes('AM') && 'AM';
+    const pm = localeString.includes('PM') && 'PM';
+    midday = am || pm;
+    hours = midday ? ((hours24 + 11) % 12) + 1 : hours24;
+  }
+  
   return {
-    hours: midday ? ((time.getHours() + 11) % 12) + 1 : time.getHours(),
+    hours,
     minutes: time.getMinutes(),
     seconds: time.getSeconds(),
-    midday: midday
+    midday
   };
 }
 
@@ -27,7 +40,9 @@ export function DigitalClock({
 }: {
   useMetCat: boolean;
 }): JSX.Element {
-  const [time, setTime] = useState(formatTime());
+  const { data: globalSettings } = useSettings();
+  const use24Hour = (globalSettings as any)?.clock_format_24_hour === true;
+  const [time, setTime] = useState(formatTime(use24Hour));
 
   const { data: networkConfig, refetch: refetchNetworkConfig } =
     useNetworkConfig();
@@ -35,13 +50,13 @@ export function DigitalClock({
   useEffect(() => {
     refetchNetworkConfig();
     setBrightness({ brightness: 0 });
-    const intervalId = setInterval(() => setTime(formatTime()), 250);
+    const intervalId = setInterval(() => setTime(formatTime(use24Hour)), 250);
 
     return () => {
       setBrightness({ brightness: 1 });
       clearInterval(intervalId);
     };
-  }, []);
+  }, [use24Hour]);
 
   const isWifiConnected = networkConfig?.status.connected;
   const ClockComponent = useMetCat ? MetCatClock : DigitalClockBase;

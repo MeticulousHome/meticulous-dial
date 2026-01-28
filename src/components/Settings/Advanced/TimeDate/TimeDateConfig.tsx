@@ -8,7 +8,7 @@ import '../../../OSStatus/OSStatus.css';
 
 import type { SettingsItem, TimeDateValues } from '../../../../types';
 import type { Settings } from '@meticulous-home/espresso-api';
-import { useSettings } from '../../../../hooks/useSettings';
+import { useSettings, useUpdateSettings } from '../../../../hooks/useSettings';
 import { useCurrentTime } from '../../../../hooks/useCurrentTime';
 
 import Styled, {
@@ -39,6 +39,12 @@ const initialSettings: SettingsItem[] = [
     value: false
   },
   {
+    key: 'clock_format',
+    label: 'Clock Format',
+    getLabel: (settings: any) => `${(settings.clock_format_24_hour === true) ? '24h' : '12h'}`,
+    visible: true
+  },
+  {
     key: 'back',
     label: 'Back'
   }
@@ -49,6 +55,7 @@ export function TimeDate(): JSX.Element {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [activeIndex, setActiveIndex] = useState(0);
   const { data: globalSettings, isSuccess } = useSettings();
+  const updateSettings = useUpdateSettings();
 
   const { hours, minutes, day, month, year } = useCurrentTime();
 
@@ -96,6 +103,16 @@ export function TimeDate(): JSX.Element {
           case 'set_date': {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'dateConfig' })
+            );
+            break;
+          }
+          case 'clock_format': {
+            const currentValue =
+              (globalSettings as any)?.clock_format_24_hour === true;
+            updateSettings.mutate(
+              {
+                clock_format_24_hour: !currentValue
+              } as any
             );
             break;
           }
