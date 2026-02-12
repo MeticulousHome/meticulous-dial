@@ -5,7 +5,11 @@ import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useFactoryReset } from '../../../hooks/useMachine';
 import { LoadingScreen } from '../../../components/LoadingScreen/LoadingScreen';
-import { StaticSettingsItem } from '../USBSettings';
+import { SettingsItem } from '../../../types';
+
+export type StaticSettingsItem = SettingsItem & {
+  useableWidthPercentage?: number;
+};
 
 export const FactoryReset = () => {
   const dispatch = useAppDispatch();

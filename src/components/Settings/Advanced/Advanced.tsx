@@ -156,12 +156,6 @@ export const AdvancedSettings = () => {
               setBubbleDisplay({ visible: true, component: 'deviceInfo' })
             );
             break;
-          case 'usb_mode': {
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'usbSettings' })
-            );
-            break;
-          }
           case 'ssh_enabled':
             updateSettings.mutate({
               ssh_enabled: !globalSettings.ssh_enabled
