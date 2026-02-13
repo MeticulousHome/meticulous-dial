@@ -97,9 +97,7 @@ export const AdvancedSettings = () => {
     }
     const speakerTestSetting: SettingsItem = {
       key: 'speakerTest',
-      label: 'Test Speaker',
-      getLabel: (settings) =>
-        settings ? (testingSpeaker ? 'Testing' : 'Test') : 'Test',
+      label: `Test Speaker: ${testingSpeaker ? 'Testing' : 'Test'}`,
       visible: true
     };
 
@@ -220,11 +218,13 @@ export const AdvancedSettings = () => {
             dispatch(setScreen('displayAlignment'));
             break;
           case 'speakerTest':
-            setTestingSpeaker(true);
-            api.playSound(SPEAKER_TEST_SOUND).then(
-              () => console.log('testing speaker'),
-              (reason) => console.warn(`cannot test speaker: ${reason}`)
-            );
+            if (!testingSpeaker) {
+              setTestingSpeaker(true);
+              api.playSound(SPEAKER_TEST_SOUND).then(
+                () => console.log('testing speaker'),
+                (reason) => console.warn(`cannot test speaker: ${reason}`)
+              );
+            }
             break;
           case 'back':
             dispatch(
