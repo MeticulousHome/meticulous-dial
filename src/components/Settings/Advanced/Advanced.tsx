@@ -24,6 +24,7 @@ import {
   isLimitedAccess,
   type Settings
 } from '@meticulous-home/espresso-api';
+import { api } from '../../../api/api';
 
 const initialSettings: SettingsItem[] = [
   {
@@ -64,6 +65,8 @@ const initialSettings: SettingsItem[] = [
   }
 ];
 
+const SPEAKER_TEST_SOUND = 'speaker_test';
+
 export const AdvancedSettings = () => {
   const dispatch = useAppDispatch();
   const { data: globalSettings, isSuccess: isSettingsSuccess } = useSettings();
@@ -72,6 +75,7 @@ export const AdvancedSettings = () => {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { refetch: fetchDeviceStatus } = useDeviceInfo();
   const { data: rootPW } = useRootPassword();
+  const [testingSpeaker, setTestingSpeaker] = useState<boolean>(false);
 
   const { data: manufacturingSettings, isSuccess: isManufacturingSuccess } =
     useManufacturingSchema();
@@ -87,6 +91,14 @@ export const AdvancedSettings = () => {
         ...item
       }));
     }
+    const speakerTestSetting: SettingsItem = {
+      key: 'speakerTest',
+      label: 'Test Speaker',
+      getLabel: (settings) =>
+        settings ? (testingSpeaker ? 'Testing' : 'Test') : 'Test',
+      visible: true
+    };
+
     const formattedInitialSettings = baseSettings.map((item) => ({
       ...item,
       label:
@@ -108,6 +120,7 @@ export const AdvancedSettings = () => {
     if (manufacturingOption) {
       return [
         ...formattedInitialSettings,
+        speakerTestSetting,
         manufacturingOption as SettingsItem,
         {
           key: 'back',
@@ -119,6 +132,7 @@ export const AdvancedSettings = () => {
 
     return [
       ...formattedInitialSettings,
+      speakerTestSetting,
       {
         key: 'back',
         label: 'Back',
@@ -131,6 +145,7 @@ export const AdvancedSettings = () => {
     isSettingsSuccess,
     limitedAccess,
     manufacturingSettings,
+    testingSpeaker,
     rootPW
   ]);
 
@@ -148,7 +163,7 @@ export const AdvancedSettings = () => {
           Math.min(prev + 1, updatedSettings.length - 1)
         );
       },
-      pressDown() {
+      async pressDown() {
         const activeItem = updatedSettings[activeIndex].key;
         switch (activeItem) {
           case 'device_info':
@@ -200,6 +215,13 @@ export const AdvancedSettings = () => {
             );
             dispatch(setScreen('displayAlignment'));
             break;
+          case 'speakerTest':
+            setTestingSpeaker(true);
+            api.playSound(SPEAKER_TEST_SOUND).then(
+              () => console.log('testing speaker'),
+              (reason) => console.warn(`cannot test speaker: ${reason}`)
+            );
+            break;
           case 'back':
             dispatch(
               setBubbleDisplay({ visible: true, component: 'settings' })
@@ -213,6 +235,23 @@ export const AdvancedSettings = () => {
     },
     !bubbleDisplay.interceptsGesture
   );
+
+  useEffect(() => {
+    // hardcoded to the duration of the sound
+    // as there is no current way to check actual status of sound playback
+    let speakerTestLabelTimeout = null;
+    if (testingSpeaker) {
+      speakerTestLabelTimeout = setTimeout(() => {
+        setTestingSpeaker(false);
+      }, 3000);
+    }
+
+    return () => {
+      if (speakerTestLabelTimeout) {
+        clearTimeout(speakerTestLabelTimeout);
+      }
+    };
+  }, [testingSpeaker]);
 
   const optionPositionOutter = useMemo(
     () =>
