@@ -21,6 +21,7 @@ import { LastLabel } from './LastLabel';
 import { useIsOnline } from '../../hooks/useIsOnline';
 import { loadProfileData, startProfile } from '../../api/profile';
 import { DownloadIcon } from './DownloadIcon';
+import { useSocket } from '../store/SocketManager';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -71,6 +72,7 @@ export const ProfileHomeScreen = () => {
   const { data: globalSettings } = useSettings();
   const { isIdle: shouldGoToIdle } = useIdleTimer();
   const isOnline = useIsOnline();
+  const socket = useSocket();
 
   const profileState = useProfileContext();
 
