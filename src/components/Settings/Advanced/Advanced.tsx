@@ -25,11 +25,6 @@ import { api } from '../../../api/api';
 
 const initialSettings: SettingsItem[] = [
   {
-    key: 'usb_mode',
-    label: 'USB mode',
-    getLabel: (settings: Settings) => settings.usb_mode
-  },
-  {
     key: 'ssh_enabled',
     label: 'SSH',
     getLabel: (settings: Settings) =>
@@ -73,8 +68,6 @@ const initialSettings: SettingsItem[] = [
     caseSensitive: false
   }
 ];
-
-const SPEAKER_TEST_SOUND = 'speaker_test';
 
 export const AdvancedSettings = () => {
   const dispatch = useAppDispatch();
@@ -220,8 +213,8 @@ export const AdvancedSettings = () => {
           case 'speakerTest':
             if (!testingSpeaker) {
               setTestingSpeaker(true);
-              api.playSound(SPEAKER_TEST_SOUND).then(
-                () => console.log('testing speaker'),
+              api.requestTest('speaker').then(
+                (response) => console.log(response.data),
                 (reason) => console.warn(`cannot test speaker: ${reason}`)
               );
             }
