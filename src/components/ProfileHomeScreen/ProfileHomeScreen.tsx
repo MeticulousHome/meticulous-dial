@@ -226,6 +226,14 @@ export const ProfileHomeScreen = () => {
           if (!localHoverState) {
             setLocalHoverState(true);
             setTransitionDirection('none');
+            const profile = mergedProfiles?.[activeOption];
+            if (profile?.id) {
+              socket.emit('profileHover', {
+                id: profile.id,
+                from: 'dial',
+                type: 'focus'
+              });
+            }
             if (!isOnline) return;
             pressThroughTimer.current = setTimeout(() => {
               setIsPressingDown(true);
