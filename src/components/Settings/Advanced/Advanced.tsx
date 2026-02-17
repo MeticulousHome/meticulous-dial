@@ -75,8 +75,6 @@ const initialSettings: SettingsItem[] = [
   }
 ];
 
-const SPEAKER_TEST_SOUND = 'speaker_test';
-
 export const AdvancedSettings = () => {
   const dispatch = useAppDispatch();
   const { data: globalSettings, isSuccess: isSettingsSuccess } = useSettings();
@@ -227,8 +225,8 @@ export const AdvancedSettings = () => {
           case 'speakerTest':
             if (!testingSpeaker) {
               setTestingSpeaker(true);
-              api.playSound(SPEAKER_TEST_SOUND).then(
-                () => console.log('testing speaker'),
+              api.requestTest('speaker').then(
+                (response) => console.log(response.data),
                 (reason) => console.warn(`cannot test speaker: ${reason}`)
               );
             }
