@@ -112,6 +112,7 @@ export function IdleScreen(): JSX.Element {
       if (screenDimTimeoutRef.current) {
         clearTimeout(screenDimTimeoutRef.current);
       }
+      updateBrightness({ brightness: 1 });
 
       if (forceBubbleReopen) {
         dispatch(
