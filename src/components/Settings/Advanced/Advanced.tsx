@@ -23,7 +23,6 @@ import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSet
 import type { Settings } from '@meticulous-home/espresso-api';
 
 const initialSettings: SettingsItem[] = [
-  ,
   {
     key: 'ssh_enabled',
     label: 'SSH',
