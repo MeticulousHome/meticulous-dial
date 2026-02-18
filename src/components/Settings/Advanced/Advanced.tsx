@@ -23,11 +23,7 @@ import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSet
 import type { Settings } from '@meticulous-home/espresso-api';
 
 const initialSettings: SettingsItem[] = [
-  {
-    key: 'usb_mode',
-    label: 'USB mode',
-    getLabel: (settings: Settings) => settings.usb_mode
-  },
+  ,
   {
     key: 'ssh_enabled',
     label: 'SSH',
