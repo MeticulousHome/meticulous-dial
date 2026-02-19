@@ -253,7 +253,7 @@ export const useSocketKeyboardListeners = () => {
 
     return () => {
       window.removeEventListener('keydown', keyDownListener);
-      window.addEventListener('keyup', keyUpListener);
+      window.removeEventListener('keyup', keyUpListener);
     };
   }, []);
 };
