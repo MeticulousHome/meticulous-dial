@@ -15,11 +15,14 @@ const profileImageSlice = createSlice({
   name: 'tmp-profile-images',
   initialState: imageProfileAdapter.getInitialState(),
   reducers: {
-    addNewImageProfile: imageProfileAdapter.upsertOne
+    addNewImageProfile: imageProfileAdapter.upsertOne,
+    removeImageProfile: imageProfileAdapter.removeOne,
+    clearAllImageProfiles: imageProfileAdapter.removeAll
   }
 });
 
-export const { addNewImageProfile } = profileImageSlice.actions;
+export const { addNewImageProfile, removeImageProfile, clearAllImageProfiles } =
+  profileImageSlice.actions;
 
 export const { selectById: selectByProfileId } =
   imageProfileAdapter.getSelectors<RootState>((state) => state.images);
