@@ -12,13 +12,18 @@ import {
 export const LIST_WIFI_QUERY_KEY = 'availableWifiList';
 export const NETWORK_CONFIG_QUERY_KEY = 'networkConfig';
 
+const DEFAULT_NETWORK_REFETCH_INTERVAL = 2000;
+const IDLE_NETWORK_REFETCH_INTERVAL = 60000;
+
 // Hook to fetch network config
-export const useNetworkConfig = () => {
+export const useNetworkConfig = (options?: { idle?: boolean }) => {
   return useQuery({
     queryKey: [NETWORK_CONFIG_QUERY_KEY],
     queryFn: getWifiStatus,
     staleTime: 0,
-    refetchInterval: 2000
+    refetchInterval: options?.idle
+      ? IDLE_NETWORK_REFETCH_INTERVAL
+      : DEFAULT_NETWORK_REFETCH_INTERVAL
   });
 };
 

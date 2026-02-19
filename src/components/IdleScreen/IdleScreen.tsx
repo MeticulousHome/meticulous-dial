@@ -75,7 +75,7 @@ export function IdleScreen(): JSX.Element {
     setForceBubbleReopen
   } = useIdleTimer();
   const prevScreen = useAppSelector((state) => state.screen.prev);
-  const { data: globalSettings } = useSettings();
+  const { data: globalSettings } = useSettings({ idle: true });
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const screenDimTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null

@@ -10,13 +10,18 @@ import {
 const USER_SETTINGS_QUERY_KEY = 'user-settings';
 const ROOT_PASSWORD_QUERY_KEY = 'root-password';
 
+const DEFAULT_SETTINGS_REFETCH_INTERVAL = 2000;
+const IDLE_SETTINGS_REFETCH_INTERVAL = 60000;
+
 // Hook to fetch user Settings
-export const useSettings = () => {
+export const useSettings = (options?: { idle?: boolean }) => {
   return useQuery({
     queryKey: [USER_SETTINGS_QUERY_KEY],
     queryFn: getSettings,
     staleTime: 0,
-    refetchInterval: 2000
+    refetchInterval: options?.idle
+      ? IDLE_SETTINGS_REFETCH_INTERVAL
+      : DEFAULT_SETTINGS_REFETCH_INTERVAL
   });
 };
 
