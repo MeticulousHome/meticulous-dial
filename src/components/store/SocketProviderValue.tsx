@@ -185,6 +185,17 @@ export const SocketProviderValue = () => {
         onProfileHover(data.type, data.id);
       }
     );
+
+    return () => {
+      socket.off('notification');
+      socket.off('heater_status');
+      socket.off('sensors');
+      socket.off('status');
+      socket.off('water_status');
+      socket.off('profile');
+      socket.off('button');
+      socket.off('profileHover');
+    };
   }, []);
 
   useEffect(() => {
