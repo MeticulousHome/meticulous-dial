@@ -42,8 +42,9 @@ const notificationAdapter = createEntityAdapter({
   selectId: (notification: NotificationItem) => notification.id
 });
 
-interface NotificationState
-  extends ReturnType<typeof notificationAdapter.getInitialState> {
+interface NotificationState extends ReturnType<
+  typeof notificationAdapter.getInitialState
+> {
   motorHot: boolean;
 }
 
