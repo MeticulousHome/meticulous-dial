@@ -109,7 +109,7 @@ export function AnalogClock() {
   };
 
   const { data: networkConfig, refetch: refetchNetworkConfig } =
-    useNetworkConfig();
+    useNetworkConfig({ idle: true });
 
   useEffect(() => {
     refetchNetworkConfig();
