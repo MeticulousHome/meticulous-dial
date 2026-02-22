@@ -7,6 +7,7 @@ import {
 } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { AnalogClock } from './AnalogClock';
+import { BauhausClock } from './BauhausClock';
 import { DigitalClock } from './DigitalClock';
 import { BaristaClock } from './BaristaClock';
 import { DVDIdleScreen } from './DVD';
@@ -57,6 +58,12 @@ const selectIdleComponent = (screen: string) => {
       return <DigitalClock key="digital" useMetCat={false} />;
     case 'dvd':
       return <DVDIdleScreen />;
+    case 'bauhaus':
+      return <BauhausClock variant="dark" />;
+    case 'bauhaus-light':
+      return <BauhausClock variant="light" />;
+    case 'bauhaus-slate':
+      return <BauhausClock variant="slate" />;
     case 'analog':
     case 'default':
     default:

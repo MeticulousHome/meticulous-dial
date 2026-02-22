@@ -36,6 +36,24 @@ export const IdleScreens: SettingsItem[] = [
     label: 'DVD Style',
     shortLabel: 'DVD',
     visible: true
+  },
+  {
+    key: 'bauhaus',
+    label: 'Bauhaus Clock Dark',
+    shortLabel: 'Bauhaus Dk',
+    visible: true
+  },
+  {
+    key: 'bauhaus-light',
+    label: 'Bauhaus Clock Light',
+    shortLabel: 'Bauhaus Lt',
+    visible: true
+  },
+  {
+    key: 'bauhaus-slate',
+    label: 'Bauhaus Clock Slate',
+    shortLabel: 'Bauhaus Sl',
+    visible: true
   }
 ];
 
