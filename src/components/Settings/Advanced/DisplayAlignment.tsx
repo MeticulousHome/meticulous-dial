@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import Styled from '../../../styles/utils/mixins';
 import { styled } from 'styled-components';
 
-const NUMLINES = 10;
+const NUMLINES = 1;
 
 const VerticalLine = styled.div`
   margin-left: 4.5%;
