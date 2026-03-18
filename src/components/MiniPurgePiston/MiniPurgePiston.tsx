@@ -14,6 +14,7 @@ const NO_FRAMES = 1000;
 export function MiniPurgePiston({ show }): JSX.Element {
   const pistonContainer = useRef<AnimationItem | null>(null);
   const pistonAnimator = useRef(null);
+  const rafIdRef = useRef<number | null>(null);
 
   const [initialPosition, setInitialPosition] = useState<number | null>(null);
   const [prevPosition, setPrevPosition] = useState<number | null>(null);
@@ -23,6 +24,10 @@ export function MiniPurgePiston({ show }): JSX.Element {
 
   const animateToPosition = useCallback((targetPosition: number) => {
     if (pistonContainer.current) {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+
       const startPosition = pistonContainer.current.currentRawFrame;
       const startTime = performance.now();
 
@@ -39,28 +44,33 @@ export function MiniPurgePiston({ show }): JSX.Element {
         );
 
         if (clampedPosition > TOTAL_FRAMES) {
+          rafIdRef.current = null;
           return;
         }
 
         pistonContainer.current?.goToAndStop(clampedPosition, true);
 
         if (progress < 1) {
-          requestAnimationFrame(animate);
+          rafIdRef.current = requestAnimationFrame(animate);
+        } else {
+          rafIdRef.current = null;
         }
       };
 
-      requestAnimationFrame(animate);
+      rafIdRef.current = requestAnimationFrame(animate);
     }
   }, []);
 
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
     if (show) {
-      setTimeout(() => {
+      timer = setTimeout(() => {
         setShowPiston(true);
       }, 500);
     } else {
       setShowPiston(false);
     }
+    return () => clearTimeout(timer);
   }, [show]);
 
   const initAnimation = (initial: number) => {
@@ -111,6 +121,10 @@ export function MiniPurgePiston({ show }): JSX.Element {
 
   useEffect(() => {
     return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
       pistonContainer.current?.destroy();
       pistonContainer.current = undefined;
     };
