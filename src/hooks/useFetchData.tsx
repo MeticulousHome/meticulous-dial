@@ -6,6 +6,7 @@ import { useProfiles } from './useProfiles';
 export function useFetchData(onReady?: () => void) {
   const dispatch = useAppDispatch();
   const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onReadyCalledRef = useRef(false);
   const {
     data: profiles,
     isError: profilesError,
@@ -31,9 +32,10 @@ export function useFetchData(onReady?: () => void) {
   }, [profilesError]);
 
   useEffect(() => {
-    if (profiles && !profilesError) {
+    if (profiles && !profilesError && !onReadyCalledRef.current) {
       console.log('calling onReady');
       if (onReady) {
+        onReadyCalledRef.current = true;
         onReady();
       }
     }
