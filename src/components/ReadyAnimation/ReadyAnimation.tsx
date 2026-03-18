@@ -15,10 +15,12 @@ export function ReadyAnimation(): JSX.Element {
 
   const animation = useRef<AnimationItem | null>(null);
   const animationDiv = useRef<HTMLDivElement | null>(null);
+  const destroyedRef = useRef(false);
 
   function handleReadyAnimation2Completed(): void {
     animation.current?.destroy();
     animation.current = undefined;
+    if (destroyedRef.current) return;
     dispatch(setScreen('profileHome'));
     dispatch(loadNotifications());
   }
@@ -26,6 +28,7 @@ export function ReadyAnimation(): JSX.Element {
   function handleReadyAnimation1Completed(): void {
     animation.current?.destroy();
     animation.current = undefined;
+    if (destroyedRef.current) return;
     animation.current = Lottie.loadAnimation({
       container: animationDiv.current,
       animationData: ReadyAnimation2Data,
@@ -43,6 +46,7 @@ export function ReadyAnimation(): JSX.Element {
   function finishLoadingAnimation(): void {
     animation.current?.destroy();
     animation.current = undefined;
+    if (destroyedRef.current) return;
     animation.current = Lottie.loadAnimation({
       container: animationDiv.current,
       animationData: ReadyAnimation1Data,
@@ -80,6 +84,7 @@ export function ReadyAnimation(): JSX.Element {
       animation.current.goToAndPlay(3, true);
     }
     return () => {
+      destroyedRef.current = true;
       animation.current?.destroy();
       animation.current = undefined;
     };
