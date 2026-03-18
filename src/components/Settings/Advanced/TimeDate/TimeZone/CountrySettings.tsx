@@ -29,16 +29,22 @@ export default function CountrySettings() {
   useDimScreen();
 
   useEffect(() => {
-    try {
-      getTimezoneRegion('countries', countryLetter.toLowerCase()).then(
-        (result) => {
+    let cancelled = false;
+    getTimezoneRegion('countries', countryLetter.toLowerCase())
+      .then((result) => {
+        if (!cancelled) {
           setAvailableCountries(result);
         }
-      );
-    } catch (error) {
-      setAvailableCountries({ countries: [] });
-      console.log('Error fetching countries: ', error);
-    }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setAvailableCountries({ countries: [] });
+          console.log('Error fetching countries: ', error);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useHandleGestures(
