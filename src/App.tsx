@@ -121,7 +121,9 @@ function forwardConsole(
   const original = console[fnName];
   console[fnName] = (message) => {
     original(message);
-    logger(message);
+    if ('__TAURI_INTERNALS__' in window) {
+      logger(message);
+    }
   };
 }
 
