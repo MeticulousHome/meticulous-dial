@@ -31,6 +31,7 @@ export function useHistoryShot(query: Partial<HistoryQueryParams>) {
   return useQuery({
     queryKey: [QUERY_KEY_HISTORY, query],
     queryFn: () => api.searchHistory(query).then((res) => res.data),
-    enabled: query != null
+    enabled: query != null,
+    gcTime: 60_000
   });
 }
