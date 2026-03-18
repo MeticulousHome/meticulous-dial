@@ -16,6 +16,7 @@ export function ReadyAnimation(): JSX.Element {
   const animation = useRef<AnimationItem | null>(null);
   const animationDiv = useRef<HTMLDivElement | null>(null);
   const destroyedRef = useRef(false);
+  const animationStartedRef = useRef(false);
 
   function handleReadyAnimation2Completed(): void {
     animation.current?.destroy();
@@ -44,6 +45,8 @@ export function ReadyAnimation(): JSX.Element {
   }
 
   function finishLoadingAnimation(): void {
+    if (animationStartedRef.current) return;
+    animationStartedRef.current = true;
     animation.current?.destroy();
     animation.current = undefined;
     if (destroyedRef.current) return;
