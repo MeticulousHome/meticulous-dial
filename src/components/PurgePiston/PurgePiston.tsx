@@ -22,11 +22,16 @@ export function PurgePiston(): JSX.Element {
   const [prevPosition, setPrevPosition] = useState<number | null>(null);
   const [prevTime, setPrevTime] = useState<number | null>(null);
   const intervalRef = useRef(null);
+  const rafIdRef = useRef<number | null>(null);
 
   const dispatch = useAppDispatch();
 
   const animateToPosition = useCallback((targetPosition: number) => {
     if (pistonContainer.current) {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+
       const startPosition = pistonContainer.current.currentRawFrame;
       const startTime = performance.now();
 
@@ -43,17 +48,20 @@ export function PurgePiston(): JSX.Element {
         );
 
         if (clampedPosition > TOTAL_FRAMES) {
+          rafIdRef.current = null;
           return;
         }
 
         pistonContainer.current?.goToAndStop(clampedPosition, true);
 
         if (progress < 1) {
-          requestAnimationFrame(animate);
+          rafIdRef.current = requestAnimationFrame(animate);
+        } else {
+          rafIdRef.current = null;
         }
       };
 
-      requestAnimationFrame(animate);
+      rafIdRef.current = requestAnimationFrame(animate);
     }
   }, []);
 
@@ -132,6 +140,10 @@ export function PurgePiston(): JSX.Element {
 
   useEffect(() => {
     return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
       pistonContainer.current?.destroy();
       pistonContainer.current = undefined;
       blinkContainer.current?.destroy();
