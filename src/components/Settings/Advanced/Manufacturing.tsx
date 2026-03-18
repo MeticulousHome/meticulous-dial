@@ -59,16 +59,28 @@ export const Manufacturing = () => {
    * When using the GET method on /api/v1/manufacturing, I obtain the elements to display, but if I make modifications with POST, the GET response from that endpoint no longer reflects those changes.
    *  */
   useEffect(() => {
+    let cancelled = false;
     (async () => {
-      const data = await updateManufacturingSettings({});
-      if ('enabled' in data) {
-        setManufacturing(data);
-        setIsManufacturingConfigLoading(false);
-      } else {
-        console.error('Failed to fetch manufacturing settings:', data);
-        setIsManufacturingConfigLoading(false);
+      try {
+        const data = await updateManufacturingSettings({});
+        if (cancelled) return;
+        if ('enabled' in data) {
+          setManufacturing(data);
+          setIsManufacturingConfigLoading(false);
+        } else {
+          console.error('Failed to fetch manufacturing settings:', data);
+          setIsManufacturingConfigLoading(false);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to fetch manufacturing settings:', error);
+          setIsManufacturingConfigLoading(false);
+        }
       }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const updatedSettings = useMemo(() => {
