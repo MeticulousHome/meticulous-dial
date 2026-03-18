@@ -36,14 +36,22 @@ export default function TimeZoneSettings() {
   useDimScreen();
 
   useEffect(() => {
-    try {
-      getTimezoneRegion('cities', country).then((result) => {
-        setTimeZones(result);
+    let cancelled = false;
+    getTimezoneRegion('cities', country)
+      .then((result) => {
+        if (!cancelled) {
+          setTimeZones(result);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          console.log('Error fetching cities: ', error);
+          setTimeZones({ cities: [] });
+        }
       });
-    } catch (error) {
-      console.log('Error fetching cities: ', error);
-      setTimeZones({ cities: [] });
-    }
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useHandleGestures(
