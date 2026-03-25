@@ -31,7 +31,7 @@ type IdleTimerProviderProps = {
 };
 
 // 5 minutes default timeout
-const DEFAULT_TIMEOUT = 10 * 1000;
+const DEFAULT_TIMEOUT = 5 * 60 * 1000;
 
 export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
   children
