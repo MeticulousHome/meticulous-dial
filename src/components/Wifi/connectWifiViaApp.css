@@ -5,7 +5,7 @@
   text-align: left;
   justify-content: start;
   font-weight: 400;
-  font-family: 'ABC Diatype Mono';
+  font-family: var(--multilingual-fonts-mono);
   height: fit-content;
   display: block;
   padding-top: 20px;

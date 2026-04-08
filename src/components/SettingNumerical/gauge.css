@@ -43,7 +43,7 @@
 }
 
 .scale-content .scale-level {
-  font-family: 'ABC Diatype Mono';
+  font-family: var(--multilingual-fonts-mono);
   font-size: 140px;
   line-height: 96px;
   width: 282px;

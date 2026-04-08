@@ -77,7 +77,7 @@ const MenuEntry = styled.div<{
   line-height: 1;
   letter-spacing: 0;
   padding-left: 20px;$holdAnimation
-  font-family: 'ABC Diatype';
+  font-family: var(--multilingual-fonts);
   font-size: 20px;
   font-style: normal;
   font-weight: 300;

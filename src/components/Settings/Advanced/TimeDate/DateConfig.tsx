@@ -31,7 +31,7 @@ const ClockWrapper = styled.div`
   justify-content: center;
   align-items: center;
 
-  font-family: 'ABC Diatype Mono';
+  font-family: var(--multilingual-fonts-mono);
   font-weight: 300;
   letter-spacing: '-0.02em';
   padding-top: 60px;

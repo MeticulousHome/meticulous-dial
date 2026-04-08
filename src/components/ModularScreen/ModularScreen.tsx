@@ -30,7 +30,7 @@ export const ModularFooter = forwardRef<HTMLDivElement, ModularSectionProps>(
 );
 
 export const ModularFooterText = styled.div`
-  font-family: 'ABC Diatype Mono';
+  font-family: var(--multilingual-fonts-mono);
   font-size: 20px;
   font-weight: normal;
   line-height: 1;
@@ -39,7 +39,7 @@ export const ModularFooterText = styled.div`
 `;
 
 export const ModularFooterTime = styled.div`
-  font-family: 'ABC Diatype Mono';
+  font-family: var(--multilingual-fonts-mono);
   font-size: 40px;
   font-weight: 300;
   line-height: 1;

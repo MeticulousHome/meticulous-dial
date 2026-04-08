@@ -6,7 +6,7 @@ const SMALL_FONT_SIZE = 25;
 const LARGE_FONT_SIZE = 60;
 
 const TemperatureValue = styled.span<{ $small?: boolean }>`
-  font-family: 'ABC Diatype Mono';
+  font-family: var(--multilingual-fonts-mono);
   font-size: ${(props) => (props.$small ? SMALL_FONT_SIZE : LARGE_FONT_SIZE)}px;
   font-weight: ${(props) => (props.$small ? 200 : 300)};
   letter-spacing: -0.02em;
@@ -15,7 +15,7 @@ const TemperatureValue = styled.span<{ $small?: boolean }>`
 `;
 
 const Unit = styled.sup<{ $small?: boolean }>`
-  font-family: 'ABC Diatype';
+  font-family: var(--multilingual-fonts);
   font-size: ${(props) => (props.$small ? 19 : 25)}px;
   font-weight: ${(props) => (props.$small ? 200 : 400)};
   letter-spacing: -0.01em;
@@ -24,7 +24,7 @@ const Unit = styled.sup<{ $small?: boolean }>`
 `;
 
 export const Label = styled.div`
-  font-family: 'ABC Diatype';
+  font-family: var(--multilingual-fonts);
   font-size: 15px;
   font-weight: 300;
   line-height: 1;

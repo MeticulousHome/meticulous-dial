@@ -29,7 +29,7 @@ const WeightContainer = styled.div`
 `;
 
 const WeightValue = styled.span`
-  font-family: 'ABC Diatype Mono';
+  font-family: var(--multilingual-fonts-mono);
   font-size: 60px;
   font-weight: normal;
   letter-spacing: -0.02em;
@@ -37,7 +37,7 @@ const WeightValue = styled.span`
 `;
 
 const Unit = styled.sup`
-  font-family: 'ABC Diatype';
+  font-family: var(--multilingual-fonts);
   font-size: 25px;
   font-weight: normal;
   letter-spacing: -0.01em;
@@ -46,7 +46,7 @@ const Unit = styled.sup`
 `;
 
 const Label = styled.div`
-  font-family: 'ABC Diatype';
+  font-family: var(--multilingual-fonts);
   font-size: 15px;
   font-weight: 300;
   line-height: 1;

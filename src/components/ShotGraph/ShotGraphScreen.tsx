@@ -63,13 +63,13 @@ const GraphLabel = styled.div`
   flex-direction: column;
   gap: 5px;
   align-items: center;
-  font-family: 'ABC Diatype Mono';
+  font-family: var(--multilingual-fonts-mono);
 `;
 
 const GraphLabelText = styled.span`
   font-size: 15px;
   color: #e7e7e799;
-  font-family: 'ABC Diatype Mono';
+  font-family: var(--multilingual-fonts-mono);
   letter-spacing: 3px;
   text-transform: uppercase;
 `;
