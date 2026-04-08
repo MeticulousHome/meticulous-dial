@@ -45,6 +45,112 @@
   font-weight: 200;
 }
 
+/* CJK fonts */
+
+/* Korean */
+@font-face {
+  font-family: 'ABC Diatype Hangul';
+  src: url('/src/assets/fonts/abc-diatype-hangul-regular.woff2') format('woff2');
+  font-weight: normal;
+}
+@font-face {
+  font-family: 'ABC Diatype Hangul';
+  src: url('/src/assets/fonts/abc-diatype-hangul-light.woff2') format('woff2');
+  font-weight: 300;
+}
+@font-face {
+  font-family: 'ABC Diatype Hangul';
+  src: url('/src/assets/fonts/abc-diatype-hangul-thin.woff2') format('woff2');
+  font-weight: 200;
+}
+
+/* Japanese */
+@font-face {
+  font-family: 'IBM Plex Sans JP';
+  src: url('/src/assets/fonts/ibm-plex-sans-jp-regular.ttf') format('opentype');
+  font-weight: normal;
+}
+@font-face {
+  font-family: 'IBM Plex Sans JP';
+  src: url('/src/assets/fonts/ibm-plex-sans-jp-light.ttf') format('opentype');
+  font-weight: 300;
+}
+@font-face {
+  font-family: 'IBM Plex Sans JP';
+  src: url('/src/assets/fonts/ibm-plex-sans-jp-thin.ttf') format('opentype');
+  font-weight: 200;
+}
+
+/* Chinese */
+@font-face {
+  font-family: 'Noto Sans TC';
+  src: url('/src/assets/fonts/noto-sans-tc-regular.ttf') format('truetype');
+  font-weight: normal;
+}
+@font-face {
+  font-family: 'Noto Sans TC';
+  src: url('/src/assets/fonts/noto-sans-tc-light.ttf') format('truetype');
+  font-weight: 300;
+}
+@font-face {
+  font-family: 'Noto Sans TC';
+  src: url('/src/assets/fonts/noto-sans-tc-thin.ttf') format('truetype');
+  font-weight: 200;
+}
+@font-face {
+  font-family: 'Noto Sans SC';
+  src: url('/src/assets/fonts/noto-sans-sc-regular.ttf') format('truetype');
+  font-weight: normal;
+}
+@font-face {
+  font-family: 'Noto Sans SC';
+  src: url('/src/assets/fonts/noto-sans-sc-light.ttf') format('truetype');
+  font-weight: 300;
+}
+@font-face {
+  font-family: 'Noto Sans SC';
+  src: url('/src/assets/fonts/noto-sans-sc-thin.ttf') format('truetype');
+  font-weight: 200;
+}
+
+/* Arabic fonts */
+
+@font-face {
+  font-family: 'ABC Diatype Arabic';
+  src: url('/src/assets/fonts/abc-diatype-arabic-regular.woff2') format('woff2');
+  font-weight: normal;
+}
+@font-face {
+  font-family: 'ABC Diatype Arabic';
+  src: url('/src/assets/fonts/abc-diatype-arabic-light.woff2') format('woff2');
+  font-weight: 300;
+}
+@font-face {
+  font-family: 'ABC Diatype Arabic';
+  src: url('/src/assets/fonts/abc-diatype-arabic-thin.woff2') format('woff2');
+  font-weight: 200;
+}
+
+/* Cyrillic fonts */
+@font-face {
+  font-family: 'ABC Diatype Cyrillic';
+  src: url('/src/assets/fonts/abc-diatype-cyrillic-regular-trial.woff2')
+    format('woff2');
+  font-weight: normal;
+}
+@font-face {
+  font-family: 'ABC Diatype Cyrillic';
+  src: url('/src/assets/fonts/abc-diatype-cyrillic-light-trial.woff2')
+    format('woff2');
+  font-weight: 300;
+}
+@font-face {
+  font-family: 'ABC Diatype Cyrillic';
+  src: url('/src/assets/fonts/abc-diatype-cyrillic-thin-trial.woff2')
+    format('woff2');
+  font-weight: 200;
+}
+
 html,
 body {
   width: 480px;
@@ -53,8 +159,16 @@ body {
   overflow: hidden;
 }
 
+html {
+  --base-fonts:
+    'ABC Diatype Hangul', 'IBM Plex Sans JP', 'Noto Sans SC', 'Noto Sans TC',
+    'ABC Diatype Arabic', 'ABC Diatype Cyrillic';
+  --multilingual-fonts: 'ABC Diatype', var(--base-fonts);
+  --multilingual-fonts-mono: 'ABC Diatype Mono', var(--base-fonts);
+}
+
 body {
-  font-family: 'ABC Diatype';
+  font-family: var(--multilingual-fonts);
   color: white;
   background-color: black;
   display: flex;

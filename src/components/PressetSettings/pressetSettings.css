@@ -10,7 +10,7 @@
 .presset-option-value.defaultProfileActive {
   color: black !important;
   visibility: visible;
-  font-family: 'ABC Diatype Mono';
+  font-family: var(--multilingual-fonts-mono);
   letter-spacing: -0.5px;
 }
 

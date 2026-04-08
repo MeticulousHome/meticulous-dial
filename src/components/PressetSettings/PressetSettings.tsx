@@ -71,7 +71,7 @@ const SettingsEntry = styled.div<{
   height: ${OPTIONS_HEIGHT}px;
   width: 100%;
 
-  font-family: 'ABC Diatype';
+  font-family: var(--multilingual-fonts);
   font-size: 40px;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -104,7 +104,7 @@ const SettingsValue = styled.span<{ $small?: boolean }>`
 
 const SettingsUnit = styled.span`
   font-size: 17px;
-  font-family: 'ABC Diatype Mono';
+  font-family: var(--multilingual-fonts-mono);
   letter-spacing: -0.5px;
   text-transform: none;
   color: #f5c444;

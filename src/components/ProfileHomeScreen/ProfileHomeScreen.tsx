@@ -36,7 +36,7 @@ const Container = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-family: 'ABC Diatype';
+  font-family: var(--multilingual-fonts);
 `;
 
 const Viewport = styled.div`

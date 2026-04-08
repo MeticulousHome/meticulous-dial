@@ -41,7 +41,7 @@ const SettingsContainer = styled.div`
   height: 100%;
   width: 100%;
   justify-content: center;
-  font-family: 'ABC Diatype';
+  font-family: var(--multilingual-fonts);
 `;
 
 const Viewport = styled.div`
@@ -162,7 +162,7 @@ const OptionsContainer = styled.div<{
           justify-content: start;
           display: flex;
           align-items: center;
-          font-family: 'ABC Diatype Mono';
+          font-family: var(--multilingual-fonts-mono);
           border: 1px solid currentColor;
           border-radius: 4px;
           right: 58px;
@@ -209,7 +209,7 @@ const Option = styled.div<{
   height: ${ITEM_HEIGHT}px;
   line-height: 90%;
   justify-content: start;
-  font-family: 'ABC Diatype Mono';
+  font-family: var(--multilingual-fonts-mono);
   font-weight: normal;
   padding: 0 16px;
 
@@ -275,7 +275,7 @@ export const MenuAnnotation = styled.span<{ $marginRigth?: string }>`
   align-items: center;
   height: 15px;
   font-size: 12px;
-  font-family: 'ABC Diatype Mono';
+  font-family: var(--multilingual-fonts-mono);
   border: 1px solid currentColor;
   border-radius: 4px;
   padding: 5px 5px 2px 5px;

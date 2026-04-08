@@ -18,7 +18,7 @@ const CircleText = styled.div`
   align-items: center;
   z-index: 50;
 
-  font-family: 'ABC Diatype';
+  font-family: var(--multilingual-fonts);
   font-size: 25px;
   font-weight: 400;
   letter-spacing: -0.01em;

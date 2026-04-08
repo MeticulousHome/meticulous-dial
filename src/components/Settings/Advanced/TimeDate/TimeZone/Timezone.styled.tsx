@@ -56,7 +56,7 @@ export const SettingsEntry = styled.div<{
   height: ${OPTIONS_HEIGHT}px;
   width: 100%;
 
-  font-family: 'ABC Diatype';
+  font-family: var(--multilingual-fonts);
   font-size: 40px;
   font-weight: 500;
   letter-spacing: -0.01em;

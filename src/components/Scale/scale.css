@@ -57,7 +57,7 @@
   align-items: end;
   justify-content: center;
   line-height: 1;
-  font-family: 'ABC Diatype Mono';
+  font-family: var(--multilingual-fonts-mono);
   font-weight: 400;
   color: #e7e7e7;
   letter-spacing: -2%;

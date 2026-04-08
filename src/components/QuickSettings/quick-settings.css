@@ -25,7 +25,7 @@
   justify-content: start;
   font-weight: 400;
   letter-spacing: 1.3px;
-  font-family: 'ABC Diatype Mono';
+  font-family: var(--multilingual-fonts-mono);
   padding-left: 18px;
   white-space: nowrap;
 }
