@@ -95,6 +95,9 @@ function rotateString(degrees: number): string {
   return ROTATE_STRINGS[idx % 3600];
 }
 
+// getTimezoneOffset() returns UTC - local in minutes
+const TZ_OFFSET_MS = new Date().getTimezoneOffset() * 60 * 1000;
+
 export function AnalogClock() {
   const requestId = useRef<number>(-1);
   const hourRef = useRef(null);
@@ -112,7 +115,7 @@ export function AnalogClock() {
     // Use Date.now() + integer arithmetic instead of new Date() to avoid
     // allocating a Date object every frame (~60/sec).
     const now = Date.now();
-    const ms = now % 86400000; // ms since midnight UTC
+    const ms = (now - TZ_OFFSET_MS) % 86400000; // ms since midnight local time
     const totalSeconds = ms / 1000;
     const seconds = totalSeconds % 60;
     const totalMinutes = totalSeconds / 60;
