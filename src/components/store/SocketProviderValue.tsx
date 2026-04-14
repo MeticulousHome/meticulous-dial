@@ -20,13 +20,17 @@ import {
   addOneNotification,
   removeOneNotification,
   setMotorHot,
-  NotificationItem,
   processNotification
 } from './features/notifications/notification-slice';
+
 import { api, API_URL } from '../../api/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { OS_UPDATE_STATUS } from '../../hooks/useDeviceOSStatus';
-import { OSStatusResponse, ProfileUpdate } from '@meticulous-home/espresso-api';
+import {
+  OSStatusResponse,
+  ProfileUpdate,
+  NotificationItem
+} from '@meticulous-home/espresso-api';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { LASTS_PROFILE_QUERY_KEY } from '../../hooks/useProfiles';
 import { useProfileContext } from '../../context/ProfileContext';
@@ -135,7 +139,7 @@ export const SocketProviderValue = () => {
     });
 
     socket.on('profile', (event: ProfileUpdate) => {
-      console.log('ProfileUpdate', event);
+      console.log(`ProfileUpdate ${event}`);
       onProfileEvent(event);
     });
 

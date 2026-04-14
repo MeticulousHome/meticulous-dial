@@ -6,20 +6,10 @@ import {
 } from '@reduxjs/toolkit';
 import { RootState } from '../../store';
 import { api } from '../../../../api/api';
-import { APIError } from '@meticulous-home/espresso-api/dist';
-
-type ResponseOption = 'Update' | 'Auto Update' | 'Skip' | string;
+import { APIError, NotificationItem } from '@meticulous-home/espresso-api/dist';
 
 export const MOTOR_HOT_KEY = 'motor_hot';
 export const MOTOR_COLD_KEY = 'motor_cold';
-
-export interface NotificationItem {
-  id: string;
-  message: string;
-  image?: string;
-  responses: ResponseOption[];
-  timestamp: Date;
-}
 
 export const loadNotifications = createAsyncThunk(
   'notificationData/loadNotifications',
