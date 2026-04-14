@@ -167,7 +167,7 @@ export function PressetSettings(): JSX.Element {
           );
 
           const data = await loadProfileData(profile);
-          if (typeof data === 'object' && 'profile' in data) {
+          if (typeof data === 'object' && 'name' in data) {
             setProfileStarting(true);
             const response = await startProfile();
             if (!('error' in response)) {

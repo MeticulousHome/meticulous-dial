@@ -111,7 +111,7 @@ export const ProfileHomeScreen = () => {
       const { isLast, temporary, ...cleanProfile } = profile;
       const data = await loadProfileData(cleanProfile);
 
-      if (typeof data === 'object' && 'profile' in data) {
+      if (typeof data === 'object' && 'name' in data) {
         const response = await startProfile();
         if (!('error' in response)) {
           setProfileStarting(true);
