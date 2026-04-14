@@ -17,6 +17,7 @@ import {
 } from '../../utils/profiles';
 import { DEFAULT_SETTING } from '../../constants/setting';
 import { loadProfileData, startProfile } from '../../api/profile';
+import { useRef, useEffect } from 'react';
 
 const OPTIONS_HEIGHT = 50;
 const CARD_GAP = 2;
@@ -130,6 +131,15 @@ export function PressetSettings(): JSX.Element {
 
   const saveProfile = useSavePreset();
 
+  const requiresPurge = useRef<boolean>(false);
+  const PistonPos = useAppSelector((state) => state.stats.sensorData.m_pos);
+
+  const PISTON_ON_PURGE_POSITION = 73; // value gotten from ComplexProfileConverter.head_template on 'prepare' stage
+
+  useEffect(() => {
+    requiresPurge.current = PistonPos && PistonPos < PISTON_ON_PURGE_POSITION;
+  }, [PistonPos]);
+
   useDimScreen();
   useHandleGestures(
     {
@@ -155,10 +165,22 @@ export function PressetSettings(): JSX.Element {
             { ...settingsProfile },
             settingsProfile.settings
           );
+
           const data = await loadProfileData(profile);
           if (typeof data === 'object' && 'profile' in data) {
             setProfileStarting(true);
-            await startProfile();
+            const response = await startProfile();
+            if (!('error' in response)) {
+              if (!requiresPurge.current) {
+                dispatch(setScreen('heating'));
+              } else {
+                dispatch(setScreen('manual-purge'));
+              }
+              return;
+            }
+            console.error(`Failed starting profile: ${response.error}`);
+          } else {
+            console.error(`Failed loading profile: ${data.error}`);
           }
           dispatch(setScreen('profileHome'));
         } else if (activeSetting.key === 'name') {

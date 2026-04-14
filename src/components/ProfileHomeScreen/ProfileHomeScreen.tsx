@@ -112,28 +112,24 @@ export const ProfileHomeScreen = () => {
       const data = await loadProfileData(cleanProfile);
 
       if (typeof data === 'object' && 'profile' in data) {
-        await startProfile();
-        return true;
+        const response = await startProfile();
+        if (!('error' in response)) {
+          setProfileStarting(true);
+          if (!requiresPurge.current) {
+            dispatch(setScreen('heating'));
+          } else {
+            dispatch(setScreen('manual-purge'));
+          }
+          return true;
+        }
+        console.error(`Failed starting profile: ${response.error}`);
+      } else {
+        console.error(`Failed loading profile: ${data.error}`);
       }
       return false;
     };
-    // If the request response takes longer than 500ms
-    // most likelly has succedded the `refusal` stage in the backend
-    // If it returned quicker, might be an error
-    // This is to keep the ilusion of continuity in the UI, and not have a loading screen
-    // while the profile is being parsed by the backend and the ESP
 
-    const timeout = setTimeout(() => {
-      setProfileStarting(true);
-      if (!requiresPurge.current) {
-        dispatch(setScreen('heating'));
-      } else {
-        dispatch(setScreen('manual-purge'));
-      }
-    }, 500);
-
-    await loadAndStartProfile();
-    clearTimeout(timeout);
+    if (await loadAndStartProfile()) return;
     setProfileStarting(false);
     setIsPressingDown(false);
     if (pressThroughTimer.current) clearTimeout(pressThroughTimer.current);
@@ -141,9 +137,7 @@ export const ProfileHomeScreen = () => {
   };
 
   useEffect(() => {
-    if (PistonPos && PistonPos < PISTON_ON_PURGE_POSITION) {
-      requiresPurge.current = true;
-    }
+    requiresPurge.current = PistonPos && PistonPos < PISTON_ON_PURGE_POSITION;
   }, [PistonPos]);
 
   useEffect(() => {
