@@ -1,3 +1,3 @@
 // meticulous-version
 
-module.exports = { version: '1.102.5' };
+module.exports = { version: '1.102.6' };
