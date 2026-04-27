@@ -6,6 +6,9 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useFactoryReset } from '../../../hooks/useMachine';
 import { LoadingScreen } from '../../../components/LoadingScreen/LoadingScreen';
 import { SettingsItem } from '../../../types';
+import { useDeviceInfo } from '../../../hooks/useDeviceOSStatus';
+import { CircleKeyboard } from '../../CircleKeyboard/CircleKeyboard';
+import './FactoryReset.css';
 
 export type StaticSettingsItem = SettingsItem & {
   useableWidthPercentage?: number;
@@ -15,7 +18,12 @@ export const FactoryReset = () => {
   const dispatch = useAppDispatch();
   const factoryReset = useFactoryReset();
   const [activeIndex, setActiveIndex] = useState(1);
+  const [serialInput, setSerialInput] = useState('');
+  const [serialRejected, setSerialRejected] = useState(false);
+  const [isSerialPromptOpen, setIsSerialPromptOpen] = useState(false);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const { data: deviceInfo, isPending: deviceInfoPending } = useDeviceInfo();
+  const deviceSerial = String(deviceInfo?.serial ?? '').trim();
 
   const settings: StaticSettingsItem[] = [
     {
@@ -44,7 +52,9 @@ export const FactoryReset = () => {
         const activeItem = settings[activeIndex].key;
         switch (activeItem) {
           case 'factory_reset':
-            factoryReset.mutate();
+            setSerialInput('');
+            setSerialRejected(false);
+            setIsSerialPromptOpen(true);
             break;
           default:
             dispatch(
@@ -54,11 +64,55 @@ export const FactoryReset = () => {
         }
       }
     },
-    !bubbleDisplay.interceptsGesture
+    isSerialPromptOpen || !bubbleDisplay.interceptsGesture
   );
 
-  if (factoryReset.isPending || factoryReset.isSuccess) {
+  if (
+    factoryReset.isPending ||
+    factoryReset.isSuccess ||
+    (isSerialPromptOpen && deviceInfoPending)
+  ) {
     return <LoadingScreen />;
+  }
+
+  const closeSerialPrompt = () => {
+    setSerialInput('');
+    setSerialRejected(false);
+    setIsSerialPromptOpen(false);
+  };
+
+  if (isSerialPromptOpen) {
+    const unlockTitle = serialRejected
+      ? 'Serial does not match'
+      : 'Enter Serial Number';
+
+    return (
+      <div className="factory-reset-serial-keyboard">
+        <CircleKeyboard
+          name={unlockTitle}
+          defaultValue={serialInput.split('')}
+          onSubmit={(input: string) => {
+            if (
+              deviceSerial.length > 0 &&
+              input.trim().toLowerCase() === deviceSerial.toLowerCase()
+            ) {
+              setSerialRejected(false);
+              factoryReset.mutate();
+              return;
+            }
+
+            setSerialRejected(true);
+            setSerialInput('');
+          }}
+          onCancel={closeSerialPrompt}
+          onChange={(input: string) => {
+            setSerialInput(input);
+            setSerialRejected(false);
+          }}
+          shouldIgnoreGesture={!bubbleDisplay.interceptsGesture}
+        />
+      </div>
+    );
   }
 
   return (

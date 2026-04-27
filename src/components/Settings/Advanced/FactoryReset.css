@@ -1,0 +1,10 @@
+.factory-reset-serial-keyboard {
+  position: relative;
+  left: calc(100% - 480px);
+  width: 480px;
+  height: 480px;
+}
+
+.factory-reset-serial-keyboard .circle-keyboard-container {
+  inset: 0;
+}
