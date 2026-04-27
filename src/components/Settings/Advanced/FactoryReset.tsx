@@ -6,6 +6,8 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useFactoryReset } from '../../../hooks/useMachine';
 import { LoadingScreen } from '../../../components/LoadingScreen/LoadingScreen';
 import { SettingsItem } from '../../../types';
+import { useDeviceInfo } from '../../../hooks/useDeviceOSStatus';
+import { CircleKeyboard } from '../../CircleKeyboard/CircleKeyboard';
 
 export type StaticSettingsItem = SettingsItem & {
   useableWidthPercentage?: number;
@@ -15,7 +17,12 @@ export const FactoryReset = () => {
   const dispatch = useAppDispatch();
   const factoryReset = useFactoryReset();
   const [activeIndex, setActiveIndex] = useState(1);
+  const [serialInput, setSerialInput] = useState('');
+  const [serialRejected, setSerialRejected] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const { data: deviceInfo, isPending: deviceInfoPending } = useDeviceInfo();
+  const deviceSerial = String(deviceInfo?.serial ?? '').trim();
 
   const settings: StaticSettingsItem[] = [
     {
@@ -54,11 +61,53 @@ export const FactoryReset = () => {
         }
       }
     },
-    !bubbleDisplay.interceptsGesture
+    !isUnlocked || !bubbleDisplay.interceptsGesture
   );
 
-  if (factoryReset.isPending || factoryReset.isSuccess) {
+  if (
+    factoryReset.isPending ||
+    factoryReset.isSuccess ||
+    (!isUnlocked && deviceInfoPending)
+  ) {
     return <LoadingScreen />;
+  }
+
+  const goBackToAdvancedSettings = () => {
+    dispatch(
+      setBubbleDisplay({ visible: true, component: 'advancedSettings' })
+    );
+  };
+
+  if (!isUnlocked) {
+    const unlockTitle = serialRejected
+      ? 'Serial does not match'
+      : 'Enter Serial Number';
+
+    return (
+      <CircleKeyboard
+        name={unlockTitle}
+        defaultValue={serialInput.split('')}
+        onSubmit={(input: string) => {
+          if (
+            deviceSerial.length > 0 &&
+            input.trim().toLowerCase() === deviceSerial.toLowerCase()
+          ) {
+            setSerialRejected(false);
+            setIsUnlocked(true);
+            return;
+          }
+
+          setSerialRejected(true);
+          setSerialInput('');
+        }}
+        onCancel={goBackToAdvancedSettings}
+        onChange={(input: string) => {
+          setSerialInput(input);
+          setSerialRejected(false);
+        }}
+        shouldIgnoreGesture={!bubbleDisplay.interceptsGesture}
+      />
+    );
   }
 
   return (
