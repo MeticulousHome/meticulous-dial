@@ -19,7 +19,7 @@ export const FactoryReset = () => {
   const [activeIndex, setActiveIndex] = useState(1);
   const [serialInput, setSerialInput] = useState('');
   const [serialRejected, setSerialRejected] = useState(false);
-  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [isSerialPromptOpen, setIsSerialPromptOpen] = useState(false);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { data: deviceInfo, isPending: deviceInfoPending } = useDeviceInfo();
   const deviceSerial = String(deviceInfo?.serial ?? '').trim();
@@ -51,7 +51,9 @@ export const FactoryReset = () => {
         const activeItem = settings[activeIndex].key;
         switch (activeItem) {
           case 'factory_reset':
-            factoryReset.mutate();
+            setSerialInput('');
+            setSerialRejected(false);
+            setIsSerialPromptOpen(true);
             break;
           default:
             dispatch(
@@ -61,24 +63,24 @@ export const FactoryReset = () => {
         }
       }
     },
-    !isUnlocked || !bubbleDisplay.interceptsGesture
+    isSerialPromptOpen || !bubbleDisplay.interceptsGesture
   );
 
   if (
     factoryReset.isPending ||
     factoryReset.isSuccess ||
-    (!isUnlocked && deviceInfoPending)
+    (isSerialPromptOpen && deviceInfoPending)
   ) {
     return <LoadingScreen />;
   }
 
-  const goBackToAdvancedSettings = () => {
-    dispatch(
-      setBubbleDisplay({ visible: true, component: 'advancedSettings' })
-    );
+  const closeSerialPrompt = () => {
+    setSerialInput('');
+    setSerialRejected(false);
+    setIsSerialPromptOpen(false);
   };
 
-  if (!isUnlocked) {
+  if (isSerialPromptOpen) {
     const unlockTitle = serialRejected
       ? 'Serial does not match'
       : 'Enter Serial Number';
@@ -93,14 +95,14 @@ export const FactoryReset = () => {
             input.trim().toLowerCase() === deviceSerial.toLowerCase()
           ) {
             setSerialRejected(false);
-            setIsUnlocked(true);
+            factoryReset.mutate();
             return;
           }
 
           setSerialRejected(true);
           setSerialInput('');
         }}
-        onCancel={goBackToAdvancedSettings}
+        onCancel={closeSerialPrompt}
         onChange={(input: string) => {
           setSerialInput(input);
           setSerialRejected(false);
