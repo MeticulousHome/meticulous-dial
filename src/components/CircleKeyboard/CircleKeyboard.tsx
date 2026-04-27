@@ -32,6 +32,7 @@ interface IKeyboardProps {
   onChange?: (text: string) => void;
   onlyLetters?: boolean;
   capitalizeFirstLetter?: boolean;
+  shouldIgnoreGesture?: boolean;
 }
 
 export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
@@ -301,7 +302,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         }
       }
     },
-    bubbleDisplay.interceptsGesture
+    props.shouldIgnoreGesture ?? bubbleDisplay.interceptsGesture
   );
 
   const toUpperOrLowerCase = (
