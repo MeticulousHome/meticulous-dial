@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import { useEffect, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
+import * as Sentry from '@sentry/react';
 import { Provider } from 'react-redux';
 
 import { useAppDispatch, useAppSelector } from './components/store/hooks';
@@ -23,6 +24,14 @@ import { invoke } from '@tauri-apps/api/core';
 import './globals.css';
 
 import { warn, debug, trace, info, error } from '@tauri-apps/plugin-log';
+
+const SENTRY_DSN = '';
+
+if (SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN
+  });
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {

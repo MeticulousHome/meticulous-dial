@@ -1,0 +1,15 @@
+.bug-report-loading {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+.bug-report-loading-text {
+  font-size: 22px;
+  margin-top: 24px;
+  max-width: 420px;
+  text-align: center;
+}
