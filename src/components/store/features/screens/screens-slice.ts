@@ -26,6 +26,7 @@ export type ScreenType =
   | 'connectWifiMenu'
   | 'selectWifi'
   | 'connectWifiViaApp'
+  | 'bug-report'
   | 'OSStatus'
   | 'enterWifiPassword'
   | 'quick-settings'

@@ -13,6 +13,7 @@ import { WifiDetails } from '../components/Wifi/WifiDetails';
 import { RootState } from '../components/store/store';
 import { Notification } from '../components/Notification/Notification';
 import { ConnectWifiViaApp } from '../components/Wifi/ConnetWifiViaApp';
+import { BugReport } from '../components/BugReport/BugReport';
 import { OSStatus } from '../components/OSStatus/OSStatus';
 import { QuickSettings } from '../../src/components/QuickSettings/QuickSettings';
 import { SnakeGame } from '../../src/components/Snake/Snake';
@@ -345,6 +346,11 @@ export const routes: Record<ScreenType, Route> = {
   connectWifiViaApp: {
     component: ConnectWifiViaApp,
     title: 'connect to wifi via app',
+    bottomStatusHidden: true
+  },
+  'bug-report': {
+    component: BugReport,
+    title: 'report an issue',
     bottomStatusHidden: true
   },
   enterWifiPassword: {
