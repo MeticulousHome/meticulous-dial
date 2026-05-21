@@ -67,6 +67,7 @@ export interface DraftFile {
 
 export const getContentType = (filename: string) => {
   if (filename.endsWith('.json')) return 'application/json';
+  if (filename.endsWith('.zst')) return 'application/zstd';
   if (filename.endsWith('.txt') || filename.endsWith('.log')) {
     return 'text/plain';
   }
@@ -193,24 +194,32 @@ const getTicketEventID = (reportInfo: ReportInfo) => {
   return `${machineID}-${localID}`;
 };
 
+const buildDraftAttachment = (draftFile: Uint8Array): DraftFile => {
+  const name = `bug-report-information.tar.zst`;
+
+  return {
+    name,
+    data: draftFile,
+    contentType: getContentType(name)
+  };
+};
+
 const sendSentryFeedback = async ({
   reportInfo,
-  files
+  attachment
 }: {
   reportInfo: ReportInfo;
-  files: DraftFile[];
+  attachment: DraftFile;
 }) => {
   if (!Sentry.isInitialized()) {
     throw new Error('Sentry is not initialized');
   }
 
-  const attachments = files.filter(
-    (file) => file.name.split('/').pop() !== 'report_info.json'
-  );
-
   const eventID = Sentry.captureFeedback(
     {
-      message: reportInfo.description || 'Bug report submitted',
+      ...(reportInfo.machineID ? { name: reportInfo.machineID } : {}),
+      message:
+        reportInfo.description || 'Bug report submitted through quick report',
       source: 'custom',
       ...(reportInfo.baseEventID
         ? { associatedEventId: reportInfo.baseEventID }
@@ -223,11 +232,13 @@ const sendSentryFeedback = async ({
           'meticulous.report_source': 'dial'
         }
       },
-      attachments: attachments.map((file) => ({
-        filename: file.name.replace(/\//g, '_'),
-        data: file.data,
-        contentType: file.contentType
-      }))
+      attachments: [
+        {
+          filename: attachment.name.replace(/\//g, '_'),
+          data: attachment.data,
+          contentType: attachment.contentType
+        }
+      ]
     }
   );
 
@@ -264,7 +275,8 @@ export const BugReport = (): JSX.Element => {
           key: 'reportIssue',
           label: 'Report an issue',
           useableWidthPercentage: 81
-        }
+        },
+        { key: 'back', label: 'Back', useableWidthPercentage: 81 }
       ];
     }
 
@@ -386,6 +398,7 @@ export const BugReport = (): JSX.Element => {
 
       setSubmissionStage('buildingFeedback');
       const reportInfo = parseReportInfo(files);
+      const attachment = buildDraftAttachment(draftFile);
       if (timedOut) return;
 
       setSubmissionStage('ticketing');
@@ -402,7 +415,7 @@ export const BugReport = (): JSX.Element => {
       if (timedOut) return;
 
       setSubmissionStage('sendingFeedback');
-      const eventID = await sendSentryFeedback({ reportInfo, files });
+      const eventID = await sendSentryFeedback({ reportInfo, attachment });
       if (timedOut) return;
 
       setSubmissionStage('savingRecord');
@@ -465,6 +478,9 @@ export const BugReport = (): JSX.Element => {
           startCreateReport();
           break;
         case 'back':
+          if (reportScreen === ReportScreen.message) {
+            exitToQuickSettings();
+          }
           setReportScreen(ReportScreen.message);
           setReportStatus(ReportStatus.idle);
           setActiveIndex(0);
@@ -516,8 +532,8 @@ export const BugReport = (): JSX.Element => {
               </div>
               <div style={{ marginTop: '10px' }}>
                 <span>
-                  Clicking on <strong>Submit</strong>will send us the ticket and
-                  will give You a report <strong>tracking number</strong>
+                  Clicking on <strong>Submit</strong> will send us the ticket
+                  and provide You with a report <strong>tracking number</strong>
                 </span>
               </div>
             </>
@@ -536,13 +552,8 @@ export const BugReport = (): JSX.Element => {
           <div style={{ marginTop: '10px' }}>
             <span>
               Your report has been generated with ticket number{' '}
-              <strong>${ticketRef.current}</strong>. You can ask for information
+              <strong>{ticketRef.current}</strong>. You can ask for information
               about it by contacting support.
-            </span>
-          </div>
-          <div style={{ marginTop: '10px' }}>
-            <span>
-              You can enhance Your ticket details using the mobile app
             </span>
           </div>
         </>
@@ -558,13 +569,15 @@ export const BugReport = (): JSX.Element => {
     reportStatus === ReportStatus.slowFetch
   ) {
     return (
-      <div className="bug-report-loading">
-        <div className="settings-explanation-shaper-left" />
-        <div className="settings-explanation-shaper-right" />
-        {reportStatus !== ReportStatus.submitting && (
-          <span className="bug-report-loading-text">{message}</span>
-        )}
-        <LoadingScreen />
+      <div className="bug-report-loading settings-explanation-container">
+        <div className="settings-explanation">
+          <div className="settings-explanation-shaper-left" />
+          <div className="settings-explanation-shaper-right" />
+          {reportStatus !== ReportStatus.submitting && (
+            <span className="bug-report-loading-text">{message}</span>
+          )}
+          <LoadingScreen />
+        </div>
       </div>
     );
   }
@@ -583,7 +596,7 @@ export const BugReport = (): JSX.Element => {
             <div className="settings-explanation-shaper-left" />
             <div className="settings-explanation-shaper-right" />
             {/* <span className="bug-report-message">{message}</span> */}
-            <span>{message}</span>
+            <div>{message}</div>
           </>
         )}
       </div>

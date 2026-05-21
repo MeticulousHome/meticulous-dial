@@ -25,7 +25,9 @@ import './globals.css';
 
 import { warn, debug, trace, info, error } from '@tauri-apps/plugin-log';
 
-const SENTRY_DSN = '';
+// const SENTRY_DSN = 'https://1db6232932da96602bced5b3f4716ba2@sentry.meticulousespresso.com/7'; //self hosted
+const SENTRY_DSN =
+  'https://8d8dbea1f60d65c201b7f40f8a5ee20c@o4506723336060928.ingest.us.sentry.io/4511430165921792';
 
 if (SENTRY_DSN) {
   Sentry.init({
