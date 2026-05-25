@@ -76,7 +76,8 @@ export const getContentType = (filename: string) => {
 };
 
 const SUPPORT_WEBSITE_URL = 'https://meticuloushome.com/pages/contact';
-const service_url = 'https://example.invalid/ticket';
+const service_url =
+  'https://a3qhsgqqfk.execute-api.us-east-1.amazonaws.com/Prod/ticket';
 
 const textDecoder = new TextDecoder();
 
