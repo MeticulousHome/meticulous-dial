@@ -24,6 +24,7 @@ export const WifiSettings = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [networkConfigMode, setNetworkConfigMode] = useState<APMode>(
     APMode.CLIENT
   );
@@ -51,6 +52,53 @@ export const WifiSettings = (): JSX.Element => {
 
   const isApMode = networkConfigMode === APMode.AP;
   const healthLabel = getWifiHealthStatusLabel(wifiHealth, isWifiConnected);
+  const loadingState = isLoading
+    ? 'loading'
+    : updateNetworkConfigMutation.isPending
+      ? `update-${networkConfigMode}`
+      : repairWiFiMutation.isPending
+        ? 'repair'
+        : 'idle';
+  const loadingMessages = useMemo(() => {
+    if (loadingState === 'loading') {
+      return ['Loading WiFi settings'];
+    }
+
+    if (loadingState === `update-${APMode.AP}`) {
+      return [
+        'Starting hotspot',
+        'Trying WiFi channels',
+        'Checking hotspot',
+        'Keeping current WiFi safe'
+      ];
+    }
+
+    if (loadingState === `update-${APMode.CLIENT}`) {
+      return ['Joining WiFi mode', 'Checking connection', 'Updating WiFi'];
+    }
+
+    if (loadingState === 'repair') {
+      return ['Checking WiFi', 'Trying recovery', 'Verifying connection'];
+    }
+
+    return [];
+  }, [loadingState]);
+
+  useEffect(() => {
+    setLoadingMessageIndex(0);
+
+    if (loadingMessages.length <= 1) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setLoadingMessageIndex(
+        (current) => (current + 1) % loadingMessages.length
+      );
+    }, 7000);
+
+    return () => clearInterval(interval);
+  }, [loadingMessages]);
 
   const wifiSettingItems = useMemo(
     () => [
@@ -215,7 +263,7 @@ export const WifiSettings = (): JSX.Element => {
     updateNetworkConfigMutation.isPending ||
     repairWiFiMutation.isPending
   ) {
-    return <LoadingScreen />;
+    return <LoadingScreen message={loadingMessages[loadingMessageIndex]} />;
   }
 
   if (

@@ -1,7 +1,14 @@
 .loading-center {
   position: fixed;
-  top: calc(50% - 40px);
-  left: calc(50% - 40px);
+  top: 50%;
+  left: 50%;
+  display: flex;
+  width: 170px;
+  transform: translate(-50%, -50%);
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
 }
 
 .loader {
@@ -11,6 +18,16 @@
   width: 80px;
   height: 80px;
   animation: spin 1s linear infinite;
+}
+
+.loading-message {
+  max-width: 150px;
+  color: #f5c444;
+  font-family: 'ABC Diatype Mono';
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 
 @keyframes spin {
