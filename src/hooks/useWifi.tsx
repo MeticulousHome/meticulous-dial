@@ -1,11 +1,18 @@
-import { QueryClient, useMutation, useQuery } from '@tanstack/react-query';
+import {
+  QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient
+} from '@tanstack/react-query';
 
-import { WiFiConfig, WiFiCredentials } from '@meticulous-home/espresso-api';
+import { WiFiConfig } from '@meticulous-home/espresso-api';
 import {
   connectToWiFi,
   deleteKnownWifi,
   getWifiStatus,
   listAvailableWiFi,
+  repairWifi,
+  WifiConnectCredentials,
   updateNetworkConfig
 } from '../api/wifi';
 
@@ -40,14 +47,27 @@ export const useUpdateNetworkConfig = () => {
   });
 };
 
+export const useRepairWiFi = (queryClient?: QueryClient) => {
+  return useMutation({
+    mutationFn: repairWifi,
+    onError: (error) => {
+      console.error('Error repairing Wi-Fi:', error);
+    },
+    onSuccess: () => {
+      console.log('Wi-Fi repair completed successfully.');
+      queryClient?.invalidateQueries({ queryKey: [NETWORK_CONFIG_QUERY_KEY] });
+    }
+  });
+};
+
 // Hook to fetch available Wi-Fi list
 export const useAvailableWiFiList = () => {
   return useQuery({
     queryKey: [LIST_WIFI_QUERY_KEY],
     queryFn: listAvailableWiFi,
-    staleTime: Infinity,
+    staleTime: 0,
     refetchInterval: false,
-    refetchOnMount: false,
+    refetchOnMount: 'always',
     refetchOnReconnect: false,
     refetchOnWindowFocus: false
   });
@@ -55,13 +75,17 @@ export const useAvailableWiFiList = () => {
 
 // Hook to connect to Wi-Fi
 export const useConnectToWiFi = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (data: WiFiCredentials) => connectToWiFi(data),
+    mutationFn: (data: WifiConnectCredentials) => connectToWiFi(data),
     onError: (error) => {
       console.error('Error connecting to Wi-Fi:', error);
     },
     onSuccess: () => {
       console.log('Connected to Wi-Fi successfully.');
+      queryClient.invalidateQueries({ queryKey: [NETWORK_CONFIG_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [LIST_WIFI_QUERY_KEY] });
     }
   });
 };
