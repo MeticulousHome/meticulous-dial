@@ -5,6 +5,13 @@ export function getWifiHealthMessage(health?: WifiHealthStatus): string {
     return '';
   }
 
+  if (health.mode === 'AP' && health.ap_active) {
+    return (
+      health.message ||
+      "Hotspot active. Connect your phone or computer to the machine's Wi-Fi network."
+    );
+  }
+
   if (!health.degraded) {
     return 'HEALTHY';
   }
@@ -43,6 +50,10 @@ export function getWifiHealthStatusLabel(
 
   if (!health) {
     return 'UNKNOWN';
+  }
+
+  if (health.mode === 'AP' && health.ap_active) {
+    return 'HOTSPOT ACTIVE';
   }
 
   if (!health.degraded) {

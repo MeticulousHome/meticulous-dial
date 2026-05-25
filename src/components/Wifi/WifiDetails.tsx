@@ -41,6 +41,7 @@ export const WifiDetails = (): JSX.Element => {
   const wifiStatus = data?.status;
   const networkConfig = data?.config;
   const wifiHealth = data?.health;
+  const isHotspotActive = wifiHealth?.mode === 'AP' && wifiHealth?.ap_active;
 
   useEffect(() => {
     const refetchInterval = setInterval(() => {
@@ -60,17 +61,27 @@ export const WifiDetails = (): JSX.Element => {
       ips: wifiStatus?.ips?.[0] || '',
       mac: wifiStatus?.mac || '',
       health: getWifiHealthStatusLabel(wifiHealth, wifiStatus?.connected),
-      gateway: wifiHealth
-        ? wifiHealth.gateway_reachable
-          ? 'OK'
-          : 'FAILED'
-        : '',
-      dns: wifiHealth ? (wifiHealth.dns_resolves ? 'OK' : 'FAILED') : '',
-      internet: wifiHealth
-        ? wifiHealth.internet_reachable
-          ? 'OK'
-          : 'FAILED'
-        : '',
+      gateway: isHotspotActive
+        ? 'N/A'
+        : wifiHealth
+          ? wifiHealth.gateway_reachable
+            ? 'OK'
+            : 'FAILED'
+          : '',
+      dns: isHotspotActive
+        ? 'N/A'
+        : wifiHealth
+          ? wifiHealth.dns_resolves
+            ? 'OK'
+            : 'FAILED'
+          : '',
+      internet: isHotspotActive
+        ? 'N/A'
+        : wifiHealth
+          ? wifiHealth.internet_reachable
+            ? 'OK'
+            : 'FAILED'
+          : '',
       last_error: getWifiHealthMessage(wifiHealth),
       recovery: getWifiRecoveryMessage(wifiHealth)
     };
@@ -83,7 +94,7 @@ export const WifiDetails = (): JSX.Element => {
             label: `${item.label}: ${valuesMap[item.key] || ''}`
           }
     );
-  }, [wifiStatus, networkConfig, wifiHealth, isSuccess]);
+  }, [wifiStatus, networkConfig, wifiHealth, isHotspotActive, isSuccess]);
 
   useHandleGestures({
     left() {
