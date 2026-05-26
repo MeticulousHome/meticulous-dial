@@ -39,6 +39,7 @@ enum ReportStatus {
 type SubmissionFailType =
   | 'creation'
   | 'sentrySubmission'
+  | 'reportUpdate'
   | 'submissionMark'
   | 'TicketTrackRequest'
   | 'submissionTimeout'
@@ -50,6 +51,7 @@ type SubmissionStateType =
   | 'decompressing'
   | 'buildingFeedback'
   | 'ticketing'
+  | 'updatingReport'
   | 'sendingFeedback'
   | 'savingRecord';
 
@@ -184,12 +186,21 @@ const reportInfoTags = (reportInfo: ReportInfo) => {
   );
 };
 
-const getTicketEventID = (reportInfo: ReportInfo) => {
-  const machineID = reportInfo.machineID?.trim();
-  const localID = reportInfo.localID?.trim();
+const isReportError = (response: unknown): response is { error: string } => {
+  return (
+    typeof response === 'object' &&
+    response !== null &&
+    'error' in response &&
+    typeof response.error === 'string'
+  );
+};
+
+const getTicketEventID = (draftInfo: DraftInfo) => {
+  const machineID = draftInfo.machineID?.trim();
+  const localID = draftInfo.localID?.trim();
 
   if (!machineID || !localID) {
-    throw new Error('Report info is missing machineID or localID');
+    throw new Error('Draft info is missing machineID or localID');
   }
 
   return `${machineID}-${localID}`;
@@ -335,7 +346,7 @@ export const BugReport = (): JSX.Element => {
 
     try {
       const create_response = await api.createReport();
-      if ('error' in create_response) {
+      if (isReportError(create_response)) {
         throw Error(create_response.error);
       }
       draftInfoRef.current = create_response;
@@ -369,7 +380,8 @@ export const BugReport = (): JSX.Element => {
   };
 
   const submitReport = async () => {
-    if (!draftInfoRef.current?.localID) {
+    const draftInfo = draftInfoRef.current;
+    if (!draftInfo?.localID) {
       failSubmission('reportLoad', reportSubmissionError, 'No draft report');
       return;
     }
@@ -388,9 +400,28 @@ export const BugReport = (): JSX.Element => {
     }, 60 * 1000);
 
     try {
+      setSubmissionStage('ticketing');
+      const ticketPayload: MeticulousIDRequestType = {
+        eventID: getTicketEventID(draftInfo)
+      };
+      const ticket = await api.getMeticulousReportTracking(
+        service_url,
+        ticketPayload
+      );
+      if (isReportError(ticket)) throw Error(ticket.error);
+      ticketRef.current = ticket;
+      if (timedOut) return;
+
+      setSubmissionStage('updatingReport');
+      const updateResponse = await api.updateReport(draftInfo.localID, {
+        ticket
+      });
+      if (isReportError(updateResponse)) throw Error(updateResponse.error);
+      if (timedOut) return;
+
       setSubmissionStage('fetchingFile');
-      const draftFile = await api.getDraftReport(draftInfoRef.current.localID);
-      if ('error' in draftFile) throw Error(draftFile.error);
+      const draftFile = await api.getDraftReport(draftInfo.localID);
+      if (isReportError(draftFile)) throw Error(draftFile.error);
       if (timedOut) return;
 
       setSubmissionStage('decompressing');
@@ -400,18 +431,6 @@ export const BugReport = (): JSX.Element => {
       setSubmissionStage('buildingFeedback');
       const reportInfo = parseReportInfo(files);
       const attachment = buildDraftAttachment(draftFile);
-      if (timedOut) return;
-
-      setSubmissionStage('ticketing');
-      const ticketPayload: MeticulousIDRequestType = {
-        eventID: getTicketEventID(reportInfo)
-      };
-      const ticket = await api.getMeticulousReportTracking(
-        service_url,
-        ticketPayload
-      );
-      if (typeof ticket === 'object') throw Error(ticket.error);
-      ticketRef.current = ticket;
       reportInfo.ticket = ticket;
       if (timedOut) return;
 
@@ -420,12 +439,15 @@ export const BugReport = (): JSX.Element => {
       if (timedOut) return;
 
       setSubmissionStage('savingRecord');
-      await api.markSubmittedReport({
-        localID: draftInfoRef.current.localID,
+      const markSubmittedResponse = await api.markSubmittedReport({
+        localID: draftInfo.localID,
         eventID,
         ticket,
         submissionTime: Math.floor(Date.now() / 1000)
       });
+      if (isReportError(markSubmittedResponse)) {
+        throw Error(markSubmittedResponse.error);
+      }
       if (timedOut) return;
 
       setSubmissionStage(null);
