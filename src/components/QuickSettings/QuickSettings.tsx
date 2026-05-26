@@ -109,6 +109,10 @@ const inBrewSettings: QuickSettingOption[] = [
     label: 'config'
   },
   {
+    key: 'bug_report',
+    label: 'Report an issue'
+  },
+  {
     key: 'exit',
     label: 'exit'
   }
