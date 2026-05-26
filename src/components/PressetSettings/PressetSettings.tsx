@@ -178,6 +178,7 @@ export function PressetSettings(): JSX.Element {
               }
               return;
             }
+            setProfileStarting(false);
             console.error(`Failed starting profile: ${response.error}`);
           } else {
             console.error(`Failed loading profile: ${data.error}`);
