@@ -134,7 +134,7 @@ export const HeatingScreen = () => {
     if (statsName === 'idle' && !hasNotifications && !profileStarting) {
       dispatch(setScreen('profileHome'));
     }
-  }, [statsName]);
+  }, [statsName, profileStarting]);
 
   // Automatically start the shot based on options menu selected
   useEffect(() => {
