@@ -342,7 +342,7 @@ export const BugReport = (): JSX.Element => {
 
     const slowTimeout = setTimeout(() => {
       setReportStatus(ReportStatus.slowFetch);
-    }, 60 * 1000);
+    }, 60 * 1000); // message change on the first minute mark
 
     try {
       const create_response = await api.createReport();
@@ -390,14 +390,17 @@ export const BugReport = (): JSX.Element => {
     failureRef.current = null;
 
     let timedOut = false;
-    const submissionTimeout = setTimeout(() => {
-      timedOut = true;
-      failSubmission(
-        'submissionTimeout',
-        reportSubmissionError,
-        'Report submission timed out'
-      );
-    }, 60 * 1000);
+    const submissionTimeout = setTimeout(
+      () => {
+        timedOut = true;
+        failSubmission(
+          'submissionTimeout',
+          reportSubmissionError,
+          'Report submission timed out'
+        );
+      },
+      5 * 60 * 1000
+    ); // 5 minutes timeout
 
     try {
       setSubmissionStage('ticketing');
