@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
@@ -37,18 +37,11 @@ import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosit
 export const WifiDetails = (): JSX.Element => {
   const [activeIndex, setActiveIndex] = useState(0);
   const dispatch = useAppDispatch();
-  const { data, isLoading, isSuccess, refetch } = useNetworkConfig();
+  const { data, isLoading, isSuccess } = useNetworkConfig();
   const wifiStatus = data?.status;
   const networkConfig = data?.config;
   const wifiHealth = data?.health;
   const isHotspotActive = wifiHealth?.mode === 'AP' && wifiHealth?.ap_active;
-
-  useEffect(() => {
-    const refetchInterval = setInterval(() => {
-      refetch();
-    }, 500);
-    return () => clearInterval(refetchInterval);
-  }, []);
 
   const wifiItems = useMemo(() => {
     if (!isSuccess || !data) return initialWifiItems;

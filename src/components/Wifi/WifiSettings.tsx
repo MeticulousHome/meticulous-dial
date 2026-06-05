@@ -34,13 +34,6 @@ export const WifiSettings = (): JSX.Element => {
   const repairWiFiMutation = useRepairWiFi(queryClient);
 
   useEffect(() => {
-    const refetchInterval = setInterval(() => {
-      refetch();
-    }, 500);
-    return () => clearInterval(refetchInterval);
-  }, [updateNetworkConfigMutation.status]);
-
-  useEffect(() => {
     if (!networkConfig?.config.mode) {
       return;
     }

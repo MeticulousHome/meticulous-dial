@@ -19,7 +19,7 @@ import {
 export const LIST_WIFI_QUERY_KEY = 'availableWifiList';
 export const NETWORK_CONFIG_QUERY_KEY = 'networkConfig';
 
-const DEFAULT_NETWORK_REFETCH_INTERVAL = 2000;
+const DEFAULT_NETWORK_REFETCH_INTERVAL = 5000;
 const IDLE_NETWORK_REFETCH_INTERVAL = 60000;
 
 // Hook to fetch network config
