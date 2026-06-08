@@ -75,23 +75,28 @@ export function IdleScreen(): JSX.Element {
     setForceBubbleReopen
   } = useIdleTimer();
   const prevScreen = useAppSelector((state) => state.screen.prev);
-  const { data: globalSettings } = useSettings();
+  const { data: globalSettings } = useSettings({ idle: true });
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const screenDimTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
+  const cancelledRef = useRef(false);
   const [isScreenDim, setIsScreenDim] = useState(false);
 
   const cycleScreenDim = () => {
+    if (cancelledRef.current) return;
     setIsScreenDim((prev) => {
+      if (cancelledRef.current) return prev;
       // Screen is dark, dim up for 5 seconds
       if (prev) {
         screenDimTimeoutRef.current = setTimeout(() => {
+          if (cancelledRef.current) return;
           updateBrightness({ brightness: 0.03 });
           cycleScreenDim();
         }, 5 * 1000);
       } else {
         screenDimTimeoutRef.current = setTimeout(() => {
+          if (cancelledRef.current) return;
           updateBrightness({ brightness: 0.33 });
           cycleScreenDim();
         }, 55 * 1000);
@@ -101,6 +106,7 @@ export function IdleScreen(): JSX.Element {
   };
 
   useEffect(() => {
+    cancelledRef.current = false;
     updateBrightness({ brightness: 0.33 });
 
     // Start a timer to completely disable the screen after a while
@@ -109,9 +115,11 @@ export function IdleScreen(): JSX.Element {
     }, SCREEN_TIMEOUT);
 
     return () => {
+      cancelledRef.current = true;
       if (screenDimTimeoutRef.current) {
         clearTimeout(screenDimTimeoutRef.current);
       }
+      updateBrightness({ brightness: 1 });
 
       if (forceBubbleReopen) {
         dispatch(

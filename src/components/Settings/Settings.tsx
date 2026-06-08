@@ -98,12 +98,6 @@ export function Settings(): JSX.Element {
             );
             break;
           }
-          case 'usb_mode': {
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'usbSettings' })
-            );
-            break;
-          }
           case 'calibrate': {
             dispatch(
               setBubbleDisplay({ visible: false, component: undefined })

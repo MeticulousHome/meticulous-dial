@@ -76,7 +76,7 @@ export const HeatingScreen = () => {
   const hasNotifications = useAppSelector(
     notificationSelector.selectHasNotifications
   );
-  const [optionSeletected, setOptionSelected] = useState(null);
+  const [optionSeletected, setOptionSelected] = useState('push_to_brew');
 
   // The stages dont necessarily correctly report the temperature target
   // so we need to cache it with the state below
@@ -134,7 +134,7 @@ export const HeatingScreen = () => {
     if (statsName === 'idle' && !hasNotifications && !profileStarting) {
       dispatch(setScreen('profileHome'));
     }
-  }, [statsName]);
+  }, [statsName, profileStarting]);
 
   // Automatically start the shot based on options menu selected
   useEffect(() => {

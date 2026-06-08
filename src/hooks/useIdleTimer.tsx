@@ -45,7 +45,7 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
     timeoutRef.current = setTimeout(() => {
       setIsIdle(true);
     }, idleTime);
-  }, []);
+  }, [idleTime]);
 
   const resetTimer = useCallback(() => {
     if (timeoutRef.current) {
@@ -53,7 +53,7 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
     }
     setIsIdle(false);
     startTimer();
-  }, []);
+  }, [startTimer]);
 
   useEffect(() => {
     startTimer();

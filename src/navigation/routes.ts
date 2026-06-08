@@ -13,6 +13,7 @@ import { WifiDetails } from '../components/Wifi/WifiDetails';
 import { RootState } from '../components/store/store';
 import { Notification } from '../components/Notification/Notification';
 import { ConnectWifiViaApp } from '../components/Wifi/ConnetWifiViaApp';
+import { BugReport } from '../components/BugReport/BugReport';
 import { OSStatus } from '../components/OSStatus/OSStatus';
 import { QuickSettings } from '../../src/components/QuickSettings/QuickSettings';
 import { SnakeGame } from '../../src/components/Snake/Snake';
@@ -38,7 +39,6 @@ import TimeZoneSettings from '../components/Settings/Advanced/TimeDate/TimeZone/
 import { IdleScreenSetting } from '../components/Settings/Advanced/IdleScreenSetting';
 
 import CalibrateScale from '../components/Scale/CalibrateScale';
-import { USBSettings } from '../components/Settings/USBSettings';
 import { BrewSettings } from '../components/Settings/BrewSettings';
 import { TimeConfig } from '../components/Settings/Advanced/TimeDate/TimeConfig';
 import { DateConfig } from '../components/Settings/Advanced/TimeDate/DateConfig';
@@ -348,6 +348,11 @@ export const routes: Record<ScreenType, Route> = {
     title: 'connect to wifi via app',
     bottomStatusHidden: true
   },
+  'bug-report': {
+    component: BugReport,
+    title: 'report an issue',
+    bottomStatusHidden: true
+  },
   enterWifiPassword: {
     component: EnterWifiPassword,
     bottomStatusHidden: true,
@@ -404,10 +409,6 @@ export const routes: Record<ScreenType, Route> = {
     component: IdleScreen,
     bottomStatusHidden: true,
     ignoreAsPrevious: true
-  },
-  usbSettings: {
-    component: USBSettings,
-    bottomStatusHidden: true
   },
   brewSettings: {
     component: BrewSettings,

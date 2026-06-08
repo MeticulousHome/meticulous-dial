@@ -83,33 +83,75 @@ const IconsConatiner = styled.div`
   justify-content: space-between;
   align-items: center;
 `;
+// Pre-compute rotation strings to avoid per-frame template literal allocations.
+// 360 degrees at 0.1 degree resolution = 3600 cached strings.
+const ROTATE_STRINGS: string[] = new Array(3600);
+for (let i = 0; i < 3600; i++) {
+  ROTATE_STRINGS[i] = `rotate(${(i / 10).toFixed(1)}deg)`;
+}
+
+function rotateString(degrees: number): string {
+  const idx = Math.round((((degrees % 360) + 360) % 360) * 10);
+  return ROTATE_STRINGS[idx % 3600];
+}
+
+// getTimezoneOffset() returns UTC - local in minutes
+const TZ_OFFSET_MS = new Date().getTimezoneOffset() * 60 * 1000;
+
 export function AnalogClock() {
   const requestId = useRef<number>(-1);
   const hourRef = useRef(null);
   const minuteRef = useRef(null);
   const secondRef = useRef(null);
+  const lastHour = useRef('');
+  const lastMinute = useRef('');
+  const lastSecond = useRef('');
 
   const animateTime = () => {
     if (!hourRef.current || !minuteRef.current || !secondRef.current) {
       return;
     }
-    const time = new Date();
-    const hourRotation = (time.getHours() + time.getMinutes() / 60) * 30;
-    const minuteRotation = (time.getMinutes() + time.getSeconds() / 60) * 6;
-    const secondRotation =
-      (time.getSeconds() +
-        (CLOCK_SMOOTH_SECONDS ? time.getMilliseconds() / 1000 : 0)) *
-      6;
 
-    hourRef.current.style.transform = `rotate(${hourRotation}deg)`;
-    minuteRef.current.style.transform = `rotate(${minuteRotation}deg)`;
-    secondRef.current.style.transform = `rotate(${secondRotation}deg)`;
+    // Use Date.now() + integer arithmetic instead of new Date() to avoid
+    // allocating a Date object every frame (~60/sec).
+    const now = Date.now();
+    const ms = (now - TZ_OFFSET_MS) % 86400000; // ms since midnight local time
+    const totalSeconds = ms / 1000;
+    const seconds = totalSeconds % 60;
+    const totalMinutes = totalSeconds / 60;
+    const minutes = totalMinutes % 60;
+    const hours = (totalMinutes / 60) % 12;
+
+    const hourRotation = hours * 30;
+    const minuteRotation = minutes * 6;
+    const secondRotation =
+      (Math.floor(seconds) + (CLOCK_SMOOTH_SECONDS ? seconds % 1 : 0)) * 6;
+
+    // Only write to style.transform when the cached string actually changes.
+    // This avoids creating new template literal strings every frame.
+    const hourStr = rotateString(hourRotation);
+    if (hourStr !== lastHour.current) {
+      lastHour.current = hourStr;
+      hourRef.current.style.transform = hourStr;
+    }
+
+    const minuteStr = rotateString(minuteRotation);
+    if (minuteStr !== lastMinute.current) {
+      lastMinute.current = minuteStr;
+      minuteRef.current.style.transform = minuteStr;
+    }
+
+    const secondStr = rotateString(secondRotation);
+    if (secondStr !== lastSecond.current) {
+      lastSecond.current = secondStr;
+      secondRef.current.style.transform = secondStr;
+    }
 
     requestId.current = requestAnimationFrame(animateTime);
   };
 
   const { data: networkConfig, refetch: refetchNetworkConfig } =
-    useNetworkConfig();
+    useNetworkConfig({ idle: true });
 
   useEffect(() => {
     refetchNetworkConfig();

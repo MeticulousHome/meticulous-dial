@@ -21,6 +21,7 @@ import { LastLabel } from './LastLabel';
 import { useIsOnline } from '../../hooks/useIsOnline';
 import { loadProfileData, startProfile } from '../../api/profile';
 import { DownloadIcon } from './DownloadIcon';
+import { useSocket } from '../store/SocketManager';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -71,6 +72,7 @@ export const ProfileHomeScreen = () => {
   const { data: globalSettings } = useSettings();
   const { isIdle: shouldGoToIdle } = useIdleTimer();
   const isOnline = useIsOnline();
+  const socket = useSocket();
 
   const profileState = useProfileContext();
 
@@ -109,24 +111,33 @@ export const ProfileHomeScreen = () => {
       const { isLast, temporary, ...cleanProfile } = profile;
       const data = await loadProfileData(cleanProfile);
 
-      if (data) {
-        await startProfile();
+      if (typeof data === 'object' && 'name' in data) {
+        const response = await startProfile();
+        if (!('error' in response)) {
+          setProfileStarting(true);
+          if (!requiresPurge.current) {
+            dispatch(setScreen('heating'));
+          } else {
+            dispatch(setScreen('manual-purge'));
+          }
+          return true;
+        }
+        console.error(`Failed starting profile: ${response.error}`);
+      } else {
+        console.error(`Failed loading profile: ${data.error}`);
       }
+      return false;
     };
 
-    setProfileStarting(true);
-    loadAndStartProfile();
-    if (!requiresPurge.current) {
-      dispatch(setScreen('heating'));
-    } else {
-      dispatch(setScreen('manual-purge'));
-    }
+    if (await loadAndStartProfile()) return;
+    setProfileStarting(false);
+    setIsPressingDown(false);
+    if (pressThroughTimer.current) clearTimeout(pressThroughTimer.current);
+    pressThroughTimer.current = null;
   };
 
   useEffect(() => {
-    if (PistonPos && PistonPos < PISTON_ON_PURGE_POSITION) {
-      requiresPurge.current = true;
-    }
+    requiresPurge.current = PistonPos && PistonPos < PISTON_ON_PURGE_POSITION;
   }, [PistonPos]);
 
   useEffect(() => {
@@ -211,6 +222,14 @@ export const ProfileHomeScreen = () => {
           if (!localHoverState) {
             setLocalHoverState(true);
             setTransitionDirection('none');
+            const profile = mergedProfiles?.[activeOption];
+            if (profile?.id) {
+              socket.emit('profileHover', {
+                id: profile.id,
+                from: 'dial',
+                type: 'focus'
+              });
+            }
             if (!isOnline) return;
             pressThroughTimer.current = setTimeout(() => {
               setIsPressingDown(true);

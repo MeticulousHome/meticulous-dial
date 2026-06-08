@@ -27,22 +27,44 @@ const RotationContainer = styled.div<{ $rotation?: number }>`
   justify-content: center;
 `;
 
+// Pre-compute rotation strings to avoid per-frame template literal allocations.
+const ROTATE_STRINGS: string[] = new Array(3600);
+const NEG_ROTATE_STRINGS: string[] = new Array(3600);
+for (let i = 0; i < 3600; i++) {
+  const deg = (i / 10).toFixed(1);
+  ROTATE_STRINGS[i] = `rotate(${deg}deg)`;
+  NEG_ROTATE_STRINGS[i] = `rotate(-${deg}deg)`;
+}
+
 export function BaristaClock() {
   const requestId = useRef<number>(-1);
   const outerRef = useRef(null);
   const innerRef = useRef(null);
+  const lastOuter = useRef('');
+  const lastInner = useRef('');
 
   const animateTime = () => {
     if (!outerRef.current || !innerRef.current) {
       return;
     }
-    const time = new Date();
 
-    const secondRotation =
-      (time.getSeconds() + time.getMilliseconds() / 1000) * 6;
+    // Use Date.now() instead of new Date() to avoid allocating a Date object
+    const now = Date.now();
+    const msInMinute = now % 60000;
+    const secondRotation = (msInMinute / 1000) * 6;
 
-    outerRef.current.style.transform = `rotate(${secondRotation}deg)`;
-    innerRef.current.style.transform = `rotate(${-secondRotation}deg)`;
+    const idx = Math.round((((secondRotation % 360) + 360) % 360) * 10) % 3600;
+    const outerStr = ROTATE_STRINGS[idx];
+    const innerStr = NEG_ROTATE_STRINGS[idx];
+
+    if (outerStr !== lastOuter.current) {
+      lastOuter.current = outerStr;
+      outerRef.current.style.transform = outerStr;
+    }
+    if (innerStr !== lastInner.current) {
+      lastInner.current = innerStr;
+      innerRef.current.style.transform = innerStr;
+    }
 
     requestId.current = requestAnimationFrame(animateTime);
   };

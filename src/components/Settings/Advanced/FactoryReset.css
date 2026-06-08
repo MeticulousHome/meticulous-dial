@@ -1,0 +1,12 @@
+.factory-reset-serial-keyboard {
+  position: fixed;
+  inset: 0;
+  width: 480px;
+  height: 480px;
+  background: #0f0f0f;
+  z-index: 1;
+}
+
+.factory-reset-serial-keyboard .circle-keyboard-container {
+  inset: 0;
+}

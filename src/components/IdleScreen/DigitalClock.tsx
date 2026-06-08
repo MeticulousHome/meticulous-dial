@@ -30,7 +30,7 @@ export function DigitalClock({
   const [time, setTime] = useState(formatTime());
 
   const { data: networkConfig, refetch: refetchNetworkConfig } =
-    useNetworkConfig();
+    useNetworkConfig({ idle: true });
 
   useEffect(() => {
     refetchNetworkConfig();

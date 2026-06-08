@@ -80,9 +80,13 @@ export const SnakeGame: React.FC = () => {
 
   useEffect(() => {
     const appleImage = appleImageRef.current;
+    const handleLoad = () => {
+      setImageLoaded(true);
+    };
+    appleImage.addEventListener('load', handleLoad);
     appleImage.src = APPLE_IMAGE;
-    appleImageRef.current.onload = () => {
-      setImageLoaded(true); // Set the image as loaded
+    return () => {
+      appleImage.removeEventListener('load', handleLoad);
     };
   }, []);
 

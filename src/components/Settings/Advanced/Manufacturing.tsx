@@ -11,7 +11,10 @@ import {
   useUpdateManufacturingSettings
 } from '../../../hooks/useManufacturing';
 import { updateManufacturingSettings } from '../../../api/api';
-import { ManufacturingSettings } from '@meticulous-home/espresso-api/dist';
+import {
+  ManufacturingSettings,
+  NotificationItem
+} from '@meticulous-home/espresso-api/dist';
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
 import Styled, {
   VIEWPORT_HEIGHT,
@@ -19,7 +22,6 @@ import Styled, {
 } from '../../../styles/utils/mixins';
 import { LoadingScreen } from '../../LoadingScreen/LoadingScreen';
 import {
-  NotificationItem,
   processNotification,
   addOneNotification
 } from '../../store/features/notifications/notification-slice';
@@ -39,7 +41,7 @@ export const Manufacturing = () => {
   //since the endpoint I query from my custom hook using React Query does not provide that information.
   const [manufacturing, setManufacturing] = useState<ManufacturingSettings>({
     enabled: true,
-    first_normal_boot: false,
+    last_boot_mode: 'manufacturing',
     skip_stage: false
   });
   const [isManufacturingConfigLoading, setIsManufacturingConfigLoading] =
@@ -59,16 +61,28 @@ export const Manufacturing = () => {
    * When using the GET method on /api/v1/manufacturing, I obtain the elements to display, but if I make modifications with POST, the GET response from that endpoint no longer reflects those changes.
    *  */
   useEffect(() => {
+    let cancelled = false;
     (async () => {
-      const data = await updateManufacturingSettings({});
-      if ('enabled' in data) {
-        setManufacturing(data);
-        setIsManufacturingConfigLoading(false);
-      } else {
-        console.error('Failed to fetch manufacturing settings:', data);
-        setIsManufacturingConfigLoading(false);
+      try {
+        const data = await updateManufacturingSettings({});
+        if (cancelled) return;
+        if ('enabled' in data) {
+          setManufacturing(data);
+          setIsManufacturingConfigLoading(false);
+        } else {
+          console.error('Failed to fetch manufacturing settings:', data);
+          setIsManufacturingConfigLoading(false);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to fetch manufacturing settings:', error);
+          setIsManufacturingConfigLoading(false);
+        }
       }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const updatedSettings = useMemo(() => {
@@ -139,7 +153,7 @@ export const Manufacturing = () => {
                   message:
                     'WARNING: Proceeding incorrectly can permanently damage your scale and may make it unusable. Only continue if you fully understand this procedure and accept the risk.',
                   responses: ['OK'],
-                  timestamp: _date
+                  timestamp: _date.toISOString()
                 }).updatedNotification;
               dispatch(
                 setBubbleDisplay({ visible: false, component: undefined })

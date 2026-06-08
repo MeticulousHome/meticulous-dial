@@ -61,8 +61,8 @@ fn parse_mem() -> Option<u64> {
             let stderr = String::from_utf8_lossy(&output.stderr);
             println!("Error executing systemctl: {}", stderr);
         }
-    } 
-        println!("Couldn't get the current memory usage...");
+    }
+    println!("Couldn't get the current memory usage...");
     None
 }
 
@@ -70,7 +70,10 @@ fn show_mem() {
     loop {
         if let Some(physical) = parse_mem() {
             let physical = Byte::from_u64_with_unit(physical, Unit::B).unwrap();
-            log::info!("Current memory usage: {:#.1}", physical.get_adjusted_unit(Unit::MiB));
+            log::info!(
+                "Current memory usage: {:#.1}",
+                physical.get_adjusted_unit(Unit::MiB)
+            );
             if physical > Byte::from_u64_with_unit(1000u64, Unit::MiB).unwrap() {
                 log::warn!("High memory usage detected!");
                 std::thread::sleep(std::time::Duration::from_secs(1));
@@ -93,8 +96,11 @@ pub fn run() {
             #[cfg(debug_assertions)]
             {
                 let window = _app.get_webview_window("main").unwrap();
-                window.open_devtools();
-                window.close_devtools();
+                // NOTE: open_devtools()/close_devtools() keeps an inspector
+                // backend connection alive, causing significant memory growth.
+                // Only open devtools when actually needed for debugging.
+                // window.open_devtools();
+                // window.close_devtools();
                 let _ = window.set_decorations(true);
             }
             Ok(())

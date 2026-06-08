@@ -24,15 +24,16 @@ import type { Settings } from '@meticulous-home/espresso-api';
 
 const initialSettings: SettingsItem[] = [
   {
-    key: 'usb_mode',
-    label: 'USB mode',
-    getLabel: (settings: Settings) => settings.usb_mode
-  },
-  {
     key: 'ssh_enabled',
     label: 'SSH',
     getLabel: (settings: Settings) =>
       settings.ssh_enabled ? 'ENABLED' : 'DISABLED'
+  },
+  {
+    key: 'telemetry_service_enabled',
+    label: 'Telemetry Service',
+    getLabel: (settings: Settings) =>
+      settings.telemetry_service_enabled ? 'ENABLED' : 'DISABLED'
   },
   {
     key: 'displayAlignment',
@@ -156,15 +157,15 @@ export const AdvancedSettings = () => {
               setBubbleDisplay({ visible: true, component: 'deviceInfo' })
             );
             break;
-          case 'usb_mode': {
-            dispatch(
-              setBubbleDisplay({ visible: true, component: 'usbSettings' })
-            );
-            break;
-          }
           case 'ssh_enabled':
             updateSettings.mutate({
               ssh_enabled: !globalSettings.ssh_enabled
+            });
+            break;
+          case 'telemetry_service_enabled':
+            updateSettings.mutate({
+              telemetry_service_enabled:
+                !globalSettings.telemetry_service_enabled
             });
             break;
           case 'telemetry_opt_in':
