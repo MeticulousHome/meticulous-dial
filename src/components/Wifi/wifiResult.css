@@ -1,31 +1,58 @@
 .response {
-  margin-left: 80px;
   display: flex;
   flex-direction: column;
-  width: auto !important;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 340px !important;
+  min-height: 330px;
+  margin: 0 auto;
+  padding: 42px 48px 34px;
+  text-align: center;
 }
 
-.connect-response {
-  text-transform: uppercase;
-  font-size: 22px;
-  color: #dddddd;
-  text-align: left;
-  width: 100%;
-  justify-content: start;
-  font-weight: 400;
+.connect-response-title,
+.connect-response-status,
+.connect-response-message {
   font-family: 'ABC Diatype Mono';
-  height: fit-content;
-  margin-top: 100px;
+  font-weight: 400;
+  width: 100%;
+}
+
+.connect-response-title {
+  text-transform: uppercase;
+  font-size: 34px;
+  line-height: 1;
+  color: #dddddd;
+}
+
+.connect-response-status {
+  margin-top: 10px;
+  color: #f7df39;
+  font-size: 24px;
+  line-height: 1.08;
+  text-transform: uppercase;
+}
+
+.connect-response-message {
+  margin-top: 12px;
+  color: #dddddd;
+  font-size: 16px;
+  line-height: 1.18;
 }
 
 .connect-item {
   display: flex;
-  margin-top: 4px;
-  justify-content: space-between;
-  height: 30px;
+  align-items: center;
+  justify-content: center;
+  width: 120px !important;
+  height: 34px;
+  margin-top: 22px;
+  padding-left: 0;
 }
 
 .connect-button {
+  justify-content: center;
   font-size: 22px;
   text-transform: uppercase;
 }

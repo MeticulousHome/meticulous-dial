@@ -10,7 +10,7 @@ import {
   setBubbleDisplay,
   setScreen
 } from '../store/features/screens/screens-slice';
-import { useAvailableWiFiList } from '../../hooks/useWifi';
+import { useAvailableWiFiList, useNetworkConfig } from '../../hooks/useWifi';
 
 import Styled, {
   VIEWPORT_HEIGHT,
@@ -22,7 +22,8 @@ export const SelectWifi = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const { data, isLoading } = useAvailableWiFiList();
+  const { data, isFetching, isLoading } = useAvailableWiFiList();
+  const { data: networkConfig } = useNetworkConfig({ idle: true });
 
   const wifiList = useMemo(() => {
     if (!data) return [];
@@ -47,8 +48,12 @@ export const SelectWifi = (): JSX.Element => {
           setBubbleDisplay({ visible: true, component: 'wifiSettings' })
         );
       } else {
+        const ssid = wifiList[activeIndex].key;
+        const useKnownCredentials = Boolean(
+          networkConfig?.known_wifis && ssid in networkConfig.known_wifis
+        );
         dispatch(setBubbleDisplay({ visible: false, component: undefined }));
-        dispatch(selectWifi(wifiList[activeIndex].key));
+        dispatch(selectWifi({ ssid, useKnownCredentials }));
         dispatch(setScreen('enterWifiPassword'));
       }
     }
@@ -73,7 +78,7 @@ export const SelectWifi = (): JSX.Element => {
     [activeIndex, wifiList]
   );
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return <LoadingScreen />;
   }
 
