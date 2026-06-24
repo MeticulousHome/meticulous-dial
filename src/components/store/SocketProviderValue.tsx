@@ -6,7 +6,7 @@ import {
   ISensorData,
   ISensorDataAndMachineState
 } from '../../types/index';
-import { useAppDispatch } from './hooks';
+import { useAppDispatch, useAppSelector } from './hooks';
 import {
   setSensors,
   setStats,
@@ -44,6 +44,8 @@ const isBrewComplete = (state: string) => {
 
 export const SocketProviderValue = () => {
   const dispatch = useAppDispatch();
+  const currentScreen = useAppSelector((state) => state.screen.value);
+  const currentScreenRef = useRef(currentScreen);
   const previousStateName = useRef<string>('idle');
   const queryClient = useQueryClient();
   const { resetTimer: resetIdleTimer } = useIdleTimer();
@@ -51,6 +53,10 @@ export const SocketProviderValue = () => {
     useProfileContext();
   // For development purpose
   useSocketKeyboardListeners();
+
+  useEffect(() => {
+    currentScreenRef.current = currentScreen;
+  }, [currentScreen]);
 
   useEffect(() => {
     socket.on('notification', (notification: string) => {
@@ -90,6 +96,10 @@ export const SocketProviderValue = () => {
         resetIdleTimer();
         queryClient.invalidateQueries({ queryKey: [LASTS_PROFILE_QUERY_KEY] });
         setProfileStarting(false);
+
+        if (currentScreenRef.current === 'labCertification') {
+          return;
+        }
 
         if (data?.name === 'heating') {
           dispatch(setWaterStatus(true));

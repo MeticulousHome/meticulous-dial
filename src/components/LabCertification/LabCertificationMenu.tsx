@@ -1,13 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import { styled } from 'styled-components';
 
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import Styled, {
-  MARQUEE_MIN_TEXT_LENGTH,
-  VIEWPORT_HEIGHT
-} from '../../styles/utils/mixins';
-import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
 import { setScreen } from '../store/features/screens/screens-slice';
-import { useAppDispatch } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   getBluetoothStatus,
   getWifiRadioStatus,
@@ -31,8 +27,10 @@ type LabMenuKey =
 type LabMenuItem = {
   key: LabMenuKey;
   label: string;
-  hasSeparator?: boolean;
 };
+
+type Setpoints = Record<string, number | string | null | undefined>;
+type TelemetryValues = Record<string, number | string | null | undefined>;
 
 const menuItems: LabMenuItem[] = [
   { key: 'wifi', label: 'WiFi' },
@@ -40,10 +38,88 @@ const menuItems: LabMenuItem[] = [
   { key: 'band_heater', label: 'Band heater' },
   { key: 'motor', label: 'Motor' },
   { key: 'motor_mode', label: 'Motor mode' },
-  { key: 'run', label: 'Start lab mode', hasSeparator: true },
+  { key: 'run', label: 'Start lab mode' },
   { key: 'stop', label: 'Stop lab mode' },
   { key: 'back', label: 'Back' }
 ];
+
+const LabScreen = styled.div`
+  position: relative;
+  width: 480px;
+  height: 480px;
+  overflow: hidden;
+  background: #000;
+  color: #e0dcd0;
+  font-family: 'ABC Diatype Mono';
+  text-transform: uppercase;
+`;
+
+const ControlList = styled.div`
+  position: absolute;
+  top: 96px;
+  left: 50px;
+  width: 178px;
+`;
+
+const ControlButton = styled.button<{
+  $active: boolean;
+  $separated: boolean;
+}>`
+  display: block;
+  width: 100%;
+  height: 32px;
+  margin: ${({ $separated }) => ($separated ? '14px 0 0' : '0 0 6px')};
+  padding: 0 10px;
+  border: 0;
+  border-radius: 16px;
+  background: ${({ $active }) => ($active ? '#f5c84b' : 'transparent')};
+  color: ${({ $active }) => ($active ? '#000' : '#77736c')};
+  font: inherit;
+  font-size: 12px;
+  line-height: 32px;
+  text-align: left;
+  white-space: nowrap;
+`;
+
+const EditMarker = styled.span`
+  display: inline-block;
+  width: 10px;
+`;
+
+const TelemetryPanel = styled.div`
+  position: absolute;
+  top: 100px;
+  right: 50px;
+  width: 176px;
+`;
+
+const TelemetryTitle = styled.div`
+  margin-bottom: 8px;
+  color: #f5c84b;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+`;
+
+const TelemetryRow = styled.div`
+  display: grid;
+  grid-template-columns: 104px 1fr;
+  column-gap: 6px;
+  min-height: 20px;
+  font-size: 10px;
+  line-height: 20px;
+`;
+
+const TelemetryLabel = styled.span`
+  color: #77736c;
+  white-space: nowrap;
+`;
+
+const TelemetryValue = styled.span`
+  color: #e0dcd0;
+  text-align: right;
+  white-space: nowrap;
+`;
 
 const nextMotorMode = (mode: MotorMode): MotorMode => {
   if (mode === 'up') return 'down';
@@ -51,8 +127,49 @@ const nextMotorMode = (mode: MotorMode): MotorMode => {
   return 'up';
 };
 
+const wrapIndex = (index: number, delta: number) =>
+  (index + delta + menuItems.length) % menuItems.length;
+
+const formatNumber = (
+  value: number | string | null | undefined,
+  digits = 1,
+  unit = ''
+) => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return `${value.toFixed(digits)}${unit}`;
+  }
+  if (typeof value === 'string' && value.length > 0) {
+    return value;
+  }
+  return '--';
+};
+
+const readSetpoint = (setpoints: Setpoints, keys: string[]) => {
+  for (const key of keys) {
+    const value = setpoints[key];
+    if (value !== undefined && value !== null) {
+      return value;
+    }
+  }
+  return undefined;
+};
+
+const readTelemetryValue = (values: TelemetryValues, keys: string[]) => {
+  for (const key of keys) {
+    const value = values[key];
+    if (value !== undefined && value !== null) {
+      return value;
+    }
+  }
+  return undefined;
+};
+
 export function LabCertificationMenu(): JSX.Element {
   const dispatch = useAppDispatch();
+  const sensorData = useAppSelector((state) => state.stats.sensorData);
+  const setpoints = useAppSelector(
+    (state) => state.stats.setpoints as Setpoints
+  );
   const [activeIndex, setActiveIndex] = useState(0);
   const [editingKey, setEditingKey] = useState<LabMenuKey | null>(null);
   const [wifiEnabled, setWifiEnabled] = useState(false);
@@ -78,30 +195,29 @@ export function LabCertificationMenu(): JSX.Element {
     };
   }, []);
 
-  const settings = useMemo(
+  const controls = useMemo(
     () =>
       menuItems.map((item) => {
-        const editing = editingKey === item.key ? '*' : '';
         switch (item.key) {
           case 'wifi':
             return {
               ...item,
-              label: `${editing}WiFi: ${wifiEnabled ? 'ON' : 'OFF'}`
+              label: `WiFi: ${wifiEnabled ? 'ON' : 'OFF'}`
             };
           case 'bluetooth':
             return {
               ...item,
-              label: `${editing}Bluetooth: ${bluetoothEnabled ? 'ON' : 'OFF'}`
+              label: `Bluetooth: ${bluetoothEnabled ? 'ON' : 'OFF'}`
             };
           case 'band_heater':
             return {
               ...item,
-              label: `${editing}Band heater: ${bandHeaterPower}%`
+              label: `Band heater: ${bandHeaterPower}%`
             };
           case 'motor':
-            return { ...item, label: `${editing}Motor: ${motorPower}%` };
+            return { ...item, label: `Motor: ${motorPower}%` };
           case 'motor_mode':
-            return { ...item, label: `${editing}Motor mode: ${motorMode}` };
+            return { ...item, label: `Motor mode: ${motorMode}` };
           case 'run':
             return {
               ...item,
@@ -114,13 +230,55 @@ export function LabCertificationMenu(): JSX.Element {
     [
       bandHeaterPower,
       bluetoothEnabled,
-      editingKey,
       isRunning,
       motorMode,
       motorPower,
       wifiEnabled
     ]
   );
+
+  const telemetry = useMemo(() => {
+    const sensorValues = sensorData as unknown as TelemetryValues;
+    return [
+      {
+        label: 'motor_set',
+        value: formatNumber(
+          readSetpoint(setpoints, ['motor', 'motor_power']) ??
+            readTelemetryValue(sensorValues, [
+              'motor_setpoint',
+              'motor_power',
+              'm_sp',
+              'm_pwr'
+            ]),
+          0,
+          '%'
+        )
+      },
+      {
+        label: 'heater_set',
+        value: formatNumber(
+          readSetpoint(setpoints, ['band_heater', 'bandheater', 'heater']) ??
+            readTelemetryValue(sensorValues, [
+              'heater_setpoint',
+              'bandheater_setpoint',
+              'bandheater_power',
+              'bh_sp',
+              'bh_pwr'
+            ]),
+          0,
+          '%'
+        )
+      },
+      { label: 't_down', value: formatNumber(sensorData.t_bar_down, 1) },
+      { label: 't_mid_down', value: formatNumber(sensorData.t_bar_md, 1) },
+      { label: 't_mid_up', value: formatNumber(sensorData.t_bar_mu, 1) },
+      { label: 't_up', value: formatNumber(sensorData.t_bar_up, 1) },
+      { label: 't_ext_1', value: formatNumber(sensorData.t_ext_1, 1) },
+      { label: 't_ext_2', value: formatNumber(sensorData.t_ext_2, 1) },
+      { label: 'motor_cur', value: formatNumber(sensorData.m_cur, 2) },
+      { label: 'heater_cur', value: formatNumber(sensorData.bh_cur, 2) }
+    ];
+  }, [sensorData, setpoints]);
 
   const updatePower = (
     setter: React.Dispatch<React.SetStateAction<number>>,
@@ -207,7 +365,7 @@ export function LabCertificationMenu(): JSX.Element {
           updatePower(setMotorPower, 'left');
           return;
         }
-        setActiveIndex((prev) => Math.max(prev - 1, 0));
+        setActiveIndex((prev) => wrapIndex(prev, -1));
       },
       right() {
         if (isBusy) return;
@@ -219,7 +377,7 @@ export function LabCertificationMenu(): JSX.Element {
           updatePower(setMotorPower, 'right');
           return;
         }
-        setActiveIndex((prev) => Math.min(prev + 1, menuItems.length - 1));
+        setActiveIndex((prev) => wrapIndex(prev, 1));
       },
       pressDown() {
         if (isBusy) return;
@@ -229,66 +387,34 @@ export function LabCertificationMenu(): JSX.Element {
     false
   );
 
-  const optionPositionOutter = useMemo(
-    () =>
-      calculateOptionPosition({
-        activeOptionIdx: activeIndex,
-        settings
-      }),
-    [activeIndex, settings]
-  );
-
-  const optionPositionInner = useMemo(
-    () =>
-      calculateOptionPosition({
-        activeOptionIdx: activeIndex,
-        adjustmentFn: (position) => position - VIEWPORT_HEIGHT / 2,
-        settings
-      }),
-    [activeIndex, settings]
-  );
-
   return (
-    <Styled.SettingsContainer>
-      <Styled.Viewport>
-        <Styled.OptionsContainer $translateY={optionPositionOutter}>
-          {settings.map((option, index) => (
-            <Styled.Option
+    <LabScreen>
+      <ControlList>
+        {controls.map((option, index) => {
+          const active = activeIndex === index;
+          const editing = editingKey === option.key;
+          return (
+            <ControlButton
               key={option.key}
-              $hasSeparator={option.hasSeparator}
-              $isMarquee={
-                activeIndex === index &&
-                option.label.length > MARQUEE_MIN_TEXT_LENGTH
-              }
+              $active={active}
+              $separated={option.key === 'run'}
+              onClick={() => setActiveIndex(index)}
             >
-              <span>
-                {isBusy && activeIndex === index ? 'Working' : option.label}
-              </span>
-            </Styled.Option>
-          ))}
-        </Styled.OptionsContainer>
-        <Styled.ActiveIndicator>
-          <Styled.OptionsContainer
-            $translateY={optionPositionInner}
-            $isInner={true}
-          >
-            {settings.map((option, index) => (
-              <Styled.Option
-                key={option.key}
-                $hasSeparator={option.hasSeparator}
-                $isMarquee={
-                  activeIndex === index &&
-                  option.label.length > MARQUEE_MIN_TEXT_LENGTH
-                }
-              >
-                <span>
-                  {isBusy && activeIndex === index ? 'Working' : option.label}
-                </span>
-              </Styled.Option>
-            ))}
-          </Styled.OptionsContainer>
-        </Styled.ActiveIndicator>
-      </Styled.Viewport>
-    </Styled.SettingsContainer>
+              <EditMarker>{editing ? '*' : ''}</EditMarker>
+              {isBusy && active ? 'Working' : option.label}
+            </ControlButton>
+          );
+        })}
+      </ControlList>
+      <TelemetryPanel>
+        <TelemetryTitle>Firmware data</TelemetryTitle>
+        {telemetry.map((item) => (
+          <TelemetryRow key={item.label}>
+            <TelemetryLabel>{item.label}</TelemetryLabel>
+            <TelemetryValue>{item.value}</TelemetryValue>
+          </TelemetryRow>
+        ))}
+      </TelemetryPanel>
+    </LabScreen>
   );
 }
