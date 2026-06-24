@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import './settings.css'; //verify this :D
 import '../PressetSettings/pressetSettings.css';
@@ -57,6 +57,7 @@ export function Settings(): JSX.Element {
 
   const dispatch = useAppDispatch();
   const [activeIndex, setActiveIndex] = useState(0);
+  const hiddenMenuScrollCount = useRef(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const updateSettings = useUpdateSettings();
 
@@ -80,11 +81,24 @@ export function Settings(): JSX.Element {
         setActiveIndex((prev) => Math.max(prev - 1, 0));
       },
       right() {
-        setActiveIndex((prev) =>
-          Math.min(prev + 1, updatedSettings.length - 1)
-        );
+        setActiveIndex((prev) => {
+          if (prev >= updatedSettings.length - 1) {
+            hiddenMenuScrollCount.current += 1;
+            if (hiddenMenuScrollCount.current >= 6) {
+              dispatch(
+                setBubbleDisplay({ visible: true, component: 'labUnlock' })
+              );
+              hiddenMenuScrollCount.current = 0;
+            }
+            return prev;
+          }
+
+          hiddenMenuScrollCount.current = 0;
+          return prev + 1;
+        });
       },
       pressDown() {
+        hiddenMenuScrollCount.current = 0;
         const activeItem = updatedSettings[activeIndex];
         switch (activeItem.key) {
           case 'device_info':

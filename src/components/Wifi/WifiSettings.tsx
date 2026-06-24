@@ -19,6 +19,12 @@ import Styled, {
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
 import { getWifiHealthStatusLabel } from './wifiHealthMessages';
+import {
+  getBluetoothStatus,
+  getWifiRadioStatus,
+  setBluetoothPower,
+  setWifiRadioStatus
+} from '../../api/lab';
 
 export const WifiSettings = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -28,6 +34,8 @@ export const WifiSettings = (): JSX.Element => {
   const [networkConfigMode, setNetworkConfigMode] = useState<APMode>(
     APMode.CLIENT
   );
+  const [wifiRadioEnabled, setWifiRadioEnabledState] = useState(true);
+  const [bluetoothEnabled, setBluetoothEnabled] = useState(false);
 
   const { data: networkConfig, error, isLoading, refetch } = useNetworkConfig();
   const updateNetworkConfigMutation = useUpdateNetworkConfig();
@@ -39,6 +47,20 @@ export const WifiSettings = (): JSX.Element => {
     }
     setNetworkConfigMode(networkConfig?.config.mode);
   }, [networkConfig]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([getWifiRadioStatus(), getBluetoothStatus()])
+      .then(([wifiRadio, bluetooth]) => {
+        if (cancelled) return;
+        setWifiRadioEnabledState(wifiRadio);
+        setBluetoothEnabled(bluetooth.powered);
+      })
+      .catch((error) => console.error('Failed to load radio status', error));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const isWifiConnected = networkConfig?.status.connected;
   const wifiHealth = networkConfig?.health;
@@ -96,6 +118,16 @@ export const WifiSettings = (): JSX.Element => {
   const wifiSettingItems = useMemo(
     () => [
       {
+        key: 'wifi_radio',
+        label: `WiFi radio: ${wifiRadioEnabled ? 'ON' : 'OFF'}`,
+        visible: true
+      },
+      {
+        key: 'bluetooth_radio',
+        label: `Bluetooth: ${bluetoothEnabled ? 'ON' : 'OFF'}`,
+        visible: true
+      },
+      {
         key: 'status',
         label: `Status: ${healthLabel}`,
         visible: true
@@ -141,7 +173,14 @@ export const WifiSettings = (): JSX.Element => {
         visible: true
       }
     ],
-    [healthLabel, isWifiConnected, isApMode, networkConfigMode]
+    [
+      bluetoothEnabled,
+      healthLabel,
+      isWifiConnected,
+      isApMode,
+      networkConfigMode,
+      wifiRadioEnabled
+    ]
   );
 
   useHandleGestures(
@@ -172,6 +211,19 @@ export const WifiSettings = (): JSX.Element => {
           activeIndex
         ].key;
         switch (filter) {
+          case 'wifi_radio': {
+            setWifiRadioStatus(!wifiRadioEnabled).then((enabled) => {
+              setWifiRadioEnabledState(enabled);
+              refetch();
+            });
+            break;
+          }
+          case 'bluetooth_radio': {
+            setBluetoothPower(!bluetoothEnabled).then((status) =>
+              setBluetoothEnabled(status.powered)
+            );
+            break;
+          }
           case 'network_mode': {
             const mode =
               networkConfigMode === APMode.AP ? APMode.CLIENT : APMode.AP;

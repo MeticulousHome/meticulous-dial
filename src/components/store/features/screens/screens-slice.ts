@@ -57,6 +57,8 @@ export type ScreenType =
   | 'factoryReset'
   | 'retraction_volume'
   | 'manufacturingSettings'
+  | 'labUnlock'
+  | 'labCertification'
   | 'displayAlignment'
   | 'masterCalibrationLock'
   | 'deviceInfoQR'

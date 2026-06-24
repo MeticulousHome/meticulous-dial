@@ -60,6 +60,8 @@ import {
   UnlockMasterCalibration
 } from '../components/UnlockScreen/UnlockScreen';
 import { InfoQRCode } from '../components/Settings/Advanced/InfoQrCode';
+import { LabUnlock } from '../components/LabCertification/LabUnlock';
+import { LabCertificationMenu } from '../components/LabCertification/LabCertificationMenu';
 
 interface Route {
   component: ComponentType;
@@ -374,6 +376,14 @@ export const routes: Record<ScreenType, Route> = {
   },
   manufacturingSettings: {
     component: Manufacturing
+  },
+  labUnlock: {
+    component: LabUnlock,
+    bottomStatusHidden: true
+  },
+  labCertification: {
+    component: LabCertificationMenu,
+    bottomStatusHidden: true
   },
   pressetProfileImage: {
     component: PressetProfileImage,
