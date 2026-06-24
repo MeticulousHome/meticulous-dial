@@ -1,42 +1,154 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { styled } from 'styled-components';
 
-import { CircleKeyboard } from '../CircleKeyboard/CircleKeyboard';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import Styled, { VIEWPORT_HEIGHT } from '../../styles/utils/mixins';
+import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
+import { setScreen } from '../store/features/screens/screens-slice';
 import { useAppDispatch } from '../store/hooks';
-import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 
 const LAB_MENU_PASSWORD = '0000';
+const PIN_OPTIONS = [
+  '0',
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  'Clear',
+  'Back'
+];
+
+const PinStatus = styled.div`
+  position: absolute;
+  top: 118px;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  color: #e0dcd0;
+  font-family: 'ABC Diatype Mono';
+  font-size: 18px;
+  letter-spacing: 1.4px;
+  line-height: 24px;
+  text-align: center;
+  text-transform: uppercase;
+`;
 
 export function LabUnlock(): JSX.Element {
   const dispatch = useAppDispatch();
-  const [password, setPassword] = useState('');
-  const [title, setTitle] = useState('Lab password');
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [pin, setPin] = useState('');
+  const [message, setMessage] = useState('Enter lab PIN');
 
-  const openLabMenu = () => {
-    dispatch(
-      setBubbleDisplay({ visible: true, component: 'labCertification' })
-    );
+  const settings = useMemo(
+    () =>
+      PIN_OPTIONS.map((option) => ({
+        key: option,
+        label: option.length === 1 ? `PIN ${option}` : option,
+        hasSeparator: option === '9'
+      })),
+    []
+  );
+
+  const resetInvalidPin = () => {
+    setMessage('Invalid PIN');
+    setPin('');
+    window.setTimeout(() => setMessage('Enter lab PIN'), 1200);
   };
 
-  const submitPassword = (value: string) => {
-    if (value === LAB_MENU_PASSWORD) {
-      openLabMenu();
+  const selectActiveOption = () => {
+    const option = PIN_OPTIONS[activeIndex];
+
+    if (option === 'Back') {
+      dispatch(setScreen('settings'));
       return;
     }
 
-    setTitle('Invalid password');
-    setPassword('');
-    window.setTimeout(() => setTitle('Lab password'), 1200);
+    if (option === 'Clear') {
+      setPin('');
+      setMessage('Enter lab PIN');
+      return;
+    }
+
+    const nextPin = `${pin}${option}`;
+    setPin(nextPin);
+
+    if (nextPin.length < LAB_MENU_PASSWORD.length) {
+      return;
+    }
+
+    if (nextPin === LAB_MENU_PASSWORD) {
+      dispatch(setScreen('labCertification'));
+      return;
+    }
+
+    resetInvalidPin();
   };
 
+  useHandleGestures({
+    left() {
+      setActiveIndex((prev) => Math.max(prev - 1, 0));
+    },
+    right() {
+      setActiveIndex((prev) => Math.min(prev + 1, settings.length - 1));
+    },
+    pressDown() {
+      selectActiveOption();
+    }
+  });
+
+  const optionPositionOutter = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        settings
+      }),
+    [activeIndex, settings]
+  );
+
+  const optionPositionInner = useMemo(
+    () =>
+      calculateOptionPosition({
+        activeOptionIdx: activeIndex,
+        adjustmentFn: (position) => position - VIEWPORT_HEIGHT / 2,
+        settings
+      }),
+    [activeIndex, settings]
+  );
+
   return (
-    <CircleKeyboard
-      name={title}
-      defaultValue={password.split('')}
-      onSubmit={submitPassword}
-      onCancel={() =>
-        dispatch(setBubbleDisplay({ visible: true, component: 'settings' }))
-      }
-      onChange={(text) => setPassword(text)}
-    />
+    <Styled.SettingsContainer>
+      <Styled.Viewport>
+        <PinStatus>
+          {message}: {pin.padEnd(LAB_MENU_PASSWORD.length, '-')}
+        </PinStatus>
+        <Styled.OptionsContainer $translateY={optionPositionOutter}>
+          {settings.map((option) => (
+            <Styled.Option key={option.key} $hasSeparator={option.hasSeparator}>
+              <span>{option.label}</span>
+            </Styled.Option>
+          ))}
+        </Styled.OptionsContainer>
+        <Styled.ActiveIndicator>
+          <Styled.OptionsContainer
+            $translateY={optionPositionInner}
+            $isInner={true}
+          >
+            {settings.map((option) => (
+              <Styled.Option
+                key={option.key}
+                $hasSeparator={option.hasSeparator}
+              >
+                <span>{option.label}</span>
+              </Styled.Option>
+            ))}
+          </Styled.OptionsContainer>
+        </Styled.ActiveIndicator>
+      </Styled.Viewport>
+    </Styled.SettingsContainer>
   );
 }

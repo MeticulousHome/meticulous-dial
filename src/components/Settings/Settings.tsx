@@ -85,9 +85,8 @@ export function Settings(): JSX.Element {
           if (prev >= updatedSettings.length - 1) {
             hiddenMenuScrollCount.current += 1;
             if (hiddenMenuScrollCount.current >= 6) {
-              dispatch(
-                setBubbleDisplay({ visible: true, component: 'labUnlock' })
-              );
+              dispatch(setBubbleDisplay({ visible: false }));
+              dispatch(setScreen('labUnlock'));
               hiddenMenuScrollCount.current = 0;
             }
             return prev;

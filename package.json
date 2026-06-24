@@ -13,6 +13,8 @@
     "prepare": "husky",
     "lint": "eslint .",
     "dev": "VITE_SERVER_URL=\"${SERVER_URL}\" vite",
+    "dev:mock-backend": "node scripts/mock-dial-backend.mjs",
+    "dev:local-lab": "SERVER_URL=http://127.0.0.1:8080 vite",
     "build": "tsc && vite build",
     "tauri": "VITE_SERVER_URL=\"${SERVER_URL}\" tauri",
     "docker:arm64-qemu": "docker build . -t rust_native_compile/arm64 -f Dockerfile.arm64-qemu",

@@ -6,7 +6,7 @@ import Styled, {
   VIEWPORT_HEIGHT
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
-import { setBubbleDisplay } from '../store/features/screens/screens-slice';
+import { setScreen } from '../store/features/screens/screens-slice';
 import { useAppDispatch } from '../store/hooks';
 import {
   getBluetoothStatus,
@@ -134,7 +134,7 @@ export function LabCertificationMenu(): JSX.Element {
   const toggleActiveControl = async () => {
     const key = menuItems[activeIndex].key;
     if (key === 'back') {
-      dispatch(setBubbleDisplay({ visible: true, component: 'settings' }));
+      dispatch(setScreen('settings'));
       return;
     }
 
