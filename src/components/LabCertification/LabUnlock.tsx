@@ -108,7 +108,7 @@ export function LabUnlock(): JSX.Element {
 
   const selectOption = (option: PinOption) => {
     if (option === 'Back') {
-      dispatch(setScreen('settings'));
+      dispatch(setScreen('ready'));
       return;
     }
 
