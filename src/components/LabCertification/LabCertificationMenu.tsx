@@ -56,7 +56,7 @@ const LabScreen = styled.div`
 
 const ControlList = styled.div`
   position: absolute;
-  top: 96px;
+  top: 92px;
   left: 50px;
   width: 178px;
 `;
@@ -67,16 +67,16 @@ const ControlButton = styled.button<{
 }>`
   display: block;
   width: 100%;
-  height: 32px;
-  margin: ${({ $separated }) => ($separated ? '14px 0 0' : '0 0 6px')};
+  height: 34px;
+  margin: ${({ $separated }) => ($separated ? '12px 0 0' : '0 0 5px')};
   padding: 0 10px;
   border: 0;
-  border-radius: 16px;
+  border-radius: 17px;
   background: ${({ $active }) => ($active ? '#f5c84b' : 'transparent')};
   color: ${({ $active }) => ($active ? '#000' : '#77736c')};
   font: inherit;
-  font-size: 12px;
-  line-height: 32px;
+  font-size: 13px;
+  line-height: 34px;
   text-align: left;
   white-space: nowrap;
 `;
@@ -88,9 +88,9 @@ const EditMarker = styled.span`
 
 const TelemetryPanel = styled.div`
   position: absolute;
-  top: 100px;
-  right: 50px;
-  width: 176px;
+  top: 98px;
+  right: 44px;
+  width: 188px;
 `;
 
 const TelemetryTitle = styled.div`
@@ -103,11 +103,11 @@ const TelemetryTitle = styled.div`
 
 const TelemetryRow = styled.div`
   display: grid;
-  grid-template-columns: 104px 1fr;
-  column-gap: 6px;
-  min-height: 20px;
-  font-size: 10px;
-  line-height: 20px;
+  grid-template-columns: 96px 1fr;
+  column-gap: 4px;
+  min-height: 21px;
+  font-size: 11px;
+  line-height: 21px;
 `;
 
 const TelemetryLabel = styled.span`
