@@ -88,26 +88,27 @@ const EditMarker = styled.span`
 
 const TelemetryPanel = styled.div`
   position: absolute;
-  top: 98px;
-  right: 44px;
-  width: 188px;
+  top: 92px;
+  right: 54px;
+  width: 170px;
 `;
 
 const TelemetryTitle = styled.div`
   margin-bottom: 8px;
   color: #f5c84b;
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 17px;
   text-align: center;
 `;
 
 const TelemetryRow = styled.div`
   display: grid;
-  grid-template-columns: 96px 1fr;
-  column-gap: 4px;
-  min-height: 21px;
-  font-size: 11px;
-  line-height: 21px;
+  grid-template-columns: max-content max-content;
+  column-gap: 10px;
+  justify-content: start;
+  min-height: 22px;
+  font-size: 13px;
+  line-height: 22px;
 `;
 
 const TelemetryLabel = styled.span`
@@ -117,7 +118,7 @@ const TelemetryLabel = styled.span`
 
 const TelemetryValue = styled.span`
   color: #e0dcd0;
-  text-align: right;
+  text-align: left;
   white-space: nowrap;
 `;
 
