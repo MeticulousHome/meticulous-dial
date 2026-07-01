@@ -21,13 +21,14 @@ export const NETWORK_CONFIG_QUERY_KEY = 'networkConfig';
 
 const DEFAULT_NETWORK_REFETCH_INTERVAL = 5000;
 const IDLE_NETWORK_REFETCH_INTERVAL = 60000;
+const WIFI_LIST_REFETCH_INTERVAL = 5000;
 
 // Hook to fetch network config
 export const useNetworkConfig = (options?: { idle?: boolean }) => {
   return useQuery({
     queryKey: [NETWORK_CONFIG_QUERY_KEY],
     queryFn: getWifiStatus,
-    staleTime: 0,
+    staleTime: 2000,
     refetchInterval: options?.idle
       ? IDLE_NETWORK_REFETCH_INTERVAL
       : DEFAULT_NETWORK_REFETCH_INTERVAL
@@ -38,6 +39,7 @@ export const useNetworkConfig = (options?: { idle?: boolean }) => {
 export const useUpdateNetworkConfig = () => {
   return useMutation({
     mutationFn: (data: Partial<WiFiConfig>) => updateNetworkConfig(data),
+    retry: false,
     onError: (error) => {
       console.error('Error updating Network Config:', error);
     },
@@ -50,6 +52,7 @@ export const useUpdateNetworkConfig = () => {
 export const useRepairWiFi = (queryClient?: QueryClient) => {
   return useMutation({
     mutationFn: repairWifi,
+    retry: false,
     onError: (error) => {
       console.error('Error repairing Wi-Fi:', error);
     },
@@ -65,8 +68,8 @@ export const useAvailableWiFiList = () => {
   return useQuery({
     queryKey: [LIST_WIFI_QUERY_KEY],
     queryFn: listAvailableWiFi,
-    staleTime: 0,
-    refetchInterval: false,
+    staleTime: WIFI_LIST_REFETCH_INTERVAL,
+    refetchInterval: WIFI_LIST_REFETCH_INTERVAL,
     refetchOnMount: 'always',
     refetchOnReconnect: false,
     refetchOnWindowFocus: false
@@ -79,6 +82,7 @@ export const useConnectToWiFi = () => {
 
   return useMutation({
     mutationFn: (data: WifiConnectCredentials) => connectToWiFi(data),
+    retry: false,
     onError: (error) => {
       console.error('Error connecting to Wi-Fi:', error);
     },

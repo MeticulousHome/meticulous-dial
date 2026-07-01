@@ -29,7 +29,13 @@ export const WifiSettings = (): JSX.Element => {
     APMode.CLIENT
   );
 
-  const { data: networkConfig, error, isLoading, refetch } = useNetworkConfig();
+  const {
+    data: networkConfig,
+    dataUpdatedAt,
+    error,
+    isFetching,
+    refetch
+  } = useNetworkConfig();
   const updateNetworkConfigMutation = useUpdateNetworkConfig();
   const repairWiFiMutation = useRepairWiFi(queryClient);
 
@@ -44,19 +50,17 @@ export const WifiSettings = (): JSX.Element => {
   const wifiHealth = networkConfig?.health;
 
   const isApMode = networkConfigMode === APMode.AP;
-  const healthLabel = getWifiHealthStatusLabel(wifiHealth, isWifiConnected);
-  const loadingState = isLoading
-    ? 'loading'
-    : updateNetworkConfigMutation.isPending
-      ? `update-${networkConfigMode}`
-      : repairWiFiMutation.isPending
-        ? 'repair'
-        : 'idle';
+  const hasStaleNetworkConfig =
+    !networkConfig || (isFetching && Date.now() - dataUpdatedAt > 2000);
+  const healthLabel = hasStaleNetworkConfig
+    ? 'Checking...'
+    : getWifiHealthStatusLabel(wifiHealth, isWifiConnected);
+  const loadingState = updateNetworkConfigMutation.isPending
+    ? `update-${networkConfigMode}`
+    : repairWiFiMutation.isPending
+      ? 'repair'
+      : 'idle';
   const loadingMessages = useMemo(() => {
-    if (loadingState === 'loading') {
-      return ['Loading WiFi settings'];
-    }
-
     if (loadingState === `update-${APMode.AP}`) {
       return [
         'Starting hotspot',
@@ -251,11 +255,7 @@ export const WifiSettings = (): JSX.Element => {
     [activeIndex, wifiSettingItems]
   );
 
-  if (
-    isLoading ||
-    updateNetworkConfigMutation.isPending ||
-    repairWiFiMutation.isPending
-  ) {
+  if (updateNetworkConfigMutation.isPending || repairWiFiMutation.isPending) {
     return <LoadingScreen message={loadingMessages[loadingMessageIndex]} />;
   }
 
