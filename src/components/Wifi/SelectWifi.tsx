@@ -3,7 +3,6 @@ import './selectWifi.css';
 import { WifiIcon } from './WifiIcon';
 import { useAppDispatch } from '../store/hooks';
 import { selectWifi } from '../store/features/wifi/wifi-slice';
-import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { WiFiNetwork } from '@meticulous-home/espresso-api';
 import {
@@ -18,22 +17,34 @@ import Styled, {
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
 
+type WifiListItem = {
+  key: string;
+  label: string;
+  disabled?: boolean;
+};
+
 export const SelectWifi = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const { data, isFetching, isLoading } = useAvailableWiFiList();
+  const { data, isFetching } = useAvailableWiFiList();
   const { data: networkConfig } = useNetworkConfig({ idle: true });
 
   const wifiList = useMemo(() => {
-    if (!data) return [];
+    const networks = data || [];
 
-    const wifiList = data.map((wifi: WiFiNetwork) => ({
+    const wifiList: WifiListItem[] = networks.map((wifi: WiFiNetwork) => ({
       key: wifi.ssid,
       label: wifi.ssid
     }));
-    return [...wifiList, ...[{ key: 'back', label: 'Back' }]];
-  }, [data, isLoading]);
+    return [
+      ...wifiList,
+      ...(isFetching
+        ? [{ key: 'scanning', label: 'Scanning...', disabled: true }]
+        : []),
+      ...[{ key: 'back', label: 'Back' }]
+    ];
+  }, [data, isFetching]);
 
   useHandleGestures({
     left() {
@@ -43,12 +54,17 @@ export const SelectWifi = (): JSX.Element => {
       setActiveIndex((prev) => Math.min(prev + 1, wifiList.length - 1));
     },
     pressDown() {
-      if (wifiList[activeIndex].key === 'back') {
+      const selectedItem = wifiList[activeIndex];
+      if (!selectedItem || selectedItem.disabled) {
+        return;
+      }
+
+      if (selectedItem.key === 'back') {
         dispatch(
           setBubbleDisplay({ visible: true, component: 'wifiSettings' })
         );
       } else {
-        const ssid = wifiList[activeIndex].key;
+        const ssid = selectedItem.key;
         const useKnownCredentials = Boolean(
           networkConfig?.known_wifis && ssid in networkConfig.known_wifis
         );
@@ -78,16 +94,12 @@ export const SelectWifi = (): JSX.Element => {
     [activeIndex, wifiList]
   );
 
-  if (isLoading || isFetching) {
-    return <LoadingScreen />;
-  }
-
   return (
     <Styled.SettingsContainer>
       <Styled.Viewport>
         <Styled.OptionsContainer $translateY={optionPositionOutter}>
           {wifiList.map((option, index) =>
-            option.key === 'back' ? (
+            option.key === 'back' || option.disabled ? (
               <Styled.Option key={option.key}>
                 <span>{option.label}</span>
               </Styled.Option>
@@ -107,7 +119,7 @@ export const SelectWifi = (): JSX.Element => {
             $isInner={true}
           >
             {wifiList.map((option, index) =>
-              option.key === 'back' ? (
+              option.key === 'back' || option.disabled ? (
                 <Styled.Option key={option.key}>
                   <span>{option.label}</span>
                 </Styled.Option>

@@ -42,12 +42,16 @@ export function EnterWifiPassword(): JSX.Element {
   const isInvalidCredentials =
     connectToWifiMutation.isError &&
     connectionError?.code === 'invalid_credentials';
+  const shouldReturnToPassword =
+    connectToWifiMutation.isError &&
+    Boolean(wifi.selectedWifi) &&
+    connectionError?.code !== 'unsupported_security';
 
   useDimScreen();
   useHandleGestures({
     pressDown() {
       if (connectToWifiMutation.isSuccess || connectToWifiMutation.isError) {
-        if (isInvalidCredentials) {
+        if (shouldReturnToPassword) {
           connectToWifiMutation.reset();
           if (wifi.selectedWifi) {
             dispatch(
@@ -118,15 +122,18 @@ export function EnterWifiPassword(): JSX.Element {
   if (connectToWifiMutation.isError || connectToWifiMutation.isSuccess) {
     const connectHealth = connectToWifiMutation.data?.health;
     const hasConnectionWarning = Boolean(connectHealth?.degraded);
+    const errorTitle = isInvalidCredentials
+      ? 'Check password'
+      : connectionError?.code === 'wifi_join_failed'
+        ? 'Check WiFi'
+        : 'Could not connect to WiFi';
 
     return (
       <div className="main-container response">
         {connectToWifiMutation.isError && (
           <>
             <div className="connect-response-title error-entry">
-              {isInvalidCredentials
-                ? 'Incorrect password'
-                : 'Could not connect to WiFi'}
+              {errorTitle}
             </div>
             <div className="connect-response-message error-entry">
               {connectToWifiMutation.failureReason?.message}
