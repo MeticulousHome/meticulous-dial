@@ -132,7 +132,7 @@ export const WifiSettings = (): JSX.Element => {
       {
         key: 'repair',
         label: 'Repair WiFi',
-        visible: true
+        visible: isWifiConnected || isApMode
       },
       {
         key: 'save',
