@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
@@ -6,6 +6,11 @@ import { useAppDispatch } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import './wifiDetails.css';
 import { useNetworkConfig } from '../../hooks/useWifi';
+import {
+  getWifiHealthMessage,
+  getWifiHealthStatusLabel,
+  getWifiRecoveryMessage
+} from './wifiHealthMessages';
 
 const initialWifiItems = [
   { key: 'network', label: 'NETWORK' },
@@ -14,6 +19,12 @@ const initialWifiItems = [
   { key: 'ap_password', label: 'AP PASSWORD' },
   { key: 'ips', label: 'IP' },
   { key: 'mac', label: 'MAC' },
+  { key: 'health', label: 'HEALTH' },
+  { key: 'gateway', label: 'GATEWAY' },
+  { key: 'dns', label: 'DNS' },
+  { key: 'internet', label: 'INTERNET' },
+  { key: 'last_error', label: 'LAST ERROR' },
+  { key: 'recovery', label: 'RECOVERY' },
   { key: 'back', label: 'Back' }
 ];
 
@@ -26,16 +37,11 @@ import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosit
 export const WifiDetails = (): JSX.Element => {
   const [activeIndex, setActiveIndex] = useState(0);
   const dispatch = useAppDispatch();
-  const { data, isLoading, isSuccess, refetch } = useNetworkConfig();
+  const { data, isLoading, isSuccess } = useNetworkConfig();
   const wifiStatus = data?.status;
   const networkConfig = data?.config;
-
-  useEffect(() => {
-    const refetchInterval = setInterval(() => {
-      refetch();
-    }, 500);
-    return () => clearInterval(refetchInterval);
-  }, []);
+  const wifiHealth = data?.health;
+  const isHotspotActive = wifiHealth?.mode === 'AP' && wifiHealth?.ap_active;
 
   const wifiItems = useMemo(() => {
     if (!isSuccess || !data) return initialWifiItems;
@@ -46,7 +52,31 @@ export const WifiDetails = (): JSX.Element => {
       ap_name: networkConfig?.apName || '',
       ap_password: networkConfig?.apPassword || '',
       ips: wifiStatus?.ips?.[0] || '',
-      mac: wifiStatus?.mac || ''
+      mac: wifiStatus?.mac || '',
+      health: getWifiHealthStatusLabel(wifiHealth, wifiStatus?.connected),
+      gateway: isHotspotActive
+        ? 'N/A'
+        : wifiHealth
+          ? wifiHealth.gateway_reachable
+            ? 'OK'
+            : 'FAILED'
+          : '',
+      dns: isHotspotActive
+        ? 'N/A'
+        : wifiHealth
+          ? wifiHealth.dns_resolves
+            ? 'OK'
+            : 'FAILED'
+          : '',
+      internet: isHotspotActive
+        ? 'N/A'
+        : wifiHealth
+          ? wifiHealth.internet_reachable
+            ? 'OK'
+            : 'FAILED'
+          : '',
+      last_error: getWifiHealthMessage(wifiHealth),
+      recovery: getWifiRecoveryMessage(wifiHealth)
     };
 
     return initialWifiItems.map((item) =>
@@ -57,7 +87,7 @@ export const WifiDetails = (): JSX.Element => {
             label: `${item.label}: ${valuesMap[item.key] || ''}`
           }
     );
-  }, [wifiStatus, networkConfig, isSuccess]);
+  }, [wifiStatus, networkConfig, wifiHealth, isHotspotActive, isSuccess]);
 
   useHandleGestures({
     left() {

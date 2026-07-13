@@ -150,12 +150,40 @@
   top: 30px;
 }
 
-.caps-active {
+.caps-locked {
   fill: #fff;
+  color: #fff;
+}
+
+.caps-active {
+  fill: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .caps-inactive {
+  fill: transparent;
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 0.5px;
+  paint-order: stroke fill;
   color: rgba(255, 255, 255, 0.4);
+}
+
+.icon-capslock-selected.caps-inactive .relative > div {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.4);
+}
+
+.icon-capslock-selected.caps-active .relative > div {
+  color: rgba(255, 255, 255, 0.4);
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.4);
+  -webkit-text-stroke: 0;
+}
+
+.icon-capslock-selected.caps-locked .relative > div {
+  color: #fff;
+  -webkit-text-fill-color: #fff;
+  -webkit-text-stroke: 5px #000;
 }
 
 .blink {

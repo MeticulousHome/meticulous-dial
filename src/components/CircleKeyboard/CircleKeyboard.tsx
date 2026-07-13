@@ -80,6 +80,12 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
   const captionRef = useRef<HTMLDivElement>(null);
   const [caption, setCaption] = useState(defaultValue || []);
 
+  const capsLockIconClass = capsLockActive.keep
+    ? 'caps-locked'
+    : capsLockActive.active
+      ? 'caps-active'
+      : 'caps-inactive';
+
   useEffect(() => {
     setCaption(defaultValue || []);
   }, [defaultValue]);
@@ -177,15 +183,20 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       },
       doubleClick() {
         if (mainLetter === 'capslock') {
-          if (capsLockActive.active && caption.length === 0) {
-            setCapsLockActive({ ...capsLockActive, keep: true });
-            return;
-          }
-
-          setCapsLockActive({
-            active: !capsLockActive.active,
-            keep: !capsLockActive.keep
-          });
+          setCapsLockActive((currentCapsLockActive) =>
+            currentCapsLockActive.keep
+              ? { active: false, keep: false }
+              : { active: true, keep: true }
+          );
+        }
+      },
+      click() {
+        if (mainLetter === 'capslock') {
+          setCapsLockActive((currentCapsLockActive) =>
+            currentCapsLockActive.active
+              ? { active: false, keep: false }
+              : { active: true, keep: false }
+          );
         }
       },
       pressDown() {
@@ -240,10 +251,6 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
             onCancel();
             return;
           case 'capslock':
-            setCapsLockActive({
-              active: !capsLockActive.active,
-              keep: capsLockActive.keep ? false : capsLockActive.keep
-            });
             return;
           case 'keyboardType':
             if (keyboardType === KEYBOARD_TYPE.Default) {
@@ -398,9 +405,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
           <text
             key={index}
             y={-44}
-            className={`letter-space ${
-              capsLockActive.active ? 'caps-active' : 'caps-inactive'
-            }`}
+            className={`letter-space ${capsLockIconClass}`}
           >
             &#xe803;
           </text>
@@ -465,16 +470,18 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         );
       case 'capslock':
         return (
-          <div className="main-letter-space icon-capslock-selected">
+          <div
+            className={`main-letter-space icon-capslock-selected ${capsLockIconClass}`}
+          >
             <div className="relative">
               <span
                 className={
-                  'main-letter__label main-letter__label--bottom-20 $main-letter__label-color--white'
+                  'main-letter__label main-letter__label--bottom-20 main-letter__label-color--white'
                 }
               >
                 {capsLockActive.active ? 'capslock' : 'CAPSLOCK'}
               </span>
-              <div className={'main-letter__label-color--white'}>&#xe803;</div>
+              <div>&#xe803;</div>
             </div>
           </div>
         );
