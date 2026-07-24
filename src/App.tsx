@@ -27,7 +27,7 @@ import { warn, debug, trace, info, error } from '@tauri-apps/plugin-log';
 import { sanitizeAutomaticSentryEvent } from './sentryPrivacy';
 
 const SENTRY_DSN =
-  'https://1db6232932da96602bced5b3f4716ba2@sentry.meticulousespresso.com/7';
+  'https://d958eb514629903cf133ad2b19e80ead@sentry.meticulousespresso.com/8';
 
 if (SENTRY_DSN) {
   Sentry.init({
