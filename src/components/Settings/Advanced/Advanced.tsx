@@ -30,21 +30,8 @@ const initialSettings: SettingsItem[] = [
       settings.ssh_enabled ? 'ENABLED' : 'DISABLED'
   },
   {
-    key: 'telemetry_service_enabled',
-    label: 'Telemetry Service',
-    getLabel: (settings: Settings) =>
-      settings.telemetry_service_enabled ? 'ENABLED' : 'DISABLED'
-  },
-  {
     key: 'displayAlignment',
     label: 'Display Alignment Screen',
-    visible: true
-  },
-  {
-    key: 'telemetry_opt_in',
-    label: 'Share debug motor data',
-    getLabel: (settings: Settings) =>
-      settings.allow_debug_sending ? 'ENABLED' : 'DISABLED',
     visible: true
   },
   {
@@ -160,17 +147,6 @@ export const AdvancedSettings = () => {
           case 'ssh_enabled':
             updateSettings.mutate({
               ssh_enabled: !globalSettings.ssh_enabled
-            });
-            break;
-          case 'telemetry_service_enabled':
-            updateSettings.mutate({
-              telemetry_service_enabled:
-                !globalSettings.telemetry_service_enabled
-            });
-            break;
-          case 'telemetry_opt_in':
-            updateSettings.mutate({
-              allow_debug_sending: !globalSettings.allow_debug_sending
             });
             break;
           case 'set_update_channel':
