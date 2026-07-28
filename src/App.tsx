@@ -24,16 +24,55 @@ import { invoke } from '@tauri-apps/api/core';
 import './globals.css';
 
 import { warn, debug, trace, info, error } from '@tauri-apps/plugin-log';
+import { sanitizeAutomaticSentryEvent } from './sentryPrivacy';
+import { useDeviceInfo } from './hooks/useDeviceOSStatus';
+import { version as dialVersion } from '../package.json';
 
-// const SENTRY_DSN = 'https://1db6232932da96602bced5b3f4716ba2@sentry.meticulousespresso.com/7'; //self hosted
 const SENTRY_DSN =
-  'https://8d8dbea1f60d65c201b7f40f8a5ee20c@o4506723336060928.ingest.us.sentry.io/4511430165921792';
+  'https://d958eb514629903cf133ad2b19e80ead@sentry.meticulousespresso.com/8';
+const DIAL_RELEASE = `meticulous-dial@${dialVersion}`;
 
 if (SENTRY_DSN) {
   Sentry.init({
-    dsn: SENTRY_DSN
+    dsn: SENTRY_DSN,
+    release: DIAL_RELEASE,
+    initialScope: {
+      tags: {
+        'dial-version': dialVersion
+      }
+    },
+    sendDefaultPii: false,
+    maxBreadcrumbs: 0,
+    beforeBreadcrumb: () => null,
+    beforeSend: sanitizeAutomaticSentryEvent,
+    integrations: (defaultIntegrations) =>
+      defaultIntegrations.filter(
+        (integration) =>
+          !['Breadcrumbs', 'HttpContext', 'BrowserSession'].includes(
+            integration.name
+          )
+      )
   });
 }
+
+const SentryRuntimeMetadata = () => {
+  const { data: deviceInfo } = useDeviceInfo();
+
+  useEffect(() => {
+    if (!deviceInfo) {
+      return;
+    }
+
+    if (deviceInfo.image_version) {
+      Sentry.setTag('build-version', deviceInfo.image_version);
+    }
+    if (deviceInfo.image_build_channel) {
+      Sentry.setTag('build-channel', deviceInfo.image_build_channel);
+    }
+  }, [deviceInfo]);
+
+  return null;
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -103,6 +142,7 @@ const App = (): JSX.Element => {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <SentryRuntimeMetadata />
       <div className="meticulous-main-canvas">
         {dev && <div className="main-circle-overlay" />}
         <IdleTimerProvider>
