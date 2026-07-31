@@ -6,11 +6,7 @@ import { useAppDispatch } from '../store/hooks';
 
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import {
-  useNetworkConfig,
-  useRepairWiFi,
-  useUpdateNetworkConfig
-} from '../../hooks/useWifi';
+import { useNetworkConfig, useRepairWiFi } from '../../hooks/useWifi';
 import { APMode } from '@meticulous-home/espresso-api';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import Styled, {
@@ -25,9 +21,6 @@ export const WifiSettings = (): JSX.Element => {
   const queryClient = useQueryClient();
   const [activeIndex, setActiveIndex] = useState(0);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
-  const [networkConfigMode, setNetworkConfigMode] = useState<APMode>(
-    APMode.CLIENT
-  );
 
   const {
     data: networkConfig,
@@ -36,50 +29,24 @@ export const WifiSettings = (): JSX.Element => {
     isFetching,
     refetch
   } = useNetworkConfig();
-  const updateNetworkConfigMutation = useUpdateNetworkConfig();
   const repairWiFiMutation = useRepairWiFi(queryClient);
-
-  useEffect(() => {
-    if (!networkConfig?.config.mode) {
-      return;
-    }
-    setNetworkConfigMode(networkConfig?.config.mode);
-  }, [networkConfig]);
 
   const isWifiConnected = networkConfig?.status.connected;
   const wifiHealth = networkConfig?.health;
 
-  const isApMode = networkConfigMode === APMode.AP;
+  const isApMode = networkConfig?.config.mode === APMode.AP;
   const hasStaleNetworkConfig =
     !networkConfig || (isFetching && Date.now() - dataUpdatedAt > 2000);
   const healthLabel = hasStaleNetworkConfig
     ? 'Checking...'
     : getWifiHealthStatusLabel(wifiHealth, isWifiConnected);
-  const loadingState = updateNetworkConfigMutation.isPending
-    ? `update-${networkConfigMode}`
-    : repairWiFiMutation.isPending
-      ? 'repair'
-      : 'idle';
   const loadingMessages = useMemo(() => {
-    if (loadingState === `update-${APMode.AP}`) {
-      return [
-        'Starting hotspot',
-        'Trying WiFi channels',
-        'Checking hotspot',
-        'Keeping current WiFi safe'
-      ];
-    }
-
-    if (loadingState === `update-${APMode.CLIENT}`) {
-      return ['Joining WiFi mode', 'Checking connection', 'Updating WiFi'];
-    }
-
-    if (loadingState === 'repair') {
+    if (repairWiFiMutation.isPending) {
       return ['Checking WiFi', 'Trying recovery', 'Verifying connection'];
     }
 
     return [];
-  }, [loadingState]);
+  }, [repairWiFiMutation.isPending]);
 
   useEffect(() => {
     setLoadingMessageIndex(0);
@@ -135,17 +102,12 @@ export const WifiSettings = (): JSX.Element => {
         visible: true
       },
       {
-        key: 'save',
-        label: 'Save',
-        visible: networkConfigMode !== networkConfig?.config.mode
-      },
-      {
         key: 'back',
         label: 'Back',
         visible: true
       }
     ],
-    [healthLabel, isWifiConnected, isApMode, networkConfigMode]
+    [healthLabel, isWifiConnected, isApMode]
   );
 
   useHandleGestures(
@@ -163,23 +125,23 @@ export const WifiSettings = (): JSX.Element => {
       },
       pressDown() {
         // In case of error we go back
-        if (
-          updateNetworkConfigMutation.isError ||
-          repairWiFiMutation.isError ||
-          error
-        ) {
+        if (repairWiFiMutation.isError || error) {
           dispatch(
             setBubbleDisplay({ visible: true, component: 'quick-settings' })
           );
+          return;
         }
         const filter = wifiSettingItems.filter((item) => item.visible)[
           activeIndex
         ].key;
         switch (filter) {
           case 'network_mode': {
-            const mode =
-              networkConfigMode === APMode.AP ? APMode.CLIENT : APMode.AP;
-            setNetworkConfigMode(mode);
+            dispatch(
+              setBubbleDisplay({
+                visible: true,
+                component: 'wifiModeSettings'
+              })
+            );
             break;
           }
           case 'qr_code': {
@@ -192,14 +154,6 @@ export const WifiSettings = (): JSX.Element => {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'wifiDetails' })
             );
-            break;
-          }
-          case 'save': {
-            updateNetworkConfigMutation.mutate({
-              ...networkConfig?.config,
-              mode: networkConfigMode
-            });
-            setActiveIndex(0);
             break;
           }
           case 'known_wifis': {
@@ -234,7 +188,7 @@ export const WifiSettings = (): JSX.Element => {
         }
       }
     },
-    updateNetworkConfigMutation.isPending || repairWiFiMutation.isPending
+    repairWiFiMutation.isPending
   );
   const optionPositionOutter = useMemo(
     () =>
@@ -255,25 +209,18 @@ export const WifiSettings = (): JSX.Element => {
     [activeIndex, wifiSettingItems]
   );
 
-  if (updateNetworkConfigMutation.isPending || repairWiFiMutation.isPending) {
+  if (repairWiFiMutation.isPending) {
     return <LoadingScreen message={loadingMessages[loadingMessageIndex]} />;
   }
 
-  if (
-    updateNetworkConfigMutation.isError ||
-    repairWiFiMutation.isError ||
-    error
-  ) {
+  if (repairWiFiMutation.isError || error) {
     const title = repairWiFiMutation.isError
       ? 'Network issue'
-      : 'Could not update WiFi';
-    const message = updateNetworkConfigMutation.isError
-      ? updateNetworkConfigMutation.error?.message ||
-        'Could not update WiFi. Please try again.'
-      : repairWiFiMutation.isError
-        ? repairWiFiMutation.error?.message ||
-          'WiFi repair could not complete. Please check the network.'
-        : 'Connection could not be verified. Please check the connection details.';
+      : 'Could not load WiFi';
+    const message = repairWiFiMutation.isError
+      ? repairWiFiMutation.error?.message ||
+        'WiFi repair could not complete. Please check the network.'
+      : 'Connection could not be verified. Please check the connection details.';
 
     return (
       <div className="main-container response">

@@ -7,6 +7,7 @@ import { ScreenType } from '../components/store/features/screens/screens-slice';
 import { EditNameScreen } from '../components/EditNameScreen/EditNameScreen';
 import { ConnectWifiMenu } from '../components/Wifi/ConnectWifiMenu';
 import { WifiSettings } from './../components/Wifi/WifiSettings';
+import { WifiModeSettings } from '../components/Wifi/WifiModeSettings';
 import { SelectWifi } from '../components/Wifi/SelectWifi';
 import { EnterWifiPassword } from '../components/Wifi/EnterWifiPassword';
 import { WifiDetails } from '../components/Wifi/WifiDetails';
@@ -313,6 +314,11 @@ export const routes: Record<ScreenType, Route> = {
   wifiSettings: {
     component: WifiSettings,
     title: 'wifi settings',
+    bottomStatusHidden: true
+  },
+  wifiModeSettings: {
+    component: WifiModeSettings,
+    title: 'wifi mode',
     bottomStatusHidden: true
   },
   wifiQrMenu: {
