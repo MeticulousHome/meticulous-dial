@@ -27,6 +27,7 @@ import { warn, debug, trace, info, error } from '@tauri-apps/plugin-log';
 import { sanitizeAutomaticSentryEvent } from './sentryPrivacy';
 import { useDeviceInfo } from './hooks/useDeviceOSStatus';
 import { version as dialVersion } from '../package.json';
+import { useDialSlowdownMonitor } from './hooks/useDialSlowdownMonitor';
 
 const SENTRY_DSN =
   'https://d958eb514629903cf133ad2b19e80ead@sentry.meticulousespresso.com/8';
@@ -48,7 +49,12 @@ if (SENTRY_DSN) {
     integrations: (defaultIntegrations) =>
       defaultIntegrations.filter(
         (integration) =>
-          !['Breadcrumbs', 'HttpContext', 'BrowserSession'].includes(
+          ![
+            'Breadcrumbs',
+            'HttpContext',
+            'BrowserSession',
+            'CultureContext'
+          ].includes(
             integration.name
           )
       )
@@ -69,7 +75,24 @@ const SentryRuntimeMetadata = () => {
     if (deviceInfo.image_build_channel) {
       Sentry.setTag('build-channel', deviceInfo.image_build_channel);
     }
+    if (deviceInfo.serial) {
+      Sentry.setTag('machine-serial', String(deviceInfo.serial).trim());
+    }
   }, [deviceInfo]);
+
+  return null;
+};
+
+const DialSlowdownMonitor = () => {
+  const screen = useAppSelector((state) => state.screen.value);
+  const isExtracting = useAppSelector((state) => state.stats?.extracting);
+  const { data: deviceInfo } = useDeviceInfo();
+
+  useDialSlowdownMonitor({
+    screen,
+    serial: deviceInfo?.serial ? String(deviceInfo.serial).trim() : undefined,
+    isExtracting: Boolean(isExtracting)
+  });
 
   return null;
 };
@@ -143,6 +166,7 @@ const App = (): JSX.Element => {
   return (
     <QueryClientProvider client={queryClient}>
       <SentryRuntimeMetadata />
+      <DialSlowdownMonitor />
       <div className="meticulous-main-canvas">
         {dev && <div className="main-circle-overlay" />}
         <IdleTimerProvider>
