@@ -467,6 +467,12 @@ export const BugReport = (): JSX.Element => {
           'Failed getting ticket number. Please contact us for further information',
           error
         );
+      } else if (submissionStateRef.current === 'updatingReport') {
+        failSubmission(
+          'reportUpdate',
+          `failed to link ticket number with report. Please contact us for further information`,
+          error
+        );
       } else if (submissionStateRef.current === 'savingRecord') {
         failSubmission(
           'submissionMark',
