@@ -1,4 +1,5 @@
 use byte_unit::{Byte, Unit};
+use std::fs;
 use std::process::Command;
 use tauri::AppHandle;
 use tauri::Manager;
@@ -6,16 +7,31 @@ use tauri::Manager;
 mod config;
 mod profiles;
 
+const DIAL_READY_MARKER: &str = "/run/meticulous-dial-ready";
+const DIAL_HOME_READY_MARKER: &str = "/run/meticulous-dial-home-ready";
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn ready(app_handle: AppHandle) {
     println!("React is reporting ready!");
+    let _ = fs::remove_file(DIAL_HOME_READY_MARKER);
+    if let Err(error) = fs::write(DIAL_READY_MARKER, "ready\n") {
+        eprintln!("Failed to write dial ready marker: {}", error);
+    }
     let window = app_handle.get_webview_window("main").unwrap();
     #[cfg(not(debug_assertions))]
     {
         window.set_fullscreen(true).unwrap();
     }
     window.show().unwrap();
+}
+
+#[tauri::command]
+fn home_ready() {
+    println!("React profile home screen is reporting ready!");
+    if let Err(error) = fs::write(DIAL_HOME_READY_MARKER, "ready\n") {
+        eprintln!("Failed to write dial home ready marker: {}", error);
+    }
 }
 
 #[tauri::command]
@@ -114,7 +130,7 @@ pub fn run() {
                 )) // add the terminal (stdout) as log target
                 .build(),
         )
-        .invoke_handler(tauri::generate_handler![ready, get_profiles])
+        .invoke_handler(tauri::generate_handler![ready, home_ready, get_profiles])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

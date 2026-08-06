@@ -1,16 +1,33 @@
 .loading-center {
   position: fixed;
-  top: calc(50% - 40px);
-  left: calc(50% - 40px);
+  inset: 0;
 }
 
 .loader {
+  position: absolute;
+  top: calc(50% - 40px);
+  left: calc(50% - 40px);
   border: 5px solid #f3f3f3;
   border-top: 5px solid #f5c444;
   border-radius: 50%;
   width: 80px;
   height: 80px;
   animation: spin 1s linear infinite;
+}
+
+.loading-message {
+  position: absolute;
+  top: calc(50% + 68px);
+  left: 50%;
+  width: 170px;
+  transform: translateX(-50%);
+  color: #fff;
+  font-family: 'ABC Diatype Mono';
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 @keyframes spin {
