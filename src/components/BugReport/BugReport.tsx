@@ -550,6 +550,10 @@ export const BugReport = (): JSX.Element => {
           break;
       }
 
+      if (nextDate.getTime() > Date.now()) {
+        nextDate.setTime(Date.now());
+      }
+
       return nextDate;
     });
   };
