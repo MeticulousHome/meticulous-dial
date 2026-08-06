@@ -529,6 +529,9 @@ export const BugReport = (): JSX.Element => {
     setIssueDateDraft((previousDate) => {
       const nextDate = new Date(previousDate.getTime());
 
+      // Minutes are always in 30-minute increments, so the user can only select 0 or 30.
+      nextDate.setMinutes(Math.floor(nextDate.getMinutes() / 30) * 30);
+
       switch (activeIssueDateField) {
         case 'day':
           nextDate.setDate(nextDate.getDate() + direction);
@@ -543,7 +546,7 @@ export const BugReport = (): JSX.Element => {
           nextDate.setHours(nextDate.getHours() + direction);
           break;
         case 'minutes':
-          nextDate.setMinutes(nextDate.getMinutes() + direction);
+          nextDate.setMinutes(nextDate.getMinutes() + direction * 30);
           break;
       }
 
