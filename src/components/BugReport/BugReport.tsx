@@ -3,7 +3,7 @@ import { ZstdDec, ZstdInit } from '@oneidentity/zstd-js/decompress';
 import * as Sentry from '@sentry/react';
 import { AnimatedCounter } from 'react-animated-counter/dist/esm';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
+import { BugReportAnimation } from './BugReportAnimation';
 import { QrGeneratedImage } from '../QR/QrImage';
 import {
   setBubbleDisplay,
@@ -990,7 +990,17 @@ export const BugReport = (): JSX.Element => {
           {reportStatus !== ReportStatus.submitting && (
             <span className="bug-report-loading-text">{message}</span>
           )}
-          <LoadingScreen />
+          <div className="bug-report-loading">
+            <BugReportAnimation
+              variant={
+                reportStatus === ReportStatus.submitting
+                  ? 'transmitting'
+                  : 'gathering'
+              }
+            />
+            <span className="bug-report-loading-text">{message}</span>
+          </div>
+          {/* <LoadingScreen /> */}
         </div>
         {reportStatus !== ReportStatus.submitting && optionList}
       </div>
