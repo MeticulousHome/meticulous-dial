@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { Fragment, useMemo, useRef, useState } from 'react';
 import { ZstdDec, ZstdInit } from '@oneidentity/zstd-js/decompress';
 import * as Sentry from '@sentry/react';
 import { AnimatedCounter } from 'react-animated-counter/dist/esm';
@@ -90,6 +90,22 @@ const ISSUE_DATE_COUNTER_STYLE = {
   fontWeight: 300,
   letterSpacing: '-0.02em'
 };
+
+const ISSUE_DATE_HINTS = [
+  { input: 'Press', action: 'Change field' },
+  { input: 'Long press', action: 'Confirm' },
+  { input: 'Double press', action: 'Back' }
+];
+
+const padTwo = (value: number) => String(value).padStart(2, '0');
+
+// Both issue-date screens share these so the summary can never drift from the
+// format the picker edits in.
+const formatIssueDate = (date: Date) =>
+  `${padTwo(date.getDate())}.${padTwo(date.getMonth() + 1)}.${date.getFullYear()}`;
+
+const formatIssueTime = (date: Date) =>
+  `${padTwo(date.getHours())}:${padTwo(date.getMinutes())}`;
 
 export interface DraftFile {
   name: string;
@@ -295,13 +311,20 @@ const sendSentryFeedback = async ({
 const IssueDateCounter = ({
   active,
   value,
-  width
+  pad = false
 }: {
   active: boolean;
   value: number;
-  width: number;
+  /** Keeps two-digit fields two digits wide, so the row never shifts. */
+  pad?: boolean;
 }) => (
-  <div className={active ? 'bug-report-date-picker-active' : ''}>
+  <div
+    className={`bug-report-date-picker-field${
+      active ? ' bug-report-date-picker-active' : ''
+    }`}
+  >
+    {/* AnimatedCounter takes a number, so the leading zero is drawn alongside it. */}
+    {pad && value < 10 && <span>0</span>}
     <AnimatedCounter
       value={value}
       color={ISSUE_DATE_INACTIVE_COLOR}
@@ -309,7 +332,7 @@ const IssueDateCounter = ({
       incrementColor={ISSUE_DATE_ACTIVE_COLOR}
       includeDecimals={false}
       fontSize="38px"
-      containerStyles={{ ...ISSUE_DATE_COUNTER_STYLE, minWidth: width }}
+      containerStyles={ISSUE_DATE_COUNTER_STYLE}
     />
   </div>
 );
@@ -723,11 +746,10 @@ export const BugReport = (): JSX.Element => {
       );
       return (
         <>
-          <div style={{ marginTop: '10px' }}>
-            <span>Current report date and time</span>
-          </div>
+          <span className="bug-report-eyebrow">Issue date &amp; time</span>
           <div className="bug-report-issue-date-display">
-            {reportDate.toLocaleString()}
+            <span>{formatIssueDate(reportDate)}</span>
+            <span>{formatIssueTime(reportDate)}</span>
           </div>
         </>
       );
@@ -736,47 +758,54 @@ export const BugReport = (): JSX.Element => {
     if (reportScreen === ReportScreen.selectIssueDate) {
       return (
         <>
-          <div style={{ marginTop: '10px' }}>
-            <span>Select the date/time of the issue</span>
-          </div>
+          <span className="bug-report-eyebrow">
+            Select issue date &amp; time
+          </span>
           <div className="bug-report-date-picker">
             <div className="bug-report-date-picker-row">
               <IssueDateCounter
                 active={activeIssueDateField === 'day'}
                 value={issueDateDraft.getDate()}
-                width={48}
+                pad
               />
-              <span>.</span>
+              <span className="bug-report-date-picker-separator">.</span>
               <IssueDateCounter
                 active={activeIssueDateField === 'month'}
                 value={issueDateDraft.getMonth() + 1}
-                width={48}
+                pad
               />
-              <span>.</span>
+              <span className="bug-report-date-picker-separator">.</span>
               <IssueDateCounter
                 active={activeIssueDateField === 'year'}
                 value={issueDateDraft.getFullYear()}
-                width={88}
               />
             </div>
             <div className="bug-report-date-picker-row">
               <IssueDateCounter
                 active={activeIssueDateField === 'hours'}
                 value={issueDateDraft.getHours()}
-                width={48}
+                pad
               />
-              <span>:</span>
+              <span className="bug-report-date-picker-separator">:</span>
               <IssueDateCounter
                 active={activeIssueDateField === 'minutes'}
                 value={issueDateDraft.getMinutes()}
-                width={48}
+                pad
               />
             </div>
           </div>
-          <div className="bug-report-date-picker-help">
-            <span>Press to change field</span>
-            <span>Long-press to confirm</span>
-            <span>Double-press Back</span>
+          <div className="bug-report-gesture-hints">
+            {ISSUE_DATE_HINTS.map((hint) => (
+              <Fragment key={hint.input}>
+                <span className="bug-report-gesture-hint-input">
+                  {hint.input}
+                </span>
+                <span className="bug-report-gesture-hint-dot" />
+                <span className="bug-report-gesture-hint-action">
+                  {hint.action}
+                </span>
+              </Fragment>
+            ))}
           </div>
         </>
       );
@@ -853,6 +882,46 @@ export const BugReport = (): JSX.Element => {
     );
   }
 
+  const optionList = options.length > 0 && (
+    <div
+      className="settings-fixed-item-container"
+      style={{ marginBottom: '50px' }}
+    >
+      {options.map((item, index) => {
+        const width = item.useableWidthPercentage || 90;
+        return (
+          <div
+            key={item.key}
+            className={`settings-fixed-item settings-item ${
+              index === activeIndex ? 'active-setting' : ''
+            }`}
+            style={{
+              marginBottom: '5px',
+              width: `${width}%`,
+              paddingRight: `${90 - width}%`
+            }}
+          >
+            <span className="settings-fixed-item-text">{item.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  // The issue-date screens are a centred readout rather than wrapped prose, so
+  // they skip the shaper floats and centre on the bubble panel instead.
+  if (
+    reportScreen === ReportScreen.reportSetup ||
+    reportScreen === ReportScreen.selectIssueDate
+  ) {
+    return (
+      <div className="bug-report-centered-screen">
+        <div className="bug-report-centered-body">{message}</div>
+        {optionList}
+      </div>
+    );
+  }
+
   return (
     <div className="main-quick-settings settings-explanation-container">
       <div className="settings-explanation">
@@ -871,31 +940,7 @@ export const BugReport = (): JSX.Element => {
           </>
         )}
       </div>
-      {options.length > 0 && (
-        <div
-          className="settings-fixed-item-container"
-          style={{ marginBottom: '50px' }}
-        >
-          {options.map((item, index) => {
-            const width = item.useableWidthPercentage || 90;
-            return (
-              <div
-                key={item.key}
-                className={`settings-fixed-item settings-item ${
-                  index === activeIndex ? 'active-setting' : ''
-                }`}
-                style={{
-                  marginBottom: '5px',
-                  width: `${width}%`,
-                  paddingRight: `${90 - width}%`
-                }}
-              >
-                <span className="settings-fixed-item-text">{item.label}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {optionList}
     </div>
   );
 };
