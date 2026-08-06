@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { ZstdDec, ZstdInit } from '@oneidentity/zstd-js/decompress';
 import * as Sentry from '@sentry/react';
+import { AnimatedCounter } from 'react-animated-counter/dist/esm';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { QrGeneratedImage } from '../QR/QrImage';
@@ -22,6 +23,8 @@ import './bugReport.css';
 
 enum ReportScreen {
   message = 'message',
+  reportSetup = 'reportSetup',
+  selectIssueDate = 'selectIssueDate',
   reportingBug = 'reportingBug',
   contactInfo = 'contactInfo',
   submitted = 'submitted'
@@ -56,9 +59,36 @@ type SubmissionStateType =
   | 'savingRecord';
 
 type BugReportOption = {
-  key: 'contactInfo' | 'reportIssue' | 'back' | 'submit' | 'exit';
+  key:
+    | 'contactInfo'
+    | 'reportIssue'
+    | 'report'
+    | 'selectDate'
+    | 'back'
+    | 'submit'
+    | 'exit';
   label: string;
   useableWidthPercentage: number;
+};
+
+type IssueDateField = 'day' | 'month' | 'year' | 'hours' | 'minutes';
+
+const ISSUE_DATE_FIELDS: IssueDateField[] = [
+  'day',
+  'month',
+  'year',
+  'hours',
+  'minutes'
+];
+
+const ISSUE_DATE_ACTIVE_COLOR = '#f5c444';
+const ISSUE_DATE_INACTIVE_COLOR = '#E6E6E6';
+const ISSUE_DATE_COUNTER_STYLE = {
+  margin: 0,
+  fontSize: 38,
+  fontFamily: 'ABC Diatype Mono',
+  fontWeight: 300,
+  letterSpacing: '-0.02em'
 };
 
 export interface DraftFile {
@@ -262,6 +292,28 @@ const sendSentryFeedback = async ({
   return eventID;
 };
 
+const IssueDateCounter = ({
+  active,
+  value,
+  width
+}: {
+  active: boolean;
+  value: number;
+  width: number;
+}) => (
+  <div className={active ? 'bug-report-date-picker-active' : ''}>
+    <AnimatedCounter
+      value={value}
+      color={ISSUE_DATE_INACTIVE_COLOR}
+      decrementColor={ISSUE_DATE_ACTIVE_COLOR}
+      incrementColor={ISSUE_DATE_ACTIVE_COLOR}
+      includeDecimals={false}
+      fontSize="38px"
+      containerStyles={{ ...ISSUE_DATE_COUNTER_STYLE, minWidth: width }}
+    />
+  </div>
+);
+
 export const BugReport = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const currentScreen = useAppSelector((state) => state.screen.value);
@@ -270,6 +322,12 @@ export const BugReport = (): JSX.Element => {
   const [reportStatus, setReportStatus] = useState(ReportStatus.idle);
   const [activeIndex, setActiveIndex] = useState(0);
   const [failureError, setFailureError] = useState('');
+  const [selectedIssueTimestamp, setSelectedIssueTimestamp] = useState<
+    number | undefined
+  >();
+  const [issueDateDraft, setIssueDateDraft] = useState(() => new Date());
+  const [activeIssueDateField, setActiveIssueDateField] =
+    useState<IssueDateField>('day');
   const draftInfoRef = useRef<DraftInfo | null>(null);
   const failureRef = useRef<SubmissionFailType | null>(null);
   const ticketRef = useRef<number | null>(null);
@@ -294,6 +352,18 @@ export const BugReport = (): JSX.Element => {
 
     if (reportScreen === ReportScreen.contactInfo) {
       return [{ key: 'back', label: 'Back', useableWidthPercentage: 81 }];
+    }
+
+    if (reportScreen === ReportScreen.reportSetup) {
+      return [
+        { key: 'report', label: 'Report', useableWidthPercentage: 81 },
+        {
+          key: 'selectDate',
+          label: 'Select date',
+          useableWidthPercentage: 81
+        },
+        { key: 'back', label: 'Back', useableWidthPercentage: 81 }
+      ];
     }
 
     if (
@@ -345,7 +415,10 @@ export const BugReport = (): JSX.Element => {
     }, 60 * 1000); // message change on the first minute mark
 
     try {
-      const create_response = await api.createReport();
+      const create_response =
+        selectedIssueTimestamp === undefined
+          ? await api.createReport()
+          : await api.createReport({ issueTime: selectedIssueTimestamp });
       if (isReportError(create_response)) {
         throw Error(create_response.error);
       }
@@ -361,6 +434,58 @@ export const BugReport = (): JSX.Element => {
     } finally {
       clearTimeout(slowTimeout);
     }
+  };
+
+  const openIssueDateSelector = () => {
+    setIssueDateDraft(
+      new Date(
+        selectedIssueTimestamp === undefined
+          ? Date.now()
+          : selectedIssueTimestamp * 1000
+      )
+    );
+    setActiveIssueDateField('day');
+    setActiveIndex(0);
+    setReportScreen(ReportScreen.selectIssueDate);
+  };
+
+  const changeIssueDate = (direction: number) => {
+    setIssueDateDraft((previousDate) => {
+      const nextDate = new Date(previousDate.getTime());
+
+      switch (activeIssueDateField) {
+        case 'day':
+          nextDate.setDate(nextDate.getDate() + direction);
+          break;
+        case 'month':
+          nextDate.setMonth(nextDate.getMonth() + direction);
+          break;
+        case 'year':
+          nextDate.setFullYear(nextDate.getFullYear() + direction);
+          break;
+        case 'hours':
+          nextDate.setHours(nextDate.getHours() + direction);
+          break;
+        case 'minutes':
+          nextDate.setMinutes(nextDate.getMinutes() + direction);
+          break;
+      }
+
+      return nextDate;
+    });
+  };
+
+  const confirmIssueDate = () => {
+    setSelectedIssueTimestamp(Math.floor(issueDateDraft.getTime() / 1000));
+    setReportScreen(ReportScreen.reportSetup);
+    setReportStatus(ReportStatus.idle);
+    setActiveIndex(0);
+  };
+
+  const cancelIssueDateSelection = () => {
+    setReportScreen(ReportScreen.reportSetup);
+    setReportStatus(ReportStatus.idle);
+    setActiveIndex(0);
   };
 
   const failSubmission = (
@@ -489,14 +614,31 @@ export const BugReport = (): JSX.Element => {
 
   useHandleGestures({
     left() {
+      if (reportScreen === ReportScreen.selectIssueDate) {
+        changeIssueDate(-1);
+        return;
+      }
       if (options.length === 0) return;
       setActiveIndex((prev) => Math.max(prev - 1, 0));
     },
     right() {
+      if (reportScreen === ReportScreen.selectIssueDate) {
+        changeIssueDate(1);
+        return;
+      }
       if (options.length === 0) return;
       setActiveIndex((prev) => Math.min(prev + 1, options.length - 1));
     },
     pressDown() {
+      if (reportScreen === ReportScreen.selectIssueDate) {
+        setActiveIssueDateField((previousField) => {
+          const currentIndex = ISSUE_DATE_FIELDS.indexOf(previousField);
+          return ISSUE_DATE_FIELDS[
+            (currentIndex + 1) % ISSUE_DATE_FIELDS.length
+          ];
+        });
+        return;
+      }
       const activeOption = options[activeIndex];
       if (!activeOption || reportStatus === ReportStatus.submitting) return;
 
@@ -507,11 +649,24 @@ export const BugReport = (): JSX.Element => {
           setActiveIndex(0);
           break;
         case 'reportIssue':
+          setReportScreen(ReportScreen.reportSetup);
+          setReportStatus(ReportStatus.idle);
+          setActiveIndex(0);
+          break;
+        case 'report':
           startCreateReport();
+          break;
+        case 'selectDate':
+          openIssueDateSelector();
           break;
         case 'back':
           if (reportScreen === ReportScreen.message) {
             exitToQuickSettings();
+          } else if (reportScreen === ReportScreen.reportSetup) {
+            setReportScreen(ReportScreen.message);
+            setReportStatus(ReportStatus.idle);
+            setActiveIndex(0);
+            break;
           }
           setReportScreen(ReportScreen.message);
           setReportStatus(ReportStatus.idle);
@@ -523,6 +678,16 @@ export const BugReport = (): JSX.Element => {
         case 'exit':
           exitToQuickSettings();
           break;
+      }
+    },
+    longEncoder() {
+      if (reportScreen === ReportScreen.selectIssueDate) {
+        confirmIssueDate();
+      }
+    },
+    doubleClick() {
+      if (reportScreen === ReportScreen.selectIssueDate) {
+        cancelIssueDateSelection();
       }
     }
   });
@@ -545,6 +710,73 @@ export const BugReport = (): JSX.Element => {
           </div>
           <div style={{ marginTop: '10px' }}>
             <span>We strongly recommend reporting from the mobile app</span>
+          </div>
+        </>
+      );
+    }
+
+    if (reportScreen === ReportScreen.reportSetup) {
+      const reportDate = new Date(
+        selectedIssueTimestamp === undefined
+          ? Date.now()
+          : selectedIssueTimestamp * 1000
+      );
+      return (
+        <>
+          <div style={{ marginTop: '10px' }}>
+            <span>Current report date and time</span>
+          </div>
+          <div className="bug-report-issue-date-display">
+            {reportDate.toLocaleString()}
+          </div>
+        </>
+      );
+    }
+
+    if (reportScreen === ReportScreen.selectIssueDate) {
+      return (
+        <>
+          <div style={{ marginTop: '10px' }}>
+            <span>Select the date/time of the issue</span>
+          </div>
+          <div className="bug-report-date-picker">
+            <div className="bug-report-date-picker-row">
+              <IssueDateCounter
+                active={activeIssueDateField === 'day'}
+                value={issueDateDraft.getDate()}
+                width={48}
+              />
+              <span>.</span>
+              <IssueDateCounter
+                active={activeIssueDateField === 'month'}
+                value={issueDateDraft.getMonth() + 1}
+                width={48}
+              />
+              <span>.</span>
+              <IssueDateCounter
+                active={activeIssueDateField === 'year'}
+                value={issueDateDraft.getFullYear()}
+                width={88}
+              />
+            </div>
+            <div className="bug-report-date-picker-row">
+              <IssueDateCounter
+                active={activeIssueDateField === 'hours'}
+                value={issueDateDraft.getHours()}
+                width={48}
+              />
+              <span>:</span>
+              <IssueDateCounter
+                active={activeIssueDateField === 'minutes'}
+                value={issueDateDraft.getMinutes()}
+                width={48}
+              />
+            </div>
+          </div>
+          <div className="bug-report-date-picker-help">
+            <span>Press to change field</span>
+            <span>Long-press to confirm</span>
+            <span>Double-press Back</span>
           </div>
         </>
       );
@@ -593,7 +825,14 @@ export const BugReport = (): JSX.Element => {
     }
 
     return '';
-  }, [failureError, reportScreen, reportStatus]);
+  }, [
+    activeIssueDateField,
+    failureError,
+    issueDateDraft,
+    reportScreen,
+    reportStatus,
+    selectedIssueTimestamp
+  ]);
 
   if (
     reportStatus === ReportStatus.submitting ||
