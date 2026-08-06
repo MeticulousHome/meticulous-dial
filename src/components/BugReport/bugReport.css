@@ -45,6 +45,41 @@
   text-transform: uppercase;
 }
 
+/* Failure notice -----------------------------------------------------------
+   Kept narrower than the 420px bubble so the lines break well and the block
+   reads as centred inside the panel. */
+.bug-report-error {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 340px;
+  padding: 0 20px;
+}
+
+.bug-report-error-message {
+  font-size: 22px;
+  line-height: 28px;
+  margin-top: 6px;
+}
+
+.bug-report-error-note {
+  color: #b3b3b3;
+  font-size: 18px;
+  line-height: 23px;
+}
+
+/* The code sits on its own line, so it is easy to read out to support. */
+.bug-report-error-code {
+  color: #f5c444;
+  font-family: 'ABC Diatype Mono';
+  font-size: 16px;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  margin-top: 6px;
+  text-transform: uppercase;
+}
+
 /* Date on one line, time on the next. */
 .bug-report-issue-date-display {
   display: flex;
