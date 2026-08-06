@@ -3,6 +3,7 @@ export const SLOWDOWN_MONITOR_CONFIG = {
   warmupMs: 30_000,
   degradedP95Ms: 45,
   severeFrameGapMs: 1_000,
+  immediateReportFrameGapMs: 5_000,
   consecutiveDegradedWindows: 3,
   consecutiveHealthyWindowsToRecover: 3,
   reportCooldownMs: 30 * 60 * 1_000
@@ -76,19 +77,19 @@ export class SlowdownEpisodeDetector {
       this.consecutiveHealthyWindows = 0;
       this.consecutiveDegradedWindows += 1;
 
+      const immediateReport =
+        summary.maxFrameGapMs >=
+        SLOWDOWN_MONITOR_CONFIG.immediateReportFrameGapMs;
       if (
         !this.episodeActive &&
-        this.consecutiveDegradedWindows >=
-          SLOWDOWN_MONITOR_CONFIG.consecutiveDegradedWindows
+        (immediateReport ||
+          this.consecutiveDegradedWindows >=
+            SLOWDOWN_MONITOR_CONFIG.consecutiveDegradedWindows) &&
+        now - this.lastReportAt >= SLOWDOWN_MONITOR_CONFIG.reportCooldownMs
       ) {
         this.episodeActive = true;
-        if (
-          now - this.lastReportAt >=
-          SLOWDOWN_MONITOR_CONFIG.reportCooldownMs
-        ) {
-          this.lastReportAt = now;
-          return true;
-        }
+        this.lastReportAt = now;
+        return true;
       }
 
       return false;

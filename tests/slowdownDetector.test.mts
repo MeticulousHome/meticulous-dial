@@ -52,3 +52,37 @@ test('treats a one-second UI-thread stall as degraded', () => {
   assert.equal(summary.framesOver1000Ms, 1);
   assert.equal(summary.maxFrameGapMs, 1_000);
 });
+
+test('reports a severe single-window stall immediately', () => {
+  const detector = new SlowdownEpisodeDetector();
+  const severeWindow = summarizeFrameWindow(
+    [...Array(300).fill(16.67), 5_000],
+    10_000
+  );
+
+  assert.equal(detector.evaluate(severeWindow, 0), true);
+  assert.equal(detector.evaluate(severeWindow, 10_000), false);
+});
+
+test('reports persistent degradation when cooldown expires', () => {
+  const detector = new SlowdownEpisodeDetector();
+
+  detector.evaluate(degradedWindow, 0);
+  detector.evaluate(degradedWindow, 10_000);
+  assert.equal(detector.evaluate(degradedWindow, 20_000), true);
+
+  detector.evaluate(healthyWindow, 30_000);
+  detector.evaluate(healthyWindow, 40_000);
+  detector.evaluate(healthyWindow, 50_000);
+
+  assert.equal(detector.evaluate(degradedWindow, 60_000), false);
+  assert.equal(detector.evaluate(degradedWindow, 70_000), false);
+  assert.equal(detector.evaluate(degradedWindow, 80_000), false);
+
+  const cooldownExpiredAt = 20_000 + SLOWDOWN_MONITOR_CONFIG.reportCooldownMs;
+  assert.equal(detector.evaluate(degradedWindow, cooldownExpiredAt), true);
+  assert.equal(
+    detector.evaluate(degradedWindow, cooldownExpiredAt + 10_000),
+    false
+  );
+});

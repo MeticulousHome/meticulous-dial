@@ -22,15 +22,31 @@ native resource snapshot:
 - Dial systemd-cgroup CPU percentage;
 - Dial systemd-cgroup memory usage;
 - system available memory;
-- system one-minute load average.
+- system one-minute load average and available CPU count;
 - top three processes by CPU over the measurement window;
 - top three processes by resident memory at the end of the window.
 
+The resource context also records snapshot age and native collection duration,
+so an event captured after a UI-thread stall does not present stale resource
+data without qualification. Native collection runs off the UI thread, and each
+`systemctl` call is bounded by a two-second timeout.
+
 Each ranked process includes its kernel process name, executable basename,
-systemd unit when available, CPU percentage, and resident memory. The executable
-and unit disambiguate generic or truncated names such as `Main`; command-line
-arguments, executable paths, PIDs, users, and environment variables are not
-collected.
+systemd unit when available, CPU percentage, and resident memory when available.
+The executable and unit disambiguate generic or truncated names such as `Main`;
+command-line arguments, executable paths, PIDs, users, and environment variables
+are not collected.
+
+Resident memory is optional because kernel threads do not expose `VmRSS`; those
+threads can still appear in the CPU ranking. `MemoryCurrent` is the Dial
+systemd cgroup's total current memory and can include page cache, so it must not
+be interpreted as process RSS.
+
+Interval CPU usage requires two samples for the same PID and process start time.
+A process first observed in the current poll therefore becomes eligible for the
+CPU ranking on the next poll. The MVP does not substitute a since-start average,
+because that value is not directly comparable to the interval percentages used
+for the rest of the ranking.
 
 The event also includes the current screen, extraction state, Dial/image
 versions already configured by the application, and the machine serial number.
@@ -47,6 +63,7 @@ These are calibration defaults, not a product definition of a slow machine:
 | Measurement window |                                         10 seconds |
 | Startup warm-up    |                                         30 seconds |
 | Degraded window    | p95 frame interval >= 45 ms or any gap >= 1,000 ms |
+| Immediate trigger  |                          any frame gap >= 5,000 ms |
 | Episode trigger    |                     3 consecutive degraded windows |
 | Recovery           |                      3 consecutive healthy windows |
 | Event cooldown     |                                         30 minutes |
@@ -75,8 +92,8 @@ step before transmission.
 The default Sentry `CultureContext` integration is disabled because locale,
 calendar, and timezone do not help diagnose Dial slowdowns.
 
-Detector contract version `2` adds the two ranked-process contexts and removes
-the default culture context.
+Detector contract version `3` adds immediate reporting for a severe single
+stall, snapshot age/collection duration, CPU count, and optional process memory.
 
 ## Noise and failure controls
 
@@ -86,7 +103,12 @@ the default culture context.
 - The cooldown limits repeated events if the detector flaps.
 - Failure to read native resource data does not affect the UI and does not
   prevent frame measurement.
+- Native resource polls do not overlap, and CPU percentages require at least a
+  one-second interval between valid samples.
 - The monitor does not change customer-facing behavior or attempt recovery.
+- Setting the service environment variable `DIAL_PERFORMANCE_DISABLE=1`
+  disables both frame monitoring and native polling after a service restart,
+  providing a release-independent kill switch.
 - Healthy-window logging is disabled by default. Setting the service environment
   variable `DIAL_PERFORMANCE_DEBUG=1` logs one aggregate sample per 10-second
   window for controlled local calibration without sending healthy samples to
@@ -100,16 +122,19 @@ The detector and event contract should be validated in layers:
 2. Build the frontend and ARM64 Debian package, then verify the package
    architecture and embedded executable.
 3. On controlled test hardware, record a healthy idle baseline before applying
-   any artificial load.
+   any artificial load. Include a prolonged idle run to verify that the active
+   Weston configuration continues delivering frame callbacks.
 4. Apply bounded CPU pressure outside the Dial cgroup and increase it gradually.
    Artificial-load units must discard stdout and stderr, have an automatic
    runtime limit, and be stopped immediately if safety-relevant services become
    unhealthy.
 5. Confirm that sustained degradation emits one event containing the expected
    frame, resource, process-ranking, version, and screen fields.
-6. Confirm that generic process names are disambiguated by executable basename
+6. Confirm that `collection_duration_ms` stays acceptably below the 10-second
+   polling interval on target hardware, both idle and under pressure.
+7. Confirm that generic process names are disambiguated by executable basename
    and systemd unit, and that the Culture context is absent.
-7. Remove all artificial load, confirm recovery and detector re-arming, and
+8. Remove all artificial load, confirm recovery and detector re-arming, and
    verify that Dial and its dependencies remain healthy.
 
 Calibration evidence, machine identifiers, internal event links, build hashes,
@@ -122,4 +147,9 @@ records rather than this repository.
 - Socket.IO/backend response latency;
 - Sentry Browser Tracing and transaction sampling;
 - automatic root-cause classification or customer-facing remediation;
-- thresholds intended for a broad stable rollout.
+- a remotely managed fleet rollout control beyond the service-level kill
+  switch.
+
+The thresholds above remain calibration defaults. Targeting `stable` does not
+make them a product definition of a slow machine; release decisions still need
+idle baselines from multiple machines and a staged operational rollout.

@@ -32,8 +32,9 @@ import { useDialSlowdownMonitor } from './hooks/useDialSlowdownMonitor';
 const SENTRY_DSN =
   'https://d958eb514629903cf133ad2b19e80ead@sentry.meticulousespresso.com/8';
 const DIAL_RELEASE = `meticulous-dial@${dialVersion}`;
+const isTauriRuntime = () => '__TAURI_INTERNALS__' in window;
 
-if (SENTRY_DSN) {
+if (SENTRY_DSN && import.meta.env.PROD && isTauriRuntime()) {
   Sentry.init({
     dsn: SENTRY_DSN,
     release: DIAL_RELEASE,
@@ -54,9 +55,7 @@ if (SENTRY_DSN) {
             'HttpContext',
             'BrowserSession',
             'CultureContext'
-          ].includes(
-            integration.name
-          )
+          ].includes(integration.name)
       )
   });
 }
@@ -74,9 +73,6 @@ const SentryRuntimeMetadata = () => {
     }
     if (deviceInfo.image_build_channel) {
       Sentry.setTag('build-channel', deviceInfo.image_build_channel);
-    }
-    if (deviceInfo.serial) {
-      Sentry.setTag('machine-serial', String(deviceInfo.serial).trim());
     }
   }, [deviceInfo]);
 

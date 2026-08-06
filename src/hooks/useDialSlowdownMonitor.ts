@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as Sentry from '@sentry/react';
 import { invoke } from '@tauri-apps/api/core';
 
@@ -11,20 +11,24 @@ import {
 import type { FrameWindowSummary } from '../performance/slowdownDetector';
 
 interface DialResourceSnapshot {
-  memoryCurrentMb?: number;
-  cpuPercent?: number;
-  systemMemoryAvailableMb?: number;
-  systemLoad1m?: number;
+  collectedAtUnixMs: number;
+  collectionDurationMs: number;
+  processScanDurationMs: number;
+  memoryCurrentMb: number | null;
+  cpuPercent: number | null;
+  cpuCount: number | null;
+  systemMemoryAvailableMb: number | null;
+  systemLoad1m: number | null;
   topCpuProcesses: ProcessResourceSnapshot[];
   topMemoryProcesses: ProcessResourceSnapshot[];
 }
 
 interface ProcessResourceSnapshot {
   processName: string;
-  executable?: string;
-  systemdUnit?: string;
-  cpuPercent?: number;
-  memoryMb: number;
+  executable: string | null;
+  systemdUnit: string | null;
+  cpuPercent: number | null;
+  memoryMb: number | null;
 }
 
 interface SlowdownMonitorState {
@@ -36,14 +40,15 @@ interface SlowdownMonitorState {
 const isTauri = () => '__TAURI_INTERNALS__' in window;
 
 const finiteResourceContext = (
-  snapshot?: DialResourceSnapshot
+  snapshot?: DialResourceSnapshot,
+  now = Date.now()
 ): Record<string, number> => {
   if (!snapshot) {
     return {};
   }
 
   const context: Record<string, number> = {};
-  const setFinite = (key: string, value?: number) => {
+  const setFinite = (key: string, value: number | null | undefined) => {
     if (typeof value === 'number' && Number.isFinite(value)) {
       context[key] = Number(value.toFixed(1));
     }
@@ -51,8 +56,12 @@ const finiteResourceContext = (
 
   setFinite('memory_current_mb', snapshot.memoryCurrentMb);
   setFinite('cpu_percent', snapshot.cpuPercent);
+  setFinite('cpu_count', snapshot.cpuCount);
   setFinite('system_memory_available_mb', snapshot.systemMemoryAvailableMb);
   setFinite('system_load_1m', snapshot.systemLoad1m);
+  setFinite('collection_duration_ms', snapshot.collectionDurationMs);
+  setFinite('process_scan_duration_ms', snapshot.processScanDurationMs);
+  setFinite('snapshot_age_ms', Math.max(0, now - snapshot.collectedAtUnixMs));
   return context;
 };
 
@@ -70,10 +79,19 @@ const processRankingContext = (
     if (process.systemdUnit) {
       context[`${prefix}_systemd_unit`] = process.systemdUnit;
     }
-    if (metric === 'cpu' && Number.isFinite(process.cpuPercent)) {
-      context[`${prefix}_cpu_percent`] = Number(process.cpuPercent?.toFixed(1));
+    if (
+      metric === 'cpu' &&
+      typeof process.cpuPercent === 'number' &&
+      Number.isFinite(process.cpuPercent)
+    ) {
+      context[`${prefix}_cpu_percent`] = Number(process.cpuPercent.toFixed(1));
     }
-    context[`${prefix}_memory_mb`] = Number(process.memoryMb.toFixed(1));
+    if (
+      typeof process.memoryMb === 'number' &&
+      Number.isFinite(process.memoryMb)
+    ) {
+      context[`${prefix}_memory_mb`] = Number(process.memoryMb.toFixed(1));
+    }
   });
   return context;
 };
@@ -90,7 +108,7 @@ const captureSlowdown = (
   Sentry.withScope((scope) => {
     scope.setFingerprint(['dial-ui-sustained-slowdown']);
     scope.setLevel('warning');
-    scope.setTag('performance-detector-version', '2');
+    scope.setTag('performance-detector-version', '3');
     scope.setTag('screen', state.screen);
     scope.setTag('is-extracting', String(state.isExtracting));
 
@@ -150,21 +168,71 @@ export const useDialSlowdownMonitor = ({
     undefined
   );
   const debugLoggingEnabledRef = useRef(false);
+  const [monitorEnabled, setMonitorEnabled] = useState(false);
 
   stateRef.current = { screen, serial, isExtracting };
 
   useEffect(() => {
-    if (!isTauri()) {
+    if (!import.meta.env.PROD || !isTauri()) {
       return;
     }
 
+    let disposed = false;
+    invoke<boolean>('dial_performance_monitor_enabled')
+      .then((enabled) => {
+        if (!disposed) {
+          setMonitorEnabled(enabled);
+        }
+      })
+      .catch((monitorConfigError) => {
+        console.warn(
+          'Could not read Dial performance monitor configuration',
+          monitorConfigError
+        );
+      });
+
+    return () => {
+      disposed = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!monitorEnabled) {
+      return;
+    }
+
+    let disposed = false;
+    let inFlight = false;
+    let nextUpdate: number | undefined;
+
     const updateResourceSnapshot = async () => {
+      if (disposed || inFlight) {
+        return;
+      }
+
+      inFlight = true;
       try {
-        resourceSnapshotRef.current = await invoke<DialResourceSnapshot>(
+        const snapshot = await invoke<DialResourceSnapshot>(
           'get_dial_resource_snapshot'
         );
+        if (!disposed) {
+          resourceSnapshotRef.current = snapshot;
+        }
       } catch (snapshotError) {
-        console.warn('Could not collect Dial resource snapshot', snapshotError);
+        if (!disposed) {
+          console.warn(
+            'Could not collect Dial resource snapshot',
+            snapshotError
+          );
+        }
+      } finally {
+        inFlight = false;
+        if (!disposed) {
+          nextUpdate = window.setTimeout(
+            updateResourceSnapshot,
+            SLOWDOWN_MONITOR_CONFIG.windowMs
+          );
+        }
       }
     };
 
@@ -179,15 +247,19 @@ export const useDialSlowdownMonitor = ({
           debugConfigError
         );
       });
-    const interval = window.setInterval(
-      updateResourceSnapshot,
-      SLOWDOWN_MONITOR_CONFIG.windowMs
-    );
-
-    return () => window.clearInterval(interval);
-  }, []);
+    return () => {
+      disposed = true;
+      if (nextUpdate !== undefined) {
+        window.clearTimeout(nextUpdate);
+      }
+    };
+  }, [monitorEnabled]);
 
   useEffect(() => {
+    if (!monitorEnabled) {
+      return;
+    }
+
     const detector = new SlowdownEpisodeDetector();
     const monitorStartedAt = performance.now();
     let windowStartedAt = monitorStartedAt;
@@ -248,5 +320,5 @@ export const useDialSlowdownMonitor = ({
 
     animationFrameId = requestAnimationFrame(observeFrame);
     return () => cancelAnimationFrame(animationFrameId);
-  }, []);
+  }, [monitorEnabled]);
 };
