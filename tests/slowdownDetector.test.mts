@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  resolveMaxTimerHeartbeatDelay,
   SLOWDOWN_MONITOR_CONFIG,
   SlowdownEpisodeDetector,
   summarizeFrameWindow
@@ -69,7 +70,65 @@ test('does not treat a wake or DPMS-like rAF pause as an immediate UI-thread sta
   assert.equal(detector.evaluate(rafPauseWindow, 0), null);
 });
 
-test('reports an immediate stall only when the timer heartbeat corroborates it', () => {
+test('reports a stall when the delayed timer callback runs before rAF', () => {
+  const detector = new SlowdownEpisodeDetector();
+  const timerDelayAtWindowClose = resolveMaxTimerHeartbeatDelay(
+    4_750,
+    6_000,
+    6_250
+  );
+  const corroboratedStall = summarizeFrameWindow(
+    [...Array(300).fill(16.67), 5_000],
+    10_000,
+    timerDelayAtWindowClose
+  );
+
+  assert.equal(timerDelayAtWindowClose, 4_750);
+  assert.deepEqual(detector.evaluate(corroboratedStall, 0), {
+    episodeWindowCount: 1,
+    kind: 'immediate'
+  });
+  assert.equal(detector.evaluate(corroboratedStall, 10_000), null);
+});
+
+test('corroborates a stall when rAF closes the window before the delayed timer callback', () => {
+  const detector = new SlowdownEpisodeDetector();
+  const timerDelayAtWindowClose = resolveMaxTimerHeartbeatDelay(
+    0,
+    6_000,
+    1_250
+  );
+  const corroboratedStall = summarizeFrameWindow(
+    [...Array(300).fill(16.67), 5_000],
+    10_000,
+    timerDelayAtWindowClose
+  );
+
+  assert.equal(timerDelayAtWindowClose, 4_750);
+  assert.deepEqual(detector.evaluate(corroboratedStall, 0), {
+    episodeWindowCount: 1,
+    kind: 'immediate'
+  });
+});
+
+test('does not corroborate a DPMS-like rAF pause when timer heartbeats continued', () => {
+  const detector = new SlowdownEpisodeDetector();
+  const timerDelayAtWindowClose = resolveMaxTimerHeartbeatDelay(
+    10,
+    6_000,
+    6_250
+  );
+  const rafPauseWindow = summarizeFrameWindow(
+    [...Array(300).fill(16.67), 5_000],
+    10_000,
+    timerDelayAtWindowClose
+  );
+
+  assert.equal(timerDelayAtWindowClose, 10);
+  assert.equal(detector.evaluate(rafPauseWindow, 0), null);
+});
+
+test('an immediate report uses the actual degraded-window count', () => {
   const detector = new SlowdownEpisodeDetector();
   const corroboratedStall = summarizeFrameWindow(
     [...Array(300).fill(16.67), 5_000],
@@ -77,11 +136,11 @@ test('reports an immediate stall only when the timer heartbeat corroborates it',
     4_750
   );
 
-  assert.deepEqual(detector.evaluate(corroboratedStall, 0), {
-    episodeWindowCount: 1,
+  assert.equal(detector.evaluate(degradedWindow, 0), null);
+  assert.deepEqual(detector.evaluate(corroboratedStall, 10_000), {
+    episodeWindowCount: 2,
     kind: 'immediate'
   });
-  assert.equal(detector.evaluate(corroboratedStall, 10_000), null);
 });
 
 test('reports a low-frequency heartbeat during persistent degradation', () => {

@@ -4,6 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 
 import type { ScreenType } from '../components/store/features/screens/screens-slice';
 import {
+  resolveMaxTimerHeartbeatDelay,
   SLOWDOWN_MONITOR_CONFIG,
   SlowdownEpisodeDetector,
   summarizeFrameWindow
@@ -326,10 +327,15 @@ export const useDialSlowdownMonitor = ({
 
       const windowDuration = now - windowStartedAt;
       if (windowDuration >= SLOWDOWN_MONITOR_CONFIG.windowMs) {
+        const resolvedMaxTimerHeartbeatDelayMs = resolveMaxTimerHeartbeatDelay(
+          maxTimerHeartbeatDelayMs,
+          now,
+          nextTimerHeartbeatAt
+        );
         const summary = summarizeFrameWindow(
           frameIntervals,
           windowDuration,
-          maxTimerHeartbeatDelayMs
+          resolvedMaxTimerHeartbeatDelayMs
         );
         const warmupComplete =
           now - monitorStartedAt >= SLOWDOWN_MONITOR_CONFIG.warmupMs;

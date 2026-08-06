@@ -31,6 +31,13 @@ export interface SlowdownReportDecision {
   kind: 'immediate' | 'sustained' | 'heartbeat';
 }
 
+export const resolveMaxTimerHeartbeatDelay = (
+  maxObservedDelayMs: number,
+  now: number,
+  nextTimerHeartbeatAt: number
+): number =>
+  Math.max(maxObservedDelayMs, Math.max(0, now - nextTimerHeartbeatAt));
+
 const percentile = (sortedValues: number[], quantile: number): number => {
   if (sortedValues.length === 0) {
     return 0;
@@ -127,7 +134,10 @@ export class SlowdownEpisodeDetector {
       ) {
         this.immediateReportedInDegradedRun = true;
         this.lastImmediateReportAt = now;
-        return { episodeWindowCount: 1, kind: 'immediate' };
+        return {
+          episodeWindowCount: this.consecutiveDegradedWindows,
+          kind: 'immediate'
+        };
       }
 
       if (
