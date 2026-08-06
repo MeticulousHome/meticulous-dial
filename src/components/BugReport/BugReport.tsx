@@ -58,6 +58,51 @@ type SubmissionStateType =
   | 'sendingFeedback'
   | 'savingRecord';
 
+// Every failure the user can land on gets a stable code, so support can map the
+// short on-screen message back to the stage that actually failed.
+const FAILURE_DETAILS: Record<
+  SubmissionFailType,
+  { code: string; message: string }
+> = {
+  creation: {
+    code: 'BR-01',
+    message: 'We could not collect the information needed for your report.'
+  },
+  reportLoad: {
+    code: 'BR-02',
+    message: 'We could not prepare your report for sending.'
+  },
+  TicketTrackRequest: {
+    code: 'BR-03',
+    message: 'We could not get a tracking number for your report.'
+  },
+  reportUpdate: {
+    code: 'BR-04',
+    message: 'We could not link the tracking number to your report.'
+  },
+  sentrySubmission: {
+    code: 'BR-05',
+    message: 'We could not send your report.'
+  },
+  submissionMark: {
+    code: 'BR-06',
+    message: 'We could not update your reports record.'
+  },
+  submissionTimeout: {
+    code: 'BR-07',
+    message: 'Sending your report took too long and was cancelled.'
+  }
+};
+
+const CONTACT_SUPPORT_NOTE = 'Please contact us for further information.';
+
+type FailureView = {
+  code: string;
+  message: string;
+  /** Extra line shown above the code, e.g. a ticket the user should keep. */
+  note?: string;
+};
+
 type BugReportOption = {
   key:
     | 'contactInfo'
@@ -129,13 +174,15 @@ const service_url =
 
 const textDecoder = new TextDecoder();
 
-const reportSubmissionError =
-  'failed to submit the report. Please contact us for further information';
-
-const captureException = (error: unknown) => {
-  console.error(error);
+const captureException = (error: unknown, errorCode?: string) => {
+  console.error(errorCode ? `[${errorCode}]` : '', error);
   if (Sentry.isInitialized()) {
-    Sentry.captureException(error);
+    Sentry.captureException(
+      error,
+      errorCode
+        ? { tags: { 'meticulous.bug_report_error_code': errorCode } }
+        : undefined
+    );
   }
 };
 
@@ -344,7 +391,7 @@ export const BugReport = (): JSX.Element => {
   const [reportScreen, setReportScreen] = useState(ReportScreen.message);
   const [reportStatus, setReportStatus] = useState(ReportStatus.idle);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [failureError, setFailureError] = useState('');
+  const [failure, setFailure] = useState<FailureView | null>(null);
   const [selectedIssueTimestamp, setSelectedIssueTimestamp] = useState<
     number | undefined
   >();
@@ -352,7 +399,6 @@ export const BugReport = (): JSX.Element => {
   const [activeIssueDateField, setActiveIssueDateField] =
     useState<IssueDateField>('day');
   const draftInfoRef = useRef<DraftInfo | null>(null);
-  const failureRef = useRef<SubmissionFailType | null>(null);
   const ticketRef = useRef<number | null>(null);
   const submissionStateRef = useRef<SubmissionStateType>(null);
 
@@ -426,11 +472,23 @@ export const BugReport = (): JSX.Element => {
     dispatch(setBubbleDisplay({ visible: true, component: 'quick-settings' }));
   };
 
+  const failSubmission = (
+    failureType: SubmissionFailType,
+    error: unknown,
+    note?: string
+  ) => {
+    const { code, message } = FAILURE_DETAILS[failureType];
+    setFailure({ code, message, note });
+    setReportStatus(ReportStatus.failed);
+    submissionStateRef.current = null;
+    captureException(error, code);
+  };
+
   const startCreateReport = async () => {
     setReportScreen(ReportScreen.reportingBug);
     setReportStatus(ReportStatus.fetching);
     setActiveIndex(0);
-    failureRef.current = null;
+    setFailure(null);
     draftInfoRef.current = null;
 
     const slowTimeout = setTimeout(() => {
@@ -448,12 +506,7 @@ export const BugReport = (): JSX.Element => {
       draftInfoRef.current = create_response;
       setReportStatus(ReportStatus.fetched);
     } catch (error) {
-      failureRef.current = 'creation';
-      setFailureError(
-        'There was an error while getting the necessary information, You may contact us for further instructions'
-      );
-      setReportStatus(ReportStatus.failed);
-      captureException(error);
+      failSubmission('creation', error);
     } finally {
       clearTimeout(slowTimeout);
     }
@@ -511,18 +564,6 @@ export const BugReport = (): JSX.Element => {
     setActiveIndex(0);
   };
 
-  const failSubmission = (
-    failure: SubmissionFailType,
-    errorMessage: string,
-    error: unknown
-  ) => {
-    failureRef.current = failure;
-    setFailureError(errorMessage);
-    setReportStatus(ReportStatus.failed);
-    submissionStateRef.current = null;
-    captureException(error);
-  };
-
   const setSubmissionStage = (stage: SubmissionStateType) => {
     submissionStateRef.current = stage;
   };
@@ -530,22 +571,18 @@ export const BugReport = (): JSX.Element => {
   const submitReport = async () => {
     const draftInfo = draftInfoRef.current;
     if (!draftInfo?.localID) {
-      failSubmission('reportLoad', reportSubmissionError, 'No draft report');
+      failSubmission('reportLoad', 'No draft report');
       return;
     }
 
     setReportStatus(ReportStatus.submitting);
-    failureRef.current = null;
+    setFailure(null);
 
     let timedOut = false;
     const submissionTimeout = setTimeout(
       () => {
         timedOut = true;
-        failSubmission(
-          'submissionTimeout',
-          reportSubmissionError,
-          'Report submission timed out'
-        );
+        failSubmission('submissionTimeout', 'Report submission timed out');
       },
       5 * 60 * 1000
     ); // 5 minutes timeout
@@ -608,27 +645,20 @@ export const BugReport = (): JSX.Element => {
       if (timedOut) return;
 
       if (submissionStateRef.current === 'sendingFeedback') {
-        failSubmission('sentrySubmission', reportSubmissionError, error);
+        failSubmission('sentrySubmission', error);
       } else if (submissionStateRef.current === 'ticketing') {
-        failSubmission(
-          'TicketTrackRequest',
-          'Failed getting ticket number. Please contact us for further information',
-          error
-        );
+        failSubmission('TicketTrackRequest', error);
       } else if (submissionStateRef.current === 'updatingReport') {
-        failSubmission(
-          'reportUpdate',
-          `failed to link ticket number with report. Please contact us for further information`,
-          error
-        );
+        failSubmission('reportUpdate', error);
       } else if (submissionStateRef.current === 'savingRecord') {
+        // The report itself made it through, so the ticket is still usable.
         failSubmission(
           'submissionMark',
-          `failed to update your reports record, dont worry we received the ticket with number ${ticketRef.current}, save the ticket number for further tracking. Please contact us for further information`,
-          error
+          error,
+          `We received your report with ticket number ${ticketRef.current}. Save it for further tracking.`
         );
       } else {
-        failSubmission('reportLoad', reportSubmissionError, error);
+        failSubmission('reportLoad', error);
       }
     } finally {
       clearTimeout(submissionTimeout);
@@ -831,8 +861,6 @@ export const BugReport = (): JSX.Element => {
               </div>
             </>
           );
-        case ReportStatus.failed:
-          return failureError;
       }
     }
 
@@ -856,7 +884,6 @@ export const BugReport = (): JSX.Element => {
     return '';
   }, [
     activeIssueDateField,
-    failureError,
     issueDateDraft,
     reportScreen,
     reportStatus,
@@ -907,6 +934,31 @@ export const BugReport = (): JSX.Element => {
       })}
     </div>
   );
+
+  // Failures are short and read as a notice, so they centre on the bubble panel
+  // with the code on its own line for the user to quote back to support.
+  if (reportStatus === ReportStatus.failed && failure) {
+    return (
+      <div className="bug-report-centered-screen">
+        <div className="bug-report-centered-body">
+          <div className="bug-report-error">
+            <span className="bug-report-eyebrow">Something went wrong</span>
+            <span className="bug-report-error-message">{failure.message}</span>
+            {failure.note && (
+              <span className="bug-report-error-note">{failure.note}</span>
+            )}
+            <span className="bug-report-error-note">
+              {CONTACT_SUPPORT_NOTE}
+            </span>
+            <span className="bug-report-error-code">
+              Error code {failure.code}
+            </span>
+          </div>
+        </div>
+        {optionList}
+      </div>
+    );
+  }
 
   // The issue-date screens are a centred readout rather than wrapped prose, so
   // they skip the shaper floats and centre on the bubble panel instead.
