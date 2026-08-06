@@ -21,6 +21,7 @@ export type ScreenType =
   | 'timeZoneConfig'
   | 'notifications'
   | 'wifiSettings'
+  | 'wifiModeSettings'
   | 'wifiQrMenu'
   | 'wifiDetails'
   | 'connectWifiMenu'
