@@ -14,10 +14,17 @@ The MVP continuously measures UI-thread frame cadence with
 - observed callback rate;
 - p50, p95, and p99 frame intervals;
 - counts of intervals over 50, 100, 250, and 1,000 ms;
-- the largest observed frame gap.
+- the largest observed frame gap;
+- the largest delay of a 250 ms UI-thread timer heartbeat.
 
-When a sustained episode is detected, the Dial emits one warning event with a
-native resource snapshot:
+The timer heartbeat distinguishes a compositor or display-related pause in rAF
+delivery from a blocked UI thread. A five-second rAF gap can report immediately
+only when the timer heartbeat is also at least one second late. Sustained
+degradation still uses three degraded windows and does not require this
+immediate-trigger corroboration.
+
+When an episode is detected, the Dial emits a warning event with a native
+resource snapshot:
 
 - Dial systemd-cgroup CPU percentage;
 - Dial systemd-cgroup memory usage;
@@ -29,7 +36,10 @@ native resource snapshot:
 The resource context also records snapshot age and native collection duration,
 so an event captured after a UI-thread stall does not present stale resource
 data without qualification. Native collection runs off the UI thread, and each
-`systemctl` call is bounded by a two-second timeout.
+`systemctl` call is bounded by a two-second timeout. Its timeout helper is
+deliberately limited to the small, fixed output of the two requested scalar
+properties; it is not a general helper for commands with streaming or
+unbounded output.
 
 Each ranked process includes its kernel process name, executable basename,
 systemd unit when available, CPU percentage, and resident memory when available.
@@ -46,7 +56,9 @@ Interval CPU usage requires two samples for the same PID and process start time.
 A process first observed in the current poll therefore becomes eligible for the
 CPU ranking on the next poll. The MVP does not substitute a since-start average,
 because that value is not directly comparable to the interval percentages used
-for the rest of the ranking.
+for the rest of the ranking. The aggregate timestamp for each `/proc` walk is
+the midpoint between the start and end of the walk, reducing systematic timing
+bias when the scan itself slows down.
 
 The event also includes the current screen, extraction state, Dial/image
 versions already configured by the application, and the machine serial number.
@@ -63,7 +75,8 @@ These are calibration defaults, not a product definition of a slow machine:
 | Measurement window |                                         10 seconds |
 | Startup warm-up    |                                         30 seconds |
 | Degraded window    | p95 frame interval >= 45 ms or any gap >= 1,000 ms |
-| Immediate trigger  |                          any frame gap >= 5,000 ms |
+| Timer heartbeat    |                                             250 ms |
+| Immediate trigger  |    rAF gap >= 5,000 ms and timer delay >= 1,000 ms |
 | Episode trigger    |                     3 consecutive degraded windows |
 | Recovery           |                      3 consecutive healthy windows |
 | Event cooldown     |                                         30 minutes |
@@ -81,6 +94,7 @@ All episodes use the fixed fingerprint `dial-ui-sustained-slowdown` and message
 - `screen`;
 - `is-extracting`;
 - `performance-detector-version`;
+- `slowdown-report-kind` (`immediate`, `sustained`, or `heartbeat`);
 - existing Dial version, image version, and image channel tags.
 
 Numeric measurements are stored in the `dial_performance` and
@@ -92,15 +106,22 @@ step before transmission.
 The default Sentry `CultureContext` integration is disabled because locale,
 calendar, and timezone do not help diagnose Dial slowdowns.
 
-Detector contract version `3` adds immediate reporting for a severe single
-stall, snapshot age/collection duration, CPU count, and optional process memory.
+Detector contract version `4` requires timer corroboration for an immediate
+stall, adds low-frequency persistent-episode heartbeats and
+`episode_window_count`, and names the `available_parallelism` value
+`available_cpu_count` end to end.
 
 ## Noise and failure controls
 
 - Startup and hidden-window samples are discarded.
-- Only one event is emitted per episode.
-- An episode must recover before another event can be emitted.
-- The cooldown limits repeated events if the detector flaps.
+- A sustained episode emits its first event after three degraded windows and a
+  heartbeat every 30 minutes while it remains degraded.
+- `episode_window_count` shows how many degraded windows have accumulated in
+  the active episode without adding user data or another identifier.
+- An immediate report has a separate cooldown and does not consume the first
+  sustained report if degradation continues.
+- Recovery requires three healthy windows. Cooldowns limit both persistent
+  heartbeats and repeated immediate blips.
 - Failure to read native resource data does not affect the UI and does not
   prevent frame measurement.
 - Native resource polls do not overlap, and CPU percentages require at least a
@@ -109,6 +130,10 @@ stall, snapshot age/collection duration, CPU count, and optional process memory.
 - Setting the service environment variable `DIAL_PERFORMANCE_DISABLE=1`
   disables both frame monitoring and native polling after a service restart,
   providing a release-independent kill switch.
+- If the frontend cannot invoke the kill-switch command, monitoring fails open.
+  This is deliberate: the native command returns disabled when the environment
+  flag is present, while an IPC/configuration failure must not silently remove
+  the diagnostic coverage the MVP exists to provide.
 - Healthy-window logging is disabled by default. Setting the service environment
   variable `DIAL_PERFORMANCE_DEBUG=1` logs one aggregate sample per 10-second
   window for controlled local calibration without sending healthy samples to
@@ -118,7 +143,8 @@ stall, snapshot age/collection duration, CPU count, and optional process memory.
 
 The detector and event contract should be validated in layers:
 
-1. Run the frame-window and episode-state unit tests.
+1. Run the frame-window, timer-corroboration, configuration-fallback, and
+   episode-state unit tests.
 2. Build the frontend and ARM64 Debian package, then verify the package
    architecture and embedded executable.
 3. On controlled test hardware, record a healthy idle baseline before applying
@@ -128,8 +154,9 @@ The detector and event contract should be validated in layers:
    Artificial-load units must discard stdout and stderr, have an automatic
    runtime limit, and be stopped immediately if safety-relevant services become
    unhealthy.
-5. Confirm that sustained degradation emits one event containing the expected
-   frame, resource, process-ranking, version, and screen fields.
+5. Confirm that sustained degradation emits an event containing the expected
+   frame, timer, episode count, resource, process-ranking, version, and screen
+   fields, and that a persistent episode emits a cooldown heartbeat.
 6. Confirm that `collection_duration_ms` stays acceptably below the 10-second
    polling interval on target hardware, both idle and under pressure.
 7. Confirm that generic process names are disambiguated by executable basename

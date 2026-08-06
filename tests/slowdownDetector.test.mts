@@ -6,6 +6,7 @@ import {
   SlowdownEpisodeDetector,
   summarizeFrameWindow
 } from '../src/performance/slowdownDetector.ts';
+import { resolveDialPerformanceMonitorEnabled } from '../src/performance/slowdownMonitorConfig.ts';
 
 const healthyWindow = summarizeFrameWindow(Array(600).fill(16.67), 10_000);
 const degradedWindow = summarizeFrameWindow(
@@ -24,22 +25,25 @@ test('summarizes healthy and degraded frame windows', () => {
 test('reports once after sustained degradation and rearms after recovery', () => {
   const detector = new SlowdownEpisodeDetector();
 
-  assert.equal(detector.evaluate(degradedWindow, 0), false);
-  assert.equal(detector.evaluate(degradedWindow, 10_000), false);
-  assert.equal(detector.evaluate(degradedWindow, 20_000), true);
-  assert.equal(detector.evaluate(degradedWindow, 30_000), false);
+  assert.equal(detector.evaluate(degradedWindow, 0), null);
+  assert.equal(detector.evaluate(degradedWindow, 10_000), null);
+  assert.deepEqual(detector.evaluate(degradedWindow, 20_000), {
+    episodeWindowCount: 3,
+    kind: 'sustained'
+  });
+  assert.equal(detector.evaluate(degradedWindow, 30_000), null);
 
   detector.evaluate(healthyWindow, 40_000);
   detector.evaluate(healthyWindow, 50_000);
   detector.evaluate(healthyWindow, 60_000);
 
   const afterCooldown = SLOWDOWN_MONITOR_CONFIG.reportCooldownMs + 70_000;
-  assert.equal(detector.evaluate(degradedWindow, afterCooldown), false);
-  assert.equal(
-    detector.evaluate(degradedWindow, afterCooldown + 10_000),
-    false
-  );
-  assert.equal(detector.evaluate(degradedWindow, afterCooldown + 20_000), true);
+  assert.equal(detector.evaluate(degradedWindow, afterCooldown), null);
+  assert.equal(detector.evaluate(degradedWindow, afterCooldown + 10_000), null);
+  assert.deepEqual(detector.evaluate(degradedWindow, afterCooldown + 20_000), {
+    episodeWindowCount: 3,
+    kind: 'sustained'
+  });
 });
 
 test('treats a one-second UI-thread stall as degraded', () => {
@@ -53,36 +57,78 @@ test('treats a one-second UI-thread stall as degraded', () => {
   assert.equal(summary.maxFrameGapMs, 1_000);
 });
 
-test('reports a severe single-window stall immediately', () => {
+test('does not treat a wake or DPMS-like rAF pause as an immediate UI-thread stall', () => {
   const detector = new SlowdownEpisodeDetector();
-  const severeWindow = summarizeFrameWindow(
+  const rafPauseWindow = summarizeFrameWindow(
     [...Array(300).fill(16.67), 5_000],
-    10_000
+    10_000,
+    10
   );
 
-  assert.equal(detector.evaluate(severeWindow, 0), true);
-  assert.equal(detector.evaluate(severeWindow, 10_000), false);
+  assert.equal(rafPauseWindow.degraded, true);
+  assert.equal(detector.evaluate(rafPauseWindow, 0), null);
 });
 
-test('reports persistent degradation when cooldown expires', () => {
+test('reports an immediate stall only when the timer heartbeat corroborates it', () => {
+  const detector = new SlowdownEpisodeDetector();
+  const corroboratedStall = summarizeFrameWindow(
+    [...Array(300).fill(16.67), 5_000],
+    10_000,
+    4_750
+  );
+
+  assert.deepEqual(detector.evaluate(corroboratedStall, 0), {
+    episodeWindowCount: 1,
+    kind: 'immediate'
+  });
+  assert.equal(detector.evaluate(corroboratedStall, 10_000), null);
+});
+
+test('reports a low-frequency heartbeat during persistent degradation', () => {
   const detector = new SlowdownEpisodeDetector();
 
   detector.evaluate(degradedWindow, 0);
   detector.evaluate(degradedWindow, 10_000);
-  assert.equal(detector.evaluate(degradedWindow, 20_000), true);
-
-  detector.evaluate(healthyWindow, 30_000);
-  detector.evaluate(healthyWindow, 40_000);
-  detector.evaluate(healthyWindow, 50_000);
-
-  assert.equal(detector.evaluate(degradedWindow, 60_000), false);
-  assert.equal(detector.evaluate(degradedWindow, 70_000), false);
-  assert.equal(detector.evaluate(degradedWindow, 80_000), false);
+  assert.deepEqual(detector.evaluate(degradedWindow, 20_000), {
+    episodeWindowCount: 3,
+    kind: 'sustained'
+  });
+  assert.equal(detector.evaluate(degradedWindow, 30_000), null);
 
   const cooldownExpiredAt = 20_000 + SLOWDOWN_MONITOR_CONFIG.reportCooldownMs;
-  assert.equal(detector.evaluate(degradedWindow, cooldownExpiredAt), true);
+  assert.deepEqual(detector.evaluate(degradedWindow, cooldownExpiredAt), {
+    episodeWindowCount: 5,
+    kind: 'heartbeat'
+  });
   assert.equal(
     detector.evaluate(degradedWindow, cooldownExpiredAt + 10_000),
-    false
+    null
   );
+});
+
+test('an immediate blip does not silence a later sustained degradation report', () => {
+  const detector = new SlowdownEpisodeDetector();
+  const corroboratedStall = summarizeFrameWindow(
+    [...Array(300).fill(16.67), 5_000],
+    10_000,
+    4_750
+  );
+
+  assert.deepEqual(detector.evaluate(corroboratedStall, 0), {
+    episodeWindowCount: 1,
+    kind: 'immediate'
+  });
+  assert.equal(detector.evaluate(healthyWindow, 10_000), null);
+  assert.equal(detector.evaluate(degradedWindow, 20_000), null);
+  assert.equal(detector.evaluate(degradedWindow, 30_000), null);
+  assert.deepEqual(detector.evaluate(degradedWindow, 40_000), {
+    episodeWindowCount: 3,
+    kind: 'sustained'
+  });
+});
+
+test('monitor configuration fails open because the native kill switch is fail-safe', () => {
+  assert.equal(resolveDialPerformanceMonitorEnabled(false), false);
+  assert.equal(resolveDialPerformanceMonitorEnabled(true), true);
+  assert.equal(resolveDialPerformanceMonitorEnabled(undefined), true);
 });

@@ -4,6 +4,8 @@ export const SLOWDOWN_MONITOR_CONFIG = {
   degradedP95Ms: 45,
   severeFrameGapMs: 1_000,
   immediateReportFrameGapMs: 5_000,
+  timerHeartbeatMs: 250,
+  immediateReportTimerDelayMs: 1_000,
   consecutiveDegradedWindows: 3,
   consecutiveHealthyWindowsToRecover: 3,
   reportCooldownMs: 30 * 60 * 1_000
@@ -20,7 +22,13 @@ export interface FrameWindowSummary {
   framesOver250Ms: number;
   framesOver1000Ms: number;
   maxFrameGapMs: number;
+  maxTimerHeartbeatDelayMs: number;
   degraded: boolean;
+}
+
+export interface SlowdownReportDecision {
+  episodeWindowCount: number;
+  kind: 'immediate' | 'sustained' | 'heartbeat';
 }
 
 const percentile = (sortedValues: number[], quantile: number): number => {
@@ -37,7 +45,8 @@ const percentile = (sortedValues: number[], quantile: number): number => {
 
 export const summarizeFrameWindow = (
   frameIntervals: number[],
-  windowMs: number
+  windowMs: number,
+  maxTimerHeartbeatDelayMs = 0
 ): FrameWindowSummary => {
   const sortedIntervals = [...frameIntervals].sort((a, b) => a - b);
   const maxFrameGapMs =
@@ -60,6 +69,7 @@ export const summarizeFrameWindow = (
     framesOver1000Ms: frameIntervals.filter((interval) => interval >= 1_000)
       .length,
     maxFrameGapMs,
+    maxTimerHeartbeatDelayMs,
     degraded:
       frameIntervalP95Ms >= SLOWDOWN_MONITOR_CONFIG.degradedP95Ms ||
       maxFrameGapMs >= SLOWDOWN_MONITOR_CONFIG.severeFrameGapMs
@@ -71,38 +81,81 @@ export class SlowdownEpisodeDetector {
   private consecutiveHealthyWindows = 0;
   private episodeActive = false;
   private lastReportAt = Number.NEGATIVE_INFINITY;
+  private lastImmediateReportAt = Number.NEGATIVE_INFINITY;
+  private episodeWindowCount = 0;
+  private immediateReportedInDegradedRun = false;
 
-  evaluate(summary: FrameWindowSummary, now: number): boolean {
+  evaluate(
+    summary: FrameWindowSummary,
+    now: number
+  ): SlowdownReportDecision | null {
     if (summary.degraded) {
       this.consecutiveHealthyWindows = 0;
       this.consecutiveDegradedWindows += 1;
+      if (this.episodeActive) {
+        this.episodeWindowCount += 1;
+
+        if (
+          now - this.lastReportAt >=
+          SLOWDOWN_MONITOR_CONFIG.reportCooldownMs
+        ) {
+          this.lastReportAt = now;
+          return {
+            episodeWindowCount: this.episodeWindowCount,
+            kind: 'heartbeat'
+          };
+        }
+
+        return null;
+      }
 
       const immediateReport =
         summary.maxFrameGapMs >=
-        SLOWDOWN_MONITOR_CONFIG.immediateReportFrameGapMs;
+          SLOWDOWN_MONITOR_CONFIG.immediateReportFrameGapMs &&
+        summary.maxTimerHeartbeatDelayMs >=
+          SLOWDOWN_MONITOR_CONFIG.immediateReportTimerDelayMs;
+      const sustainedReport =
+        this.consecutiveDegradedWindows >=
+        SLOWDOWN_MONITOR_CONFIG.consecutiveDegradedWindows;
+
       if (
-        !this.episodeActive &&
-        (immediateReport ||
-          this.consecutiveDegradedWindows >=
-            SLOWDOWN_MONITOR_CONFIG.consecutiveDegradedWindows) &&
+        immediateReport &&
+        !this.immediateReportedInDegradedRun &&
+        !sustainedReport &&
+        now - this.lastImmediateReportAt >=
+          SLOWDOWN_MONITOR_CONFIG.reportCooldownMs
+      ) {
+        this.immediateReportedInDegradedRun = true;
+        this.lastImmediateReportAt = now;
+        return { episodeWindowCount: 1, kind: 'immediate' };
+      }
+
+      if (
+        sustainedReport &&
         now - this.lastReportAt >= SLOWDOWN_MONITOR_CONFIG.reportCooldownMs
       ) {
         this.episodeActive = true;
+        this.episodeWindowCount = this.consecutiveDegradedWindows;
         this.lastReportAt = now;
-        return true;
+        return {
+          episodeWindowCount: this.episodeWindowCount,
+          kind: 'sustained'
+        };
       }
 
-      return false;
+      return null;
     }
 
     this.consecutiveDegradedWindows = 0;
+    this.immediateReportedInDegradedRun = false;
     this.consecutiveHealthyWindows += 1;
     if (
       this.consecutiveHealthyWindows >=
       SLOWDOWN_MONITOR_CONFIG.consecutiveHealthyWindowsToRecover
     ) {
       this.episodeActive = false;
+      this.episodeWindowCount = 0;
     }
-    return false;
+    return null;
   }
 }

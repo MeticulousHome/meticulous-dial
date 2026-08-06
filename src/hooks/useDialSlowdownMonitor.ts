@@ -8,7 +8,11 @@ import {
   SlowdownEpisodeDetector,
   summarizeFrameWindow
 } from '../performance/slowdownDetector';
-import type { FrameWindowSummary } from '../performance/slowdownDetector';
+import type {
+  FrameWindowSummary,
+  SlowdownReportDecision
+} from '../performance/slowdownDetector';
+import { resolveDialPerformanceMonitorEnabled } from '../performance/slowdownMonitorConfig';
 
 interface DialResourceSnapshot {
   collectedAtUnixMs: number;
@@ -16,7 +20,7 @@ interface DialResourceSnapshot {
   processScanDurationMs: number;
   memoryCurrentMb: number | null;
   cpuPercent: number | null;
-  cpuCount: number | null;
+  availableCpuCount: number | null;
   systemMemoryAvailableMb: number | null;
   systemLoad1m: number | null;
   topCpuProcesses: ProcessResourceSnapshot[];
@@ -56,7 +60,7 @@ const finiteResourceContext = (
 
   setFinite('memory_current_mb', snapshot.memoryCurrentMb);
   setFinite('cpu_percent', snapshot.cpuPercent);
-  setFinite('cpu_count', snapshot.cpuCount);
+  setFinite('available_cpu_count', snapshot.availableCpuCount);
   setFinite('system_memory_available_mb', snapshot.systemMemoryAvailableMb);
   setFinite('system_load_1m', snapshot.systemLoad1m);
   setFinite('collection_duration_ms', snapshot.collectionDurationMs);
@@ -98,6 +102,7 @@ const processRankingContext = (
 
 const captureSlowdown = (
   summary: FrameWindowSummary,
+  decision: SlowdownReportDecision,
   state: SlowdownMonitorState,
   resources?: DialResourceSnapshot
 ) => {
@@ -108,7 +113,8 @@ const captureSlowdown = (
   Sentry.withScope((scope) => {
     scope.setFingerprint(['dial-ui-sustained-slowdown']);
     scope.setLevel('warning');
-    scope.setTag('performance-detector-version', '3');
+    scope.setTag('performance-detector-version', '4');
+    scope.setTag('slowdown-report-kind', decision.kind);
     scope.setTag('screen', state.screen);
     scope.setTag('is-extracting', String(state.isExtracting));
 
@@ -126,7 +132,11 @@ const captureSlowdown = (
       frames_over_100_ms: summary.framesOver100Ms,
       frames_over_250_ms: summary.framesOver250Ms,
       frames_over_1000_ms: summary.framesOver1000Ms,
-      max_frame_gap_ms: Number(summary.maxFrameGapMs.toFixed(1))
+      max_frame_gap_ms: Number(summary.maxFrameGapMs.toFixed(1)),
+      max_timer_heartbeat_delay_ms: Number(
+        summary.maxTimerHeartbeatDelayMs.toFixed(1)
+      ),
+      episode_window_count: decision.episodeWindowCount
     });
 
     const resourceContext = finiteResourceContext(resources);
@@ -181,7 +191,7 @@ export const useDialSlowdownMonitor = ({
     invoke<boolean>('dial_performance_monitor_enabled')
       .then((enabled) => {
         if (!disposed) {
-          setMonitorEnabled(enabled);
+          setMonitorEnabled(resolveDialPerformanceMonitorEnabled(enabled));
         }
       })
       .catch((monitorConfigError) => {
@@ -189,6 +199,9 @@ export const useDialSlowdownMonitor = ({
           'Could not read Dial performance monitor configuration',
           monitorConfigError
         );
+        if (!disposed) {
+          setMonitorEnabled(resolveDialPerformanceMonitorEnabled(undefined));
+        }
       });
 
     return () => {
@@ -265,12 +278,38 @@ export const useDialSlowdownMonitor = ({
     let windowStartedAt = monitorStartedAt;
     let previousFrameAt: number | undefined;
     let frameIntervals: number[] = [];
+    let maxTimerHeartbeatDelayMs = 0;
     let animationFrameId: number;
+    let timerHeartbeatId: number;
+    let nextTimerHeartbeatAt =
+      performance.now() + SLOWDOWN_MONITOR_CONFIG.timerHeartbeatMs;
 
     const resetWindow = (now: number) => {
       windowStartedAt = now;
       previousFrameAt = now;
       frameIntervals = [];
+      maxTimerHeartbeatDelayMs = 0;
+    };
+
+    const observeTimerHeartbeat = () => {
+      const now = performance.now();
+      if (document.visibilityState === 'visible') {
+        maxTimerHeartbeatDelayMs = Math.max(
+          maxTimerHeartbeatDelayMs,
+          Math.max(0, now - nextTimerHeartbeatAt)
+        );
+      }
+      nextTimerHeartbeatAt = now + SLOWDOWN_MONITOR_CONFIG.timerHeartbeatMs;
+      timerHeartbeatId = window.setTimeout(
+        observeTimerHeartbeat,
+        SLOWDOWN_MONITOR_CONFIG.timerHeartbeatMs
+      );
+    };
+
+    const resetAfterVisibilityChange = () => {
+      const now = performance.now();
+      nextTimerHeartbeatAt = now + SLOWDOWN_MONITOR_CONFIG.timerHeartbeatMs;
+      resetWindow(now);
     };
 
     const observeFrame = (now: number) => {
@@ -287,7 +326,11 @@ export const useDialSlowdownMonitor = ({
 
       const windowDuration = now - windowStartedAt;
       if (windowDuration >= SLOWDOWN_MONITOR_CONFIG.windowMs) {
-        const summary = summarizeFrameWindow(frameIntervals, windowDuration);
+        const summary = summarizeFrameWindow(
+          frameIntervals,
+          windowDuration,
+          maxTimerHeartbeatDelayMs
+        );
         const warmupComplete =
           now - monitorStartedAt >= SLOWDOWN_MONITOR_CONFIG.warmupMs;
 
@@ -299,15 +342,22 @@ export const useDialSlowdownMonitor = ({
               observedFps: Number(summary.observedFps.toFixed(1)),
               frameIntervalP95Ms: Number(summary.frameIntervalP95Ms.toFixed(1)),
               maxFrameGapMs: Number(summary.maxFrameGapMs.toFixed(1)),
+              maxTimerHeartbeatDelayMs: Number(
+                summary.maxTimerHeartbeatDelayMs.toFixed(1)
+              ),
               degraded: summary.degraded,
               resources: finiteResourceContext(resourceSnapshotRef.current)
             })}`
           );
         }
 
-        if (warmupComplete && detector.evaluate(summary, Date.now())) {
+        const decision = warmupComplete
+          ? detector.evaluate(summary, Date.now())
+          : null;
+        if (decision) {
           captureSlowdown(
             summary,
+            decision,
             stateRef.current,
             resourceSnapshotRef.current
           );
@@ -318,7 +368,19 @@ export const useDialSlowdownMonitor = ({
       animationFrameId = requestAnimationFrame(observeFrame);
     };
 
+    timerHeartbeatId = window.setTimeout(
+      observeTimerHeartbeat,
+      SLOWDOWN_MONITOR_CONFIG.timerHeartbeatMs
+    );
+    document.addEventListener('visibilitychange', resetAfterVisibilityChange);
     animationFrameId = requestAnimationFrame(observeFrame);
-    return () => cancelAnimationFrame(animationFrameId);
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.clearTimeout(timerHeartbeatId);
+      document.removeEventListener(
+        'visibilitychange',
+        resetAfterVisibilityChange
+      );
+    };
   }, [monitorEnabled]);
 };

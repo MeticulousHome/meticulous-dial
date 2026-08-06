@@ -21,7 +21,7 @@ struct DialResourceSnapshot {
     process_scan_duration_ms: f64,
     memory_current_mb: Option<f64>,
     cpu_percent: Option<f64>,
-    cpu_count: Option<usize>,
+    available_cpu_count: Option<usize>,
     system_memory_available_mb: Option<f64>,
     system_load_1m: Option<f64>,
     top_cpu_processes: Vec<ProcessResourceSnapshot>,
@@ -103,7 +103,10 @@ fn parse_mem() -> Option<u64> {
     read_service_properties().0
 }
 
-fn command_output_with_timeout(
+// This helper waits for process exit before draining its pipes, so it is only
+// safe for commands whose output is small and bounded by construction. The
+// sole caller requests exactly two scalar systemd properties.
+fn small_command_output_with_timeout(
     command: &mut Command,
     timeout: Duration,
 ) -> std::io::Result<Option<Output>> {
@@ -148,7 +151,7 @@ fn read_service_properties() -> (Option<u64>, Option<u64>) {
         "meticulous-dial.service",
     ]);
 
-    match command_output_with_timeout(&mut command, SYSTEMCTL_TIMEOUT) {
+    match small_command_output_with_timeout(&mut command, SYSTEMCTL_TIMEOUT) {
         Ok(Some(output)) if output.status.success() => {
             let stdout = String::from_utf8_lossy(&output.stdout);
             (
@@ -300,8 +303,16 @@ fn clock_ticks_per_second() -> Option<f64> {
     (ticks > 0).then_some(ticks as f64)
 }
 
+fn instant_midpoint(started_at: Instant, finished_at: Instant) -> Instant {
+    let elapsed = finished_at
+        .checked_duration_since(started_at)
+        .unwrap_or_default();
+    started_at + elapsed / 2
+}
+
 fn read_top_processes() -> (Vec<ProcessResourceSnapshot>, Vec<ProcessResourceSnapshot>) {
     let proc_root = Path::new("/proc");
+    let scan_started_at = Instant::now();
     let current: Vec<RawProcessSnapshot> = match fs::read_dir(proc_root) {
         Ok(entries) => entries
             .filter_map(Result::ok)
@@ -310,9 +321,9 @@ fn read_top_processes() -> (Vec<ProcessResourceSnapshot>, Vec<ProcessResourceSna
             .collect(),
         Err(_) => return (Vec::new(), Vec::new()),
     };
-    // Timestamp after the walk so the elapsed interval is not systematically
-    // shortened by collection work performed under load.
-    let sampled_at = Instant::now();
+    // Individual proc files are read throughout the walk. Its midpoint is a
+    // closer aggregate sample time than either edge when the scan slows down.
+    let sampled_at = instant_midpoint(scan_started_at, Instant::now());
 
     let current_samples = current
         .iter()
@@ -408,7 +419,7 @@ fn collect_dial_resource_snapshot() -> DialResourceSnapshot {
     let (top_cpu_processes, top_memory_processes) = read_top_processes();
     let process_scan_duration_ms = process_scan_started_at.elapsed().as_secs_f64() * 1_000.0;
     let cpu_percent = calculate_cpu_percent(cpu_usage_ns, service_sampled_at);
-    let cpu_count = std::thread::available_parallelism()
+    let available_cpu_count = std::thread::available_parallelism()
         .ok()
         .map(std::num::NonZeroUsize::get);
     let system_memory_available_mb = read_system_memory_available_mb();
@@ -422,7 +433,7 @@ fn collect_dial_resource_snapshot() -> DialResourceSnapshot {
         process_scan_duration_ms,
         memory_current_mb: memory_current.map(|bytes| bytes as f64 / 1024.0 / 1024.0),
         cpu_percent,
-        cpu_count,
+        available_cpu_count,
         system_memory_available_mb,
         system_load_1m,
         top_cpu_processes,
@@ -567,6 +578,37 @@ mod tests {
 
         assert_eq!(calculate_cpu_percent_between(previous, too_soon), None);
         assert_eq!(calculate_cpu_percent_between(previous, valid), Some(50.0));
+    }
+
+    #[test]
+    fn process_scan_timestamp_uses_the_interval_midpoint() {
+        let started_at = Instant::now();
+        let finished_at = started_at + Duration::from_millis(400);
+
+        assert_eq!(
+            instant_midpoint(started_at, finished_at),
+            started_at + Duration::from_millis(200)
+        );
+    }
+
+    #[test]
+    fn resource_snapshot_serializes_available_cpu_count_semantics() {
+        let snapshot = DialResourceSnapshot {
+            collected_at_unix_ms: 0,
+            collection_duration_ms: 0.0,
+            process_scan_duration_ms: 0.0,
+            memory_current_mb: None,
+            cpu_percent: None,
+            available_cpu_count: Some(4),
+            system_memory_available_mb: None,
+            system_load_1m: None,
+            top_cpu_processes: Vec::new(),
+            top_memory_processes: Vec::new(),
+        };
+        let serialized = serde_json::to_value(snapshot).unwrap();
+
+        assert_eq!(serialized["availableCpuCount"], 4);
+        assert!(serialized.get("cpuCount").is_none());
     }
 
     fn process_snapshot(
