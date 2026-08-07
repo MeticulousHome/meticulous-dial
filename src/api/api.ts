@@ -6,11 +6,14 @@ import Api, {
   ManufacturingSettings,
   ManufacturingMenuItems
 } from '@meticulous-home/espresso-api';
+import { createUpdateCheck } from './updateCheck';
 
 export const API_URL =
   import.meta.env.VITE_SERVER_URL || 'http://localhost:8080';
 
 export const api = new Api(undefined, API_URL);
+
+export const checkForUpdates = createUpdateCheck(API_URL);
 
 export const startMasterCalibration = async () => {
   try {

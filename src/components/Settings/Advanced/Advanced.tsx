@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { SettingsItem } from '../../../types';
@@ -21,6 +21,7 @@ import Styled, {
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
 import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSetting';
 import type { Settings } from '@meticulous-home/espresso-api';
+import { useUpdateCheck } from '../../../hooks/useMachine';
 
 const initialSettings: SettingsItem[] = [
   {
@@ -38,6 +39,11 @@ const initialSettings: SettingsItem[] = [
     key: 'set_update_channel',
     label: 'Update channel',
     getLabel: (settings: Settings) => settings.update_channel,
+    visible: true
+  },
+  {
+    key: 'check_for_updates',
+    label: 'Check for updates',
     visible: true
   },
   {
@@ -65,6 +71,8 @@ export const AdvancedSettings = () => {
   const dispatch = useAppDispatch();
   const { data: globalSettings, isSuccess: isSettingsSuccess } = useSettings();
   const updateSettings = useUpdateSettings();
+  const updateCheck = useUpdateCheck();
+  const updateCheckInFlight = useRef(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { refetch: fetchDeviceStatus } = useDeviceInfo();
@@ -79,15 +87,27 @@ export const AdvancedSettings = () => {
         ...item
       }));
     }
-    const formattedInitialSettings = initialSettings.map((item) => ({
-      ...item,
-      label:
-        item.key === 'root_password'
-          ? `${item.label}: ${rootPW || '*****'}`
-          : item.getLabel
-            ? `${item.label}: ${item.getLabel(globalSettings)}`
-            : item.label
-    }));
+    const formattedInitialSettings = initialSettings.map((item) => {
+      let label = item.label;
+
+      if (item.key === 'root_password') {
+        label = `${item.label}: ${rootPW || '*****'}`;
+      } else if (item.key === 'check_for_updates') {
+        if (updateCheck.isPending) {
+          label = 'Checking for updates...';
+        } else if (updateCheck.data === 'accepted') {
+          label = 'Update check requested';
+        } else if (updateCheck.data === 'update-active') {
+          label = 'Update already active';
+        } else if (updateCheck.data === 'failed') {
+          label = 'Unable to check for updates';
+        }
+      } else if (item.getLabel) {
+        label = `${item.label}: ${item.getLabel(globalSettings)}`;
+      }
+
+      return { ...item, label };
+    });
 
     const manufacturingOption =
       manufacturingSettings != null
@@ -122,7 +142,9 @@ export const AdvancedSettings = () => {
     isManufacturingSuccess,
     isSettingsSuccess,
     manufacturingSettings,
-    rootPW
+    rootPW,
+    updateCheck.data,
+    updateCheck.isPending
   ]);
 
   useHandleGestures(
@@ -153,6 +175,17 @@ export const AdvancedSettings = () => {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'updateChannel' })
             );
+            break;
+          case 'check_for_updates':
+            if (updateCheck.isPending || updateCheckInFlight.current) {
+              break;
+            }
+            updateCheckInFlight.current = true;
+            updateCheck.mutate(undefined, {
+              onSettled: () => {
+                updateCheckInFlight.current = false;
+              }
+            });
             break;
           case 'idle_screen':
             dispatch(
