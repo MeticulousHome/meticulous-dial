@@ -24,6 +24,9 @@ jobs:
       - name: Static analysis
         run: npm run lint
       # Step 6
+      - name: Test manual update check contract
+        run: npm run test:update-check
+      # Step 7
       - name: Build Application and Run unit Test
         run: exit 0
         if: false

@@ -14,7 +14,7 @@ test('posts a manual update check through the configured API URL', async () => {
   ) => {
     requestedUrl = String(url);
     requestedMethod = init?.method ?? '';
-    return new Response(null, { status: 202 });
+    return new Response(null, { status: 200 });
   };
 
   const result = await createUpdateCheck(apiUrl, fetchRequest)();
@@ -65,6 +65,6 @@ test('reuses the pending request instead of issuing another POST', async () => {
 
   assert.equal(requestCount, 1);
   assert.equal(firstRequest, secondRequest);
-  resolveRequest?.(new Response(null, { status: 202 }));
+  resolveRequest?.(new Response(null, { status: 200 }));
   assert.equal(await firstRequest, 'accepted');
 });
