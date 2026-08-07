@@ -34,7 +34,6 @@ enum ReportStatus {
   idle = 'idle',
   fetching = 'fetching',
   slowFetch = 'slowFetch',
-  fetched = 'fetched',
   submitting = 'submitting',
   failed = 'failed'
 }
@@ -110,13 +109,18 @@ type BugReportOption = {
     | 'report'
     | 'selectDate'
     | 'back'
-    | 'submit'
+    | 'cancel'
     | 'exit';
   label: string;
   useableWidthPercentage: number;
 };
 
 type IssueDateField = 'day' | 'month' | 'year' | 'hours' | 'minutes';
+
+type CreateReportRun = {
+  cancelled: boolean;
+  slowTimeout: ReturnType<typeof setTimeout> | null;
+};
 
 const ISSUE_DATE_FIELDS: IssueDateField[] = [
   'day',
@@ -401,6 +405,7 @@ export const BugReport = (): JSX.Element => {
   const draftInfoRef = useRef<DraftInfo | null>(null);
   const ticketRef = useRef<number | null>(null);
   const submissionStateRef = useRef<SubmissionStateType>(null);
+  const activeCreateRunRef = useRef<CreateReportRun | null>(null);
 
   const options = useMemo<BugReportOption[]>(() => {
     if (reportScreen === ReportScreen.message) {
@@ -437,12 +442,10 @@ export const BugReport = (): JSX.Element => {
 
     if (
       reportScreen === ReportScreen.reportingBug &&
-      reportStatus === ReportStatus.fetched
+      (reportStatus === ReportStatus.fetching ||
+        reportStatus === ReportStatus.slowFetch)
     ) {
-      return [
-        { key: 'submit', label: 'Submit', useableWidthPercentage: 81 },
-        { key: 'exit', label: 'Exit', useableWidthPercentage: 81 }
-      ];
+      return [{ key: 'cancel', label: 'Cancel', useableWidthPercentage: 81 }];
     }
 
     if (
@@ -484,32 +487,96 @@ export const BugReport = (): JSX.Element => {
     captureException(error, code);
   };
 
-  const startCreateReport = async () => {
+  const resetCancelledReport = () => {
+    setReportScreen(ReportScreen.message);
+    setReportStatus(ReportStatus.idle);
+    setActiveIndex(0);
+    setFailure(null);
+    setSelectedIssueTimestamp(undefined);
+    setIssueDateDraft(new Date());
+    setActiveIssueDateField('day');
+    draftInfoRef.current = null;
+    ticketRef.current = null;
+    submissionStateRef.current = null;
+  };
+
+  const deleteCancelledDraft = async (localID: string) => {
+    try {
+      const deleteResponse = await api.deleteDraftReport(localID);
+      if (isReportError(deleteResponse)) {
+        throw new Error(deleteResponse.error);
+      }
+    } catch (error) {
+      // Cancellation is already complete from the user's perspective. Keep
+      // this failure out of the reset UI, while retaining it for diagnosis.
+      captureException(error);
+    }
+  };
+
+  const cancelCreateReport = () => {
+    const createRun = activeCreateRunRef.current;
+    if (!createRun) return;
+
+    createRun.cancelled = true;
+    if (createRun.slowTimeout) {
+      clearTimeout(createRun.slowTimeout);
+      createRun.slowTimeout = null;
+    }
+    activeCreateRunRef.current = null;
+    resetCancelledReport();
+  };
+
+  const startCreateReport = () => {
+    const createRun: CreateReportRun = { cancelled: false, slowTimeout: null };
+    const issueTime = selectedIssueTimestamp;
+
+    activeCreateRunRef.current = createRun;
     setReportScreen(ReportScreen.reportingBug);
     setReportStatus(ReportStatus.fetching);
     setActiveIndex(0);
     setFailure(null);
     draftInfoRef.current = null;
 
-    const slowTimeout = setTimeout(() => {
-      setReportStatus(ReportStatus.slowFetch);
+    createRun.slowTimeout = setTimeout(() => {
+      if (!createRun.cancelled && activeCreateRunRef.current === createRun) {
+        setReportStatus(ReportStatus.slowFetch);
+      }
     }, 60 * 1000); // message change on the first minute mark
 
-    try {
-      const create_response =
-        selectedIssueTimestamp === undefined
-          ? await api.createReport()
-          : await api.createReport({ issueTime: selectedIssueTimestamp });
-      if (isReportError(create_response)) {
-        throw Error(create_response.error);
+    void (async () => {
+      try {
+        const createResponse =
+          issueTime === undefined
+            ? await api.createReport()
+            : await api.createReport({ issueTime });
+        if (isReportError(createResponse)) {
+          throw new Error(createResponse.error);
+        }
+
+        if (createRun.cancelled) {
+          await deleteCancelledDraft(createResponse.localID);
+          return;
+        }
+
+        activeCreateRunRef.current = null;
+        draftInfoRef.current = createResponse;
+        setReportStatus(ReportStatus.submitting);
+        void submitReport(createResponse);
+      } catch (error) {
+        if (createRun.cancelled) {
+          // A cancelled run must never bring an error back into a fresh UI.
+          captureException(error);
+        } else if (activeCreateRunRef.current === createRun) {
+          activeCreateRunRef.current = null;
+          failSubmission('creation', error);
+        }
+      } finally {
+        if (createRun.slowTimeout) {
+          clearTimeout(createRun.slowTimeout);
+          createRun.slowTimeout = null;
+        }
       }
-      draftInfoRef.current = create_response;
-      setReportStatus(ReportStatus.fetched);
-    } catch (error) {
-      failSubmission('creation', error);
-    } finally {
-      clearTimeout(slowTimeout);
-    }
+    })();
   };
 
   const openIssueDateSelector = () => {
@@ -578,9 +645,8 @@ export const BugReport = (): JSX.Element => {
     submissionStateRef.current = stage;
   };
 
-  const submitReport = async () => {
-    const draftInfo = draftInfoRef.current;
-    if (!draftInfo?.localID) {
+  const submitReport = async (draftInfo: DraftInfo) => {
+    if (!draftInfo.localID) {
       failSubmission('reportLoad', 'No draft report');
       return;
     }
@@ -722,6 +788,9 @@ export const BugReport = (): JSX.Element => {
         case 'selectDate':
           openIssueDateSelector();
           break;
+        case 'cancel':
+          cancelCreateReport();
+          break;
         case 'back':
           if (reportScreen === ReportScreen.message) {
             exitToQuickSettings();
@@ -734,9 +803,6 @@ export const BugReport = (): JSX.Element => {
           setReportScreen(ReportScreen.message);
           setReportStatus(ReportStatus.idle);
           setActiveIndex(0);
-          break;
-        case 'submit':
-          submitReport();
           break;
         case 'exit':
           exitToQuickSettings();
@@ -856,20 +922,6 @@ export const BugReport = (): JSX.Element => {
           return 'Please wait while we compile the necessary information';
         case ReportStatus.slowFetch:
           return 'This is taking longer than expected, please wait';
-        case ReportStatus.fetched:
-          return (
-            <>
-              <div style={{ marginTop: '10px' }}>
-                <span>We are almost done.</span>
-              </div>
-              <div style={{ marginTop: '10px' }}>
-                <span>
-                  Clicking on <strong>Submit</strong> will send us the ticket
-                  and provide You with a report <strong>tracking number</strong>
-                </span>
-              </div>
-            </>
-          );
       }
     }
 
@@ -899,25 +951,6 @@ export const BugReport = (): JSX.Element => {
     selectedIssueTimestamp
   ]);
 
-  if (
-    reportStatus === ReportStatus.submitting ||
-    reportStatus === ReportStatus.fetching ||
-    reportStatus === ReportStatus.slowFetch
-  ) {
-    return (
-      <div className="bug-report-loading settings-explanation-container">
-        <div className="settings-explanation">
-          <div className="settings-explanation-shaper-left" />
-          <div className="settings-explanation-shaper-right" />
-          {reportStatus !== ReportStatus.submitting && (
-            <span className="bug-report-loading-text">{message}</span>
-          )}
-          <LoadingScreen />
-        </div>
-      </div>
-    );
-  }
-
   const optionList = options.length > 0 && (
     <div
       className="settings-fixed-item-container"
@@ -943,6 +976,26 @@ export const BugReport = (): JSX.Element => {
       })}
     </div>
   );
+
+  if (
+    reportStatus === ReportStatus.submitting ||
+    reportStatus === ReportStatus.fetching ||
+    reportStatus === ReportStatus.slowFetch
+  ) {
+    return (
+      <div className="bug-report-loading settings-explanation-container">
+        <div className="settings-explanation">
+          <div className="settings-explanation-shaper-left" />
+          <div className="settings-explanation-shaper-right" />
+          {reportStatus !== ReportStatus.submitting && (
+            <span className="bug-report-loading-text">{message}</span>
+          )}
+          <LoadingScreen />
+        </div>
+        {reportStatus !== ReportStatus.submitting && optionList}
+      </div>
+    );
+  }
 
   // Failures are short and read as a notice, so they centre on the bubble panel
   // with the code on its own line for the user to quote back to support.
