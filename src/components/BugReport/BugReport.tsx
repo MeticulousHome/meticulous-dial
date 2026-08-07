@@ -513,13 +513,15 @@ export const BugReport = (): JSX.Element => {
   };
 
   const openIssueDateSelector = () => {
-    setIssueDateDraft(
-      new Date(
+    setIssueDateDraft(() => {
+      const savedDate = new Date(
         selectedIssueTimestamp === undefined
           ? Date.now()
           : selectedIssueTimestamp * 1000
-      )
-    );
+      );
+      savedDate.setMinutes(Math.floor(savedDate.getMinutes() / 30) * 30);
+      return savedDate;
+    });
     setActiveIssueDateField('day');
     setActiveIndex(0);
     setReportScreen(ReportScreen.selectIssueDate);
@@ -552,6 +554,7 @@ export const BugReport = (): JSX.Element => {
 
       if (nextDate.getTime() > Date.now()) {
         nextDate.setTime(Date.now());
+        nextDate.setMinutes(Math.floor(nextDate.getMinutes() / 30) * 30);
       }
 
       return nextDate;
@@ -795,9 +798,7 @@ export const BugReport = (): JSX.Element => {
     if (reportScreen === ReportScreen.selectIssueDate) {
       return (
         <>
-          <span className="bug-report-eyebrow">
-            Select issue date &amp; time
-          </span>
+          <span className="bug-report-eyebrow">When did the issue occur?</span>
           <div className="bug-report-date-picker">
             <div className="bug-report-date-picker-row">
               <IssueDateCounter
@@ -830,6 +831,7 @@ export const BugReport = (): JSX.Element => {
                 pad
               />
             </div>
+            <span className="bug-report-eyebrow">Approx</span>
           </div>
           <div className="bug-report-gesture-hints">
             {ISSUE_DATE_HINTS.map((hint) => (
