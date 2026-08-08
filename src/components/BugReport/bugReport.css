@@ -99,16 +99,17 @@
   text-transform: uppercase;
 }
 
-/* Date on one line, time on the next. */
+/* Date on one line, time on the next. Metrics match .bug-report-date-picker so
+   a labelled part renders identically on both screens. */
 .bug-report-issue-date-display {
+  align-items: center;
   display: flex;
   flex-direction: column;
   font-family: 'ABC Diatype Mono';
-  font-size: 40px;
+  font-size: 38px;
   font-weight: 300;
-  gap: 2px;
+  gap: 6px;
   letter-spacing: -0.02em;
-  line-height: 1.2;
   margin-top: 18px;
 }
 
@@ -124,9 +125,39 @@
   margin-top: 20px;
 }
 
-.bug-report-date-picker-row {
+/* Shared by both issue-date screens — the summary on report setup and the
+   picker — so the two can never drift apart.
+
+   Bottom-aligned: the labels make the parts taller than the separators, and it
+   is the digits' baseline that has to line up, not the boxes' middles. */
+.bug-report-date-row {
+  align-items: flex-end;
+  display: flex;
+}
+
+.bug-report-date-part {
   align-items: center;
   display: flex;
+  flex-direction: column;
+}
+
+/* Muted and well under the digits' weight: it names the field, it does not
+   compete with the value or with the picker's active underline. */
+.bug-report-date-label {
+  color: #808080;
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+/* The read-only value takes the picker field's box, so a part sits identically
+   on both screens. */
+.bug-report-date-value {
+  line-height: 38px;
+  padding: 0 3px 10px;
 }
 
 .bug-report-date-picker-field {
@@ -158,8 +189,8 @@
   opacity: 1;
 }
 
-/* Matches the fields' box exactly so the dots land on the digits' baseline. */
-.bug-report-date-picker-separator {
+/* Matches the parts' box exactly so the dots land on the digits' baseline. */
+.bug-report-date-separator {
   color: #5e5e5e;
   line-height: 38px;
   padding-bottom: 10px;
