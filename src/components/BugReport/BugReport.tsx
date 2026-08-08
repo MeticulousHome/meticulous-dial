@@ -166,6 +166,20 @@ const formatIssueDate = (date: Date) =>
 const formatIssueTime = (date: Date) =>
   `${padTwo(date.getHours())}:${padTwo(date.getMinutes())}`;
 
+// The summary labels its parts by splitting the formatted string rather than
+// re-deriving them, so it cannot grow a second definition of the format.
+const ISSUE_DATE_LABELS = ['Day', 'Month', 'Year'];
+const ISSUE_TIME_LABELS = ['Hour', 'Min'];
+
+const toLabelledParts = (
+  formatted: string,
+  separator: string,
+  labels: string[]
+) =>
+  formatted
+    .split(separator)
+    .map((value, index) => ({ label: labels[index], value }));
+
 export interface DraftFile {
   name: string;
   data: Uint8Array;
@@ -369,32 +383,63 @@ const sendSentryFeedback = async ({
   return eventID;
 };
 
+/** The read-only counterpart of the picker row, labelled the same way. */
+const IssueDateParts = ({
+  parts,
+  separator
+}: {
+  parts: { label: string; value: string }[];
+  separator: string;
+}) => (
+  <div className="bug-report-date-row">
+    {parts.map((part, index) => (
+      <Fragment key={part.label}>
+        {index > 0 && (
+          <span className="bug-report-date-separator">{separator}</span>
+        )}
+        <div className="bug-report-date-part">
+          <span className="bug-report-date-label">{part.label}</span>
+          <span className="bug-report-date-value">{part.value}</span>
+        </div>
+      </Fragment>
+    ))}
+  </div>
+);
+
 const IssueDateCounter = ({
   active,
+  label,
   value,
   pad = false
 }: {
   active: boolean;
+  /** Names the field, since digits alone do not say which is which. */
+  label: string;
   value: number;
   /** Keeps two-digit fields two digits wide, so the row never shifts. */
   pad?: boolean;
 }) => (
-  <div
-    className={`bug-report-date-picker-field${
-      active ? ' bug-report-date-picker-active' : ''
-    }`}
-  >
-    {/* AnimatedCounter takes a number, so the leading zero is drawn alongside it. */}
-    {pad && value < 10 && <span>0</span>}
-    <AnimatedCounter
-      value={value}
-      color={ISSUE_DATE_INACTIVE_COLOR}
-      decrementColor={ISSUE_DATE_ACTIVE_COLOR}
-      incrementColor={ISSUE_DATE_ACTIVE_COLOR}
-      includeDecimals={false}
-      fontSize="38px"
-      containerStyles={ISSUE_DATE_COUNTER_STYLE}
-    />
+  <div className="bug-report-date-part">
+    {/* Above the digits: the underline below them already marks the active
+        field, and a label there would compete with it. */}
+    <span className="bug-report-date-label">{label}</span>
+    <div
+      className={`bug-report-date-picker-field${
+        active ? ' bug-report-date-picker-active' : ''
+      }`}
+    >
+      {/* AnimatedCounter takes a number, so the leading zero is drawn alongside it. */}
+      {pad && value < 10 && <span>0</span>}
+      <AnimatedCounter
+        value={value}
+        color={ISSUE_DATE_INACTIVE_COLOR}
+        decrementColor={ISSUE_DATE_ACTIVE_COLOR}
+        incrementColor={ISSUE_DATE_ACTIVE_COLOR}
+        includeDecimals={false}
+        fontSize="38px"
+        containerStyles={ISSUE_DATE_COUNTER_STYLE}
+      />
+    </div>
   </div>
 );
 
@@ -901,8 +946,22 @@ export const BugReport = (): JSX.Element => {
         <>
           <span className="bug-report-eyebrow">Issue date &amp; time</span>
           <div className="bug-report-issue-date-display">
-            <span>{formatIssueDate(reportDate)}</span>
-            <span>{formatIssueTime(reportDate)}</span>
+            <IssueDateParts
+              separator="."
+              parts={toLabelledParts(
+                formatIssueDate(reportDate),
+                '.',
+                ISSUE_DATE_LABELS
+              )}
+            />
+            <IssueDateParts
+              separator=":"
+              parts={toLabelledParts(
+                formatIssueTime(reportDate),
+                ':',
+                ISSUE_TIME_LABELS
+              )}
+            />
           </div>
         </>
       );
@@ -915,33 +974,38 @@ export const BugReport = (): JSX.Element => {
             Guide us to when the issue occurred
           </span>
           <div className="bug-report-date-picker">
-            <div className="bug-report-date-picker-row">
+            <div className="bug-report-date-row">
               <IssueDateCounter
                 active={activeIssueDateField === 'day'}
+                label="Day"
                 value={issueDateDraft.getDate()}
                 pad
               />
-              <span className="bug-report-date-picker-separator">.</span>
+              <span className="bug-report-date-separator">.</span>
               <IssueDateCounter
                 active={activeIssueDateField === 'month'}
+                label="Month"
                 value={issueDateDraft.getMonth() + 1}
                 pad
               />
-              <span className="bug-report-date-picker-separator">.</span>
+              <span className="bug-report-date-separator">.</span>
               <IssueDateCounter
                 active={activeIssueDateField === 'year'}
+                label="Year"
                 value={issueDateDraft.getFullYear()}
               />
             </div>
-            <div className="bug-report-date-picker-row">
+            <div className="bug-report-date-row">
               <IssueDateCounter
                 active={activeIssueDateField === 'hours'}
+                label="Hour"
                 value={issueDateDraft.getHours()}
                 pad
               />
-              <span className="bug-report-date-picker-separator">:</span>
+              <span className="bug-report-date-separator">:</span>
               <IssueDateCounter
                 active={activeIssueDateField === 'minutes'}
+                label="Min"
                 value={issueDateDraft.getMinutes()}
                 pad
               />
