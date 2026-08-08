@@ -1,9 +1,22 @@
-.bug-report-loading {
-  align-items: center;
+/* The loading screen has nothing for prose to flow around, so it skips the
+   settings-explanation shapers and simply stacks: animation and caption
+   centred in whatever room the option list leaves. */
+.bug-report-loading-screen {
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
+}
+
+.bug-report-loading {
+  align-items: center;
+  display: flex;
+  /* takes the space above the pinned option list, so the caption can never
+     end up behind it */
+  flex: 1;
+  flex-direction: column;
   justify-content: center;
+  min-height: 0;
   width: 100%;
 }
 
