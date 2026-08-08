@@ -3,7 +3,10 @@ import { ZstdDec, ZstdInit } from '@oneidentity/zstd-js/decompress';
 import * as Sentry from '@sentry/react';
 import { AnimatedCounter } from 'react-animated-counter/dist/esm';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { BugReportAnimation } from './BugReportAnimation';
+import {
+  BugReportAnimation,
+  BugReportAnimationPhase
+} from './BugReportAnimation';
 import { QrGeneratedImage } from '../QR/QrImage';
 import {
   setBubbleDisplay,
@@ -94,6 +97,13 @@ const FAILURE_DETAILS: Record<
 };
 
 const CONTACT_SUPPORT_NOTE = 'Please contact us for further information.';
+
+// The submitted screen waits on the closing animation. A dropped 'complete'
+// event would strand the user on a screen that offers no options at all, so the
+// wait is capped. A submission landing at the worst moment queues behind the
+// collecting loop's boundary (up to 2.0s), the bridge (2.4s) and Finished
+// itself (1.1s), so the cap has to clear 5.5s with room for a slow frame rate.
+const FINISHED_ANIMATION_TIMEOUT = 12 * 1000;
 
 type FailureView = {
   code: string;
@@ -402,10 +412,39 @@ export const BugReport = (): JSX.Element => {
   const [issueDateDraft, setIssueDateDraft] = useState(() => new Date());
   const [activeIssueDateField, setActiveIssueDateField] =
     useState<IssueDateField>('day');
+  const [isFinishing, setIsFinishing] = useState(false);
   const draftInfoRef = useRef<DraftInfo | null>(null);
   const ticketRef = useRef<number | null>(null);
   const submissionStateRef = useRef<SubmissionStateType>(null);
   const activeCreateRunRef = useRef<CreateReportRun | null>(null);
+  const finishedResolveRef = useRef<(() => void) | null>(null);
+
+  const animationPhase: BugReportAnimationPhase = isFinishing
+    ? 'finished'
+    : reportStatus === ReportStatus.submitting
+      ? 'submitting'
+      : 'collecting';
+
+  const handleFinishedAnimationEnd = () => {
+    const resolve = finishedResolveRef.current;
+    finishedResolveRef.current = null;
+    resolve?.();
+  };
+
+  // Switches the animation to Finished and settles once it has played out.
+  const playFinishedAnimation = () =>
+    new Promise<void>((resolve) => {
+      const safety = setTimeout(() => {
+        finishedResolveRef.current = null;
+        resolve();
+      }, FINISHED_ANIMATION_TIMEOUT);
+
+      finishedResolveRef.current = () => {
+        clearTimeout(safety);
+        resolve();
+      };
+      setIsFinishing(true);
+    });
 
   const options = useMemo<BugReportOption[]>(() => {
     if (reportScreen === ReportScreen.message) {
@@ -484,6 +523,7 @@ export const BugReport = (): JSX.Element => {
     setFailure({ code, message, note });
     setReportStatus(ReportStatus.failed);
     submissionStateRef.current = null;
+    setIsFinishing(false);
     captureException(error, code);
   };
 
@@ -498,6 +538,7 @@ export const BugReport = (): JSX.Element => {
     draftInfoRef.current = null;
     ticketRef.current = null;
     submissionStateRef.current = null;
+    setIsFinishing(false);
   };
 
   const deleteCancelledDraft = async (localID: string) => {
@@ -535,6 +576,7 @@ export const BugReport = (): JSX.Element => {
     setReportStatus(ReportStatus.fetching);
     setActiveIndex(0);
     setFailure(null);
+    setIsFinishing(false);
     draftInfoRef.current = null;
 
     createRun.slowTimeout = setTimeout(() => {
@@ -714,6 +756,11 @@ export const BugReport = (): JSX.Element => {
       }
       if (timedOut) return;
 
+      // The report is in. Everything left is animation, so retire the network
+      // timeout rather than let it fail a submission that already succeeded.
+      clearTimeout(submissionTimeout);
+      await playFinishedAnimation();
+
       setSubmissionStage(null);
       setReportScreen(ReportScreen.submitted);
       setReportStatus(ReportStatus.idle);
@@ -864,7 +911,9 @@ export const BugReport = (): JSX.Element => {
     if (reportScreen === ReportScreen.selectIssueDate) {
       return (
         <>
-          <span className="bug-report-eyebrow">When did the issue occur?</span>
+          <span className="bug-report-eyebrow">
+            Guide us to when the issue occurred
+          </span>
           <div className="bug-report-date-picker">
             <div className="bug-report-date-picker-row">
               <IssueDateCounter
@@ -897,7 +946,7 @@ export const BugReport = (): JSX.Element => {
                 pad
               />
             </div>
-            <span className="bug-report-eyebrow">Approx</span>
+            {/* <span className="bug-report-eyebrow">Approx</span> */}
           </div>
           <div className="bug-report-gesture-hints">
             {ISSUE_DATE_HINTS.map((hint) => (
@@ -922,6 +971,8 @@ export const BugReport = (): JSX.Element => {
           return 'Please wait while we compile the necessary information';
         case ReportStatus.slowFetch:
           return 'This is taking longer than expected, please wait';
+        case ReportStatus.submitting:
+          return 'Sending Your report, this may take a moment';
       }
     }
 
@@ -983,24 +1034,14 @@ export const BugReport = (): JSX.Element => {
     reportStatus === ReportStatus.slowFetch
   ) {
     return (
-      <div className="bug-report-loading settings-explanation-container">
-        <div className="settings-explanation">
-          <div className="settings-explanation-shaper-left" />
-          <div className="settings-explanation-shaper-right" />
-          {reportStatus !== ReportStatus.submitting && (
-            <span className="bug-report-loading-text">{message}</span>
-          )}
-          <div className="bug-report-loading">
-            <BugReportAnimation
-              variant={
-                reportStatus === ReportStatus.submitting
-                  ? 'transmitting'
-                  : 'gathering'
-              }
-            />
-            <span className="bug-report-loading-text">{message}</span>
-          </div>
-          {/* <LoadingScreen /> */}
+      <div className="bug-report-loading-screen">
+        <div className="bug-report-loading">
+          <BugReportAnimation
+            phase={animationPhase}
+            onFinished={handleFinishedAnimationEnd}
+            size={100}
+          />
+          <span className="bug-report-loading-text">{message}</span>
         </div>
         {reportStatus !== ReportStatus.submitting && optionList}
       </div>
