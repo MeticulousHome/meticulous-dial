@@ -27,12 +27,14 @@ import { warn, debug, trace, info, error } from '@tauri-apps/plugin-log';
 import { sanitizeAutomaticSentryEvent } from './sentryPrivacy';
 import { useDeviceInfo } from './hooks/useDeviceOSStatus';
 import { version as dialVersion } from '../package.json';
+import { useDialSlowdownMonitor } from './hooks/useDialSlowdownMonitor';
 
 const SENTRY_DSN =
   'https://d958eb514629903cf133ad2b19e80ead@sentry.meticulousespresso.com/8';
 const DIAL_RELEASE = `meticulous-dial@${dialVersion}`;
+const isTauriRuntime = () => '__TAURI_INTERNALS__' in window;
 
-if (SENTRY_DSN) {
+if (SENTRY_DSN && import.meta.env.PROD && isTauriRuntime()) {
   Sentry.init({
     dsn: SENTRY_DSN,
     release: DIAL_RELEASE,
@@ -48,9 +50,12 @@ if (SENTRY_DSN) {
     integrations: (defaultIntegrations) =>
       defaultIntegrations.filter(
         (integration) =>
-          !['Breadcrumbs', 'HttpContext', 'BrowserSession'].includes(
-            integration.name
-          )
+          ![
+            'Breadcrumbs',
+            'HttpContext',
+            'BrowserSession',
+            'CultureContext'
+          ].includes(integration.name)
       )
   });
 }
@@ -70,6 +75,20 @@ const SentryRuntimeMetadata = () => {
       Sentry.setTag('build-channel', deviceInfo.image_build_channel);
     }
   }, [deviceInfo]);
+
+  return null;
+};
+
+const DialSlowdownMonitor = () => {
+  const screen = useAppSelector((state) => state.screen.value);
+  const isExtracting = useAppSelector((state) => state.stats?.extracting);
+  const { data: deviceInfo } = useDeviceInfo();
+
+  useDialSlowdownMonitor({
+    screen,
+    serial: deviceInfo?.serial ? String(deviceInfo.serial).trim() : undefined,
+    isExtracting: Boolean(isExtracting)
+  });
 
   return null;
 };
@@ -143,6 +162,7 @@ const App = (): JSX.Element => {
   return (
     <QueryClientProvider client={queryClient}>
       <SentryRuntimeMetadata />
+      <DialSlowdownMonitor />
       <div className="meticulous-main-canvas">
         {dev && <div className="main-circle-overlay" />}
         <IdleTimerProvider>
