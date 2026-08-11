@@ -81,3 +81,9 @@ Based on the [gesture](#gestures), we need to use them into each state in a spec
 
 We react to different button events coming from controller. We have mapped every button to a keyboard event for testing. See SocketProviderValue.ts.
 <img src="./public/keyboard-events.png" width=300/>
+
+## 5. Testing
+
+The [simulated shot E2E test](docs/testing/simulated-shot-e2e.md) opens the
+production Dial interface, starts an espresso through the backend ESP emulator,
+and verifies the live and completed-shot UI lifecycle.
