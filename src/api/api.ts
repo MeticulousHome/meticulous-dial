@@ -2,10 +2,10 @@ import Api, {
   regionType,
   APIError,
   BrightnessRequest,
-  DeviceInfo,
   ManufacturingSettings,
   ManufacturingMenuItems
 } from '@meticulous-home/espresso-api';
+import { DialDeviceInfo } from '../types';
 
 export const API_URL =
   import.meta.env.VITE_SERVER_URL || 'http://localhost:8080';
@@ -31,14 +31,14 @@ export const getOSStatus = async () => {
   }
 };
 
-export async function getDeviceInfo(): Promise<DeviceInfo> {
+export async function getDeviceInfo(): Promise<DialDeviceInfo> {
   try {
     const response = await api.getDeviceInfo();
     const data = response.data;
     if (data && 'error' in data) {
       throw new Error((data as APIError).error);
     }
-    return data as DeviceInfo;
+    return data as DialDeviceInfo;
   } catch (error) {
     if (error.response) {
       console.error('Error fetching device Info: ', error.response.data);

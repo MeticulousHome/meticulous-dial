@@ -57,6 +57,7 @@ export type ScreenType =
   | 'brewComplete'
   | 'factoryReset'
   | 'retraction_volume'
+  | 'tare_behavior'
   | 'manufacturingSettings'
   | 'displayAlignment'
   | 'masterCalibrationLock'

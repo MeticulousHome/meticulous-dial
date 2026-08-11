@@ -21,11 +21,11 @@ export const useOSStatus = () => {
   });
 };
 
-export const useDeviceInfo = () => {
+export const useDeviceInfo = (options?: { refetchInterval?: number }) => {
   return useQuery({
     queryKey: [DEVICE_INFO],
     queryFn: () => getDeviceInfo(),
     staleTime: 0,
-    refetchInterval: 2 * 60 * 60 * 1000 // Every 2 hours
+    refetchInterval: options?.refetchInterval ?? 2 * 60 * 60 * 1000 // Every 2 hours
   });
 };
