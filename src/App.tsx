@@ -68,6 +68,8 @@ const SentryRuntimeMetadata = () => {
       return;
     }
 
+    Sentry.setTag('serial', deviceInfo.serial);
+
     if (deviceInfo.image_version) {
       Sentry.setTag('build-version', deviceInfo.image_version);
     }

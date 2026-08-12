@@ -72,17 +72,31 @@ const PROCESS_RANKING_LIMIT: usize = 3;
 const MIN_CPU_SAMPLE_INTERVAL: Duration = Duration::from_secs(1);
 const SYSTEMCTL_TIMEOUT: Duration = Duration::from_secs(2);
 const CHILD_POLL_INTERVAL: Duration = Duration::from_millis(10);
+const DIAL_READY_MARKER: &str = "/run/meticulous-dial-ready";
+const DIAL_HOME_READY_MARKER: &str = "/run/meticulous-dial-home-ready";
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn ready(app_handle: AppHandle) {
     println!("React is reporting ready!");
+    let _ = fs::remove_file(DIAL_HOME_READY_MARKER);
+    if let Err(error) = fs::write(DIAL_READY_MARKER, "ready\n") {
+        eprintln!("Failed to write dial ready marker: {}", error);
+    }
     let window = app_handle.get_webview_window("main").unwrap();
     #[cfg(not(debug_assertions))]
     {
         window.set_fullscreen(true).unwrap();
     }
     window.show().unwrap();
+}
+
+#[tauri::command]
+fn home_ready() {
+    println!("React profile home screen is reporting ready!");
+    if let Err(error) = fs::write(DIAL_HOME_READY_MARKER, "ready\n") {
+        eprintln!("Failed to write dial home ready marker: {}", error);
+    }
 }
 
 #[tauri::command]
@@ -514,6 +528,7 @@ pub fn run() {
         )
         .invoke_handler(tauri::generate_handler![
             ready,
+            home_ready,
             get_profiles,
             get_dial_resource_snapshot,
             dial_performance_monitor_enabled,

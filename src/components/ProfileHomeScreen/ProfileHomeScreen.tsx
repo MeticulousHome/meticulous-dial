@@ -22,6 +22,7 @@ import { useIsOnline } from '../../hooks/useIsOnline';
 import { loadProfileData, startProfile } from '../../api/profile';
 import { DownloadIcon } from './DownloadIcon';
 import { useSocket } from '../store/SocketManager';
+import { invoke } from '@tauri-apps/api/core';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -91,6 +92,7 @@ export const ProfileHomeScreen = () => {
     useState<dialDirection>('none');
   const [isPressingDown, setIsPressingDown] = useState(false);
   const pressThroughTimer = useRef<NodeJS.Timeout | null>(null);
+  const homeReadyReported = useRef(false);
 
   const nodeRefs = useRef<Record<string, Ref<HTMLDivElement>>>({});
   const requiresPurge = useRef<boolean>(false);
@@ -149,6 +151,13 @@ export const ProfileHomeScreen = () => {
 
   useEffect(() => {
     if (!mergedProfiles) return;
+
+    if (!homeReadyReported.current && '__TAURI_INTERNALS__' in window) {
+      homeReadyReported.current = true;
+      invoke('home_ready').catch((error) => {
+        console.error('Failed to report profile home ready:', error);
+      });
+    }
 
     if (activeOption > mergedProfiles.length) {
       setActiveOption(mergedProfiles.length);
