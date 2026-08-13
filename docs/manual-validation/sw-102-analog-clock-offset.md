@@ -37,10 +37,10 @@ correction must be recorded with its own commit and artifact hashes.
 | Analog result    | Offset reproduced (+1 hour) | Passed; agreed with OS-local time |
 
 The candidate kept `meticulous-dial.service` active, and its journal had no
-candidate-related startup errors. After validation, rollback restored the
-original Dial package and package version. The restored package manifest and
-`/usr/bin/meticulous-dial` checksums matched their recorded pre-install values,
-and `meticulous-dial.service` was active.
+candidate-related startup errors. The recorded evidence does not directly
+verify the package manifest, `/usr/bin/meticulous-dial` checksum, or
+`meticulous-dial.service` state after rollback, so complete rollback health
+remains unverified.
 
 ## Separate non-blocking observation
 
