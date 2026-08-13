@@ -1,5 +1,11 @@
 import { useMutation } from '@tanstack/react-query';
-import { factoryReset } from '../api/api';
+import { checkForUpdates, factoryReset } from '../api/api';
+
+export const useUpdateCheck = () => {
+  return useMutation({
+    mutationFn: checkForUpdates
+  });
+};
 
 export const useFactoryReset = () => {
   return useMutation({

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { SettingsItem } from '../../../types';
@@ -21,6 +21,12 @@ import Styled, {
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
 import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSetting';
 import type { Settings } from '@meticulous-home/espresso-api';
+import { useUpdateCheck } from '../../../hooks/useMachine';
+import {
+  createUpdateCheckFeedback,
+  getUpdateCheckLabel,
+  type UpdateCheckFeedback
+} from '../../../api/updateCheck';
 
 const initialSettings: SettingsItem[] = [
   {
@@ -38,6 +44,11 @@ const initialSettings: SettingsItem[] = [
     key: 'set_update_channel',
     label: 'Update channel',
     getLabel: (settings: Settings) => settings.update_channel,
+    visible: true
+  },
+  {
+    key: 'check_for_updates',
+    label: 'Check for updates',
     visible: true
   },
   {
@@ -65,10 +76,23 @@ export const AdvancedSettings = () => {
   const dispatch = useAppDispatch();
   const { data: globalSettings, isSuccess: isSettingsSuccess } = useSettings();
   const updateSettings = useUpdateSettings();
+  const updateCheck = useUpdateCheck();
+  const updateCheckInFlight = useRef(false);
+  const [updateCheckFeedback, setUpdateCheckFeedback] =
+    useState<UpdateCheckFeedback>('idle');
+  const updateCheckFeedbackController = useMemo(
+    () => createUpdateCheckFeedback(setUpdateCheckFeedback),
+    []
+  );
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { refetch: fetchDeviceStatus } = useDeviceInfo();
   const { data: rootPW } = useRootPassword();
+
+  useEffect(
+    () => () => updateCheckFeedbackController.dispose(),
+    [updateCheckFeedbackController]
+  );
 
   const { data: manufacturingSettings, isSuccess: isManufacturingSuccess } =
     useManufacturingSchema();
@@ -76,18 +100,26 @@ export const AdvancedSettings = () => {
   const updatedSettings = useMemo(() => {
     if (!isSettingsSuccess) {
       return initialSettings.map((item) => ({
-        ...item
+        ...item,
+        label:
+          item.key === 'check_for_updates'
+            ? getUpdateCheckLabel(updateCheckFeedback)
+            : item.label
       }));
     }
-    const formattedInitialSettings = initialSettings.map((item) => ({
-      ...item,
-      label:
-        item.key === 'root_password'
-          ? `${item.label}: ${rootPW || '*****'}`
-          : item.getLabel
-            ? `${item.label}: ${item.getLabel(globalSettings)}`
-            : item.label
-    }));
+    const formattedInitialSettings = initialSettings.map((item) => {
+      let label = item.label;
+
+      if (item.key === 'root_password') {
+        label = `${item.label}: ${rootPW || '*****'}`;
+      } else if (item.key === 'check_for_updates') {
+        label = getUpdateCheckLabel(updateCheckFeedback);
+      } else if (item.getLabel) {
+        label = `${item.label}: ${item.getLabel(globalSettings)}`;
+      }
+
+      return { ...item, label };
+    });
 
     const manufacturingOption =
       manufacturingSettings != null
@@ -122,7 +154,8 @@ export const AdvancedSettings = () => {
     isManufacturingSuccess,
     isSettingsSuccess,
     manufacturingSettings,
-    rootPW
+    rootPW,
+    updateCheckFeedback
   ]);
 
   useHandleGestures(
@@ -153,6 +186,24 @@ export const AdvancedSettings = () => {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'updateChannel' })
             );
+            break;
+          case 'check_for_updates':
+            if (updateCheck.isPending || updateCheckInFlight.current) {
+              break;
+            }
+            updateCheckInFlight.current = true;
+            updateCheckFeedbackController.pending();
+            updateCheck.mutate(undefined, {
+              onSuccess: (result) => {
+                updateCheckFeedbackController.completed(result);
+              },
+              onError: () => {
+                updateCheckFeedbackController.completed('failed');
+              },
+              onSettled: () => {
+                updateCheckInFlight.current = false;
+              }
+            });
             break;
           case 'idle_screen':
             dispatch(
