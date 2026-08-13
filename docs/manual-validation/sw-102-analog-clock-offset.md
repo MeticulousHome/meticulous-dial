@@ -27,18 +27,18 @@ Physical validation on the authorized machine reproduced the issue on
 Complete the candidate column during corrected-package validation. Capture the
 physical analog face; service status alone is not visual evidence.
 
-| Field                                      | Before fix                                  | Corrected candidate |
-| ------------------------------------------ | ------------------------------------------- | ------------------- |
-| Machine image                              | `2026M1358-stable`                          | Pending             |
-| Candidate commit                           | `05483f2`                                   | Pending             |
-| ARM64 package SHA-256                      | Prefix `e210b02c8970`                        | Pending             |
+| Field                                       | Before fix                                 | Corrected candidate |
+| ------------------------------------------- | ------------------------------------------ | ------------------- |
+| Machine image                               | `2026M1358-stable`                         | Pending             |
+| Candidate commit                            | `05483f2`                                  | Pending             |
+| ARM64 package SHA-256                       | Prefix `e210b02c8970`                      | Pending             |
 | Package size / embedded binary architecture | Non-empty / AArch64                        | Pending             |
-| Configured OS timezone                     | `America/Mexico_City`                       | Pending             |
-| NTP synchronized                           | Yes                                         | Pending             |
-| `timedatectl` / `date` local time          | `23:24 CST`                                 | Pending             |
-| Captured analog reading                    | `12:24 AM`                                  | Pending             |
-| `meticulous-dial.service`                  | Restored and active after rollback          | Pending             |
-| Rollback restoration                       | Package, binary, Weston, services restored  | Pending             |
+| Configured OS timezone                      | `America/Mexico_City`                      | Pending             |
+| NTP synchronized                            | Yes                                        | Pending             |
+| `timedatectl` / `date` local time           | `23:24 CST`                                | Pending             |
+| Captured analog reading                     | `12:24 AM`                                 | Pending             |
+| `meticulous-dial.service`                   | Restored and active after rollback         | Pending             |
+| Rollback restoration                        | Package, binary, Weston, services restored | Pending             |
 
 Record the full corrected commit and package SHA-256 before installation.
 Preserve the installed package or binary and write down the rollback command
