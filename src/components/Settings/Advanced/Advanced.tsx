@@ -100,7 +100,11 @@ export const AdvancedSettings = () => {
   const updatedSettings = useMemo(() => {
     if (!isSettingsSuccess) {
       return initialSettings.map((item) => ({
-        ...item
+        ...item,
+        label:
+          item.key === 'check_for_updates'
+            ? getUpdateCheckLabel(updateCheckFeedback)
+            : item.label
       }));
     }
     const formattedInitialSettings = initialSettings.map((item) => {
