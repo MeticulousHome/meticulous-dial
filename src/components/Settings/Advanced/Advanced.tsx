@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { SettingsItem } from '../../../types';
@@ -22,6 +22,11 @@ import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPo
 import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSetting';
 import type { Settings } from '@meticulous-home/espresso-api';
 import { useUpdateCheck } from '../../../hooks/useMachine';
+import {
+  createUpdateCheckFeedback,
+  getUpdateCheckLabel,
+  type UpdateCheckFeedback
+} from '../../../api/updateCheck';
 
 const initialSettings: SettingsItem[] = [
   {
@@ -73,10 +78,21 @@ export const AdvancedSettings = () => {
   const updateSettings = useUpdateSettings();
   const updateCheck = useUpdateCheck();
   const updateCheckInFlight = useRef(false);
+  const [updateCheckFeedback, setUpdateCheckFeedback] =
+    useState<UpdateCheckFeedback>('idle');
+  const updateCheckFeedbackController = useMemo(
+    () => createUpdateCheckFeedback(setUpdateCheckFeedback),
+    []
+  );
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { refetch: fetchDeviceStatus } = useDeviceInfo();
   const { data: rootPW } = useRootPassword();
+
+  useEffect(
+    () => () => updateCheckFeedbackController.dispose(),
+    [updateCheckFeedbackController]
+  );
 
   const { data: manufacturingSettings, isSuccess: isManufacturingSuccess } =
     useManufacturingSchema();
@@ -93,15 +109,7 @@ export const AdvancedSettings = () => {
       if (item.key === 'root_password') {
         label = `${item.label}: ${rootPW || '*****'}`;
       } else if (item.key === 'check_for_updates') {
-        if (updateCheck.isPending) {
-          label = 'Checking for updates...';
-        } else if (updateCheck.data === 'accepted') {
-          label = 'Update check requested';
-        } else if (updateCheck.data === 'update-active') {
-          label = 'Update already active';
-        } else if (updateCheck.data === 'failed') {
-          label = 'Unable to check for updates';
-        }
+        label = getUpdateCheckLabel(updateCheckFeedback);
       } else if (item.getLabel) {
         label = `${item.label}: ${item.getLabel(globalSettings)}`;
       }
@@ -143,8 +151,7 @@ export const AdvancedSettings = () => {
     isSettingsSuccess,
     manufacturingSettings,
     rootPW,
-    updateCheck.data,
-    updateCheck.isPending
+    updateCheckFeedback
   ]);
 
   useHandleGestures(
@@ -181,7 +188,14 @@ export const AdvancedSettings = () => {
               break;
             }
             updateCheckInFlight.current = true;
+            updateCheckFeedbackController.pending();
             updateCheck.mutate(undefined, {
+              onSuccess: (result) => {
+                updateCheckFeedbackController.completed(result);
+              },
+              onError: () => {
+                updateCheckFeedbackController.completed('failed');
+              },
               onSettled: () => {
                 updateCheckInFlight.current = false;
               }
