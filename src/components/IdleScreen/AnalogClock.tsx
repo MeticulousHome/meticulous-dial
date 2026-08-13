@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 
+import { invoke } from '@tauri-apps/api/core';
+
 import { useNetworkConfig } from '../../hooks/useWifi';
 
 import { styled } from 'styled-components';
@@ -15,6 +17,15 @@ const CLOCK_MINUTE_LENGTH = 125.5;
 const CLOCK_SECONDS_COLOR = '#F5C444';
 const CLOCK_SECONDS_LENGTH = 50.83;
 const CLOCK_SMOOTH_SECONDS = true;
+const CLOCK_RESYNC_INTERVAL_MS = 30_000;
+const MILLIS_PER_DAY = 86_400_000;
+
+interface LocalTimeSample {
+  hour: number;
+  minute: number;
+  second: number;
+  millisecond: number;
+}
 
 const ClockContainer = styled.div`
   width: 100%;
@@ -97,51 +108,55 @@ function rotateString(degrees: number): string {
 
 export function AnalogClock() {
   const requestId = useRef<number>(-1);
-  const currentTime = useRef(new Date());
-  const hourRef = useRef(null);
-  const minuteRef = useRef(null);
-  const secondRef = useRef(null);
+  const localTimeSample = useRef<LocalTimeSample | null>(null);
+  const sampleReceivedAt = useRef(0);
+  const hourRef = useRef<HTMLDivElement>(null);
+  const minuteRef = useRef<HTMLDivElement>(null);
+  const secondRef = useRef<HTMLDivElement>(null);
   const lastHour = useRef('');
   const lastMinute = useRef('');
   const lastSecond = useRef('');
 
   const animateTime = () => {
-    if (!hourRef.current || !minuteRef.current || !secondRef.current) {
-      return;
-    }
+    const sample = localTimeSample.current;
+    if (sample && hourRef.current && minuteRef.current && secondRef.current) {
+      const elapsed = performance.now() - sampleReceivedAt.current;
+      const sampledMilliseconds =
+        sample.hour * 3_600_000 +
+        sample.minute * 60_000 +
+        sample.second * 1000 +
+        sample.millisecond;
+      const milliseconds = (sampledMilliseconds + elapsed) % MILLIS_PER_DAY;
+      const totalSeconds = milliseconds / 1000;
+      const seconds = totalSeconds % 60;
+      const totalMinutes = totalSeconds / 60;
+      const minutes = totalMinutes % 60;
+      const hours = (totalMinutes / 60) % 12;
 
-    // Reuse one Date to avoid per-frame allocations while resolving the
-    // runtime's current local timezone on every animation frame.
-    currentTime.current.setTime(Date.now());
-    const seconds =
-      currentTime.current.getSeconds() +
-      currentTime.current.getMilliseconds() / 1000;
-    const minutes = currentTime.current.getMinutes() + seconds / 60;
-    const hours = (currentTime.current.getHours() % 12) + minutes / 60;
+      const hourRotation = hours * 30;
+      const minuteRotation = minutes * 6;
+      const secondRotation =
+        (Math.floor(seconds) + (CLOCK_SMOOTH_SECONDS ? seconds % 1 : 0)) * 6;
 
-    const hourRotation = hours * 30;
-    const minuteRotation = minutes * 6;
-    const secondRotation =
-      (Math.floor(seconds) + (CLOCK_SMOOTH_SECONDS ? seconds % 1 : 0)) * 6;
+      // Only write to style.transform when the cached string actually changes.
+      // This avoids creating new template literal strings every frame.
+      const hourStr = rotateString(hourRotation);
+      if (hourStr !== lastHour.current) {
+        lastHour.current = hourStr;
+        hourRef.current.style.transform = hourStr;
+      }
 
-    // Only write to style.transform when the cached string actually changes.
-    // This avoids creating new template literal strings every frame.
-    const hourStr = rotateString(hourRotation);
-    if (hourStr !== lastHour.current) {
-      lastHour.current = hourStr;
-      hourRef.current.style.transform = hourStr;
-    }
+      const minuteStr = rotateString(minuteRotation);
+      if (minuteStr !== lastMinute.current) {
+        lastMinute.current = minuteStr;
+        minuteRef.current.style.transform = minuteStr;
+      }
 
-    const minuteStr = rotateString(minuteRotation);
-    if (minuteStr !== lastMinute.current) {
-      lastMinute.current = minuteStr;
-      minuteRef.current.style.transform = minuteStr;
-    }
-
-    const secondStr = rotateString(secondRotation);
-    if (secondStr !== lastSecond.current) {
-      lastSecond.current = secondStr;
-      secondRef.current.style.transform = secondStr;
+      const secondStr = rotateString(secondRotation);
+      if (secondStr !== lastSecond.current) {
+        lastSecond.current = secondStr;
+        secondRef.current.style.transform = secondStr;
+      }
     }
 
     requestId.current = requestAnimationFrame(animateTime);
@@ -151,11 +166,37 @@ export function AnalogClock() {
     useNetworkConfig({ idle: true });
 
   useEffect(() => {
+    let active = true;
+
+    const syncLocalTime = async () => {
+      const requestedAt = performance.now();
+      const sample = await invoke<LocalTimeSample>('get_os_local_time');
+      const receivedAt = performance.now();
+
+      if (active) {
+        // Account for half of the short IPC round trip. Subsequent animation
+        // uses only monotonic elapsed time until the next native OS sample.
+        sample.millisecond += (receivedAt - requestedAt) / 2;
+        localTimeSample.current = sample;
+        sampleReceivedAt.current = receivedAt;
+      }
+    };
+
     refetchNetworkConfig();
+    syncLocalTime().catch((error) => {
+      console.error('Failed to read OS local time', error);
+    });
     requestId.current = requestAnimationFrame(animateTime);
+    const resyncId = window.setInterval(() => {
+      syncLocalTime().catch((error) => {
+        console.error('Failed to resynchronize OS local time', error);
+      });
+    }, CLOCK_RESYNC_INTERVAL_MS);
 
     return () => {
+      active = false;
       cancelAnimationFrame(requestId.current);
+      window.clearInterval(resyncId);
     };
   }, []);
 

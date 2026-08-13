@@ -5,6 +5,7 @@ use tauri::AppHandle;
 use tauri::Manager;
 
 mod config;
+mod local_time;
 mod profiles;
 
 const DIAL_READY_MARKER: &str = "/run/meticulous-dial-ready";
@@ -46,6 +47,11 @@ fn get_profiles() -> Result<Vec<serde_json::Value>, String> {
         );
     }
     profiles
+}
+
+#[tauri::command]
+fn get_os_local_time() -> local_time::LocalTimeSample {
+    local_time::current()
 }
 
 fn parse_mem() -> Option<u64> {
@@ -130,7 +136,12 @@ pub fn run() {
                 )) // add the terminal (stdout) as log target
                 .build(),
         )
-        .invoke_handler(tauri::generate_handler![ready, home_ready, get_profiles])
+        .invoke_handler(tauri::generate_handler![
+            ready,
+            home_ready,
+            get_profiles,
+            get_os_local_time
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
