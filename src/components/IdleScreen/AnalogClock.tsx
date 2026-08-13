@@ -27,6 +27,16 @@ interface LocalTimeSample {
   millisecond: number;
 }
 
+function getBrowserLocalTime(): LocalTimeSample {
+  const now = new Date();
+  return {
+    hour: now.getHours(),
+    minute: now.getMinutes(),
+    second: now.getSeconds(),
+    millisecond: now.getMilliseconds()
+  };
+}
+
 const ClockContainer = styled.div`
   width: 100%;
   height: 100%;
@@ -170,7 +180,10 @@ export function AnalogClock() {
 
     const syncLocalTime = async () => {
       const requestedAt = performance.now();
-      const sample = await invoke<LocalTimeSample>('get_os_local_time');
+      const sample =
+        '__TAURI_INTERNALS__' in window
+          ? await invoke<LocalTimeSample>('get_os_local_time')
+          : getBrowserLocalTime();
       const receivedAt = performance.now();
 
       if (active) {

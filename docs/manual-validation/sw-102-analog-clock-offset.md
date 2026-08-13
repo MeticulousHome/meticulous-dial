@@ -11,13 +11,19 @@ The validation oracle was OS-local time reported by `timedatectl` and `date`.
 The backend `time_zone` setting was stale (`Etc/UTC`) and was not used as an
 oracle.
 
-## Candidate provenance
+## Physically validated candidate provenance
 
-- Commit: `c09f59180a6e818cb18afba0c8bb661e6ee07b99`
+- Commit: `feb683cea8f66aaee03ea5aa1e7397ad827f72dd`
 - ARM64 Debian package SHA-256:
-  `b9ec2078cfc3da0ec218ad520c09df9c68d56aa382285efa2b3c3ef8b15927ad`
+  `0940183be2cfc2c962c260cb16d95a52b3c46a61bf55e1348c42584f3589655a`
 - Installed candidate binary SHA-256:
   `c8bd0e1913143ed438967978dbdf9e04e729a70f210c6b973b908e189db25e7a`
+
+These hashes identify the artifact used for the physical observations below.
+A later review correction added a browser-only JavaScript `Date` fallback so
+the analog face also works in the plain Vite development workflow. The Tauri
+path still uses native OS-local time, but a package built after that source
+correction must be recorded with its own commit and artifact hashes.
 
 ## Before/after evidence
 
@@ -49,7 +55,9 @@ and does not change the passed analog result.
 The analog clock obtains `chrono::Local::now()` through the Tauri
 `get_os_local_time` command, advances that native sample with monotonic elapsed
 time, and resynchronizes every 30 seconds. It does not derive the analog reading
-from JavaScript `Date` or the backend `time_zone` setting.
+from JavaScript `Date` or the backend `time_zone` setting when running on the
+machine. In a plain browser without Tauri internals, it samples JavaScript
+`Date` instead so the Vite development clock remains functional.
 
 ## Checks not performed
 
