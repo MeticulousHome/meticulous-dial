@@ -69,7 +69,7 @@ export const RetractionSettingGauge: React.FC = () => {
         );
       }
     },
-    Boolean(globalSettings)
+    !globalSettings
   );
 
   if (!globalSettings) {

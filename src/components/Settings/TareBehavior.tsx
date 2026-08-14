@@ -72,7 +72,7 @@ export const TareBehaviorSetting = () => {
         updateSettings.mutate({ tare_behavior: selected });
       }
     },
-    !bubbleDisplay.interceptsGesture
+    bubbleDisplay.interceptsGesture || !globalSettings
   );
 
   const optionPositionOuter = useMemo(
