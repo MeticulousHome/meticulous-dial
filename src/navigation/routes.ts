@@ -54,6 +54,7 @@ import {
 import { FactoryReset } from '../components/Settings/Advanced/FactoryReset';
 import { Manufacturing } from '../components/Settings/Advanced/Manufacturing';
 import { RetractionSettingGauge } from '../components/Settings/Advanced/RetractionVolume';
+import { TareBehaviorSetting } from '../components/Settings/TareBehavior';
 import { useProfileContext } from '../context/ProfileContext';
 import { DisplayAlignment } from '../components/Settings/Advanced/DisplayAlignment';
 import {
@@ -193,10 +194,16 @@ export const routes: Record<ScreenType, Route> = {
   retraction_volume: {
     component: RetractionSettingGauge,
     title: 'retraction',
-    bottomTitle: 'shot volume',
+    bottomTitle: 'distance',
     props: {
       type: 'retraction_volume'
     },
+    bottomStatusHidden: true,
+    parent: 'brewSettings'
+  },
+  tare_behavior: {
+    component: TareBehaviorSetting,
+    title: 'auto tare',
     bottomStatusHidden: true,
     parent: 'brewSettings'
   },
