@@ -3,9 +3,13 @@ use std::fs;
 use std::process::Command;
 use tauri::AppHandle;
 use tauri::Manager;
+use tauri::State;
 
+mod community_upload;
 mod config;
 mod profiles;
+
+use community_upload::{CommunityEnrollment, CommunityUploadService, CommunityUploadStatus};
 
 const DIAL_READY_MARKER: &str = "/run/meticulous-dial-ready";
 const DIAL_HOME_READY_MARKER: &str = "/run/meticulous-dial-home-ready";
@@ -46,6 +50,40 @@ fn get_profiles() -> Result<Vec<serde_json::Value>, String> {
         );
     }
     profiles
+}
+
+#[tauri::command]
+fn community_upload_status(service: State<'_, CommunityUploadService>) -> CommunityUploadStatus {
+    service.status()
+}
+
+#[tauri::command]
+fn community_begin_enrollment(
+    service: State<'_, CommunityUploadService>,
+    machine_serial: Option<String>,
+) -> Result<CommunityEnrollment, String> {
+    service.begin_enrollment(machine_serial)
+}
+
+#[tauri::command]
+fn community_set_upload_paused(
+    service: State<'_, CommunityUploadService>,
+    paused: bool,
+) -> Result<(), String> {
+    service.set_paused(paused)
+}
+
+#[tauri::command]
+async fn community_disconnect(service: State<'_, CommunityUploadService>) -> Result<(), String> {
+    let service = service.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || service.disconnect())
+        .await
+        .map_err(|_| "Community disconnect task failed".to_string())?
+}
+
+#[tauri::command]
+fn community_factory_reset_local(service: State<'_, CommunityUploadService>) -> Result<(), String> {
+    service.factory_reset_local()
 }
 
 fn parse_mem() -> Option<u64> {
@@ -104,10 +142,14 @@ fn show_mem() {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let community_upload =
+        CommunityUploadService::new().expect("failed to initialize Community upload service");
+    community_upload.start();
     std::thread::spawn(|| {
         show_mem();
     });
     tauri::Builder::default()
+        .manage(community_upload)
         .setup(|_app| {
             #[cfg(debug_assertions)]
             {
@@ -130,7 +172,16 @@ pub fn run() {
                 )) // add the terminal (stdout) as log target
                 .build(),
         )
-        .invoke_handler(tauri::generate_handler![ready, home_ready, get_profiles])
+        .invoke_handler(tauri::generate_handler![
+            ready,
+            home_ready,
+            get_profiles,
+            community_upload_status,
+            community_begin_enrollment,
+            community_set_upload_paused,
+            community_disconnect,
+            community_factory_reset_local,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
