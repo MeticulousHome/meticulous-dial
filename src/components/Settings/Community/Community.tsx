@@ -16,7 +16,7 @@ const COMMUNITY_APP_URL =
   import.meta.env.VITE_COMMUNITY_APP_URL ||
   'https://community.meticuloushome.com';
 
-type ScreenMode = 'overview' | 'pairing' | 'disconnect';
+type ScreenMode = 'overview' | 'pairing' | 'connected-success' | 'disconnect';
 
 function formatTimestamp(value: number | null | undefined): string {
   if (!value) return 'Not yet';
@@ -64,20 +64,20 @@ export function CommunitySettings(): JSX.Element {
   }, [pairingExpiresAt]);
 
   useEffect(() => {
-    if (connected) {
-      setMode('overview');
+    if (connected && mode === 'pairing') {
+      setMode('connected-success');
       setPairingUrl(null);
       setPairingExpiresAt(null);
       setActiveAction(0);
     }
-  }, [connected]);
+  }, [connected, mode]);
 
   const actions = useMemo(() => {
     if (!connected) return ['Connect', 'Back'];
     return [
+      'Back',
       status?.paused ? 'Resume uploads' : 'Pause uploads',
-      'Disconnect',
-      'Back'
+      'Disconnect'
     ];
   }, [connected, status?.paused]);
 
@@ -96,11 +96,11 @@ export function CommunitySettings(): JSX.Element {
 
   useHandleGestures({
     left() {
-      if (mode === 'pairing') return;
+      if (mode === 'pairing' || mode === 'connected-success') return;
       setActiveAction((previous) => Math.max(previous - 1, 0));
     },
     right() {
-      if (mode === 'pairing') return;
+      if (mode === 'pairing' || mode === 'connected-success') return;
       const max = mode === 'disconnect' ? 1 : actions.length - 1;
       setActiveAction((previous) => Math.min(previous + 1, max));
     },
@@ -109,6 +109,12 @@ export function CommunitySettings(): JSX.Element {
       if (mode === 'pairing') {
         setMode('overview');
         setActiveAction(0);
+        return;
+      }
+      if (mode === 'connected-success') {
+        setMode('overview');
+        setActiveAction(0);
+        goBack();
         return;
       }
       if (mode === 'disconnect') {
@@ -176,6 +182,20 @@ export function CommunitySettings(): JSX.Element {
           ))}
         </div>
         {error ? <p className="community-error">{String(error)}</p> : null}
+      </div>
+    );
+  }
+
+  if (mode === 'connected-success') {
+    return (
+      <div className="community-screen">
+        <h2>Connected to Community</h2>
+        <p className="community-copy">
+          New shots will be uploaded privately to your account.
+        </p>
+        <div className="community-actions">
+          <div className="community-action active">Done</div>
+        </div>
       </div>
     );
   }
