@@ -93,6 +93,8 @@ export const ProfileHomeScreen = () => {
   const [isPressingDown, setIsPressingDown] = useState(false);
   const pressThroughTimer = useRef<NodeJS.Timeout | null>(null);
   const homeReadyReported = useRef(false);
+  const activeOptionRef = useRef(activeOption);
+  activeOptionRef.current = activeOption;
 
   const nodeRefs = useRef<Record<string, Ref<HTMLDivElement>>>({});
   const requiresPurge = useRef<boolean>(false);
@@ -171,33 +173,56 @@ export const ProfileHomeScreen = () => {
     }
   }, [mergedProfiles, activeOption]);
 
+  const emitProfileHover = (profileIndex: number, type: 'focus' | 'scroll') => {
+    const profile = mergedProfiles?.[profileIndex];
+    if (profile?.id) {
+      socket.emit('profileHover', {
+        id: profile.id,
+        from: 'dial',
+        type
+      });
+    }
+  };
+
+  const moveActiveOption = (next: number) => {
+    if (next === activeOptionRef.current) return;
+
+    activeOptionRef.current = next;
+    setActiveOption(next);
+    emitProfileHover(next, 'scroll');
+  };
+
   const rotateLeft = () => {
     if (localHoverState) {
       setLocalHoverState(false);
+      emitProfileHover(activeOptionRef.current, 'scroll');
       return;
     }
-    if (activeOption !== mergedProfiles?.length) {
+    if (activeOptionRef.current !== mergedProfiles?.length) {
       setTransitionDirection('none');
       requestAnimationFrame(() => {
         setTransitionDirection('right');
       });
     }
-    setActiveOption((prev) => Math.min(prev + 1, mergedProfiles?.length || 0));
+    moveActiveOption(
+      Math.min(activeOptionRef.current + 1, mergedProfiles?.length || 0)
+    );
   };
 
   const rotateRight = () => {
     if (localHoverState) {
       setLocalHoverState(false);
+      emitProfileHover(activeOptionRef.current, 'scroll');
       return;
     }
-    if (activeOption !== 0) {
+    if (activeOptionRef.current !== 0) {
       setTransitionDirection('none');
 
       requestAnimationFrame(() => {
         setTransitionDirection('left');
       });
     }
-    setActiveOption((prev) => Math.max(prev - 1, 0));
+    moveActiveOption(Math.max(activeOptionRef.current - 1, 0));
   };
 
   useHandleGestures(
@@ -231,14 +256,7 @@ export const ProfileHomeScreen = () => {
           if (!localHoverState) {
             setLocalHoverState(true);
             setTransitionDirection('none');
-            const profile = mergedProfiles?.[activeOption];
-            if (profile?.id) {
-              socket.emit('profileHover', {
-                id: profile.id,
-                from: 'dial',
-                type: 'focus'
-              });
-            }
+            emitProfileHover(activeOptionRef.current, 'focus');
             if (!isOnline) return;
             pressThroughTimer.current = setTimeout(() => {
               setIsPressingDown(true);
