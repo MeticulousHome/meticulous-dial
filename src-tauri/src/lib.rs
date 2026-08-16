@@ -19,15 +19,24 @@ const DIAL_HOME_READY_MARKER: &str = "/run/meticulous-dial-home-ready";
 fn ready(app_handle: AppHandle) {
     println!("React is reporting ready!");
     let _ = fs::remove_file(DIAL_HOME_READY_MARKER);
+    let Some(window) = app_handle.get_webview_window("main") else {
+        eprintln!("Dial main window is unavailable");
+        return;
+    };
+    #[cfg(not(debug_assertions))]
+    {
+        if let Err(error) = window.set_fullscreen(true) {
+            eprintln!("Failed to make the Dial window fullscreen: {}", error);
+            return;
+        }
+    }
+    if let Err(error) = window.show() {
+        eprintln!("Failed to show the Dial window: {}", error);
+        return;
+    }
     if let Err(error) = fs::write(DIAL_READY_MARKER, "ready\n") {
         eprintln!("Failed to write dial ready marker: {}", error);
     }
-    let window = app_handle.get_webview_window("main").unwrap();
-    #[cfg(not(debug_assertions))]
-    {
-        window.set_fullscreen(true).unwrap();
-    }
-    window.show().unwrap();
 }
 
 #[tauri::command]
@@ -84,6 +93,11 @@ async fn community_disconnect(service: State<'_, CommunityUploadRuntime>) -> Res
 #[tauri::command]
 fn community_factory_reset_local(service: State<'_, CommunityUploadRuntime>) -> Result<(), String> {
     service.factory_reset_local()
+}
+
+#[tauri::command]
+fn community_scan_history(service: State<'_, CommunityUploadRuntime>) -> Result<(), String> {
+    service.request_history_scan()
 }
 
 fn parse_mem() -> Option<u64> {
@@ -180,6 +194,7 @@ pub fn run() {
             community_set_upload_paused,
             community_disconnect,
             community_factory_reset_local,
+            community_scan_history,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

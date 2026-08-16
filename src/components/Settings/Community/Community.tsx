@@ -240,9 +240,7 @@ export function CommunitySettings(): JSX.Element {
           <div className="community-actions">
             <div className="community-action active">Back</div>
           </div>
-          <p className="community-error">
-            {readableError(status?.lastError)}
-          </p>
+          <p className="community-error">{readableError(status?.lastError)}</p>
         </div>
       );
     }

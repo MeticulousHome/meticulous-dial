@@ -15,6 +15,7 @@ make_fake_commands() {
     'if test "${1:-}" = "start" && test "${2:-}" = "meticulous-dial.service"; then' \
     '  mkdir -p "$POUR_OVER_RECOVERY_ROOT/run"' \
     '  printf ready > "$POUR_OVER_RECOVERY_ROOT/run/meticulous-dial-ready"' \
+    '  printf ready > "$POUR_OVER_RECOVERY_ROOT/run/meticulous-dial-home-ready"' \
     'fi' \
     'exit 0' > "$root/fake-bin/systemctl"
   printf '%s\n' '#!/bin/sh' 'printf "{}\n"' > "$root/fake-bin/curl"
@@ -75,6 +76,17 @@ test "$(cat "$rollback_root/opt/meticulous-venv/version")" = old-venv
 test "$(cat "$rollback_root/usr/bin/meticulous-dial")" = old-dial
 test "$(cat "$rollback_root/meticulous-user/history/history.sqlite")" = current-history
 test ! -e "$rollback_root/opt/meticulous-firmware/backups/.pour-over-transaction"
+
+boot_root="$TEST_ROOT/boot"
+prepare_stack "$boot_root" install
+printf '%s\n' '#!/bin/sh' 'exit 1' > "$boot_root/fake-bin/systemctl"
+printf '%s\n' '#!/bin/sh' 'exit 1' > "$boot_root/fake-bin/curl"
+chmod 755 "$boot_root/fake-bin/systemctl" "$boot_root/fake-bin/curl"
+PATH="$boot_root/fake-bin:$PATH" POUR_OVER_RECOVERY_ROOT="$boot_root" \
+  POUR_OVER_RECOVERY_VERIFY_SERVICES=0 "$RECOVERY_SCRIPT"
+test "$(cat "$boot_root/opt/meticulous-backend/version")" = old-backend
+test "$(cat "$boot_root/usr/bin/meticulous-dial")" = old-dial
+test ! -e "$boot_root/opt/meticulous-firmware/backups/.pour-over-transaction"
 
 failure_root="$TEST_ROOT/failure"
 prepare_stack "$failure_root" install

@@ -6,8 +6,10 @@ ConditionPathExists=/opt/meticulous-firmware/backups/.pour-over-transaction
 
 [Service]
 Type=oneshot
+Environment=POUR_OVER_RECOVERY_VERIFY_SERVICES=0
 ExecStart=/usr/local/sbin/meticulous-pour-over-transaction-recovery
-TimeoutStartSec=240
+TimeoutStartSec=600
 
 [Install]
 WantedBy=multi-user.target
+RequiredBy=meticulous-backend.service meticulous-dial.service

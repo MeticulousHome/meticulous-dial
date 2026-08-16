@@ -16,6 +16,21 @@ interface PourOverHistoryResponse {
   history: PourOverHistoryMetadata[];
 }
 
+const HISTORY_REQUEST_TIMEOUT_MS = 10_000;
+
+const historyFetch = async (input: string, init?: RequestInit) => {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(
+    () => controller.abort(),
+    HISTORY_REQUEST_TIMEOUT_MS
+  );
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    window.clearTimeout(timeout);
+  }
+};
+
 const apiError = async (response: Response, fallback: string) => {
   let message = fallback;
   try {
@@ -28,7 +43,7 @@ const apiError = async (response: Response, fallback: string) => {
 };
 
 export const persistFreePourSession = async (session: FreePourSession) => {
-  const response = await fetch(`${API_URL}/api/v1/history/pour-over`, {
+  const response = await historyFetch(`${API_URL}/api/v1/history/pour-over`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(session)
@@ -44,7 +59,7 @@ const fetchBackendSession = async (metadata: PourOverHistoryMetadata) => {
     .split('/')
     .map((segment) => encodeURIComponent(segment))
     .join('/');
-  const recordResponse = await fetch(
+  const recordResponse = await historyFetch(
     `${API_URL}/api/v1/history/pour-over/files/${encodedPath}`
   );
   if (!recordResponse.ok) {
@@ -54,7 +69,7 @@ const fetchBackendSession = async (metadata: PourOverHistoryMetadata) => {
 };
 
 export const getLatestBackendFreePourSession = async () => {
-  const latestResponse = await fetch(
+  const latestResponse = await historyFetch(
     `${API_URL}/api/v1/history/pour-over/last`
   );
   if (latestResponse.status === 404) return null;
@@ -67,7 +82,7 @@ export const getLatestBackendFreePourSession = async () => {
 };
 
 export const getLatestBackendFreePourOnlySession = async () => {
-  const response = await fetch(
+  const response = await historyFetch(
     `${API_URL}/api/v1/history/pour-over?mode=free_pour&max_results=1`
   );
   if (!response.ok) {

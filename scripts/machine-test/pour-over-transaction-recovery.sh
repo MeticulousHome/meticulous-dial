@@ -3,7 +3,13 @@
 set -eu
 
 RECOVERY_ROOT="${POUR_OVER_RECOVERY_ROOT:-}"
+VERIFY_SERVICES="${POUR_OVER_RECOVERY_VERIFY_SERVICES:-1}"
 MARKER_PATH="$RECOVERY_ROOT/opt/meticulous-firmware/backups/.pour-over-transaction"
+
+case "$VERIFY_SERVICES" in
+  0|1) ;;
+  *) echo "ERROR: Invalid recovery service verification mode" >&2; exit 1 ;;
+esac
 
 test -s "$MARKER_PATH" || exit 0
 
@@ -52,7 +58,9 @@ restore_saved_directory() {
 }
 
 echo "Recovering interrupted Pour Over $operation transaction..." >&2
-systemctl stop meticulous-dial.service meticulous-backend.service || true
+if test "$VERIFY_SERVICES" = "1"; then
+  systemctl stop meticulous-dial.service meticulous-backend.service || true
+fi
 
 restore_saved_directory live-meticulous-backend "$RECOVERY_ROOT/opt/meticulous-backend" meticulous-backend
 restore_saved_directory live-meticulous-venv "$RECOVERY_ROOT/opt/meticulous-venv" meticulous-venv
@@ -70,6 +78,17 @@ if test "$operation" = "install"; then
     fi
   done
   cp -p "$backup_fs_dir/history.sqlite.pre-install" "$RECOVERY_ROOT/meticulous-user/history/history.sqlite"
+fi
+
+if test "$VERIFY_SERVICES" = "0"; then
+  # During boot this unit is ordered before the backend and Dial. Starting either
+  # service from here would create an ordering cycle, so finish the durable restore
+  # and let systemd start and supervise them normally.
+  sync
+  rm -f "$MARKER_PATH"
+  sync
+  echo "Interrupted Pour Over $operation transaction recovered." >&2
+  exit 0
 fi
 
 systemctl start meticulous-backend.service
@@ -93,7 +112,7 @@ systemctl start meticulous-dial.service
 dial_ready=false
 attempt=1
 while test "$attempt" -le 90; do
-  if systemctl is-active --quiet meticulous-dial.service && test -s "$RECOVERY_ROOT/run/meticulous-dial-ready"; then
+  if systemctl is-active --quiet meticulous-dial.service && test -s "$RECOVERY_ROOT/run/meticulous-dial-home-ready"; then
     dial_ready=true
     break
   fi
@@ -106,6 +125,7 @@ test "$dial_ready" = true || {
 }
 
 systemctl is-active --quiet meticulous-backend.service
+sync
 rm -f "$MARKER_PATH"
 sync
 echo "Interrupted Pour Over $operation transaction recovered." >&2

@@ -9,6 +9,8 @@ const DATABASE_NAME = 'meticulous-brew-history';
 const DATABASE_VERSION = 2;
 const STORE_NAME = 'brew-sessions';
 const PENDING_STORE_NAME = 'pending-backend-sessions';
+const MAX_LOCAL_SESSIONS = 128;
+const MAX_PENDING_SYNC_PER_RUN = 10;
 
 let databasePromise: Promise<IDBDatabase> | null = null;
 let memoryFallback: FreePourSession[] = [];
@@ -57,7 +59,7 @@ const cacheSession = async (
     memoryFallback = [
       session,
       ...memoryFallback.filter((item) => item.id !== session.id)
-    ];
+    ].slice(0, MAX_LOCAL_SESSIONS);
     return;
   }
   const database = await openDatabase();
@@ -66,13 +68,29 @@ const cacheSession = async (
       [STORE_NAME, PENDING_STORE_NAME],
       'readwrite'
     );
-    transaction.objectStore(STORE_NAME).put(session);
+    const sessionStore = transaction.objectStore(STORE_NAME);
+    const pendingStore = transaction.objectStore(PENDING_STORE_NAME);
+    sessionStore.put(session);
     if (queueForBackend) {
-      transaction.objectStore(PENDING_STORE_NAME).put({
+      pendingStore.put({
         id: session.id,
         queuedAt: Date.now()
       });
     }
+    let retained = 0;
+    const pruneRequest = sessionStore
+      .index('completedAt')
+      .openCursor(null, 'prev');
+    pruneRequest.onsuccess = () => {
+      const cursor = pruneRequest.result;
+      if (!cursor) return;
+      retained += 1;
+      if (retained > MAX_LOCAL_SESSIONS) {
+        sessionStore.delete(cursor.primaryKey);
+        pendingStore.delete(cursor.primaryKey);
+      }
+      cursor.continue();
+    };
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(transaction.error);
   });
@@ -187,8 +205,9 @@ const getSessionById = async (sessionId: string) => {
 
 export const syncPendingFreePourSessions = async () => {
   const pendingIds = await getPendingSessionIds();
+  const attemptIds = pendingIds.slice(0, MAX_PENDING_SYNC_PER_RUN);
   let synced = 0;
-  for (const sessionId of pendingIds) {
+  for (const sessionId of attemptIds) {
     const session = await getSessionById(sessionId);
     if (!session) {
       await markBackendPersisted(sessionId);

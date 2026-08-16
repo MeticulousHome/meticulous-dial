@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { useAppDispatch, useAppSelector } from '../../components/store/hooks';
@@ -49,6 +50,7 @@ type SetupStage = Extract<Stage, 'server' | 'brewer' | 'coffee'>;
 type SetupStatus = 'idle' | 'saving' | 'taring' | 'tare-timeout';
 
 const SAMPLE_INTERVAL_MS = 200;
+const MAX_BREW_DURATION_MS = 10 * 60 * 1000;
 const MAX_POURS = 5;
 const TARE_CONFIRM_TOLERANCE_G = 0.6;
 const TARE_CONFIRM_TIMEOUT_MS = 5000;
@@ -266,6 +268,7 @@ export const FreePourScreen = ({
     profile?.temperatureC ?? DEFAULT_FREE_POUR_TEMPERATURE_C
   );
   const [elapsedMs, setElapsedMs] = useState(0);
+  const [timeLimitReached, setTimeLimitReached] = useState(false);
   const [pours, setPours] = useState<FreePourPour[]>([]);
   const [activePourView, setActivePourView] = useState<{
     number: number;
@@ -288,6 +291,7 @@ export const FreePourScreen = ({
   const startedAtIso = useRef('');
   const brewStartTime = useRef<number | null>(null);
   const elapsedMsRef = useRef(0);
+  const timeLimitReachedRef = useRef(false);
   const lastStoredSampleTime = useRef(0);
   const lastPeakFilterTime = useRef<number | null>(null);
   const peakWaterWeight = useRef(0);
@@ -429,6 +433,14 @@ export const FreePourScreen = ({
       .then(() => {
         sessionSaved.current = true;
         logFreePour('session_saved', { runId, sessionId: session.id });
+        if ('__TAURI_INTERNALS__' in window) {
+          void invoke('community_scan_history').catch((error) => {
+            logFreePourError('community_history_scan_request_failed', error, {
+              runId,
+              sessionId: session.id
+            });
+          });
+        }
       })
       .catch((error) => {
         logFreePourError('session_save_failed', error, {
@@ -442,7 +454,12 @@ export const FreePourScreen = ({
     if (finalizing.current) return;
     finalizing.current = true;
     if (brewStartTime.current !== null) {
-      const finalElapsedMs = Math.max(0, timeMs - brewStartTime.current);
+      const finalElapsedMs = timeLimitReachedRef.current
+        ? MAX_BREW_DURATION_MS
+        : Math.min(
+            MAX_BREW_DURATION_MS,
+            Math.max(0, timeMs - brewStartTime.current)
+          );
       elapsedMsRef.current = finalElapsedMs;
       setElapsedMs(finalElapsedMs);
     }
@@ -485,43 +502,66 @@ export const FreePourScreen = ({
       const currentWeight = weightRef.current;
       const currentFlow = Math.max(0, flowRef.current);
 
-      const timingActive =
+      const brewStillOnScale =
         currentStage === 'pouring' ||
         currentStage === 'waiting' ||
         currentStage === 'finish-requested';
-      if (brewStartTime.current !== null && timingActive) {
-        const nextElapsed = now - brewStartTime.current;
-        elapsedMsRef.current = nextElapsed;
-        setElapsedMs(nextElapsed);
-        const peakFilterElapsedMs =
-          lastPeakFilterTime.current === null
-            ? 100
-            : now - lastPeakFilterTime.current;
-        lastPeakFilterTime.current = now;
-        peakWaterWeight.current = updatePlausiblePeakWeight(
-          peakWaterWeight.current,
-          currentWeight,
-          peakFilterElapsedMs
-        );
-        if (activePour.current) {
-          activePour.current.peakWeightG = updatePlausiblePeakWeight(
-            activePour.current.peakWeightG,
+      if (brewStartTime.current !== null && brewStillOnScale) {
+        if (!timeLimitReachedRef.current) {
+          const rawElapsedMs = now - brewStartTime.current;
+          const nextElapsed = Math.min(MAX_BREW_DURATION_MS, rawElapsedMs);
+          elapsedMsRef.current = nextElapsed;
+          setElapsedMs(nextElapsed);
+          const peakFilterElapsedMs =
+            lastPeakFilterTime.current === null
+              ? 100
+              : now - lastPeakFilterTime.current;
+          lastPeakFilterTime.current = now;
+          peakWaterWeight.current = updatePlausiblePeakWeight(
+            peakWaterWeight.current,
             currentWeight,
             peakFilterElapsedMs
           );
-          activePour.current.peakFlowGps = Math.max(
-            activePour.current.peakFlowGps,
-            currentFlow
-          );
-        }
-        if (now - lastStoredSampleTime.current >= SAMPLE_INTERVAL_MS) {
-          lastStoredSampleTime.current = now;
-          samples.current.push({
-            t: Math.round(nextElapsed),
-            w: roundTo(Math.max(0, currentWeight)),
-            f: roundTo(currentFlow),
-            p: activePour.current?.number ?? 0
-          });
+          if (activePour.current) {
+            activePour.current.peakWeightG = updatePlausiblePeakWeight(
+              activePour.current.peakWeightG,
+              currentWeight,
+              peakFilterElapsedMs
+            );
+            activePour.current.peakFlowGps = Math.max(
+              activePour.current.peakFlowGps,
+              currentFlow
+            );
+          }
+          if (now - lastStoredSampleTime.current >= SAMPLE_INTERVAL_MS) {
+            lastStoredSampleTime.current = now;
+            samples.current.push({
+              t: Math.round(nextElapsed),
+              w: roundTo(Math.max(0, currentWeight)),
+              f: roundTo(currentFlow),
+              p: activePour.current?.number ?? 0
+            });
+          }
+
+          if (rawElapsedMs >= MAX_BREW_DURATION_MS) {
+            timeLimitReachedRef.current = true;
+            setTimeLimitReached(true);
+            completion.current = 'dial_fallback';
+            if (activePour.current) {
+              finishActivePour(
+                brewStartTime.current + MAX_BREW_DURATION_MS,
+                peakWaterWeight.current
+              );
+            }
+            detector.current.reset();
+            logFreePour('brew_time_limit_reached', {
+              runId,
+              limit_ms: MAX_BREW_DURATION_MS,
+              water_g: roundTo(peakWaterWeight.current),
+              samples: samples.current.length
+            });
+            updateStage('finish-requested');
+          }
         }
 
         const removalThreshold = Math.max(28, setupWeight.current * 0.18);
@@ -565,7 +605,7 @@ export const FreePourScreen = ({
         currentStage === 'ready' ||
         currentStage === 'pouring' ||
         currentStage === 'waiting';
-      if (brewingStage) {
+      if (brewingStage && !timeLimitReachedRef.current) {
         const detectorSample: DetectorSample = {
           timeMs: now,
           weightG: currentWeight,
@@ -665,7 +705,7 @@ export const FreePourScreen = ({
         water_g: roundTo(water)
       });
       finalizing.current = false;
-      updateStage('waiting');
+      updateStage(timeLimitReachedRef.current ? 'finish-requested' : 'waiting');
     }
   }, [stable, stage, weight]);
 
@@ -1124,8 +1164,25 @@ export const FreePourScreen = ({
     return (
       <div className="free-pour-screen free-pour-message-screen">
         <div className="free-pour-step">7 OF 8</div>
-        <div className="free-pour-message-main">LIFT BREWER</div>
-        <div className="free-pour-message-sub">KEEP SERVER ON SCALE</div>
+        {timeLimitReached ? (
+          <>
+            <div className="free-pour-message-main">
+              10:00 LIMIT REACHED
+              <br />
+              RECORDING ENDED
+            </div>
+            <div className="free-pour-message-sub">
+              LIFT BREWER
+              <br />
+              KEEP SERVER ON SCALE
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="free-pour-message-main">LIFT BREWER</div>
+            <div className="free-pour-message-sub">KEEP SERVER ON SCALE</div>
+          </>
+        )}
       </div>
     );
   }

@@ -14,6 +14,7 @@ const CHART_TOP = 108;
 const CHART_WIDTH = 344;
 const CHART_HEIGHT = 142;
 const SCROLL_STEP_MS = 5_000;
+const MAX_CHART_SAMPLES = 1_200;
 
 const closestSample = (samples: FreePourSample[], timeMs: number) =>
   samples.reduce((closest, sample) =>
@@ -57,6 +58,14 @@ export const FreePourHistoryScreen = () => {
   }, []);
 
   const durationMs = session?.measurements.durationMs ?? 0;
+  const plottedSamples = useMemo(() => {
+    const source = session?.samples ?? [];
+    if (source.length <= MAX_CHART_SAMPLES) return source;
+    const stride = Math.ceil(source.length / MAX_CHART_SAMPLES);
+    return source.filter(
+      (_sample, index) => index % stride === 0 || index === source.length - 1
+    );
+  }, [session]);
   useHandleGestures(
     {
       left() {
@@ -79,22 +88,32 @@ export const FreePourHistoryScreen = () => {
     bubbleDisplay.interceptsGesture
   );
 
-  const chart = useMemo(() => {
-    if (!session || session.samples.length === 0) return null;
-    const maxWeight = Math.max(1, ...session.samples.map((sample) => sample.w));
+  const paths = useMemo(() => {
+    if (!session || plottedSamples.length === 0) return null;
+    const maxWeight = plottedSamples.reduce(
+      (maximum, sample) => Math.max(maximum, sample.w),
+      1
+    );
     return {
       weightPath: linePath(
-        session.samples,
+        plottedSamples,
         durationMs,
         (sample) => sample.w,
         maxWeight
       ),
-      flowPath: linePath(session.samples, durationMs, (sample) => sample.f, 10),
+      flowPath: linePath(plottedSamples, durationMs, (sample) => sample.f, 10)
+    };
+  }, [durationMs, plottedSamples, session]);
+
+  const chart = useMemo(() => {
+    if (!session || !paths || session.samples.length === 0) return null;
+    return {
+      ...paths,
       selected: closestSample(session.samples, selectedTimeMs),
       cursorX:
         CHART_LEFT + (selectedTimeMs / Math.max(1, durationMs)) * CHART_WIDTH
     };
-  }, [durationMs, selectedTimeMs, session]);
+  }, [durationMs, paths, selectedTimeMs, session]);
 
   if (session === undefined) return <LoadingScreen />;
   if (!session || !chart) {

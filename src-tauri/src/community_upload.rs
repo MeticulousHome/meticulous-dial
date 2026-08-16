@@ -3,6 +3,7 @@ use ed25519_dalek::{Signer, SigningKey};
 use rand_core::{OsRng, RngCore};
 use reqwest::blocking::{Client, Response};
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, RETRY_AFTER};
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -25,8 +26,12 @@ const REVOKE_PATH: &str = "/api/machine-uploads/v1/installations/current";
 const DEFAULT_COMMUNITY_BASE: &str = "https://community.meticuloushome.com";
 const DEFAULT_MACHINE_BASE: &str = "http://localhost:8080";
 const MAX_SHOT_BODY_BYTES: usize = 2 * 1024 * 1024;
+const MAX_CONTROL_RESPONSE_BYTES: usize = 256 * 1024;
+const MAX_POUR_OVER_DURATION_MS: u64 = 10 * 60 * 1000;
+const MAX_POUR_OVER_SAMPLES: usize = 3_001;
 const MAX_QUEUE_ITEMS: usize = 128;
 const MAX_QUEUE_BYTES: u64 = 64 * 1024 * 1024;
+const HISTORY_POLL_SECONDS: i64 = 60;
 const SERVER_UPGRADE_RETRY_SECONDS: i64 = 15 * 60;
 const ENROLLMENT_TTL_SECONDS: i64 = 10 * 60;
 const ENROLLMENT_EXCHANGE_GRACE_SECONDS: i64 = 5 * 60;
@@ -91,6 +96,7 @@ struct VolatileState {
     clock_offset_seconds: i64,
     worker_not_before: i64,
     worker_failure_count: u32,
+    history_scan_not_before: i64,
 }
 
 struct RuntimeState {
@@ -238,6 +244,10 @@ impl CommunityUploadRuntime {
         self.available()?.factory_reset_local()
     }
 
+    pub fn request_history_scan(&self) -> Result<(), String> {
+        self.available()?.request_history_scan()
+    }
+
     fn available(&self) -> Result<&CommunityUploadService, String> {
         match self {
             Self::Available(service) => Ok(service),
@@ -346,6 +356,16 @@ impl CommunityUploadService {
                 .as_ref()
                 .map(|enrollment| enrollment.issued_at + ENROLLMENT_TTL_SECONDS),
         }
+    }
+
+    pub fn request_history_scan(&self) -> Result<(), String> {
+        let mut state = self
+            .inner
+            .state
+            .lock()
+            .map_err(|_| "Community state unavailable".to_string())?;
+        state.volatile.history_scan_not_before = 0;
+        Ok(())
     }
 
     pub fn begin_enrollment(
@@ -472,8 +492,15 @@ impl CommunityUploadService {
 
         // Drain one durable item first so a full queue can always make progress.
         self.upload_next_shot()?;
-        self.observe_new_shots()?;
-        self.observe_new_pour_overs()?;
+        if self.history_scan_is_due() {
+            let espresso_complete = self.observe_new_shots()?;
+            let pour_over_complete = self.observe_new_pour_overs()?;
+            self.schedule_next_history_scan(if espresso_complete && pour_over_complete {
+                HISTORY_POLL_SECONDS
+            } else {
+                5
+            });
+        }
         Ok(())
     }
 
@@ -562,9 +589,8 @@ impl CommunityUploadService {
             }
             return Err(failure);
         }
-        let exchanged = response
-            .json::<ExchangeResponse>()
-            .map_err(|_| temporary("exchange_response_invalid"))?;
+        let exchanged =
+            parse_json_response::<ExchangeResponse>(response, "exchange_response_invalid")?;
         self.mutate_persistent_failure(|state| {
             state.authorization_id = Some(exchanged.authorization_id);
             state.key_id = Some(exchanged.key_id);
@@ -588,7 +614,7 @@ impl CommunityUploadService {
         Ok(())
     }
 
-    fn observe_new_shots(&self) -> Result<(), RequestFailure> {
+    fn observe_new_shots(&self) -> Result<bool, RequestFailure> {
         let (baselined, cursor) = {
             let state = self
                 .inner
@@ -600,23 +626,18 @@ impl CommunityUploadService {
                 state.persistent.history_cursor.clone(),
             )
         };
-        let latest = self.fetch_last_history_path()?;
         if !baselined {
+            let latest = self.fetch_last_history_path()?;
             self.mutate_persistent_failure(|state| {
                 state.history_baselined = true;
                 state.history_cursor = latest;
                 Ok(())
             })?;
-            return Ok(());
-        }
-        let Some(latest_path) = latest else {
-            return Ok(());
-        };
-        if cursor.as_ref().is_some_and(|value| value >= &latest_path) {
-            return Ok(());
+            return Ok(true);
         }
 
-        let paths = self.fetch_history_paths()?;
+        let paths = self.fetch_history_paths(cursor.as_deref())?;
+        let page_complete = paths.len() < 200;
         for path in paths {
             let current_cursor = {
                 self.inner
@@ -632,16 +653,19 @@ impl CommunityUploadService {
             }
             match self.queue_history_path(HistoryKind::Espresso, &path) {
                 Ok(()) => {}
+                Err(failure) if failure.category == "queue_capacity_reached" => {
+                    return Ok(false);
+                }
                 Err(failure) if failure.permanent => {
                     self.skip_history_path(HistoryKind::Espresso, &path, &failure.category)?;
                 }
                 Err(failure) => return Err(failure),
             }
         }
-        Ok(())
+        Ok(page_complete)
     }
 
-    fn observe_new_pour_overs(&self) -> Result<(), RequestFailure> {
+    fn observe_new_pour_overs(&self) -> Result<bool, RequestFailure> {
         let (baselined, cursor) = {
             let state = self
                 .inner
@@ -653,23 +677,19 @@ impl CommunityUploadService {
                 state.persistent.pour_over_history_cursor.clone(),
             )
         };
-        let latest = self.fetch_last_pour_over_history_path()?;
         if !baselined {
+            let latest = self.fetch_last_pour_over_history_path()?;
             self.mutate_persistent_failure(|state| {
                 state.pour_over_history_baselined = true;
                 state.pour_over_history_cursor = latest;
                 Ok(())
             })?;
-            return Ok(());
-        }
-        let Some(latest_path) = latest else {
-            return Ok(());
-        };
-        if cursor.as_ref().is_some_and(|value| value >= &latest_path) {
-            return Ok(());
+            return Ok(true);
         }
 
-        for path in self.fetch_pour_over_history_paths(cursor.as_deref())? {
+        let paths = self.fetch_pour_over_history_paths(cursor.as_deref())?;
+        let page_complete = paths.len() < 200;
+        for path in paths {
             let current_cursor = {
                 self.inner
                     .state
@@ -684,13 +704,16 @@ impl CommunityUploadService {
             }
             match self.queue_history_path(HistoryKind::PourOver, &path) {
                 Ok(()) => {}
+                Err(failure) if failure.category == "queue_capacity_reached" => {
+                    return Ok(false);
+                }
                 Err(failure) if failure.permanent => {
                     self.skip_history_path(HistoryKind::PourOver, &path, &failure.category)?;
                 }
                 Err(failure) => return Err(failure),
             }
         }
-        Ok(())
+        Ok(page_complete)
     }
 
     fn fetch_last_pour_over_history_path(&self) -> Result<Option<String>, RequestFailure> {
@@ -706,9 +729,7 @@ impl CommunityUploadService {
         if !response.status().is_success() {
             return Err(temporary("machine_pour_over_history_unavailable"));
         }
-        let value = response
-            .json::<Value>()
-            .map_err(|_| temporary("machine_pour_over_history_invalid"))?;
+        let value = parse_json_response::<Value>(response, "machine_pour_over_history_invalid")?;
         value
             .get("file")
             .and_then(Value::as_str)
@@ -738,9 +759,10 @@ impl CommunityUploadService {
         if !response.status().is_success() {
             return Err(temporary("machine_pour_over_history_unavailable"));
         }
-        let history = response
-            .json::<BrewHistoryResponse>()
-            .map_err(|_| temporary("machine_pour_over_history_invalid"))?;
+        let history = parse_json_response::<BrewHistoryResponse>(
+            response,
+            "machine_pour_over_history_invalid",
+        )?;
         let mut paths = history
             .history
             .into_iter()
@@ -765,9 +787,7 @@ impl CommunityUploadService {
         if !response.status().is_success() {
             return Err(temporary("machine_history_unavailable"));
         }
-        let value = response
-            .json::<Value>()
-            .map_err(|_| temporary("machine_history_invalid"))?;
+        let value = parse_json_response::<Value>(response, "machine_history_invalid")?;
         value
             .get("file")
             .and_then(Value::as_str)
@@ -775,44 +795,35 @@ impl CommunityUploadService {
             .transpose()
     }
 
-    fn fetch_history_paths(&self) -> Result<Vec<String>, RequestFailure> {
-        let dates = self.fetch_history_entries("/api/v1/history/files/")?;
-        let mut paths = Vec::new();
-        for date in dates {
-            let Some(date_name) = date.name.or(date.url) else {
-                continue;
-            };
-            let date_name = normalize_history_segment(&date_name)?;
-            let entries =
-                self.fetch_history_entries(&format!("/api/v1/history/files/{date_name}"))?;
-            for entry in entries {
-                let Some(file_name) = entry.url.or(entry.name).or(entry.file) else {
-                    continue;
-                };
-                let file_name = normalize_history_segment(&file_name)?;
-                if file_name.contains(".shot.json") {
-                    paths.push(format!("{date_name}/{file_name}"));
-                }
+    fn fetch_history_paths(&self, after: Option<&str>) -> Result<Vec<String>, RequestFailure> {
+        let mut url = self.machine_url("/api/v1/history/upload-index");
+        {
+            let mut query = url.query_pairs_mut();
+            query.append_pair("max_results", "200");
+            if let Some(after) = after {
+                query.append_pair("after", after);
             }
         }
-        paths.sort();
-        paths.dedup();
-        Ok(paths)
-    }
-
-    fn fetch_history_entries(&self, path: &str) -> Result<Vec<HistoryEntry>, RequestFailure> {
         let response = self
             .inner
             .client
-            .get(self.machine_url(path))
+            .get(url)
             .send()
             .map_err(|_| temporary("machine_history_unavailable"))?;
         if !response.status().is_success() {
             return Err(temporary("machine_history_unavailable"));
         }
-        response
-            .json::<Vec<HistoryEntry>>()
-            .map_err(|_| temporary("machine_history_invalid"))
+        let history =
+            parse_json_response::<BrewHistoryResponse>(response, "machine_history_invalid")?;
+        let mut paths = history
+            .history
+            .into_iter()
+            .filter_map(|entry| entry.file.or(entry.url).or(entry.name))
+            .map(|path| normalize_history_path(&path))
+            .collect::<Result<Vec<_>, _>>()?;
+        paths.sort();
+        paths.dedup();
+        Ok(paths)
     }
 
     fn queue_history_path(
@@ -820,6 +831,7 @@ impl CommunityUploadService {
         history_kind: HistoryKind,
         history_path: &str,
     ) -> Result<(), RequestFailure> {
+        self.ensure_queue_capacity(0)?;
         let response = self
             .inner
             .client
@@ -1079,10 +1091,8 @@ impl CommunityUploadService {
             }
             return Err(failure);
         }
-        let token = response
-            .json::<TokenResponse>()
-            .map_err(|_| temporary("token_response_invalid"))?
-            .access_token;
+        let token =
+            parse_json_response::<TokenResponse>(response, "token_response_invalid")?.access_token;
         let mut state = self
             .inner
             .state
@@ -1237,6 +1247,20 @@ impl CommunityUploadService {
             .lock()
             .map(|state| state.volatile.worker_not_before <= unix_seconds())
             .unwrap_or(false)
+    }
+
+    fn history_scan_is_due(&self) -> bool {
+        self.inner
+            .state
+            .lock()
+            .map(|state| state.volatile.history_scan_not_before <= unix_seconds())
+            .unwrap_or(false)
+    }
+
+    fn schedule_next_history_scan(&self, delay_seconds: i64) {
+        if let Ok(mut state) = self.inner.state.lock() {
+            state.volatile.history_scan_not_before = unix_seconds() + delay_seconds.max(1);
+        }
     }
 
     fn schedule_worker_after(&self, delay_seconds: i64) {
@@ -1593,6 +1617,32 @@ fn sign_message(private_seed: &str, message: &[u8]) -> Result<String, RequestFai
     Ok(URL_SAFE_NO_PAD.encode(signature.to_bytes()))
 }
 
+fn read_bounded_response(response: Response) -> Result<Vec<u8>, RequestFailure> {
+    if response
+        .content_length()
+        .is_some_and(|length| length > MAX_CONTROL_RESPONSE_BYTES as u64)
+    {
+        return Err(temporary("response_too_large"));
+    }
+    let mut body = Vec::new();
+    response
+        .take((MAX_CONTROL_RESPONSE_BYTES + 1) as u64)
+        .read_to_end(&mut body)
+        .map_err(|_| temporary("response_read_failed"))?;
+    if body.len() > MAX_CONTROL_RESPONSE_BYTES {
+        return Err(temporary("response_too_large"));
+    }
+    Ok(body)
+}
+
+fn parse_json_response<T: DeserializeOwned>(
+    response: Response,
+    invalid_category: &str,
+) -> Result<T, RequestFailure> {
+    let body = read_bounded_response(response).map_err(|_| temporary(invalid_category))?;
+    serde_json::from_slice(&body).map_err(|_| temporary(invalid_category))
+}
+
 fn response_failure(response: Response, fallback: &str) -> RequestFailure {
     let status = response.status();
     let retry_after_seconds = response
@@ -1600,9 +1650,9 @@ fn response_failure(response: Response, fallback: &str) -> RequestFailure {
         .get(RETRY_AFTER)
         .and_then(|value| value.to_str().ok())
         .and_then(|value| value.parse::<i64>().ok());
-    let category = response
-        .json::<ErrorResponse>()
+    let category = read_bounded_response(response)
         .ok()
+        .and_then(|body| serde_json::from_slice::<ErrorResponse>(&body).ok())
         .and_then(|value| value.error)
         .map(|value| safe_category(&value))
         .unwrap_or_else(|| fallback.to_string());
@@ -1694,12 +1744,30 @@ fn validate_history_record(
             ) {
                 return Err(permanent("pour_over_mode_invalid"));
             }
-            if !parsed
-                .get("samples")
-                .and_then(Value::as_array)
-                .is_some_and(|samples| !samples.is_empty() && samples.len() <= 20_000)
-            {
+            let samples_are_bounded =
+                parsed
+                    .get("samples")
+                    .and_then(Value::as_array)
+                    .is_some_and(|samples| {
+                        !samples.is_empty()
+                            && samples.len() <= MAX_POUR_OVER_SAMPLES
+                            && samples.iter().all(|sample| {
+                                sample
+                                    .get("t")
+                                    .and_then(Value::as_u64)
+                                    .is_some_and(|time| time <= MAX_POUR_OVER_DURATION_MS)
+                            })
+                    });
+            if !samples_are_bounded {
                 return Err(permanent("pour_over_samples_invalid"));
+            }
+            if parsed
+                .get("measurements")
+                .and_then(|measurements| measurements.get("durationMs"))
+                .and_then(Value::as_u64)
+                .is_some_and(|duration| duration > MAX_POUR_OVER_DURATION_MS)
+            {
+                return Err(permanent("pour_over_duration_invalid"));
             }
             if !parsed
                 .get("pours")
@@ -1967,6 +2035,36 @@ mod tests {
             "samples": [{ "t": 0 }]
         });
         assert!(validate_history_record(&future_schema, HistoryKind::PourOver).is_err());
+
+        let sample_past_limit = json!({
+            "schemaVersion": 4,
+            "id": "pour-over-past-limit",
+            "brewType": "pour_over",
+            "mode": "free_pour",
+            "recipe": { "pourTargets": [] },
+            "measurements": { "durationMs": MAX_POUR_OVER_DURATION_MS + 1 },
+            "pours": [],
+            "samples": [{
+                "t": MAX_POUR_OVER_DURATION_MS + 1,
+                "w": 300,
+                "f": 0,
+                "p": 0
+            }]
+        });
+        assert!(validate_history_record(&sample_past_limit, HistoryKind::PourOver).is_err());
+
+        let too_many_samples = json!({
+            "schemaVersion": 4,
+            "id": "pour-over-too-many-samples",
+            "brewType": "pour_over",
+            "mode": "free_pour",
+            "recipe": { "pourTargets": [] },
+            "pours": [],
+            "samples": (0..=MAX_POUR_OVER_SAMPLES)
+                .map(|_| json!({ "t": 0, "w": 0, "f": 0, "p": 0 }))
+                .collect::<Vec<_>>()
+        });
+        assert!(validate_history_record(&too_many_samples, HistoryKind::PourOver).is_err());
     }
 
     #[test]
