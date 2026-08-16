@@ -42,10 +42,20 @@ struct QueuedShot {
     id: Uuid,
     source_shot_id: String,
     history_path: String,
+    #[serde(default)]
+    history_kind: HistoryKind,
     body_file: String,
     attempt_count: u32,
     next_attempt_at: i64,
     last_error: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum HistoryKind {
+    #[default]
+    Espresso,
+    PourOver,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -61,6 +71,10 @@ struct PersistentState {
     paused: bool,
     history_baselined: bool,
     history_cursor: Option<String>,
+    #[serde(default)]
+    pour_over_history_baselined: bool,
+    #[serde(default)]
+    pour_over_history_cursor: Option<String>,
     queue: Vec<QueuedShot>,
     last_success_at: Option<i64>,
     last_error: Option<String>,
@@ -140,6 +154,11 @@ struct HistoryEntry {
     name: Option<String>,
     url: Option<String>,
     file: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct BrewHistoryResponse {
+    history: Vec<HistoryEntry>,
 }
 
 #[derive(Debug)]
@@ -379,6 +398,7 @@ impl CommunityUploadService {
         }
 
         self.observe_new_shots()?;
+        self.observe_new_pour_overs()?;
         self.upload_next_shot()?;
         Ok(())
     }
@@ -479,6 +499,8 @@ impl CommunityUploadService {
             state.paused = false;
             state.history_baselined = false;
             state.history_cursor = None;
+            state.pour_over_history_baselined = false;
+            state.pour_over_history_cursor = None;
             state.last_error = None;
             Ok(())
         })?;
@@ -534,15 +556,126 @@ impl CommunityUploadService {
             if current_cursor.as_ref().is_some_and(|value| value >= &path) {
                 continue;
             }
-            match self.queue_history_path(&path) {
+            match self.queue_history_path(HistoryKind::Espresso, &path) {
                 Ok(()) => {}
                 Err(failure) if failure.permanent => {
-                    self.skip_history_path(&path, &failure.category)?;
+                    self.skip_history_path(HistoryKind::Espresso, &path, &failure.category)?;
                 }
                 Err(failure) => return Err(failure),
             }
         }
         Ok(())
+    }
+
+    fn observe_new_pour_overs(&self) -> Result<(), RequestFailure> {
+        let (baselined, cursor) = {
+            let state = self
+                .inner
+                .state
+                .lock()
+                .map_err(|_| temporary("state_unavailable"))?;
+            (
+                state.persistent.pour_over_history_baselined,
+                state.persistent.pour_over_history_cursor.clone(),
+            )
+        };
+        let latest = self.fetch_last_pour_over_history_path()?;
+        if !baselined {
+            self.mutate_persistent_failure(|state| {
+                state.pour_over_history_baselined = true;
+                state.pour_over_history_cursor = latest;
+                Ok(())
+            })?;
+            return Ok(());
+        }
+        let Some(latest_path) = latest else {
+            return Ok(());
+        };
+        if cursor.as_ref().is_some_and(|value| value >= &latest_path) {
+            return Ok(());
+        }
+
+        for path in self.fetch_pour_over_history_paths(cursor.as_deref())? {
+            let current_cursor = {
+                self.inner
+                    .state
+                    .lock()
+                    .map_err(|_| temporary("state_unavailable"))?
+                    .persistent
+                    .pour_over_history_cursor
+                    .clone()
+            };
+            if current_cursor.as_ref().is_some_and(|value| value >= &path) {
+                continue;
+            }
+            match self.queue_history_path(HistoryKind::PourOver, &path) {
+                Ok(()) => {}
+                Err(failure) if failure.permanent => {
+                    self.skip_history_path(HistoryKind::PourOver, &path, &failure.category)?;
+                }
+                Err(failure) => return Err(failure),
+            }
+        }
+        Ok(())
+    }
+
+    fn fetch_last_pour_over_history_path(&self) -> Result<Option<String>, RequestFailure> {
+        let response = self
+            .inner
+            .client
+            .get(self.machine_url("/api/v1/history/pour-over/last"))
+            .send()
+            .map_err(|_| temporary("machine_pour_over_history_unavailable"))?;
+        if response.status().as_u16() == 404 || response.status().as_u16() == 204 {
+            return Ok(None);
+        }
+        if !response.status().is_success() {
+            return Err(temporary("machine_pour_over_history_unavailable"));
+        }
+        let value = response
+            .json::<Value>()
+            .map_err(|_| temporary("machine_pour_over_history_invalid"))?;
+        value
+            .get("file")
+            .and_then(Value::as_str)
+            .map(normalize_history_path)
+            .transpose()
+    }
+
+    fn fetch_pour_over_history_paths(
+        &self,
+        after: Option<&str>,
+    ) -> Result<Vec<String>, RequestFailure> {
+        let mut url = self.machine_url("/api/v1/history/pour-over");
+        {
+            let mut query = url.query_pairs_mut();
+            query.append_pair("sort", "asc");
+            query.append_pair("max_results", "200");
+            if let Some(after) = after {
+                query.append_pair("after", after);
+            }
+        }
+        let response = self
+            .inner
+            .client
+            .get(url)
+            .send()
+            .map_err(|_| temporary("machine_pour_over_history_unavailable"))?;
+        if !response.status().is_success() {
+            return Err(temporary("machine_pour_over_history_unavailable"));
+        }
+        let history = response
+            .json::<BrewHistoryResponse>()
+            .map_err(|_| temporary("machine_pour_over_history_invalid"))?;
+        let mut paths = history
+            .history
+            .into_iter()
+            .filter_map(|entry| entry.file.or(entry.url).or(entry.name))
+            .map(|path| normalize_history_path(&path))
+            .collect::<Result<Vec<_>, _>>()?;
+        paths.sort();
+        paths.dedup();
+        Ok(paths)
     }
 
     fn fetch_last_history_path(&self) -> Result<Option<String>, RequestFailure> {
@@ -608,11 +741,15 @@ impl CommunityUploadService {
             .map_err(|_| temporary("machine_history_invalid"))
     }
 
-    fn queue_history_path(&self, history_path: &str) -> Result<(), RequestFailure> {
+    fn queue_history_path(
+        &self,
+        history_kind: HistoryKind,
+        history_path: &str,
+    ) -> Result<(), RequestFailure> {
         let response = self
             .inner
             .client
-            .get(self.machine_history_file_url(history_path)?)
+            .get(self.machine_history_file_url(history_kind, history_path)?)
             .send()
             .map_err(|_| temporary("shot_file_pending"))?;
         if !response.status().is_success() {
@@ -632,15 +769,7 @@ impl CommunityUploadService {
         }
         let parsed =
             serde_json::from_slice::<Value>(&raw).map_err(|_| temporary("shot_file_pending"))?;
-        let source_shot_id = parsed
-            .get("id")
-            .and_then(Value::as_str)
-            .filter(|value| !value.is_empty() && value.len() <= 256)
-            .ok_or_else(|| permanent("shot_id_invalid"))?
-            .to_string();
-        if !parsed.get("data").is_some_and(Value::is_array) {
-            return Err(permanent("shot_data_invalid"));
-        }
+        let source_shot_id = validate_history_record(&parsed, history_kind)?;
         let mut body = Vec::with_capacity(raw.len() + 32);
         body.extend_from_slice(b"{\"contractVersion\":1,\"shot\":");
         body.extend_from_slice(&raw);
@@ -658,6 +787,7 @@ impl CommunityUploadService {
             id,
             source_shot_id,
             history_path: history_path.to_string(),
+            history_kind,
             body_file: body_file.clone(),
             attempt_count: 0,
             next_attempt_at: unix_seconds(),
@@ -665,7 +795,12 @@ impl CommunityUploadService {
         };
         if let Err(error) = self.mutate_persistent_failure(|state| {
             state.queue.push(queued);
-            state.history_cursor = Some(history_path.to_string());
+            match history_kind {
+                HistoryKind::Espresso => state.history_cursor = Some(history_path.to_string()),
+                HistoryKind::PourOver => {
+                    state.pour_over_history_cursor = Some(history_path.to_string())
+                }
+            }
             state.last_error = None;
             Ok(())
         }) {
@@ -933,9 +1068,19 @@ impl CommunityUploadService {
         })
     }
 
-    fn skip_history_path(&self, history_path: &str, category: &str) -> Result<(), RequestFailure> {
+    fn skip_history_path(
+        &self,
+        history_kind: HistoryKind,
+        history_path: &str,
+        category: &str,
+    ) -> Result<(), RequestFailure> {
         self.mutate_persistent_failure(|state| {
-            state.history_cursor = Some(history_path.to_string());
+            match history_kind {
+                HistoryKind::Espresso => state.history_cursor = Some(history_path.to_string()),
+                HistoryKind::PourOver => {
+                    state.pour_over_history_cursor = Some(history_path.to_string())
+                }
+            }
             state.last_error = Some(safe_category(category));
             state.last_retry_at = None;
             Ok(())
@@ -1045,7 +1190,11 @@ impl CommunityUploadService {
         url
     }
 
-    fn machine_history_file_url(&self, history_path: &str) -> Result<Url, RequestFailure> {
+    fn machine_history_file_url(
+        &self,
+        history_kind: HistoryKind,
+        history_path: &str,
+    ) -> Result<Url, RequestFailure> {
         let normalized = normalize_history_path(history_path)?;
         let mut url = self.inner.machine_base.clone();
         {
@@ -1053,7 +1202,11 @@ impl CommunityUploadService {
                 .path_segments_mut()
                 .map_err(|_| permanent("machine_url_invalid"))?;
             segments.clear();
-            for segment in ["api", "v1", "history", "files"] {
+            let route: &[&str] = match history_kind {
+                HistoryKind::Espresso => &["api", "v1", "history", "files"],
+                HistoryKind::PourOver => &["api", "v1", "history", "pour-over", "files"],
+            };
+            for segment in route {
                 segments.push(segment);
             }
             for segment in normalized.split('/') {
@@ -1103,6 +1256,8 @@ fn fresh_state() -> Result<PersistentState, String> {
         paused: false,
         history_baselined: false,
         history_cursor: None,
+        pour_over_history_baselined: false,
+        pour_over_history_cursor: None,
         queue: Vec::new(),
         last_success_at: None,
         last_error: None,
@@ -1349,6 +1504,65 @@ fn normalize_history_path(value: &str) -> Result<String, RequestFailure> {
     Ok(segments.join("/"))
 }
 
+fn validate_history_record(
+    parsed: &Value,
+    history_kind: HistoryKind,
+) -> Result<String, RequestFailure> {
+    let source_id = parsed
+        .get("id")
+        .and_then(Value::as_str)
+        .filter(|value| !value.is_empty() && value.len() <= 256)
+        .ok_or_else(|| permanent("shot_id_invalid"))?
+        .to_string();
+    match history_kind {
+        HistoryKind::Espresso => {
+            if !parsed.get("data").is_some_and(Value::is_array) {
+                return Err(permanent("shot_data_invalid"));
+            }
+        }
+        HistoryKind::PourOver => {
+            if parsed.get("brewType").and_then(Value::as_str) != Some("pour_over") {
+                return Err(permanent("pour_over_type_invalid"));
+            }
+            if !matches!(
+                parsed.get("schemaVersion").and_then(Value::as_u64),
+                Some(1..=4)
+            ) {
+                return Err(permanent("pour_over_schema_invalid"));
+            }
+            if !matches!(
+                parsed.get("mode").and_then(Value::as_str),
+                Some("free_pour" | "profile")
+            ) {
+                return Err(permanent("pour_over_mode_invalid"));
+            }
+            if !parsed
+                .get("samples")
+                .and_then(Value::as_array)
+                .is_some_and(|samples| !samples.is_empty() && samples.len() <= 20_000)
+            {
+                return Err(permanent("pour_over_samples_invalid"));
+            }
+            if !parsed
+                .get("pours")
+                .and_then(Value::as_array)
+                .is_some_and(|pours| pours.len() <= 128)
+            {
+                return Err(permanent("pour_over_pours_invalid"));
+            }
+            if !parsed
+                .get("recipe")
+                .and_then(|recipe| recipe.get("pourTargets"))
+                .and_then(Value::as_array)
+                .is_some_and(|targets| targets.len() <= 128)
+            {
+                return Err(permanent("pour_over_targets_invalid"));
+            }
+        }
+    }
+    Ok(source_id)
+}
+
 fn normalize_history_segment(value: &str) -> Result<String, RequestFailure> {
     let value = value.trim();
     if value.is_empty()
@@ -1535,6 +1749,55 @@ mod tests {
     }
 
     #[test]
+    fn accepts_canonical_pour_over_records_for_the_shared_upload_envelope() {
+        let record = json!({
+            "schemaVersion": 4,
+            "id": "pour-over-1",
+            "brewType": "pour_over",
+            "mode": "free_pour",
+            "recipe": { "pourTargets": [] },
+            "pours": [],
+            "samples": [{ "t": 0, "w": 0, "f": 1, "p": 1 }]
+        });
+
+        assert_eq!(
+            validate_history_record(&record, HistoryKind::PourOver).unwrap(),
+            "pour-over-1"
+        );
+
+        let mut body = Vec::new();
+        body.extend_from_slice(b"{\"contractVersion\":1,\"shot\":");
+        body.extend_from_slice(&serde_json::to_vec(&record).unwrap());
+        body.push(b'}');
+        let envelope: Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(envelope["shot"]["brewType"], "pour_over");
+    }
+
+    #[test]
+    fn rejects_malformed_or_unbounded_pour_over_records() {
+        let missing_samples = json!({
+            "schemaVersion": 4,
+            "id": "pour-over-1",
+            "brewType": "pour_over",
+            "mode": "free_pour",
+            "recipe": { "pourTargets": [] },
+            "pours": []
+        });
+        assert!(validate_history_record(&missing_samples, HistoryKind::PourOver).is_err());
+
+        let future_schema = json!({
+            "schemaVersion": 5,
+            "id": "pour-over-1",
+            "brewType": "pour_over",
+            "mode": "profile",
+            "recipe": { "pourTargets": [] },
+            "pours": [],
+            "samples": [{ "t": 0 }]
+        });
+        assert!(validate_history_record(&future_schema, HistoryKind::PourOver).is_err());
+    }
+
+    #[test]
     fn rejects_history_path_traversal() {
         assert!(normalize_history_path("2026-08-15/shot.json.zst").is_ok());
         assert!(normalize_history_path("../config/secret").is_err());
@@ -1558,6 +1821,7 @@ mod tests {
             id: Uuid::new_v4(),
             source_shot_id: "queued-shot".to_string(),
             history_path: "2026-08-15/queued.shot.json".to_string(),
+            history_kind: HistoryKind::Espresso,
             body_file: "queued.json".to_string(),
             attempt_count: 2,
             next_attempt_at: 123,
@@ -1570,5 +1834,34 @@ mod tests {
         assert_ne!(state.public_key, prior_public_key);
         assert_eq!(state.queue.len(), 1);
         assert_eq!(state.queue[0].source_shot_id, "queued-shot");
+    }
+
+    #[test]
+    fn migrates_existing_uploader_state_with_espresso_defaults() {
+        let mut state = fresh_state().expect("fresh state");
+        state.queue.push(QueuedShot {
+            id: Uuid::new_v4(),
+            source_shot_id: "legacy-shot".to_string(),
+            history_path: "2026-08-15/legacy.shot.json".to_string(),
+            history_kind: HistoryKind::PourOver,
+            body_file: "legacy.json".to_string(),
+            attempt_count: 0,
+            next_attempt_at: 123,
+            last_error: None,
+        });
+        let mut serialized = serde_json::to_value(state).unwrap();
+        let object = serialized.as_object_mut().unwrap();
+        object.remove("pourOverHistoryBaselined");
+        object.remove("pourOverHistoryCursor");
+        object["queue"].as_array_mut().unwrap()[0]
+            .as_object_mut()
+            .unwrap()
+            .remove("historyKind");
+
+        let migrated: PersistentState = serde_json::from_value(serialized).unwrap();
+
+        assert!(!migrated.pour_over_history_baselined);
+        assert_eq!(migrated.pour_over_history_cursor, None);
+        assert_eq!(migrated.queue[0].history_kind, HistoryKind::Espresso);
     }
 }
