@@ -41,13 +41,16 @@ const SAMPLE_INTERVAL_MS = 200;
 const MAX_POURS = 5;
 const TARE_CONFIRM_TOLERANCE_G = 0.6;
 const TARE_CONFIRM_TIMEOUT_MS = 5000;
+// Setup loads only need to clear scale noise. Do not assume a minimum server or
+// brewer weight: the incoming reading may include a tare offset from earlier use.
+const SETUP_LOAD_CHANGE_G = TARE_CONFIRM_TOLERANCE_G * 2;
 
 const isSetupStage = (stage: Stage): stage is SetupStage =>
   stage === 'server' || stage === 'brewer' || stage === 'coffee';
 
 const isValidSetupWeight = (stage: SetupStage, weight: number) => {
-  if (stage === 'server') return weight >= 20;
-  if (stage === 'brewer') return weight >= 10;
+  if (stage === 'server') return true;
+  if (stage === 'brewer') return weight >= SETUP_LOAD_CHANGE_G;
   return weight >= 5 && weight <= 40;
 };
 
@@ -197,8 +200,8 @@ export const FreePourScreen = () => {
   const [result, setResult] = useState<FreePourSession | null>(null);
   const [setupStatus, setSetupStatus] = useState<SetupStatus>('idle');
   const stable = useStableWeight(weight, stage);
-  const serverReady = stable && weight >= 20;
-  const brewerReady = stable && weight >= 10;
+  const serverReady = stable;
+  const brewerReady = stable && weight >= SETUP_LOAD_CHANGE_G;
   const coffeeReady = stable && weight >= 5 && weight <= 40;
 
   const stageRef = useRef(stage);
@@ -315,7 +318,7 @@ export const FreePourScreen = () => {
         pourTargets: []
       },
       measurements: {
-        emptyServerG: roundTo(serverWeight.current),
+        serverBaselineG: roundTo(serverWeight.current),
         brewerG: roundTo(brewerWeight.current),
         setupG: roundTo(setupWeight.current),
         waterPouredG,
@@ -759,7 +762,7 @@ export const FreePourScreen = () => {
               ? 'WAITING FOR ZERO'
               : setupStatus === 'tare-timeout'
                 ? 'TARE NOT CONFIRMED'
-                : weight < 10
+                : weight < SETUP_LOAD_CHANGE_G
                   ? 'PLACE BREWER ON SERVER'
                   : brewerReady
                     ? 'WEIGHT STABLE'
@@ -767,7 +770,7 @@ export const FreePourScreen = () => {
         </div>
         <div
           className={`free-pour-dose-action ${
-            setupStatus === 'idle' && weight < 10
+            setupStatus === 'idle' && weight < SETUP_LOAD_CHANGE_G
               ? 'free-pour-dose-action--disabled'
               : ''
           }`}
@@ -847,11 +850,9 @@ export const FreePourScreen = () => {
               ? 'WAITING FOR ZERO'
               : setupStatus === 'tare-timeout'
                 ? 'TARE NOT CONFIRMED'
-                : weight < 20
-                  ? 'PLACE EMPTY SERVER'
-                  : serverReady
-                    ? 'WEIGHT STABLE'
-                    : 'WAITING FOR STABLE WEIGHT'}
+                : serverReady
+                  ? 'WEIGHT STABLE'
+                  : 'WAITING FOR STABLE WEIGHT'}
         </div>
         <div className="free-pour-setup-action">
           {setupStatus === 'saving'

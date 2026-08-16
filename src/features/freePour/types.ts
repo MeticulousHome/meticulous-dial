@@ -1,4 +1,4 @@
-export const FREE_POUR_SCHEMA_VERSION = 2 as const;
+export const FREE_POUR_SCHEMA_VERSION = 3 as const;
 
 export type FreePourCompletion = 'brewer_removed' | 'dial_fallback';
 
@@ -54,7 +54,8 @@ export interface FreePourSession {
     pourTargets: PourOverPourTarget[];
   };
   measurements: {
-    emptyServerG: number;
+    /** Signed scale reading captured before the server tare. */
+    serverBaselineG: number;
     /** Brewer weight without dry coffee. */
     brewerG: number;
     /** Brewer plus dry-coffee weight tared immediately before brewing. */
