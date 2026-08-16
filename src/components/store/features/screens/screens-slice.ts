@@ -55,6 +55,8 @@ export type ScreenType =
   | 'shot_history'
   | 'scrollDirections'
   | 'brewComplete'
+  | 'freePour'
+  | 'freePourHistory'
   | 'factoryReset'
   | 'retraction_volume'
   | 'tare_behavior'

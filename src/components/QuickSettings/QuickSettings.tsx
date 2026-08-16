@@ -50,6 +50,13 @@ const profileContextSettings: QuickSettingOption[] = [
   }
 ];
 
+const freePourContextSettings: QuickSettingOption[] = [
+  {
+    key: 'last_free_pour',
+    label: 'Last pour-over'
+  }
+];
+
 const prevScreenSetting: QuickSettingOption = {
   key: 'prevScreen',
   label: 'Back',
@@ -133,6 +140,7 @@ export function QuickSettings(): JSX.Element {
   const {
     profileQuery: { data: profiles },
     localProfile,
+    homeMode,
     detailProfileSelected: defaultProfileSelectedForDetails,
     setSettingsIndex: setProfileSettingsIndex,
     setSettingsProfile: setProfileSettings
@@ -289,6 +297,13 @@ export function QuickSettings(): JSX.Element {
             );
             break;
           }
+          case 'last_free_pour': {
+            dispatch(setScreen('freePourHistory'));
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
+            break;
+          }
           case 'purge': {
             socket.emit('action', 'purge');
             dispatch(
@@ -366,7 +381,11 @@ export function QuickSettings(): JSX.Element {
   );
 
   const requiresProfileContext: boolean =
-    profiles?.length > 0 && currentScreen === 'profileHome';
+    profiles?.length > 0 &&
+    currentScreen === 'profileHome' &&
+    homeMode === 'espresso';
+  const requiresFreePourContext =
+    currentScreen === 'profileHome' && homeMode === 'free_pour';
 
   useEffect(() => {
     const context: QuickSettingOption[] = profileContextSettings;
@@ -401,13 +420,14 @@ export function QuickSettings(): JSX.Element {
             : context;
           setSettings([
             ...(requiresProfileContext ? newContext : []),
+            ...(requiresFreePourContext ? freePourContextSettings : []),
             ...(backAvailable ? [prevScreenSetting] : []),
             ...defaultSettings
           ]);
         }
         break;
     }
-  }, [currentScreen, osStatusInfo, osStatusVisible]);
+  }, [currentScreen, homeMode, osStatusInfo, osStatusVisible]);
 
   useEffect(() => {
     if (counterESGG >= 20) {

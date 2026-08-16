@@ -23,6 +23,7 @@ import { loadProfileData, startProfile } from '../../api/profile';
 import { DownloadIcon } from './DownloadIcon';
 import { useSocket } from '../store/SocketManager';
 import { invoke } from '@tauri-apps/api/core';
+import { FreePourIcon } from '../../features/freePour/FreePourIcon';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -78,8 +79,8 @@ export const ProfileHomeScreen = () => {
   const profileState = useProfileContext();
 
   const {
-    localProfileIndex: activeOption,
-    setLocalProfileIndex: setActiveOption,
+    setLocalProfileIndex: setActiveProfileOption,
+    setHomeMode,
     profileStarting,
     setProfileStarting,
     localHoverState,
@@ -90,6 +91,10 @@ export const ProfileHomeScreen = () => {
 
   const [transitionDirection, setTransitionDirection] =
     useState<dialDirection>('none');
+  // Free Pour is intentionally the first/default home option. ProfileContext
+  // remains profile-only, keeping this mode independent from espresso uploads.
+  const [activeOption, setActiveOption] = useState(0);
+  const [homeHoverState, setHomeHoverState] = useState(false);
   const [isPressingDown, setIsPressingDown] = useState(false);
   const pressThroughTimer = useRef<NodeJS.Timeout | null>(null);
   const homeReadyReported = useRef(false);
@@ -106,8 +111,17 @@ export const ProfileHomeScreen = () => {
   };
 
   const animationFinished = async () => {
+    if (activeOption === 0) {
+      setIsPressingDown(false);
+      setHomeHoverState(false);
+      if (pressThroughTimer.current) clearTimeout(pressThroughTimer.current);
+      pressThroughTimer.current = null;
+      dispatch(setScreen('freePour'));
+      return;
+    }
+
     const loadAndStartProfile = async () => {
-      const profile = mergedProfiles?.[activeOption];
+      const profile = mergedProfiles?.[activeOption - 1];
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { isLast, temporary, ...cleanProfile } = profile;
@@ -159,34 +173,56 @@ export const ProfileHomeScreen = () => {
       });
     }
 
-    if (activeOption > mergedProfiles.length) {
-      setActiveOption(mergedProfiles.length);
+    if (activeOption > mergedProfiles.length + 1) {
+      setActiveOption(mergedProfiles.length + 1);
       return;
     }
 
     // We are never zoomed in on the new button
-    if (activeOption == mergedProfiles.length) {
-      setLocalHoverState(false);
+    if (activeOption == mergedProfiles.length + 1) {
+      setHomeHoverState(false);
       return;
     }
   }, [mergedProfiles, activeOption]);
 
+  useEffect(() => {
+    if (activeOption > 0 && activeOption <= mergedProfiles.length) {
+      setActiveProfileOption(activeOption - 1);
+      setHomeMode('espresso');
+    } else if (activeOption === 0) {
+      setHomeMode('free_pour');
+      setLocalHoverState(false);
+    } else {
+      setHomeMode('new');
+      setLocalHoverState(false);
+    }
+  }, [
+    activeOption,
+    mergedProfiles,
+    setActiveProfileOption,
+    setHomeMode,
+    localHoverState,
+    setLocalHoverState
+  ]);
+
   const rotateLeft = () => {
-    if (localHoverState) {
+    if (homeHoverState) {
+      setHomeHoverState(false);
       setLocalHoverState(false);
       return;
     }
-    if (activeOption !== mergedProfiles?.length) {
+    if (activeOption !== mergedProfiles?.length + 1) {
       setTransitionDirection('none');
       requestAnimationFrame(() => {
         setTransitionDirection('right');
       });
     }
-    setActiveOption((prev) => Math.min(prev + 1, mergedProfiles?.length || 0));
+    setActiveOption((prev) => Math.min(prev + 1, mergedProfiles.length + 1));
   };
 
   const rotateRight = () => {
-    if (localHoverState) {
+    if (homeHoverState) {
+      setHomeHoverState(false);
       setLocalHoverState(false);
       return;
     }
@@ -220,18 +256,29 @@ export const ProfileHomeScreen = () => {
       },
       pressDown() {
         // New profile button
-        if (activeOption == mergedProfiles?.length) {
+        if (activeOption == mergedProfiles?.length + 1) {
           if (!isOnline) return;
           if (limitedAccess) {
             dispatch(setScreen('unlock'));
             return;
           }
           dispatch(setScreen('defaultProfiles'));
+        } else if (activeOption === 0) {
+          if (!homeHoverState) {
+            setHomeHoverState(true);
+            setTransitionDirection('none');
+            pressThroughTimer.current = setTimeout(() => {
+              setIsPressingDown(true);
+            }, 300);
+          } else {
+            setIsPressingDown(true);
+          }
         } else {
-          if (!localHoverState) {
+          if (!homeHoverState) {
+            setHomeHoverState(true);
             setLocalHoverState(true);
             setTransitionDirection('none');
-            const profile = mergedProfiles?.[activeOption];
+            const profile = mergedProfiles?.[activeOption - 1];
             if (profile?.id) {
               socket.emit('profileHover', {
                 id: profile.id,
@@ -271,8 +318,22 @@ export const ProfileHomeScreen = () => {
             $translateX={CARD_PADDING - activeOption * CARD_SIZE}
             component={'div'}
           >
+            <ProfileEntry
+              key="free-pour"
+              title="Free Pour"
+              containerStyle={{ backgroundColor: '#23383f', color: '#78d6ff' }}
+              contentClassNames={
+                Math.abs(activeOption) < 2 &&
+                `animation-bounce-${transitionDirection}`
+              }
+              distanceToActive={-activeOption}
+              zoomedIn={homeHoverState}
+            >
+              <FreePourIcon />
+            </ProfileEntry>
             {mergedProfiles.map((profile, index) => {
-              const itemRef = getOrCreateRef(index.toString());
+              const carouselIndex = index + 1;
+              const itemRef = getOrCreateRef(carouselIndex.toString());
               const backgroundColor = profile.display?.accentColor
                 ? profile.display?.accentColor
                 : '#e0dcd0';
@@ -287,14 +348,14 @@ export const ProfileHomeScreen = () => {
                   <ProfileEntry
                     ref={itemRef}
                     contentClassNames={
-                      !localHoverState &&
-                      Math.abs(index - activeOption) < 2 &&
+                      !homeHoverState &&
+                      Math.abs(carouselIndex - activeOption) < 2 &&
                       `animation-bounce-${transitionDirection}`
                     }
                     containerStyle={{ backgroundColor, position: 'relative' }}
                     title={profile.name}
-                    distanceToActive={index - activeOption}
-                    zoomedIn={localHoverState}
+                    distanceToActive={carouselIndex - activeOption}
+                    zoomedIn={homeHoverState}
                   >
                     <ProfileImage profile={profile} />
                     {profile.isLast && (
@@ -309,11 +370,11 @@ export const ProfileHomeScreen = () => {
               key={'unlock_new'}
               title={limitedAccess ? 'unlock all features' : 'new'}
               contentClassNames={
-                Math.abs(mergedProfiles.length - activeOption) < 2 &&
+                Math.abs(mergedProfiles.length + 1 - activeOption) < 2 &&
                 `animation-bounce-${transitionDirection}`
               }
-              distanceToActive={mergedProfiles.length - activeOption}
-              zoomedIn={localHoverState}
+              distanceToActive={mergedProfiles.length + 1 - activeOption}
+              zoomedIn={homeHoverState}
             >
               {limitedAccess ? <DownloadIcon /> : <PlusIcon />}
             </ProfileEntry>
@@ -323,6 +384,7 @@ export const ProfileHomeScreen = () => {
       <CircleOverlay
         shouldAnimate={isPressingDown}
         onAnimationFinished={animationFinished}
+        hoverState={homeHoverState}
       />
     </>
   );
