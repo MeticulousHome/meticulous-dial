@@ -1,4 +1,4 @@
-export const FREE_POUR_SCHEMA_VERSION = 1 as const;
+export const FREE_POUR_SCHEMA_VERSION = 2 as const;
 
 export type FreePourCompletion = 'brewer_removed' | 'dial_fallback';
 
@@ -55,6 +55,9 @@ export interface FreePourSession {
   };
   measurements: {
     emptyServerG: number;
+    /** Brewer weight without dry coffee. */
+    brewerG: number;
+    /** Brewer plus dry-coffee weight tared immediately before brewing. */
     setupG: number;
     waterPouredG: number;
     beverageG: number | null;

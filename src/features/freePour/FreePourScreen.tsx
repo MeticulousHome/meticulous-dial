@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
-import { Gauge } from '../../components/SettingNumerical/Gauge';
 import { useAppDispatch, useAppSelector } from '../../components/store/hooks';
 import { useSocket } from '../../components/store/SocketManager';
 import { setScreen } from '../../components/store/features/screens/screens-slice';
@@ -20,7 +19,8 @@ import './free-pour.css';
 
 type Stage =
   | 'server'
-  | 'dose'
+  | 'brewer'
+  | 'coffee'
   | 'recipe'
   | 'ready'
   | 'pouring'
@@ -35,12 +35,13 @@ const MAX_POURS = 5;
 
 const stepForStage = (stage: Stage) => {
   if (stage === 'server') return 1;
-  if (stage === 'dose') return 2;
-  if (stage === 'recipe') return 3;
-  if (stage === 'ready' || stage === 'pouring') return 4;
-  if (stage === 'waiting') return 5;
-  if (stage === 'finish-requested' || stage === 'measuring') return 6;
-  return 7;
+  if (stage === 'brewer') return 2;
+  if (stage === 'coffee') return 3;
+  if (stage === 'recipe') return 4;
+  if (stage === 'ready' || stage === 'pouring') return 5;
+  if (stage === 'waiting') return 6;
+  if (stage === 'finish-requested' || stage === 'measuring') return 7;
+  return 8;
 };
 
 const useStableWeight = (weight: number, resetKey: Stage) => {
@@ -171,13 +172,15 @@ export const FreePourScreen = () => {
   const [result, setResult] = useState<FreePourSession | null>(null);
   const stable = useStableWeight(weight, stage);
   const serverReady = stable && weight >= 20;
-  const setupReady = stable && weight >= 5;
+  const brewerReady = stable && weight >= 10;
+  const coffeeReady = stable && weight >= 5 && weight <= 40;
 
   const stageRef = useRef(stage);
   const weightRef = useRef(weight);
   const flowRef = useRef(gravimetricFlow);
   const detector = useRef(new PourDetector());
   const serverWeight = useRef(0);
+  const brewerWeight = useRef(0);
   const setupWeight = useRef(0);
   const startedAtIso = useRef('');
   const brewStartTime = useRef<number | null>(null);
@@ -267,6 +270,7 @@ export const FreePourScreen = () => {
       },
       measurements: {
         emptyServerG: roundTo(serverWeight.current),
+        brewerG: roundTo(brewerWeight.current),
         setupG: roundTo(setupWeight.current),
         waterPouredG,
         beverageG: measuredBeverage,
@@ -452,26 +456,26 @@ export const FreePourScreen = () => {
 
   useHandleGestures(
     {
-      left() {
-        if (stageRef.current === 'dose')
-          setDoseG((value) => clamp(value - 1, 5, 40));
-      },
-      right() {
-        if (stageRef.current === 'dose')
-          setDoseG((value) => clamp(value + 1, 5, 40));
-      },
-      click() {
+      pressDown() {
         const currentStage = stageRef.current;
         if (currentStage === 'server' && serverReady) {
           serverWeight.current = weightRef.current;
           socket.emit('action', 'tare');
-          updateStage('dose');
+          updateStage('brewer');
           return;
         }
-        if (currentStage === 'dose' && setupReady) {
-          setupWeight.current = weightRef.current;
+        if (currentStage === 'brewer' && brewerReady) {
+          brewerWeight.current = weightRef.current;
           socket.emit('action', 'tare');
-          window.setTimeout(() => updateStage('recipe'), 350);
+          updateStage('coffee');
+          return;
+        }
+        if (currentStage === 'coffee' && coffeeReady) {
+          const measuredDose = weightRef.current;
+          setDoseG(Math.round(measuredDose));
+          setupWeight.current = brewerWeight.current + measuredDose;
+          socket.emit('action', 'tare');
+          updateStage('recipe');
           return;
         }
         if (currentStage === 'recipe') {
@@ -490,9 +494,6 @@ export const FreePourScreen = () => {
         if (currentStage === 'result') {
           dispatch(setScreen('freePourHistory'));
         }
-      },
-      pressDown() {
-        if (stageRef.current === 'ready') return;
       },
       context() {
         dispatch(setScreen('profileHome'));
@@ -518,21 +519,49 @@ export const FreePourScreen = () => {
           : '';
   const railPours = useMemo(() => pours, [pours]);
 
-  if (stage === 'dose') {
+  if (stage === 'brewer') {
     return (
-      <div className="free-pour-screen free-pour-dose-screen">
-        <Gauge
-          value={doseG}
-          minValue={5}
-          maxValue={40}
-          precision={0}
-          unit="gram"
-        />
-        <div className="free-pour-step">2 OF 7</div>
-        <div className="free-pour-dose-title">SET COFFEE DOSE</div>
+      <div className="free-pour-screen free-pour-setup-screen">
+        <div className="free-pour-step">2 OF 8</div>
+        <div className="free-pour-kicker">ADD BREWER</div>
+        <div className="free-pour-setup-weight">{Math.round(weight)}g</div>
+        <div className="free-pour-stability">
+          {weight < 10
+            ? 'PLACE BREWER ON SERVER'
+            : brewerReady
+              ? 'WEIGHT STABLE'
+              : 'WAITING FOR STABLE WEIGHT'}
+        </div>
         <div
           className={`free-pour-dose-action ${
-            setupReady ? '' : 'free-pour-dose-action--disabled'
+            brewerReady ? '' : 'free-pour-dose-action--disabled'
+          }`}
+        >
+          <span>PRESS DIAL TO SAVE</span>
+          <strong>BREWER + TARE</strong>
+        </div>
+      </div>
+    );
+  }
+
+  if (stage === 'coffee') {
+    return (
+      <div className="free-pour-screen free-pour-setup-screen">
+        <div className="free-pour-step">3 OF 8</div>
+        <div className="free-pour-kicker">ADD COFFEE</div>
+        <div className="free-pour-setup-weight">{Math.round(weight)}g</div>
+        <div className="free-pour-stability">
+          {weight < 5
+            ? 'ADD 5–40g COFFEE'
+            : weight > 40
+              ? 'DOSE MUST BE 5–40g'
+              : coffeeReady
+                ? 'DOSE READY'
+                : 'WAITING FOR STABLE WEIGHT'}
+        </div>
+        <div
+          className={`free-pour-dose-action ${
+            coffeeReady ? '' : 'free-pour-dose-action--disabled'
           }`}
         >
           <span>PRESS DIAL TO SAVE</span>
@@ -545,7 +574,7 @@ export const FreePourScreen = () => {
   if (stage === 'server') {
     return (
       <div className="free-pour-screen free-pour-setup-screen">
-        <div className="free-pour-step">1 OF 7</div>
+        <div className="free-pour-step">1 OF 8</div>
         <div className="free-pour-kicker">EMPTY SERVER</div>
         <div className="free-pour-setup-weight">{Math.round(weight)}g</div>
         <div className="free-pour-stability">
@@ -563,7 +592,7 @@ export const FreePourScreen = () => {
   if (stage === 'recipe') {
     return (
       <div className="free-pour-screen free-pour-recipe-screen">
-        <div className="free-pour-step">3 OF 7</div>
+        <div className="free-pour-step">4 OF 8</div>
         <div className="free-pour-name">FREE POUR</div>
         <div className="free-pour-recipe-dose">{doseG}g</div>
         <div className="free-pour-recipe-label">DOSE</div>
@@ -576,7 +605,7 @@ export const FreePourScreen = () => {
   if (liveState) {
     return (
       <div className="free-pour-screen free-pour-live-screen">
-        <div className="free-pour-step">{step} OF 7</div>
+        <div className="free-pour-step">{step} OF 8</div>
         <div className="free-pour-name">FREE POUR</div>
         <div className="free-pour-timer">{formatBrewTime(elapsedMs)}</div>
         <div className="free-pour-live-status">{statusLabel}</div>
@@ -606,7 +635,7 @@ export const FreePourScreen = () => {
   if (stage === 'finish-requested') {
     return (
       <div className="free-pour-screen free-pour-message-screen">
-        <div className="free-pour-step">6 OF 7</div>
+        <div className="free-pour-step">7 OF 8</div>
         <div className="free-pour-message-main">LIFT BREWER</div>
         <div className="free-pour-message-sub">KEEP SERVER ON SCALE</div>
       </div>
@@ -616,7 +645,7 @@ export const FreePourScreen = () => {
   if (stage === 'measuring') {
     return (
       <div className="free-pour-screen free-pour-message-screen">
-        <div className="free-pour-step">6 OF 7</div>
+        <div className="free-pour-step">7 OF 8</div>
         <div className="free-pour-message-main">
           MEASURING
           <br />
@@ -633,7 +662,7 @@ export const FreePourScreen = () => {
   if (stage === 'replace-server') {
     return (
       <div className="free-pour-screen free-pour-message-screen">
-        <div className="free-pour-step">6 OF 7</div>
+        <div className="free-pour-step">7 OF 8</div>
         <div className="free-pour-message-main">SERVER REMOVED</div>
         <div className="free-pour-message-sub">
           PUT BACK SERVER ONLY
@@ -650,7 +679,7 @@ export const FreePourScreen = () => {
   const beverage = result?.measurements.beverageG;
   return (
     <div className="free-pour-screen free-pour-result-screen">
-      <div className="free-pour-step">7 OF 7</div>
+      <div className="free-pour-step">8 OF 8</div>
       <div className="free-pour-kicker">FREE POUR COMPLETE</div>
       <div className="free-pour-result-value">
         {beverage === null || beverage === undefined
