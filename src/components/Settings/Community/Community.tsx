@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import QRCode from 'react-qr-code';
 import { useDeviceInfo } from '../../../hooks/useDeviceOSStatus';
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
@@ -12,11 +12,7 @@ import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { useAppDispatch } from '../../store/hooks';
 import './Community.css';
 
-const COMMUNITY_APP_URL =
-  import.meta.env.VITE_COMMUNITY_APP_URL ||
-  'https://community.meticuloushome.com';
-
-type ScreenMode = 'overview' | 'pairing' | 'connected-success' | 'disconnect';
+type ScreenMode = 'overview' | 'connected-success' | 'disconnect';
 
 function formatTimestamp(value: number | null | undefined): string {
   if (!value) return 'Not yet';
@@ -37,15 +33,19 @@ export function CommunitySettings(): JSX.Element {
   const beginEnrollment = useBeginCommunityEnrollment();
   const setPaused = useSetCommunityUploadPaused();
   const disconnect = useDisconnectCommunity();
-  const { data: deviceInfo } = useDeviceInfo();
+  const { data: deviceInfo, isPending: deviceInfoPending } = useDeviceInfo();
   const [mode, setMode] = useState<ScreenMode>('overview');
   const [activeAction, setActiveAction] = useState(0);
   const [pairingUrl, setPairingUrl] = useState<string | null>(null);
   const [pairingExpiresAt, setPairingExpiresAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
+  const enrollmentAttempted = useRef(false);
+  const enrollmentInFlight = useRef(false);
+  const pairingWasActive = useRef(false);
 
   const status = statusQuery.data;
   const connected = status?.connected === true;
+  const pairingExpired = Boolean(pairingExpiresAt && now >= pairingExpiresAt);
   const busy =
     beginEnrollment.isPending || setPaused.isPending || disconnect.isPending;
   const error =
@@ -53,6 +53,49 @@ export function CommunitySettings(): JSX.Element {
     setPaused.error ||
     disconnect.error ||
     statusQuery.error;
+
+  const startEnrollment = useCallback(async () => {
+    if (enrollmentInFlight.current || connected) return;
+
+    enrollmentAttempted.current = true;
+    enrollmentInFlight.current = true;
+    pairingWasActive.current = true;
+    beginEnrollment.reset();
+    setPairingUrl(null);
+    setPairingExpiresAt(null);
+
+    try {
+      const enrollment = await beginEnrollment.mutateAsync(deviceInfo?.serial);
+      setPairingUrl(enrollment.qrUrl);
+      setPairingExpiresAt(enrollment.expiresAt);
+      setNow(Math.floor(Date.now() / 1000));
+    } catch {
+      // The mutation exposes a safe user-facing error below.
+    } finally {
+      enrollmentInFlight.current = false;
+    }
+  }, [beginEnrollment, connected, deviceInfo?.serial]);
+
+  useEffect(() => {
+    if (
+      statusQuery.isPending ||
+      deviceInfoPending ||
+      connected ||
+      pairingUrl ||
+      beginEnrollment.isPending ||
+      enrollmentAttempted.current
+    ) {
+      return;
+    }
+    void startEnrollment();
+  }, [
+    beginEnrollment.isPending,
+    connected,
+    deviceInfoPending,
+    pairingUrl,
+    startEnrollment,
+    statusQuery.isPending
+  ]);
 
   useEffect(() => {
     if (!pairingExpiresAt) return;
@@ -64,7 +107,8 @@ export function CommunitySettings(): JSX.Element {
   }, [pairingExpiresAt]);
 
   useEffect(() => {
-    if (connected && mode === 'pairing') {
+    if (connected && pairingWasActive.current) {
+      pairingWasActive.current = false;
       setMode('connected-success');
       setPairingUrl(null);
       setPairingExpiresAt(null);
@@ -73,44 +117,34 @@ export function CommunitySettings(): JSX.Element {
   }, [connected, mode]);
 
   const actions = useMemo(() => {
-    if (!connected) return ['Connect', 'Back'];
+    if (!connected) {
+      return beginEnrollment.isError || pairingExpired
+        ? ['Try again', 'Back']
+        : ['Back'];
+    }
     return [
       'Back',
       status?.paused ? 'Resume uploads' : 'Pause uploads',
       'Disconnect'
     ];
-  }, [connected, status?.paused]);
+  }, [beginEnrollment.isError, connected, pairingExpired, status?.paused]);
 
   const goBack = () => {
     dispatch(setBubbleDisplay({ visible: true, component: 'settings' }));
   };
 
-  const begin = async () => {
-    const enrollment = await beginEnrollment.mutateAsync(deviceInfo?.serial);
-    setPairingUrl(enrollment.qrUrl);
-    setPairingExpiresAt(enrollment.expiresAt);
-    setNow(Math.floor(Date.now() / 1000));
-    setMode('pairing');
-    setActiveAction(0);
-  };
-
   useHandleGestures({
     left() {
-      if (mode === 'pairing' || mode === 'connected-success') return;
+      if (mode === 'connected-success') return;
       setActiveAction((previous) => Math.max(previous - 1, 0));
     },
     right() {
-      if (mode === 'pairing' || mode === 'connected-success') return;
+      if (mode === 'connected-success') return;
       const max = mode === 'disconnect' ? 1 : actions.length - 1;
       setActiveAction((previous) => Math.min(previous + 1, max));
     },
     pressDown() {
       if (busy) return;
-      if (mode === 'pairing') {
-        setMode('overview');
-        setActiveAction(0);
-        return;
-      }
       if (mode === 'connected-success') {
         setMode('overview');
         setActiveAction(0);
@@ -129,8 +163,11 @@ export function CommunitySettings(): JSX.Element {
         return;
       }
       const action = actions[activeAction];
-      if (action === 'Connect') {
-        void begin();
+      if (action === 'Try again') {
+        enrollmentAttempted.current = false;
+        setPairingUrl(null);
+        setPairingExpiresAt(null);
+        beginEnrollment.reset();
       } else if (action === 'Pause uploads') {
         void setPaused.mutateAsync(true);
       } else if (action === 'Resume uploads') {
@@ -143,25 +180,6 @@ export function CommunitySettings(): JSX.Element {
       }
     }
   });
-
-  if (mode === 'pairing' && pairingUrl) {
-    const secondsLeft = Math.max((pairingExpiresAt ?? now) - now, 0);
-    return (
-      <div className="community-screen">
-        <h2>Connect to Community</h2>
-        <p className="community-copy">
-          In the Community app, open My Machine and scan this security code.
-        </p>
-        <div className="community-qr">
-          <QRCode value={pairingUrl} width={210} height={210} />
-        </div>
-        <p className="community-copy">
-          Code expires in {Math.floor(secondsLeft / 60)}:
-          {String(secondsLeft % 60).padStart(2, '0')}. Press to go back.
-        </p>
-      </div>
-    );
-  }
 
   if (mode === 'disconnect') {
     return (
@@ -200,35 +218,69 @@ export function CommunitySettings(): JSX.Element {
     );
   }
 
+  if (!connected) {
+    const secondsLeft = Math.max((pairingExpiresAt ?? now) - now, 0);
+    return (
+      <div className="community-screen community-screen-connect">
+        <h2>Connect to Community</h2>
+        <p className="community-copy">
+          Scan this secure code with your phone. It opens Community or helps you
+          install the app.
+        </p>
+        {pairingUrl && !pairingExpired ? (
+          <div className="community-qr">
+            <QRCode value={pairingUrl} width={200} height={200} />
+          </div>
+        ) : (
+          <div className="community-qr-placeholder" role="status">
+            {pairingExpired
+              ? 'Secure code expired'
+              : beginEnrollment.isError
+                ? 'Could not create a secure code'
+                : 'Creating secure code...'}
+          </div>
+        )}
+        <p className="community-copy">
+          {pairingExpired ? (
+            'Choose Try again to create a new secure code.'
+          ) : pairingUrl ? (
+            <>
+              Sign in, review private backup, then connect. Code expires in{' '}
+              {Math.floor(secondsLeft / 60)}:
+              {String(secondsLeft % 60).padStart(2, '0')}.
+            </>
+          ) : (
+            'Keep this screen open while Community prepares the connection.'
+          )}
+        </p>
+        <div className="community-actions">
+          {actions.map((label, index) => (
+            <div
+              className={`community-action ${activeAction === index ? 'active' : ''}`}
+              key={label}
+            >
+              {busy && activeAction === index ? 'Working...' : label}
+            </div>
+          ))}
+        </div>
+        {error ? <p className="community-error">{String(error)}</p> : null}
+      </div>
+    );
+  }
+
   return (
     <div className="community-screen">
       <h2>Community</h2>
-      {!connected ? (
-        <>
-          <p className="community-copy">
-            Back up your Profiles and Brews to Meticulous Community. New shots
-            are uploaded privately to your account.
-          </p>
-          <div className="community-qr">
-            <QRCode value={COMMUNITY_APP_URL} width={160} height={160} />
-          </div>
-          <p className="community-copy">
-            Scan to get the Community app. If you already have it, select
-            Connect.
-          </p>
-        </>
-      ) : (
-        <div className="community-status-grid">
-          <span>Status</span>
-          <span>{status.paused ? 'Upload paused' : 'Connected'}</span>
-          <span>Last upload</span>
-          <span>{formatTimestamp(status.lastSuccessAt)}</span>
-          <span>Pending</span>
-          <span>{status.pendingCount}</span>
-          <span>Retry state</span>
-          <span>{readableError(status.lastError)}</span>
-        </div>
-      )}
+      <div className="community-status-grid">
+        <span>Status</span>
+        <span>{status.paused ? 'Upload paused' : 'Connected'}</span>
+        <span>Last upload</span>
+        <span>{formatTimestamp(status.lastSuccessAt)}</span>
+        <span>Pending</span>
+        <span>{status.pendingCount}</span>
+        <span>Retry state</span>
+        <span>{readableError(status.lastError)}</span>
+      </div>
 
       <div className="community-actions">
         {actions.map((label, index) => (

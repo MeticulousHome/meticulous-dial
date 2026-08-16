@@ -19,6 +19,11 @@
   font-weight: 400;
 }
 
+.community-screen-connect {
+  gap: 7px;
+  padding-bottom: 30px;
+}
+
 .community-copy {
   max-width: 340px;
   margin: 0;
@@ -32,6 +37,22 @@
   border-radius: 8px;
   background: #fff;
   padding: 10px;
+}
+
+.community-qr-placeholder {
+  box-sizing: border-box;
+  width: 220px;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e7e7e755;
+  border-radius: 8px;
+  padding: 24px;
+  color: #e7e7e7a6;
+  font-family: 'ABC Diatype';
+  font-size: 15px;
+  line-height: 1.25;
 }
 
 .community-actions {

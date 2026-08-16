@@ -26,6 +26,7 @@ const DEFAULT_COMMUNITY_BASE: &str = "https://community.meticuloushome.com";
 const DEFAULT_MACHINE_BASE: &str = "http://localhost:8080";
 const MAX_SHOT_BODY_BYTES: usize = 2 * 1024 * 1024;
 const ENROLLMENT_TTL_SECONDS: i64 = 10 * 60;
+const ENROLLMENT_EXCHANGE_GRACE_SECONDS: i64 = 5 * 60;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -383,19 +384,17 @@ impl CommunityUploadService {
     }
 
     fn expire_local_enrollment(&self) {
-        let expired = {
-            let state = self
-                .inner
-                .state
-                .lock()
-                .expect("community state lock poisoned");
-            state
-                .persistent
-                .enrollment
-                .as_ref()
-                .is_some_and(|value| value.issued_at + ENROLLMENT_TTL_SECONDS < unix_seconds())
-                && state.persistent.key_id.is_none()
-        };
+        let expired =
+            {
+                let state = self
+                    .inner
+                    .state
+                    .lock()
+                    .expect("community state lock poisoned");
+                state.persistent.enrollment.as_ref().is_some_and(|value| {
+                    enrollment_exchange_expired(value.issued_at, unix_seconds())
+                }) && state.persistent.key_id.is_none()
+            };
         if expired {
             let _ = self.mutate_persistent(|state| {
                 state.enrollment = None;
@@ -1432,6 +1431,10 @@ fn unix_seconds() -> i64 {
         .as_secs() as i64
 }
 
+fn enrollment_exchange_expired(issued_at: i64, now: i64) -> bool {
+    issued_at + ENROLLMENT_TTL_SECONDS + ENROLLMENT_EXCHANGE_GRACE_SECONDS <= now
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1499,6 +1502,23 @@ mod tests {
             idempotency_key(vector.installation_id, "shot-vector-001"),
             vector.request.idempotency_key,
         );
+    }
+
+    #[test]
+    fn keeps_an_expired_display_challenge_for_the_bounded_exchange_grace() {
+        let issued_at = 1_000;
+        assert!(!enrollment_exchange_expired(
+            issued_at,
+            issued_at + ENROLLMENT_TTL_SECONDS,
+        ));
+        assert!(!enrollment_exchange_expired(
+            issued_at,
+            issued_at + ENROLLMENT_TTL_SECONDS + ENROLLMENT_EXCHANGE_GRACE_SECONDS - 1,
+        ));
+        assert!(enrollment_exchange_expired(
+            issued_at,
+            issued_at + ENROLLMENT_TTL_SECONDS + ENROLLMENT_EXCHANGE_GRACE_SECONDS,
+        ));
     }
 
     #[test]
