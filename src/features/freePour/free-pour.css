@@ -265,6 +265,32 @@
   box-shadow: 0 0 0 7px rgba(231, 227, 218, 0.12);
 }
 
+.free-pour-dot--due {
+  border-color: var(--free-pour-white);
+  background: var(--free-pour-white);
+  box-shadow: 0 0 0 7px rgba(231, 227, 218, 0.12);
+}
+
+@keyframes free-pour-cue-flash {
+  0%,
+  49% {
+    border-color: var(--free-pour-white);
+    background: var(--free-pour-white);
+    box-shadow: 0 0 0 7px rgba(231, 227, 218, 0.12);
+  }
+
+  50%,
+  100% {
+    border-color: #687370;
+    background: #050908;
+    box-shadow: none;
+  }
+}
+
+.free-pour-dot--cue {
+  animation: free-pour-cue-flash 1s steps(1, end) 5;
+}
+
 .free-pour-rail-point small {
   margin-top: 9px;
   color: var(--free-pour-muted);

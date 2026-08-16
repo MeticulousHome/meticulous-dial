@@ -26,6 +26,10 @@ import {
   MAX_FREE_POUR_TEMPERATURE_C,
   MIN_FREE_POUR_TEMPERATURE_C
 } from './profile';
+import {
+  BrewerRemovalConfirmation,
+  updatePlausiblePeakWeight
+} from './brewWeightFilter';
 import './free-pour.css';
 
 type Stage =
@@ -149,11 +153,13 @@ const FlowMeter = ({ flow, target }: { flow: number; target?: number }) => {
 const TargetPourRail = ({
   targets,
   currentPour,
-  pouring
+  pouring,
+  cue
 }: {
   targets: PourOverPourTarget[];
   currentPour: number;
   pouring: boolean;
+  cue: 'idle' | 'countdown' | 'due';
 }) => {
   const visibleTargets = targets.slice(0, MAX_POURS);
   const middle = (visibleTargets.length - 1) / 2;
@@ -163,6 +169,12 @@ const TargetPourRail = ({
       {visibleTargets.map((target, index) => {
         const past = target.number < currentPour;
         const active = target.number === currentPour;
+        const cueClass =
+          active && cue === 'countdown'
+            ? 'free-pour-dot--cue'
+            : active && cue === 'due'
+              ? 'free-pour-dot--due'
+              : '';
         return (
           <div
             className="free-pour-rail-point"
@@ -175,7 +187,7 @@ const TargetPourRail = ({
                   ? 'free-pour-dot--past'
                   : active && pouring
                     ? 'free-pour-dot--active'
-                    : ''
+                    : cueClass
               }`}
             />
             <small>{formatBrewTime(target.startTimeMs)}</small>
@@ -277,7 +289,9 @@ export const FreePourScreen = ({
   const brewStartTime = useRef<number | null>(null);
   const elapsedMsRef = useRef(0);
   const lastStoredSampleTime = useRef(0);
+  const lastPeakFilterTime = useRef<number | null>(null);
   const peakWaterWeight = useRef(0);
+  const brewerRemoval = useRef(new BrewerRemovalConfirmation());
   const samples = useRef<FreePourSample[]>([]);
   const completedPours = useRef<FreePourPour[]>([]);
   const activePour = useRef<{
@@ -427,8 +441,14 @@ export const FreePourScreen = ({
   const beginMeasurement = (timeMs: number) => {
     if (finalizing.current) return;
     finalizing.current = true;
+    if (brewStartTime.current !== null) {
+      const finalElapsedMs = Math.max(0, timeMs - brewStartTime.current);
+      elapsedMsRef.current = finalElapsedMs;
+      setElapsedMs(finalElapsedMs);
+    }
     if (activePour.current) finishActivePour(timeMs, peakWaterWeight.current);
     detector.current.reset();
+    brewerRemoval.current.reset();
     logFreePour('brew_weight_measurement_started', {
       runId,
       elapsed_ms: Math.round(elapsedMsRef.current),
@@ -465,28 +485,6 @@ export const FreePourScreen = ({
       const currentWeight = weightRef.current;
       const currentFlow = Math.max(0, flowRef.current);
 
-      if (
-        brewStartTime.current !== null &&
-        (currentStage === 'pouring' ||
-          currentStage === 'waiting' ||
-          currentStage === 'finish-requested')
-      ) {
-        const removalThreshold = Math.max(28, setupWeight.current * 0.18);
-        if (
-          peakWaterWeight.current >= 20 &&
-          currentWeight <= peakWaterWeight.current - removalThreshold
-        ) {
-          logFreePour('brewer_removal_detected', {
-            runId,
-            scale_g: roundTo(currentWeight),
-            peak_water_g: roundTo(peakWaterWeight.current),
-            threshold_g: roundTo(removalThreshold)
-          });
-          beginMeasurement(now);
-          return;
-        }
-      }
-
       const timingActive =
         currentStage === 'pouring' ||
         currentStage === 'waiting' ||
@@ -495,14 +493,21 @@ export const FreePourScreen = ({
         const nextElapsed = now - brewStartTime.current;
         elapsedMsRef.current = nextElapsed;
         setElapsedMs(nextElapsed);
-        peakWaterWeight.current = Math.max(
+        const peakFilterElapsedMs =
+          lastPeakFilterTime.current === null
+            ? 100
+            : now - lastPeakFilterTime.current;
+        lastPeakFilterTime.current = now;
+        peakWaterWeight.current = updatePlausiblePeakWeight(
           peakWaterWeight.current,
-          currentWeight
+          currentWeight,
+          peakFilterElapsedMs
         );
         if (activePour.current) {
-          activePour.current.peakWeightG = Math.max(
+          activePour.current.peakWeightG = updatePlausiblePeakWeight(
             activePour.current.peakWeightG,
-            currentWeight
+            currentWeight,
+            peakFilterElapsedMs
           );
           activePour.current.peakFlowGps = Math.max(
             activePour.current.peakFlowGps,
@@ -518,6 +523,42 @@ export const FreePourScreen = ({
             p: activePour.current?.number ?? 0
           });
         }
+
+        const removalThreshold = Math.max(28, setupWeight.current * 0.18);
+        const belowRemovalThreshold =
+          peakWaterWeight.current >= 20 &&
+          currentWeight <= peakWaterWeight.current - removalThreshold;
+        const removalState = brewerRemoval.current.update(
+          belowRemovalThreshold,
+          now
+        );
+        if (removalState.type === 'started') {
+          logFreePour('brewer_removal_candidate_started', {
+            runId,
+            scale_g: roundTo(currentWeight),
+            peak_water_g: roundTo(peakWaterWeight.current),
+            threshold_g: roundTo(removalThreshold)
+          });
+        } else if (removalState.type === 'cancelled') {
+          logFreePour('brewer_removal_candidate_cancelled', {
+            runId,
+            held_ms: Math.round(removalState.heldMs),
+            scale_g: roundTo(currentWeight)
+          });
+        } else if (removalState.type === 'confirmed') {
+          logFreePour('brewer_removal_detected', {
+            runId,
+            held_ms: Math.round(removalState.heldMs),
+            scale_g: roundTo(currentWeight),
+            peak_water_g: roundTo(peakWaterWeight.current),
+            threshold_g: roundTo(removalThreshold)
+          });
+          beginMeasurement(removalState.startedAtMs);
+          return;
+        }
+      } else {
+        lastPeakFilterTime.current = null;
+        brewerRemoval.current.reset();
       }
 
       const brewingStage =
@@ -538,6 +579,8 @@ export const FreePourScreen = ({
               Date.now() - (now - event.sample.timeMs)
             ).toISOString();
             peakWaterWeight.current = Math.max(0, event.sample.weightG);
+            lastPeakFilterTime.current = event.sample.timeMs;
+            brewerRemoval.current.reset();
           }
           const previousFifthPour =
             completedPours.current.length >= MAX_POURS
@@ -582,7 +625,7 @@ export const FreePourScreen = ({
           setActivePourView({ number: nextPour.number, startTimeMs });
           updateStage('pouring');
         } else if (event?.type === 'pour-end' && activePour.current) {
-          finishActivePour(event.sample.timeMs, event.sample.weightG);
+          finishActivePour(event.sample.timeMs, activePour.current.peakWeightG);
           updateStage('waiting');
         }
       }
@@ -833,6 +876,17 @@ export const FreePourScreen = ({
   const activeTarget = profile?.pourTargets.find(
     (target) => target.number === currentTargetNumber
   );
+  const targetRemainingMs = activeTarget
+    ? activeTarget.startTimeMs - elapsedMs
+    : null;
+  const pourCue =
+    stage === 'waiting' && targetRemainingMs !== null
+      ? targetRemainingMs <= 0
+        ? 'due'
+        : targetRemainingMs <= 5000
+          ? 'countdown'
+          : 'idle'
+      : 'idle';
   const statusLabel =
     stage === 'ready'
       ? 'READY'
@@ -846,6 +900,18 @@ export const FreePourScreen = ({
             : 'WAITING'
           : '';
   const railPours = useMemo(() => pours, [pours]);
+
+  useEffect(() => {
+    if (!activeTarget || (pourCue !== 'countdown' && pourCue !== 'due')) return;
+    logFreePour(
+      pourCue === 'countdown' ? 'next_pour_cue_started' : 'next_pour_due',
+      {
+        runId,
+        pour: activeTarget.number,
+        target_start_ms: activeTarget.startTimeMs
+      }
+    );
+  }, [activeTarget?.number, pourCue, runId]);
 
   if (stage === 'temperature') {
     return (
@@ -1003,6 +1069,7 @@ export const FreePourScreen = ({
             targets={profile.pourTargets}
             currentPour={currentTargetNumber}
             pouring={stage === 'pouring'}
+            cue={pourCue}
           />
         ) : (
           <PourRail
