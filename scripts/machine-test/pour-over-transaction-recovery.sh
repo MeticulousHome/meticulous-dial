@@ -5,6 +5,7 @@ set -eu
 RECOVERY_ROOT="${POUR_OVER_RECOVERY_ROOT:-}"
 VERIFY_SERVICES="${POUR_OVER_RECOVERY_VERIFY_SERVICES:-1}"
 MARKER_PATH="$RECOVERY_ROOT/opt/meticulous-firmware/backups/.pour-over-transaction"
+ACTIVE_PATH="$RECOVERY_ROOT/run/meticulous-pour-over-transaction-active"
 
 case "$VERIFY_SERVICES" in
   0|1) ;;
@@ -45,6 +46,14 @@ archive_current_directory() {
   fi
 }
 
+archive_current_file() {
+  current_path="$1"
+  archive_label="$2"
+  if test -e "$current_path"; then
+    cp -p "$current_path" "$backup_fs_dir/recovery-$archive_label-$stamp"
+  fi
+}
+
 restore_saved_directory() {
   saved_name="$1"
   target_path="$2"
@@ -69,6 +78,27 @@ cp -p "$backup_fs_dir/usr-bin-met-config" "$RECOVERY_ROOT/usr/bin/met-config"
 cp -p "$backup_fs_dir/meticulous-dial" "$RECOVERY_ROOT/usr/bin/meticulous-dial"
 
 if test "$operation" = "install"; then
+  test -s "$backup_fs_dir/config.yml.pre-install"
+  test -s "$backup_fs_dir/etc-hostname.pre-install"
+  test -s "$backup_fs_dir/hostname-static.pre-install"
+  saved_hostname="$(sed -n '1p' "$backup_fs_dir/hostname-static.pre-install")"
+  case "$saved_hostname" in
+    ""|*[!A-Za-z0-9.-]*)
+      echo "ERROR: Invalid saved machine hostname" >&2
+      exit 1
+      ;;
+  esac
+  archive_current_file "$RECOVERY_ROOT/meticulous-user/config/config.yml" config.yml
+  archive_current_file "$RECOVERY_ROOT/etc/hostname" etc-hostname
+  cp -p "$backup_fs_dir/config.yml.pre-install" \
+    "$RECOVERY_ROOT/meticulous-user/config/config.yml"
+  cp -p "$backup_fs_dir/etc-hostname.pre-install" "$RECOVERY_ROOT/etc/hostname"
+  hostnamectl set-hostname "$saved_hostname"
+  cmp -s "$backup_fs_dir/config.yml.pre-install" \
+    "$RECOVERY_ROOT/meticulous-user/config/config.yml"
+  cmp -s "$backup_fs_dir/etc-hostname.pre-install" "$RECOVERY_ROOT/etc/hostname"
+  test "$(hostnamectl --static)" = "$saved_hostname"
+
   test -s "$backup_fs_dir/history.sqlite.pre-install"
   failed_history="$backup_fs_dir/recovery-history-$stamp"
   mkdir "$failed_history"
@@ -85,7 +115,7 @@ if test "$VERIFY_SERVICES" = "0"; then
   # service from here would create an ordering cycle, so finish the durable restore
   # and let systemd start and supervise them normally.
   sync
-  rm -f "$MARKER_PATH"
+  rm -f "$MARKER_PATH" "$ACTIVE_PATH"
   sync
   echo "Interrupted Pour Over $operation transaction recovered." >&2
   exit 0
@@ -126,6 +156,6 @@ test "$dial_ready" = true || {
 
 systemctl is-active --quiet meticulous-backend.service
 sync
-rm -f "$MARKER_PATH"
+rm -f "$MARKER_PATH" "$ACTIVE_PATH"
 sync
 echo "Interrupted Pour Over $operation transaction recovered." >&2

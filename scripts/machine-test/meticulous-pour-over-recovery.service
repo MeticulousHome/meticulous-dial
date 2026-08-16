@@ -3,6 +3,7 @@ Description=Recover an interrupted Meticulous Pour Over transaction
 After=local-fs.target
 Before=meticulous-backend.service meticulous-dial.service
 ConditionPathExists=/opt/meticulous-firmware/backups/.pour-over-transaction
+ConditionPathExists=!/run/meticulous-pour-over-transaction-active
 
 [Service]
 Type=oneshot
