@@ -9,7 +9,7 @@ mod community_upload;
 mod config;
 mod profiles;
 
-use community_upload::{CommunityEnrollment, CommunityUploadService, CommunityUploadStatus};
+use community_upload::{CommunityEnrollment, CommunityUploadRuntime, CommunityUploadStatus};
 
 const DIAL_READY_MARKER: &str = "/run/meticulous-dial-ready";
 const DIAL_HOME_READY_MARKER: &str = "/run/meticulous-dial-home-ready";
@@ -53,13 +53,13 @@ fn get_profiles() -> Result<Vec<serde_json::Value>, String> {
 }
 
 #[tauri::command]
-fn community_upload_status(service: State<'_, CommunityUploadService>) -> CommunityUploadStatus {
+fn community_upload_status(service: State<'_, CommunityUploadRuntime>) -> CommunityUploadStatus {
     service.status()
 }
 
 #[tauri::command]
 fn community_begin_enrollment(
-    service: State<'_, CommunityUploadService>,
+    service: State<'_, CommunityUploadRuntime>,
     machine_serial: Option<String>,
 ) -> Result<CommunityEnrollment, String> {
     service.begin_enrollment(machine_serial)
@@ -67,14 +67,14 @@ fn community_begin_enrollment(
 
 #[tauri::command]
 fn community_set_upload_paused(
-    service: State<'_, CommunityUploadService>,
+    service: State<'_, CommunityUploadRuntime>,
     paused: bool,
 ) -> Result<(), String> {
     service.set_paused(paused)
 }
 
 #[tauri::command]
-async fn community_disconnect(service: State<'_, CommunityUploadService>) -> Result<(), String> {
+async fn community_disconnect(service: State<'_, CommunityUploadRuntime>) -> Result<(), String> {
     let service = service.inner().clone();
     tauri::async_runtime::spawn_blocking(move || service.disconnect())
         .await
@@ -82,7 +82,7 @@ async fn community_disconnect(service: State<'_, CommunityUploadService>) -> Res
 }
 
 #[tauri::command]
-fn community_factory_reset_local(service: State<'_, CommunityUploadService>) -> Result<(), String> {
+fn community_factory_reset_local(service: State<'_, CommunityUploadRuntime>) -> Result<(), String> {
     service.factory_reset_local()
 }
 
@@ -142,8 +142,7 @@ fn show_mem() {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let community_upload =
-        CommunityUploadService::new().expect("failed to initialize Community upload service");
+    let community_upload = CommunityUploadRuntime::initialize();
     community_upload.start();
     std::thread::spawn(|| {
         show_mem();

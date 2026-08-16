@@ -25,6 +25,9 @@ const REVOKE_PATH: &str = "/api/machine-uploads/v1/installations/current";
 const DEFAULT_COMMUNITY_BASE: &str = "https://community.meticuloushome.com";
 const DEFAULT_MACHINE_BASE: &str = "http://localhost:8080";
 const MAX_SHOT_BODY_BYTES: usize = 2 * 1024 * 1024;
+const MAX_QUEUE_ITEMS: usize = 128;
+const MAX_QUEUE_BYTES: u64 = 64 * 1024 * 1024;
+const SERVER_UPGRADE_RETRY_SECONDS: i64 = 15 * 60;
 const ENROLLMENT_TTL_SECONDS: i64 = 10 * 60;
 const ENROLLMENT_EXCHANGE_GRACE_SECONDS: i64 = 5 * 60;
 
@@ -100,6 +103,12 @@ pub struct CommunityUploadService {
     inner: Arc<Inner>,
 }
 
+#[derive(Clone)]
+pub enum CommunityUploadRuntime {
+    Available(CommunityUploadService),
+    Unavailable(Arc<String>),
+}
+
 struct Inner {
     state: Mutex<RuntimeState>,
     state_path: PathBuf,
@@ -166,6 +175,7 @@ struct RequestFailure {
     category: String,
     retry_after_seconds: Option<i64>,
     permanent: bool,
+    status: Option<u16>,
 }
 
 impl std::fmt::Display for RequestFailure {
@@ -175,6 +185,69 @@ impl std::fmt::Display for RequestFailure {
 }
 
 impl std::error::Error for RequestFailure {}
+
+impl CommunityUploadRuntime {
+    pub fn initialize() -> Self {
+        match CommunityUploadService::new() {
+            Ok(service) => Self::Available(service),
+            Err(error) => {
+                eprintln!("Community upload disabled: {error}");
+                Self::Unavailable(Arc::new(error))
+            }
+        }
+    }
+
+    pub fn start(&self) {
+        if let Self::Available(service) = self {
+            service.start();
+        }
+    }
+
+    pub fn status(&self) -> CommunityUploadStatus {
+        match self {
+            Self::Available(service) => service.status(),
+            Self::Unavailable(error) => CommunityUploadStatus {
+                state: "unavailable",
+                connected: false,
+                paused: false,
+                pending_count: 0,
+                last_success_at: None,
+                last_error: Some((**error).clone()),
+                last_retry_at: None,
+                enrollment_expires_at: None,
+            },
+        }
+    }
+
+    pub fn begin_enrollment(
+        &self,
+        machine_serial: Option<String>,
+    ) -> Result<CommunityEnrollment, String> {
+        self.available()?.begin_enrollment(machine_serial)
+    }
+
+    pub fn set_paused(&self, paused: bool) -> Result<(), String> {
+        self.available()?.set_paused(paused)
+    }
+
+    pub fn disconnect(&self) -> Result<(), String> {
+        self.available()?.disconnect()
+    }
+
+    pub fn factory_reset_local(&self) -> Result<(), String> {
+        self.available()?.factory_reset_local()
+    }
+
+    fn available(&self) -> Result<&CommunityUploadService, String> {
+        match self {
+            Self::Available(service) => Ok(service),
+            Self::Unavailable(_) => Err(
+                "Community upload storage is unavailable. The Dial can still brew normally."
+                    .to_string(),
+            ),
+        }
+    }
+}
 
 impl CommunityUploadService {
     pub fn new() -> Result<Self, String> {
@@ -397,9 +470,10 @@ impl CommunityUploadService {
             return Ok(());
         }
 
+        // Drain one durable item first so a full queue can always make progress.
+        self.upload_next_shot()?;
         self.observe_new_shots()?;
         self.observe_new_pour_overs()?;
-        self.upload_next_shot()?;
         Ok(())
     }
 
@@ -778,6 +852,8 @@ impl CommunityUploadService {
             return Err(permanent("shot_file_too_large"));
         }
 
+        self.ensure_queue_capacity(body.len() as u64)?;
+
         let id = Uuid::new_v4();
         let body_file = format!("{id}.json");
         let body_path = self.inner.queue_dir.join(&body_file);
@@ -810,6 +886,40 @@ impl CommunityUploadService {
         Ok(())
     }
 
+    fn ensure_queue_capacity(&self, additional_bytes: u64) -> Result<(), RequestFailure> {
+        let (queue_count, body_files) = {
+            let state = self
+                .inner
+                .state
+                .lock()
+                .map_err(|_| temporary("state_unavailable"))?;
+            let queue_count = state.persistent.queue.len();
+            if queue_count >= MAX_QUEUE_ITEMS {
+                return Err(temporary("queue_capacity_reached"));
+            }
+            (
+                queue_count,
+                state
+                    .persistent
+                    .queue
+                    .iter()
+                    .map(|item| item.body_file.clone())
+                    .collect::<Vec<_>>(),
+            )
+        };
+        let current_bytes = body_files.into_iter().fold(0_u64, |total, body_file| {
+            total.saturating_add(
+                fs::metadata(self.inner.queue_dir.join(body_file))
+                    .map(|metadata| metadata.len())
+                    .unwrap_or(0),
+            )
+        });
+        if !queue_capacity_allows(queue_count, current_bytes, additional_bytes) {
+            return Err(temporary("queue_capacity_reached"));
+        }
+        Ok(())
+    }
+
     fn upload_next_shot(&self) -> Result<(), RequestFailure> {
         let queued = {
             let state = self
@@ -817,12 +927,7 @@ impl CommunityUploadService {
                 .state
                 .lock()
                 .map_err(|_| temporary("state_unavailable"))?;
-            state
-                .persistent
-                .queue
-                .iter()
-                .find(|item| item.next_attempt_at <= unix_seconds())
-                .cloned()
+            next_due_queue_item(&state.persistent.queue, unix_seconds())
         };
         let Some(queued) = queued else {
             return Ok(());
@@ -889,7 +994,10 @@ impl CommunityUploadService {
             self.complete_queue_item(queued.id, &body_path)?;
             return Ok(());
         }
-        let failure = response_failure(response, "upload_failed");
+        let failure = reclassify_upload_failure(
+            response_failure(response, "upload_failed"),
+            queued.history_kind,
+        );
         if failure.category == "invalid_access" || failure.category == "expired_request" {
             let mut state = self
                 .inner
@@ -904,6 +1012,11 @@ impl CommunityUploadService {
             return Err(failure);
         }
         self.defer_queue_item(&queued, &failure)?;
+        if failure.category == "community_pour_over_not_ready" {
+            // This item has its own slow retry. Keep servicing later records
+            // instead of applying a worker-wide backoff.
+            return Ok(());
+        }
         Err(failure)
     }
 
@@ -1276,13 +1389,38 @@ fn rotate_identity_preserving_queue(state: &mut PersistentState) -> Result<(), S
 fn load_or_create_state(path: &Path) -> Result<PersistentState, Box<dyn std::error::Error>> {
     if path.exists() {
         let bytes = fs::read(path)?;
-        let state = serde_json::from_slice::<PersistentState>(&bytes)?;
+        let mut state = serde_json::from_slice::<PersistentState>(&bytes)?;
         validate_state(&state)?;
+        if reactivate_deployment_blocked_pour_overs(&mut state, unix_seconds()) > 0 {
+            persist_state(path, &state)?;
+        }
         return Ok(state);
     }
     let state = fresh_state().map_err(std::io::Error::other)?;
     persist_state(path, &state)?;
     Ok(state)
+}
+
+fn reactivate_deployment_blocked_pour_overs(state: &mut PersistentState, now: i64) -> usize {
+    let mut reactivated = 0;
+    for item in &mut state.queue {
+        if item.history_kind == HistoryKind::PourOver
+            && item.next_attempt_at == i64::MAX
+            && item
+                .last_error
+                .as_deref()
+                .is_some_and(|category| matches!(category, "invalid_json" | "invalid_shot"))
+        {
+            item.next_attempt_at = now;
+            item.last_error = Some("community_pour_over_not_ready".to_string());
+            reactivated += 1;
+        }
+    }
+    if reactivated > 0 {
+        state.last_error = Some("community_pour_over_not_ready".to_string());
+        state.last_retry_at = Some(now);
+    }
+    reactivated
 }
 
 fn validate_state(state: &PersistentState) -> Result<(), std::io::Error> {
@@ -1472,7 +1610,27 @@ fn response_failure(response: Response, fallback: &str) -> RequestFailure {
         permanent: failure_is_permanent(status.as_u16(), &category),
         category,
         retry_after_seconds,
+        status: Some(status.as_u16()),
     }
+}
+
+fn reclassify_upload_failure(
+    mut failure: RequestFailure,
+    history_kind: HistoryKind,
+) -> RequestFailure {
+    if history_kind == HistoryKind::PourOver
+        && pour_over_server_support_may_be_missing(failure.status, &failure.category)
+    {
+        failure.category = "community_pour_over_not_ready".to_string();
+        failure.retry_after_seconds = Some(SERVER_UPGRADE_RETRY_SECONDS);
+        failure.permanent = false;
+    }
+    failure
+}
+
+fn pour_over_server_support_may_be_missing(status: Option<u16>, category: &str) -> bool {
+    matches!(category, "invalid_json" | "invalid_shot")
+        || matches!(status, Some(404 | 405 | 415 | 422))
 }
 
 fn failure_is_permanent(status: u16, category: &str) -> bool {
@@ -1598,6 +1756,18 @@ fn sha256_hex(value: &[u8]) -> String {
     format!("{:x}", Sha256::digest(value))
 }
 
+fn queue_capacity_allows(item_count: usize, current_bytes: u64, additional_bytes: u64) -> bool {
+    item_count < MAX_QUEUE_ITEMS
+        && current_bytes.saturating_add(additional_bytes) <= MAX_QUEUE_BYTES
+}
+
+fn next_due_queue_item(queue: &[QueuedShot], now: i64) -> Option<QueuedShot> {
+    queue
+        .iter()
+        .find(|item| item.next_attempt_at <= now)
+        .cloned()
+}
+
 fn header_value(value: &str) -> Result<reqwest::header::HeaderValue, RequestFailure> {
     reqwest::header::HeaderValue::from_str(value).map_err(|_| permanent("header_invalid"))
 }
@@ -1607,6 +1777,7 @@ fn temporary(category: &str) -> RequestFailure {
         category: safe_category(category),
         retry_after_seconds: None,
         permanent: false,
+        status: None,
     }
 }
 
@@ -1615,6 +1786,7 @@ fn permanent(category: &str) -> RequestFailure {
         category: safe_category(category),
         retry_after_seconds: None,
         permanent: true,
+        status: None,
     }
 }
 
@@ -1810,6 +1982,110 @@ mod tests {
         assert!(!failure_is_permanent(409, "replayed_request"));
         assert!(failure_is_permanent(401, "retired_or_revoked_access"));
         assert!(!failure_is_permanent(401, "expired_request"));
+    }
+
+    #[test]
+    fn retries_pour_over_schema_rejections_without_blocking_espresso() {
+        let pour_over = reclassify_upload_failure(
+            RequestFailure {
+                category: "invalid_json".to_string(),
+                retry_after_seconds: None,
+                permanent: true,
+                status: Some(400),
+            },
+            HistoryKind::PourOver,
+        );
+        assert_eq!(pour_over.category, "community_pour_over_not_ready");
+        assert_eq!(
+            pour_over.retry_after_seconds,
+            Some(SERVER_UPGRADE_RETRY_SECONDS)
+        );
+        assert!(!pour_over.permanent);
+
+        let espresso = reclassify_upload_failure(
+            RequestFailure {
+                category: "invalid_json".to_string(),
+                retry_after_seconds: None,
+                permanent: true,
+                status: Some(400),
+            },
+            HistoryKind::Espresso,
+        );
+        assert_eq!(espresso.category, "invalid_json");
+        assert!(espresso.permanent);
+    }
+
+    #[test]
+    fn reactivates_pour_overs_parked_by_an_older_community_deployment() {
+        let mut state = fresh_state().expect("fresh state");
+        state.queue.push(QueuedShot {
+            id: Uuid::new_v4(),
+            source_shot_id: "pour-over-parked".to_string(),
+            history_path: "2026-08-16/parked.json.zst".to_string(),
+            history_kind: HistoryKind::PourOver,
+            body_file: "parked.json".to_string(),
+            attempt_count: 1,
+            next_attempt_at: i64::MAX,
+            last_error: Some("invalid_json".to_string()),
+        });
+
+        assert_eq!(
+            reactivate_deployment_blocked_pour_overs(&mut state, 1_234),
+            1
+        );
+        assert_eq!(state.queue[0].next_attempt_at, 1_234);
+        assert_eq!(
+            state.queue[0].last_error.as_deref(),
+            Some("community_pour_over_not_ready")
+        );
+    }
+
+    #[test]
+    fn unavailable_upload_storage_does_not_disable_the_dial_runtime() {
+        let runtime = CommunityUploadRuntime::Unavailable(Arc::new(
+            "Community upload storage unavailable".to_string(),
+        ));
+        runtime.start();
+        let status = runtime.status();
+        assert_eq!(status.state, "unavailable");
+        assert!(!status.connected);
+        assert!(runtime.begin_enrollment(None).is_err());
+    }
+
+    #[test]
+    fn bounds_the_durable_upload_queue_by_count_and_bytes() {
+        assert!(queue_capacity_allows(0, 0, MAX_SHOT_BODY_BYTES as u64));
+        assert!(!queue_capacity_allows(MAX_QUEUE_ITEMS, 0, 1));
+        assert!(queue_capacity_allows(1, MAX_QUEUE_BYTES - 1, 1));
+        assert!(!queue_capacity_allows(1, MAX_QUEUE_BYTES, 1));
+    }
+
+    #[test]
+    fn a_deployment_blocked_pour_over_does_not_block_a_later_espresso() {
+        let blocked = QueuedShot {
+            id: Uuid::new_v4(),
+            source_shot_id: "blocked-pour-over".to_string(),
+            history_path: "2026-08-16/blocked.json.zst".to_string(),
+            history_kind: HistoryKind::PourOver,
+            body_file: "blocked.json".to_string(),
+            attempt_count: 1,
+            next_attempt_at: 10_000,
+            last_error: Some("community_pour_over_not_ready".to_string()),
+        };
+        let espresso = QueuedShot {
+            id: Uuid::new_v4(),
+            source_shot_id: "ready-espresso".to_string(),
+            history_path: "2026-08-16/ready.shot.json".to_string(),
+            history_kind: HistoryKind::Espresso,
+            body_file: "ready.json".to_string(),
+            attempt_count: 0,
+            next_attempt_at: 100,
+            last_error: None,
+        };
+
+        let selected = next_due_queue_item(&[blocked, espresso.clone()], 100)
+            .expect("espresso should be selected");
+        assert_eq!(selected.id, espresso.id);
     }
 
     #[test]
