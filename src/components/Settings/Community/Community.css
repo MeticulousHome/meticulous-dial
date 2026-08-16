@@ -1,6 +1,7 @@
 .community-screen {
   --community-optical-offset-x: -16px;
   --community-optical-offset-y: 0px;
+  --community-qr-offset-x: 12px;
   box-sizing: border-box;
   position: absolute;
   top: 50%;
@@ -63,6 +64,7 @@
   border-radius: 8px;
   background: #fff;
   padding: 8px;
+  transform: translateX(var(--community-qr-offset-x));
 }
 
 .community-qr svg {
@@ -83,6 +85,7 @@
   font-family: 'ABC Diatype';
   font-size: 15px;
   line-height: 1.2;
+  transform: translateX(var(--community-qr-offset-x));
 }
 
 .community-actions {
