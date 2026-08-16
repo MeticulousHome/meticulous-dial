@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { LoadingScreen } from '../../components/LoadingScreen/LoadingScreen';
 import { setScreen } from '../../components/store/features/screens/screens-slice';
-import { useAppDispatch } from '../../components/store/hooks';
+import { useAppDispatch, useAppSelector } from '../../components/store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { clamp, formatBrewTime } from './format';
 import { getLatestFreePourSession } from './storage';
 import { FreePourSample, FreePourSession } from './types';
+import { logFreePour, logFreePourError } from './logging';
 import './free-pour-history.css';
 
 const CHART_LEFT = 68;
@@ -40,6 +41,7 @@ const linePath = (
 
 export const FreePourHistoryScreen = () => {
   const dispatch = useAppDispatch();
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [session, setSession] = useState<FreePourSession | null | undefined>(
     undefined
   );
@@ -49,7 +51,7 @@ export const FreePourHistoryScreen = () => {
     getLatestFreePourSession()
       .then(setSession)
       .catch((error) => {
-        console.error('Failed to read Free Pour history', error);
+        logFreePourError('history_read_failed', error);
         setSession(null);
       });
   }, []);
@@ -66,16 +68,15 @@ export const FreePourHistoryScreen = () => {
         );
       },
       click() {
+        logFreePour('history_closed', { source: 'click' });
         dispatch(setScreen('profileHome'));
       },
-      pressDown() {
-        dispatch(setScreen('profileHome'));
-      },
-      context() {
+      doubleClick() {
+        logFreePour('history_closed', { source: 'double_press' });
         dispatch(setScreen('profileHome'));
       }
     },
-    false
+    bubbleDisplay.interceptsGesture
   );
 
   const chart = useMemo(() => {

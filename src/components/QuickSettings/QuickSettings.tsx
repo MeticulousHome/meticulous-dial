@@ -23,6 +23,7 @@ import { useProfileContext } from '../../context/ProfileContext';
 import { useDeletePreset } from '../../hooks/useProfiles';
 import { addSettingsToProfile } from '../../utils/profiles';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
+import { logFreePour } from '../../features/freePour/logging';
 
 export type QuickSettingOption = {
   key: string;
@@ -54,6 +55,23 @@ const freePourContextSettings: QuickSettingOption[] = [
   {
     key: 'last_free_pour',
     label: 'Last pour-over'
+  }
+];
+
+const freePourInProgressSettings: QuickSettingOption[] = [
+  {
+    key: 'resume_free_pour',
+    label: 'Resume Free Pour'
+  },
+  {
+    key: 'abort_free_pour',
+    label: 'Abort Free Pour',
+    longpress: true,
+    hasSeparator: true
+  },
+  {
+    key: 'exit',
+    label: 'Exit menu'
   }
 ];
 
@@ -188,9 +206,11 @@ export function QuickSettings(): JSX.Element {
 
   const handleAnimationEnd = () => {
     setHoldAnimation('finished');
-    if (localProfile?.temporary) return; //To prevent deleting an existing profile based on a temporary profile that has modifications.
     switch (settings[activeOption].key) {
       case 'delete': {
+        // Prevent deleting an existing profile based on a temporary profile
+        // that has modifications.
+        if (localProfile?.temporary) return;
         deletePresetMutation.mutate(localProfile?.id);
         dispatch(setScreen('profileHome'));
         dispatch(setBubbleDisplay({ visible: false, component: undefined }));
@@ -198,6 +218,12 @@ export function QuickSettings(): JSX.Element {
       }
       case 'abort_brew': {
         socket.emit('action', 'abort');
+        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
+        break;
+      }
+      case 'abort_free_pour': {
+        logFreePour('aborted', { source: 'context_menu' });
+        dispatch(setScreen('profileHome'));
         dispatch(setBubbleDisplay({ visible: false, component: undefined }));
         break;
       }
@@ -213,6 +239,12 @@ export function QuickSettings(): JSX.Element {
             component: !bubbleDisplay.visible ? 'quick-settings' : null
           })
         );
+      },
+      doubleClick() {
+        if (currentScreen !== 'freePour') return;
+        logFreePour('aborted', { source: 'double_press_context_menu' });
+        dispatch(setScreen('profileHome'));
+        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
       },
       left() {
         setActiveOption((prev) => Math.max(prev - 1, 0));
@@ -301,6 +333,19 @@ export function QuickSettings(): JSX.Element {
             dispatch(setScreen('freePourHistory'));
             dispatch(
               setBubbleDisplay({ visible: false, component: undefined })
+            );
+            break;
+          }
+          case 'resume_free_pour': {
+            logFreePour('context_closed', { action: 'resume' });
+            // Keep gestures intercepted during the close animation so the
+            // resolved click cannot leak through to the Free Pour screen.
+            dispatch(
+              setBubbleDisplay({
+                visible: false,
+                component: undefined,
+                interceptsGesture: true
+              })
             );
             break;
           }
@@ -412,6 +457,9 @@ export function QuickSettings(): JSX.Element {
         break;
       case 'barometer':
         setSettings(inBrewSettings);
+        break;
+      case 'freePour':
+        setSettings(freePourInProgressSettings);
         break;
       default:
         {

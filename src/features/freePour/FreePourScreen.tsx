@@ -3,11 +3,15 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { useAppDispatch, useAppSelector } from '../../components/store/hooks';
 import { useSocket } from '../../components/store/SocketManager';
-import { setScreen } from '../../components/store/features/screens/screens-slice';
+import {
+  setBubbleDisplay,
+  setScreen
+} from '../../components/store/features/screens/screens-slice';
 import { colorDataBlueLight } from '../../constants/colors';
 import { clamp, formatBrewTime, roundTo } from './format';
 import { DetectorSample, PourDetector } from './pourDetector';
 import { saveFreePourSession } from './storage';
+import { logFreePour, logFreePourError } from './logging';
 import {
   FREE_POUR_SCHEMA_VERSION,
   FreePourCompletion,
@@ -30,8 +34,28 @@ type Stage =
   | 'replace-server'
   | 'result';
 
+type SetupStage = Extract<Stage, 'server' | 'brewer' | 'coffee'>;
+type SetupStatus = 'idle' | 'saving' | 'taring' | 'tare-timeout';
+
 const SAMPLE_INTERVAL_MS = 200;
 const MAX_POURS = 5;
+const TARE_CONFIRM_TOLERANCE_G = 0.6;
+const TARE_CONFIRM_TIMEOUT_MS = 5000;
+
+const isSetupStage = (stage: Stage): stage is SetupStage =>
+  stage === 'server' || stage === 'brewer' || stage === 'coffee';
+
+const isValidSetupWeight = (stage: SetupStage, weight: number) => {
+  if (stage === 'server') return weight >= 20;
+  if (stage === 'brewer') return weight >= 10;
+  return weight >= 5 && weight <= 40;
+};
+
+const nextStageAfterTare = (stage: SetupStage): Stage => {
+  if (stage === 'server') return 'brewer';
+  if (stage === 'brewer') return 'coffee';
+  return 'recipe';
+};
 
 const stepForStage = (stage: Stage) => {
   if (stage === 'server') return 1;
@@ -159,6 +183,7 @@ export const FreePourScreen = () => {
   const dispatch = useAppDispatch();
   const socket = useSocket();
   const { resetTimer } = useIdleTimer();
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const weight = useAppSelector((state) => state.stats.sensors.w || 0);
   const gravimetricFlow = useAppSelector((state) => state.stats.sensors.g || 0);
   const [stage, setStage] = useState<Stage>('server');
@@ -170,6 +195,7 @@ export const FreePourScreen = () => {
     startTimeMs: number;
   } | null>(null);
   const [result, setResult] = useState<FreePourSession | null>(null);
+  const [setupStatus, setSetupStatus] = useState<SetupStatus>('idle');
   const stable = useStableWeight(weight, stage);
   const serverReady = stable && weight >= 20;
   const brewerReady = stable && weight >= 10;
@@ -198,12 +224,23 @@ export const FreePourScreen = () => {
   } | null>(null);
   const completion = useRef<FreePourCompletion>('brewer_removed');
   const finalizing = useRef(false);
+  const setupStatusRef = useRef(setupStatus);
+  const sessionSaved = useRef(false);
+  const [runId] = useState(
+    () =>
+      globalThis.crypto?.randomUUID?.() ??
+      `free-pour-run-${Date.now()}-${Math.round(Math.random() * 100000)}`
+  );
 
   stageRef.current = stage;
   weightRef.current = weight;
   flowRef.current = gravimetricFlow;
+  setupStatusRef.current = setupStatus;
 
   const updateStage = (next: Stage) => {
+    const previous = stageRef.current;
+    if (previous === next) return;
+    logFreePour('stage_changed', { runId, from: previous, to: next });
     stageRef.current = next;
     setStage(next);
   };
@@ -235,6 +272,15 @@ export const FreePourScreen = () => {
       averageFlowGps: roundTo(waterG / durationSeconds),
       peakFlowGps: roundTo(current.peakFlowGps)
     };
+    logFreePour('pour_ended', {
+      runId,
+      pour: finished.number,
+      start_ms: finished.startTimeMs,
+      end_ms: finished.endTimeMs,
+      water_g: finished.waterG,
+      average_flow_gps: finished.averageFlowGps,
+      peak_flow_gps: finished.peakFlowGps
+    });
     completedPours.current = [...completedPours.current, finished];
     setPours(completedPours.current);
     activePour.current = null;
@@ -283,11 +329,28 @@ export const FreePourScreen = () => {
       completion: completion.current,
       sync: { status: 'pending', attempts: 0 }
     };
+    logFreePour('session_completed', {
+      runId,
+      duration_ms: session.measurements.durationMs,
+      pours: session.pours.length,
+      water_g: session.measurements.waterPouredG,
+      beverage_g: session.measurements.beverageG,
+      retained_g: session.measurements.retainedG,
+      completion: session.completion
+    });
     setResult(session);
     updateStage('result');
-    saveFreePourSession(session).catch((error) => {
-      console.error('Failed to save Free Pour session', error);
-    });
+    saveFreePourSession(session)
+      .then(() => {
+        sessionSaved.current = true;
+        logFreePour('session_saved', { runId, sessionId: session.id });
+      })
+      .catch((error) => {
+        logFreePourError('session_save_failed', error, {
+          runId,
+          sessionId: session.id
+        });
+      });
   };
 
   const beginMeasurement = (timeMs: number) => {
@@ -295,8 +358,24 @@ export const FreePourScreen = () => {
     finalizing.current = true;
     if (activePour.current) finishActivePour(timeMs, peakWaterWeight.current);
     detector.current.reset();
+    logFreePour('brew_weight_measurement_started', {
+      runId,
+      elapsed_ms: Math.round(elapsedMsRef.current),
+      scale_g: roundTo(weightRef.current)
+    });
     updateStage('measuring');
   };
+
+  useEffect(() => {
+    logFreePour('screen_entered', { runId, stage: 'server' });
+    return () => {
+      logFreePour('screen_exited', {
+        runId,
+        stage: stageRef.current,
+        session_saved: sessionSaved.current
+      });
+    };
+  }, [runId]);
 
   useEffect(() => {
     const keepAwake = window.setInterval(resetTimer, 60_000);
@@ -321,6 +400,12 @@ export const FreePourScreen = () => {
           peakWaterWeight.current >= 20 &&
           currentWeight <= peakWaterWeight.current - removalThreshold
         ) {
+          logFreePour('brewer_removal_detected', {
+            runId,
+            scale_g: roundTo(currentWeight),
+            peak_water_g: roundTo(peakWaterWeight.current),
+            threshold_g: roundTo(removalThreshold)
+          });
           beginMeasurement(now);
           return;
         }
@@ -411,6 +496,13 @@ export const FreePourScreen = () => {
                 peakFlowGps: Math.max(0, event.sample.flowGps)
               };
           activePour.current = nextPour;
+          logFreePour('pour_started', {
+            runId,
+            pour: nextPour.number,
+            start_ms: Math.round(nextPour.startTimeMs),
+            start_weight_g: roundTo(nextPour.startWeightG),
+            flow_gps: roundTo(event.sample.flowGps)
+          });
           setActivePourView({ number: nextPour.number, startTimeMs });
           updateStage('pouring');
         } else if (event?.type === 'pour-end' && activePour.current) {
@@ -430,13 +522,29 @@ export const FreePourScreen = () => {
       candidateBeverage >= Math.max(8, water * 0.2) &&
       candidateBeverage <= water + 8;
     if (plausible) {
+      logFreePour('brew_weight_accepted', {
+        runId,
+        beverage_g: roundTo(candidateBeverage),
+        water_g: roundTo(water)
+      });
       createSession(candidateBeverage);
     } else if (candidateBeverage <= Math.max(5, water * 0.08)) {
+      logFreePour('server_missing_after_brewer_removal', {
+        runId,
+        candidate_beverage_g: roundTo(candidateBeverage),
+        water_g: roundTo(water)
+      });
       finalizing.current = false;
       updateStage('replace-server');
     } else if (candidateBeverage > water + 8) {
       // A transient bump can resemble a lift. Return to the live state once
       // the full setup is stable on the scale again.
+      logFreePour('brewer_removal_rejected', {
+        runId,
+        reason: 'weight_above_plausible_range',
+        candidate_beverage_g: roundTo(candidateBeverage),
+        water_g: roundTo(water)
+      });
       finalizing.current = false;
       updateStage('waiting');
     }
@@ -450,32 +558,129 @@ export const FreePourScreen = () => {
       candidateBeverage >= Math.max(8, water * 0.2) &&
       candidateBeverage <= water + 8
     ) {
+      logFreePour('replacement_server_accepted', {
+        runId,
+        beverage_g: roundTo(candidateBeverage),
+        water_g: roundTo(water)
+      });
       createSession(candidateBeverage);
     }
   }, [stable, stage, weight]);
 
+  useEffect(() => {
+    if (setupStatus !== 'saving' || !stable || !isSetupStage(stage)) return;
+
+    if (!isValidSetupWeight(stage, weight)) {
+      logFreePour('weight_save_cancelled', {
+        runId,
+        stage,
+        reason: 'weight_out_of_range',
+        weight_g: roundTo(weight)
+      });
+      setSetupStatus('idle');
+      return;
+    }
+
+    if (stage === 'server') {
+      serverWeight.current = weight;
+    } else if (stage === 'brewer') {
+      brewerWeight.current = weight;
+    } else {
+      const measuredDose = weight;
+      setDoseG(Math.round(measuredDose));
+      setupWeight.current = brewerWeight.current + measuredDose;
+    }
+
+    logFreePour('weight_saved', {
+      runId,
+      stage,
+      weight_g: roundTo(weight)
+    });
+    setSetupStatus('taring');
+    socket.emit('action', 'tare');
+    logFreePour('tare_requested', { runId, stage });
+  }, [setupStatus, stable, stage, weight, socket, runId]);
+
+  useEffect(() => {
+    if (
+      setupStatus !== 'taring' ||
+      !stable ||
+      !isSetupStage(stage) ||
+      Math.abs(weight) > TARE_CONFIRM_TOLERANCE_G
+    ) {
+      return;
+    }
+
+    logFreePour('tare_confirmed', {
+      runId,
+      stage,
+      weight_g: roundTo(weight)
+    });
+    setSetupStatus('idle');
+    updateStage(nextStageAfterTare(stage));
+  }, [setupStatus, stable, stage, weight, runId]);
+
+  useEffect(() => {
+    if (setupStatus !== 'taring' || !isSetupStage(stage)) return;
+
+    const taringStage = stage;
+    const timeout = window.setTimeout(() => {
+      logFreePour('tare_timed_out', {
+        runId,
+        stage: taringStage,
+        weight_g: roundTo(weightRef.current)
+      });
+      setSetupStatus('tare-timeout');
+    }, TARE_CONFIRM_TIMEOUT_MS);
+
+    return () => window.clearTimeout(timeout);
+  }, [setupStatus, stage, runId]);
+
   useHandleGestures(
     {
-      pressDown() {
+      click() {
         const currentStage = stageRef.current;
-        if (currentStage === 'server' && serverReady) {
-          serverWeight.current = weightRef.current;
-          socket.emit('action', 'tare');
-          updateStage('brewer');
-          return;
-        }
-        if (currentStage === 'brewer' && brewerReady) {
-          brewerWeight.current = weightRef.current;
-          socket.emit('action', 'tare');
-          updateStage('coffee');
-          return;
-        }
-        if (currentStage === 'coffee' && coffeeReady) {
-          const measuredDose = weightRef.current;
-          setDoseG(Math.round(measuredDose));
-          setupWeight.current = brewerWeight.current + measuredDose;
-          socket.emit('action', 'tare');
-          updateStage('recipe');
+        const currentWeight = weightRef.current;
+        const currentSetupStatus = setupStatusRef.current;
+        logFreePour('click_received', {
+          runId,
+          stage: currentStage,
+          setup_status: currentSetupStatus,
+          stable,
+          weight_g: roundTo(currentWeight)
+        });
+
+        if (isSetupStage(currentStage)) {
+          if (currentSetupStatus === 'tare-timeout') {
+            setSetupStatus('taring');
+            socket.emit('action', 'tare');
+            logFreePour('tare_retried', { runId, stage: currentStage });
+            return;
+          }
+          if (currentSetupStatus !== 'idle') {
+            logFreePour('click_ignored', {
+              runId,
+              stage: currentStage,
+              reason: currentSetupStatus
+            });
+            return;
+          }
+          if (!isValidSetupWeight(currentStage, currentWeight)) {
+            logFreePour('click_rejected', {
+              runId,
+              stage: currentStage,
+              reason: 'weight_out_of_range',
+              weight_g: roundTo(currentWeight)
+            });
+            return;
+          }
+          setSetupStatus('saving');
+          logFreePour('weight_save_requested', {
+            runId,
+            stage: currentStage,
+            stable,
+            weight_g: roundTo(currentWeight)
+          });
           return;
         }
         if (currentStage === 'recipe') {
@@ -488,18 +693,40 @@ export const FreePourScreen = () => {
           return;
         }
         if (currentStage === 'replace-server') {
+          logFreePour('brew_weight_skipped', { runId });
           createSession(null);
           return;
         }
         if (currentStage === 'result') {
+          logFreePour('review_opened', { runId });
           dispatch(setScreen('freePourHistory'));
+          return;
         }
+
+        logFreePour('click_ignored', {
+          runId,
+          stage: currentStage,
+          reason: 'no_action_for_stage'
+        });
+      },
+      doubleClick() {
+        const currentStage = stageRef.current;
+        logFreePour(currentStage === 'result' ? 'exited' : 'aborted', {
+          runId,
+          source: 'double_press',
+          stage: currentStage
+        });
+        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
+        dispatch(setScreen('profileHome'));
       },
       context() {
-        dispatch(setScreen('profileHome'));
+        logFreePour('context_opened', {
+          runId,
+          stage: stageRef.current
+        });
       }
     },
-    false
+    bubbleDisplay.interceptsGesture
   );
 
   const step = stepForStage(stage);
@@ -526,19 +753,37 @@ export const FreePourScreen = () => {
         <div className="free-pour-kicker">ADD BREWER</div>
         <div className="free-pour-setup-weight">{Math.round(weight)}g</div>
         <div className="free-pour-stability">
-          {weight < 10
-            ? 'PLACE BREWER ON SERVER'
-            : brewerReady
-              ? 'WEIGHT STABLE'
-              : 'WAITING FOR STABLE WEIGHT'}
+          {setupStatus === 'saving'
+            ? 'KEEP SCALE STILL'
+            : setupStatus === 'taring'
+              ? 'WAITING FOR ZERO'
+              : setupStatus === 'tare-timeout'
+                ? 'TARE NOT CONFIRMED'
+                : weight < 10
+                  ? 'PLACE BREWER ON SERVER'
+                  : brewerReady
+                    ? 'WEIGHT STABLE'
+                    : 'WAITING FOR STABLE WEIGHT'}
         </div>
         <div
           className={`free-pour-dose-action ${
-            brewerReady ? '' : 'free-pour-dose-action--disabled'
+            setupStatus === 'idle' && weight < 10
+              ? 'free-pour-dose-action--disabled'
+              : ''
           }`}
         >
-          <span>PRESS DIAL TO SAVE</span>
-          <strong>BREWER + TARE</strong>
+          {setupStatus === 'saving' ? (
+            <strong>SAVING WEIGHT</strong>
+          ) : setupStatus === 'taring' ? (
+            <strong>TARING…</strong>
+          ) : setupStatus === 'tare-timeout' ? (
+            <strong>PRESS DIAL TO RETRY</strong>
+          ) : (
+            <>
+              <span>PRESS DIAL TO SAVE</span>
+              <strong>BREWER + TARE</strong>
+            </>
+          )}
         </div>
       </div>
     );
@@ -551,21 +796,39 @@ export const FreePourScreen = () => {
         <div className="free-pour-kicker">ADD COFFEE</div>
         <div className="free-pour-setup-weight">{Math.round(weight)}g</div>
         <div className="free-pour-stability">
-          {weight < 5
-            ? 'ADD 5–40g COFFEE'
-            : weight > 40
-              ? 'DOSE MUST BE 5–40g'
-              : coffeeReady
-                ? 'DOSE READY'
-                : 'WAITING FOR STABLE WEIGHT'}
+          {setupStatus === 'saving'
+            ? 'KEEP SCALE STILL'
+            : setupStatus === 'taring'
+              ? 'WAITING FOR ZERO'
+              : setupStatus === 'tare-timeout'
+                ? 'TARE NOT CONFIRMED'
+                : weight < 5
+                  ? 'ADD 5–40g COFFEE'
+                  : weight > 40
+                    ? 'DOSE MUST BE 5–40g'
+                    : coffeeReady
+                      ? 'DOSE READY'
+                      : 'WAITING FOR STABLE WEIGHT'}
         </div>
         <div
           className={`free-pour-dose-action ${
-            coffeeReady ? '' : 'free-pour-dose-action--disabled'
+            setupStatus === 'idle' && (weight < 5 || weight > 40)
+              ? 'free-pour-dose-action--disabled'
+              : ''
           }`}
         >
-          <span>PRESS DIAL TO SAVE</span>
-          <strong>DOSE + TARE</strong>
+          {setupStatus === 'saving' ? (
+            <strong>SAVING WEIGHT</strong>
+          ) : setupStatus === 'taring' ? (
+            <strong>TARING…</strong>
+          ) : setupStatus === 'tare-timeout' ? (
+            <strong>PRESS DIAL TO RETRY</strong>
+          ) : (
+            <>
+              <span>PRESS DIAL TO SAVE</span>
+              <strong>DOSE + TARE</strong>
+            </>
+          )}
         </div>
       </div>
     );
@@ -578,13 +841,27 @@ export const FreePourScreen = () => {
         <div className="free-pour-kicker">EMPTY SERVER</div>
         <div className="free-pour-setup-weight">{Math.round(weight)}g</div>
         <div className="free-pour-stability">
-          {weight < 20
-            ? 'PLACE EMPTY SERVER'
-            : serverReady
-              ? 'WEIGHT STABLE'
-              : 'WAITING FOR STABLE WEIGHT'}
+          {setupStatus === 'saving'
+            ? 'KEEP SCALE STILL'
+            : setupStatus === 'taring'
+              ? 'WAITING FOR ZERO'
+              : setupStatus === 'tare-timeout'
+                ? 'TARE NOT CONFIRMED'
+                : weight < 20
+                  ? 'PLACE EMPTY SERVER'
+                  : serverReady
+                    ? 'WEIGHT STABLE'
+                    : 'WAITING FOR STABLE WEIGHT'}
         </div>
-        <div className="free-pour-setup-action">PRESS DIAL TO SAVE + TARE</div>
+        <div className="free-pour-setup-action">
+          {setupStatus === 'saving'
+            ? 'SAVING WEIGHT'
+            : setupStatus === 'taring'
+              ? 'TARING…'
+              : setupStatus === 'tare-timeout'
+                ? 'PRESS DIAL TO RETRY'
+                : 'PRESS DIAL TO SAVE + TARE'}
+        </div>
       </div>
     );
   }
