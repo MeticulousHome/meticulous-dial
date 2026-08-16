@@ -241,7 +241,8 @@ export function QuickSettings(): JSX.Element {
         );
       },
       doubleClick() {
-        if (currentScreen !== 'freePour') return;
+        if (currentScreen !== 'freePour' && currentScreen !== 'freePourRecipe')
+          return;
         logFreePour('aborted', { source: 'double_press_context_menu' });
         dispatch(setScreen('profileHome'));
         dispatch(setBubbleDisplay({ visible: false, component: undefined }));
@@ -331,8 +332,15 @@ export function QuickSettings(): JSX.Element {
           }
           case 'last_free_pour': {
             dispatch(setScreen('freePourHistory'));
+            // The menu opens entries on pressDown. Keep the underlying chart
+            // blocked until the bubble finishes closing so the same physical
+            // press cannot resolve into a click that immediately exits it.
             dispatch(
-              setBubbleDisplay({ visible: false, component: undefined })
+              setBubbleDisplay({
+                visible: false,
+                component: undefined,
+                interceptsGesture: true
+              })
             );
             break;
           }
@@ -430,7 +438,8 @@ export function QuickSettings(): JSX.Element {
     currentScreen === 'profileHome' &&
     homeMode === 'espresso';
   const requiresFreePourContext =
-    currentScreen === 'profileHome' && homeMode === 'free_pour';
+    currentScreen === 'profileHome' &&
+    (homeMode === 'free_pour' || homeMode === 'pour_over_profile');
 
   useEffect(() => {
     const context: QuickSettingOption[] = profileContextSettings;
@@ -459,6 +468,7 @@ export function QuickSettings(): JSX.Element {
         setSettings(inBrewSettings);
         break;
       case 'freePour':
+      case 'freePourRecipe':
         setSettings(freePourInProgressSettings);
         break;
       default:

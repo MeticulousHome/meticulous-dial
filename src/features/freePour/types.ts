@@ -1,4 +1,4 @@
-export const FREE_POUR_SCHEMA_VERSION = 3 as const;
+export const FREE_POUR_SCHEMA_VERSION = 4 as const;
 
 export type FreePourCompletion = 'brewer_removed' | 'dial_fallback';
 
@@ -32,6 +32,17 @@ export interface PourOverPourTarget {
   flowRangeGps?: [number, number];
 }
 
+export interface PourOverProfile {
+  id: string;
+  name: string;
+  sourceSessionId: string;
+  doseG: number;
+  temperatureC: number;
+  targetWaterG: number;
+  targetDurationMs: number;
+  pourTargets: PourOverPourTarget[];
+}
+
 /**
  * A first-class brew record. Uploading is intentionally represented as data,
  * not performed here, so community sync can consume the record independently.
@@ -40,8 +51,8 @@ export interface FreePourSession {
   schemaVersion: typeof FREE_POUR_SCHEMA_VERSION;
   id: string;
   brewType: 'pour_over';
-  mode: 'free_pour';
-  name: 'Free Pour';
+  mode: 'free_pour' | 'profile';
+  name: string;
   source: 'dial';
   startedAt: string;
   completedAt: string;
@@ -50,7 +61,9 @@ export interface FreePourSession {
     profileId: string | null;
     profileName: string;
     doseG: number;
+    temperatureC: number;
     targetWaterG: number | null;
+    targetDurationMs: number | null;
     pourTargets: PourOverPourTarget[];
   };
   measurements: {
@@ -60,6 +73,10 @@ export interface FreePourSession {
     brewerG: number;
     /** Brewer plus dry-coffee weight tared immediately before brewing. */
     setupG: number;
+    /** Measured dry-coffee dose used for this brew. */
+    doseG: number;
+    /** Water temperature entered by the brewer before starting. */
+    waterTemperatureC: number;
     waterPouredG: number;
     beverageG: number | null;
     retainedG: number | null;

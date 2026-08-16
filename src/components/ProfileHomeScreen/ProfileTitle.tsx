@@ -66,7 +66,9 @@ export const TitleProfiles = () => {
   let title =
     isHomeScreen && homeMode === 'free_pour'
       ? 'Free Pour'
-      : localProfile?.name || '';
+      : isHomeScreen && homeMode === 'pour_over_profile'
+        ? 'Repeat Last Pour'
+        : localProfile?.name || '';
   if (title.length > 40) {
     title = title.slice(0, 40) + '...';
   }

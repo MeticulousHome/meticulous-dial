@@ -31,6 +31,7 @@
 }
 
 .free-pour-setup-screen,
+.free-pour-temperature-screen,
 .free-pour-result-screen,
 .free-pour-message-screen {
   display: flex;
@@ -98,6 +99,50 @@
 
 .free-pour-dose-action--disabled {
   opacity: 0.38;
+}
+
+.free-pour-temperature-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.free-pour-temperature-screen .free-pour-kicker {
+  margin-top: -54px;
+}
+
+.free-pour-temperature-value {
+  margin-top: 25px;
+  font-family: 'ABC Diatype Mono', monospace;
+  font-size: 104px;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -8px;
+}
+
+.free-pour-temperature-value span {
+  margin-left: 8px;
+  color: var(--free-pour-muted);
+  font-size: 35px;
+  letter-spacing: -2px;
+}
+
+.free-pour-temperature-adjust {
+  margin-top: 25px;
+  color: var(--free-pour-muted);
+  font-family: 'ABC Diatype Mono', monospace;
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+.free-pour-temperature-action {
+  position: absolute;
+  bottom: 54px;
+  width: 100%;
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: 1.5px;
 }
 
 .free-pour-recipe-dose {
@@ -239,6 +284,46 @@
   letter-spacing: -5px;
 }
 
+.free-pour-profile-weight {
+  position: absolute;
+  top: 238px;
+  left: 80px;
+  width: 320px;
+  display: grid;
+  grid-template-columns: 1fr 34px 1fr;
+  align-items: end;
+}
+
+.free-pour-profile-weight div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.free-pour-profile-weight span {
+  margin-bottom: 5px;
+  color: var(--free-pour-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.free-pour-profile-weight strong {
+  font-family: 'ABC Diatype Mono', monospace;
+  font-size: 51px;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -4px;
+}
+
+.free-pour-profile-weight i {
+  padding-bottom: 7px;
+  color: var(--free-pour-muted);
+  font-family: 'ABC Diatype Mono', monospace;
+  font-size: 25px;
+  font-style: normal;
+}
+
 .free-pour-flow-meter {
   position: absolute;
   top: 325px;
@@ -258,11 +343,23 @@
 }
 
 .free-pour-flow-segments {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(10, 1fr);
   gap: 5px;
   height: 14px;
   margin-top: 10px;
+}
+
+.free-pour-flow-target {
+  position: absolute;
+  z-index: 5;
+  top: -7px;
+  width: 3px;
+  height: 28px;
+  border-radius: 2px;
+  background: var(--free-pour-white);
+  transform: translateX(-1px);
 }
 
 .free-pour-flow-segment {

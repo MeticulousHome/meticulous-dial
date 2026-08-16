@@ -17,15 +17,22 @@ import {
   FreePourCompletion,
   FreePourPour,
   FreePourSample,
-  FreePourSession
+  FreePourSession,
+  PourOverPourTarget,
+  PourOverProfile
 } from './types';
+import {
+  DEFAULT_FREE_POUR_TEMPERATURE_C,
+  MAX_FREE_POUR_TEMPERATURE_C,
+  MIN_FREE_POUR_TEMPERATURE_C
+} from './profile';
 import './free-pour.css';
 
 type Stage =
   | 'server'
   | 'brewer'
   | 'coffee'
-  | 'recipe'
+  | 'temperature'
   | 'ready'
   | 'pouring'
   | 'waiting'
@@ -57,14 +64,14 @@ const isValidSetupWeight = (stage: SetupStage, weight: number) => {
 const nextStageAfterTare = (stage: SetupStage): Stage => {
   if (stage === 'server') return 'brewer';
   if (stage === 'brewer') return 'coffee';
-  return 'recipe';
+  return 'ready';
 };
 
 const stepForStage = (stage: Stage) => {
-  if (stage === 'server') return 1;
-  if (stage === 'brewer') return 2;
-  if (stage === 'coffee') return 3;
-  if (stage === 'recipe') return 4;
+  if (stage === 'temperature') return 1;
+  if (stage === 'server') return 2;
+  if (stage === 'brewer') return 3;
+  if (stage === 'coffee') return 4;
   if (stage === 'ready' || stage === 'pouring') return 5;
   if (stage === 'waiting') return 6;
   if (stage === 'finish-requested' || stage === 'measuring') return 7;
@@ -103,8 +110,10 @@ const useStableWeight = (weight: number, resetKey: Stage) => {
   return stable;
 };
 
-const FlowMeter = ({ flow }: { flow: number }) => {
+const FlowMeter = ({ flow, target }: { flow: number; target?: number }) => {
   const displayedFlow = clamp(flow, 0, 10);
+  const displayedTarget =
+    target === undefined ? undefined : clamp(target, 0, 10);
   return (
     <div className="free-pour-flow-meter">
       <div className="free-pour-flow-title">
@@ -121,12 +130,58 @@ const FlowMeter = ({ flow }: { flow: number }) => {
             />
           </span>
         ))}
+        {displayedTarget !== undefined && (
+          <span
+            className="free-pour-flow-target"
+            style={{ left: `${displayedTarget * 10}%` }}
+          />
+        )}
       </div>
       <div className="free-pour-flow-axis">
         {Array.from({ length: 11 }, (_, index) => (
           <span key={index}>{index}</span>
         ))}
       </div>
+    </div>
+  );
+};
+
+const TargetPourRail = ({
+  targets,
+  currentPour,
+  pouring
+}: {
+  targets: PourOverPourTarget[];
+  currentPour: number;
+  pouring: boolean;
+}) => {
+  const visibleTargets = targets.slice(0, MAX_POURS);
+  const middle = (visibleTargets.length - 1) / 2;
+  return (
+    <div className="free-pour-rail free-pour-target-rail">
+      <div className="free-pour-rail-line free-pour-rail-line--complete" />
+      {visibleTargets.map((target, index) => {
+        const past = target.number < currentPour;
+        const active = target.number === currentPour;
+        return (
+          <div
+            className="free-pour-rail-point"
+            key={target.number}
+            style={{ transform: `translateX(${(index - middle) * 58}px)` }}
+          >
+            <span
+              className={`free-pour-dot ${
+                past
+                  ? 'free-pour-dot--past'
+                  : active && pouring
+                    ? 'free-pour-dot--active'
+                    : ''
+              }`}
+            />
+            <small>{formatBrewTime(target.startTimeMs)}</small>
+          </div>
+        );
+      })}
     </div>
   );
 };
@@ -182,15 +237,22 @@ const PourRail = ({
   );
 };
 
-export const FreePourScreen = () => {
+export const FreePourScreen = ({
+  profile
+}: {
+  profile?: PourOverProfile;
+} = {}) => {
   const dispatch = useAppDispatch();
   const socket = useSocket();
   const { resetTimer } = useIdleTimer();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const weight = useAppSelector((state) => state.stats.sensors.w || 0);
   const gravimetricFlow = useAppSelector((state) => state.stats.sensors.g || 0);
-  const [stage, setStage] = useState<Stage>('server');
-  const [doseG, setDoseG] = useState(15);
+  const [stage, setStage] = useState<Stage>('temperature');
+  const [doseG, setDoseG] = useState(profile?.doseG ?? 15);
+  const [temperatureC, setTemperatureC] = useState(
+    profile?.temperatureC ?? DEFAULT_FREE_POUR_TEMPERATURE_C
+  );
   const [elapsedMs, setElapsedMs] = useState(0);
   const [pours, setPours] = useState<FreePourPour[]>([]);
   const [activePourView, setActivePourView] = useState<{
@@ -305,22 +367,26 @@ export const FreePourScreen = () => {
         globalThis.crypto?.randomUUID?.() ??
         `free-pour-${now.getTime()}-${Math.round(Math.random() * 100000)}`,
       brewType: 'pour_over',
-      mode: 'free_pour',
-      name: 'Free Pour',
+      mode: profile ? 'profile' : 'free_pour',
+      name: profile?.name ?? 'Free Pour',
       source: 'dial',
       startedAt: startedAtIso.current || now.toISOString(),
       completedAt: now.toISOString(),
       recipe: {
-        profileId: null,
-        profileName: 'Free Pour',
-        doseG,
-        targetWaterG: null,
-        pourTargets: []
+        profileId: profile?.id ?? null,
+        profileName: profile?.name ?? 'Free Pour',
+        doseG: profile?.doseG ?? doseG,
+        temperatureC: profile?.temperatureC ?? temperatureC,
+        targetWaterG: profile?.targetWaterG ?? null,
+        targetDurationMs: profile?.targetDurationMs ?? null,
+        pourTargets: profile?.pourTargets ?? []
       },
       measurements: {
         serverBaselineG: roundTo(serverWeight.current),
         brewerG: roundTo(brewerWeight.current),
         setupG: roundTo(setupWeight.current),
+        doseG: roundTo(doseG),
+        waterTemperatureC: temperatureC,
         waterPouredG,
         beverageG: measuredBeverage,
         retainedG,
@@ -339,6 +405,8 @@ export const FreePourScreen = () => {
       water_g: session.measurements.waterPouredG,
       beverage_g: session.measurements.beverageG,
       retained_g: session.measurements.retainedG,
+      temperature_c: session.measurements.waterTemperatureC,
+      profile_id: session.recipe.profileId,
       completion: session.completion
     });
     setResult(session);
@@ -370,7 +438,12 @@ export const FreePourScreen = () => {
   };
 
   useEffect(() => {
-    logFreePour('screen_entered', { runId, stage: 'server' });
+    logFreePour('screen_entered', {
+      runId,
+      stage: 'temperature',
+      mode: profile ? 'profile' : 'free_pour',
+      profile_id: profile?.id ?? null
+    });
     return () => {
       logFreePour('screen_exited', {
         runId,
@@ -686,8 +759,13 @@ export const FreePourScreen = () => {
           });
           return;
         }
-        if (currentStage === 'recipe') {
-          updateStage('ready');
+        if (currentStage === 'temperature') {
+          logFreePour('temperature_confirmed', {
+            runId,
+            temperature_c: temperatureC,
+            profile_target_c: profile?.temperatureC ?? null
+          });
+          updateStage('server');
           return;
         }
         if (currentStage === 'pouring' || currentStage === 'waiting') {
@@ -727,6 +805,18 @@ export const FreePourScreen = () => {
           runId,
           stage: stageRef.current
         });
+      },
+      left() {
+        if (stageRef.current !== 'temperature') return;
+        setTemperatureC((value) =>
+          Math.max(MIN_FREE_POUR_TEMPERATURE_C, value - 1)
+        );
+      },
+      right() {
+        if (stageRef.current !== 'temperature') return;
+        setTemperatureC((value) =>
+          Math.min(MAX_FREE_POUR_TEMPERATURE_C, value + 1)
+        );
       }
     },
     bubbleDisplay.interceptsGesture
@@ -737,22 +827,49 @@ export const FreePourScreen = () => {
   const roundedWeight = Math.max(0, Math.round(weight));
   const liveState =
     stage === 'ready' || stage === 'pouring' || stage === 'waiting';
+  const expectedPourCount = profile?.pourTargets.length ?? MAX_POURS;
+  const currentTargetNumber =
+    activePourView?.number ?? Math.min(pours.length + 1, expectedPourCount + 1);
+  const activeTarget = profile?.pourTargets.find(
+    (target) => target.number === currentTargetNumber
+  );
   const statusLabel =
     stage === 'ready'
       ? 'READY'
       : stage === 'pouring'
-        ? `POUR ${activePourView?.number ?? 1}`
+        ? `POUR ${activePourView?.number ?? 1}${
+            profile ? ` OF ${expectedPourCount}` : ''
+          }`
         : stage === 'waiting'
-          ? pours.length >= MAX_POURS
+          ? pours.length >= expectedPourCount
             ? 'DRAWDOWN'
             : 'WAITING'
           : '';
   const railPours = useMemo(() => pours, [pours]);
 
+  if (stage === 'temperature') {
+    return (
+      <div className="free-pour-screen free-pour-temperature-screen">
+        <div className="free-pour-step">1 OF 8</div>
+        <div className="free-pour-kicker">WATER TEMPERATURE</div>
+        <div className="free-pour-temperature-value">
+          {temperatureC}
+          <span>°C</span>
+        </div>
+        <div className="free-pour-temperature-adjust">
+          ROTATE DIAL TO ADJUST
+        </div>
+        <div className="free-pour-temperature-action">
+          PRESS DIAL TO CONTINUE
+        </div>
+      </div>
+    );
+  }
+
   if (stage === 'brewer') {
     return (
       <div className="free-pour-screen free-pour-setup-screen">
-        <div className="free-pour-step">2 OF 8</div>
+        <div className="free-pour-step">3 OF 8</div>
         <div className="free-pour-kicker">ADD BREWER</div>
         <div className="free-pour-setup-weight">{Math.round(weight)}g</div>
         <div className="free-pour-stability">
@@ -795,7 +912,7 @@ export const FreePourScreen = () => {
   if (stage === 'coffee') {
     return (
       <div className="free-pour-screen free-pour-setup-screen">
-        <div className="free-pour-step">3 OF 8</div>
+        <div className="free-pour-step">4 OF 8</div>
         <div className="free-pour-kicker">ADD COFFEE</div>
         <div className="free-pour-setup-weight">{Math.round(weight)}g</div>
         <div className="free-pour-stability">
@@ -810,7 +927,9 @@ export const FreePourScreen = () => {
                   : weight > 40
                     ? 'DOSE MUST BE 5–40g'
                     : coffeeReady
-                      ? 'DOSE READY'
+                      ? profile
+                        ? `TARGET ${Math.round(profile.doseG)}g · DOSE READY`
+                        : 'DOSE READY'
                       : 'WAITING FOR STABLE WEIGHT'}
         </div>
         <div
@@ -840,8 +959,8 @@ export const FreePourScreen = () => {
   if (stage === 'server') {
     return (
       <div className="free-pour-screen free-pour-setup-screen">
-        <div className="free-pour-step">1 OF 8</div>
-        <div className="free-pour-kicker">EMPTY SERVER</div>
+        <div className="free-pour-step">2 OF 8</div>
+        <div className="free-pour-kicker">WEIGH EMPTY SERVER</div>
         <div className="free-pour-setup-weight">{Math.round(weight)}g</div>
         <div className="free-pour-stability">
           {setupStatus === 'saving'
@@ -854,28 +973,20 @@ export const FreePourScreen = () => {
                   ? 'WEIGHT STABLE'
                   : 'WAITING FOR STABLE WEIGHT'}
         </div>
-        <div className="free-pour-setup-action">
-          {setupStatus === 'saving'
-            ? 'SAVING WEIGHT'
-            : setupStatus === 'taring'
-              ? 'TARING…'
-              : setupStatus === 'tare-timeout'
-                ? 'PRESS DIAL TO RETRY'
-                : 'PRESS DIAL TO SAVE + TARE'}
+        <div className="free-pour-dose-action">
+          {setupStatus === 'saving' ? (
+            <strong>SAVING WEIGHT</strong>
+          ) : setupStatus === 'taring' ? (
+            <strong>TARING…</strong>
+          ) : setupStatus === 'tare-timeout' ? (
+            <strong>PRESS DIAL TO RETRY</strong>
+          ) : (
+            <>
+              <span>PRESS DIAL TO</span>
+              <strong>SAVE WEIGHT + TARE</strong>
+            </>
+          )}
         </div>
-      </div>
-    );
-  }
-
-  if (stage === 'recipe') {
-    return (
-      <div className="free-pour-screen free-pour-recipe-screen">
-        <div className="free-pour-step">4 OF 8</div>
-        <div className="free-pour-name">FREE POUR</div>
-        <div className="free-pour-recipe-dose">{doseG}g</div>
-        <div className="free-pour-recipe-label">DOSE</div>
-        <div className="free-pour-recipe-ready">READY TO BREW</div>
-        <div className="free-pour-recipe-action">PRESS DIAL TO CONTINUE</div>
       </div>
     );
   }
@@ -884,22 +995,54 @@ export const FreePourScreen = () => {
     return (
       <div className="free-pour-screen free-pour-live-screen">
         <div className="free-pour-step">{step} OF 8</div>
-        <div className="free-pour-name">FREE POUR</div>
+        <div className="free-pour-name">{profile?.name ?? 'FREE POUR'}</div>
         <div className="free-pour-timer">{formatBrewTime(elapsedMs)}</div>
         <div className="free-pour-live-status">{statusLabel}</div>
-        <PourRail
-          pours={railPours}
-          activePour={activePourView}
-          waiting={stage === 'ready' || stage === 'waiting'}
-        />
-        <div className="free-pour-live-weight">{roundedWeight}g</div>
-        <FlowMeter flow={liveFlow} />
+        {profile ? (
+          <TargetPourRail
+            targets={profile.pourTargets}
+            currentPour={currentTargetNumber}
+            pouring={stage === 'pouring'}
+          />
+        ) : (
+          <PourRail
+            pours={railPours}
+            activePour={activePourView}
+            waiting={stage === 'ready' || stage === 'waiting'}
+          />
+        )}
+        {profile && activeTarget ? (
+          <div className="free-pour-profile-weight">
+            <div>
+              <span>CURRENT</span>
+              <strong>{roundedWeight}g</strong>
+            </div>
+            <i>→</i>
+            <div>
+              <span>STOP</span>
+              <strong>{Math.round(activeTarget.stopWeightG)}g</strong>
+            </div>
+          </div>
+        ) : (
+          <div className="free-pour-live-weight">{roundedWeight}g</div>
+        )}
+        <FlowMeter flow={liveFlow} target={activeTarget?.flowGps} />
         <div className="free-pour-live-instruction">
           {stage === 'ready' ? (
             'START POURING'
           ) : stage === 'waiting' ? (
             <>
-              {pours.length < MAX_POURS && <span>POUR AGAIN OR</span>}
+              {activeTarget ? (
+                <span>
+                  NEXT POUR · START {formatBrewTime(activeTarget.startTimeMs)}
+                </span>
+              ) : profile ? (
+                <span>
+                  DRAWDOWN · TARGET {formatBrewTime(profile.targetDurationMs)}
+                </span>
+              ) : (
+                pours.length < MAX_POURS && <span>POUR AGAIN OR</span>
+              )}
               <strong>LIFT BREWER TO FINISH</strong>
             </>
           ) : (

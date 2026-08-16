@@ -66,3 +66,10 @@ export const getFreePourSessions = async (limit = 50) => {
 
 export const getLatestFreePourSession = async () =>
   latestSessionCache ?? (await getFreePourSessions(1))[0] ?? null;
+
+export const getLatestFreePourOnlySession = async () => {
+  if (latestSessionCache?.mode === 'free_pour') return latestSessionCache;
+  return (await getFreePourSessions()).find(
+    (session) => session.mode === 'free_pour'
+  );
+};

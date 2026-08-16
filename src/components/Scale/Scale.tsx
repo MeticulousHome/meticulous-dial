@@ -23,6 +23,7 @@ export interface scaleState {
 const noScalePopUpScreens: ScreenType[] = [
   'calibrateScale',
   'freePour',
+  'freePourRecipe',
   'freePourHistory'
 ];
 

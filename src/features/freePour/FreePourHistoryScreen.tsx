@@ -115,10 +115,15 @@ export const FreePourHistoryScreen = () => {
 
   return (
     <div className="free-pour-history">
-      <div className="free-pour-history-title">FREE POUR</div>
+      <div className="free-pour-history-title">
+        {session.recipe.profileName.toUpperCase()}
+      </div>
       <div className="free-pour-history-subtitle">
-        {session.recipe.doseG}g DOSE ·{' '}
-        {Math.round(session.measurements.waterPouredG)}g WATER
+        {session.recipe.doseG}g ·{' '}
+        {session.measurements.waterTemperatureC ??
+          session.recipe.temperatureC ??
+          92}
+        °C · {Math.round(session.measurements.waterPouredG)}g WATER
       </div>
       <svg
         width="480"
