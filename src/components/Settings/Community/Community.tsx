@@ -54,6 +54,7 @@ export function CommunitySettings(): JSX.Element {
 
   const status = statusQuery.data;
   const connected = status?.connected === true;
+  const pairingExpired = Boolean(pairingExpiresAt && now >= pairingExpiresAt);
   const busy =
     beginEnrollment.isPending || setPaused.isPending || disconnect.isPending;
   const error =
@@ -78,7 +79,7 @@ export function CommunitySettings(): JSX.Element {
       setPairingExpiresAt(enrollment.expiresAt);
       setNow(Math.floor(Date.now() / 1000));
     } catch {
-      // The mutation exposes its user-facing error below.
+      // The mutation exposes a safe user-facing error below.
     } finally {
       enrollmentInFlight.current = false;
     }
@@ -106,13 +107,13 @@ export function CommunitySettings(): JSX.Element {
   ]);
 
   useEffect(() => {
-    if (!pairingExpiresAt) return;
+    if (!pairingExpiresAt || pairingExpired) return;
     const interval = window.setInterval(
       () => setNow(Math.floor(Date.now() / 1000)),
       1000
     );
     return () => window.clearInterval(interval);
-  }, [pairingExpiresAt]);
+  }, [pairingExpired, pairingExpiresAt]);
 
   useEffect(() => {
     if (connected && pairingWasActive.current) {
@@ -124,32 +125,18 @@ export function CommunitySettings(): JSX.Element {
     }
   }, [connected]);
 
-  useEffect(() => {
-    if (
-      connected ||
-      !pairingExpiresAt ||
-      now < pairingExpiresAt ||
-      beginEnrollment.isPending
-    ) {
-      return;
-    }
-
-    enrollmentAttempted.current = false;
-    setPairingUrl(null);
-    setPairingExpiresAt(null);
-    beginEnrollment.reset();
-  }, [beginEnrollment, connected, now, pairingExpiresAt]);
-
   const actions = useMemo(() => {
     if (!connected) {
-      return beginEnrollment.isError ? ['Try again', 'Back'] : ['Back'];
+      return beginEnrollment.isError || pairingExpired
+        ? ['Try again', 'Back']
+        : ['Back'];
     }
     return [
       'Back',
       status?.paused ? 'Resume uploads' : 'Pause uploads',
       'Disconnect'
     ];
-  }, [beginEnrollment.isError, connected, status?.paused]);
+  }, [beginEnrollment.isError, connected, pairingExpired, status?.paused]);
 
   const goBack = () => {
     dispatch(setBubbleDisplay({ visible: true, component: 'settings' }));
@@ -252,20 +239,28 @@ export function CommunitySettings(): JSX.Element {
     return (
       <div className="community-screen community-screen-connect">
         <h2>Connect to Community</h2>
-        <p className="community-copy">Scan this secure code with your phone.</p>
-        {pairingUrl ? (
+        <p className="community-copy">
+          Scan with your phone to open or install Community.
+        </p>
+        {pairingUrl && !pairingExpired ? (
           <div className="community-qr">
             <QRCode value={pairingUrl} width={176} height={176} />
           </div>
         ) : (
           <div className="community-qr-placeholder" role="status">
-            {beginEnrollment.isError
-              ? 'Could not create a secure code'
-              : 'Creating secure code...'}
+            {pairingExpired
+              ? 'Secure code expired'
+              : beginEnrollment.isError
+                ? 'Could not create a secure code'
+                : 'Creating secure code...'}
           </div>
         )}
         <p className="community-expiry">
-          {timeLeft ? `Code expires in ${timeLeft}` : 'Keep this screen open'}
+          {pairingExpired
+            ? 'Choose Try again for a new code'
+            : timeLeft
+              ? `Code expires in ${timeLeft}`
+              : 'Keep this screen open'}
         </p>
         <div
           className={`community-actions ${actions.length === 1 ? 'community-actions-single' : 'community-actions-two'}`}
