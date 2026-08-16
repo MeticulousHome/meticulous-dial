@@ -1,4 +1,36 @@
-import { WifiHealthStatus } from '../../api/wifi';
+import type { WifiHealthStatus } from '../../api/wifi';
+
+export function isWifiHealthCheckPending(
+  health?: WifiHealthStatus,
+  connected = true
+): boolean {
+  return Boolean(
+    connected &&
+    health?.link_connected &&
+    health.has_ipv4 &&
+    !health.degraded &&
+    !health.last_error &&
+    !health.gateway_reachable &&
+    !health.dns_resolves &&
+    !health.internet_reachable
+  );
+}
+
+export function getWifiProbeStatusLabel(
+  result?: boolean,
+  health?: WifiHealthStatus,
+  connected = true
+): string {
+  if (!health || result === undefined) {
+    return '';
+  }
+
+  if (result) {
+    return 'OK';
+  }
+
+  return isWifiHealthCheckPending(health, connected) ? 'CHECKING' : 'FAILED';
+}
 
 export function getWifiHealthMessage(health?: WifiHealthStatus): string {
   if (!health) {
