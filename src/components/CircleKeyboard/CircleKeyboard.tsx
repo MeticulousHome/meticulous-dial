@@ -23,6 +23,11 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useSettings } from '../../hooks/useSettings';
 import { useAppSelector } from '../store/hooks';
 import { GlobeAlt } from './GlobeAlt';
+import {
+  appendKeyboardCharacter,
+  DEFAULT_KEYBOARD_INPUT_LIMIT,
+  serializeKeyboardCaption
+} from './input';
 
 interface IKeyboardProps {
   name: string;
@@ -33,6 +38,7 @@ interface IKeyboardProps {
   onlyLetters?: boolean;
   capitalizeFirstLetter?: boolean;
   shouldIgnoreGesture?: boolean;
+  trimOnSubmit?: boolean;
 }
 
 export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
@@ -75,7 +81,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
           : SPECIAL_CHARACTERS[0];
 
   const { name, defaultValue, onSubmit, onCancel, onChange } = props;
-  const inputLimit = 64;
+  const inputLimit = DEFAULT_KEYBOARD_INPUT_LIMIT;
 
   const captionRef = useRef<HTMLDivElement>(null);
   const [caption, setCaption] = useState(defaultValue || []);
@@ -202,7 +208,9 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       pressDown() {
         if (caption.length >= inputLimit && mainLetter !== 'backspace') {
           if (mainLetter === 'ok') {
-            onSubmit(caption.join('').trim());
+            onSubmit(
+              serializeKeyboardCaption(caption, props.trimOnSubmit ?? true)
+            );
           }
           if (mainLetter === 'cancel') {
             setCaption(defaultValue);
@@ -238,7 +246,9 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
               addAnimation();
               return;
             }
-            onSubmit(caption.join('').trim());
+            onSubmit(
+              serializeKeyboardCaption(caption, props.trimOnSubmit ?? true)
+            );
             return;
           case 'backspace':
             if (caption.length > 0) {
@@ -292,7 +302,11 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
             }
             return;
           default: {
-            const captionValue = caption.concat(mainLetter);
+            const captionValue = appendKeyboardCharacter(
+              caption,
+              mainLetter,
+              inputLimit
+            );
             setCaption(captionValue);
             if (onChange) onChange(captionValue.join(''));
             if (!/^[A-Za-z]$/.test(mainLetter) && capsLockActive.active) {
@@ -428,12 +442,9 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         );
       default:
         return (
-          <text
-            key={index}
-            y={-44}
-            className="letter"
-            dangerouslySetInnerHTML={{ __html: letter }}
-          />
+          <text key={index} y={-44} className="letter">
+            {letter}
+          </text>
         );
     }
   };
@@ -512,12 +523,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
           </div>
         );
       default:
-        return (
-          <div
-            className="main-letter"
-            dangerouslySetInnerHTML={{ __html: mainLetter }}
-          />
-        );
+        return <div className="main-letter">{mainLetter}</div>;
     }
   };
 

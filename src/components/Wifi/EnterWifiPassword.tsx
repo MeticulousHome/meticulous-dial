@@ -87,12 +87,6 @@ export function EnterWifiPassword(): JSX.Element {
 
   const updateSetting = (password: string) => {
     setKnownPassword(password);
-    console.log(
-      'Log ~ EnterWifiPassword ~ ssid',
-      wifi.selectedWifi,
-      '~ password:',
-      password
-    );
     const ssid = wifi.selectedWifi;
     connectToWifiMutation.mutate({ type: 'PSK', ssid, password });
   };
@@ -171,6 +165,7 @@ export function EnterWifiPassword(): JSX.Element {
         setKnownPassword(text);
       }}
       capitalizeFirstLetter={false}
+      trimOnSubmit={false}
     />
   );
 }
