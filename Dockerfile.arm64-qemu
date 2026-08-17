@@ -10,13 +10,19 @@ RUN apt install -y\
     pkg-config \
     libbz2-dev \
     ca-certificates \
-    nodejs npm \
     xdg-utils \
     libwebkit2gtk-4.1-dev \
     lsb-release
 
+COPY .node-version /tmp/meticulous-node-version
+RUN NODE_MAJOR="$(tr -d '[:space:]' < /tmp/meticulous-node-version)" \
+    && curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" | bash - \
+    && apt install -y nodejs \
+    && node --version \
+    && npm --version
+
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-RUN $HOME/.cargo/bin/cargo install tauri-cli --git https://github.com/tauri-apps/tauri
+ENV PATH="/root/.cargo/bin:${PATH}"
 WORKDIR /app/src-tauri
 
-CMD ["bash", "-ec", "cd /app; npm ci --ignore-scripts; cd /app/src-tauri; /root/.cargo/bin/cargo tauri build --target aarch64-unknown-linux-gnu --bundles deb --verbose; owner_group=$(stat -c '%u:%g' /app); chown -R \"$owner_group\" /app/dist /app/src-tauri/target"]
+CMD ["bash", "-ec", "cd /app; npm ci --ignore-scripts; npm exec -- tauri build --target aarch64-unknown-linux-gnu --bundles deb --verbose; owner_group=$(stat -c '%u:%g' /app); chown -R \"$owner_group\" /app/dist /app/src-tauri/target"]
