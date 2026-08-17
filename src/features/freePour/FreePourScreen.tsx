@@ -10,7 +10,12 @@ import {
 } from '../../components/store/features/screens/screens-slice';
 import { colorDataBlueLight } from '../../constants/colors';
 import { clamp, formatBrewTime, roundTo } from './format';
-import { DetectorSample, PourDetector } from './pourDetector';
+import {
+  DetectorSample,
+  plausiblePeakFlow,
+  PourDetector,
+  resolvedPourEndWeight
+} from './pourDetector';
 import { saveFreePourSession } from './storage';
 import { logFreePour, logFreePourError } from './logging';
 import {
@@ -50,6 +55,7 @@ type SetupStage = Extract<Stage, 'server' | 'brewer' | 'coffee'>;
 type SetupStatus = 'idle' | 'saving' | 'taring' | 'tare-timeout';
 
 const SAMPLE_INTERVAL_MS = 200;
+const PRE_START_SAMPLE_CAPACITY = 20;
 const MAX_BREW_DURATION_MS = 10 * 60 * 1000;
 const MAX_POURS = 5;
 const TARE_CONFIRM_TOLERANCE_G = 0.6;
@@ -302,6 +308,7 @@ export const FreePourScreen = ({
     number: number;
     startTimeMs: number;
     startWeightG: number;
+    baselineWaterG: number;
     peakWeightG: number;
     peakFlowGps: number;
   } | null>(null);
@@ -309,6 +316,14 @@ export const FreePourScreen = ({
   const finalizing = useRef(false);
   const setupStatusRef = useRef(setupStatus);
   const sessionSaved = useRef(false);
+  const [preStartSamples] = useState(() => ({
+    times: new Float64Array(PRE_START_SAMPLE_CAPACITY),
+    weights: new Float32Array(PRE_START_SAMPLE_CAPACITY),
+    flows: new Float32Array(PRE_START_SAMPLE_CAPACITY),
+    cursor: 0,
+    count: 0,
+    lastSampleAtMs: 0
+  }));
   const [runId] = useState(
     () =>
       globalThis.crypto?.randomUUID?.() ??
@@ -328,18 +343,40 @@ export const FreePourScreen = ({
     setStage(next);
   };
 
-  const finishActivePour = (timeMs: number, endWeightG: number) => {
+  const finishActivePour = (
+    timeMs: number,
+    endWeightG: number,
+    settledWeightG?: number
+  ) => {
     const current = activePour.current;
-    if (!current || brewStartTime.current === null) return;
+    if (!current || brewStartTime.current === null) return false;
     const endTimeMs = Math.max(
       current.startTimeMs,
       timeMs - brewStartTime.current
     );
-    const finalWeight = Math.max(
+    const finalWeight = resolvedPourEndWeight(
       current.startWeightG,
-      endWeightG,
-      current.peakWeightG
+      Math.max(endWeightG, current.peakWeightG),
+      settledWeightG
     );
+    if (finalWeight === null) {
+      logFreePour('pour_discarded_motion', {
+        runId,
+        pour: current.number,
+        start_ms: Math.round(current.startTimeMs),
+        end_ms: Math.round(endTimeMs),
+        start_weight_g: roundTo(current.startWeightG),
+        settled_weight_g: roundTo(settledWeightG),
+        peak_weight_g: roundTo(current.peakWeightG)
+      });
+      peakWaterWeight.current = current.baselineWaterG;
+      activePour.current = null;
+      setActivePourView(null);
+      return false;
+    }
+    if (settledWeightG !== undefined) {
+      peakWaterWeight.current = Math.max(current.baselineWaterG, finalWeight);
+    }
     const waterG = Math.max(0, finalWeight - current.startWeightG);
     const durationSeconds = Math.max(
       0.1,
@@ -368,6 +405,50 @@ export const FreePourScreen = ({
     setPours(completedPours.current);
     activePour.current = null;
     setActivePourView(null);
+    return true;
+  };
+
+  const resetRejectedFirstMotion = () => {
+    brewStartTime.current = null;
+    startedAtIso.current = '';
+    elapsedMsRef.current = 0;
+    setElapsedMs(0);
+    lastStoredSampleTime.current = 0;
+    lastPeakFilterTime.current = null;
+    peakWaterWeight.current = 0;
+    samples.current = [];
+    preStartSamples.cursor = 0;
+    preStartSamples.count = 0;
+    preStartSamples.lastSampleAtMs = 0;
+    detector.current.reset();
+    brewerRemoval.current.reset();
+    logFreePour('brew_start_rejected_motion', { runId });
+  };
+
+  const appendConfirmedPreStartSamples = (
+    startTimeMs: number,
+    pourNumber: number
+  ) => {
+    const oldest =
+      (preStartSamples.cursor -
+        preStartSamples.count +
+        PRE_START_SAMPLE_CAPACITY) %
+      PRE_START_SAMPLE_CAPACITY;
+    for (let offset = 0; offset < preStartSamples.count; offset += 1) {
+      const index = (oldest + offset) % PRE_START_SAMPLE_CAPACITY;
+      const sampleTimeMs = preStartSamples.times[index];
+      if (sampleTimeMs < startTimeMs) continue;
+      samples.current.push({
+        t: Math.round(sampleTimeMs - startTimeMs),
+        w: roundTo(Math.max(0, preStartSamples.weights[index])),
+        f: roundTo(Math.max(0, preStartSamples.flows[index])),
+        p: pourNumber
+      });
+    }
+    lastStoredSampleTime.current = preStartSamples.lastSampleAtMs;
+    preStartSamples.cursor = 0;
+    preStartSamples.count = 0;
+    preStartSamples.lastSampleAtMs = 0;
   };
 
   const createSession = (beverageG: number | null) => {
@@ -517,12 +598,12 @@ export const FreePourScreen = ({
               ? 100
               : now - lastPeakFilterTime.current;
           lastPeakFilterTime.current = now;
-          peakWaterWeight.current = updatePlausiblePeakWeight(
-            peakWaterWeight.current,
-            currentWeight,
-            peakFilterElapsedMs
-          );
           if (activePour.current) {
+            peakWaterWeight.current = updatePlausiblePeakWeight(
+              peakWaterWeight.current,
+              currentWeight,
+              peakFilterElapsedMs
+            );
             activePour.current.peakWeightG = updatePlausiblePeakWeight(
               activePour.current.peakWeightG,
               currentWeight,
@@ -530,7 +611,7 @@ export const FreePourScreen = ({
             );
             activePour.current.peakFlowGps = Math.max(
               activePour.current.peakFlowGps,
-              currentFlow
+              plausiblePeakFlow(currentFlow)
             );
           }
           if (now - lastStoredSampleTime.current >= SAMPLE_INTERVAL_MS) {
@@ -570,7 +651,8 @@ export const FreePourScreen = ({
           currentWeight <= peakWaterWeight.current - removalThreshold;
         const removalState = brewerRemoval.current.update(
           belowRemovalThreshold,
-          now
+          now,
+          currentWeight
         );
         if (removalState.type === 'started') {
           logFreePour('brewer_removal_candidate_started', {
@@ -606,6 +688,23 @@ export const FreePourScreen = ({
         currentStage === 'pouring' ||
         currentStage === 'waiting';
       if (brewingStage && !timeLimitReachedRef.current) {
+        if (
+          currentStage === 'ready' &&
+          brewStartTime.current === null &&
+          now - preStartSamples.lastSampleAtMs >= SAMPLE_INTERVAL_MS
+        ) {
+          const index = preStartSamples.cursor;
+          preStartSamples.times[index] = now;
+          preStartSamples.weights[index] = currentWeight;
+          preStartSamples.flows[index] = currentFlow;
+          preStartSamples.cursor =
+            (preStartSamples.cursor + 1) % PRE_START_SAMPLE_CAPACITY;
+          preStartSamples.count = Math.min(
+            PRE_START_SAMPLE_CAPACITY,
+            preStartSamples.count + 1
+          );
+          preStartSamples.lastSampleAtMs = now;
+        }
         const detectorSample: DetectorSample = {
           timeMs: now,
           weightG: currentWeight,
@@ -613,13 +712,14 @@ export const FreePourScreen = ({
         };
         const event = detector.current.process(detectorSample);
         if (event?.type === 'pour-start') {
+          const waterBeforePour = peakWaterWeight.current;
           if (brewStartTime.current === null) {
             brewStartTime.current = event.sample.timeMs;
             startedAtIso.current = new Date(
               Date.now() - (now - event.sample.timeMs)
             ).toISOString();
-            peakWaterWeight.current = Math.max(0, event.sample.weightG);
-            lastPeakFilterTime.current = event.sample.timeMs;
+            peakWaterWeight.current = Math.max(0, currentWeight);
+            lastPeakFilterTime.current = now;
             brewerRemoval.current.reset();
           }
           const previousFifthPour =
@@ -638,23 +738,42 @@ export const FreePourScreen = ({
                 number: MAX_POURS,
                 startTimeMs,
                 startWeightG: previousFifthPour.startWeightG,
+                baselineWaterG: Math.min(
+                  waterBeforePour,
+                  previousFifthPour.startWeightG
+                ),
                 peakWeightG: Math.max(
                   previousFifthPour.endWeightG,
                   event.sample.weightG
                 ),
                 peakFlowGps: Math.max(
                   previousFifthPour.peakFlowGps,
-                  event.sample.flowGps
+                  plausiblePeakFlow(event.sample.flowGps)
                 )
               }
             : {
                 number: completedPours.current.length + 1,
                 startTimeMs,
                 startWeightG: Math.max(0, event.sample.weightG),
+                baselineWaterG: waterBeforePour,
                 peakWeightG: Math.max(0, event.sample.weightG),
-                peakFlowGps: Math.max(0, event.sample.flowGps)
+                peakFlowGps: plausiblePeakFlow(event.sample.flowGps)
               };
           activePour.current = nextPour;
+          if (nextPour.number === 1) {
+            nextPour.peakWeightG = Math.max(
+              nextPour.peakWeightG,
+              currentWeight
+            );
+            nextPour.peakFlowGps = Math.max(
+              nextPour.peakFlowGps,
+              plausiblePeakFlow(currentFlow)
+            );
+            appendConfirmedPreStartSamples(
+              brewStartTime.current,
+              nextPour.number
+            );
+          }
           logFreePour('pour_started', {
             runId,
             pour: nextPour.number,
@@ -665,8 +784,17 @@ export const FreePourScreen = ({
           setActivePourView({ number: nextPour.number, startTimeMs });
           updateStage('pouring');
         } else if (event?.type === 'pour-end' && activePour.current) {
-          finishActivePour(event.sample.timeMs, activePour.current.peakWeightG);
-          updateStage('waiting');
+          const retained = finishActivePour(
+            event.sample.timeMs,
+            activePour.current.peakWeightG,
+            event.sample.weightG
+          );
+          if (!retained && completedPours.current.length === 0) {
+            resetRejectedFirstMotion();
+            updateStage('ready');
+          } else {
+            updateStage('waiting');
+          }
         }
       }
     }, 100);

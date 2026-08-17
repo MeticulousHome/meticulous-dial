@@ -1,4 +1,7 @@
-export const BREWER_REMOVAL_CONFIRM_MS = 2000;
+export const BREWER_REMOVAL_CONFIRM_MS = 3000;
+export const BREWER_REMOVAL_STABLE_MS = 700;
+
+const BREWER_REMOVAL_STABLE_RANGE_G = 1.5;
 
 const MAX_PLAUSIBLE_WATER_RISE_GPS = 15;
 const MAX_FILTER_INTERVAL_MS = 250;
@@ -32,17 +35,27 @@ export type BrewerRemovalState =
 /** Requires a removal-sized weight drop to persist before accepting it. */
 export class BrewerRemovalConfirmation {
   private startedAtMs: number | null = null;
+  private stableSinceMs: number | null = null;
+  private stableMinimumG = 0;
+  private stableMaximumG = 0;
 
   reset() {
     this.startedAtMs = null;
+    this.stableSinceMs = null;
+    this.stableMinimumG = 0;
+    this.stableMaximumG = 0;
   }
 
-  update(isBelowRemovalThreshold: boolean, nowMs: number): BrewerRemovalState {
+  update(
+    isBelowRemovalThreshold: boolean,
+    nowMs: number,
+    weightG: number
+  ): BrewerRemovalState {
     if (!isBelowRemovalThreshold) {
       if (this.startedAtMs === null) return { type: 'idle' };
 
       const startedAtMs = this.startedAtMs;
-      this.startedAtMs = null;
+      this.reset();
       return {
         type: 'cancelled',
         startedAtMs,
@@ -52,11 +65,29 @@ export class BrewerRemovalConfirmation {
 
     if (this.startedAtMs === null) {
       this.startedAtMs = nowMs;
+      this.stableSinceMs = nowMs;
+      this.stableMinimumG = weightG;
+      this.stableMaximumG = weightG;
       return { type: 'started', startedAtMs: nowMs };
     }
 
+    this.stableMinimumG = Math.min(this.stableMinimumG, weightG);
+    this.stableMaximumG = Math.max(this.stableMaximumG, weightG);
+    if (
+      this.stableMaximumG - this.stableMinimumG >
+      BREWER_REMOVAL_STABLE_RANGE_G
+    ) {
+      this.stableSinceMs = nowMs;
+      this.stableMinimumG = weightG;
+      this.stableMaximumG = weightG;
+    }
+
     const heldMs = Math.max(0, nowMs - this.startedAtMs);
-    if (heldMs < BREWER_REMOVAL_CONFIRM_MS) {
+    const stableHeldMs = Math.max(0, nowMs - (this.stableSinceMs ?? nowMs));
+    if (
+      heldMs < BREWER_REMOVAL_CONFIRM_MS ||
+      stableHeldMs < BREWER_REMOVAL_STABLE_MS
+    ) {
       return { type: 'pending', startedAtMs: this.startedAtMs, heldMs };
     }
 
