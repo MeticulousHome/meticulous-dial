@@ -18,6 +18,7 @@ import {
 } from './wifiHealthMessages';
 import { selectWifi } from '../store/features/wifi/wifi-slice';
 import { WiFiConnectionError } from '../../api/wifi';
+import { buildWifiConnectCredentials } from './credentials';
 
 import './wifiResult.css';
 
@@ -88,7 +89,7 @@ export function EnterWifiPassword(): JSX.Element {
   const updateSetting = (password: string) => {
     setKnownPassword(password);
     const ssid = wifi.selectedWifi;
-    connectToWifiMutation.mutate({ type: 'PSK', ssid, password });
+    connectToWifiMutation.mutate(buildWifiConnectCredentials(ssid, password));
   };
 
   const onCancel = () => {

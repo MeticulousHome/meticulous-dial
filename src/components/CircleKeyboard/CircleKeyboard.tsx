@@ -25,6 +25,8 @@ import { useAppSelector } from '../store/hooks';
 import { GlobeAlt } from './GlobeAlt';
 import {
   appendKeyboardCharacter,
+  appendKeyboardSpace,
+  canSubmitKeyboardCaption,
   DEFAULT_KEYBOARD_INPUT_LIMIT,
   serializeKeyboardCaption
 } from './input';
@@ -224,25 +226,23 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         }
         switch (mainLetter) {
           case 'space': {
-            if (caption.length >= inputLimit - 1) {
+            const captionValue = appendKeyboardSpace(
+              caption,
+              inputLimit,
+              props.trimOnSubmit === false
+            );
+            if (captionValue.length === caption.length) {
               addAnimation();
               return;
             }
-
-            if (
-              caption.length < inputLimit &&
-              caption.join('').trim().length === 0
-            ) {
-              addAnimation();
-              return;
-            }
-            const captioValue = caption.concat(' ');
-            setCaption(captioValue);
-            if (onChange) onChange(captioValue.join(''));
+            setCaption(captionValue);
+            if (onChange) onChange(captionValue.join(''));
             return;
           }
           case 'ok':
-            if (caption.length === 0 || caption.join('').trim().length === 0) {
+            if (
+              !canSubmitKeyboardCaption(caption, props.trimOnSubmit ?? true)
+            ) {
               addAnimation();
               return;
             }
