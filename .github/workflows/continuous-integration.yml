@@ -20,7 +20,8 @@ jobs:
       # Step 5
       - name: Check types
         run: npm run types
-      # Step 5
+      - name: Check Free Pour motion detection
+        run: npm run test:free-pour
       - name: Static analysis
         run: npm run lint
       # Step 6
