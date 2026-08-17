@@ -871,6 +871,7 @@ impl CommunityUploadService {
         let body_path = self.inner.queue_dir.join(&body_file);
         write_private_file_atomic(&body_path, &body)
             .map_err(|_| temporary("queue_write_failed"))?;
+        let queued_source_id = source_shot_id.clone();
         let queued = QueuedShot {
             id,
             source_shot_id,
@@ -895,6 +896,9 @@ impl CommunityUploadService {
             let _ = fs::remove_file(body_path);
             return Err(error);
         }
+        log::info!(
+            "[CommunityUpload] queued kind={history_kind:?} history_path={history_path} source_id={queued_source_id}"
+        );
         Ok(())
     }
 
@@ -1004,6 +1008,12 @@ impl CommunityUploadService {
         self.update_server_clock(&response);
         if response.status().is_success() {
             self.complete_queue_item(queued.id, &body_path)?;
+            log::info!(
+                "[CommunityUpload] upload_succeeded kind={:?} history_path={} source_id={}",
+                queued.history_kind,
+                queued.history_path,
+                queued.source_shot_id
+            );
             return Ok(());
         }
         let failure = reclassify_upload_failure(
@@ -1024,6 +1034,13 @@ impl CommunityUploadService {
             return Err(failure);
         }
         self.defer_queue_item(&queued, &failure)?;
+        log::warn!(
+            "[CommunityUpload] upload_deferred kind={:?} history_path={} category={} retry_after_seconds={:?}",
+            queued.history_kind,
+            queued.history_path,
+            failure.category,
+            failure.retry_after_seconds
+        );
         if failure.category == "community_pour_over_not_ready" {
             // This item has its own slow retry. Keep servicing later records
             // instead of applying a worker-wide backoff.
@@ -1197,6 +1214,9 @@ impl CommunityUploadService {
         history_path: &str,
         category: &str,
     ) -> Result<(), RequestFailure> {
+        log::warn!(
+            "[CommunityUpload] history_rejected kind={history_kind:?} history_path={history_path} category={category}"
+        );
         self.mutate_persistent_failure(|state| {
             match history_kind {
                 HistoryKind::Espresso => state.history_cursor = Some(history_path.to_string()),
@@ -1415,7 +1435,10 @@ fn load_or_create_state(path: &Path) -> Result<PersistentState, Box<dyn std::err
         let bytes = fs::read(path)?;
         let mut state = serde_json::from_slice::<PersistentState>(&bytes)?;
         validate_state(&state)?;
-        if reactivate_deployment_blocked_pour_overs(&mut state, unix_seconds()) > 0 {
+        let now = unix_seconds();
+        let reactivated = reactivate_deployment_blocked_pour_overs(&mut state, now) > 0;
+        let replay_scheduled = schedule_fractional_sample_rejection_replay(&mut state, now);
+        if reactivated || replay_scheduled {
             persist_state(path, &state)?;
         }
         return Ok(state);
@@ -1423,6 +1446,33 @@ fn load_or_create_state(path: &Path) -> Result<PersistentState, Box<dyn std::err
     let state = fresh_state().map_err(std::io::Error::other)?;
     persist_state(path, &state)?;
     Ok(state)
+}
+
+fn schedule_fractional_sample_rejection_replay(state: &mut PersistentState, now: i64) -> bool {
+    let rejected_by_old_validator =
+        state.last_error.as_deref() == Some("pour_over_samples_invalid");
+    let has_pending_pour_over = state
+        .queue
+        .iter()
+        .any(|item| item.history_kind == HistoryKind::PourOver);
+    if !rejected_by_old_validator || has_pending_pour_over {
+        return false;
+    }
+
+    // Older Dial builds required the JSON representation of sample time to be
+    // an unsigned integer. The backend canonicalizes that valid numeric field
+    // as a float (for example `403.0`), so affected records were skipped before
+    // they entered the durable queue. Rewind only this known failure once. The
+    // server's source-shot uniqueness and signed idempotency key make replaying
+    // older Pour Over history safe.
+    state.pour_over_history_baselined = true;
+    state.pour_over_history_cursor = None;
+    state.last_error = Some("pour_over_replay_scheduled".to_string());
+    state.last_retry_at = Some(now);
+    log::warn!(
+        "[CommunityUpload] replaying Pour Over history after fractional sample-time validation fix"
+    );
+    true
 }
 
 fn reactivate_deployment_blocked_pour_overs(state: &mut PersistentState, now: i64) -> usize {
@@ -1752,10 +1802,10 @@ fn validate_history_record(
                         !samples.is_empty()
                             && samples.len() <= MAX_POUR_OVER_SAMPLES
                             && samples.iter().all(|sample| {
-                                sample
-                                    .get("t")
-                                    .and_then(Value::as_u64)
-                                    .is_some_and(|time| time <= MAX_POUR_OVER_DURATION_MS)
+                                sample.get("t").and_then(Value::as_f64).is_some_and(|time| {
+                                    time.is_finite()
+                                        && (0.0..=MAX_POUR_OVER_DURATION_MS as f64).contains(&time)
+                                })
                             })
                     });
             if !samples_are_bounded {
@@ -1997,7 +2047,9 @@ mod tests {
             "mode": "free_pour",
             "recipe": { "pourTargets": [] },
             "pours": [],
-            "samples": [{ "t": 0, "w": 0, "f": 1, "p": 1 }]
+            // The backend contract models sample time as a float, so its
+            // canonical JSON serializer emits values such as `403.0`.
+            "samples": [{ "t": 403.0, "w": 0, "f": 1, "p": 1 }]
         });
 
         assert_eq!(
@@ -2011,6 +2063,24 @@ mod tests {
         body.push(b'}');
         let envelope: Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(envelope["shot"]["brewType"], "pour_over");
+    }
+
+    #[test]
+    fn accepts_bounded_fractional_pour_over_sample_times() {
+        let record = json!({
+            "schemaVersion": 4,
+            "id": "pour-over-fractional-time",
+            "brewType": "pour_over",
+            "mode": "profile",
+            "recipe": { "pourTargets": [] },
+            "pours": [],
+            "samples": [{ "t": 403.25, "w": 1.2, "f": 4.3, "p": 1 }]
+        });
+
+        assert_eq!(
+            validate_history_record(&record, HistoryKind::PourOver).unwrap(),
+            "pour-over-fractional-time"
+        );
     }
 
     #[test]
@@ -2052,6 +2122,17 @@ mod tests {
             }]
         });
         assert!(validate_history_record(&sample_past_limit, HistoryKind::PourOver).is_err());
+
+        let negative_sample_time = json!({
+            "schemaVersion": 4,
+            "id": "pour-over-negative-time",
+            "brewType": "pour_over",
+            "mode": "free_pour",
+            "recipe": { "pourTargets": [] },
+            "pours": [],
+            "samples": [{ "t": -0.1, "w": 0, "f": 0, "p": 0 }]
+        });
+        assert!(validate_history_record(&negative_sample_time, HistoryKind::PourOver).is_err());
 
         let too_many_samples = json!({
             "schemaVersion": 4,
@@ -2135,6 +2216,55 @@ mod tests {
         assert_eq!(
             state.queue[0].last_error.as_deref(),
             Some("community_pour_over_not_ready")
+        );
+    }
+
+    #[test]
+    fn schedules_replay_for_pour_overs_skipped_by_the_fractional_sample_bug() {
+        let mut state = fresh_state().expect("fresh state");
+        state.pour_over_history_baselined = true;
+        state.pour_over_history_cursor = Some("2026-08-17/skipped.pour-over.json.zst".to_string());
+        state.last_error = Some("pour_over_samples_invalid".to_string());
+
+        assert!(schedule_fractional_sample_rejection_replay(
+            &mut state, 1_234
+        ));
+        assert!(state.pour_over_history_baselined);
+        assert_eq!(state.pour_over_history_cursor, None);
+        assert_eq!(
+            state.last_error.as_deref(),
+            Some("pour_over_replay_scheduled")
+        );
+        assert_eq!(state.last_retry_at, Some(1_234));
+
+        assert!(!schedule_fractional_sample_rejection_replay(
+            &mut state, 1_235
+        ));
+    }
+
+    #[test]
+    fn does_not_rewind_when_a_pour_over_is_already_durably_queued() {
+        let mut state = fresh_state().expect("fresh state");
+        state.pour_over_history_baselined = true;
+        state.pour_over_history_cursor = Some("2026-08-17/queued.pour-over.json.zst".to_string());
+        state.last_error = Some("pour_over_samples_invalid".to_string());
+        state.queue.push(QueuedShot {
+            id: Uuid::new_v4(),
+            source_shot_id: "queued-pour-over".to_string(),
+            history_path: "2026-08-17/queued.pour-over.json.zst".to_string(),
+            history_kind: HistoryKind::PourOver,
+            body_file: "queued.json".to_string(),
+            attempt_count: 0,
+            next_attempt_at: 1_234,
+            last_error: None,
+        });
+
+        assert!(!schedule_fractional_sample_rejection_replay(
+            &mut state, 1_234
+        ));
+        assert_eq!(
+            state.pour_over_history_cursor.as_deref(),
+            Some("2026-08-17/queued.pour-over.json.zst")
         );
     }
 
