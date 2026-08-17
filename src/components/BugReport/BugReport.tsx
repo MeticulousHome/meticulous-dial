@@ -130,6 +130,7 @@ type IssueDateField = 'day' | 'month' | 'year' | 'hours' | 'minutes';
 type CreateReportRun = {
   cancelled: boolean;
   slowTimeout: ReturnType<typeof setTimeout> | null;
+  controller: AbortController;
 };
 
 const ISSUE_DATE_FIELDS: IssueDateField[] = [
@@ -604,6 +605,9 @@ export const BugReport = (): JSX.Element => {
     if (!createRun) return;
 
     createRun.cancelled = true;
+    // Stops the in-flight request so the machine stops collecting; scoped to
+    // this run's own controller, so a later run is never touched by it.
+    createRun.controller.abort();
     if (createRun.slowTimeout) {
       clearTimeout(createRun.slowTimeout);
       createRun.slowTimeout = null;
@@ -613,7 +617,13 @@ export const BugReport = (): JSX.Element => {
   };
 
   const startCreateReport = () => {
-    const createRun: CreateReportRun = { cancelled: false, slowTimeout: null };
+    // A fresh controller per run: it lives and dies with this createRun, is
+    // never reused, and a later run can never be aborted through it.
+    const createRun: CreateReportRun = {
+      cancelled: false,
+      slowTimeout: null,
+      controller: new AbortController()
+    };
     const issueTime = selectedIssueTimestamp;
 
     activeCreateRunRef.current = createRun;
@@ -634,8 +644,13 @@ export const BugReport = (): JSX.Element => {
       try {
         const createResponse =
           issueTime === undefined
-            ? await api.createReport()
-            : await api.createReport({ issueTime });
+            ? await api.createReport(undefined, {
+                signal: createRun.controller.signal
+              })
+            : await api.createReport(
+                { issueTime },
+                { signal: createRun.controller.signal }
+              );
         if (isReportError(createResponse)) {
           throw new Error(createResponse.error);
         }
@@ -651,8 +666,15 @@ export const BugReport = (): JSX.Element => {
         void submitReport(createResponse);
       } catch (error) {
         if (createRun.cancelled) {
-          // A cancelled run must never bring an error back into a fresh UI.
-          captureException(error);
+          // Aborting makes createReport() resolve to an APIError that surfaces
+          // here as a throw, indistinguishable from a genuine failure. Decide
+          // from the run's own token, not this value: cancellation is expected
+          // user action, not a failure, so it must never reach the
+          // already-reset UI, and it must never be reported to Sentry.
+          console.error(
+            '[bug-report] discarded error from a cancelled report creation',
+            error
+          );
         } else if (activeCreateRunRef.current === createRun) {
           activeCreateRunRef.current = null;
           failSubmission('creation', error);
