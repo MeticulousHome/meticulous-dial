@@ -1,0 +1,16 @@
+[Unit]
+Description=Recover an interrupted Meticulous Pour Over transaction
+After=local-fs.target
+Before=meticulous-backend.service meticulous-dial.service
+ConditionPathExists=/opt/meticulous-firmware/backups/.pour-over-transaction
+ConditionPathExists=!/run/meticulous-pour-over-transaction-active
+
+[Service]
+Type=oneshot
+Environment=POUR_OVER_RECOVERY_VERIFY_SERVICES=0
+ExecStart=/usr/local/sbin/meticulous-pour-over-transaction-recovery
+TimeoutStartSec=600
+
+[Install]
+WantedBy=multi-user.target
+RequiredBy=meticulous-backend.service meticulous-dial.service

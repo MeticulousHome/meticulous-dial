@@ -53,6 +53,10 @@ type ProfileContextType = {
   onProfileHover: (type: string, profile_id: string) => void;
   mergedProfiles: ExtendedProfile[];
   limitedAccess: boolean;
+  homeMode: 'espresso' | 'free_pour' | 'pour_over_profile' | 'new';
+  setHomeMode: React.Dispatch<
+    React.SetStateAction<'espresso' | 'free_pour' | 'pour_over_profile' | 'new'>
+  >;
 };
 
 export type ExtendedProfile = Profile & {
@@ -85,6 +89,9 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [profileIdToFind, setProfileIdToFind] = useState<string | null>(null);
   const [profileEvent, setProfileEvent] = useState<ProfileUpdate | null>(null);
   const [profileStarting, setProfileStarting] = useState(false);
+  const [homeMode, setHomeMode] = useState<
+    'espresso' | 'free_pour' | 'pour_over_profile' | 'new'
+  >('espresso');
   const [settingsIndex, setSettingsIndex] = useState(0);
   const [settingsProfile, setSettingsProfile] = useState<
     (ExtendedProfile & { settings: IPresetSetting[] }) | null
@@ -259,7 +266,9 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     onProfileEvent,
     onProfileHover,
     mergedProfiles,
-    limitedAccess
+    limitedAccess,
+    homeMode,
+    setHomeMode
   };
 
   return (

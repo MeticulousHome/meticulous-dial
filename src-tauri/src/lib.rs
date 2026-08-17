@@ -9,7 +9,7 @@ mod community_upload;
 mod config;
 mod profiles;
 
-use community_upload::{CommunityEnrollment, CommunityUploadService, CommunityUploadStatus};
+use community_upload::{CommunityEnrollment, CommunityUploadRuntime, CommunityUploadStatus};
 
 const DIAL_READY_MARKER: &str = "/run/meticulous-dial-ready";
 const DIAL_HOME_READY_MARKER: &str = "/run/meticulous-dial-home-ready";
@@ -19,15 +19,24 @@ const DIAL_HOME_READY_MARKER: &str = "/run/meticulous-dial-home-ready";
 fn ready(app_handle: AppHandle) {
     println!("React is reporting ready!");
     let _ = fs::remove_file(DIAL_HOME_READY_MARKER);
+    let Some(window) = app_handle.get_webview_window("main") else {
+        eprintln!("Dial main window is unavailable");
+        return;
+    };
+    #[cfg(not(debug_assertions))]
+    {
+        if let Err(error) = window.set_fullscreen(true) {
+            eprintln!("Failed to make the Dial window fullscreen: {}", error);
+            return;
+        }
+    }
+    if let Err(error) = window.show() {
+        eprintln!("Failed to show the Dial window: {}", error);
+        return;
+    }
     if let Err(error) = fs::write(DIAL_READY_MARKER, "ready\n") {
         eprintln!("Failed to write dial ready marker: {}", error);
     }
-    let window = app_handle.get_webview_window("main").unwrap();
-    #[cfg(not(debug_assertions))]
-    {
-        window.set_fullscreen(true).unwrap();
-    }
-    window.show().unwrap();
 }
 
 #[tauri::command]
@@ -53,13 +62,13 @@ fn get_profiles() -> Result<Vec<serde_json::Value>, String> {
 }
 
 #[tauri::command]
-fn community_upload_status(service: State<'_, CommunityUploadService>) -> CommunityUploadStatus {
+fn community_upload_status(service: State<'_, CommunityUploadRuntime>) -> CommunityUploadStatus {
     service.status()
 }
 
 #[tauri::command]
 fn community_begin_enrollment(
-    service: State<'_, CommunityUploadService>,
+    service: State<'_, CommunityUploadRuntime>,
     machine_serial: Option<String>,
 ) -> Result<CommunityEnrollment, String> {
     service.begin_enrollment(machine_serial)
@@ -67,14 +76,14 @@ fn community_begin_enrollment(
 
 #[tauri::command]
 fn community_set_upload_paused(
-    service: State<'_, CommunityUploadService>,
+    service: State<'_, CommunityUploadRuntime>,
     paused: bool,
 ) -> Result<(), String> {
     service.set_paused(paused)
 }
 
 #[tauri::command]
-async fn community_disconnect(service: State<'_, CommunityUploadService>) -> Result<(), String> {
+async fn community_disconnect(service: State<'_, CommunityUploadRuntime>) -> Result<(), String> {
     let service = service.inner().clone();
     tauri::async_runtime::spawn_blocking(move || service.disconnect())
         .await
@@ -82,8 +91,13 @@ async fn community_disconnect(service: State<'_, CommunityUploadService>) -> Res
 }
 
 #[tauri::command]
-fn community_factory_reset_local(service: State<'_, CommunityUploadService>) -> Result<(), String> {
+fn community_factory_reset_local(service: State<'_, CommunityUploadRuntime>) -> Result<(), String> {
     service.factory_reset_local()
+}
+
+#[tauri::command]
+fn community_scan_history(service: State<'_, CommunityUploadRuntime>) -> Result<(), String> {
+    service.request_history_scan()
 }
 
 fn parse_mem() -> Option<u64> {
@@ -142,8 +156,7 @@ fn show_mem() {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let community_upload =
-        CommunityUploadService::new().expect("failed to initialize Community upload service");
+    let community_upload = CommunityUploadRuntime::initialize();
     community_upload.start();
     std::thread::spawn(|| {
         show_mem();
@@ -181,6 +194,7 @@ pub fn run() {
             community_set_upload_paused,
             community_disconnect,
             community_factory_reset_local,
+            community_scan_history,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

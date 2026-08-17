@@ -45,6 +45,7 @@ export function CommunitySettings(): JSX.Element {
 
   const status = statusQuery.data;
   const connected = status?.connected === true;
+  const unavailable = status?.state === 'unavailable';
   const pairingExpired = Boolean(pairingExpiresAt && now >= pairingExpiresAt);
   const busy =
     beginEnrollment.isPending || setPaused.isPending || disconnect.isPending;
@@ -81,6 +82,7 @@ export function CommunitySettings(): JSX.Element {
       statusQuery.isPending ||
       deviceInfoPending ||
       connected ||
+      unavailable ||
       pairingUrl ||
       beginEnrollment.isPending ||
       enrollmentAttempted.current
@@ -94,7 +96,8 @@ export function CommunitySettings(): JSX.Element {
     deviceInfoPending,
     pairingUrl,
     startEnrollment,
-    statusQuery.isPending
+    statusQuery.isPending,
+    unavailable
   ]);
 
   useEffect(() => {
@@ -118,6 +121,7 @@ export function CommunitySettings(): JSX.Element {
 
   const actions = useMemo(() => {
     if (!connected) {
+      if (unavailable) return ['Back'];
       return beginEnrollment.isError || pairingExpired
         ? ['Try again', 'Back']
         : ['Back'];
@@ -127,7 +131,13 @@ export function CommunitySettings(): JSX.Element {
       status?.paused ? 'Resume uploads' : 'Pause uploads',
       'Disconnect'
     ];
-  }, [beginEnrollment.isError, connected, pairingExpired, status?.paused]);
+  }, [
+    beginEnrollment.isError,
+    connected,
+    pairingExpired,
+    status?.paused,
+    unavailable
+  ]);
 
   const goBack = () => {
     dispatch(setBubbleDisplay({ visible: true, component: 'settings' }));
@@ -219,6 +229,21 @@ export function CommunitySettings(): JSX.Element {
   }
 
   if (!connected) {
+    if (unavailable) {
+      return (
+        <div className="community-screen">
+          <h2>Community Unavailable</h2>
+          <p className="community-copy">
+            Automatic backup could not access its storage. Brewing and Espresso
+            remain available. Restart the Dial after checking machine storage.
+          </p>
+          <div className="community-actions">
+            <div className="community-action active">Back</div>
+          </div>
+          <p className="community-error">{readableError(status?.lastError)}</p>
+        </div>
+      );
+    }
     const secondsLeft = Math.max((pairingExpiresAt ?? now) - now, 0);
     return (
       <div className="community-screen community-screen-connect">

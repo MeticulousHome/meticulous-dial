@@ -6,7 +6,8 @@ export const COMMUNITY_UPLOAD_STATUS_QUERY_KEY = 'community-upload-status';
 export type CommunityConnectionState =
   | 'not_connected'
   | 'connected'
-  | 'upload_paused';
+  | 'upload_paused'
+  | 'unavailable';
 
 export interface CommunityUploadStatus {
   state: CommunityConnectionState;

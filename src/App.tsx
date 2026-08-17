@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import { Provider } from 'react-redux';
@@ -27,6 +27,8 @@ import { warn, debug, trace, info, error } from '@tauri-apps/plugin-log';
 import { sanitizeAutomaticSentryEvent } from './sentryPrivacy';
 import { useDeviceInfo } from './hooks/useDeviceOSStatus';
 import { version as dialVersion } from '../package.json';
+import { syncPendingFreePourSessions } from './features/freePour/storage';
+import { logFreePour, logFreePourError } from './features/freePour/logging';
 
 const SENTRY_DSN =
   'https://d958eb514629903cf133ad2b19e80ead@sentry.meticulousespresso.com/8';
@@ -108,10 +110,40 @@ const App = (): JSX.Element => {
   useEffect(() => {
     sendReady();
     setBrightness({ brightness: 1 });
+    syncPendingFreePourSessions()
+      .then(({ pending, synced }) => {
+        if (pending || synced) {
+          logFreePour('backend_history_sync_completed', { pending, synced });
+        }
+      })
+      .catch((syncError) => {
+        logFreePourError('backend_history_sync_failed', syncError);
+      });
   }, []);
 
   const isExtracting = useAppSelector((state) => state.stats?.extracting);
+  const extractionWasActive = useRef(false);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+
+  useEffect(() => {
+    const completed = extractionWasActive.current && !isExtracting;
+    extractionWasActive.current = Boolean(isExtracting);
+    if (!completed || !('__TAURI_INTERNALS__' in window)) return;
+
+    const requestScan = () => {
+      void invoke('community_scan_history').catch((error) => {
+        console.error('Failed to request Community history scan:', error);
+      });
+    };
+    // Espresso history is compressed asynchronously after extraction. The
+    // second wake-up covers unusually slow flash writes without busy polling.
+    const firstScan = window.setTimeout(requestScan, 3_000);
+    const secondScan = window.setTimeout(requestScan, 10_000);
+    return () => {
+      window.clearTimeout(firstScan);
+      window.clearTimeout(secondScan);
+    };
+  }, [isExtracting]);
 
   useNotification();
   useNotificationHandler();
