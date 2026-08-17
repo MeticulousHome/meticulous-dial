@@ -1,3 +1,5 @@
+import { KEYBOARD_PUNCTUATION } from './input';
+
 export const FIRST_POSITION = 353;
 export const LAST_KEY = 'cancel';
 
@@ -142,37 +144,7 @@ export const CAPITAL_ACCENT_CHARACTERS = [
 ];
 
 export const SPECIAL_CHARACTERS = [
-  '-',
-  '_',
-  '!',
-  '"',
-  '#',
-  '$',
-  '%',
-  '&',
-  "'",
-  '(',
-  ')',
-  '*',
-  '+',
-  ',',
-  '.',
-  '/',
-  ':',
-  ';',
-  '<',
-  '=',
-  '>',
-  '?',
-  '@',
-  '[',
-  ']',
-  '^',
-  '`',
-  '{',
-  '}',
-  '|',
-  '~',
+  ...KEYBOARD_PUNCTUATION,
   'space',
   'ok',
   'backspace',
