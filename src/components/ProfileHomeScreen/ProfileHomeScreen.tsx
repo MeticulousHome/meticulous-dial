@@ -28,6 +28,14 @@ import { logFreePourError } from '../../features/freePour/logging';
 import { createRepeatPourOverProfile } from '../../features/freePour/profile';
 import { getLatestFreePourOnlySession } from '../../features/freePour/storage';
 import { PourOverProfile } from '../../features/freePour/types';
+import {
+  createDialProfileHover,
+  getActiveHomeOption,
+  getFreePourOptionIndex,
+  getHomeSelection,
+  getNewOptionIndex,
+  getRepeatPourOptionIndex
+} from './homeSelection';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -83,7 +91,9 @@ export const ProfileHomeScreen = () => {
   const profileState = useProfileContext();
 
   const {
+    localProfileIndex,
     setLocalProfileIndex: setActiveProfileOption,
+    homeMode,
     setHomeMode,
     profileStarting,
     setProfileStarting,
@@ -95,15 +105,36 @@ export const ProfileHomeScreen = () => {
 
   const [transitionDirection, setTransitionDirection] =
     useState<dialDirection>('none');
-  // Free Pour is intentionally the first/default home option. ProfileContext
-  // remains profile-only, keeping this mode independent from espresso uploads.
-  const [activeOption, setActiveOption] = useState(0);
   const [homeHoverState, setHomeHoverState] = useState(false);
   const [isPressingDown, setIsPressingDown] = useState(false);
   const [repeatPourProfile, setRepeatPourProfile] =
     useState<PourOverProfile | null>(null);
   const pressThroughTimer = useRef<NodeJS.Timeout | null>(null);
   const homeReadyReported = useRef(false);
+
+  // Espresso selection stays in ProfileContext so app and Dial socket events
+  // share one source of truth. Machine-only Pour Over tiles follow the profiles.
+  const hasRepeatPour = Boolean(repeatPourProfile);
+  const repeatPourOptionIndex = getRepeatPourOptionIndex({
+    profileCount: mergedProfiles.length,
+    hasRepeatPour
+  });
+  const freePourOptionIndex = getFreePourOptionIndex({
+    profileCount: mergedProfiles.length,
+    hasRepeatPour
+  });
+  const newOptionIndex = getNewOptionIndex({
+    profileCount: mergedProfiles.length,
+    hasRepeatPour
+  });
+  const activeOption = getActiveHomeOption({
+    mode: homeMode,
+    profileIndex: localProfileIndex,
+    profileCount: mergedProfiles.length,
+    hasRepeatPour
+  });
+  const activeOptionRef = useRef(activeOption);
+  activeOptionRef.current = activeOption;
 
   const nodeRefs = useRef<Record<string, Ref<HTMLDivElement>>>({});
   const requiresPurge = useRef<boolean>(false);
@@ -116,11 +147,8 @@ export const ProfileHomeScreen = () => {
     return nodeRefs.current[id];
   };
 
-  const pourOverOptionCount = repeatPourProfile ? 2 : 1;
-  const newOptionIndex = mergedProfiles.length + pourOverOptionCount;
-
   const animationFinished = async () => {
-    if (activeOption === 0) {
+    if (activeOption === freePourOptionIndex) {
       setIsPressingDown(false);
       setHomeHoverState(false);
       if (pressThroughTimer.current) clearTimeout(pressThroughTimer.current);
@@ -129,7 +157,7 @@ export const ProfileHomeScreen = () => {
       return;
     }
 
-    if (repeatPourProfile && activeOption === 1) {
+    if (repeatPourProfile && activeOption === repeatPourOptionIndex) {
       setIsPressingDown(false);
       setHomeHoverState(false);
       if (pressThroughTimer.current) clearTimeout(pressThroughTimer.current);
@@ -139,7 +167,7 @@ export const ProfileHomeScreen = () => {
     }
 
     const loadAndStartProfile = async () => {
-      const profile = mergedProfiles?.[activeOption - pourOverOptionCount];
+      const profile = mergedProfiles?.[activeOption];
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { isLast, temporary, ...cleanProfile } = profile;
@@ -204,11 +232,6 @@ export const ProfileHomeScreen = () => {
       });
     }
 
-    if (activeOption > newOptionIndex) {
-      setActiveOption(newOptionIndex);
-      return;
-    }
-
     // We are never zoomed in on the new button
     if (activeOption == newOptionIndex) {
       setHomeHoverState(false);
@@ -217,60 +240,78 @@ export const ProfileHomeScreen = () => {
   }, [mergedProfiles, activeOption, newOptionIndex]);
 
   useEffect(() => {
-    if (activeOption >= pourOverOptionCount && activeOption < newOptionIndex) {
-      setActiveProfileOption(activeOption - pourOverOptionCount);
-      setHomeMode('espresso');
-    } else if (activeOption === 0) {
-      setHomeMode('free_pour');
-      setLocalHoverState(false);
-    } else if (repeatPourProfile && activeOption === 1) {
-      setHomeMode('pour_over_profile');
-      setLocalHoverState(false);
-    } else {
-      setHomeMode('new');
+    if (homeMode === 'espresso') {
+      setHomeHoverState(localHoverState);
+    } else if (localHoverState) {
       setLocalHoverState(false);
     }
-  }, [
-    activeOption,
-    mergedProfiles,
-    newOptionIndex,
-    pourOverOptionCount,
-    repeatPourProfile,
-    setActiveProfileOption,
-    setHomeMode,
-    localHoverState,
-    setLocalHoverState
-  ]);
+  }, [homeMode, localHoverState, setLocalHoverState]);
+
+  const selectHomeOption = (option: number) => {
+    const selection = getHomeSelection(option, {
+      profileCount: mergedProfiles.length,
+      hasRepeatPour
+    });
+
+    if (selection.mode === 'espresso' && selection.profileIndex !== null) {
+      setActiveProfileOption(selection.profileIndex);
+      setHomeMode('espresso');
+      return;
+    }
+
+    setHomeMode(selection.mode);
+    setLocalHoverState(false);
+  };
+
+  const emitProfileHover = (option: number, type: 'focus' | 'scroll') => {
+    const event = createDialProfileHover(
+      option,
+      mergedProfiles,
+      hasRepeatPour,
+      type
+    );
+    if (event) socket.emit('profileHover', event);
+  };
+
+  const moveActiveOption = (next: number) => {
+    if (next === activeOptionRef.current) return;
+
+    activeOptionRef.current = next;
+    selectHomeOption(next);
+    emitProfileHover(next, 'scroll');
+  };
 
   const rotateLeft = () => {
     if (homeHoverState) {
       setHomeHoverState(false);
       setLocalHoverState(false);
+      emitProfileHover(activeOptionRef.current, 'scroll');
       return;
     }
-    if (activeOption !== newOptionIndex) {
+    if (activeOptionRef.current !== newOptionIndex) {
       setTransitionDirection('none');
       requestAnimationFrame(() => {
         setTransitionDirection('right');
       });
     }
-    setActiveOption((prev) => Math.min(prev + 1, newOptionIndex));
+    moveActiveOption(Math.min(activeOptionRef.current + 1, newOptionIndex));
   };
 
   const rotateRight = () => {
     if (homeHoverState) {
       setHomeHoverState(false);
       setLocalHoverState(false);
+      emitProfileHover(activeOptionRef.current, 'scroll');
       return;
     }
-    if (activeOption !== 0) {
+    if (activeOptionRef.current !== 0) {
       setTransitionDirection('none');
 
       requestAnimationFrame(() => {
         setTransitionDirection('left');
       });
     }
-    setActiveOption((prev) => Math.max(prev - 1, 0));
+    moveActiveOption(Math.max(activeOptionRef.current - 1, 0));
   };
 
   useHandleGestures(
@@ -301,8 +342,8 @@ export const ProfileHomeScreen = () => {
           }
           dispatch(setScreen('defaultProfiles'));
         } else if (
-          activeOption === 0 ||
-          (repeatPourProfile && activeOption === 1)
+          activeOption === freePourOptionIndex ||
+          (repeatPourProfile && activeOption === repeatPourOptionIndex)
         ) {
           if (!homeHoverState) {
             setHomeHoverState(true);
@@ -318,15 +359,7 @@ export const ProfileHomeScreen = () => {
             setHomeHoverState(true);
             setLocalHoverState(true);
             setTransitionDirection('none');
-            const profile =
-              mergedProfiles?.[activeOption - pourOverOptionCount];
-            if (profile?.id) {
-              socket.emit('profileHover', {
-                id: profile.id,
-                from: 'dial',
-                type: 'focus'
-              });
-            }
+            emitProfileHover(activeOptionRef.current, 'focus');
             if (!isOnline) return;
             pressThroughTimer.current = setTimeout(() => {
               setIsPressingDown(true);
@@ -359,39 +392,8 @@ export const ProfileHomeScreen = () => {
             $translateX={CARD_PADDING - activeOption * CARD_SIZE}
             component={'div'}
           >
-            <ProfileEntry
-              key="free-pour"
-              title="Free Pour"
-              containerStyle={{ backgroundColor: '#23383f', color: '#78d6ff' }}
-              contentClassNames={
-                Math.abs(activeOption) < 2 &&
-                `animation-bounce-${transitionDirection}`
-              }
-              distanceToActive={-activeOption}
-              zoomedIn={homeHoverState}
-            >
-              <FreePourIcon />
-            </ProfileEntry>
-            {repeatPourProfile && (
-              <ProfileEntry
-                key="repeat-last-pour"
-                title={repeatPourProfile.name}
-                containerStyle={{
-                  backgroundColor: '#1f3340',
-                  color: '#78d6ff'
-                }}
-                contentClassNames={
-                  Math.abs(activeOption - 1) < 2 &&
-                  `animation-bounce-${transitionDirection}`
-                }
-                distanceToActive={1 - activeOption}
-                zoomedIn={homeHoverState}
-              >
-                <FreePourIcon />
-              </ProfileEntry>
-            )}
             {mergedProfiles.map((profile, index) => {
-              const carouselIndex = index + pourOverOptionCount;
+              const carouselIndex = index;
               const itemRef = getOrCreateRef(carouselIndex.toString());
               const backgroundColor = profile.display?.accentColor
                 ? profile.display?.accentColor
@@ -424,6 +426,37 @@ export const ProfileHomeScreen = () => {
                 </CSSTransition>
               );
             })}
+            {repeatPourProfile && repeatPourOptionIndex !== null && (
+              <ProfileEntry
+                key="repeat-last-pour"
+                title={repeatPourProfile.name}
+                containerStyle={{
+                  backgroundColor: '#1f3340',
+                  color: '#78d6ff'
+                }}
+                contentClassNames={
+                  Math.abs(activeOption - repeatPourOptionIndex) < 2 &&
+                  `animation-bounce-${transitionDirection}`
+                }
+                distanceToActive={repeatPourOptionIndex - activeOption}
+                zoomedIn={homeHoverState}
+              >
+                <FreePourIcon />
+              </ProfileEntry>
+            )}
+            <ProfileEntry
+              key="free-pour"
+              title="Free Pour"
+              containerStyle={{ backgroundColor: '#23383f', color: '#78d6ff' }}
+              contentClassNames={
+                Math.abs(activeOption - freePourOptionIndex) < 2 &&
+                `animation-bounce-${transitionDirection}`
+              }
+              distanceToActive={freePourOptionIndex - activeOption}
+              zoomedIn={homeHoverState}
+            >
+              <FreePourIcon />
+            </ProfileEntry>
             {/* New button */}
             <ProfileEntry
               key={'unlock_new'}
