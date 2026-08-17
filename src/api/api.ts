@@ -6,6 +6,7 @@ import Api, {
   ManufacturingMenuItems
 } from '@meticulous-home/espresso-api';
 import { DialDeviceInfo } from '../types';
+import { invoke } from '@tauri-apps/api/core';
 
 export const API_URL =
   import.meta.env.VITE_SERVER_URL || 'http://localhost:8080';
@@ -143,6 +144,9 @@ export const updateManufacturingSettings = async (
 // The API package doesn't expose this endpoint
 export const factoryReset = async () => {
   try {
+    if ('__TAURI_INTERNALS__' in window) {
+      await invoke('community_factory_reset_local');
+    }
     const server = API_URL;
     const url = server + `/api/v1/machine/factory_reset?confirm=true`;
 
