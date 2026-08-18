@@ -1,4 +1,38 @@
-import { WifiHealthStatus } from '../../api/wifi';
+import type { WifiHealthStatus } from '../../api/wifi';
+
+export function isWifiHealthCheckPending(
+  health?: WifiHealthStatus,
+  connected?: boolean
+): boolean {
+  // An unknown connection state must not count as connected: a stale health
+  // object would otherwise report "CHECKING" forever while disconnected.
+  return Boolean(
+    connected === true &&
+    health?.link_connected &&
+    health.has_ipv4 &&
+    !health.degraded &&
+    !health.last_error &&
+    !health.gateway_reachable &&
+    !health.dns_resolves &&
+    !health.internet_reachable
+  );
+}
+
+export function getWifiProbeStatusLabel(
+  result?: boolean,
+  health?: WifiHealthStatus,
+  connected?: boolean
+): string {
+  if (!health || result === undefined) {
+    return '';
+  }
+
+  if (result) {
+    return 'OK';
+  }
+
+  return isWifiHealthCheckPending(health, connected) ? 'CHECKING' : 'FAILED';
+}
 
 export function getWifiHealthMessage(health?: WifiHealthStatus): string {
   if (!health) {
