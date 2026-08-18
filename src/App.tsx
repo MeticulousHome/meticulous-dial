@@ -27,6 +27,8 @@ import { warn, debug, trace, info, error } from '@tauri-apps/plugin-log';
 import { sanitizeAutomaticSentryEvent } from './sentryPrivacy';
 import { useDeviceInfo } from './hooks/useDeviceOSStatus';
 import { version as dialVersion } from '../package.json';
+import { syncPendingFreePourSessions } from './features/freePour/storage';
+import { logFreePour, logFreePourError } from './features/freePour/logging';
 
 const SENTRY_DSN =
   'https://d958eb514629903cf133ad2b19e80ead@sentry.meticulousespresso.com/8';
@@ -108,6 +110,15 @@ const App = (): JSX.Element => {
   useEffect(() => {
     sendReady();
     setBrightness({ brightness: 1 });
+    syncPendingFreePourSessions()
+      .then(({ pending, synced }) => {
+        if (pending || synced) {
+          logFreePour('backend_history_sync_completed', { pending, synced });
+        }
+      })
+      .catch((syncError) => {
+        logFreePourError('backend_history_sync_failed', syncError);
+      });
   }, []);
 
   const isExtracting = useAppSelector((state) => state.stats?.extracting);

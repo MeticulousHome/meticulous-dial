@@ -20,6 +20,10 @@ jobs:
       # Step 5
       - name: Check types
         run: npm run types
+      - name: Check Free Pour motion detection
+        run: npm run test:free-pour
+      - name: Check home screen selection
+        run: npm run test:profile-home-selection
       # Step 5
       - name: Static analysis
         run: npm run lint
