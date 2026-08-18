@@ -4,6 +4,9 @@ import { PourOverProfile } from './types';
 
 export const POUR_OVER_PROFILES_QUERY_KEY = 'pour-over-profiles';
 
+export const getPourOverProfileImageUrl = (profileId: string) =>
+  `${API_URL}/api/v1/pour-over/profile/image/${encodeURIComponent(profileId)}`;
+
 const request = async (path: string, init?: RequestInit) => {
   const controller = new AbortController();
   const timeout = globalThis.setTimeout(() => controller.abort(), 5000);

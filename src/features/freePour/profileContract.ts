@@ -552,13 +552,17 @@ export const toDialPourOverProfile = (
   temperatureC: profile.recipe.water_temperature_c,
   targetWaterG: profile.recipe.total_water_g,
   targetDurationMs: Math.round(profile.recipe.target_total_time_s * 1000),
-  pourTargets: profile.stages.map((stage, index) => ({
-    number: index + 1,
-    startTimeMs: Math.round(stage.starts_at_s * 1000),
-    stopWeightG: stage.pour.target_cumulative_water_g,
-    flowGps: stage.pour.flow_rate_g_s,
-    flowRangeGps: stage.pour.flow_range_g_s
-  }))
+  pourTargets: profile.stages.map((stage, index) => {
+    const target = {
+      number: index + 1,
+      startTimeMs: Math.round(stage.starts_at_s * 1000),
+      stopWeightG: stage.pour.target_cumulative_water_g,
+      flowGps: stage.pour.flow_rate_g_s
+    };
+    return stage.pour.flow_range_g_s == null
+      ? target
+      : { ...target, flowRangeGps: stage.pour.flow_range_g_s };
+  })
 });
 
 export const parsePourOverProfile = (

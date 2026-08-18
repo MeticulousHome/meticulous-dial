@@ -33,7 +33,9 @@ import {
   MIN_FREE_POUR_TEMPERATURE_C
 } from './profile';
 import {
+  brewerRemovalThreshold,
   BrewerRemovalConfirmation,
+  classifyBrewWeightCandidate,
   updatePlausiblePeakWeight
 } from './brewWeightFilter';
 import './free-pour.css';
@@ -655,7 +657,7 @@ export const FreePourScreen = ({
           }
         }
 
-        const removalThreshold = Math.max(28, setupWeight.current * 0.18);
+        const removalThreshold = brewerRemovalThreshold(setupWeight.current);
         const belowRemovalThreshold =
           peakWaterWeight.current >= 20 &&
           currentWeight <= peakWaterWeight.current - removalThreshold;
@@ -678,6 +680,32 @@ export const FreePourScreen = ({
             scale_g: roundTo(currentWeight)
           });
         } else if (removalState.type === 'confirmed') {
+          const candidate = classifyBrewWeightCandidate(
+            currentWeight,
+            setupWeight.current,
+            peakWaterWeight.current
+          );
+          if (candidate.type === 'setup-still-on-scale') {
+            // A settled brewer cannot yield more beverage than the water that
+            // was poured. This was scale motion, not a lift. Reconcile the
+            // shake-inflated high-water mark without flashing the measurement
+            // screen, then let pour detection finish against the settled mass.
+            peakWaterWeight.current = Math.max(0, currentWeight);
+            if (activePour.current) {
+              activePour.current.peakWeightG = Math.max(
+                activePour.current.baselineWaterG,
+                currentWeight
+              );
+            }
+            brewerRemoval.current.reset();
+            logFreePour('brewer_removal_rejected', {
+              runId,
+              reason: 'setup_still_on_scale',
+              candidate_beverage_g: roundTo(candidate.beverageG),
+              water_g: roundTo(peakWaterWeight.current)
+            });
+            return;
+          }
           logFreePour('brewer_removal_detected', {
             runId,
             held_ms: Math.round(removalState.heldMs),
@@ -686,6 +714,16 @@ export const FreePourScreen = ({
             threshold_g: roundTo(removalThreshold)
           });
           beginMeasurement(removalState.startedAtMs);
+          return;
+        }
+
+        // Do not feed a large downward transition into the pour detector. A
+        // confirmed brewer lift otherwise appears as a short, very fast pour
+        // because gravimetric flow lags the scale reading.
+        if (
+          removalState.type === 'started' ||
+          removalState.type === 'pending'
+        ) {
           return;
         }
       } else {
@@ -813,33 +851,34 @@ export const FreePourScreen = ({
 
   useEffect(() => {
     if (!stable || stage !== 'measuring') return;
-    const candidateBeverage = weight + setupWeight.current;
     const water = peakWaterWeight.current;
-    const plausible =
-      candidateBeverage >= Math.max(8, water * 0.2) &&
-      candidateBeverage <= water + 8;
-    if (plausible) {
+    const candidate = classifyBrewWeightCandidate(
+      weight,
+      setupWeight.current,
+      water
+    );
+    if (candidate.type === 'plausible') {
       logFreePour('brew_weight_accepted', {
         runId,
-        beverage_g: roundTo(candidateBeverage),
+        beverage_g: roundTo(candidate.beverageG),
         water_g: roundTo(water)
       });
-      createSession(candidateBeverage);
-    } else if (candidateBeverage <= Math.max(5, water * 0.08)) {
+      createSession(candidate.beverageG);
+    } else if (candidate.type === 'server-missing') {
       logFreePour('server_missing_after_brewer_removal', {
         runId,
-        candidate_beverage_g: roundTo(candidateBeverage),
+        candidate_beverage_g: roundTo(candidate.beverageG),
         water_g: roundTo(water)
       });
       finalizing.current = false;
       updateStage('replace-server');
-    } else if (candidateBeverage > water + 8) {
+    } else {
       // A transient bump can resemble a lift. Return to the live state once
       // the full setup is stable on the scale again.
       logFreePour('brewer_removal_rejected', {
         runId,
         reason: 'weight_above_plausible_range',
-        candidate_beverage_g: roundTo(candidateBeverage),
+        candidate_beverage_g: roundTo(candidate.beverageG),
         water_g: roundTo(water)
       });
       finalizing.current = false;
@@ -849,18 +888,19 @@ export const FreePourScreen = ({
 
   useEffect(() => {
     if (!stable || stage !== 'replace-server') return;
-    const candidateBeverage = weight + setupWeight.current;
     const water = peakWaterWeight.current;
-    if (
-      candidateBeverage >= Math.max(8, water * 0.2) &&
-      candidateBeverage <= water + 8
-    ) {
+    const candidate = classifyBrewWeightCandidate(
+      weight,
+      setupWeight.current,
+      water
+    );
+    if (candidate.type === 'plausible') {
       logFreePour('replacement_server_accepted', {
         runId,
-        beverage_g: roundTo(candidateBeverage),
+        beverage_g: roundTo(candidate.beverageG),
         water_g: roundTo(water)
       });
-      createSession(candidateBeverage);
+      createSession(candidate.beverageG);
     }
   }, [stable, stage, weight]);
 

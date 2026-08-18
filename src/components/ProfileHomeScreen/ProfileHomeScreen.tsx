@@ -9,6 +9,7 @@ import {
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { PROFILE_ENTRY_SIZE, ProfileEntry } from './ProfileEntry';
 import { ProfileImage } from './ProfileImage';
+import { PourOverProfileImage } from './PourOverProfileImage';
 
 import { CircleOverlay } from './CircleOverlay';
 import './transitions.less';
@@ -505,7 +506,10 @@ export const ProfileHomeScreen = () => {
                   distanceToActive={carouselIndex - activeOption}
                   zoomedIn={homeHoverState}
                 >
-                  <FreePourIcon />
+                  <PourOverProfileImage
+                    profile={profile}
+                    enabled={Math.abs(activeOption - carouselIndex) < 2}
+                  />
                 </ProfileEntry>
               );
             })}

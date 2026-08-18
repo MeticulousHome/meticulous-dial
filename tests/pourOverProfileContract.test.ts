@@ -74,8 +74,7 @@ if (parsed.success) {
       number: 2,
       startTimeMs: 45_000,
       stopWeightG: 250,
-      flowGps: 5,
-      flowRangeGps: undefined
+      flowGps: 5
     }
   ]);
 }

@@ -8,6 +8,8 @@ const {
   resolvedPourEndWeight
 } = require('../src/features/freePour/pourDetector.ts');
 const {
+  brewerRemovalThreshold,
+  classifyBrewWeightCandidate,
   BrewerRemovalConfirmation
 } = require('../src/features/freePour/brewWeightFilter.ts');
 
@@ -206,4 +208,32 @@ test('aggressive leveling cannot confirm brewer removal', () => {
     assert.equal(removal.update(true, timeMs, weightG).type, 'pending');
   }
   assert.equal(removal.update(false, 5200, 226).type, 'cancelled');
+});
+
+test('removal threshold rejects the recorded final shake but accepts the lift', () => {
+  const threshold = brewerRemovalThreshold(91.5);
+  assert.equal(threshold, 50.325);
+  assert.equal(256.5 - 226.7 < threshold, true);
+  assert.equal(226.7 - 98.9 > threshold, true);
+});
+
+test('stable setup weight is rejected before opening brew weight measurement', () => {
+  assert.deepEqual(classifyBrewWeightCandidate(226.7, 91.5, 256.5), {
+    type: 'setup-still-on-scale',
+    beverageG: 318.2
+  });
+});
+
+test('the recorded post-lift reading produces the expected beverage weight', () => {
+  assert.deepEqual(classifyBrewWeightCandidate(98.9, 91.5, 226.7), {
+    type: 'plausible',
+    beverageG: 190.4
+  });
+});
+
+test('removing everything asks the user to replace only the server', () => {
+  assert.deepEqual(classifyBrewWeightCandidate(-91.5, 91.5, 226.7), {
+    type: 'server-missing',
+    beverageG: 0
+  });
 });
