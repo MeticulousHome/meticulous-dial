@@ -29,10 +29,12 @@ const CircleText = styled.div`
 
 export function CircleOverlay({
   shouldAnimate,
-  onAnimationFinished
+  onAnimationFinished,
+  hoverState
 }: {
   shouldAnimate: boolean;
   onAnimationFinished?: () => void;
+  hoverState?: boolean;
 }) {
   // Circle configuration
   const stroke = 5;
@@ -60,6 +62,7 @@ export function CircleOverlay({
   }
 
   const { localHoverState } = useProfileContext();
+  const isHovered = hoverState ?? localHoverState;
 
   useEffect(() => {
     if (!isDrawn) {
@@ -77,7 +80,7 @@ export function CircleOverlay({
   // Reset the circle if we zoom out
   useEffect(() => {
     setWasLetGo(false);
-  }, [localHoverState]);
+  }, [isHovered]);
 
   return (
     <>
@@ -111,9 +114,7 @@ export function CircleOverlay({
       </svg>
       <CircleText
         className={
-          localHoverState && wasLetGo && !shouldAnimate
-            ? 'animateTextOpacityUp'
-            : ''
+          isHovered && wasLetGo && !shouldAnimate ? 'animateTextOpacityUp' : ''
         }
         onAnimationEnd={() => setWasLetGo(false)}
       >

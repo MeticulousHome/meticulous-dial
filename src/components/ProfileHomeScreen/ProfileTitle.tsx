@@ -2,6 +2,7 @@ import { useProfileContext } from '../../context/ProfileContext';
 import { css, keyframes, styled } from 'styled-components';
 import { useAppSelector } from '../store/hooks';
 import { useEffect, useRef, useState } from 'react';
+import { usePourOverProfiles } from '../../features/freePour/usePourOverProfiles';
 
 const Title = styled.div<{ $scroll: boolean; $isMarquee?: boolean }>`
   height: 44px;
@@ -44,10 +45,15 @@ export const getProfilesTitle = () => <TitleProfiles />;
 export const getActiveProfilesTitle = () => <TitleProfiles />;
 
 export const TitleProfiles = () => {
-  const { localHoverState, localProfile } = useProfileContext();
+  const { homeMode, localHoverState, localProfile, selectedPourOverProfileId } =
+    useProfileContext();
+  const { data: pourOverProfiles = [] } = usePourOverProfiles();
   const currentScreen = useAppSelector((state) => state.screen.value);
   const isHomeScreen = currentScreen == 'profileHome';
   const titleRef = useRef<HTMLSpanElement>(null);
+  const selectedPourOverProfile = pourOverProfiles.find(
+    (profile) => profile.id === selectedPourOverProfileId
+  );
 
   // Dynamically adjust marquee animation speed based on title width
   const [marqueeWidth, setMarqueeWidth] = useState(0);
@@ -58,12 +64,19 @@ export const TitleProfiles = () => {
       const parentWidth = titleRef.current.parentElement?.offsetWidth || 0;
       setMarqueeWidth(width > parentWidth ? width : 0);
     }
-  }, [localProfile?.name, titleRef.current]);
+  }, [localProfile?.name, selectedPourOverProfile?.name]);
 
   const scroll = localHoverState && isHomeScreen;
   const marquee = (isHomeScreen && scroll) || !isHomeScreen;
 
-  let title = localProfile?.name || '';
+  let title =
+    isHomeScreen && homeMode === 'free_pour'
+      ? 'Free Pour'
+      : isHomeScreen && homeMode === 'repeat_pour'
+        ? 'Repeat Last Pour'
+        : isHomeScreen && homeMode === 'pour_over_profile'
+          ? selectedPourOverProfile?.name || 'Pour Over'
+          : localProfile?.name || '';
   if (title.length > 40) {
     title = title.slice(0, 40) + '...';
   }

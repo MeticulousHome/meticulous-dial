@@ -20,7 +20,13 @@ export interface scaleState {
   size: 'small' | 'full' | undefined;
 }
 
-const noScalePopUpScreens: ScreenType[] = ['calibrateScale'];
+const noScalePopUpScreens: ScreenType[] = [
+  'calibrateScale',
+  'freePour',
+  'freePourRecipe',
+  'guidedPourOver',
+  'freePourHistory'
+];
 
 const Weight = () => {
   const weight = useAppSelector((state) => state.stats.sensors.w || 0);
