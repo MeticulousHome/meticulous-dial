@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import { Provider } from 'react-redux';
@@ -122,7 +122,28 @@ const App = (): JSX.Element => {
   }, []);
 
   const isExtracting = useAppSelector((state) => state.stats?.extracting);
+  const extractionWasActive = useRef(false);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+
+  useEffect(() => {
+    const completed = extractionWasActive.current && !isExtracting;
+    extractionWasActive.current = Boolean(isExtracting);
+    if (!completed || !('__TAURI_INTERNALS__' in window)) return;
+
+    const requestScan = () => {
+      void invoke('community_scan_history').catch((error) => {
+        console.error('Failed to request Community history scan:', error);
+      });
+    };
+    // Espresso history is compressed asynchronously after extraction. The
+    // second wake-up covers unusually slow flash writes without busy polling.
+    const firstScan = window.setTimeout(requestScan, 3_000);
+    const secondScan = window.setTimeout(requestScan, 10_000);
+    return () => {
+      window.clearTimeout(firstScan);
+      window.clearTimeout(secondScan);
+    };
+  }, [isExtracting]);
 
   useNotification();
   useNotificationHandler();

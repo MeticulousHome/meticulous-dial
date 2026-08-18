@@ -17,6 +17,7 @@ export type ScreenType =
   | 'dose'
   | 'output'
   | 'settings'
+  | 'community'
   | 'timeDate'
   | 'timeZoneConfig'
   | 'notifications'
