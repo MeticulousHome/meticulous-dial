@@ -35,7 +35,14 @@ export interface PourOverPourTarget {
 export interface PourOverProfile {
   id: string;
   name: string;
-  sourceSessionId: string;
+  author?: string;
+  sourceSessionId?: string;
+  display?: {
+    image?: string;
+    accentColor?: string;
+    shortDescription?: string;
+    description?: string;
+  };
   doseG: number;
   temperatureC: number;
   targetWaterG: number;

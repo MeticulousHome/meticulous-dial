@@ -28,12 +28,14 @@ import { logFreePourError } from '../../features/freePour/logging';
 import { createRepeatPourOverProfile } from '../../features/freePour/profile';
 import { getLatestFreePourOnlySession } from '../../features/freePour/storage';
 import { PourOverProfile } from '../../features/freePour/types';
+import { usePourOverProfiles } from '../../features/freePour/usePourOverProfiles';
 import {
   createDialProfileHover,
   getActiveHomeOption,
   getFreePourOptionIndex,
   getHomeSelection,
   getNewOptionIndex,
+  getPourOverProfileOptionIndex,
   getRepeatPourOptionIndex
 } from './homeSelection';
 
@@ -87,6 +89,7 @@ export const ProfileHomeScreen = () => {
   const { isIdle: shouldGoToIdle } = useIdleTimer();
   const isOnline = useIsOnline();
   const socket = useSocket();
+  const { data: installedPourOverProfiles = [] } = usePourOverProfiles();
 
   const profileState = useProfileContext();
 
@@ -100,7 +103,9 @@ export const ProfileHomeScreen = () => {
     localHoverState,
     setLocalHoverState,
     mergedProfiles,
-    limitedAccess
+    limitedAccess,
+    selectedPourOverProfileId,
+    setSelectedPourOverProfileId
   } = profileState;
 
   const [transitionDirection, setTransitionDirection] =
@@ -113,25 +118,27 @@ export const ProfileHomeScreen = () => {
   const homeReadyReported = useRef(false);
 
   // Espresso selection stays in ProfileContext so app and Dial socket events
-  // share one source of truth. Machine-only Pour Over tiles follow the profiles.
+  // share one source of truth. Installed Pour Over profiles use their stable IDs.
   const hasRepeatPour = Boolean(repeatPourProfile);
-  const repeatPourOptionIndex = getRepeatPourOptionIndex({
+  const homeLayout = {
     profileCount: mergedProfiles.length,
+    pourOverProfileCount: installedPourOverProfiles.length,
     hasRepeatPour
-  });
-  const freePourOptionIndex = getFreePourOptionIndex({
-    profileCount: mergedProfiles.length,
-    hasRepeatPour
-  });
-  const newOptionIndex = getNewOptionIndex({
-    profileCount: mergedProfiles.length,
-    hasRepeatPour
-  });
+  };
+  const repeatPourOptionIndex = getRepeatPourOptionIndex(homeLayout);
+  const freePourOptionIndex = getFreePourOptionIndex(homeLayout);
+  const newOptionIndex = getNewOptionIndex(homeLayout);
+  const selectedPourOverProfileIndex = Math.max(
+    installedPourOverProfiles.findIndex(
+      (profile) => profile.id === selectedPourOverProfileId
+    ),
+    0
+  );
   const activeOption = getActiveHomeOption({
     mode: homeMode,
     profileIndex: localProfileIndex,
-    profileCount: mergedProfiles.length,
-    hasRepeatPour
+    pourOverProfileIndex: selectedPourOverProfileIndex,
+    ...homeLayout
   });
   const activeOptionRef = useRef(activeOption);
   activeOptionRef.current = activeOption;
@@ -148,6 +155,8 @@ export const ProfileHomeScreen = () => {
   };
 
   const animationFinished = async () => {
+    const selection = getHomeSelection(activeOption, homeLayout);
+
     if (activeOption === freePourOptionIndex) {
       setIsPressingDown(false);
       setHomeHoverState(false);
@@ -163,6 +172,15 @@ export const ProfileHomeScreen = () => {
       if (pressThroughTimer.current) clearTimeout(pressThroughTimer.current);
       pressThroughTimer.current = null;
       dispatch(setScreen('freePourRecipe'));
+      return;
+    }
+
+    if (selection.mode === 'pour_over_profile') {
+      setIsPressingDown(false);
+      setHomeHoverState(false);
+      if (pressThroughTimer.current) clearTimeout(pressThroughTimer.current);
+      pressThroughTimer.current = null;
+      dispatch(setScreen('guidedPourOver'));
       return;
     }
 
@@ -212,6 +230,32 @@ export const ProfileHomeScreen = () => {
   }, []);
 
   useEffect(() => {
+    if (homeMode !== 'pour_over_profile') return;
+    if (
+      selectedPourOverProfileId &&
+      installedPourOverProfiles.some(
+        (profile) => profile.id === selectedPourOverProfileId
+      )
+    ) {
+      return;
+    }
+
+    if (installedPourOverProfiles.length > 0) {
+      setSelectedPourOverProfileId(installedPourOverProfiles[0].id);
+    } else {
+      setSelectedPourOverProfileId(null);
+      setHomeMode(mergedProfiles.length > 0 ? 'espresso' : 'free_pour');
+    }
+  }, [
+    homeMode,
+    installedPourOverProfiles,
+    mergedProfiles.length,
+    selectedPourOverProfileId,
+    setHomeMode,
+    setSelectedPourOverProfileId
+  ]);
+
+  useEffect(() => {
     requiresPurge.current = PistonPos && PistonPos < PISTON_ON_PURGE_POSITION;
   }, [PistonPos]);
 
@@ -248,17 +292,28 @@ export const ProfileHomeScreen = () => {
   }, [homeMode, localHoverState, setLocalHoverState]);
 
   const selectHomeOption = (option: number) => {
-    const selection = getHomeSelection(option, {
-      profileCount: mergedProfiles.length,
-      hasRepeatPour
-    });
+    const selection = getHomeSelection(option, homeLayout);
 
     if (selection.mode === 'espresso' && selection.profileIndex !== null) {
       setActiveProfileOption(selection.profileIndex);
       setHomeMode('espresso');
+      setSelectedPourOverProfileId(null);
       return;
     }
 
+    if (
+      selection.mode === 'pour_over_profile' &&
+      selection.pourOverProfileIndex !== null
+    ) {
+      const profile = installedPourOverProfiles[selection.pourOverProfileIndex];
+      if (!profile) return;
+      setSelectedPourOverProfileId(profile.id);
+      setHomeMode('pour_over_profile');
+      setLocalHoverState(false);
+      return;
+    }
+
+    setSelectedPourOverProfileId(null);
     setHomeMode(selection.mode);
     setLocalHoverState(false);
   };
@@ -267,6 +322,7 @@ export const ProfileHomeScreen = () => {
     const event = createDialProfileHover(
       option,
       mergedProfiles,
+      installedPourOverProfiles.length,
       hasRepeatPour,
       type
     );
@@ -343,6 +399,8 @@ export const ProfileHomeScreen = () => {
           dispatch(setScreen('defaultProfiles'));
         } else if (
           activeOption === freePourOptionIndex ||
+          getHomeSelection(activeOption, homeLayout).mode ===
+            'pour_over_profile' ||
           (repeatPourProfile && activeOption === repeatPourOptionIndex)
         ) {
           if (!homeHoverState) {
@@ -424,6 +482,31 @@ export const ProfileHomeScreen = () => {
                     )}
                   </ProfileEntry>
                 </CSSTransition>
+              );
+            })}
+            {installedPourOverProfiles.map((profile, profileIndex) => {
+              const carouselIndex = getPourOverProfileOptionIndex(
+                profileIndex,
+                homeLayout
+              );
+              const accentColor = profile.display?.accentColor ?? '#1f3340';
+              return (
+                <ProfileEntry
+                  key={`pour-over-${profile.id}`}
+                  title={profile.name}
+                  containerStyle={{
+                    backgroundColor: accentColor,
+                    color: '#78d6ff'
+                  }}
+                  contentClassNames={
+                    Math.abs(activeOption - carouselIndex) < 2 &&
+                    `animation-bounce-${transitionDirection}`
+                  }
+                  distanceToActive={carouselIndex - activeOption}
+                  zoomedIn={homeHoverState}
+                >
+                  <FreePourIcon />
+                </ProfileEntry>
               );
             })}
             {repeatPourProfile && repeatPourOptionIndex !== null && (

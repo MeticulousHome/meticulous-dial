@@ -2,7 +2,7 @@ import { roundTo } from './format';
 import { FreePourSession, PourOverProfile } from './types';
 
 export const DEFAULT_FREE_POUR_TEMPERATURE_C = 92;
-export const MIN_FREE_POUR_TEMPERATURE_C = 80;
+export const MIN_FREE_POUR_TEMPERATURE_C = 70;
 export const MAX_FREE_POUR_TEMPERATURE_C = 100;
 
 export const createRepeatPourOverProfile = (

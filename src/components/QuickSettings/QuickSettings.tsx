@@ -241,7 +241,11 @@ export function QuickSettings(): JSX.Element {
         );
       },
       doubleClick() {
-        if (currentScreen !== 'freePour' && currentScreen !== 'freePourRecipe')
+        if (
+          currentScreen !== 'freePour' &&
+          currentScreen !== 'freePourRecipe' &&
+          currentScreen !== 'guidedPourOver'
+        )
           return;
         logFreePour('aborted', { source: 'double_press_context_menu' });
         dispatch(setScreen('profileHome'));
@@ -439,7 +443,9 @@ export function QuickSettings(): JSX.Element {
     homeMode === 'espresso';
   const requiresFreePourContext =
     currentScreen === 'profileHome' &&
-    (homeMode === 'free_pour' || homeMode === 'pour_over_profile');
+    (homeMode === 'free_pour' ||
+      homeMode === 'repeat_pour' ||
+      homeMode === 'pour_over_profile');
 
   useEffect(() => {
     const context: QuickSettingOption[] = profileContextSettings;
@@ -469,6 +475,7 @@ export function QuickSettings(): JSX.Element {
         break;
       case 'freePour':
       case 'freePourRecipe':
+      case 'guidedPourOver':
         setSettings(freePourInProgressSettings);
         break;
       default:

@@ -24,6 +24,7 @@ const noScalePopUpScreens: ScreenType[] = [
   'calibrateScale',
   'freePour',
   'freePourRecipe',
+  'guidedPourOver',
   'freePourHistory'
 ];
 

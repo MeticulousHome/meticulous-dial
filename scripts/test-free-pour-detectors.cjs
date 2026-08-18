@@ -52,9 +52,84 @@ test('a real pour starts after confirmation and is backdated', () => {
     .filter(Boolean);
   assert.equal(events.length, 1);
   assert.equal(events[0].type, 'pour-start');
-  assert.equal(events[0].sample.timeMs, 200);
-  assert.equal(events[0].sample.weightG, 1.5);
+  assert.equal(events[0].sample.timeMs, 0);
+  assert.equal(events[0].sample.weightG, 0);
   assert.equal(detector.isPouring, true);
+});
+
+test('a fast retained first pour is not rejected as scale motion', () => {
+  const detector = new PourDetector();
+  const sequence = [
+    sample(0, 0, 0),
+    sample(100, 4, 8),
+    sample(200, 12, 16),
+    sample(300, 23, 21),
+    sample(400, 31, 18),
+    sample(700, 31.2, 6),
+    sample(1000, 31.2, 1),
+    sample(1100, 31.2, 0.2)
+  ];
+
+  const events = sequence
+    .map((value) => detector.process(value))
+    .filter(Boolean);
+  assert.equal(events.length, 1);
+  assert.equal(events[0].type, 'pour-start');
+  assert.equal(events[0].sample.timeMs, 0);
+  assert.equal(events[0].sample.weightG, 0);
+  assert.equal(detector.isPouring, true);
+});
+
+test('a single retained scale step is not enough to start a pour', () => {
+  const detector = new PourDetector();
+  const events = [
+    detector.process(sample(0, 0)),
+    detector.process(sample(100, 4, 0)),
+    detector.process(sample(500, 4, 0)),
+    detector.process(sample(1100, 4, 0)),
+    detector.process(sample(2000, 4, 0))
+  ].filter(Boolean);
+
+  assert.deepEqual(events, []);
+  assert.equal(detector.isPouring, false);
+});
+
+test('a two-step retained disturbance is not enough to start a pour', () => {
+  const detector = new PourDetector();
+  const events = [
+    detector.process(sample(0, 0)),
+    detector.process(sample(100, 2)),
+    detector.process(sample(200, 4)),
+    detector.process(sample(600, 4)),
+    detector.process(sample(1100, 4)),
+    detector.process(sample(2000, 4))
+  ].filter(Boolean);
+
+  assert.deepEqual(events, []);
+  assert.equal(detector.isPouring, false);
+});
+
+test('a bump immediately before a real pour does not suppress that pour', () => {
+  const detector = new PourDetector();
+  const sequence = [
+    sample(0, 0),
+    sample(100, 7),
+    sample(200, 0.1),
+    sample(300, 1.5),
+    sample(500, 4),
+    sample(700, 8),
+    sample(900, 12),
+    sample(1100, 16),
+    sample(1300, 20)
+  ];
+
+  const events = sequence
+    .map((value) => detector.process(value))
+    .filter(Boolean);
+  assert.equal(events.length, 1);
+  assert.equal(events[0].type, 'pour-start');
+  assert.equal(events[0].sample.timeMs, 200);
+  assert.equal(events[0].sample.weightG, 0.1);
 });
 
 test('the recorded dripper shake is not classified as a pour', () => {

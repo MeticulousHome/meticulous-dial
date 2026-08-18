@@ -124,12 +124,13 @@ const useStableWeight = (weight: number, resetKey: Stage) => {
 
 const FlowMeter = ({ flow, target }: { flow: number; target?: number }) => {
   const displayedFlow = clamp(flow, 0, 10);
+  const flowLabel = flow > 10 ? '10+' : Math.round(displayedFlow).toString();
   const displayedTarget =
     target === undefined ? undefined : clamp(target, 0, 10);
   return (
     <div className="free-pour-flow-meter">
       <div className="free-pour-flow-title">
-        FLOW · <span>{Math.round(displayedFlow)} g/s</span>
+        FLOW · <span>{flowLabel} g/s</span>
       </div>
       <div className="free-pour-flow-segments">
         {Array.from({ length: 10 }, (_, index) => (
@@ -151,7 +152,7 @@ const FlowMeter = ({ flow, target }: { flow: number; target?: number }) => {
       </div>
       <div className="free-pour-flow-axis">
         {Array.from({ length: 11 }, (_, index) => (
-          <span key={index}>{index}</span>
+          <span key={index}>{index === 10 ? '10+' : index}</span>
         ))}
       </div>
     </div>
@@ -315,6 +316,7 @@ export const FreePourScreen = ({
   const completion = useRef<FreePourCompletion>('brewer_removed');
   const finalizing = useRef(false);
   const setupStatusRef = useRef(setupStatus);
+  const sessionCreationStarted = useRef(false);
   const sessionSaved = useRef(false);
   const [preStartSamples] = useState(() => ({
     times: new Float64Array(PRE_START_SAMPLE_CAPACITY),
@@ -452,6 +454,14 @@ export const FreePourScreen = ({
   };
 
   const createSession = (beverageG: number | null) => {
+    if (sessionCreationStarted.current) {
+      logFreePour('session_creation_ignored', {
+        runId,
+        reason: 'already_started'
+      });
+      return;
+    }
+    sessionCreationStarted.current = true;
     const waterPouredG = Math.max(0, roundTo(peakWaterWeight.current));
     const measuredBeverage =
       beverageG === null ? null : Math.max(0, roundTo(beverageG));
