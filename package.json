@@ -10,6 +10,8 @@
     "format": "prettier --config .prettierrc \"{src/**/,.github/**/,}*.{tsx,ts,md,js,css,html,json,yml}\" --write",
     "format:check": "prettier --config .prettierrc \"{src/**/,.github/**/,}*.{tsx,ts,md,js,css,html,json,yml}\" --check",
     "test:wifi-health": "ts-node --compiler-options '{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' tests/wifiHealthMessages.test.ts",
+    "test:free-pour": "node --experimental-strip-types --test scripts/test-free-pour-detectors.cjs",
+    "test:profile-home-selection": "ts-node --compiler-options '{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' tests/profileHomeSelection.test.ts",
     "types": "tsc --noEmit",
     "prepare": "husky",
     "lint": "eslint .",

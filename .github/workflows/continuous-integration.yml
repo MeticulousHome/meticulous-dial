@@ -22,6 +22,10 @@ jobs:
         run: npm run types
       - name: Check Wi-Fi health messages
         run: npm run test:wifi-health
+      - name: Check Free Pour motion detection
+        run: npm run test:free-pour
+      - name: Check home screen selection
+        run: npm run test:profile-home-selection
       # Step 5
       - name: Static analysis
         run: npm run lint
