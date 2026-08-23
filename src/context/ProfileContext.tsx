@@ -15,6 +15,7 @@ import {
 import { IPresetAction, IPresetSetting } from '../types';
 import { useSettings } from '../hooks/useSettings';
 import demoProfile from '../assets/9BarItalian.json';
+import type { HomeMode } from '../components/ProfileHomeScreen/homeSelection';
 
 type ProfileContextType = {
   profileQuery: ReturnType<typeof useProfiles>;
@@ -53,6 +54,8 @@ type ProfileContextType = {
   onProfileHover: (type: string, profile_id: string) => void;
   mergedProfiles: ExtendedProfile[];
   limitedAccess: boolean;
+  homeMode: HomeMode;
+  setHomeMode: React.Dispatch<React.SetStateAction<HomeMode>>;
 };
 
 export type ExtendedProfile = Profile & {
@@ -85,6 +88,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [profileIdToFind, setProfileIdToFind] = useState<string | null>(null);
   const [profileEvent, setProfileEvent] = useState<ProfileUpdate | null>(null);
   const [profileStarting, setProfileStarting] = useState(false);
+  const [homeMode, setHomeMode] = useState<HomeMode>('espresso');
   const [settingsIndex, setSettingsIndex] = useState(0);
   const [settingsProfile, setSettingsProfile] = useState<
     (ExtendedProfile & { settings: IPresetSetting[] }) | null
@@ -228,6 +232,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
   const onProfileHover = (type: string, profile_id: string) => {
     setLocalHoverState(type === 'focus');
+    setHomeMode('espresso');
     setProfileIdToFind(profile_id);
   };
 
@@ -259,7 +264,9 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     onProfileEvent,
     onProfileHover,
     mergedProfiles,
-    limitedAccess
+    limitedAccess,
+    homeMode,
+    setHomeMode
   };
 
   return (

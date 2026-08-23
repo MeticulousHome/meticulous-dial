@@ -44,6 +44,9 @@ import { BrewSettings } from '../components/Settings/BrewSettings';
 import { TimeConfig } from '../components/Settings/Advanced/TimeDate/TimeConfig';
 import { DateConfig } from '../components/Settings/Advanced/TimeDate/DateConfig';
 import { ShotGraphScreen } from '../components/ShotGraph/ShotGraphScreen';
+import { FreePourScreen } from '../features/freePour/FreePourScreen';
+import { RepeatLastPourScreen } from '../features/freePour/RepeatLastPourScreen';
+import { FreePourHistoryScreen } from '../features/freePour/FreePourHistoryScreen';
 import { ScrollDirectionSettings } from '../components/Settings/ScrollDirection';
 import { BrewCompleteScreen } from '../components/BrewCompleteScreen/BrewCompleteScreen';
 import { ProfileHomeScreen } from '../components/ProfileHomeScreen/ProfileHomeScreen';
@@ -417,6 +420,21 @@ export const routes: Record<ScreenType, Route> = {
     title: getActiveProfilesTitle,
     parent: 'profileHome',
     bottomStatusHidden: true
+  },
+  freePour: {
+    component: FreePourScreen,
+    bottomStatusHidden: true,
+    parent: 'profileHome'
+  },
+  freePourRecipe: {
+    component: RepeatLastPourScreen,
+    bottomStatusHidden: true,
+    parent: 'profileHome'
+  },
+  freePourHistory: {
+    component: FreePourHistoryScreen,
+    bottomStatusHidden: true,
+    parent: 'profileHome'
   },
   idle: {
     component: IdleScreen,
