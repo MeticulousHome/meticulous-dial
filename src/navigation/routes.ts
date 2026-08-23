@@ -65,6 +65,7 @@ import {
   UnlockMasterCalibration
 } from '../components/UnlockScreen/UnlockScreen';
 import { InfoQRCode } from '../components/Settings/Advanced/InfoQrCode';
+import { CommunitySettings } from '../components/Settings/Community/Community';
 
 interface Route {
   component: ComponentType;
@@ -153,6 +154,11 @@ export const routes: Record<ScreenType, Route> = {
   settings: {
     component: Settings,
     title: 'settings',
+    bottomStatusHidden: true
+  },
+  community: {
+    component: CommunitySettings,
+    title: 'Community',
     bottomStatusHidden: true
   },
   profileHome: {
