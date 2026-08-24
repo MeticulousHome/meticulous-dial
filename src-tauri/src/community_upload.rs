@@ -1033,6 +1033,10 @@ impl CommunityUploadService {
             self.retire_local_authorization(&failure.category)?;
             return Err(failure);
         }
+        if failure.permanent {
+            self.discard_rejected_queue_item(&queued, &failure)?;
+            return Err(failure);
+        }
         self.defer_queue_item(&queued, &failure)?;
         log::warn!(
             "[CommunityUpload] upload_deferred kind={:?} history_path={} category={} retry_after_seconds={:?}",
@@ -1190,22 +1194,31 @@ impl CommunityUploadService {
         failure: &RequestFailure,
     ) -> Result<(), RequestFailure> {
         self.mutate_persistent_failure(|state| {
-            if let Some(item) = state.queue.iter_mut().find(|item| item.id == queued.id) {
-                item.attempt_count = item.attempt_count.saturating_add(1);
-                item.last_error = Some(failure.category.clone());
-                let backoff = failure
-                    .retry_after_seconds
-                    .unwrap_or_else(|| (2_i64.pow(item.attempt_count.min(8))).min(300));
-                item.next_attempt_at = if failure.permanent {
-                    i64::MAX
-                } else {
-                    unix_seconds() + backoff
-                };
-            }
-            state.last_error = Some(failure.category.clone());
-            state.last_retry_at = Some(unix_seconds());
+            schedule_queue_retry(state, queued.id, failure, unix_seconds());
             Ok(())
         })
+    }
+
+    fn discard_rejected_queue_item(
+        &self,
+        queued: &QueuedShot,
+        failure: &RequestFailure,
+    ) -> Result<(), RequestFailure> {
+        // A permanently rejected record can never leave the bounded queue on
+        // its own. Parking it forever would keep one of the limited queue
+        // slots occupied until uploads wedge entirely, so drop the record and
+        // its body file instead. The sanitized category stays visible through
+        // the status surface via drop_queue_item.
+        self.drop_queue_item(queued.id, &failure.category)?;
+        let _ = fs::remove_file(self.inner.queue_dir.join(&queued.body_file));
+        log::warn!(
+            "[CommunityUpload] upload_rejected_permanently kind={:?} history_path={} source_id={} category={}",
+            queued.history_kind,
+            queued.history_path,
+            queued.source_shot_id,
+            failure.category
+        );
+        Ok(())
     }
 
     fn skip_history_path(
@@ -1890,6 +1903,24 @@ fn header_value(value: &str) -> Result<reqwest::header::HeaderValue, RequestFail
     reqwest::header::HeaderValue::from_str(value).map_err(|_| permanent("header_invalid"))
 }
 
+fn schedule_queue_retry(
+    state: &mut PersistentState,
+    id: Uuid,
+    failure: &RequestFailure,
+    now: i64,
+) {
+    if let Some(item) = state.queue.iter_mut().find(|item| item.id == id) {
+        item.attempt_count = item.attempt_count.saturating_add(1);
+        item.last_error = Some(failure.category.clone());
+        let backoff = failure
+            .retry_after_seconds
+            .unwrap_or_else(|| (2_i64.pow(item.attempt_count.min(8))).min(300));
+        item.next_attempt_at = now + backoff;
+    }
+    state.last_error = Some(failure.category.clone());
+    state.last_retry_at = Some(now);
+}
+
 fn temporary(category: &str) -> RequestFailure {
     RequestFailure {
         category: safe_category(category),
@@ -2192,6 +2223,39 @@ mod tests {
         );
         assert_eq!(espresso.category, "invalid_json");
         assert!(espresso.permanent);
+    }
+
+    #[test]
+    fn retries_temporary_upload_failures_with_bounded_backoff() {
+        let mut state = fresh_state().expect("fresh state");
+        let id = Uuid::new_v4();
+        state.queue.push(QueuedShot {
+            id,
+            source_shot_id: "temporary-failure".to_string(),
+            history_path: "2026-08-17/temporary.shot.json".to_string(),
+            history_kind: HistoryKind::Espresso,
+            body_file: "temporary.json".to_string(),
+            attempt_count: 0,
+            next_attempt_at: 0,
+            last_error: None,
+        });
+
+        schedule_queue_retry(&mut state, id, &temporary("upload_network"), 1_000);
+
+        assert_eq!(state.queue.len(), 1);
+        assert_eq!(state.queue[0].attempt_count, 1);
+        assert_eq!(state.queue[0].next_attempt_at, 1_002);
+        assert_eq!(state.queue[0].last_error.as_deref(), Some("upload_network"));
+        assert_eq!(state.last_retry_at, Some(1_000));
+
+        // Retries stay bounded no matter how often an item fails; permanent
+        // rejections are dropped by the caller instead of being parked with
+        // next_attempt_at = i64::MAX, which used to occupy one of the bounded
+        // queue slots forever.
+        for _ in 0..20 {
+            schedule_queue_retry(&mut state, id, &temporary("upload_network"), 1_000);
+        }
+        assert!(state.queue[0].next_attempt_at <= 1_000 + 300);
     }
 
     #[test]
