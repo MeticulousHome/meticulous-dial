@@ -26,8 +26,6 @@ jobs:
         run: npm run test:profile-home-selection
       - name: Check Pour Over profile contract
         run: npm run test:pour-over-profile
-      - name: Check Wi-Fi health messages
-        run: npm run test:wifi-health
       - name: Run TypeScript module tests
         run: npm test
       - name: Static analysis

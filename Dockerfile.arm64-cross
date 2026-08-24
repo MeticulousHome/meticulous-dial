@@ -10,22 +10,16 @@ RUN apt install -y \
     pkg-config \
     libbz2-dev \
     ca-certificates \
+    nodejs npm \
     xdg-utils \
     qemu-user-static \
     binfmt-support \
     lsb-release \
     curl
 
-COPY .node-version /tmp/meticulous-node-version
-RUN NODE_MAJOR="$(tr -d '[:space:]' < /tmp/meticulous-node-version)" \
-    && curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" | bash - \
-    && apt install -y nodejs \
-    && node --version \
-    && npm --version
-
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y 
 RUN $HOME/.cargo/bin/rustup target add aarch64-unknown-linux-gnu
+RUN $HOME/.cargo/bin/cargo install tauri-cli --git https://github.com/tauri-apps/tauri
 WORKDIR /app
 
 RUN apt install -y --no-install-recommends \
@@ -44,4 +38,5 @@ ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc \
     PKG_CONFIG_ALLOW_CROSS=1
 WORKDIR /app/src-tauri
 
-CMD ["bash", "-ec", "cd /app; npm ci --ignore-scripts; npm exec -- tauri build --target aarch64-unknown-linux-gnu --bundles deb --verbose; owner_group=$(stat -c '%u:%g' /app); chown -R \"$owner_group\" /app/dist /app/src-tauri/target"]
+CMD bash -c "/root/.cargo/bin/cargo tauri build --target aarch64-unknown-linux-gnu --bundles deb --verbose;\
+    chown -R $(stat -c '%u:%g' /app) /app/;"

@@ -66,7 +66,7 @@ export const dataTypes: Record<DataTypeKey | ExtraSettingType, DataType> = {
     maxValue: 12,
     axisLabelStep: 2,
     unit: 'bar',
-    color: colorDataGreenLight,
+    color: colorDataBlueLight,
     precision: 1
   },
   flow: {
@@ -75,7 +75,7 @@ export const dataTypes: Record<DataTypeKey | ExtraSettingType, DataType> = {
     maxValue: 12,
     axisLabelStep: 2,
     unit: 'ml/s',
-    color: colorDataBlueLight,
+    color: colorDataGreenLight,
     precision: 1
   }
 };

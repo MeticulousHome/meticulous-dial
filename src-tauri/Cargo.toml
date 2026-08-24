@@ -1,6 +1,6 @@
 [package]
 name = "meticulous-dial"
-version = "1.103.0"
+version = "0.1.0"
 description = "Meticulous on-machine Dial Application"
 authors = ["Johanna Schander <mimoja@meticuloushome.com>", "mimoja <coffee@mimoja.de>"]
 edition = "2024"

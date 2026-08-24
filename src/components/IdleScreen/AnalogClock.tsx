@@ -5,7 +5,6 @@ import { useNetworkConfig } from '../../hooks/useWifi';
 import { styled } from 'styled-components';
 
 import { WifiIndicator } from './WifiIndicator';
-import { getLocalClockTime, getTimezoneOffsetMs } from './analogClockTime';
 
 const CLOCK_DIAMETER = 480;
 const CLOCK_MAX_HAND_THICKNESS = 10;
@@ -96,6 +95,9 @@ function rotateString(degrees: number): string {
   return ROTATE_STRINGS[idx % 3600];
 }
 
+// getTimezoneOffset() returns UTC - local in minutes
+const TZ_OFFSET_MS = new Date().getTimezoneOffset() * 60 * 1000;
+
 export function AnalogClock() {
   const requestId = useRef<number>(-1);
   const hourRef = useRef(null);
@@ -104,27 +106,21 @@ export function AnalogClock() {
   const lastHour = useRef('');
   const lastMinute = useRef('');
   const lastSecond = useRef('');
-  const lastTimezoneCheckSecond = useRef(Number.NaN);
-  const timezoneOffsetMs = useRef(0);
 
   const animateTime = () => {
     if (!hourRef.current || !minuteRef.current || !secondRef.current) {
       return;
     }
 
-    // Read the system timezone once per second so changes made after startup
-    // (automatic sync, manual selection, or DST) are reflected without
-    // allocating a Date object every animation frame.
+    // Use Date.now() + integer arithmetic instead of new Date() to avoid
+    // allocating a Date object every frame (~60/sec).
     const now = Date.now();
-    const currentSecond = Math.floor(now / 1000);
-    if (currentSecond !== lastTimezoneCheckSecond.current) {
-      timezoneOffsetMs.current = getTimezoneOffsetMs(now);
-      lastTimezoneCheckSecond.current = currentSecond;
-    }
-    const { seconds, minutes, hours } = getLocalClockTime(
-      now,
-      timezoneOffsetMs.current
-    );
+    const ms = (now - TZ_OFFSET_MS) % 86400000; // ms since midnight local time
+    const totalSeconds = ms / 1000;
+    const seconds = totalSeconds % 60;
+    const totalMinutes = totalSeconds / 60;
+    const minutes = totalMinutes % 60;
+    const hours = (totalMinutes / 60) % 12;
 
     const hourRotation = hours * 30;
     const minuteRotation = minutes * 6;

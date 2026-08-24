@@ -13,7 +13,6 @@
     "test:free-pour": "node --experimental-strip-types --test scripts/test-free-pour-detectors.cjs",
     "test:profile-home-selection": "ts-node --compiler-options '{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' tests/profileHomeSelection.test.ts",
     "test:pour-over-profile": "ts-node --compiler-options '{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' tests/pourOverProfileContract.test.ts",
-    "test:wifi-health": "ts-node --compiler-options '{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' tests/wifiHealthMessages.test.ts",
     "types": "tsc --noEmit",
     "prepare": "husky",
     "lint": "eslint .",

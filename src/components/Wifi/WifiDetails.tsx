@@ -8,7 +8,6 @@ import './wifiDetails.css';
 import { useNetworkConfig } from '../../hooks/useWifi';
 import {
   getWifiHealthMessage,
-  getWifiProbeStatusLabel,
   getWifiHealthStatusLabel,
   getWifiRecoveryMessage
 } from './wifiHealthMessages';
@@ -57,25 +56,25 @@ export const WifiDetails = (): JSX.Element => {
       health: getWifiHealthStatusLabel(wifiHealth, wifiStatus?.connected),
       gateway: isHotspotActive
         ? 'N/A'
-        : getWifiProbeStatusLabel(
-            wifiHealth?.gateway_reachable,
-            wifiHealth,
-            wifiStatus?.connected
-          ),
+        : wifiHealth
+          ? wifiHealth.gateway_reachable
+            ? 'OK'
+            : 'FAILED'
+          : '',
       dns: isHotspotActive
         ? 'N/A'
-        : getWifiProbeStatusLabel(
-            wifiHealth?.dns_resolves,
-            wifiHealth,
-            wifiStatus?.connected
-          ),
+        : wifiHealth
+          ? wifiHealth.dns_resolves
+            ? 'OK'
+            : 'FAILED'
+          : '',
       internet: isHotspotActive
         ? 'N/A'
-        : getWifiProbeStatusLabel(
-            wifiHealth?.internet_reachable,
-            wifiHealth,
-            wifiStatus?.connected
-          ),
+        : wifiHealth
+          ? wifiHealth.internet_reachable
+            ? 'OK'
+            : 'FAILED'
+          : '',
       last_error: getWifiHealthMessage(wifiHealth),
       recovery: getWifiRecoveryMessage(wifiHealth)
     };
