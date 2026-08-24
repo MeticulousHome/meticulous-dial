@@ -24,6 +24,7 @@ import { useDeletePreset } from '../../hooks/useProfiles';
 import { addSettingsToProfile } from '../../utils/profiles';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { logFreePour } from '../../features/freePour/logging';
+import { useDeletePourOverProfile } from '../../features/freePour/usePourOverProfiles';
 
 export type QuickSettingOption = {
   key: string;
@@ -55,6 +56,16 @@ const freePourContextSettings: QuickSettingOption[] = [
   {
     key: 'last_free_pour',
     label: 'Last pour-over'
+  }
+];
+
+const pourOverProfileContextSettings: QuickSettingOption[] = [
+  ...freePourContextSettings,
+  {
+    key: 'delete_pour_over_profile',
+    label: 'Delete profile',
+    longpress: true,
+    hasSeparator: true
   }
 ];
 
@@ -159,11 +170,13 @@ export function QuickSettings(): JSX.Element {
     profileQuery: { data: profiles },
     localProfile,
     homeMode,
+    selectedPourOverProfileId,
     detailProfileSelected: defaultProfileSelectedForDetails,
     setSettingsIndex: setProfileSettingsIndex,
     setSettingsProfile: setProfileSettings
   } = useProfileContext();
   const deletePresetMutation = useDeletePreset();
+  const deletePourOverProfileMutation = useDeletePourOverProfile();
   const currentScreen = useAppSelector((state) => state.screen.value);
   const statsName = useAppSelector((state) => state.stats.name);
 
@@ -216,6 +229,13 @@ export function QuickSettings(): JSX.Element {
         dispatch(setBubbleDisplay({ visible: false, component: undefined }));
         break;
       }
+      case 'delete_pour_over_profile': {
+        if (!selectedPourOverProfileId) return;
+        deletePourOverProfileMutation.mutate(selectedPourOverProfileId);
+        dispatch(setScreen('profileHome'));
+        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
+        break;
+      }
       case 'abort_brew': {
         socket.emit('action', 'abort');
         dispatch(setBubbleDisplay({ visible: false, component: undefined }));
@@ -241,11 +261,7 @@ export function QuickSettings(): JSX.Element {
         );
       },
       doubleClick() {
-        if (
-          currentScreen !== 'freePour' &&
-          currentScreen !== 'freePourRecipe' &&
-          currentScreen !== 'guidedPourOver'
-        )
+        if (currentScreen !== 'freePour' && currentScreen !== 'guidedPourOver')
           return;
         logFreePour('aborted', { source: 'double_press_context_menu' });
         dispatch(setScreen('profileHome'));
@@ -442,10 +458,9 @@ export function QuickSettings(): JSX.Element {
     currentScreen === 'profileHome' &&
     homeMode === 'espresso';
   const requiresFreePourContext =
-    currentScreen === 'profileHome' &&
-    (homeMode === 'free_pour' ||
-      homeMode === 'repeat_pour' ||
-      homeMode === 'pour_over_profile');
+    currentScreen === 'profileHome' && homeMode === 'free_pour';
+  const requiresPourOverProfileContext =
+    currentScreen === 'profileHome' && homeMode === 'pour_over_profile';
 
   useEffect(() => {
     const context: QuickSettingOption[] = profileContextSettings;
@@ -474,7 +489,6 @@ export function QuickSettings(): JSX.Element {
         setSettings(inBrewSettings);
         break;
       case 'freePour':
-      case 'freePourRecipe':
       case 'guidedPourOver':
         setSettings(freePourInProgressSettings);
         break;
@@ -486,6 +500,9 @@ export function QuickSettings(): JSX.Element {
           setSettings([
             ...(requiresProfileContext ? newContext : []),
             ...(requiresFreePourContext ? freePourContextSettings : []),
+            ...(requiresPourOverProfileContext
+              ? pourOverProfileContextSettings
+              : []),
             ...(backAvailable ? [prevScreenSetting] : []),
             ...defaultSettings
           ]);

@@ -61,6 +61,51 @@
   letter-spacing: 2px;
 }
 
+.free-pour-readiness {
+  box-sizing: border-box;
+  width: 360px;
+  min-height: 34px;
+  margin-top: 18px;
+  padding: 9px 13px 8px;
+  border-radius: 8px;
+  color: #17201d;
+  font-family: 'ABC Diatype Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 1.15px;
+}
+
+.free-pour-readiness--waiting {
+  background: #f5dc91;
+}
+
+.free-pour-readiness--ready {
+  background: #a9deb2;
+}
+
+.free-pour-readiness--busy {
+  background: #d8d3c7;
+}
+
+.free-pour-readiness--error {
+  background: #efb2a4;
+}
+
+.free-pour-abort-hint {
+  position: absolute;
+  z-index: 90;
+  bottom: 14px;
+  left: 0;
+  width: 100%;
+  color: var(--free-pour-muted);
+  font-family: 'ABC Diatype Mono', monospace;
+  font-size: 10px;
+  font-weight: 550;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+
 .free-pour-setup-action,
 .free-pour-result-action {
   position: absolute;
@@ -143,6 +188,65 @@
   font-size: 16px;
   font-weight: 650;
   letter-spacing: 1.5px;
+}
+
+.free-pour-setup-review-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.free-pour-setup-review-screen .free-pour-kicker {
+  margin-top: -64px;
+}
+
+.free-pour-review-weight {
+  margin-top: 19px;
+  font-family: 'ABC Diatype Mono', monospace;
+  font-size: 96px;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -7px;
+}
+
+.free-pour-review-main {
+  width: 360px;
+  margin-top: 44px;
+  font-size: 31px;
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: 1.4px;
+}
+
+.free-pour-review-warning {
+  width: 390px;
+  margin-top: 19px;
+  color: #f5dc91;
+  font-family: 'ABC Diatype Mono', monospace;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.5;
+  letter-spacing: 1.2px;
+}
+
+.free-pour-review-navigation {
+  position: absolute;
+  bottom: 76px;
+  width: 100%;
+  color: var(--free-pour-muted);
+  font-family: 'ABC Diatype Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.25px;
+}
+
+.free-pour-review-action {
+  position: absolute;
+  bottom: 48px;
+  width: 100%;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 1.35px;
 }
 
 .free-pour-recipe-dose {

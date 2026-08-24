@@ -57,7 +57,6 @@ export type ScreenType =
   | 'scrollDirections'
   | 'brewComplete'
   | 'freePour'
-  | 'freePourRecipe'
   | 'guidedPourOver'
   | 'freePourHistory'
   | 'factoryReset'

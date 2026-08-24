@@ -1,9 +1,4 @@
-export type HomeMode =
-  | 'espresso'
-  | 'pour_over_profile'
-  | 'repeat_pour'
-  | 'free_pour'
-  | 'new';
+export type HomeMode = 'espresso' | 'pour_over_profile' | 'free_pour' | 'new';
 
 export type HomeSelection = {
   mode: HomeMode;
@@ -14,7 +9,6 @@ export type HomeSelection = {
 export type HomeLayout = {
   profileCount: number;
   pourOverProfileCount: number;
-  hasRepeatPour: boolean;
 };
 
 type ActiveHomeOption = HomeLayout & {
@@ -29,6 +23,35 @@ export type DialProfileHover = {
   type: 'focus' | 'scroll';
 };
 
+type PourOverCatalogSelection = {
+  mode: HomeMode;
+  selectedProfileId: string | null;
+};
+
+export const reconcilePourOverCatalogSelection = ({
+  mode,
+  selectedProfileId,
+  installedProfileIds,
+  catalogResolved
+}: PourOverCatalogSelection & {
+  installedProfileIds: ReadonlyArray<string>;
+  catalogResolved: boolean;
+}): PourOverCatalogSelection => {
+  if (mode !== 'pour_over_profile' || !catalogResolved) {
+    return { mode, selectedProfileId };
+  }
+  if (selectedProfileId && installedProfileIds.includes(selectedProfileId)) {
+    return { mode, selectedProfileId };
+  }
+  if (installedProfileIds.length > 0) {
+    return {
+      mode: 'pour_over_profile',
+      selectedProfileId: installedProfileIds[0]
+    };
+  }
+  return { mode: 'free_pour', selectedProfileId: null };
+};
+
 export const getPourOverProfileOptionIndex = (
   pourOverProfileIndex: number,
   { profileCount, pourOverProfileCount }: HomeLayout
@@ -40,17 +63,10 @@ export const getPourOverProfileOptionIndex = (
   );
 };
 
-export const getRepeatPourOptionIndex = ({
-  profileCount,
-  pourOverProfileCount,
-  hasRepeatPour
-}: HomeLayout) => (hasRepeatPour ? profileCount + pourOverProfileCount : null);
-
 export const getFreePourOptionIndex = ({
   profileCount,
-  pourOverProfileCount,
-  hasRepeatPour
-}: HomeLayout) => profileCount + pourOverProfileCount + (hasRepeatPour ? 1 : 0);
+  pourOverProfileCount
+}: HomeLayout) => profileCount + pourOverProfileCount;
 
 export const getNewOptionIndex = (layout: HomeLayout) =>
   getFreePourOptionIndex(layout) + 1;
@@ -60,16 +76,12 @@ export const getActiveHomeOption = ({
   profileIndex,
   pourOverProfileIndex,
   profileCount,
-  pourOverProfileCount,
-  hasRepeatPour
+  pourOverProfileCount
 }: ActiveHomeOption) => {
-  const layout = { profileCount, pourOverProfileCount, hasRepeatPour };
+  const layout = { profileCount, pourOverProfileCount };
 
   if (mode === 'pour_over_profile' && pourOverProfileCount > 0) {
     return getPourOverProfileOptionIndex(pourOverProfileIndex ?? 0, layout);
-  }
-  if (mode === 'repeat_pour' && hasRepeatPour) {
-    return getRepeatPourOptionIndex(layout) as number;
   }
   if (mode === 'free_pour') {
     return getFreePourOptionIndex(layout);
@@ -93,7 +105,6 @@ export const getHomeSelection = (
 ): HomeSelection => {
   const { profileCount, pourOverProfileCount } = layout;
   const newOptionIndex = getNewOptionIndex(layout);
-  const repeatPourOptionIndex = getRepeatPourOptionIndex(layout);
   const freePourOptionIndex = getFreePourOptionIndex(layout);
   const boundedOption = Math.min(Math.max(option, 0), newOptionIndex);
 
@@ -114,13 +125,6 @@ export const getHomeSelection = (
       mode: 'pour_over_profile',
       profileIndex: null,
       pourOverProfileIndex
-    };
-  }
-  if (boundedOption === repeatPourOptionIndex) {
-    return {
-      mode: 'repeat_pour',
-      profileIndex: null,
-      pourOverProfileIndex: null
     };
   }
   if (boundedOption === freePourOptionIndex) {
@@ -149,13 +153,11 @@ export const createDialProfileHover = (
   option: number,
   profiles: ReadonlyArray<{ id?: string }>,
   pourOverProfileCount: number,
-  hasRepeatPour: boolean,
   type: 'focus' | 'scroll'
 ): DialProfileHover | null => {
   const selection = getHomeSelection(option, {
     profileCount: profiles.length,
-    pourOverProfileCount,
-    hasRepeatPour
+    pourOverProfileCount
   });
   if (selection.mode !== 'espresso' || selection.profileIndex === null) {
     return null;

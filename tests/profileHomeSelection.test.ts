@@ -7,7 +7,7 @@ import {
   getHomeSelection,
   getNewOptionIndex,
   getPourOverProfileOptionIndex,
-  getRepeatPourOptionIndex
+  reconcilePourOverCatalogSelection
 } from '../src/components/ProfileHomeScreen/homeSelection';
 import { isPourOverProfileEvent } from '../src/features/freePour/profileEvents';
 
@@ -16,8 +16,7 @@ const profiles = Array.from({ length: 5 }, (_, index) => ({
 }));
 const layout = {
   profileCount: profiles.length,
-  pourOverProfileCount: 2,
-  hasRepeatPour: true
+  pourOverProfileCount: 2
 };
 
 assert.equal(
@@ -27,7 +26,39 @@ assert.equal(
     pourOverProfileIndex: null,
     ...layout
   }),
-  8
+  7
+);
+
+// A temporarily unavailable catalog must not switch a selected Pour Over
+// profile back to espresso while a long brew causes the query cache to remount.
+assert.deepEqual(
+  reconcilePourOverCatalogSelection({
+    mode: 'pour_over_profile',
+    selectedProfileId: 'pour-over-2',
+    installedProfileIds: [],
+    catalogResolved: false
+  }),
+  { mode: 'pour_over_profile', selectedProfileId: 'pour-over-2' }
+);
+
+assert.deepEqual(
+  reconcilePourOverCatalogSelection({
+    mode: 'pour_over_profile',
+    selectedProfileId: 'deleted-profile',
+    installedProfileIds: ['remaining-profile'],
+    catalogResolved: true
+  }),
+  { mode: 'pour_over_profile', selectedProfileId: 'remaining-profile' }
+);
+
+assert.deepEqual(
+  reconcilePourOverCatalogSelection({
+    mode: 'pour_over_profile',
+    selectedProfileId: 'deleted-profile',
+    installedProfileIds: [],
+    catalogResolved: true
+  }),
+  { mode: 'free_pour', selectedProfileId: null }
 );
 
 assert.equal(
@@ -57,20 +88,10 @@ assert.equal(
   }),
   6
 );
-assert.equal(
-  getActiveHomeOption({
-    mode: 'repeat_pour',
-    profileIndex: null,
-    pourOverProfileIndex: null,
-    ...layout
-  }),
-  7
-);
 assert.equal(getPourOverProfileOptionIndex(0, layout), 5);
 assert.equal(getPourOverProfileOptionIndex(1, layout), 6);
-assert.equal(getRepeatPourOptionIndex(layout), 7);
-assert.equal(getFreePourOptionIndex(layout), 8);
-assert.equal(getNewOptionIndex(layout), 9);
+assert.equal(getFreePourOptionIndex(layout), 7);
+assert.equal(getNewOptionIndex(layout), 8);
 
 assert.deepEqual(getHomeSelection(0, layout), {
   mode: 'espresso',
@@ -88,36 +109,28 @@ assert.deepEqual(getHomeSelection(6, layout), {
   pourOverProfileIndex: 1
 });
 assert.deepEqual(getHomeSelection(7, layout), {
-  mode: 'repeat_pour',
-  profileIndex: null,
-  pourOverProfileIndex: null
-});
-assert.deepEqual(getHomeSelection(8, layout), {
   mode: 'free_pour',
   profileIndex: null,
   pourOverProfileIndex: null
 });
-assert.deepEqual(getHomeSelection(9, layout), {
+assert.deepEqual(getHomeSelection(8, layout), {
   mode: 'new',
   profileIndex: null,
   pourOverProfileIndex: null
 });
 
-assert.deepEqual(createDialProfileHover(0, profiles, 2, true, 'scroll'), {
+assert.deepEqual(createDialProfileHover(0, profiles, 2, 'scroll'), {
   id: 'profile-0',
   from: 'dial',
   type: 'scroll'
 });
-assert.deepEqual(createDialProfileHover(4, profiles, 2, true, 'focus'), {
+assert.deepEqual(createDialProfileHover(4, profiles, 2, 'focus'), {
   id: 'profile-4',
   from: 'dial',
   type: 'focus'
 });
-for (let option = 5; option <= 9; option += 1) {
-  assert.equal(
-    createDialProfileHover(option, profiles, 2, true, 'scroll'),
-    null
-  );
+for (let option = 5; option <= 8; option += 1) {
+  assert.equal(createDialProfileHover(option, profiles, 2, 'scroll'), null);
 }
 
 // With no espresso profiles, the first installed Pour Over profile is active.
@@ -127,8 +140,7 @@ assert.equal(
     profileIndex: 0,
     pourOverProfileIndex: null,
     profileCount: 0,
-    pourOverProfileCount: 1,
-    hasRepeatPour: false
+    pourOverProfileCount: 1
   }),
   0
 );

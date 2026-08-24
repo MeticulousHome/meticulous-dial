@@ -72,11 +72,9 @@ export const TitleProfiles = () => {
   let title =
     isHomeScreen && homeMode === 'free_pour'
       ? 'Free Pour'
-      : isHomeScreen && homeMode === 'repeat_pour'
-        ? 'Repeat Last Pour'
-        : isHomeScreen && homeMode === 'pour_over_profile'
-          ? selectedPourOverProfile?.name || 'Pour Over'
-          : localProfile?.name || '';
+      : isHomeScreen && homeMode === 'pour_over_profile'
+        ? selectedPourOverProfile?.name || 'Pour Over'
+        : localProfile?.name || '';
   if (title.length > 40) {
     title = title.slice(0, 40) + '...';
   }

@@ -8,7 +8,7 @@ import {
 } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { PROFILE_ENTRY_SIZE, ProfileEntry } from './ProfileEntry';
-import { ProfileImage } from './ProfileImage';
+import { PROFILE_IMAGE_SIZE, ProfileImage } from './ProfileImage';
 import { PourOverProfileImage } from './PourOverProfileImage';
 
 import { CircleOverlay } from './CircleOverlay';
@@ -24,11 +24,6 @@ import { loadProfileData, startProfile } from '../../api/profile';
 import { DownloadIcon } from './DownloadIcon';
 import { useSocket } from '../store/SocketManager';
 import { invoke } from '@tauri-apps/api/core';
-import { FreePourIcon } from '../../features/freePour/FreePourIcon';
-import { logFreePourError } from '../../features/freePour/logging';
-import { createRepeatPourOverProfile } from '../../features/freePour/profile';
-import { getLatestFreePourOnlySession } from '../../features/freePour/storage';
-import { PourOverProfile } from '../../features/freePour/types';
 import { usePourOverProfiles } from '../../features/freePour/usePourOverProfiles';
 import {
   createDialProfileHover,
@@ -37,7 +32,7 @@ import {
   getHomeSelection,
   getNewOptionIndex,
   getPourOverProfileOptionIndex,
-  getRepeatPourOptionIndex
+  reconcilePourOverCatalogSelection
 } from './homeSelection';
 
 const CARD_GAP = 79;
@@ -79,6 +74,14 @@ const InnerList = styled(TransitionGroup)<{
   transform: ${({ $translateX }) => `translateX(${$translateX}px)`};
   transition: transform ${translationAnimationDuration}ms ease;
 `;
+
+const FreePourImage = styled.img`
+  width: ${PROFILE_IMAGE_SIZE}px;
+  height: ${PROFILE_IMAGE_SIZE}px;
+  flex-shrink: 0;
+  border-radius: 3.018px;
+  object-fit: cover;
+`;
 type dialDirection = 'left' | 'right' | 'none';
 
 const PISTON_ON_PURGE_POSITION = 73; // value gotten from ComplexProfileConverter.head_template on 'prepare' stage
@@ -90,7 +93,8 @@ export const ProfileHomeScreen = () => {
   const { isIdle: shouldGoToIdle } = useIdleTimer();
   const isOnline = useIsOnline();
   const socket = useSocket();
-  const { data: installedPourOverProfiles = [] } = usePourOverProfiles();
+  const pourOverProfilesQuery = usePourOverProfiles();
+  const installedPourOverProfiles = pourOverProfilesQuery.data ?? [];
 
   const profileState = useProfileContext();
 
@@ -113,20 +117,15 @@ export const ProfileHomeScreen = () => {
     useState<dialDirection>('none');
   const [homeHoverState, setHomeHoverState] = useState(false);
   const [isPressingDown, setIsPressingDown] = useState(false);
-  const [repeatPourProfile, setRepeatPourProfile] =
-    useState<PourOverProfile | null>(null);
   const pressThroughTimer = useRef<NodeJS.Timeout | null>(null);
   const homeReadyReported = useRef(false);
 
   // Espresso selection stays in ProfileContext so app and Dial socket events
   // share one source of truth. Installed Pour Over profiles use their stable IDs.
-  const hasRepeatPour = Boolean(repeatPourProfile);
   const homeLayout = {
     profileCount: mergedProfiles.length,
-    pourOverProfileCount: installedPourOverProfiles.length,
-    hasRepeatPour
+    pourOverProfileCount: installedPourOverProfiles.length
   };
-  const repeatPourOptionIndex = getRepeatPourOptionIndex(homeLayout);
   const freePourOptionIndex = getFreePourOptionIndex(homeLayout);
   const newOptionIndex = getNewOptionIndex(homeLayout);
   const selectedPourOverProfileIndex = Math.max(
@@ -164,15 +163,6 @@ export const ProfileHomeScreen = () => {
       if (pressThroughTimer.current) clearTimeout(pressThroughTimer.current);
       pressThroughTimer.current = null;
       dispatch(setScreen('freePour'));
-      return;
-    }
-
-    if (repeatPourProfile && activeOption === repeatPourOptionIndex) {
-      setIsPressingDown(false);
-      setHomeHoverState(false);
-      if (pressThroughTimer.current) clearTimeout(pressThroughTimer.current);
-      pressThroughTimer.current = null;
-      dispatch(setScreen('freePourRecipe'));
       return;
     }
 
@@ -218,39 +208,20 @@ export const ProfileHomeScreen = () => {
   };
 
   useEffect(() => {
-    getLatestFreePourOnlySession()
-      .then((session) =>
-        setRepeatPourProfile(
-          session ? createRepeatPourOverProfile(session) : null
-        )
-      )
-      .catch((error) => {
-        logFreePourError('repeat_profile_home_load_failed', error);
-        setRepeatPourProfile(null);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (homeMode !== 'pour_over_profile') return;
-    if (
-      selectedPourOverProfileId &&
-      installedPourOverProfiles.some(
-        (profile) => profile.id === selectedPourOverProfileId
-      )
-    ) {
-      return;
+    const selection = reconcilePourOverCatalogSelection({
+      mode: homeMode,
+      selectedProfileId: selectedPourOverProfileId,
+      installedProfileIds: installedPourOverProfiles.map(({ id }) => id),
+      catalogResolved: pourOverProfilesQuery.isSuccess
+    });
+    if (selection.selectedProfileId !== selectedPourOverProfileId) {
+      setSelectedPourOverProfileId(selection.selectedProfileId);
     }
-
-    if (installedPourOverProfiles.length > 0) {
-      setSelectedPourOverProfileId(installedPourOverProfiles[0].id);
-    } else {
-      setSelectedPourOverProfileId(null);
-      setHomeMode(mergedProfiles.length > 0 ? 'espresso' : 'free_pour');
-    }
+    if (selection.mode !== homeMode) setHomeMode(selection.mode);
   }, [
     homeMode,
     installedPourOverProfiles,
-    mergedProfiles.length,
+    pourOverProfilesQuery.isSuccess,
     selectedPourOverProfileId,
     setHomeMode,
     setSelectedPourOverProfileId
@@ -324,7 +295,6 @@ export const ProfileHomeScreen = () => {
       option,
       mergedProfiles,
       installedPourOverProfiles.length,
-      hasRepeatPour,
       type
     );
     if (event) socket.emit('profileHover', event);
@@ -401,8 +371,7 @@ export const ProfileHomeScreen = () => {
         } else if (
           activeOption === freePourOptionIndex ||
           getHomeSelection(activeOption, homeLayout).mode ===
-            'pour_over_profile' ||
-          (repeatPourProfile && activeOption === repeatPourOptionIndex)
+            'pour_over_profile'
         ) {
           if (!homeHoverState) {
             setHomeHoverState(true);
@@ -513,24 +482,6 @@ export const ProfileHomeScreen = () => {
                 </ProfileEntry>
               );
             })}
-            {repeatPourProfile && repeatPourOptionIndex !== null && (
-              <ProfileEntry
-                key="repeat-last-pour"
-                title={repeatPourProfile.name}
-                containerStyle={{
-                  backgroundColor: '#1f3340',
-                  color: '#78d6ff'
-                }}
-                contentClassNames={
-                  Math.abs(activeOption - repeatPourOptionIndex) < 2 &&
-                  `animation-bounce-${transitionDirection}`
-                }
-                distanceToActive={repeatPourOptionIndex - activeOption}
-                zoomedIn={homeHoverState}
-              >
-                <FreePourIcon />
-              </ProfileEntry>
-            )}
             <ProfileEntry
               key="free-pour"
               title="Free Pour"
@@ -542,7 +493,10 @@ export const ProfileHomeScreen = () => {
               distanceToActive={freePourOptionIndex - activeOption}
               zoomedIn={homeHoverState}
             >
-              <FreePourIcon />
+              <FreePourImage
+                src="/images/free-pour.png"
+                alt="Free Pour profile"
+              />
             </ProfileEntry>
             {/* New button */}
             <ProfileEntry

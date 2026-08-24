@@ -49,10 +49,7 @@ export const GuidedPourOverScreen = () => {
     };
   }, [dispatch, selectedPourOverProfileId]);
 
-  if (
-    !loadedProfile ||
-    loadedProfile.id !== selectedPourOverProfileId
-  ) {
+  if (!loadedProfile || loadedProfile.id !== selectedPourOverProfileId) {
     return <LoadingScreen />;
   }
   return <FreePourScreen profile={loadedProfile.profile} />;
