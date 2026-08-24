@@ -4,6 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEMPLATE_DIR="${SCRIPT_DIR}/template"
+REPO_ROOT="$(git -C "${SCRIPT_DIR}" rev-parse --show-toplevel)"
 
 usage() {
   cat <<'USAGE'
@@ -74,13 +75,19 @@ case "${DEFAULT_TARGET_VALUE}" in
   *[!A-Za-z0-9._@:-]*|'') fail "Invalid --target" ;;
 esac
 
+HEAD_COMMIT="$(git -C "${REPO_ROOT}" rev-parse HEAD)"
+test -z "$(git -C "${REPO_ROOT}" status --porcelain)" || \
+  fail "Refusing to label a package from a dirty worktree; commit or stash changes first"
+
 if [ -z "${SOURCE_COMMIT_VALUE}" ]; then
-  SOURCE_COMMIT_VALUE="$(git -C "${SCRIPT_DIR}" rev-parse HEAD)"
+  SOURCE_COMMIT_VALUE="${HEAD_COMMIT}"
 fi
 case "${SOURCE_COMMIT_VALUE}" in
   *[!0-9a-f]*|'') fail "--source-commit must be a full lowercase Git SHA" ;;
 esac
 test "${#SOURCE_COMMIT_VALUE}" -eq 40 || fail "--source-commit must be 40 characters"
+test "${SOURCE_COMMIT_VALUE}" = "${HEAD_COMMIT}" || \
+  fail "--source-commit must match checked-out HEAD (${HEAD_COMMIT})"
 
 file "${ARTIFACT}" | grep -q "ELF 64-bit" || fail "Artifact is not an ELF executable"
 file "${ARTIFACT}" | grep -q "ARM aarch64" || fail "Artifact is not ARM64"
