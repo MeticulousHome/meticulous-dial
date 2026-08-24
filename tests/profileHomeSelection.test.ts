@@ -7,7 +7,8 @@ import {
   getHomeSelection,
   getNewOptionIndex,
   getPourOverProfileOptionIndex,
-  reconcilePourOverCatalogSelection
+  reconcilePourOverCatalogSelection,
+  removePourOverProfileFromCatalog
 } from '../src/components/ProfileHomeScreen/homeSelection';
 import { isPourOverProfileEvent } from '../src/features/freePour/profileEvents';
 
@@ -18,6 +19,14 @@ const layout = {
   profileCount: profiles.length,
   pourOverProfileCount: 2
 };
+
+assert.deepEqual(
+  removePourOverProfileFromCatalog(
+    [{ id: 'pour-over-1' }, { id: 'pour-over-2' }, { id: 'pour-over-3' }],
+    'pour-over-2'
+  ),
+  [{ id: 'pour-over-1' }, { id: 'pour-over-3' }]
+);
 
 assert.equal(
   getActiveHomeOption({

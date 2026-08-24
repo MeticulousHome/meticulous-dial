@@ -116,12 +116,15 @@ const SetupReadiness = ({
           : ready
             ? readyMessage
             : waitingMessage;
+  const messageLines = message.split(' · ');
   return (
     <div
       className={`free-pour-readiness free-pour-readiness--${state}`}
       aria-live="polite"
     >
-      {message}
+      {messageLines.map((line) => (
+        <span key={line}>{line}</span>
+      ))}
     </div>
   );
 };

@@ -29,7 +29,8 @@ short video for each visual/gesture test.
    all espresso profile cards still appear.
 
 Pass: card ordering is stable, artwork is crisp at Dial distance, no repeat
-card exists, and carousel rotation does not jump or select a neighboring card.
+card exists, the first loaded carousel does not jump or temporarily dim the
+selected card, and rotation does not select a neighboring card.
 
 ## 2. Stability messaging and press gating
 
@@ -37,12 +38,14 @@ Perform this at **empty server**, **add brewer**, and **add coffee**. For coffee
 use a dose between 5 g and 40 g.
 
 1. Keep touching or changing the load so readings vary. Confirm the status has
-   a light-yellow background and tells you to wait for a stable weight.
+   a light-yellow background and tells you to wait for a stable weight. Where
+   the status has two instructions, confirm the second starts on a new line.
 2. Press while the reading is unstable. The stage must not advance and the
    displayed weight must not be recorded.
 3. Stop touching the setup and wait at least one second. Confirm the status
    changes to a light-green background and says the weight is stable and the
-   dial can be pressed to record.
+   dial can be pressed to record. Confirm this text is comfortably readable at
+   normal Dial distance.
 4. Press once. Confirm `SAVING WEIGHT`, then the tare/zero state, then the next
    setup stage. Do not see a double advance or stale prior weight.
 5. On the brewer stage, also try a load under 3 g; on the coffee stage, try
@@ -73,7 +76,10 @@ re-entry safely rebuilds the full tare chain, and live brewing is unaffected.
 ## 4. Abort guidance and gesture
 
 1. Confirm **Double-press the dial to abort** is visible on temperature, each
-   setup stage, setup review, live pouring/waiting, and the post-brew screens.
+   setup stage, setup review, live pouring/waiting, and the final measurement
+   screens before completion.
+   Confirm it and the adjacent action text sit inside the readable circular area
+   rather than against the bottom edge.
 2. Double-press during setup. Confirm an immediate return to the home carousel,
    no espresso action starts, and no partial pour-over history item is created.
 3. Start again and double-press during live pouring. Confirm the pour-over exits
@@ -107,7 +113,10 @@ one feature test here that intentionally changes the installed profile catalog.
 3. Briefly press/release Delete before the hold completes. Confirm nothing is
    deleted.
 4. Reopen the menu and complete the hold. Confirm the card disappears and home
-   selection moves to a valid neighboring card without a crash or blank card.
+   selection moves to Free Pour without a crash or blank card. The selected
+   card must begin disappearing immediately; a restart must not be required.
+   Other cards must remain in place rather than flying away or dimming as their
+   array positions change.
 5. Reboot and confirm the deleted profile remains absent. Confirm Free Pour and
    the remaining espresso/guided profiles are unchanged.
 
@@ -129,4 +138,3 @@ safe, and the catalog/selection reconcile immediately and after reboot.
 Final acceptance: all critical flows pass, no unexpected settings change,
 backend and Dial stay healthy, and no profile except the deliberately disposable
 delete-test profile changes.
-

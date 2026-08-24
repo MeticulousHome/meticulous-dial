@@ -170,7 +170,9 @@ export function QuickSettings(): JSX.Element {
     profileQuery: { data: profiles },
     localProfile,
     homeMode,
+    setHomeMode,
     selectedPourOverProfileId,
+    setSelectedPourOverProfileId,
     detailProfileSelected: defaultProfileSelectedForDetails,
     setSettingsIndex: setProfileSettingsIndex,
     setSettingsProfile: setProfileSettings
@@ -231,7 +233,15 @@ export function QuickSettings(): JSX.Element {
       }
       case 'delete_pour_over_profile': {
         if (!selectedPourOverProfileId) return;
-        deletePourOverProfileMutation.mutate(selectedPourOverProfileId);
+        const deletedProfileId = selectedPourOverProfileId;
+        setSelectedPourOverProfileId(null);
+        setHomeMode('free_pour');
+        deletePourOverProfileMutation.mutate(deletedProfileId, {
+          onError: () => {
+            setSelectedPourOverProfileId(deletedProfileId);
+            setHomeMode('pour_over_profile');
+          }
+        });
         dispatch(setScreen('profileHome'));
         dispatch(setBubbleDisplay({ visible: false, component: undefined }));
         break;

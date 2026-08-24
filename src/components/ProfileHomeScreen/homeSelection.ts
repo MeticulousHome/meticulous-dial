@@ -23,6 +23,11 @@ export type DialProfileHover = {
   type: 'focus' | 'scroll';
 };
 
+export const removePourOverProfileFromCatalog = <T extends { id: string }>(
+  profiles: ReadonlyArray<T>,
+  deletedProfileId: string
+) => profiles.filter((profile) => profile.id !== deletedProfileId);
+
 type PourOverCatalogSelection = {
   mode: HomeMode;
   selectedProfileId: string | null;

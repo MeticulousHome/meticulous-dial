@@ -258,8 +258,9 @@ export const ProfileHomeScreen = () => {
   useEffect(() => {
     if (homeMode === 'espresso') {
       setHomeHoverState(localHoverState);
-    } else if (localHoverState) {
-      setLocalHoverState(false);
+    } else {
+      setHomeHoverState(false);
+      if (localHoverState) setLocalHoverState(false);
     }
   }, [homeMode, localHoverState, setLocalHoverState]);
 
@@ -408,7 +409,7 @@ export const ProfileHomeScreen = () => {
     },
     bubbleDisplay.interceptsGesture || profileStarting
   );
-  if (!mergedProfiles) {
+  if (profileState.profileQuery.isPending || pourOverProfilesQuery.isPending) {
     return <LoadingScreen />;
   }
 
@@ -422,14 +423,15 @@ export const ProfileHomeScreen = () => {
           >
             {mergedProfiles.map((profile, index) => {
               const carouselIndex = index;
-              const itemRef = getOrCreateRef(carouselIndex.toString());
+              const itemKey = `espresso-${profile.id ?? index}`;
+              const itemRef = getOrCreateRef(itemKey);
               const backgroundColor = profile.display?.accentColor
                 ? profile.display?.accentColor
                 : '#e0dcd0';
 
               return (
                 <CSSTransition
-                  key={index}
+                  key={itemKey}
                   nodeRef={itemRef} // Pass the ref here
                   timeout={500}
                   classNames="slide"
@@ -459,27 +461,37 @@ export const ProfileHomeScreen = () => {
                 profileIndex,
                 homeLayout
               );
+              const itemKey = `pour-over-${profile.id}`;
+              const itemRef = getOrCreateRef(itemKey);
               const accentColor = profile.display?.accentColor ?? '#1f3340';
               return (
-                <ProfileEntry
-                  key={`pour-over-${profile.id}`}
-                  title={profile.name}
-                  containerStyle={{
-                    backgroundColor: accentColor,
-                    color: '#78d6ff'
-                  }}
-                  contentClassNames={
-                    Math.abs(activeOption - carouselIndex) < 2 &&
-                    `animation-bounce-${transitionDirection}`
-                  }
-                  distanceToActive={carouselIndex - activeOption}
-                  zoomedIn={homeHoverState}
+                <CSSTransition
+                  key={itemKey}
+                  nodeRef={itemRef}
+                  timeout={500}
+                  classNames="slide"
                 >
-                  <PourOverProfileImage
-                    profile={profile}
-                    enabled={Math.abs(activeOption - carouselIndex) < 2}
-                  />
-                </ProfileEntry>
+                  <ProfileEntry
+                    ref={itemRef}
+                    title={profile.name}
+                    containerStyle={{
+                      backgroundColor: accentColor,
+                      color: '#78d6ff'
+                    }}
+                    contentClassNames={
+                      !homeHoverState &&
+                      Math.abs(activeOption - carouselIndex) < 2 &&
+                      `animation-bounce-${transitionDirection}`
+                    }
+                    distanceToActive={carouselIndex - activeOption}
+                    zoomedIn={homeHoverState}
+                  >
+                    <PourOverProfileImage
+                      profile={profile}
+                      enabled={Math.abs(activeOption - carouselIndex) < 2}
+                    />
+                  </ProfileEntry>
+                </CSSTransition>
               );
             })}
             <ProfileEntry
