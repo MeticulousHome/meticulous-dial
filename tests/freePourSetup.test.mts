@@ -5,6 +5,9 @@ import {
   isValidSetupWeight,
   nextStageAfterTare
 } from '../src/features/freePour/setupFlow.ts';
+import { formatBrewTime } from '../src/features/freePour/format.ts';
+
+assert.equal(formatBrewTime(195_000), '3:15');
 
 assert.equal(
   canRecordSetupWeight({

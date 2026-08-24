@@ -1513,30 +1513,35 @@ export const FreePourScreen = ({
         ) : (
           <div className="free-pour-live-weight">{roundedWeight}g</div>
         )}
-        <FlowMeter flow={liveFlow} target={activeTarget?.flowGps} />
-        <div className="free-pour-live-instruction">
-          {stage === 'ready' ? (
-            <>
-              <span>START POURING</span>
-              <strong>TURN DIAL TO REVIEW WEIGHTS</strong>
-            </>
-          ) : stage === 'waiting' ? (
-            <>
-              {activeTarget ? (
-                <span>
-                  NEXT POUR · START {formatBrewTime(activeTarget.startTimeMs)}
-                </span>
-              ) : profile ? (
-                <span>
-                  DRAWDOWN · TARGET {formatBrewTime(profile.targetDurationMs)}
-                </span>
-              ) : (
-                pours.length < MAX_POURS && <span>POUR AGAIN OR</span>
-              )}
-              <strong>LIFT BREWER TO FINISH</strong>
-            </>
+        <div className="free-pour-live-feedback">
+          {stage === 'pouring' ? (
+            <FlowMeter flow={liveFlow} target={activeTarget?.flowGps} />
           ) : (
-            'POURING'
+            <div className="free-pour-live-instruction">
+              {stage === 'ready' ? (
+                <>
+                  <span>START POURING</span>
+                  <strong>TURN DIAL TO REVIEW WEIGHTS</strong>
+                </>
+              ) : (
+                <>
+                  {activeTarget ? (
+                    <span>
+                      NEXT POUR · START{' '}
+                      {formatBrewTime(activeTarget.startTimeMs)}
+                    </span>
+                  ) : profile ? (
+                    <span>
+                      DRAWDOWN · TARGET{' '}
+                      {formatBrewTime(profile.targetDurationMs)}
+                    </span>
+                  ) : (
+                    pours.length < MAX_POURS && <span>POUR AGAIN OR</span>
+                  )}
+                  <strong>LIFT BREWER TO FINISH</strong>
+                </>
+              )}
+            </div>
           )}
         </div>
         <AbortHint />
@@ -1630,6 +1635,12 @@ export const FreePourScreen = ({
             {result?.measurements.retainedG == null
               ? '—'
               : `${Math.round(result.measurements.retainedG)}g`}
+          </strong>
+        </div>
+        <div>
+          <span>TOTAL TIME</span>
+          <strong>
+            {formatBrewTime(result?.measurements.durationMs ?? 0)}
           </strong>
         </div>
       </div>

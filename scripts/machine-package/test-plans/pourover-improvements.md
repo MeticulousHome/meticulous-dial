@@ -102,6 +102,22 @@ Pass: the same guided pour-over profile card remains selected. No different
 espresso profile becomes selected. Starting another brew immediately loads the
 same guided profile and its targets.
 
+## 5a. Live flow/guidance swap and total time
+
+1. Before the first pour, confirm the lower live panel shows the start/review
+   guidance and does not show the flow meter.
+2. Start pouring. Confirm the guidance disappears and the flow-rate meter takes
+   its exact place without moving the surrounding timer, weight, or pour rail.
+3. Stop pouring. Confirm the meter disappears and the next-pour/drawdown
+   guidance returns in that same location.
+4. Start another pour and confirm the swap reverses again without both elements
+   appearing together or flashing over each other.
+5. Complete the brew. Confirm the summary contains **Total time** in `m:ss`
+   form (for example, `3:15`) and agrees with the final elapsed brew timer.
+
+Pass: the flow meter is visible only while pouring, guidance is visible only
+while not pouring, their shared slot stays fixed, and total time is accurate.
+
 ## 6. Delete guided profile (intentional profile-data mutation)
 
 Only use a disposable or separately backed-up guided profile. Deletion is the
