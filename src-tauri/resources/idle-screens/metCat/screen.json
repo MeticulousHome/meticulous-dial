@@ -1,0 +1,136 @@
+{
+  "documentType": "meticulous-idle-screen",
+  "schemaVersion": 2,
+  "runtimeApi": 1,
+  "id": "metCat",
+  "name": "Digital Cat Clock",
+  "viewport": {
+    "width": 480,
+    "height": 480,
+    "shape": "circle",
+    "background": "#000000",
+    "overflow": "hidden"
+  },
+  "runtime": {
+    "brightness": {
+      "onEnter": 0.03,
+      "onExit": 1,
+      "cycleAfterMs": 600000,
+      "dimValue": 0.03,
+      "brightValue": 0.33,
+      "dimDurationMs": 55000,
+      "brightDurationMs": 5000
+    },
+    "burnInProtection": {
+      "enabled": true,
+      "mode": "rotate",
+      "durationMs": 3600000,
+      "distance": 0.5
+    }
+  },
+  "tokens": {
+    "colors": {
+      "time": "#DDDDDD",
+      "muted": "#606060"
+    },
+    "fonts": {
+      "default": "Arial"
+    },
+    "numbers": {}
+  },
+  "dataSources": [
+    {
+      "id": "time",
+      "source": "time",
+      "refreshMs": 1000
+    },
+    {
+      "id": "wifi",
+      "source": "wifi",
+      "refreshMs": 60000
+    }
+  ],
+  "layers": [
+    {
+      "id": "wifiIcon",
+      "type": "image",
+      "transform": { "x": 174, "y": 25, "width": 30, "height": 30 },
+      "asset": "noWifi",
+      "fit": "contain",
+      "variants": [
+        {
+          "when": {
+            "source": "wifi",
+            "path": "connected",
+            "operator": "truthy",
+            "fallback": false
+          },
+          "asset": "wifi"
+        }
+      ]
+    },
+    {
+      "id": "status",
+      "type": "text",
+      "transform": { "x": 208, "y": 25, "width": 120, "height": 30 },
+      "text": {
+        "binding": {
+          "source": "wifi",
+          "path": "connected",
+          "formatter": {
+            "type": "boolean",
+            "trueLabel": "Ready",
+            "falseLabel": "Not connected"
+          },
+          "fallback": "Not connected"
+        }
+      },
+      "font": {
+        "family": { "token": "fonts.default" },
+        "size": 20,
+        "weight": 500,
+        "align": "left",
+        "tabularNumbers": true
+      },
+      "color": { "token": "colors.muted" },
+      "verticalAlign": "middle"
+    },
+    {
+      "id": "time",
+      "type": "digitalTime",
+      "transform": { "x": 0, "y": 149, "width": 480, "height": 100 },
+      "template": "HH:mm",
+      "hourMode": "locale",
+      "font": {
+        "family": { "token": "fonts.default" },
+        "size": 84,
+        "weight": 300,
+        "align": "center",
+        "tabularNumbers": true
+      },
+      "color": { "token": "colors.time" }
+    },
+    {
+      "id": "cat",
+      "type": "lottie",
+      "transform": { "x": 0, "y": 60, "width": 480, "height": 360 },
+      "asset": "metcat",
+      "autoplay": true,
+      "loop": true,
+      "segments": [
+        {
+          "name": "intro",
+          "from": 0,
+          "to": 120,
+          "playOnce": true
+        },
+        {
+          "name": "loop",
+          "from": 120,
+          "to": 313,
+          "loop": true
+        }
+      ]
+    }
+  ]
+}

@@ -11,6 +11,7 @@ import Styled, {
 } from '../../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
 import { useIdleTimer } from '../../../hooks/useIdleTimer';
+import { useIdleScreenOptions } from '../../IdleScreen/runtime/useIdleScreenPackages';
 
 export const IdleScreens: SettingsItem[] = [
   {
@@ -46,9 +47,15 @@ export const IdleScreenSetting = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { forceIdle, setForceBubbleReopen } = useIdleTimer();
+  const idleScreenOptions = useIdleScreenOptions();
 
   const settings = [
-    ...IdleScreens,
+    ...idleScreenOptions.map((screen) => ({
+      key: screen.id,
+      label: screen.name,
+      shortLabel: screen.name,
+      visible: true
+    })),
     {
       key: 'back',
       label: 'Back',

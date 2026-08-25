@@ -1,0 +1,159 @@
+{
+  "documentType": "meticulous-idle-screen",
+  "schemaVersion": 2,
+  "runtimeApi": 1,
+  "id": "default",
+  "name": "Analog Clock",
+  "viewport": {
+    "width": 480,
+    "height": 480,
+    "shape": "circle",
+    "background": "#000000",
+    "overflow": "hidden"
+  },
+  "runtime": {
+    "brightness": {
+      "onEnter": 0.33,
+      "onExit": 1,
+      "cycleAfterMs": 600000,
+      "dimValue": 0.03,
+      "brightValue": 0.33,
+      "dimDurationMs": 55000,
+      "brightDurationMs": 5000
+    },
+    "burnInProtection": {
+      "enabled": true,
+      "mode": "rotate",
+      "durationMs": 3600000,
+      "distance": 0.5
+    }
+  },
+  "tokens": {
+    "colors": {
+      "background": "#000000",
+      "hand": "#E6E6E6",
+      "second": "#F5C444",
+      "tickMajor": "#898989",
+      "tickMinor": "#494949",
+      "muted": "#606060"
+    },
+    "fonts": {
+      "default": "Arial"
+    },
+    "numbers": {}
+  },
+  "dataSources": [
+    {
+      "id": "time",
+      "source": "time",
+      "refreshMs": 1000
+    }
+  ],
+  "layers": [
+    {
+      "id": "ticks",
+      "type": "tickRing",
+      "transform": { "x": 0, "y": 0, "width": 480, "height": 480 },
+      "count": 60,
+      "radius": 235,
+      "startAngle": -90,
+      "styles": [
+        {
+          "every": 1,
+          "width": 1.5,
+          "length": 15.5,
+          "color": { "token": "colors.tickMinor" }
+        },
+        {
+          "every": 5,
+          "width": 1.5,
+          "length": 31.5,
+          "color": { "token": "colors.tickMajor" }
+        }
+      ]
+    },
+    {
+      "id": "brand",
+      "type": "text",
+      "transform": { "x": 150, "y": 104, "width": 180, "height": 30 },
+      "text": "METICULOUS",
+      "font": {
+        "family": { "token": "fonts.default" },
+        "size": 17,
+        "weight": 400,
+        "align": "center",
+        "tabularNumbers": true
+      },
+      "color": { "token": "colors.hand" },
+      "verticalAlign": "middle"
+    },
+    {
+      "id": "wifiStatus",
+      "type": "text",
+      "transform": { "x": 170, "y": 350, "width": 140, "height": 24 },
+      "text": {
+        "binding": {
+          "source": "wifi",
+          "path": "connected",
+          "formatter": {
+            "type": "boolean",
+            "trueLabel": "Ready",
+            "falseLabel": "Not connected"
+          },
+          "fallback": "Not connected"
+        }
+      },
+      "font": {
+        "family": { "token": "fonts.default" },
+        "size": 15,
+        "weight": 400,
+        "align": "center"
+      },
+      "color": { "token": "colors.muted" },
+      "verticalAlign": "middle"
+    },
+    {
+      "id": "hourHand",
+      "type": "analogHand",
+      "transform": { "x": 235, "y": 120, "width": 10, "height": 240 },
+      "timeUnit": "hour",
+      "rotation": 0,
+      "length": 82.42,
+      "width": 9,
+      "shape": "rectangle",
+      "color": { "token": "colors.hand" },
+      "smooth": true
+    },
+    {
+      "id": "minuteHand",
+      "type": "analogHand",
+      "transform": { "x": 235, "y": 80, "width": 10, "height": 320 },
+      "timeUnit": "minute",
+      "rotation": 0,
+      "length": 125.5,
+      "width": 6,
+      "shape": "rectangle",
+      "color": { "token": "colors.hand" },
+      "smooth": true
+    },
+    {
+      "id": "secondHand",
+      "type": "analogHand",
+      "transform": { "x": 235, "y": 0, "width": 10, "height": 240 },
+      "timeUnit": "second",
+      "rotation": 0,
+      "length": 50.83,
+      "width": 4,
+      "shape": "rectangle",
+      "color": { "token": "colors.second" },
+      "smooth": true
+    },
+    {
+      "id": "pivot",
+      "type": "pivotCap",
+      "transform": { "x": 232, "y": 232, "width": 16, "height": 16 },
+      "diameter": 9,
+      "color": { "token": "colors.hand" }
+    }
+  ]
+}

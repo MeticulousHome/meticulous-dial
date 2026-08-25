@@ -1,0 +1,38 @@
+{
+  "documentType": "meticulous-idle-manifest",
+  "packageFormat": 1,
+  "id": "metCat",
+  "name": "Digital Cat Clock",
+  "version": "1.0.0",
+  "runtimeApi": 1,
+  "description": "Built-in MetCat idle clock.",
+  "author": "Meticulous",
+  "screen": "screen.json",
+  "preview": "preview.png",
+  "assets": [
+    {
+      "id": "wifi",
+      "path": "assets/wifi.png",
+      "kind": "image",
+      "mimeType": "image/png",
+      "size": 8534,
+      "sha256": "b7a5789600c962325a0c3a4098a555ffdfbb443dcddeed5cc643dd0e411ef1ed"
+    },
+    {
+      "id": "noWifi",
+      "path": "assets/no-wifi.png",
+      "kind": "image",
+      "mimeType": "image/png",
+      "size": 10315,
+      "sha256": "49f24bb381732a8737a5c45d2ed87c3371f95dc521ac574b9d78356573e20204"
+    },
+    {
+      "id": "metcat",
+      "path": "assets/metcat.json",
+      "kind": "lottie",
+      "mimeType": "application/vnd.meticulous.lottie+json",
+      "size": 54486,
+      "sha256": "9c6766cc824597102157c14e0d1535e8e7866383c4d20a4c7fbde1820d242b2f"
+    }
+  ]
+}

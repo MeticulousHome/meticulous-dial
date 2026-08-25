@@ -19,8 +19,8 @@ import Styled, {
   MARQUEE_MIN_TEXT_LENGTH
 } from '../../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
-import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSetting';
 import type { Settings } from '@meticulous-home/espresso-api';
+import { useIdleScreenOptions } from '../../IdleScreen/runtime/useIdleScreenPackages';
 
 const initialSettings: SettingsItem[] = [
   {
@@ -43,8 +43,6 @@ const initialSettings: SettingsItem[] = [
   {
     key: 'idle_screen',
     label: 'Select Idle Screen',
-    getLabel: (settings: Settings) =>
-      IdleScreens.find((item) => item.key === settings.idle_screen)?.shortLabel,
     visible: true
   },
   {
@@ -69,6 +67,7 @@ export const AdvancedSettings = () => {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { refetch: fetchDeviceStatus } = useDeviceInfo();
   const { data: rootPW } = useRootPassword();
+  const idleScreenOptions = useIdleScreenOptions();
 
   const { data: manufacturingSettings, isSuccess: isManufacturingSuccess } =
     useManufacturingSchema();
@@ -84,9 +83,15 @@ export const AdvancedSettings = () => {
       label:
         item.key === 'root_password'
           ? `${item.label}: ${rootPW || '*****'}`
-          : item.getLabel
-            ? `${item.label}: ${item.getLabel(globalSettings)}`
-            : item.label
+          : item.key === 'idle_screen'
+            ? `${item.label}: ${
+                idleScreenOptions.find(
+                  (screen) => screen.id === globalSettings.idle_screen
+                )?.name ?? globalSettings.idle_screen
+              }`
+            : item.getLabel
+              ? `${item.label}: ${item.getLabel(globalSettings)}`
+              : item.label
     }));
 
     const manufacturingOption =
@@ -119,6 +124,7 @@ export const AdvancedSettings = () => {
     ];
   }, [
     globalSettings,
+    idleScreenOptions,
     isManufacturingSuccess,
     isSettingsSuccess,
     manufacturingSettings,

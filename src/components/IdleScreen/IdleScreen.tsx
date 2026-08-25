@@ -7,65 +7,36 @@ import {
 } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { AnalogClock } from './AnalogClock';
-import { DigitalClock } from './DigitalClock';
 import { BaristaClock } from './BaristaClock';
 import { DVDIdleScreen } from './DVD';
 import { useSettings } from '../../hooks/useSettings';
 import { updateBrightness } from '../../hooks/useDimScreen';
 import { routes } from '../../navigation/routes';
-import { keyframes, styled } from 'styled-components';
+import { styled } from 'styled-components';
+import { PackageIdleScreen } from './runtime/PackageIdleScreen';
+import type { IdlePackageId, IdleRuntimePolicy } from './runtime/types';
+import {
+  burnInStyle,
+  useIdleBrightness,
+  useIdleClock
+} from './runtime/scheduler';
 
-const FadeOverlay = styled.div<{ $hide: boolean }>`
-  position: absolute;
+const ShiftContainer = styled.div`
   width: 480px;
   height: 480px;
-  background: black;
-  z-index: 99999;
-  opacity: ${({ $hide }) => ($hide ? 0.7 : 0)};
-
-  transition: opacity 1s;
+  transform-origin: 240px 240px;
 `;
 
-const pixelShift = keyframes`
-  0% {
-    transform: rotateZ(0deg);
-  }
-  25% {
-      transform: rotateZ(-0.5deg);
-  }
-  50% {
-    transform: rotateZ(0deg);
-  }
-  75% {
-    transform: rotateZ(0.5deg);
-  }
-  100% {
-    transform: rotateZ(0deg);
-  }
-`;
-const ShiftContainer = styled.div`
-  animation: ${pixelShift} 3600s infinite;
-`;
-
-const selectIdleComponent = (screen: string) => {
+const selectLegacyIdleComponent = (screen: string) => {
   switch (screen) {
     case 'baristaBarista':
       return <BaristaClock />;
-    case 'metCat':
-      return <DigitalClock key="metcat" useMetCat={true} />;
-    case 'digital':
-      return <DigitalClock key="digital" useMetCat={false} />;
     case 'dvd':
       return <DVDIdleScreen />;
-    case 'analog':
-    case 'default':
     default:
       return <AnalogClock />;
   }
 };
-
-// 10 minutes
-const SCREEN_TIMEOUT = 10 * 60 * 1000;
 
 export function IdleScreen(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -77,48 +48,18 @@ export function IdleScreen(): JSX.Element {
   const prevScreen = useAppSelector((state) => state.screen.prev);
   const { data: globalSettings } = useSettings({ idle: true });
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const screenDimTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
-  const cancelledRef = useRef(false);
-  const [isScreenDim, setIsScreenDim] = useState(false);
-
-  const cycleScreenDim = () => {
-    if (cancelledRef.current) return;
-    setIsScreenDim((prev) => {
-      if (cancelledRef.current) return prev;
-      // Screen is dark, dim up for 5 seconds
-      if (prev) {
-        screenDimTimeoutRef.current = setTimeout(() => {
-          if (cancelledRef.current) return;
-          updateBrightness({ brightness: 0.03 });
-          cycleScreenDim();
-        }, 5 * 1000);
-      } else {
-        screenDimTimeoutRef.current = setTimeout(() => {
-          if (cancelledRef.current) return;
-          updateBrightness({ brightness: 0.33 });
-          cycleScreenDim();
-        }, 55 * 1000);
-      }
-      return !prev;
-    });
-  };
+  const [runtime, setRuntime] = useState<IdleRuntimePolicy | null>(null);
+  const now = useIdleClock(null);
+  useIdleBrightness(runtime);
+  const selectedIdleScreen = useRef<IdlePackageId | null>(null);
+  if (selectedIdleScreen.current === null && globalSettings?.idle_screen) {
+    selectedIdleScreen.current = normalizeIdleScreenId(
+      globalSettings.idle_screen
+    );
+  }
 
   useEffect(() => {
-    cancelledRef.current = false;
-    updateBrightness({ brightness: 0.33 });
-
-    // Start a timer to completely disable the screen after a while
-    screenDimTimeoutRef.current = setTimeout(() => {
-      cycleScreenDim();
-    }, SCREEN_TIMEOUT);
-
     return () => {
-      cancelledRef.current = true;
-      if (screenDimTimeoutRef.current) {
-        clearTimeout(screenDimTimeoutRef.current);
-      }
       updateBrightness({ brightness: 1 });
 
       if (forceBubbleReopen) {
@@ -153,9 +94,31 @@ export function IdleScreen(): JSX.Element {
   }, [shouldGoToIdle]);
 
   return (
-    <ShiftContainer>
-      <FadeOverlay $hide={isScreenDim} />
-      {selectIdleComponent(globalSettings?.idle_screen)}
+    <ShiftContainer style={burnInStyle(runtime, now)}>
+      {renderSelectedIdleScreen(selectedIdleScreen.current, now, setRuntime)}
     </ShiftContainer>
+  );
+}
+
+function normalizeIdleScreenId(screen: string): IdlePackageId {
+  if (screen === 'analog') return 'default';
+  return screen as IdlePackageId;
+}
+
+function renderSelectedIdleScreen(
+  selectedId: IdlePackageId | null,
+  now: Date,
+  setRuntime: (runtime: IdleRuntimePolicy | null) => void
+): JSX.Element {
+  if (!selectedId) return <AnalogClock />;
+  if (selectedId === 'dvd' || selectedId === 'baristaBarista') {
+    return selectLegacyIdleComponent(selectedId);
+  }
+  return (
+    <PackageIdleScreen
+      selectedId={selectedId}
+      now={now}
+      onRuntime={setRuntime}
+    />
   );
 }

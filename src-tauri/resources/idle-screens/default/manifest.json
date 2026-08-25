@@ -1,0 +1,13 @@
+{
+  "documentType": "meticulous-idle-manifest",
+  "packageFormat": 1,
+  "id": "default",
+  "name": "Analog Clock",
+  "version": "1.0.0",
+  "runtimeApi": 1,
+  "description": "Built-in analog idle clock.",
+  "author": "Meticulous",
+  "screen": "screen.json",
+  "preview": "preview.png",
+  "assets": []
+}
