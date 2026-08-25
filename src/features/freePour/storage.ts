@@ -1,6 +1,5 @@
 import { FreePourSession } from './types';
 import {
-  getLatestBackendFreePourOnlySession,
   getLatestBackendFreePourSession,
   persistFreePourSession
 } from './historyApi';
@@ -151,29 +150,6 @@ const getLatestDurableSession = async () => {
     }
   } catch {
     // The local cache remains usable while the backend is starting or offline.
-  }
-  return local;
-};
-
-export const getLatestFreePourOnlySession = async () => {
-  const latest = await getLatestDurableSession();
-  if (latest?.mode === 'free_pour') return latest;
-  const local = (await getFreePourSessions()).find(
-    (session) => session.mode === 'free_pour'
-  );
-  try {
-    const backend = await getLatestBackendFreePourOnlySession();
-    if (
-      backend &&
-      (!local ||
-        new Date(backend.completedAt).getTime() >
-          new Date(local.completedAt).getTime())
-    ) {
-      await cacheSession(backend, false);
-      return backend;
-    }
-  } catch {
-    // The local cached Free Pour remains available if the backend is offline.
   }
   return local;
 };

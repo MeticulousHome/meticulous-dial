@@ -56,6 +56,10 @@ type ProfileContextType = {
   limitedAccess: boolean;
   homeMode: HomeMode;
   setHomeMode: React.Dispatch<React.SetStateAction<HomeMode>>;
+  selectedPourOverProfileId: string | null;
+  setSelectedPourOverProfileId: React.Dispatch<
+    React.SetStateAction<string | null>
+  >;
 };
 
 export type ExtendedProfile = Profile & {
@@ -89,6 +93,9 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [profileEvent, setProfileEvent] = useState<ProfileUpdate | null>(null);
   const [profileStarting, setProfileStarting] = useState(false);
   const [homeMode, setHomeMode] = useState<HomeMode>('espresso');
+  const [selectedPourOverProfileId, setSelectedPourOverProfileId] = useState<
+    string | null
+  >(null);
   const [settingsIndex, setSettingsIndex] = useState(0);
   const [settingsProfile, setSettingsProfile] = useState<
     (ExtendedProfile & { settings: IPresetSetting[] }) | null
@@ -233,6 +240,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const onProfileHover = (type: string, profile_id: string) => {
     setLocalHoverState(type === 'focus');
     setHomeMode('espresso');
+    setSelectedPourOverProfileId(null);
     setProfileIdToFind(profile_id);
   };
 
@@ -266,7 +274,9 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     mergedProfiles,
     limitedAccess,
     homeMode,
-    setHomeMode
+    setHomeMode,
+    selectedPourOverProfileId,
+    setSelectedPourOverProfileId
   };
 
   return (

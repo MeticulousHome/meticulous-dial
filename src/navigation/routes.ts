@@ -45,7 +45,7 @@ import { TimeConfig } from '../components/Settings/Advanced/TimeDate/TimeConfig'
 import { DateConfig } from '../components/Settings/Advanced/TimeDate/DateConfig';
 import { ShotGraphScreen } from '../components/ShotGraph/ShotGraphScreen';
 import { FreePourScreen } from '../features/freePour/FreePourScreen';
-import { RepeatLastPourScreen } from '../features/freePour/RepeatLastPourScreen';
+import { GuidedPourOverScreen } from '../features/freePour/GuidedPourOverScreen';
 import { FreePourHistoryScreen } from '../features/freePour/FreePourHistoryScreen';
 import { ScrollDirectionSettings } from '../components/Settings/ScrollDirection';
 import { BrewCompleteScreen } from '../components/BrewCompleteScreen/BrewCompleteScreen';
@@ -432,8 +432,8 @@ export const routes: Record<ScreenType, Route> = {
     bottomStatusHidden: true,
     parent: 'profileHome'
   },
-  freePourRecipe: {
-    component: RepeatLastPourScreen,
+  guidedPourOver: {
+    component: GuidedPourOverScreen,
     bottomStatusHidden: true,
     parent: 'profileHome'
   },

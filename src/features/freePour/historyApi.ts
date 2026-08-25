@@ -12,10 +12,6 @@ interface PourOverSaveResponse {
   history: PourOverHistoryMetadata;
 }
 
-interface PourOverHistoryResponse {
-  history: PourOverHistoryMetadata[];
-}
-
 const HISTORY_REQUEST_TIMEOUT_MS = 10_000;
 
 const historyFetch = async (input: string, init?: RequestInit) => {
@@ -79,16 +75,4 @@ export const getLatestBackendFreePourSession = async () => {
   return fetchBackendSession(
     (await latestResponse.json()) as PourOverHistoryMetadata
   );
-};
-
-export const getLatestBackendFreePourOnlySession = async () => {
-  const response = await historyFetch(
-    `${API_URL}/api/v1/history/pour-over?mode=free_pour&max_results=1`
-  );
-  if (!response.ok) {
-    throw await apiError(response, 'Could not read Free Pour history');
-  }
-  const metadata = ((await response.json()) as PourOverHistoryResponse)
-    .history[0];
-  return metadata ? fetchBackendSession(metadata) : null;
 };
