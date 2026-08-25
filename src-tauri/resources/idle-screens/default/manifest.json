@@ -1,13 +1,13 @@
 {
+  "assets": [],
+  "author": "Meticulous",
+  "description": "Schema-v2 representation of the built-in Meticulous analog clock.",
   "documentType": "meticulous-idle-manifest",
-  "packageFormat": 1,
   "id": "default",
   "name": "Analog Clock",
-  "version": "1.0.0",
-  "runtimeApi": 1,
-  "description": "Built-in analog idle clock.",
-  "author": "Meticulous",
-  "screen": "screen.json",
+  "packageFormat": 1,
   "preview": "preview.png",
-  "assets": []
+  "runtimeApi": 1,
+  "screen": "screen.json",
+  "version": "2.0.0"
 }

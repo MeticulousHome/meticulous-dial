@@ -1,30 +1,13 @@
 {
+  "assets": [],
+  "author": "Meticulous",
+  "description": "Schema-v2 representation of the built-in Meticulous digital clock.",
   "documentType": "meticulous-idle-manifest",
-  "packageFormat": 1,
   "id": "digital",
   "name": "Digital Clock",
-  "version": "1.0.0",
-  "runtimeApi": 1,
-  "description": "Built-in digital idle clock.",
-  "author": "Meticulous",
-  "screen": "screen.json",
+  "packageFormat": 1,
   "preview": "preview.png",
-  "assets": [
-    {
-      "id": "wifi",
-      "path": "assets/wifi.png",
-      "kind": "image",
-      "mimeType": "image/png",
-      "size": 8534,
-      "sha256": "b7a5789600c962325a0c3a4098a555ffdfbb443dcddeed5cc643dd0e411ef1ed"
-    },
-    {
-      "id": "noWifi",
-      "path": "assets/no-wifi.png",
-      "kind": "image",
-      "mimeType": "image/png",
-      "size": 10315,
-      "sha256": "49f24bb381732a8737a5c45d2ed87c3371f95dc521ac574b9d78356573e20204"
-    }
-  ]
+  "runtimeApi": 1,
+  "screen": "screen.json",
+  "version": "2.0.0"
 }

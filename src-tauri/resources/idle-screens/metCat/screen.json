@@ -1,136 +1,153 @@
 {
-  "documentType": "meticulous-idle-screen",
-  "schemaVersion": 2,
-  "runtimeApi": 1,
-  "id": "metCat",
-  "name": "Digital Cat Clock",
-  "viewport": {
-    "width": 480,
-    "height": 480,
-    "shape": "circle",
-    "background": "#000000",
-    "overflow": "hidden"
-  },
-  "runtime": {
-    "brightness": {
-      "onEnter": 0.03,
-      "onExit": 1,
-      "cycleAfterMs": 600000,
-      "dimValue": 0.03,
-      "brightValue": 0.33,
-      "dimDurationMs": 55000,
-      "brightDurationMs": 5000
-    },
-    "burnInProtection": {
-      "enabled": true,
-      "mode": "rotate",
-      "durationMs": 3600000,
-      "distance": 0.5
-    }
-  },
-  "tokens": {
-    "colors": {
-      "time": "#DDDDDD",
-      "muted": "#606060"
-    },
-    "fonts": {
-      "default": "Arial"
-    },
-    "numbers": {}
-  },
   "dataSources": [
     {
-      "id": "time",
-      "source": "time",
-      "refreshMs": 1000
+      "id": "clock",
+      "refreshMs": 1000,
+      "source": "time"
     },
     {
-      "id": "wifi",
-      "source": "wifi",
-      "refreshMs": 60000
+      "id": "network",
+      "refreshMs": 60000,
+      "source": "wifi"
     }
   ],
+  "documentType": "meticulous-idle-screen",
+  "id": "metCat",
   "layers": [
     {
-      "id": "wifiIcon",
-      "type": "image",
-      "transform": { "x": 174, "y": 25, "width": 30, "height": 30 },
-      "asset": "noWifi",
-      "fit": "contain",
-      "variants": [
-        {
-          "when": {
-            "source": "wifi",
-            "path": "connected",
-            "operator": "truthy",
-            "fallback": false
-          },
-          "asset": "wifi"
-        }
-      ]
-    },
-    {
-      "id": "status",
-      "type": "text",
-      "transform": { "x": 208, "y": 25, "width": 120, "height": 30 },
+      "color": {
+        "token": "colors.status"
+      },
+      "font": {
+        "align": "center",
+        "family": {
+          "token": "fonts.digits"
+        },
+        "size": 20,
+        "weight": 500
+      },
+      "id": "wifiStatus",
+      "maxLines": 1,
       "text": {
         "binding": {
-          "source": "wifi",
-          "path": "connected",
+          "fallback": "Not connected",
           "formatter": {
-            "type": "boolean",
+            "falseLabel": "Not connected",
             "trueLabel": "Ready",
-            "falseLabel": "Not connected"
+            "type": "boolean"
           },
-          "fallback": "Not connected"
+          "path": "connected",
+          "source": "wifi"
         }
       },
-      "font": {
-        "family": { "token": "fonts.default" },
-        "size": 20,
-        "weight": 500,
-        "align": "left",
-        "tabularNumbers": true
+      "transform": {
+        "height": 32,
+        "width": 300,
+        "x": 90,
+        "y": 25
       },
-      "color": { "token": "colors.muted" },
-      "verticalAlign": "middle"
+      "type": "text",
+      "verticalAlign": "middle",
+      "wrap": "none"
     },
     {
-      "id": "time",
-      "type": "digitalTime",
-      "transform": { "x": 0, "y": 149, "width": 480, "height": 100 },
-      "template": "HH:mm",
-      "hourMode": "locale",
+      "color": {
+        "token": "colors.digits"
+      },
       "font": {
-        "family": { "token": "fonts.default" },
-        "size": 84,
-        "weight": 300,
         "align": "center",
-        "tabularNumbers": true
+        "family": {
+          "token": "fonts.digits"
+        },
+        "size": {
+          "token": "numbers.digitSize"
+        },
+        "tabularNumbers": true,
+        "weight": 300
       },
-      "color": { "token": "colors.time" }
+      "hourMode": "locale",
+      "id": "time",
+      "separatorBlink": false,
+      "template": "HH:mm",
+      "transform": {
+        "height": 110,
+        "width": 400,
+        "x": 40,
+        "y": 105
+      },
+      "type": "digitalTime"
     },
     {
-      "id": "cat",
-      "type": "lottie",
-      "transform": { "x": 0, "y": 60, "width": 480, "height": 360 },
-      "asset": "metcat",
-      "autoplay": true,
-      "loop": true,
+      "asset": "metcatAnimation",
+      "autoplay": false,
+      "id": "metcat",
+      "loop": false,
       "segments": [
         {
-          "name": "intro",
           "from": 0,
-          "to": 120,
-          "playOnce": true
+          "loop": false,
+          "name": "intro",
+          "playOnce": true,
+          "to": 120
         },
         {
-          "name": "loop",
           "from": 120,
-          "to": 313,
-          "loop": true
+          "loop": true,
+          "name": "loop",
+          "playOnce": false,
+          "to": 313
         }
-      ]
+      ],
+      "speed": 1,
+      "transform": {
+        "height": 180,
+        "width": 320,
+        "x": 80,
+        "y": 190
+      },
+      "type": "lottie"
     }
-  ]
+  ],
+  "name": "Digital Cat Clock",
+  "runtime": {
+    "brightness": {
+      "brightDurationMs": 5000,
+      "brightValue": 0.33,
+      "cycleAfterMs": 600000,
+      "dimDurationMs": 55000,
+      "dimValue": 0.03,
+      "onEnter": 0.33,
+      "onExit": 1
+    },
+    "burnInProtection": {
+      "distance": 0.5,
+      "durationMs": 3600000,
+      "enabled": true,
+      "mode": "rotate"
+    }
+  },
+  "runtimeApi": 1,
+  "schemaVersion": 2,
+  "tokens": {
+    "colors": {
+      "background": "#000000",
+      "digits": "#DDDDDD",
+      "status": "#606060"
+    },
+    "fonts": {
+      "digits": "ABC Diatype"
+    },
+    "numbers": {
+      "digitSize": 84
+    }
+  },
+  "viewport": {
+    "background": {
+      "token": "colors.background"
+    },
+    "height": 480,
+    "overflow": "hidden",
+    "shape": "circle",
+    "width": 480
+  }
 }
