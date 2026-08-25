@@ -176,12 +176,7 @@ export interface IPresetsSettingData {
 }
 
 export type IPresetType =
-  | NameKey
-  | PressureKey
-  | TemperatureKey
-  | OutputKey
-  | ActionKey
-  | '';
+  NameKey | PressureKey | TemperatureKey | OutputKey | ActionKey | '';
 
 export type ISettingType = PressureKey | TemperatureKey | OutputKey;
 
@@ -216,8 +211,4 @@ export enum YesNoEnum {
 }
 
 export type ProfileCause =
-  | 'create'
-  | 'update'
-  | 'delete'
-  | 'full_reload'
-  | 'load';
+  'create' | 'update' | 'delete' | 'full_reload' | 'load';
