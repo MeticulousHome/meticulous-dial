@@ -15,9 +15,7 @@ const START_MIN_RETAINED_G = 2;
 const START_RETURN_TOLERANCE_G = 0.7;
 const START_MAX_NEGATIVE_TRAVEL_G = 1;
 const START_CANDIDATE_TIMEOUT_MS = 4000;
-const MAX_START_RATE_GPS = 18;
-const MOTION_SPIKE_RATE_GPS = 25;
-const MOTION_SETTLE_MS = 1200;
+const START_MIN_RISING_SAMPLES = 3;
 const STOP_HOLD_MS = 950;
 
 export const MIN_RETAINED_POUR_G = 1.5;
@@ -27,6 +25,7 @@ interface StartCandidate {
   sample: DetectorSample;
   baselineWeightG: number;
   negativeTravelG: number;
+  risingSamples: number;
 }
 
 /**
@@ -77,7 +76,6 @@ export class PourDetector {
   private startCandidate: StartCandidate | null = null;
   private stopCandidate: DetectorSample | null = null;
   private previous: DetectorSample | null = null;
-  private motionSuppressedUntilMs = 0;
 
   get isPouring() {
     return this.pouring;
@@ -88,7 +86,6 @@ export class PourDetector {
     this.startCandidate = null;
     this.stopCandidate = null;
     this.previous = null;
-    this.motionSuppressedUntilMs = 0;
   }
 
   process(sample: DetectorSample): PourDetectorEvent | null {
@@ -108,24 +105,16 @@ export class PourDetector {
     if (!this.pouring) {
       if (!previous || elapsedSeconds <= 0) return null;
 
-      // Impacts and vigorous leveling create rates far beyond a plausible
-      // hand pour. Clear any candidate and wait for a fresh, clean rise.
-      if (Math.abs(derivedFlow) > MOTION_SPIKE_RATE_GPS) {
-        this.startCandidate = null;
-        this.motionSuppressedUntilMs = sample.timeMs + MOTION_SETTLE_MS;
-        return null;
-      }
-      if (sample.timeMs < this.motionSuppressedUntilMs) return null;
-
       if (!this.startCandidate) {
-        if (
-          derivedFlow >= START_FLOW_GPS &&
-          derivedFlow <= MAX_START_RATE_GPS
-        ) {
+        if (derivedFlow >= START_FLOW_GPS) {
           this.startCandidate = {
-            sample,
+            // Keep the last settled sample as the pour origin. A fast first
+            // pour can add several grams between scale updates; starting at
+            // the new reading would permanently omit that water.
+            sample: previous,
             baselineWeightG: previous.weightG,
-            negativeTravelG: 0
+            negativeTravelG: 0,
+            risingSamples: 1
           };
         }
         return null;
@@ -134,6 +123,8 @@ export class PourDetector {
       const candidate = this.startCandidate;
       if (weightDelta < 0) {
         candidate.negativeTravelG += -weightDelta;
+      } else if (derivedFlow >= START_FLOW_GPS) {
+        candidate.risingSamples += 1;
       }
       if (candidate.negativeTravelG > START_MAX_NEGATIVE_TRAVEL_G) {
         this.startCandidate = null;
@@ -163,8 +154,9 @@ export class PourDetector {
       if (
         candidateAgeMs >= START_CONFIRM_MS &&
         retainedWeightG >= START_MIN_RETAINED_G &&
+        candidate.risingSamples >= START_MIN_RISING_SAMPLES &&
         averageRiseGps >= START_FLOW_GPS &&
-        averageRiseGps <= MAX_START_RATE_GPS
+        Number.isFinite(averageRiseGps)
       ) {
         this.pouring = true;
         const startedAt = candidate.sample;

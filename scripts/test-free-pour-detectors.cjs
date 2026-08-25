@@ -8,6 +8,8 @@ const {
   resolvedPourEndWeight
 } = require('../src/features/freePour/pourDetector.ts');
 const {
+  brewerRemovalThreshold,
+  classifyBrewWeightCandidate,
   BrewerRemovalConfirmation
 } = require('../src/features/freePour/brewWeightFilter.ts');
 
@@ -52,9 +54,84 @@ test('a real pour starts after confirmation and is backdated', () => {
     .filter(Boolean);
   assert.equal(events.length, 1);
   assert.equal(events[0].type, 'pour-start');
-  assert.equal(events[0].sample.timeMs, 200);
-  assert.equal(events[0].sample.weightG, 1.5);
+  assert.equal(events[0].sample.timeMs, 0);
+  assert.equal(events[0].sample.weightG, 0);
   assert.equal(detector.isPouring, true);
+});
+
+test('a fast retained first pour is not rejected as scale motion', () => {
+  const detector = new PourDetector();
+  const sequence = [
+    sample(0, 0, 0),
+    sample(100, 4, 8),
+    sample(200, 12, 16),
+    sample(300, 23, 21),
+    sample(400, 31, 18),
+    sample(700, 31.2, 6),
+    sample(1000, 31.2, 1),
+    sample(1100, 31.2, 0.2)
+  ];
+
+  const events = sequence
+    .map((value) => detector.process(value))
+    .filter(Boolean);
+  assert.equal(events.length, 1);
+  assert.equal(events[0].type, 'pour-start');
+  assert.equal(events[0].sample.timeMs, 0);
+  assert.equal(events[0].sample.weightG, 0);
+  assert.equal(detector.isPouring, true);
+});
+
+test('a single retained scale step is not enough to start a pour', () => {
+  const detector = new PourDetector();
+  const events = [
+    detector.process(sample(0, 0)),
+    detector.process(sample(100, 4, 0)),
+    detector.process(sample(500, 4, 0)),
+    detector.process(sample(1100, 4, 0)),
+    detector.process(sample(2000, 4, 0))
+  ].filter(Boolean);
+
+  assert.deepEqual(events, []);
+  assert.equal(detector.isPouring, false);
+});
+
+test('a two-step retained disturbance is not enough to start a pour', () => {
+  const detector = new PourDetector();
+  const events = [
+    detector.process(sample(0, 0)),
+    detector.process(sample(100, 2)),
+    detector.process(sample(200, 4)),
+    detector.process(sample(600, 4)),
+    detector.process(sample(1100, 4)),
+    detector.process(sample(2000, 4))
+  ].filter(Boolean);
+
+  assert.deepEqual(events, []);
+  assert.equal(detector.isPouring, false);
+});
+
+test('a bump immediately before a real pour does not suppress that pour', () => {
+  const detector = new PourDetector();
+  const sequence = [
+    sample(0, 0),
+    sample(100, 7),
+    sample(200, 0.1),
+    sample(300, 1.5),
+    sample(500, 4),
+    sample(700, 8),
+    sample(900, 12),
+    sample(1100, 16),
+    sample(1300, 20)
+  ];
+
+  const events = sequence
+    .map((value) => detector.process(value))
+    .filter(Boolean);
+  assert.equal(events.length, 1);
+  assert.equal(events[0].type, 'pour-start');
+  assert.equal(events[0].sample.timeMs, 200);
+  assert.equal(events[0].sample.weightG, 0.1);
 });
 
 test('the recorded dripper shake is not classified as a pour', () => {
@@ -131,4 +208,32 @@ test('aggressive leveling cannot confirm brewer removal', () => {
     assert.equal(removal.update(true, timeMs, weightG).type, 'pending');
   }
   assert.equal(removal.update(false, 5200, 226).type, 'cancelled');
+});
+
+test('removal threshold rejects the recorded final shake but accepts the lift', () => {
+  const threshold = brewerRemovalThreshold(91.5);
+  assert.equal(threshold, 50.325);
+  assert.equal(256.5 - 226.7 < threshold, true);
+  assert.equal(226.7 - 98.9 > threshold, true);
+});
+
+test('stable setup weight is rejected before opening brew weight measurement', () => {
+  assert.deepEqual(classifyBrewWeightCandidate(226.7, 91.5, 256.5), {
+    type: 'setup-still-on-scale',
+    beverageG: 318.2
+  });
+});
+
+test('the recorded post-lift reading produces the expected beverage weight', () => {
+  assert.deepEqual(classifyBrewWeightCandidate(98.9, 91.5, 226.7), {
+    type: 'plausible',
+    beverageG: 190.4
+  });
+});
+
+test('removing everything asks the user to replace only the server', () => {
+  assert.deepEqual(classifyBrewWeightCandidate(-91.5, 91.5, 226.7), {
+    type: 'server-missing',
+    beverageG: 0
+  });
 });
