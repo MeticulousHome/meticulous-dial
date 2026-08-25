@@ -218,7 +218,7 @@ fn find_package<R: Runtime>(
     if !is_custom_slug(slug) {
         return Ok(None);
     }
-    let root = custom_root().join(slug);
+    let root = custom_root().join(id);
     if !root.is_dir() {
         return Ok(None);
     }
