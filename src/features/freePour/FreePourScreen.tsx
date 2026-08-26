@@ -40,9 +40,12 @@ import {
 } from './brewWeightFilter';
 import {
   canRecordSetupWeight,
+  isZeroBrewerWeight,
   isValidSetupWeight,
   nextStageAfterTare,
+  normalizeBrewerWeight,
   SETUP_LOAD_CHANGE_G,
+  SETUP_ZERO_WEIGHT_TOLERANCE_G,
   SetupStage,
   SetupStatus
 } from './setupFlow';
@@ -66,7 +69,6 @@ const SAMPLE_INTERVAL_MS = 200;
 const PRE_START_SAMPLE_CAPACITY = 20;
 const MAX_BREW_DURATION_MS = 10 * 60 * 1000;
 const MAX_POURS = 5;
-const TARE_CONFIRM_TOLERANCE_G = 0.6;
 const TARE_CONFIRM_TIMEOUT_MS = 5000;
 const isSetupStage = (stage: Stage): stage is SetupStage =>
   stage === 'server' || stage === 'brewer' || stage === 'coffee';
@@ -325,7 +327,7 @@ export const FreePourScreen = ({
   const [setupReviewCursor, setSetupReviewCursor] = useState(0);
   const stable = useStableWeight(weight, stage);
   const serverReady = stable;
-  const brewerReady = stable && weight >= SETUP_LOAD_CHANGE_G;
+  const brewerReady = stable && isValidSetupWeight('brewer', weight);
   const coffeeReady = stable && weight >= 5 && weight <= 40;
 
   const stageRef = useRef(stage);
@@ -995,7 +997,8 @@ export const FreePourScreen = ({
     if (setupStatus !== 'saving' || !stable || !isSetupStage(stage)) return;
 
     if (
-      Math.abs(weight - setupCaptureWeight.current) > TARE_CONFIRM_TOLERANCE_G
+      Math.abs(weight - setupCaptureWeight.current) >
+      SETUP_ZERO_WEIGHT_TOLERANCE_G
     ) {
       logFreePour('weight_save_cancelled', {
         runId,
@@ -1022,7 +1025,7 @@ export const FreePourScreen = ({
     if (stage === 'server') {
       serverWeight.current = weight;
     } else if (stage === 'brewer') {
-      brewerWeight.current = weight;
+      brewerWeight.current = normalizeBrewerWeight(weight);
     } else {
       const measuredDose = weight;
       setDoseG(Math.round(measuredDose));
@@ -1047,7 +1050,7 @@ export const FreePourScreen = ({
       setupStatus !== 'taring' ||
       !stable ||
       !isSetupStage(stage) ||
-      Math.abs(weight) > TARE_CONFIRM_TOLERANCE_G
+      Math.abs(weight) > SETUP_ZERO_WEIGHT_TOLERANCE_G
     ) {
       return;
     }
@@ -1321,14 +1324,21 @@ export const FreePourScreen = ({
       <div className="free-pour-screen free-pour-setup-screen">
         <div className="free-pour-step">3 OF 8</div>
         <div className="free-pour-kicker">ADD BREWER</div>
-        <div className="free-pour-setup-weight">{Math.round(weight)}g</div>
+        <div className="free-pour-setup-weight">
+          {Math.round(normalizeBrewerWeight(weight))}g
+        </div>
         <SetupReadiness
           ready={brewerReady}
           status={setupStatus}
           waitingMessage={
             weight < SETUP_LOAD_CHANGE_G
-              ? 'PLACE BREWER ON SERVER · WAIT FOR STABLE WEIGHT'
+              ? 'ADD BREWER OR LEAVE AT 0g · WAIT FOR STABLE WEIGHT'
               : 'WAIT FOR A STABLE WEIGHT'
+          }
+          readyMessage={
+            isZeroBrewerWeight(weight)
+              ? '0g BREWER · PRESS DIAL TO RECORD'
+              : undefined
           }
         />
         <div
