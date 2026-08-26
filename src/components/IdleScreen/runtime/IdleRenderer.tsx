@@ -137,10 +137,14 @@ function TickRing({
     0
   );
   const startAngle = layer.startAngle ?? -90;
+  const count = layer.hourTicksOnly ? 12 : layer.count;
   return (
     <div style={baseStyle(layer, context)}>
-      {Array.from({ length: layer.count }).map((_, index) => {
-        const style = selectTickStyle(layer.styles, index);
+      {Array.from({ length: count }).map((_, index) => {
+        const style = layer.hourTicksOnly
+          ? layer.styles[layer.styles.length - 1]
+          : selectTickStyle(layer.styles, index);
+        if (!style) return null;
         const width = asNumber(
           resolveDynamicValue(style.width, context.data, context.screen.tokens),
           1
@@ -158,7 +162,7 @@ function TickRing({
           '#ffffff'
         );
         const tickRadius = radius + (style.radiusOffset ?? 0);
-        const angle = startAngle + (index * 360) / layer.count;
+        const angle = startAngle + (index * 360) / count;
         return (
           <div
             key={index}
@@ -218,6 +222,7 @@ function AnalogHand({
           layer.timeUnit,
           layer.smooth !== false
         );
+  const pivot = layer.pivot ?? { x: 240, y: 240 };
 
   return (
     <div
@@ -228,15 +233,15 @@ function AnalogHand({
         width: 480,
         height: 480,
         transform: `rotate(${rotation}deg)`,
-        transformOrigin: '240px 240px',
+        transformOrigin: `${pivot.x}px ${pivot.y}px`,
         pointerEvents: 'none'
       }}
     >
       <div
         style={{
           position: 'absolute',
-          left: 240 - width / 2,
-          top: 240 - length,
+          left: pivot.x - width / 2,
+          top: pivot.y - length,
           width,
           height: length + tailLength,
           background: color,
