@@ -89,6 +89,8 @@ function renderLayer(
       return <TickRing key={layer.id} layer={layer} context={context} />;
     case 'analogHand':
       return <AnalogHand key={layer.id} layer={layer} context={context} />;
+    case 'pivot':
+      return null;
     case 'pivotCap':
       return <div key={layer.id} style={pivotStyle(layer, context)} />;
     case 'digitalTime':
@@ -222,7 +224,7 @@ function AnalogHand({
           layer.timeUnit,
           layer.smooth !== false
         );
-  const pivot = layer.pivot ?? { x: 240, y: 240 };
+  const pivot = resolveHandPivot(layer, context.screen.layers);
 
   return (
     <div
@@ -250,6 +252,26 @@ function AnalogHand({
       />
     </div>
   );
+}
+
+function resolveHandPivot(
+  layer: IdleAnalogHandLayer,
+  layers: IdleLayer[]
+): { x: number; y: number } {
+  if (layer.pivot.mode === 'center') return { x: 240, y: 240 };
+  const target = findLayer(layers, layer.pivot.target);
+  return target?.type === 'pivot' ? target.point : { x: 240, y: 240 };
+}
+
+function findLayer(layers: IdleLayer[], id: string): IdleLayer | undefined {
+  for (const layer of layers) {
+    if (layer.id === id) return layer;
+    if (layer.type === 'group') {
+      const child = findLayer(layer.children, id);
+      if (child) return child;
+    }
+  }
+  return undefined;
 }
 
 function DigitalTime({
