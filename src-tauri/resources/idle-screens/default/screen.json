@@ -1,219 +1,125 @@
 {
-  "dataSources": [
-    {
-      "id": "clock",
-      "refreshMs": 250,
-      "source": "time"
-    },
-    {
-      "id": "network",
-      "refreshMs": 60000,
-      "source": "wifi"
-    }
-  ],
   "documentType": "meticulous-idle-screen",
+  "schemaVersion": 2,
+  "runtimeApi": 1,
   "id": "default",
-  "layers": [
-    {
-      "count": 60,
-      "id": "ticks",
-      "name": "Minute ticks",
-      "radius": 235.5,
-      "startAngle": -90,
-      "styles": [
-        {
-          "color": {
-            "token": "colors.minorTick"
-          },
-          "every": 1,
-          "length": 15.5,
-          "width": 1.5
-        },
-        {
-          "color": {
-            "token": "colors.majorTick"
-          },
-          "every": 5,
-          "length": 31.5,
-          "width": 1.5
-        }
-      ],
-      "transform": {
-        "height": 480,
-        "width": 480,
-        "x": 0,
-        "y": 0
-      },
-      "type": "tickRing"
-    },
-    {
-      "color": {
-        "token": "colors.hand"
-      },
-      "font": {
-        "align": "center",
-        "family": {
-          "token": "fonts.brand"
-        },
-        "size": 24,
-        "weight": 500
-      },
-      "id": "brand",
-      "maxLines": 1,
-      "name": "Meticulous mark",
-      "text": "M",
-      "transform": {
-        "height": 32,
-        "width": 60,
-        "x": 210,
-        "y": 101
-      },
-      "type": "text",
-      "verticalAlign": "middle",
-      "wrap": "none"
-    },
-    {
-      "fill": {
-        "token": "colors.hand"
-      },
-      "id": "wifiConnected",
-      "name": "Wi-Fi status",
-      "opacity": 0.4,
-      "shape": "circle",
-      "transform": {
-        "height": 12,
-        "width": 12,
-        "x": 234,
-        "y": 360
-      },
-      "type": "shape",
-      "visible": {
-        "operator": "truthy",
-        "path": "connected",
-        "source": "wifi"
-      }
-    },
-    {
-      "color": {
-        "token": "colors.hand"
-      },
-      "id": "hourHand",
-      "length": 82.42,
-      "rotation": {
-        "binding": {
-          "fallback": 0,
-          "path": "angles.hour12Smooth",
-          "source": "time"
-        }
-      },
-      "shape": "rectangle",
-      "smooth": true,
-      "tailLength": 0,
-      "timeUnit": "hour",
-      "transform": {
-        "height": 165,
-        "width": 10,
-        "x": 240,
-        "y": 240
-      },
-      "type": "analogHand",
-      "width": 9
-    },
-    {
-      "color": {
-        "token": "colors.hand"
-      },
-      "id": "minuteHand",
-      "length": 125.5,
-      "rotation": {
-        "binding": {
-          "fallback": 0,
-          "path": "angles.minuteSmooth",
-          "source": "time"
-        }
-      },
-      "shape": "rectangle",
-      "smooth": true,
-      "tailLength": 0,
-      "timeUnit": "minute",
-      "transform": {
-        "height": 251,
-        "width": 10,
-        "x": 240,
-        "y": 240
-      },
-      "type": "analogHand",
-      "width": 6
-    },
-    {
-      "color": {
-        "token": "colors.second"
-      },
-      "id": "secondHand",
-      "length": 50.83,
-      "rotation": {
-        "binding": {
-          "fallback": 0,
-          "path": "angles.secondSmooth",
-          "source": "time"
-        }
-      },
-      "shape": "rectangle",
-      "smooth": true,
-      "tailLength": 0,
-      "timeUnit": "second",
-      "transform": {
-        "height": 102,
-        "width": 10,
-        "x": 240,
-        "y": 240
-      },
-      "type": "analogHand",
-      "width": 4
-    }
-  ],
   "name": "Analog Clock",
+  "viewport": {
+    "width": 480,
+    "height": 480,
+    "shape": "circle",
+    "background": { "token": "colors.background" },
+    "overflow": "hidden"
+  },
   "runtime": {
     "brightness": {
-      "brightDurationMs": 5000,
-      "brightValue": 0.33,
-      "cycleAfterMs": 600000,
-      "dimDurationMs": 55000,
-      "dimValue": 0.03,
       "onEnter": 0.33,
-      "onExit": 1
+      "onExit": 1,
+      "cycleAfterMs": 600000,
+      "dimValue": 0.03,
+      "brightValue": 0.33,
+      "dimDurationMs": 55000,
+      "brightDurationMs": 5000
     },
     "burnInProtection": {
-      "distance": 0.5,
-      "durationMs": 3600000,
       "enabled": true,
-      "mode": "rotate"
+      "mode": "rotate",
+      "durationMs": 3600000,
+      "distance": 0.5
     }
   },
-  "runtimeApi": 1,
-  "schemaVersion": 2,
   "tokens": {
     "colors": {
       "background": "#000000",
       "hand": "#E6E6E6",
+      "second": "#F5C444",
       "majorTick": "#898989",
-      "minorTick": "#494949",
-      "second": "#F5C444"
+      "minorTick": "#494949"
     },
-    "fonts": {
-      "brand": "ABC Diatype"
-    },
-    "numbers": {
-      "center": 240
-    }
+    "fonts": { "brand": "ABC Diatype" },
+    "numbers": { "center": 240 }
   },
-  "viewport": {
-    "background": {
-      "token": "colors.background"
+  "dataSources": [
+    { "id": "clock", "source": "time", "refreshMs": 250 },
+    { "id": "network", "source": "wifi", "refreshMs": 60000 }
+  ],
+  "layers": [
+    {
+      "id": "ticks",
+      "type": "tickRing",
+      "name": "Minute ticks",
+      "transform": { "x": 0, "y": 0, "width": 480, "height": 480 },
+      "count": 60,
+      "radius": 235.5,
+      "startAngle": -90,
+      "styles": [
+        { "every": 1, "width": 1.5, "length": 15.5, "color": { "token": "colors.minorTick" } },
+        { "every": 5, "width": 1.5, "length": 31.5, "color": { "token": "colors.majorTick" } }
+      ]
     },
-    "height": 480,
-    "overflow": "hidden",
-    "shape": "circle",
-    "width": 480
-  }
+    {
+      "id": "brand",
+      "type": "text",
+      "name": "Meticulous mark",
+      "transform": { "x": 210, "y": 101, "width": 60, "height": 32 },
+      "text": "M",
+      "font": { "family": { "token": "fonts.brand" }, "size": 24, "weight": 500, "align": "center" },
+      "color": { "token": "colors.hand" },
+      "verticalAlign": "middle",
+      "wrap": "none",
+      "maxLines": 1
+    },
+    {
+      "id": "wifiConnected",
+      "type": "shape",
+      "name": "Wi-Fi status",
+      "transform": { "x": 234, "y": 360, "width": 12, "height": 12 },
+      "visible": { "source": "wifi", "path": "connected", "operator": "truthy" },
+      "opacity": 0.4,
+      "shape": "circle",
+      "fill": { "token": "colors.hand" }
+    },
+    {
+      "id": "hourHand",
+      "type": "analogHand",
+      "transform": { "x": 240, "y": 240, "width": 10, "height": 165 },
+      "pivot": { "x": 240, "y": 240 },
+      "timeUnit": "hour",
+      "rotation": { "binding": { "source": "time", "path": "angles.hour12Smooth", "fallback": 0 } },
+      "length": 82.42,
+      "width": 9,
+      "tailLength": 0,
+      "shape": "rectangle",
+      "color": { "token": "colors.hand" },
+      "smooth": true
+    },
+    {
+      "id": "minuteHand",
+      "type": "analogHand",
+      "transform": { "x": 240, "y": 240, "width": 10, "height": 251 },
+      "pivot": { "x": 240, "y": 240 },
+      "timeUnit": "minute",
+      "rotation": { "binding": { "source": "time", "path": "angles.minuteSmooth", "fallback": 0 } },
+      "length": 125.5,
+      "width": 6,
+      "tailLength": 0,
+      "shape": "rectangle",
+      "color": { "token": "colors.hand" },
+      "smooth": true
+    },
+    {
+      "id": "secondHand",
+      "type": "analogHand",
+      "transform": { "x": 240, "y": 240, "width": 10, "height": 102 },
+      "pivot": { "x": 240, "y": 240 },
+      "timeUnit": "second",
+      "rotation": { "binding": { "source": "time", "path": "angles.secondSmooth", "fallback": 0 } },
+      "length": 50.83,
+      "width": 4,
+      "tailLength": 0,
+      "shape": "rectangle",
+      "color": { "token": "colors.second" },
+      "smooth": true
+    }
+  ]
 }

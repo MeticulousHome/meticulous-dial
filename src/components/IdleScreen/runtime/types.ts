@@ -57,6 +57,7 @@ export interface IdleScreenDefinition {
   metadata: IdleScreenMetadata;
   manifest: IdleManifest;
   screen: IdleScreenDocument;
+  assetUrls?: Record<string, string>;
 }
 
 export type DynamicValue =
@@ -218,6 +219,7 @@ export interface IdleTickRingLayer extends IdleLayerBase {
   count: number;
   radius: DynamicValue;
   startAngle?: number;
+  hourTicksOnly?: boolean;
   styles: {
     every: number;
     offset?: number;
@@ -231,6 +233,7 @@ export interface IdleTickRingLayer extends IdleLayerBase {
 
 export interface IdleAnalogHandLayer extends IdleLayerBase {
   type: 'analogHand';
+  pivot?: { x: number; y: number };
   timeUnit: 'hour' | 'minute' | 'second' | 'custom';
   rotation: DynamicValue;
   length: DynamicValue;
