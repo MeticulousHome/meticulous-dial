@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { AnalogClock } from '../AnalogClock';
-import { loadIdleScreenPackage } from './packageApi';
+import {
+  disposeIdleScreenPackage,
+  loadIdleScreenPackage
+} from './packageApi';
 import { IdleRenderer } from './IdleRenderer';
 import { validateIdleScreenDefinition } from './validation';
 import type {
@@ -31,9 +34,11 @@ export function PackageIdleScreen({
 
   useEffect(() => {
     let cancelled = false;
+    let loadedDefinition: IdleScreenDefinition | null = null;
     const load = async () => {
       try {
         const loaded = await loadIdleScreenPackage(sessionPackageId.current);
+        loadedDefinition = loaded;
         const screen = validateIdleScreenDefinition(loaded);
         if (cancelled) return;
         setDefinition({ ...loaded, screen });
@@ -48,6 +53,7 @@ export function PackageIdleScreen({
     load();
     return () => {
       cancelled = true;
+      if (loadedDefinition) disposeIdleScreenPackage(loadedDefinition);
     };
   }, [onRuntime]);
 

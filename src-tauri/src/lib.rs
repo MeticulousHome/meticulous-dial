@@ -7,7 +7,6 @@ use tauri::State;
 
 mod community_upload;
 mod config;
-mod idle_screen;
 mod profiles;
 
 use community_upload::{CommunityEnrollment, CommunityUploadRuntime, CommunityUploadStatus};
@@ -186,15 +185,10 @@ pub fn run() {
                 )) // add the terminal (stdout) as log target
                 .build(),
         )
-        .register_uri_scheme_protocol("idle-asset", |ctx, request| {
-            idle_screen::asset_protocol_response(ctx.app_handle(), request)
-        })
         .invoke_handler(tauri::generate_handler![
             ready,
             home_ready,
             get_profiles,
-            idle_screen::list_idle_screen_packages,
-            idle_screen::load_idle_screen_package,
             community_upload_status,
             community_begin_enrollment,
             community_set_upload_paused,

@@ -98,6 +98,7 @@
     "classnames": "^2.5.1",
     "fast-deep-equal": "^3.1.3",
     "fast-equals": "^5.4.0",
+    "fflate": "^0.8.2",
     "framer-motion": "^12.38.0",
     "lottie-web": "^5.12.2",
     "nanoevents": "^9.0.0",
