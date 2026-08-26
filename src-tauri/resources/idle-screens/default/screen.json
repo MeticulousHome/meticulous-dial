@@ -80,10 +80,17 @@
       "fill": { "token": "colors.hand" }
     },
     {
+      "id": "clockPivot",
+      "type": "pivot",
+      "name": "Clock pivot",
+      "transform": { "x": 232, "y": 232, "width": 16, "height": 16 },
+      "point": { "x": 240, "y": 240 }
+    },
+    {
       "id": "hourHand",
       "type": "analogHand",
       "transform": { "x": 240, "y": 240, "width": 10, "height": 165 },
-      "pivot": { "x": 240, "y": 240 },
+      "pivot": { "mode": "custom", "target": "clockPivot" },
       "timeUnit": "hour",
       "rotation": { "binding": { "source": "time", "path": "angles.hour12Smooth", "fallback": 0 } },
       "length": 82.42,
@@ -97,7 +104,7 @@
       "id": "minuteHand",
       "type": "analogHand",
       "transform": { "x": 240, "y": 240, "width": 10, "height": 251 },
-      "pivot": { "x": 240, "y": 240 },
+      "pivot": { "mode": "custom", "target": "clockPivot" },
       "timeUnit": "minute",
       "rotation": { "binding": { "source": "time", "path": "angles.minuteSmooth", "fallback": 0 } },
       "length": 125.5,
@@ -111,7 +118,7 @@
       "id": "secondHand",
       "type": "analogHand",
       "transform": { "x": 240, "y": 240, "width": 10, "height": 102 },
-      "pivot": { "x": 240, "y": 240 },
+      "pivot": { "mode": "custom", "target": "clockPivot" },
       "timeUnit": "second",
       "rotation": { "binding": { "source": "time", "path": "angles.secondSmooth", "fallback": 0 } },
       "length": 50.83,

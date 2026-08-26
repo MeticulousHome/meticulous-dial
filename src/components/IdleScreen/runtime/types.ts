@@ -166,6 +166,7 @@ export type IdleLayer =
   | IdleImageLayer
   | IdleTickRingLayer
   | IdleAnalogHandLayer
+  | IdlePivotLayer
   | IdlePivotCapLayer
   | IdleDigitalTimeLayer
   | IdleProgressArcLayer
@@ -233,7 +234,7 @@ export interface IdleTickRingLayer extends IdleLayerBase {
 
 export interface IdleAnalogHandLayer extends IdleLayerBase {
   type: 'analogHand';
-  pivot?: { x: number; y: number };
+  pivot: { mode: 'center' } | { mode: 'custom'; target: string };
   timeUnit: 'hour' | 'minute' | 'second' | 'custom';
   rotation: DynamicValue;
   length: DynamicValue;
@@ -243,6 +244,11 @@ export interface IdleAnalogHandLayer extends IdleLayerBase {
   color?: DynamicValue;
   asset?: string;
   smooth?: boolean;
+}
+
+export interface IdlePivotLayer extends IdleLayerBase {
+  type: 'pivot';
+  point: { x: number; y: number };
 }
 
 export interface IdlePivotCapLayer extends IdleLayerBase {
