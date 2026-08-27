@@ -15,7 +15,6 @@ const SCREEN_LAYER_TYPES = new Set([
   'image',
   'tickRing',
   'analogHand',
-  'pivot',
   'pivotCap',
   'digitalTime',
   'progressArc',
@@ -70,14 +69,6 @@ export function validateScreenSemantics(
     }
     validateLayerAssets(layer, assets);
   });
-  forEachLayer(screen.layers, (layer) => {
-    if (layer.type === 'analogHand' && layer.pivot.mode === 'custom') {
-      const target = findLayer(screen.layers, layer.pivot.target);
-      if (!target || target.type !== 'pivot') {
-        throw new Error(`analog hand ${layer.id} references an invalid pivot`);
-      }
-    }
-  });
 }
 
 export function forEachLayer(
@@ -90,17 +81,6 @@ export function forEachLayer(
       forEachLayer(layer.children, callback);
     }
   }
-}
-
-function findLayer(layers: IdleLayer[], id: string): IdleLayer | undefined {
-  for (const layer of layers) {
-    if (layer.id === id) return layer;
-    if (layer.type === 'group') {
-      const child = findLayer(layer.children, id);
-      if (child) return child;
-    }
-  }
-  return undefined;
 }
 
 function validateLayerAssets(
