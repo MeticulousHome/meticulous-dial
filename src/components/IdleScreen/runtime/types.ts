@@ -113,15 +113,15 @@ export interface IdleCondition {
 }
 
 export interface IdleTransform {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation?: number;
-  anchorX?: number;
-  anchorY?: number;
-  scaleX?: number;
-  scaleY?: number;
+  x: DynamicValue;
+  y: DynamicValue;
+  width: DynamicValue;
+  height: DynamicValue;
+  rotation?: DynamicValue;
+  anchorX?: DynamicValue;
+  anchorY?: DynamicValue;
+  scaleX?: DynamicValue;
+  scaleY?: DynamicValue;
 }
 
 export interface IdleRuntimePolicy {
@@ -146,6 +146,8 @@ export interface IdleTokens {
   colors: Record<string, string>;
   fonts: Record<string, string>;
   numbers: Record<string, number>;
+  strings: Record<string, string>;
+  booleans: Record<string, boolean>;
 }
 
 export interface IdleLayerBase {
@@ -154,9 +156,9 @@ export interface IdleLayerBase {
   name?: string;
   transform: IdleTransform;
   visible?: boolean | { binding: IdleBinding } | IdleCondition;
-  opacity?: number | { binding: IdleBinding };
+  opacity?: DynamicValue;
   locked?: boolean;
-  blendMode?: 'normal' | 'multiply' | 'screen' | 'overlay';
+  blendMode?: DynamicValue;
 }
 
 export type IdleLayer =
@@ -173,13 +175,13 @@ export type IdleLayer =
 
 export interface IdleGroupLayer extends IdleLayerBase {
   type: 'group';
-  clip?: 'none' | 'bounds' | 'circle';
+  clip?: DynamicValue;
   children: IdleLayer[];
 }
 
 export interface IdleShapeLayer extends IdleLayerBase {
   type: 'shape';
-  shape: 'rectangle' | 'roundedRectangle' | 'circle' | 'line';
+  shape: DynamicValue;
   fill?: DynamicValue;
   stroke?: DynamicValue;
   strokeWidth?: DynamicValue;
@@ -190,11 +192,11 @@ export interface IdleFont {
   family: DynamicValue;
   asset?: string;
   size: DynamicValue;
-  weight?: number;
-  style?: 'normal' | 'italic';
-  align?: 'left' | 'center' | 'right';
-  lineHeight?: number;
-  tabularNumbers?: boolean;
+  weight?: DynamicValue;
+  style?: DynamicValue;
+  align?: DynamicValue;
+  lineHeight?: DynamicValue;
+  tabularNumbers?: DynamicValue;
 }
 
 export interface IdleTextLayer extends IdleLayerBase {
@@ -202,47 +204,48 @@ export interface IdleTextLayer extends IdleLayerBase {
   text: DynamicValue;
   font: IdleFont;
   color: DynamicValue;
-  verticalAlign?: 'top' | 'middle' | 'bottom';
-  wrap?: 'none' | 'word' | 'character';
-  maxLines?: number;
+  verticalAlign?: DynamicValue;
+  wrap?: DynamicValue;
+  maxLines?: DynamicValue;
 }
 
 export interface IdleImageLayer extends IdleLayerBase {
   type: 'image';
   asset: string;
-  fit?: 'contain' | 'cover' | 'fill' | 'none';
+  fit?: DynamicValue;
   variants?: { when: IdleCondition; asset: string }[];
 }
 
 export interface IdleTickRingLayer extends IdleLayerBase {
   type: 'tickRing';
-  count: number;
+  count: DynamicValue;
   radius: DynamicValue;
-  startAngle?: number;
-  hourTicksOnly?: boolean;
+  startAngle?: DynamicValue;
+  hourTicksOnly?: DynamicValue;
   styles: {
-    every: number;
-    offset?: number;
+    every: DynamicValue;
+    offset?: DynamicValue;
     width: DynamicValue;
     length: DynamicValue;
     color: DynamicValue;
-    radiusOffset?: number;
-    rounded?: boolean;
+    radiusOffset?: DynamicValue;
+    rounded?: DynamicValue;
   }[];
 }
 
 export interface IdleAnalogHandLayer extends IdleLayerBase {
   type: 'analogHand';
-  pivot?: { x: number; y: number };
-  timeUnit: 'hour' | 'minute' | 'second' | 'custom';
+  pivot: { x: DynamicValue; y: DynamicValue };
+  distanceFromCenter: DynamicValue;
+  timeUnit: DynamicValue;
   rotation: DynamicValue;
   length: DynamicValue;
   width: DynamicValue;
   tailLength?: DynamicValue;
-  shape: 'rectangle' | 'rounded' | 'tapered' | 'needle' | 'image';
+  shape: DynamicValue;
   color?: DynamicValue;
   asset?: string;
-  smooth?: boolean;
+  smooth?: DynamicValue;
 }
 
 export interface IdlePivotCapLayer extends IdleLayerBase {
@@ -253,36 +256,49 @@ export interface IdlePivotCapLayer extends IdleLayerBase {
   borderWidth?: DynamicValue;
 }
 
+export type IdleDigitalTimeTemplate =
+  | 'HH:mm'
+  | 'HH:mm:ss'
+  | 'mm:ss'
+  | 'mm'
+  | 'HH'
+  | 'ss'
+  | 'hh:mm a'
+  | 'hh:mm:ss a'
+  | 'stackedHM';
+
+export type IdleHourMode = 'locale' | '12' | '24';
+
 export interface IdleDigitalTimeLayer extends IdleLayerBase {
   type: 'digitalTime';
-  template: 'HH:mm' | 'HH:mm:ss' | 'hh:mm a' | 'hh:mm:ss a' | 'stackedHM';
-  hourMode: 'locale' | '12' | '24';
+  template: DynamicValue;
+  hourMode: DynamicValue;
   font: IdleFont;
   color: DynamicValue;
   middayFont?: IdleFont;
   middayColor?: DynamicValue;
-  separatorBlink?: boolean;
+  separatorBlink?: DynamicValue;
 }
 
 export interface IdleProgressArcLayer extends IdleLayerBase {
   type: 'progressArc';
   value: DynamicValue;
-  minimum: number;
-  maximum: number;
-  startAngle: number;
-  sweepAngle: number;
+  minimum: DynamicValue;
+  maximum: DynamicValue;
+  startAngle: DynamicValue;
+  sweepAngle: DynamicValue;
   strokeWidth: DynamicValue;
   color: DynamicValue;
   trackColor?: DynamicValue;
-  rounded?: boolean;
+  rounded?: DynamicValue;
 }
 
 export interface IdleLottieLayer extends IdleLayerBase {
   type: 'lottie';
   asset: string;
-  autoplay?: boolean;
-  loop?: boolean;
-  speed?: number;
+  autoplay?: DynamicValue;
+  loop?: DynamicValue;
+  speed?: DynamicValue;
   segments?: {
     name: string;
     from: number;

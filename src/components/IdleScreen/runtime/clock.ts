@@ -1,4 +1,4 @@
-import type { IdleDigitalTimeLayer } from './types';
+import type { IdleDigitalTimeTemplate, IdleHourMode } from './types';
 
 export function computeAnalogRotation(
   date: Date,
@@ -14,10 +14,28 @@ export function computeAnalogRotation(
   return (smooth ? seconds : Math.floor(seconds)) * 6;
 }
 
+export function radialHandBounds(
+  pivotX: number,
+  pivotY: number,
+  length: number,
+  width: number,
+  tailLength: number,
+  distanceFromCenter: number
+) {
+  const distance = Math.max(0, Math.min(480, distanceFromCenter));
+  return {
+    left: pivotX - width / 2,
+    top: pivotY - distance - length,
+    width,
+    height: length + tailLength,
+    distance
+  };
+}
+
 export function formatDigitalTime(
   date: Date,
-  template: IdleDigitalTimeLayer['template'],
-  hourMode: IdleDigitalTimeLayer['hourMode']
+  template: IdleDigitalTimeTemplate,
+  hourMode: IdleHourMode
 ): string {
   const use12 =
     hourMode === '12' || (hourMode === 'locale' && localeUses12Hour(date));
@@ -37,6 +55,10 @@ export function formatDigitalTime(
   if (template === 'HH:mm:ss') {
     return `${rawHour.toString().padStart(2, '0')}:${minute}:${second}`;
   }
+  if (template === 'mm:ss') return `${minute}:${second}`;
+  if (template === 'mm') return minute;
+  if (template === 'HH') return rawHour.toString().padStart(2, '0');
+  if (template === 'ss') return second;
   if (template === 'hh:mm a') return `${hourText}:${minute} ${midday}`;
   return `${hourText}:${minute}:${second} ${midday}`;
 }

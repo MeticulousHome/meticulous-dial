@@ -9,19 +9,34 @@ import {
   resolveDynamicValue,
   useIdleDataContext
 } from './data';
-import { computeAnalogRotation, formatDigitalTime } from './clock';
+import { computeAnalogRotation, formatDigitalTime, radialHandBounds } from './clock';
 import type {
   IdleAnalogHandLayer,
   IdleDataContext,
+  IdleDigitalTimeTemplate,
   IdleDigitalTimeLayer,
+  DynamicValue,
   IdleFont,
   IdleImageLayer,
   IdleLayer,
   IdleLottieLayer,
   IdleScreenDefinition,
   IdleScreenDocument,
-  IdleTransform
+  IdleTransform,
+  IdleHourMode
 } from './types';
+
+interface ResolvedTransform {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  anchorX: number;
+  anchorY: number;
+  scaleX: number;
+  scaleY: number;
+}
 
 interface RenderContext {
   definition: IdleScreenDefinition;
@@ -117,9 +132,7 @@ function ImageLayer({
       src={idleAssetUrl(context.definition, assetId)}
       style={{
         ...baseStyle(layer, context),
-        objectFit: layer.fit ?? 'contain',
-        width: layer.transform.width,
-        height: layer.transform.height
+        objectFit: asImageFit(resolve(layer.fit, context), 'contain')
       }}
     />
   );
@@ -136,14 +149,17 @@ function TickRing({
     resolveDynamicValue(layer.radius, context.data, context.screen.tokens),
     0
   );
-  const startAngle = layer.startAngle ?? -90;
-  const count = layer.hourTicksOnly ? 12 : layer.count;
+  const startAngle = asNumber(resolve(layer.startAngle, context), -90);
+  const hourTicksOnly = asBoolean(resolve(layer.hourTicksOnly, context), false);
+  const count = hourTicksOnly
+    ? 12
+    : Math.max(1, Math.round(asNumber(resolve(layer.count, context), 60)));
   return (
     <div style={baseStyle(layer, context)}>
       {Array.from({ length: count }).map((_, index) => {
-        const style = layer.hourTicksOnly
+        const style = hourTicksOnly
           ? layer.styles[layer.styles.length - 1]
-          : selectTickStyle(layer.styles, index);
+          : selectTickStyle(layer.styles, index, context);
         if (!style) return null;
         const width = asNumber(
           resolveDynamicValue(style.width, context.data, context.screen.tokens),
@@ -161,7 +177,7 @@ function TickRing({
           resolveDynamicValue(style.color, context.data, context.screen.tokens),
           '#ffffff'
         );
-        const tickRadius = radius + (style.radiusOffset ?? 0);
+        const tickRadius = radius + asNumber(resolve(style.radiusOffset, context), 0);
         const angle = startAngle + (index * 360) / count;
         return (
           <div
@@ -173,7 +189,7 @@ function TickRing({
               width,
               height: length,
               background: color,
-              borderRadius: style.rounded ? width : 0,
+              borderRadius: asBoolean(resolve(style.rounded, context), false) ? width : 0,
               transformOrigin: `${width / 2}px ${tickRadius}px`,
               transform: `rotate(${angle}deg)`
             }}
@@ -207,8 +223,10 @@ function AnalogHand({
     resolveDynamicValue(layer.color, context.data, context.screen.tokens),
     '#ffffff'
   );
+  const timeUnit = asHandUnit(resolve(layer.timeUnit, context));
+  const smooth = asBoolean(resolve(layer.smooth, context), true);
   const rotation =
-    layer.timeUnit === 'custom'
+    timeUnit === 'custom'
       ? asNumber(
           resolveDynamicValue(
             layer.rotation,
@@ -219,10 +237,26 @@ function AnalogHand({
         )
       : computeAnalogRotation(
           context.now,
-          layer.timeUnit,
-          layer.smooth !== false
+          timeUnit,
+          smooth
         );
-  const pivot = layer.pivot ?? { x: 240, y: 240 };
+  const pivot = {
+    x: asNumber(resolve(layer.pivot.x, context), 240),
+    y: asNumber(resolve(layer.pivot.y, context), 240)
+  };
+  const distanceFromCenter = Math.max(
+    0,
+    Math.min(480, asNumber(resolve(layer.distanceFromCenter, context), 0))
+  );
+  const shape = asText(resolve(layer.shape, context));
+  const bounds = radialHandBounds(
+    pivot.x,
+    pivot.y,
+    length,
+    width,
+    tailLength,
+    distanceFromCenter
+  );
 
   return (
     <div
@@ -240,12 +274,12 @@ function AnalogHand({
       <div
         style={{
           position: 'absolute',
-          left: pivot.x - width / 2,
-          top: pivot.y - length,
-          width,
-          height: length + tailLength,
+          left: bounds.left,
+          top: bounds.top,
+          width: bounds.width,
+          height: bounds.height,
           background: color,
-          borderRadius: layer.shape === 'rounded' ? width : 0
+          borderRadius: shape === 'rounded' ? width : 0
         }}
       />
     </div>
@@ -259,7 +293,9 @@ function DigitalTime({
   layer: IdleDigitalTimeLayer;
   context: RenderContext;
 }): JSX.Element {
-  const value = formatDigitalTime(context.now, layer.template, layer.hourMode);
+  const template = asTimeTemplate(resolve(layer.template, context));
+  const hourMode = asHourMode(resolve(layer.hourMode, context));
+  const value = formatDigitalTime(context.now, template, hourMode);
   const color = asColor(
     resolveDynamicValue(layer.color, context.data, context.screen.tokens),
     '#ffffff'
@@ -269,7 +305,7 @@ function DigitalTime({
     color
   );
 
-  if (layer.template === 'stackedHM') {
+  if (template === 'stackedHM') {
     const [hours, minutes, midday] = value.split('\n');
     return (
       <div
@@ -317,8 +353,11 @@ function ProgressArc({
 }): JSX.Element {
   const value = asNumber(
     resolveDynamicValue(layer.value, context.data, context.screen.tokens),
-    layer.minimum
+    0
   );
+  const minimum = asNumber(resolve(layer.minimum, context), 0);
+  const maximum = asNumber(resolve(layer.maximum, context), 1);
+  const startAngle = asNumber(resolve(layer.startAngle, context), -90);
   const strokeWidth = asNumber(
     resolveDynamicValue(layer.strokeWidth, context.data, context.screen.tokens),
     1
@@ -333,11 +372,12 @@ function ProgressArc({
   );
   const normalized = Math.min(
     1,
-    Math.max(0, (value - layer.minimum) / (layer.maximum - layer.minimum || 1))
+    Math.max(0, (value - minimum) / (maximum - minimum || 1))
   );
+  const transform = resolvedTransform(layer.transform, context);
   const radius = Math.max(
     0,
-    Math.min(layer.transform.width, layer.transform.height) / 2 -
+    Math.min(transform.width, transform.height) / 2 -
       strokeWidth / 2
   );
   const circumference = 2 * Math.PI * radius;
@@ -358,9 +398,9 @@ function ProgressArc({
         fill="none"
         stroke={color}
         strokeWidth={strokeWidth}
-        strokeLinecap={layer.rounded === false ? 'butt' : 'round'}
+        strokeLinecap={asBoolean(resolve(layer.rounded, context), true) ? 'round' : 'butt'}
         strokeDasharray={`${circumference * normalized} ${circumference}`}
-        transform={`rotate(${layer.startAngle} 240 240)`}
+        transform={`rotate(${startAngle} 240 240)`}
       />
     </svg>
   );
@@ -388,10 +428,10 @@ function LottieLayer({
         container: ref.current,
         animationData,
         renderer: 'svg',
-        loop: layer.loop ?? true,
-        autoplay: layer.autoplay ?? true
+        loop: asBoolean(resolve(layer.loop, context), true),
+        autoplay: asBoolean(resolve(layer.autoplay, context), true)
       });
-      animation.current.setSpeed(layer.speed ?? 1);
+      animation.current.setSpeed(asNumber(resolve(layer.speed, context), 1));
       const [intro, loop] = layer.segments ?? [];
       if (intro && loop) {
         animation.current.playSegments(
@@ -419,7 +459,7 @@ function LottieLayer({
 }
 
 function baseStyle(layer: IdleLayer, context: RenderContext): CSSProperties {
-  const transform = layer.transform;
+  const transform = resolvedTransform(layer.transform, context);
   const opacity = asNumber(
     resolveDynamicValue(layer.opacity, context.data, context.screen.tokens),
     1
@@ -432,12 +472,16 @@ function baseStyle(layer: IdleLayer, context: RenderContext): CSSProperties {
     height: transform.height,
     opacity,
     overflow:
-      layer.type === 'group' && layer.clip !== 'none' ? 'hidden' : undefined,
+      layer.type === 'group' && asText(resolve(layer.clip, context)) !== 'none'
+        ? 'hidden'
+        : undefined,
     borderRadius:
-      layer.type === 'group' && layer.clip === 'circle' ? '50%' : undefined,
+      layer.type === 'group' && asText(resolve(layer.clip, context)) === 'circle'
+        ? '50%'
+        : undefined,
     transform: transformString(transform),
     transformOrigin: `${(transform.anchorX ?? 0.5) * 100}% ${(transform.anchorY ?? 0.5) * 100}%`,
-    mixBlendMode: layer.blendMode ?? 'normal',
+    mixBlendMode: asBlendMode(resolve(layer.blendMode, context)),
     pointerEvents: 'none'
   };
 }
@@ -450,10 +494,11 @@ function shapeStyle(
     resolveDynamicValue(layer.strokeWidth, context.data, context.screen.tokens),
     0
   );
+  const shape = asText(resolve(layer.shape, context));
   return {
     ...baseStyle(layer, context),
     background:
-      layer.shape === 'line'
+      shape === 'line'
         ? undefined
         : asColor(
             resolveDynamicValue(
@@ -468,9 +513,9 @@ function shapeStyle(
         ? `${strokeWidth}px solid ${asColor(resolveDynamicValue(layer.stroke, context.data, context.screen.tokens), 'transparent')}`
         : undefined,
     borderRadius:
-      layer.shape === 'circle'
+      shape === 'circle'
         ? '50%'
-        : layer.shape === 'roundedRectangle'
+        : shape === 'roundedRectangle'
           ? asNumber(
               resolveDynamicValue(
                 layer.cornerRadius,
@@ -491,26 +536,29 @@ function textStyle(
     resolveDynamicValue(layer.color, context.data, context.screen.tokens),
     '#ffffff'
   );
+  const verticalAlign = asText(resolve(layer.verticalAlign, context));
+  const wrap = asText(resolve(layer.wrap, context));
+  const align = asTextAlign(resolve(layer.font.align, context));
   return {
     ...baseStyle(layer, context),
     ...fontStyle(layer.font, context),
     color,
     display: 'flex',
     alignItems:
-      layer.verticalAlign === 'bottom'
+      verticalAlign === 'bottom'
         ? 'flex-end'
-        : layer.verticalAlign === 'top'
+        : verticalAlign === 'top'
           ? 'flex-start'
           : 'center',
     justifyContent:
-      layer.font.align === 'right'
+      align === 'right'
         ? 'flex-end'
-        : layer.font.align === 'left'
+        : align === 'left'
           ? 'flex-start'
           : 'center',
-    whiteSpace: layer.wrap === 'none' ? 'nowrap' : 'normal',
+    whiteSpace: wrap === 'none' ? 'nowrap' : 'normal',
     overflow: 'hidden',
-    textAlign: layer.font.align ?? 'left'
+    textAlign: align
   };
 }
 
@@ -523,11 +571,13 @@ function fontStyle(font: IdleFont, context: RenderContext): CSSProperties {
       resolveDynamicValue(font.size, context.data, context.screen.tokens),
       16
     ),
-    fontWeight: font.weight,
-    fontStyle: font.style,
-    lineHeight: font.lineHeight,
-    fontVariantNumeric: font.tabularNumbers ? 'tabular-nums' : undefined,
-    textAlign: font.align ?? 'left'
+    fontWeight: asNumber(resolve(font.weight, context), 400),
+    fontStyle: asFontStyle(resolve(font.style, context)),
+    lineHeight: asNumber(resolve(font.lineHeight, context), 1),
+    fontVariantNumeric: asBoolean(resolve(font.tabularNumbers, context), false)
+      ? 'tabular-nums'
+      : undefined,
+    textAlign: asTextAlign(resolve(font.align, context))
   };
 }
 
@@ -558,13 +608,37 @@ function pivotStyle(
   };
 }
 
-function selectTickStyle<T extends { every: number; offset?: number }>(
+function selectTickStyle<T extends { every: DynamicValue; offset?: DynamicValue }>(
   styles: T[],
-  index: number
+  index: number,
+  context: RenderContext
 ): T {
   return styles.reduce((selected, style) => {
-    return (index - (style.offset ?? 0)) % style.every === 0 ? style : selected;
+    const every = Math.max(1, Math.round(asNumber(resolve(style.every, context), 1)));
+    const offset = Math.round(asNumber(resolve(style.offset, context), 0));
+    return (index - offset) % every === 0 ? style : selected;
   }, styles[0]);
+}
+
+function resolve(value: DynamicValue | undefined, context: RenderContext): unknown {
+  return resolveDynamicValue(value, context.data, context.screen.tokens);
+}
+
+function resolvedTransform(
+  transform: IdleTransform,
+  context: RenderContext
+): ResolvedTransform {
+  return {
+    x: asNumber(resolve(transform.x, context), 0),
+    y: asNumber(resolve(transform.y, context), 0),
+    width: Math.max(1, asNumber(resolve(transform.width, context), 1)),
+    height: Math.max(1, asNumber(resolve(transform.height, context), 1)),
+    rotation: asNumber(resolve(transform.rotation, context), 0),
+    anchorX: asNumber(resolve(transform.anchorX, context), 0.5),
+    anchorY: asNumber(resolve(transform.anchorY, context), 0.5),
+    scaleX: asNumber(resolve(transform.scaleX, context), 1),
+    scaleY: asNumber(resolve(transform.scaleY, context), 1)
+  };
 }
 
 function isVisible(layer: IdleLayer, context: RenderContext): boolean {
@@ -577,7 +651,7 @@ function isVisible(layer: IdleLayer, context: RenderContext): boolean {
   );
 }
 
-function transformString(transform: IdleTransform): string | undefined {
+function transformString(transform: ResolvedTransform): string | undefined {
   const parts = [];
   if (transform.rotation) parts.push(`rotate(${transform.rotation}deg)`);
   if (transform.scaleX != null || transform.scaleY != null) {
@@ -594,6 +668,48 @@ function asNumber(value: unknown, fallback: number): number {
 function asText(value: unknown): string {
   if (value == null) return '';
   return String(value);
+}
+
+function asBoolean(value: unknown, fallback: boolean): boolean {
+  return value == null ? fallback : Boolean(value);
+}
+
+function asTextAlign(value: unknown): 'left' | 'center' | 'right' {
+  return value === 'right' || value === 'center' ? value : 'left';
+}
+
+function asFontStyle(value: unknown): 'normal' | 'italic' {
+  return value === 'italic' ? 'italic' : 'normal';
+}
+
+function asBlendMode(value: unknown): CSSProperties['mixBlendMode'] {
+  return value === 'multiply' || value === 'screen' || value === 'overlay'
+    ? value
+    : 'normal';
+}
+
+function asImageFit(value: unknown, fallback: CSSProperties['objectFit']): CSSProperties['objectFit'] {
+  return value === 'cover' || value === 'fill' || value === 'none' || value === 'contain'
+    ? value
+    : fallback;
+}
+
+function asHandUnit(value: unknown): 'hour' | 'minute' | 'second' | 'custom' {
+  return value === 'hour' || value === 'second' || value === 'custom'
+    ? value
+    : 'minute';
+}
+
+function asHourMode(value: unknown): IdleHourMode {
+  return value === '12' || value === '24' ? value : 'locale';
+}
+
+function asTimeTemplate(value: unknown): IdleDigitalTimeTemplate {
+  return value === 'HH:mm:ss' || value === 'mm:ss' || value === 'mm' ||
+    value === 'HH' || value === 'ss' || value === 'hh:mm a' ||
+    value === 'hh:mm:ss a' || value === 'stackedHM'
+    ? value
+    : 'HH:mm';
 }
 
 function asColor(value: unknown, fallback: string): string {

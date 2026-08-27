@@ -7,10 +7,12 @@ import Ajv from 'ajv/dist/2020.js';
 
 import {
   computeAnalogRotation,
-  formatDigitalTime
+  formatDigitalTime,
+  radialHandBounds
 } from '../src/components/IdleScreen/runtime/clock.ts';
 import {
   formatValue,
+  resolveDynamicValue,
   resolveBinding,
   resolveCondition
 } from '../src/components/IdleScreen/runtime/resolution.ts';
@@ -30,7 +32,7 @@ const schemaHash = createHash('sha256')
   .digest('hex');
 assert.equal(
   schemaHash,
-  'e11620a06f47c75665c9438ad7488ce3ae57acbb15359c61a0823352c700e3cf'
+  'b9fbd3a4b07830e1ba9e1d5427c149ee4ce48401fb64c23882f861a37bc00822'
 );
 
 for (const id of ['default', 'digital', 'metCat']) {
@@ -127,5 +129,29 @@ assert.equal(computeAnalogRotation(localDate, 'second', false), 30);
 assert.equal(computeAnalogRotation(localDate, 'second', true), 33);
 assert.equal(Math.round(computeAnalogRotation(localDate, 'minute', true)), 25);
 assert.equal(Math.round(computeAnalogRotation(localDate, 'hour', true)), 92);
+assert.deepEqual(radialHandBounds(240, 240, 100, 6, 0, 20), {
+  left: 237,
+  top: 120,
+  width: 6,
+  height: 100,
+  distance: 20
+});
+assert.equal(radialHandBounds(240, 240, 100, 6, 0, 999).distance, 480);
+assert.equal(
+  resolveDynamicValue(
+    { token: 'strings.handUnit' },
+    context,
+    { colors: {}, fonts: {}, numbers: {}, strings: { handUnit: 'minute' }, booleans: { enabled: true } }
+  ),
+  'minute'
+);
+assert.equal(
+  resolveDynamicValue(
+    { token: 'booleans.enabled' },
+    context,
+    { colors: {}, fonts: {}, numbers: {}, strings: {}, booleans: { enabled: true } }
+  ),
+  true
+);
 
 console.log('Idle screen runtime tests passed.');

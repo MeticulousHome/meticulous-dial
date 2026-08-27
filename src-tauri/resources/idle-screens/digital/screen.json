@@ -1,135 +1,81 @@
 {
-  "dataSources": [
-    {
-      "id": "clock",
-      "refreshMs": 1000,
-      "source": "time"
-    },
-    {
-      "id": "network",
-      "refreshMs": 60000,
-      "source": "wifi"
-    }
-  ],
   "documentType": "meticulous-idle-screen",
+  "schemaVersion": 2,
+  "runtimeApi": 1,
   "id": "digital",
-  "layers": [
-    {
-      "color": {
-        "token": "colors.status"
-      },
-      "font": {
-        "align": "center",
-        "family": {
-          "token": "fonts.digits"
-        },
-        "size": 20,
-        "weight": 500
-      },
-      "id": "wifiStatus",
-      "maxLines": 1,
-      "text": {
-        "binding": {
-          "fallback": "Not connected",
-          "formatter": {
-            "falseLabel": "Not connected",
-            "trueLabel": "Ready",
-            "type": "boolean"
-          },
-          "path": "connected",
-          "source": "wifi"
-        }
-      },
-      "transform": {
-        "height": 32,
-        "width": 300,
-        "x": 90,
-        "y": 25
-      },
-      "type": "text",
-      "verticalAlign": "middle",
-      "wrap": "none"
-    },
-    {
-      "color": {
-        "token": "colors.digits"
-      },
-      "font": {
-        "align": "center",
-        "family": {
-          "token": "fonts.digits"
-        },
-        "lineHeight": 0.9,
-        "size": {
-          "token": "numbers.digitSize"
-        },
-        "tabularNumbers": true,
-        "weight": 400
-      },
-      "hourMode": "locale",
-      "id": "time",
-      "middayColor": {
-        "token": "colors.status"
-      },
-      "middayFont": {
-        "align": "center",
-        "family": {
-          "token": "fonts.digits"
-        },
-        "size": 55,
-        "weight": 500
-      },
-      "separatorBlink": false,
-      "template": "stackedHM",
-      "transform": {
-        "height": 280,
-        "width": 420,
-        "x": 30,
-        "y": 120
-      },
-      "type": "digitalTime"
-    }
-  ],
   "name": "Digital Clock",
+  "viewport": {
+    "width": 480,
+    "height": 480,
+    "shape": "circle",
+    "background": { "token": "colors.background" },
+    "overflow": "hidden"
+  },
   "runtime": {
     "brightness": {
-      "brightDurationMs": 5000,
-      "brightValue": 0.33,
-      "cycleAfterMs": 600000,
-      "dimDurationMs": 55000,
-      "dimValue": 0.03,
       "onEnter": 0.33,
-      "onExit": 1
+      "onExit": 1,
+      "cycleAfterMs": 600000,
+      "dimValue": 0.03,
+      "brightValue": 0.33,
+      "dimDurationMs": 55000,
+      "brightDurationMs": 5000
     },
     "burnInProtection": {
-      "distance": 0.5,
-      "durationMs": 3600000,
       "enabled": true,
-      "mode": "rotate"
+      "mode": "rotate",
+      "durationMs": 3600000,
+      "distance": 0.5
     }
   },
-  "runtimeApi": 1,
-  "schemaVersion": 2,
   "tokens": {
-    "colors": {
-      "background": "#000000",
-      "digits": "#DDDDDD",
-      "status": "#606060"
-    },
-    "fonts": {
-      "digits": "ABC Diatype"
-    },
-    "numbers": {
-      "digitSize": 110
-    }
+    "colors": { "background": "#000000", "digits": "#DDDDDD", "status": "#606060" },
+    "fonts": { "digits": "ABC Diatype" },
+    "numbers": { "digitSize": 110 },
+    "strings": {},
+    "booleans": {}
   },
-  "viewport": {
-    "background": {
-      "token": "colors.background"
+  "dataSources": [
+    { "id": "clock", "source": "time", "refreshMs": 1000 },
+    { "id": "network", "source": "wifi", "refreshMs": 60000 }
+  ],
+  "layers": [
+    {
+      "id": "wifiStatus",
+      "type": "text",
+      "transform": { "x": 90, "y": 25, "width": 300, "height": 32 },
+      "text": {
+        "binding": {
+          "source": "wifi",
+          "path": "connected",
+          "formatter": { "type": "boolean", "trueLabel": "Ready", "falseLabel": "Not connected" },
+          "fallback": "Not connected"
+        }
+      },
+      "font": { "family": { "token": "fonts.digits" }, "size": 20, "weight": 500, "align": "center" },
+      "color": { "token": "colors.status" },
+      "verticalAlign": "middle",
+      "wrap": "none",
+      "maxLines": 1
     },
-    "height": 480,
-    "overflow": "hidden",
-    "shape": "circle",
-    "width": 480
-  }
+    {
+      "id": "time",
+      "type": "digitalTime",
+      "transform": { "x": 30, "y": 120, "width": 420, "height": 280 },
+      "template": "stackedHM",
+      "hourMode": "locale",
+      "font": {
+        "family": { "token": "fonts.digits" },
+        "size": { "token": "numbers.digitSize" },
+        "weight": 400,
+        "align": "center",
+        "lineHeight": 0.9,
+        "tabularNumbers": true
+      },
+      "color": { "token": "colors.digits" },
+      "middayFont": { "family": { "token": "fonts.digits" }, "size": 55, "weight": 500, "align": "center" },
+      "middayColor": { "token": "colors.status" },
+      "separatorBlink": false
+    }
+  ]
 }

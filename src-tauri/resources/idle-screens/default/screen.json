@@ -37,7 +37,9 @@
       "minorTick": "#494949"
     },
     "fonts": { "brand": "ABC Diatype" },
-    "numbers": { "center": 240 }
+    "numbers": { "center": 240 },
+    "strings": {},
+    "booleans": {}
   },
   "dataSources": [
     { "id": "clock", "source": "time", "refreshMs": 250 },
@@ -84,6 +86,7 @@
       "type": "analogHand",
       "transform": { "x": 240, "y": 240, "width": 10, "height": 165 },
       "pivot": { "x": 240, "y": 240 },
+      "distanceFromCenter": 0,
       "timeUnit": "hour",
       "rotation": { "binding": { "source": "time", "path": "angles.hour12Smooth", "fallback": 0 } },
       "length": 82.42,
@@ -98,6 +101,7 @@
       "type": "analogHand",
       "transform": { "x": 240, "y": 240, "width": 10, "height": 251 },
       "pivot": { "x": 240, "y": 240 },
+      "distanceFromCenter": 0,
       "timeUnit": "minute",
       "rotation": { "binding": { "source": "time", "path": "angles.minuteSmooth", "fallback": 0 } },
       "length": 125.5,
@@ -112,6 +116,7 @@
       "type": "analogHand",
       "transform": { "x": 240, "y": 240, "width": 10, "height": 102 },
       "pivot": { "x": 240, "y": 240 },
+      "distanceFromCenter": 0,
       "timeUnit": "second",
       "rotation": { "binding": { "source": "time", "path": "angles.secondSmooth", "fallback": 0 } },
       "length": 50.83,

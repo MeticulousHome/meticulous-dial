@@ -1,153 +1,91 @@
 {
-  "dataSources": [
-    {
-      "id": "clock",
-      "refreshMs": 1000,
-      "source": "time"
-    },
-    {
-      "id": "network",
-      "refreshMs": 60000,
-      "source": "wifi"
-    }
-  ],
   "documentType": "meticulous-idle-screen",
+  "schemaVersion": 2,
+  "runtimeApi": 1,
   "id": "metCat",
-  "layers": [
-    {
-      "color": {
-        "token": "colors.status"
-      },
-      "font": {
-        "align": "center",
-        "family": {
-          "token": "fonts.digits"
-        },
-        "size": 20,
-        "weight": 500
-      },
-      "id": "wifiStatus",
-      "maxLines": 1,
-      "text": {
-        "binding": {
-          "fallback": "Not connected",
-          "formatter": {
-            "falseLabel": "Not connected",
-            "trueLabel": "Ready",
-            "type": "boolean"
-          },
-          "path": "connected",
-          "source": "wifi"
-        }
-      },
-      "transform": {
-        "height": 32,
-        "width": 300,
-        "x": 90,
-        "y": 25
-      },
-      "type": "text",
-      "verticalAlign": "middle",
-      "wrap": "none"
-    },
-    {
-      "color": {
-        "token": "colors.digits"
-      },
-      "font": {
-        "align": "center",
-        "family": {
-          "token": "fonts.digits"
-        },
-        "size": {
-          "token": "numbers.digitSize"
-        },
-        "tabularNumbers": true,
-        "weight": 300
-      },
-      "hourMode": "locale",
-      "id": "time",
-      "separatorBlink": false,
-      "template": "HH:mm",
-      "transform": {
-        "height": 110,
-        "width": 400,
-        "x": 40,
-        "y": 105
-      },
-      "type": "digitalTime"
-    },
-    {
-      "asset": "metcatAnimation",
-      "autoplay": false,
-      "id": "metcat",
-      "loop": false,
-      "segments": [
-        {
-          "from": 0,
-          "loop": false,
-          "name": "intro",
-          "playOnce": true,
-          "to": 120
-        },
-        {
-          "from": 120,
-          "loop": true,
-          "name": "loop",
-          "playOnce": false,
-          "to": 313
-        }
-      ],
-      "speed": 1,
-      "transform": {
-        "height": 180,
-        "width": 320,
-        "x": 80,
-        "y": 190
-      },
-      "type": "lottie"
-    }
-  ],
   "name": "Digital Cat Clock",
+  "viewport": {
+    "width": 480,
+    "height": 480,
+    "shape": "circle",
+    "background": { "token": "colors.background" },
+    "overflow": "hidden"
+  },
   "runtime": {
     "brightness": {
-      "brightDurationMs": 5000,
-      "brightValue": 0.33,
-      "cycleAfterMs": 600000,
-      "dimDurationMs": 55000,
-      "dimValue": 0.03,
       "onEnter": 0.33,
-      "onExit": 1
+      "onExit": 1,
+      "cycleAfterMs": 600000,
+      "dimValue": 0.03,
+      "brightValue": 0.33,
+      "dimDurationMs": 55000,
+      "brightDurationMs": 5000
     },
     "burnInProtection": {
-      "distance": 0.5,
-      "durationMs": 3600000,
       "enabled": true,
-      "mode": "rotate"
+      "mode": "rotate",
+      "durationMs": 3600000,
+      "distance": 0.5
     }
   },
-  "runtimeApi": 1,
-  "schemaVersion": 2,
   "tokens": {
-    "colors": {
-      "background": "#000000",
-      "digits": "#DDDDDD",
-      "status": "#606060"
-    },
-    "fonts": {
-      "digits": "ABC Diatype"
-    },
-    "numbers": {
-      "digitSize": 84
-    }
+    "colors": { "background": "#000000", "digits": "#DDDDDD", "status": "#606060" },
+    "fonts": { "digits": "ABC Diatype" },
+    "numbers": { "digitSize": 84 },
+    "strings": {},
+    "booleans": {}
   },
-  "viewport": {
-    "background": {
-      "token": "colors.background"
+  "dataSources": [
+    { "id": "clock", "source": "time", "refreshMs": 1000 },
+    { "id": "network", "source": "wifi", "refreshMs": 60000 }
+  ],
+  "layers": [
+    {
+      "id": "wifiStatus",
+      "type": "text",
+      "transform": { "x": 90, "y": 25, "width": 300, "height": 32 },
+      "text": {
+        "binding": {
+          "source": "wifi",
+          "path": "connected",
+          "formatter": { "type": "boolean", "trueLabel": "Ready", "falseLabel": "Not connected" },
+          "fallback": "Not connected"
+        }
+      },
+      "font": { "family": { "token": "fonts.digits" }, "size": 20, "weight": 500, "align": "center" },
+      "color": { "token": "colors.status" },
+      "verticalAlign": "middle",
+      "wrap": "none",
+      "maxLines": 1
     },
-    "height": 480,
-    "overflow": "hidden",
-    "shape": "circle",
-    "width": 480
-  }
+    {
+      "id": "time",
+      "type": "digitalTime",
+      "transform": { "x": 40, "y": 105, "width": 400, "height": 110 },
+      "template": "HH:mm",
+      "hourMode": "locale",
+      "font": {
+        "family": { "token": "fonts.digits" },
+        "size": { "token": "numbers.digitSize" },
+        "weight": 300,
+        "align": "center",
+        "tabularNumbers": true
+      },
+      "color": { "token": "colors.digits" },
+      "separatorBlink": false
+    },
+    {
+      "id": "metcat",
+      "type": "lottie",
+      "transform": { "x": 80, "y": 190, "width": 320, "height": 180 },
+      "asset": "metcatAnimation",
+      "autoplay": false,
+      "loop": false,
+      "speed": 1,
+      "segments": [
+        { "name": "intro", "from": 0, "to": 120, "playOnce": true, "loop": false },
+        { "name": "loop", "from": 120, "to": 313, "playOnce": false, "loop": true }
+      ]
+    }
+  ]
 }
