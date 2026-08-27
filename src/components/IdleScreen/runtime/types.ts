@@ -146,8 +146,8 @@ export interface IdleTokens {
   colors: Record<string, string>;
   fonts: Record<string, string>;
   numbers: Record<string, number>;
-  strings: Record<string, string>;
-  booleans: Record<string, boolean>;
+  strings?: Record<string, string>;
+  booleans?: Record<string, boolean>;
 }
 
 export interface IdleLayerBase {

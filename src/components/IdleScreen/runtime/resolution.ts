@@ -99,8 +99,8 @@ function resolveToken(token: string, tokens: IdleTokens): unknown {
   if (scope === 'colors') return tokens.colors[key];
   if (scope === 'fonts') return tokens.fonts[key];
   if (scope === 'numbers') return tokens.numbers[key];
-  if (scope === 'strings') return tokens.strings[key];
-  if (scope === 'booleans') return tokens.booleans[key];
+  if (scope === 'strings') return tokens.strings?.[key];
+  if (scope === 'booleans') return tokens.booleans?.[key];
   return undefined;
 }
 

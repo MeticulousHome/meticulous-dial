@@ -302,7 +302,7 @@
       }
     },
     "tokens": {
-      "type": "object", "required": ["colors", "fonts", "numbers", "strings", "booleans"], "additionalProperties": false,
+      "type": "object", "required": ["colors", "fonts", "numbers"], "additionalProperties": false,
       "properties": {
         "colors": { "type": "object", "maxProperties": 64, "propertyNames": { "pattern": "^[A-Za-z][A-Za-z0-9_-]*$" }, "additionalProperties": { "$ref": "#/$defs/color" } },
         "fonts": { "type": "object", "maxProperties": 32, "propertyNames": { "pattern": "^[A-Za-z][A-Za-z0-9_-]*$" }, "additionalProperties": { "type": "string", "minLength": 1, "maxLength": 80 } },

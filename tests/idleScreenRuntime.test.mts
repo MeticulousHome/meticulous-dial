@@ -32,7 +32,7 @@ const schemaHash = createHash('sha256')
   .digest('hex');
 assert.equal(
   schemaHash,
-  'b9fbd3a4b07830e1ba9e1d5427c149ee4ce48401fb64c23882f861a37bc00822'
+  'db230f72228f08b50f873d79e6a65149d40744e88f51d8a7b6ff772384614d44'
 );
 
 for (const id of ['default', 'digital', 'metCat']) {
