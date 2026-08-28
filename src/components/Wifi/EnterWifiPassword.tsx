@@ -37,8 +37,7 @@ export function EnterWifiPassword(): JSX.Element {
 
   const connectToWifiMutation = useConnectToWiFi();
   const connectionError = connectToWifiMutation.error as
-    | WiFiConnectionError
-    | undefined;
+    WiFiConnectionError | undefined;
   const isInvalidCredentials =
     connectToWifiMutation.isError &&
     connectionError?.code === 'invalid_credentials';
