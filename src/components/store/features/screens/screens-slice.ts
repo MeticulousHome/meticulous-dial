@@ -35,6 +35,8 @@ export type ScreenType =
   | 'snake'
   | 'KnownWifi'
   | 'deleteKnowWifiMenu'
+  | 'pairedDevices'
+  | 'revokeDeviceMenu'
   | 'advancedSettings'
   | 'pressetProfileImage'
   | 'deviceInfo'

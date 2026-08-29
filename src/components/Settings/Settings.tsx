@@ -43,6 +43,10 @@ const initialSettings: SettingsItem[] = [
     label: 'Scroll Directions'
   },
   {
+    key: 'paired_devices',
+    label: 'Paired Devices'
+  },
+  {
     key: 'advanced',
     label: 'Advanced Settings'
   },
@@ -118,6 +122,11 @@ export function Settings(): JSX.Element {
           case 'scroll_directions':
             dispatch(
               setBubbleDisplay({ visible: true, component: 'scrollDirections' })
+            );
+            break;
+          case 'paired_devices':
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'pairedDevices' })
             );
             break;
           case 'back':
