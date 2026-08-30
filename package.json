@@ -21,8 +21,8 @@
     "tauri": "VITE_SERVER_URL=\"${SERVER_URL}\" tauri",
     "docker:arm64-qemu": "docker build . -t rust_native_compile/arm64 -f Dockerfile.arm64-qemu",
     "docker:arm64-cross": "docker build . -t rust_cross_compile_trixie/arm64 -f Dockerfile.arm64-cross",
-    "package:arm64-qemu": "docker run --platform linux/arm64/v8 --rm -v `pwd`:/app rust_native_compile/arm64",
-    "package:arm64-cross": "docker run --rm -v `pwd`:/app rust_cross_compile_trixie/arm64"
+    "package:arm64-qemu": "docker run --platform linux/arm64/v8 --rm -v `pwd`:/app -v /app/node_modules rust_native_compile/arm64",
+    "package:arm64-cross": "docker run --rm -v `pwd`:/app -v /app/node_modules rust_cross_compile_trixie/arm64"
   },
   "repository": {
     "type": "git",
