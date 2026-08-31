@@ -21,6 +21,7 @@ export type WifiHealthStatus = {
   message?: string;
   last_recovery_action: string;
   last_recovery_result: string;
+  verified: boolean;
 };
 
 export type KnownWifi = {
