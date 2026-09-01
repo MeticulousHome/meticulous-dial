@@ -9,9 +9,7 @@ import {
 
 export type DataTypeKey = 'weight' | 'pressure' | 'flow';
 export type ExtraSettingType =
-  | 'piston_position'
-  | 'motor_power'
-  | 'temperature';
+  'piston_position' | 'motor_power' | 'temperature';
 
 export interface DataType {
   minValue: number;
