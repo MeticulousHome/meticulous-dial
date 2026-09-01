@@ -28,7 +28,15 @@ export const PairedDevices = (): JSX.Element => {
         { key: 'back', label: 'Back' }
       ];
     }
-    return [...deviceItems, ...[{ key: 'back', label: 'Back' }]];
+    // Offer "Remove all" only when it saves work (more than one device).
+    const tail =
+      deviceItems.length > 1
+        ? [
+            { key: 'remove-all', label: 'Remove all' },
+            { key: 'back', label: 'Back' }
+          ]
+        : [{ key: 'back', label: 'Back' }];
+    return [...deviceItems, ...tail];
   }, [data]);
 
   useHandleGestures({
@@ -42,6 +50,10 @@ export const PairedDevices = (): JSX.Element => {
       const activeItem = devices[activeIndex];
       if (activeItem.key === 'back') {
         dispatch(setBubbleDisplay({ visible: true, component: 'settings' }));
+      } else if (activeItem.key === 'remove-all') {
+        dispatch(
+          setBubbleDisplay({ visible: true, component: 'revokeAllConfirmMenu' })
+        );
       } else if (activeItem.key !== 'empty') {
         dispatch(
           selectPairedDevice({

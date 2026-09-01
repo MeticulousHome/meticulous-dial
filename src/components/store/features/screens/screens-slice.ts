@@ -37,6 +37,7 @@ export type ScreenType =
   | 'deleteKnowWifiMenu'
   | 'pairedDevices'
   | 'revokeDeviceMenu'
+  | 'revokeAllConfirmMenu'
   | 'advancedSettings'
   | 'pressetProfileImage'
   | 'deviceInfo'

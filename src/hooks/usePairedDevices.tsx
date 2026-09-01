@@ -1,6 +1,10 @@
 import { QueryClient, useMutation, useQuery } from '@tanstack/react-query';
 
-import { listPairedDevices, revokePairedDevice } from '../api/pairing';
+import {
+  listPairedDevices,
+  revokeAllPairedDevices,
+  revokePairedDevice
+} from '../api/pairing';
 
 export const PAIRED_DEVICES_QUERY_KEY = 'pairedDevices';
 
@@ -25,6 +29,20 @@ export const useRevokePairedDevice = (queryClient: QueryClient) => {
     },
     onSuccess: () => {
       console.log('Paired device revoked successfully.');
+      queryClient.invalidateQueries({ queryKey: [PAIRED_DEVICES_QUERY_KEY] });
+    }
+  });
+};
+
+// Hook to revoke every paired device at once
+export const useRevokeAllPairedDevices = (queryClient: QueryClient) => {
+  return useMutation({
+    mutationFn: () => revokeAllPairedDevices(),
+    onError: (error) => {
+      console.error('Error revoking all paired devices:', error);
+    },
+    onSuccess: () => {
+      console.log('All paired devices revoked successfully.');
       queryClient.invalidateQueries({ queryKey: [PAIRED_DEVICES_QUERY_KEY] });
     }
   });

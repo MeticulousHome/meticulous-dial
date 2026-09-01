@@ -22,6 +22,7 @@ import { KnownWifi } from '../../src/components/Wifi/KnownWifi';
 import { DeleteWifiMenu } from '../components/Wifi/DeleteWifiMenu';
 import { PairedDevices } from '../components/PairedDevices/PairedDevices';
 import { RevokeDeviceMenu } from '../components/PairedDevices/RevokeDeviceMenu';
+import { RevokeAllConfirmMenu } from '../components/PairedDevices/RevokeAllConfirmMenu';
 import { AdvancedSettings } from '../components/Settings/Advanced/Advanced';
 import { WifiQrMenu } from '../../src/components/Wifi/WifiQrMenu';
 import { PressetProfileImage } from '../components/PressetSettings/PressetProfileImage';
@@ -348,6 +349,10 @@ export const routes: Record<ScreenType, Route> = {
   },
   revokeDeviceMenu: {
     component: RevokeDeviceMenu,
+    bottomStatusHidden: true
+  },
+  revokeAllConfirmMenu: {
+    component: RevokeAllConfirmMenu,
     bottomStatusHidden: true
   },
   connectWifiMenu: {

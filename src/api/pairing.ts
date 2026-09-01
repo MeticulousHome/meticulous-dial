@@ -37,3 +37,16 @@ export async function revokePairedDevice(deviceId: string): Promise<void> {
     throw new Error(data.error);
   }
 }
+
+export async function revokeAllPairedDevices(): Promise<void> {
+  const response = await fetch(`${API_URL}/api/v1/pair/devices/revoke-all`, {
+    method: 'POST'
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  const data = await response.json();
+  if (data && 'error' in data) {
+    throw new Error(data.error);
+  }
+}
