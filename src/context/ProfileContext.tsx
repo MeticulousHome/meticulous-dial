@@ -38,8 +38,7 @@ type ProfileContextType = {
   settingsIndex: number;
   setSettingsIndex: React.Dispatch<React.SetStateAction<number>>;
   settingsProfile:
-    | (ExtendedProfile & { settings: (IPresetSetting | IPresetAction)[] })
-    | null;
+    (ExtendedProfile & { settings: (IPresetSetting | IPresetAction)[] }) | null;
   setSettingsProfile: React.Dispatch<
     React.SetStateAction<
       (ExtendedProfile & { settings: IPresetSetting[] }) | null

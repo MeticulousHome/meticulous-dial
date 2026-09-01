@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
@@ -42,6 +42,23 @@ export const WifiDetails = (): JSX.Element => {
   const networkConfig = data?.config;
   const wifiHealth = data?.health;
   const isHotspotActive = wifiHealth?.mode === 'AP' && wifiHealth?.ap_active;
+  const [deepCheckState, setDeepCheckState] = useState<{
+    gateway: boolean;
+    dns: boolean;
+    internet: boolean;
+  }>({ gateway: false, dns: false, internet: false });
+
+  useEffect(() => {
+    if (wifiHealth && !wifiHealth.verified) {
+      setDeepCheckState((lastDeepCheckState) => lastDeepCheckState);
+    } else {
+      setDeepCheckState({
+        gateway: wifiHealth?.gateway_reachable ?? false,
+        dns: wifiHealth?.dns_resolves ?? false,
+        internet: wifiHealth?.internet_reachable ?? false
+      });
+    }
+  }, [wifiHealth]);
 
   const wifiItems = useMemo(() => {
     if (!isSuccess || !data) return initialWifiItems;
@@ -57,21 +74,21 @@ export const WifiDetails = (): JSX.Element => {
       gateway: isHotspotActive
         ? 'N/A'
         : wifiHealth
-          ? wifiHealth.gateway_reachable
+          ? deepCheckState.gateway
             ? 'OK'
             : 'FAILED'
           : '',
       dns: isHotspotActive
         ? 'N/A'
         : wifiHealth
-          ? wifiHealth.dns_resolves
+          ? deepCheckState.dns
             ? 'OK'
             : 'FAILED'
           : '',
       internet: isHotspotActive
         ? 'N/A'
         : wifiHealth
-          ? wifiHealth.internet_reachable
+          ? deepCheckState.internet
             ? 'OK'
             : 'FAILED'
           : '',
@@ -87,7 +104,14 @@ export const WifiDetails = (): JSX.Element => {
             label: `${item.label}: ${valuesMap[item.key] || ''}`
           }
     );
-  }, [wifiStatus, networkConfig, wifiHealth, isHotspotActive, isSuccess]);
+  }, [
+    wifiStatus,
+    networkConfig,
+    wifiHealth,
+    isHotspotActive,
+    isSuccess,
+    deepCheckState
+  ]);
 
   useHandleGestures({
     left() {
