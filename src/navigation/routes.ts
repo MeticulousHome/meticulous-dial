@@ -23,6 +23,7 @@ import { DeleteWifiMenu } from '../components/Wifi/DeleteWifiMenu';
 import { PairedDevices } from '../components/PairedDevices/PairedDevices';
 import { RevokeDeviceMenu } from '../components/PairedDevices/RevokeDeviceMenu';
 import { RevokeAllConfirmMenu } from '../components/PairedDevices/RevokeAllConfirmMenu';
+import { ResetMachineIdentity } from '../components/Settings/MachineIdentity/ResetMachineIdentity';
 import { AdvancedSettings } from '../components/Settings/Advanced/Advanced';
 import { WifiQrMenu } from '../../src/components/Wifi/WifiQrMenu';
 import { PressetProfileImage } from '../components/PressetSettings/PressetProfileImage';
@@ -369,6 +370,11 @@ export const routes: Record<ScreenType, Route> = {
   },
   revokeAllConfirmMenu: {
     component: RevokeAllConfirmMenu,
+    bottomStatusHidden: true
+  },
+  resetMachineIdentity: {
+    component: ResetMachineIdentity,
+    title: 'reset machine identity',
     bottomStatusHidden: true
   },
   connectWifiMenu: {

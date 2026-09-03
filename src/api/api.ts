@@ -7,6 +7,7 @@ import Api, {
 } from '@meticulous-home/espresso-api';
 import { DialDeviceInfo } from '../types';
 import { invoke } from '@tauri-apps/api/core';
+import { requestMachineIdentityRotation } from '../features/machineIdentity';
 
 export const API_URL =
   import.meta.env.VITE_SERVER_URL || 'http://localhost:8080';
@@ -140,6 +141,9 @@ export const updateManufacturingSettings = async (
     throw new Error(error);
   }
 };
+
+export const rotateMachineIdentity = () =>
+  requestMachineIdentityRotation(API_URL);
 
 // The API package doesn't expose this endpoint
 export const factoryReset = async () => {

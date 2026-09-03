@@ -39,6 +39,7 @@ export type ScreenType =
   | 'pairedDevices'
   | 'revokeDeviceMenu'
   | 'revokeAllConfirmMenu'
+  | 'resetMachineIdentity'
   | 'advancedSettings'
   | 'pressetProfileImage'
   | 'deviceInfo'
