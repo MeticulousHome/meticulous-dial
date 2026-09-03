@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAppDispatch } from '../store/hooks';
 import { selectPairedDevice } from '../store/features/pairing/pairing-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
@@ -10,12 +10,13 @@ import Styled, {
   MARQUEE_MIN_TEXT_LENGTH
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
+import { clampPairedDeviceIndex } from '../../features/pairedDevices';
 
 export const PairedDevices = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const { data, isLoading } = usePairedDevices();
+  const { data, error, isError, isLoading } = usePairedDevices();
 
   const devices = useMemo(() => {
     const deviceItems = (data ?? []).map((device) => ({
@@ -39,6 +40,10 @@ export const PairedDevices = (): JSX.Element => {
     return [...deviceItems, ...tail];
   }, [data]);
 
+  useEffect(() => {
+    setActiveIndex((index) => clampPairedDeviceIndex(index, devices.length));
+  }, [devices.length]);
+
   useHandleGestures({
     left() {
       setActiveIndex((prev) => Math.max(prev - 1, 0));
@@ -47,7 +52,12 @@ export const PairedDevices = (): JSX.Element => {
       setActiveIndex((prev) => Math.min(prev + 1, devices.length - 1));
     },
     pressDown() {
-      const activeItem = devices[activeIndex];
+      if (isError) {
+        dispatch(setBubbleDisplay({ visible: true, component: 'settings' }));
+        return;
+      }
+      const activeItem =
+        devices[clampPairedDeviceIndex(activeIndex, devices.length)];
       if (activeItem.key === 'back') {
         dispatch(setBubbleDisplay({ visible: true, component: 'settings' }));
       } else if (activeItem.key === 'remove-all') {
@@ -88,6 +98,21 @@ export const PairedDevices = (): JSX.Element => {
   );
   if (isLoading) {
     return <LoadingScreen />;
+  }
+  if (isError) {
+    return (
+      <div className="main-container response">
+        <div className="connect-response-title error-entry">
+          Could not load paired devices
+        </div>
+        <div className="connect-response-message error-entry">
+          {error instanceof Error ? error.message : 'Please try again.'}
+        </div>
+        <div key="back" className="settings-item active-setting connect-item">
+          <div className="settings-entry connect-button">Back</div>
+        </div>
+      </div>
+    );
   }
   return (
     <Styled.SettingsContainer>
