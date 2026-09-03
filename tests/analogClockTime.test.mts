@@ -313,19 +313,20 @@ test('Tauri reads native calendar and time even when JavaScript local time is wr
 
 test('plain-browser selection works without Tauri internals', async () => {
   const previousWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
+  const OriginalDate = globalThis.Date;
   try {
     Object.defineProperty(globalThis, 'window', {
       configurable: true,
       value: {}
     });
-    const before = getBrowserLocalTime();
-    const actual = await readLocalTime();
-    const after = getBrowserLocalTime();
-    assert.ok(
-      JSON.stringify(actual) === JSON.stringify(before) ||
-        JSON.stringify(actual) === JSON.stringify(after)
-    );
+    globalThis.Date = class extends OriginalDate {
+      constructor() {
+        super('2026-08-17T12:34:56.500Z');
+      }
+    };
+    assert.deepEqual(await readLocalTime(), getBrowserLocalTime());
   } finally {
+    globalThis.Date = OriginalDate;
     if (previousWindow)
       Object.defineProperty(globalThis, 'window', previousWindow);
     else Reflect.deleteProperty(globalThis, 'window');
