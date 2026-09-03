@@ -1,0 +1,160 @@
+.free-pour-history {
+  position: relative;
+  width: 480px;
+  height: 480px;
+  overflow: hidden;
+  color: #e7e3da;
+  font-family: 'ABC Diatype', sans-serif;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.free-pour-history-title {
+  position: absolute;
+  top: 35px;
+  width: 100%;
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: 2px;
+}
+
+.free-pour-history-subtitle {
+  position: absolute;
+  top: 67px;
+  width: 100%;
+  color: #8d9694;
+  font-family: 'ABC Diatype Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+}
+
+.free-pour-history-chart {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.free-pour-history-axis {
+  stroke: #596460;
+  stroke-width: 2;
+}
+
+.free-pour-history-grid {
+  stroke: #26312f;
+  stroke-width: 1;
+  stroke-dasharray: 3 7;
+}
+
+.free-pour-history-weight-line,
+.free-pour-history-flow-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.free-pour-history-weight-line {
+  stroke: #e7e3da;
+}
+
+.free-pour-history-flow-line {
+  stroke: #78d6ff;
+}
+
+.free-pour-history-cursor {
+  stroke: #f5c444;
+  stroke-width: 2;
+}
+
+.free-pour-history-pour {
+  fill: #e7e3da;
+}
+
+.free-pour-history-values {
+  position: absolute;
+  top: 277px;
+  left: 65px;
+  width: 350px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.free-pour-history-values div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.free-pour-history-values span {
+  color: #8d9694;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+}
+
+.free-pour-history-values strong {
+  font-family: 'ABC Diatype Mono', monospace;
+  font-size: 20px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.free-pour-history-turn {
+  position: absolute;
+  top: 358px;
+  width: 100%;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: 2px;
+}
+
+.free-pour-history-legend {
+  position: absolute;
+  top: 391px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  color: #8d9694;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+}
+
+.free-pour-history-legend span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.free-pour-history-legend i {
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.free-pour-history-legend-weight {
+  background: #e7e3da;
+}
+
+.free-pour-history-legend-flow {
+  background: #78d6ff;
+}
+
+.free-pour-history--empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+
+.free-pour-history--empty strong {
+  font-size: 24px;
+  letter-spacing: 2px;
+}
+
+.free-pour-history--empty span {
+  color: #8d9694;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+}

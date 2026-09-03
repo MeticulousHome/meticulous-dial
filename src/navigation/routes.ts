@@ -47,6 +47,9 @@ import { BrewSettings } from '../components/Settings/BrewSettings';
 import { TimeConfig } from '../components/Settings/Advanced/TimeDate/TimeConfig';
 import { DateConfig } from '../components/Settings/Advanced/TimeDate/DateConfig';
 import { ShotGraphScreen } from '../components/ShotGraph/ShotGraphScreen';
+import { FreePourScreen } from '../features/freePour/FreePourScreen';
+import { GuidedPourOverScreen } from '../features/freePour/GuidedPourOverScreen';
+import { FreePourHistoryScreen } from '../features/freePour/FreePourHistoryScreen';
 import { ScrollDirectionSettings } from '../components/Settings/ScrollDirection';
 import { BrewCompleteScreen } from '../components/BrewCompleteScreen/BrewCompleteScreen';
 import { ProfileHomeScreen } from '../components/ProfileHomeScreen/ProfileHomeScreen';
@@ -57,6 +60,7 @@ import {
 import { FactoryReset } from '../components/Settings/Advanced/FactoryReset';
 import { Manufacturing } from '../components/Settings/Advanced/Manufacturing';
 import { RetractionSettingGauge } from '../components/Settings/Advanced/RetractionVolume';
+import { TareBehaviorSetting } from '../components/Settings/TareBehavior';
 import { useProfileContext } from '../context/ProfileContext';
 import { DisplayAlignment } from '../components/Settings/Advanced/DisplayAlignment';
 import {
@@ -64,6 +68,7 @@ import {
   UnlockMasterCalibration
 } from '../components/UnlockScreen/UnlockScreen';
 import { InfoQRCode } from '../components/Settings/Advanced/InfoQrCode';
+import { CommunitySettings } from '../components/Settings/Community/Community';
 
 interface Route {
   component: ComponentType;
@@ -154,6 +159,11 @@ export const routes: Record<ScreenType, Route> = {
     title: 'settings',
     bottomStatusHidden: true
   },
+  community: {
+    component: CommunitySettings,
+    title: 'Community',
+    bottomStatusHidden: true
+  },
   profileHome: {
     component: ProfileHomeScreen,
     parentTitle: getProfilesTitle
@@ -196,10 +206,16 @@ export const routes: Record<ScreenType, Route> = {
   retraction_volume: {
     component: RetractionSettingGauge,
     title: 'retraction',
-    bottomTitle: 'shot volume',
+    bottomTitle: 'distance',
     props: {
       type: 'retraction_volume'
     },
+    bottomStatusHidden: true,
+    parent: 'brewSettings'
+  },
+  tare_behavior: {
+    component: TareBehaviorSetting,
+    title: 'auto tare',
     bottomStatusHidden: true,
     parent: 'brewSettings'
   },
@@ -426,6 +442,21 @@ export const routes: Record<ScreenType, Route> = {
     title: getActiveProfilesTitle,
     parent: 'profileHome',
     bottomStatusHidden: true
+  },
+  freePour: {
+    component: FreePourScreen,
+    bottomStatusHidden: true,
+    parent: 'profileHome'
+  },
+  guidedPourOver: {
+    component: GuidedPourOverScreen,
+    bottomStatusHidden: true,
+    parent: 'profileHome'
+  },
+  freePourHistory: {
+    component: FreePourHistoryScreen,
+    bottomStatusHidden: true,
+    parent: 'profileHome'
   },
   idle: {
     component: IdleScreen,

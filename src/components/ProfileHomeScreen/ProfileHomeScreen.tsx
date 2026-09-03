@@ -8,7 +8,8 @@ import {
 } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { PROFILE_ENTRY_SIZE, ProfileEntry } from './ProfileEntry';
-import { ProfileImage } from './ProfileImage';
+import { PROFILE_IMAGE_SIZE, ProfileImage } from './ProfileImage';
+import { PourOverProfileImage } from './PourOverProfileImage';
 
 import { CircleOverlay } from './CircleOverlay';
 import './transitions.less';
@@ -23,6 +24,16 @@ import { loadProfileData, startProfile } from '../../api/profile';
 import { DownloadIcon } from './DownloadIcon';
 import { useSocket } from '../store/SocketManager';
 import { invoke } from '@tauri-apps/api/core';
+import { usePourOverProfiles } from '../../features/freePour/usePourOverProfiles';
+import {
+  createDialProfileHover,
+  getActiveHomeOption,
+  getFreePourOptionIndex,
+  getHomeSelection,
+  getNewOptionIndex,
+  getPourOverProfileOptionIndex,
+  reconcilePourOverCatalogSelection
+} from './homeSelection';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -63,6 +74,14 @@ const InnerList = styled(TransitionGroup)<{
   transform: ${({ $translateX }) => `translateX(${$translateX}px)`};
   transition: transform ${translationAnimationDuration}ms ease;
 `;
+
+const FreePourImage = styled.img`
+  width: ${PROFILE_IMAGE_SIZE}px;
+  height: ${PROFILE_IMAGE_SIZE}px;
+  flex-shrink: 0;
+  border-radius: 3.018px;
+  object-fit: cover;
+`;
 type dialDirection = 'left' | 'right' | 'none';
 
 const PISTON_ON_PURGE_POSITION = 73; // value gotten from ComplexProfileConverter.head_template on 'prepare' stage
@@ -74,25 +93,55 @@ export const ProfileHomeScreen = () => {
   const { isIdle: shouldGoToIdle } = useIdleTimer();
   const isOnline = useIsOnline();
   const socket = useSocket();
+  const pourOverProfilesQuery = usePourOverProfiles();
+  const installedPourOverProfiles = pourOverProfilesQuery.data ?? [];
 
   const profileState = useProfileContext();
 
   const {
-    localProfileIndex: activeOption,
-    setLocalProfileIndex: setActiveOption,
+    localProfileIndex,
+    setLocalProfileIndex: setActiveProfileOption,
+    homeMode,
+    setHomeMode,
     profileStarting,
     setProfileStarting,
     localHoverState,
     setLocalHoverState,
     mergedProfiles,
-    limitedAccess
+    limitedAccess,
+    selectedPourOverProfileId,
+    setSelectedPourOverProfileId
   } = profileState;
 
   const [transitionDirection, setTransitionDirection] =
     useState<dialDirection>('none');
+  const [homeHoverState, setHomeHoverState] = useState(false);
   const [isPressingDown, setIsPressingDown] = useState(false);
   const pressThroughTimer = useRef<NodeJS.Timeout | null>(null);
   const homeReadyReported = useRef(false);
+
+  // Espresso selection stays in ProfileContext so app and Dial socket events
+  // share one source of truth. Installed Pour Over profiles use their stable IDs.
+  const homeLayout = {
+    profileCount: mergedProfiles.length,
+    pourOverProfileCount: installedPourOverProfiles.length
+  };
+  const freePourOptionIndex = getFreePourOptionIndex(homeLayout);
+  const newOptionIndex = getNewOptionIndex(homeLayout);
+  const selectedPourOverProfileIndex = Math.max(
+    installedPourOverProfiles.findIndex(
+      (profile) => profile.id === selectedPourOverProfileId
+    ),
+    0
+  );
+  const activeOption = getActiveHomeOption({
+    mode: homeMode,
+    profileIndex: localProfileIndex,
+    pourOverProfileIndex: selectedPourOverProfileIndex,
+    ...homeLayout
+  });
+  const activeOptionRef = useRef(activeOption);
+  activeOptionRef.current = activeOption;
 
   const nodeRefs = useRef<Record<string, Ref<HTMLDivElement>>>({});
   const requiresPurge = useRef<boolean>(false);
@@ -106,6 +155,26 @@ export const ProfileHomeScreen = () => {
   };
 
   const animationFinished = async () => {
+    const selection = getHomeSelection(activeOption, homeLayout);
+
+    if (activeOption === freePourOptionIndex) {
+      setIsPressingDown(false);
+      setHomeHoverState(false);
+      if (pressThroughTimer.current) clearTimeout(pressThroughTimer.current);
+      pressThroughTimer.current = null;
+      dispatch(setScreen('freePour'));
+      return;
+    }
+
+    if (selection.mode === 'pour_over_profile') {
+      setIsPressingDown(false);
+      setHomeHoverState(false);
+      if (pressThroughTimer.current) clearTimeout(pressThroughTimer.current);
+      pressThroughTimer.current = null;
+      dispatch(setScreen('guidedPourOver'));
+      return;
+    }
+
     const loadAndStartProfile = async () => {
       const profile = mergedProfiles?.[activeOption];
 
@@ -139,6 +208,26 @@ export const ProfileHomeScreen = () => {
   };
 
   useEffect(() => {
+    const selection = reconcilePourOverCatalogSelection({
+      mode: homeMode,
+      selectedProfileId: selectedPourOverProfileId,
+      installedProfileIds: installedPourOverProfiles.map(({ id }) => id),
+      catalogResolved: pourOverProfilesQuery.isSuccess
+    });
+    if (selection.selectedProfileId !== selectedPourOverProfileId) {
+      setSelectedPourOverProfileId(selection.selectedProfileId);
+    }
+    if (selection.mode !== homeMode) setHomeMode(selection.mode);
+  }, [
+    homeMode,
+    installedPourOverProfiles,
+    pourOverProfilesQuery.isSuccess,
+    selectedPourOverProfileId,
+    setHomeMode,
+    setSelectedPourOverProfileId
+  ]);
+
+  useEffect(() => {
     requiresPurge.current = PistonPos && PistonPos < PISTON_ON_PURGE_POSITION;
   }, [PistonPos]);
 
@@ -159,45 +248,98 @@ export const ProfileHomeScreen = () => {
       });
     }
 
-    if (activeOption > mergedProfiles.length) {
-      setActiveOption(mergedProfiles.length);
+    // We are never zoomed in on the new button
+    if (activeOption == newOptionIndex) {
+      setHomeHoverState(false);
+      return;
+    }
+  }, [mergedProfiles, activeOption, newOptionIndex]);
+
+  useEffect(() => {
+    if (homeMode === 'espresso') {
+      setHomeHoverState(localHoverState);
+    } else {
+      setHomeHoverState(false);
+      if (localHoverState) setLocalHoverState(false);
+    }
+  }, [homeMode, localHoverState, setLocalHoverState]);
+
+  const selectHomeOption = (option: number) => {
+    const selection = getHomeSelection(option, homeLayout);
+
+    if (selection.mode === 'espresso' && selection.profileIndex !== null) {
+      setActiveProfileOption(selection.profileIndex);
+      setHomeMode('espresso');
+      setSelectedPourOverProfileId(null);
       return;
     }
 
-    // We are never zoomed in on the new button
-    if (activeOption == mergedProfiles.length) {
+    if (
+      selection.mode === 'pour_over_profile' &&
+      selection.pourOverProfileIndex !== null
+    ) {
+      const profile = installedPourOverProfiles[selection.pourOverProfileIndex];
+      if (!profile) return;
+      setSelectedPourOverProfileId(profile.id);
+      setHomeMode('pour_over_profile');
       setLocalHoverState(false);
       return;
     }
-  }, [mergedProfiles, activeOption]);
+
+    setSelectedPourOverProfileId(null);
+    setHomeMode(selection.mode);
+    setLocalHoverState(false);
+  };
+
+  const emitProfileHover = (option: number, type: 'focus' | 'scroll') => {
+    const event = createDialProfileHover(
+      option,
+      mergedProfiles,
+      installedPourOverProfiles.length,
+      type
+    );
+    if (event) socket.emit('profileHover', event);
+  };
+
+  const moveActiveOption = (next: number) => {
+    if (next === activeOptionRef.current) return;
+
+    activeOptionRef.current = next;
+    selectHomeOption(next);
+    emitProfileHover(next, 'scroll');
+  };
 
   const rotateLeft = () => {
-    if (localHoverState) {
+    if (homeHoverState) {
+      setHomeHoverState(false);
       setLocalHoverState(false);
+      emitProfileHover(activeOptionRef.current, 'scroll');
       return;
     }
-    if (activeOption !== mergedProfiles?.length) {
+    if (activeOptionRef.current !== newOptionIndex) {
       setTransitionDirection('none');
       requestAnimationFrame(() => {
         setTransitionDirection('right');
       });
     }
-    setActiveOption((prev) => Math.min(prev + 1, mergedProfiles?.length || 0));
+    moveActiveOption(Math.min(activeOptionRef.current + 1, newOptionIndex));
   };
 
   const rotateRight = () => {
-    if (localHoverState) {
+    if (homeHoverState) {
+      setHomeHoverState(false);
       setLocalHoverState(false);
+      emitProfileHover(activeOptionRef.current, 'scroll');
       return;
     }
-    if (activeOption !== 0) {
+    if (activeOptionRef.current !== 0) {
       setTransitionDirection('none');
 
       requestAnimationFrame(() => {
         setTransitionDirection('left');
       });
     }
-    setActiveOption((prev) => Math.max(prev - 1, 0));
+    moveActiveOption(Math.max(activeOptionRef.current - 1, 0));
   };
 
   useHandleGestures(
@@ -220,25 +362,33 @@ export const ProfileHomeScreen = () => {
       },
       pressDown() {
         // New profile button
-        if (activeOption == mergedProfiles?.length) {
+        if (activeOption == newOptionIndex) {
           if (!isOnline) return;
           if (limitedAccess) {
             dispatch(setScreen('unlock'));
             return;
           }
           dispatch(setScreen('defaultProfiles'));
+        } else if (
+          activeOption === freePourOptionIndex ||
+          getHomeSelection(activeOption, homeLayout).mode ===
+            'pour_over_profile'
+        ) {
+          if (!homeHoverState) {
+            setHomeHoverState(true);
+            setTransitionDirection('none');
+            pressThroughTimer.current = setTimeout(() => {
+              setIsPressingDown(true);
+            }, 300);
+          } else {
+            setIsPressingDown(true);
+          }
         } else {
-          if (!localHoverState) {
+          if (!homeHoverState) {
+            setHomeHoverState(true);
             setLocalHoverState(true);
             setTransitionDirection('none');
-            const profile = mergedProfiles?.[activeOption];
-            if (profile?.id) {
-              socket.emit('profileHover', {
-                id: profile.id,
-                from: 'dial',
-                type: 'focus'
-              });
-            }
+            emitProfileHover(activeOptionRef.current, 'focus');
             if (!isOnline) return;
             pressThroughTimer.current = setTimeout(() => {
               setIsPressingDown(true);
@@ -259,7 +409,7 @@ export const ProfileHomeScreen = () => {
     },
     bubbleDisplay.interceptsGesture || profileStarting
   );
-  if (!mergedProfiles) {
+  if (profileState.profileQuery.isPending || pourOverProfilesQuery.isPending) {
     return <LoadingScreen />;
   }
 
@@ -272,14 +422,16 @@ export const ProfileHomeScreen = () => {
             component={'div'}
           >
             {mergedProfiles.map((profile, index) => {
-              const itemRef = getOrCreateRef(index.toString());
+              const carouselIndex = index;
+              const itemKey = `espresso-${profile.id ?? index}`;
+              const itemRef = getOrCreateRef(itemKey);
               const backgroundColor = profile.display?.accentColor
                 ? profile.display?.accentColor
                 : '#e0dcd0';
 
               return (
                 <CSSTransition
-                  key={index}
+                  key={itemKey}
                   nodeRef={itemRef} // Pass the ref here
                   timeout={500}
                   classNames="slide"
@@ -287,14 +439,14 @@ export const ProfileHomeScreen = () => {
                   <ProfileEntry
                     ref={itemRef}
                     contentClassNames={
-                      !localHoverState &&
-                      Math.abs(index - activeOption) < 2 &&
+                      !homeHoverState &&
+                      Math.abs(carouselIndex - activeOption) < 2 &&
                       `animation-bounce-${transitionDirection}`
                     }
                     containerStyle={{ backgroundColor, position: 'relative' }}
                     title={profile.name}
-                    distanceToActive={index - activeOption}
-                    zoomedIn={localHoverState}
+                    distanceToActive={carouselIndex - activeOption}
+                    zoomedIn={homeHoverState}
                   >
                     <ProfileImage profile={profile} />
                     {profile.isLast && (
@@ -304,16 +456,70 @@ export const ProfileHomeScreen = () => {
                 </CSSTransition>
               );
             })}
+            {installedPourOverProfiles.map((profile, profileIndex) => {
+              const carouselIndex = getPourOverProfileOptionIndex(
+                profileIndex,
+                homeLayout
+              );
+              const itemKey = `pour-over-${profile.id}`;
+              const itemRef = getOrCreateRef(itemKey);
+              const accentColor = profile.display?.accentColor ?? '#1f3340';
+              return (
+                <CSSTransition
+                  key={itemKey}
+                  nodeRef={itemRef}
+                  timeout={500}
+                  classNames="slide"
+                >
+                  <ProfileEntry
+                    ref={itemRef}
+                    title={profile.name}
+                    containerStyle={{
+                      backgroundColor: accentColor,
+                      color: '#78d6ff'
+                    }}
+                    contentClassNames={
+                      !homeHoverState &&
+                      Math.abs(activeOption - carouselIndex) < 2 &&
+                      `animation-bounce-${transitionDirection}`
+                    }
+                    distanceToActive={carouselIndex - activeOption}
+                    zoomedIn={homeHoverState}
+                  >
+                    <PourOverProfileImage
+                      profile={profile}
+                      enabled={Math.abs(activeOption - carouselIndex) < 2}
+                    />
+                  </ProfileEntry>
+                </CSSTransition>
+              );
+            })}
+            <ProfileEntry
+              key="free-pour"
+              title="Free Pour"
+              containerStyle={{ backgroundColor: '#23383f', color: '#78d6ff' }}
+              contentClassNames={
+                Math.abs(activeOption - freePourOptionIndex) < 2 &&
+                `animation-bounce-${transitionDirection}`
+              }
+              distanceToActive={freePourOptionIndex - activeOption}
+              zoomedIn={homeHoverState}
+            >
+              <FreePourImage
+                src="/images/free-pour.png"
+                alt="Free Pour profile"
+              />
+            </ProfileEntry>
             {/* New button */}
             <ProfileEntry
               key={'unlock_new'}
               title={limitedAccess ? 'unlock all features' : 'new'}
               contentClassNames={
-                Math.abs(mergedProfiles.length - activeOption) < 2 &&
+                Math.abs(newOptionIndex - activeOption) < 2 &&
                 `animation-bounce-${transitionDirection}`
               }
-              distanceToActive={mergedProfiles.length - activeOption}
-              zoomedIn={localHoverState}
+              distanceToActive={newOptionIndex - activeOption}
+              zoomedIn={homeHoverState}
             >
               {limitedAccess ? <DownloadIcon /> : <PlusIcon />}
             </ProfileEntry>
@@ -323,6 +529,7 @@ export const ProfileHomeScreen = () => {
       <CircleOverlay
         shouldAnimate={isPressingDown}
         onAnimationFinished={animationFinished}
+        hoverState={homeHoverState}
       />
     </>
   );

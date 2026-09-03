@@ -1,0 +1,78 @@
+import { API_URL } from '../../api/api';
+import { FreePourSession } from './types';
+
+interface PourOverHistoryMetadata {
+  id: string;
+  file: string;
+  completedAt: string;
+}
+
+interface PourOverSaveResponse {
+  status: 'created' | 'existing';
+  history: PourOverHistoryMetadata;
+}
+
+const HISTORY_REQUEST_TIMEOUT_MS = 10_000;
+
+const historyFetch = async (input: string, init?: RequestInit) => {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(
+    () => controller.abort(),
+    HISTORY_REQUEST_TIMEOUT_MS
+  );
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    window.clearTimeout(timeout);
+  }
+};
+
+const apiError = async (response: Response, fallback: string) => {
+  let message = fallback;
+  try {
+    const body = (await response.json()) as { error?: string };
+    if (body.error) message = body.error;
+  } catch {
+    // The HTTP status below is sufficient when the body is not JSON.
+  }
+  return new Error(`${message} (${response.status})`);
+};
+
+export const persistFreePourSession = async (session: FreePourSession) => {
+  const response = await historyFetch(`${API_URL}/api/v1/history/pour-over`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(session)
+  });
+  if (!response.ok) {
+    throw await apiError(response, 'Could not save Pour Over history');
+  }
+  return (await response.json()) as PourOverSaveResponse;
+};
+
+const fetchBackendSession = async (metadata: PourOverHistoryMetadata) => {
+  const encodedPath = metadata.file
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+  const recordResponse = await historyFetch(
+    `${API_URL}/api/v1/history/pour-over/files/${encodedPath}`
+  );
+  if (!recordResponse.ok) {
+    throw await apiError(recordResponse, 'Could not read Pour Over record');
+  }
+  return (await recordResponse.json()) as FreePourSession;
+};
+
+export const getLatestBackendFreePourSession = async () => {
+  const latestResponse = await historyFetch(
+    `${API_URL}/api/v1/history/pour-over/last`
+  );
+  if (latestResponse.status === 404) return null;
+  if (!latestResponse.ok) {
+    throw await apiError(latestResponse, 'Could not read Pour Over history');
+  }
+  return fetchBackendSession(
+    (await latestResponse.json()) as PourOverHistoryMetadata
+  );
+};

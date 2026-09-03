@@ -1,5 +1,15 @@
 import { VariableType } from '@meticulous-home/espresso-profile';
-import { StatusData, Settings } from '@meticulous-home/espresso-api';
+import {
+  DeviceInfo,
+  StatusData,
+  Settings
+} from '@meticulous-home/espresso-api';
+
+export type TareBehavior = 'after_retraction' | 'before_retraction';
+export type DialSettings = Settings & { tare_behavior: TareBehavior };
+export type DialDeviceInfo = DeviceInfo & {
+  tare_behavior_supported?: boolean;
+};
 
 export type GestureType =
   | 'right'

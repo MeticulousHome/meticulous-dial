@@ -20,10 +20,26 @@ jobs:
       # Step 5
       - name: Check types
         run: npm run types
-      # Step 5
+      - name: Check Free Pour motion detection
+        run: npm run test:free-pour
+      - name: Check home screen selection
+        run: npm run test:profile-home-selection
+      - name: Check Pour Over profile contract
+        run: npm run test:pour-over-profile
+      - name: Run TypeScript module tests
+        run: npm test
       - name: Static analysis
         run: npm run lint
       # Step 6
+      - name: Install Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev
+      - name: Build frontend (required by tauri::generate_context)
+        run: npm run build
+      - name: Rust unit tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml
+      # Step 7
       - name: Build Application and Run unit Test
         run: exit 0
         if: false

@@ -41,10 +41,12 @@ export const DeviceInfoScreen = () => {
 
     const { repository_info, ...basicData } = deviceInfo as ExtendedDeviceInfo;
 
-    const basicInfo = Object.entries(basicData).map(([key, value]) => ({
-      key,
-      label: `${key}: ${typeof value === 'boolean' ? `${value ? 'ENABLED' : 'DISABLED'}` : (value ?? 'UNSET')}`
-    }));
+    const basicInfo = Object.entries(basicData)
+      .filter(([key]) => key !== 'tare_behavior_supported')
+      .map(([key, value]) => ({
+        key,
+        label: `${key}: ${typeof value === 'boolean' ? `${value ? 'ENABLED' : 'DISABLED'}` : (value ?? 'UNSET')}`
+      }));
 
     const keysToFilter = ['backend', 'dial', 'firmware'];
 
