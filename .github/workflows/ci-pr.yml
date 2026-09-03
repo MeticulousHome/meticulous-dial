@@ -5,6 +5,7 @@ on:
       - master
       - beta
       - alpha
+      - nightly
 jobs:
   continuous-integration:
     uses: ./.github/workflows/continuous-integration.yml

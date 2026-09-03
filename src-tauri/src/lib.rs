@@ -7,6 +7,7 @@ use tauri::State;
 
 mod community_upload;
 mod config;
+mod local_time;
 mod profiles;
 
 use community_upload::{CommunityEnrollment, CommunityUploadRuntime, CommunityUploadStatus};
@@ -100,6 +101,11 @@ fn community_scan_history(service: State<'_, CommunityUploadRuntime>) -> Result<
     service.request_history_scan()
 }
 
+#[tauri::command]
+fn get_os_local_time() -> local_time::LocalTimeSample {
+    local_time::current()
+}
+
 fn parse_mem() -> Option<u64> {
     let output = Command::new("systemctl")
         .args(&[
@@ -189,6 +195,7 @@ pub fn run() {
             ready,
             home_ready,
             get_profiles,
+            get_os_local_time,
             community_upload_status,
             community_begin_enrollment,
             community_set_upload_paused,
