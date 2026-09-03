@@ -5,12 +5,11 @@
   justify-content: center;
   box-sizing: border-box;
   width: 340px !important;
-  min-height: 330px;
-  margin: 0 auto;
+  height: 100%;
+  margin: auto auto;
   padding: 42px 48px 34px;
   text-align: center;
 }
-
 .connect-response-title,
 .connect-response-status,
 .connect-response-message {
@@ -58,5 +57,5 @@
 }
 
 .error-entry {
-  color: #e74d4d;
+  color: #dddddd;
 }
