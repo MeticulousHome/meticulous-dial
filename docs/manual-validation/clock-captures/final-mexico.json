@@ -1,0 +1,11 @@
+{
+  "stage": "final-mexico",
+  "osBefore": "2026-09-03T17:56:46,345198199-06:00",
+  "settings": {
+    "time_zone": "America/Mexico_City",
+    "timezone_sync": "manual",
+    "idle_screen": "analog"
+  },
+  "pid": "3425",
+  "osAfter": "2026-09-03T17:56:46,559259969-06:00"
+}

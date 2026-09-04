@@ -1,0 +1,11 @@
+{
+  "stage": "final-spring-dst-before",
+  "osBefore": "2026-03-29T00:59:58,449776015+00:00",
+  "settings": {
+    "time_zone": "Europe/London",
+    "timezone_sync": "manual",
+    "idle_screen": "analog"
+  },
+  "pid": "3425",
+  "osAfter": "2026-03-29T00:59:58,673151910+00:00"
+}
