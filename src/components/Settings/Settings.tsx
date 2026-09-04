@@ -49,6 +49,14 @@ const initialSettings: SettingsItem[] = [
     label: 'Scroll Directions'
   },
   {
+    key: 'paired_devices',
+    label: 'Paired Devices'
+  },
+  {
+    key: 'reset_machine_identity',
+    label: 'Reset Machine Identity'
+  },
+  {
     key: 'advanced',
     label: 'Advanced Settings'
   },
@@ -140,6 +148,19 @@ export function Settings(): JSX.Element {
           case 'scroll_directions':
             dispatch(
               setBubbleDisplay({ visible: true, component: 'scrollDirections' })
+            );
+            break;
+          case 'paired_devices':
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'pairedDevices' })
+            );
+            break;
+          case 'reset_machine_identity':
+            dispatch(
+              setBubbleDisplay({
+                visible: true,
+                component: 'resetMachineIdentity'
+              })
             );
             break;
           case 'back':

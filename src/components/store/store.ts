@@ -5,6 +5,7 @@ import screenReducer from './features/screens/screens-slice';
 import statsReducer from './features/stats/stats-slice';
 import notificationReducer from './features/notifications/notification-slice';
 import wifiReducer from './features/wifi/wifi-slice';
+import pairingReducer from './features/pairing/pairing-slice';
 import settingsReducer from './features/settings/settings-slice';
 import profileImageReducer from './features/images/images-slice';
 
@@ -14,6 +15,7 @@ export const store = configureStore({
     stats: statsReducer,
     notifications: notificationReducer,
     wifi: wifiReducer,
+    pairing: pairingReducer,
     settings: settingsReducer,
     images: profileImageReducer
   }

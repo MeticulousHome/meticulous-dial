@@ -7,6 +7,8 @@ import Api, {
 } from '@meticulous-home/espresso-api';
 import { DialDeviceInfo } from '../types';
 import { invoke } from '@tauri-apps/api/core';
+import { requestMachineIdentityRotation } from '../features/machineIdentity';
+import { requestFactoryReset } from '../features/machineReset';
 
 export const API_URL =
   import.meta.env.VITE_SERVER_URL || 'http://localhost:8080';
@@ -141,24 +143,16 @@ export const updateManufacturingSettings = async (
   }
 };
 
+export const rotateMachineIdentity = () =>
+  requestMachineIdentityRotation(API_URL);
+
 // The API package doesn't expose this endpoint
 export const factoryReset = async () => {
   try {
     if ('__TAURI_INTERNALS__' in window) {
       await invoke('community_factory_reset_local');
     }
-    const server = API_URL;
-    const url = server + `/api/v1/machine/factory_reset?confirm=true`;
-
-    const response = await fetch(url, { method: 'GET' });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    if ('error' in data) {
-      throw new Error((data as APIError).error);
-    }
-    return data;
+    return requestFactoryReset(API_URL);
   } catch (error) {
     console.error('Error factory resetting', error);
     throw new Error(error);
