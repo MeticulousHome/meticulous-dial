@@ -82,12 +82,15 @@ export const Scale = memo(
 
     const currentAnimation = useRef<'pull' | 'springMini' | null>(null);
     const scaleHideTimer = useRef<NodeJS.Timeout | null>(null);
+    const encoderPressed = useRef(false);
+    const longEncoderPending = useRef(false);
     const [scaleState, setScaleState] = useState<scaleState>({
       status: 'closed_cold',
       size: undefined
     });
 
     const closeScale = () => {
+      longEncoderPending.current = false;
       // avoid setting the state to closed_hot if called from closed_*
       if (scaleState.status === 'open') {
         coolScaleTimer.current = setTimeout(() => {
@@ -105,6 +108,7 @@ export const Scale = memo(
     };
 
     const openScale = (size: 'full' | 'small') => {
+      longEncoderPending.current = false;
       clearTimeout(coolScaleTimer.current);
       setScaleState({
         status: 'open',
@@ -174,7 +178,38 @@ export const Scale = memo(
     useHandleGestures(
       {
         pressDown() {
-          closeScale();
+          encoderPressed.current = true;
+          // A fresh press must not complete a long press whose release was lost.
+          longEncoderPending.current = false;
+          if (scaleState.size !== 'full') {
+            closeScale();
+          }
+        },
+        pressUp() {
+          encoderPressed.current = false;
+          if (longEncoderPending.current) {
+            closeScale();
+          }
+        },
+        click() {
+          if (scaleState.size === 'full') {
+            closeScale();
+          }
+        },
+        doubleClick() {
+          if (scaleState.size === 'full') {
+            closeScale();
+          }
+        },
+        longEncoder() {
+          if (scaleState.size !== 'full') return;
+          // Unlike click/doubleClick, longEncoder can precede the raw release.
+          // Keep the modal boundary until both have arrived, in either order.
+          if (encoderPressed.current) {
+            longEncoderPending.current = true;
+          } else {
+            closeScale();
+          }
         },
         tareDown() {
           if (scaleHideTimer.current) {

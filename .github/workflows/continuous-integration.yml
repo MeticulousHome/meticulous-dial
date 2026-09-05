@@ -28,6 +28,17 @@ jobs:
         run: npm run test:pour-over-profile
       - name: Run TypeScript module tests
         run: npm test
+      - name: Install scale regression browser
+        run: npx playwright install --with-deps chromium
+      - name: Check fullscreen scale gestures
+        run: npm run test:scale-overlay
+      - name: Upload scale regression evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scale-overlay-regression
+          path: test-results/scale-overlay
+          if-no-files-found: ignore
       - name: Static analysis
         run: npm run lint
       # Step 6
