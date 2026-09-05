@@ -409,7 +409,10 @@ export const ProfileHomeScreen = () => {
     },
     bubbleDisplay.interceptsGesture || profileStarting
   );
-  if (profileState.profileQuery.isPending || pourOverProfilesQuery.isPending) {
+  // Espresso profiles are required for Home. Pour Over is an optional catalog
+  // and older machines do not expose its endpoint, so it must load in the
+  // background instead of replacing the whole carousel with a spinner.
+  if (profileState.profileQuery.isPending) {
     return <LoadingScreen />;
   }
 

@@ -7,6 +7,16 @@ export const POUR_OVER_PROFILES_QUERY_KEY = 'pour-over-profiles';
 export const getPourOverProfileImageUrl = (profileId: string) =>
   `${API_URL}/api/v1/pour-over/profile/image/${encodeURIComponent(profileId)}`;
 
+class PourOverProfileRequestError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string
+  ) {
+    super(message);
+    this.name = 'PourOverProfileRequestError';
+  }
+}
+
 const request = async (path: string, init?: RequestInit) => {
   const controller = new AbortController();
   const timeout = globalThis.setTimeout(() => controller.abort(), 5000);
@@ -21,7 +31,7 @@ const request = async (path: string, init?: RequestInit) => {
         body && typeof body.error === 'string'
           ? body.error
           : `Machine returned ${response.status}`;
-      throw new Error(message);
+      throw new PourOverProfileRequestError(response.status, message);
     }
     return body;
   } catch (error) {
@@ -51,8 +61,23 @@ const parseInstalledProfile = (value: unknown): PourOverProfile | null => {
 export const getInstalledPourOverProfiles = async (): Promise<
   PourOverProfile[]
 > => {
-  const body = await request('/api/v1/pour-over/profile/list');
-  if (!body || !Array.isArray(body.profiles)) {
+  let body: unknown;
+  try {
+    body = await request('/api/v1/pour-over/profile/list');
+  } catch (error) {
+    // Pour Over profiles were introduced after the original machine API. A
+    // 404 means this optional catalog is unsupported, not that Home failed.
+    if (error instanceof PourOverProfileRequestError && error.status === 404) {
+      return [];
+    }
+    throw error;
+  }
+  if (
+    !body ||
+    typeof body !== 'object' ||
+    !('profiles' in body) ||
+    !Array.isArray(body.profiles)
+  ) {
     throw new Error('Machine returned an invalid Pour Over profile list');
   }
   return body.profiles
