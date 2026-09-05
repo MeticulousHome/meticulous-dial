@@ -1,0 +1,24 @@
+{
+  "run_date_utc": "2026-09-05",
+  "candidate": {
+    "dial_commit": "2aa4dc8c062642803be250aaa78375c87cb9887e",
+    "dial_binary_sha256": "d56fc14ace594a6bc33c063f1f56fd687a42e322af4716fcea147550525a680a"
+  },
+  "baseline": {
+    "dial_binary_sha256": "ea373a70e7c231ac9acd4db11cfea1b247f283b4864c5e61ae9af64dd8706d8c",
+    "source_revision": null
+  },
+  "profile": {
+    "name": "SW-103 target 18 (temporary)",
+    "temperature_c": 18,
+    "auto_start_shot": false
+  },
+  "capture": {
+    "source": "weston-screenshooter",
+    "width": 480,
+    "height": 480,
+    "raw_display_transform_degrees": 90
+  },
+  "input": "backend debug emulator to production Socket.IO button listener",
+  "scale_connected": false
+}
