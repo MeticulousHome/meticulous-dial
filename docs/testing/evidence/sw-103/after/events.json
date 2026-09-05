@@ -1,0 +1,61 @@
+{
+  "sourceRef": "7c3803f6376441ee33a37efeb0993f10374db886",
+  "source": "Synthetic browser fixture, real Scale/Heating/gesture hook, simulated socket output. Times relative to first encoder press.",
+  "events": [
+    {
+      "timeMs": 0,
+      "kind": "gesture",
+      "data": "pressDown"
+    },
+    {
+      "timeMs": 106,
+      "kind": "gesture",
+      "data": "pressUp"
+    },
+    {
+      "timeMs": 395,
+      "kind": "gesture",
+      "data": "click"
+    },
+    {
+      "timeMs": 398,
+      "kind": "visibility",
+      "data": "closed"
+    },
+    {
+      "timeMs": 1223,
+      "kind": "gesture",
+      "data": "pressDown"
+    },
+    {
+      "timeMs": 1223,
+      "kind": "underlying",
+      "data": "pressDown"
+    },
+    {
+      "timeMs": 1223,
+      "kind": "gesture",
+      "data": "pressUp"
+    },
+    {
+      "timeMs": 1223,
+      "kind": "underlying",
+      "data": "pressUp"
+    },
+    {
+      "timeMs": 1223,
+      "kind": "gesture",
+      "data": "click"
+    },
+    {
+      "timeMs": 1223,
+      "kind": "socket.emit",
+      "data": ["action", "continue"]
+    },
+    {
+      "timeMs": 1224,
+      "kind": "underlying",
+      "data": "click"
+    }
+  ]
+}
