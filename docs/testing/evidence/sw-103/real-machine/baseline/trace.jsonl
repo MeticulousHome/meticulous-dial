@@ -1,0 +1,13 @@
+{"observed_at":"2026-09-05T06:54:26.500970Z","event":"backend_action","action":"start"}
+{"observed_at":"2026-09-05T06:54:47.250Z","event":"status","name":"click to start","state":"brewing","extracting":false}
+{"observed_at":"2026-09-05T06:54:48.288Z","event":"button","type":"TARE_PRESSED"}
+{"observed_at":"2026-09-05T06:54:49.676Z","event":"button","type":"TARE_RELEASED"}
+{"observed_at":"2026-09-05T06:54:50.940Z","event":"button","type":"ENCODER_PRESSED"}
+{"observed_at":"2026-09-05T06:54:51.158Z","event":"button","type":"ENCODER_RELEASED"}
+{"observed_at":"2026-09-05T06:54:51.577Z","event":"button","type":"ENCODER_PUSH"}
+{"observed_at":"2026-09-05T06:54:51.683797Z","event":"backend_action","action":"continue"}
+{"observed_at":"2026-09-05T06:54:51.790Z","event":"status","name":"retracting","state":"brewing","extracting":false}
+{"observed_at":"2026-09-05T06:54:54.657097556+00:00","event":"screenshot","file":"04-first-click-plus-3s.png","seconds_after_push_write_completed":3.041446}
+{"observed_at":"2026-09-05T06:54:56.348Z","event":"status","name":"idle","state":"idle","extracting":false}
+{"observed_at":"2026-09-05T06:54:58.430Z","event":"complete","reason":"SIGTERM","status_events":106}
+{"event":"assertion","checkpoint":"first_click_plus_3s","continue_count":1,"name":"retracting","state":"brewing","extracting":false}
