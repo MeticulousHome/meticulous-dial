@@ -9,9 +9,9 @@ import { notificationSelector } from '../store/features/notifications/notificati
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useBrewDoubleClickHandler } from '../../hooks/useBrewDoubleClickHandler';
 import { useManualBrew } from '../../hooks/useManualBrew';
-import { useContinueBrewAction } from '../store/SocketManager';
 import { useManualTarget } from './useManualTarget';
 import { toBar } from './manualTarget';
+import { MANUAL_TARGET_COLORS } from '../../constants/manualMode.ts';
 
 export interface IBarometerProps {
   maxValue?: number;
@@ -29,16 +29,22 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
   // shown here too, and those can only abort.
   const doubleClick = useBrewDoubleClickHandler({ allowFinish: true });
   useHandleGestures({ doubleClick }, bubbleDisplay.interceptsGesture);
-  const { isManualBrew, streamedTarget } = useManualBrew();
-  const { tenths, trail } = useManualTarget(isManualBrew, streamedTarget);
-  const continueBrew = useContinueBrewAction();
-
-  // During a manual brew a single click ends the stage; encoder turns are
-  // handled by the machine and come back through the streamed setpoint.
-  useHandleGestures(
-    { click: () => continueBrew() },
-    !isManualBrew || bubbleDisplay.interceptsGesture
+  const { isManualBrew, activeControl, streamedTarget } = useManualBrew();
+  const { tenths, trail } = useManualTarget(
+    isManualBrew,
+    streamedTarget,
+    activeControl
   );
+
+  // In the flow stage the whole ring becomes a flow ring: the needle shows the
+  // flow sensor, the printed steps read as ml/s and the tick sits at the flow
+  // target. In the pressure stage, and in every non-manual brew, it stays the
+  // pressure ring. The barometer handles no gestures during a manual brew: the
+  // click that switches control and the long press that ends the shot are the
+  // machine's own button triggers, so the dial must send nothing on either.
+  const flowRing = isManualBrew && activeControl === 'flow';
+  const ringValue = flowRing ? stats.sensors.f : stats.sensors.p;
+  const ringUnit = flowRing ? 'ml/s' : 'bar';
 
   useEffect(() => {
     if (
@@ -62,21 +68,29 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
         min={0}
         max={maxValue}
         step={1}
-        value={stats.sensors.p}
+        value={ringValue}
         className="meter"
-        target={isManualBrew ? { value: toBar(tenths), trail } : undefined}
+        target={
+          isManualBrew && activeControl
+            ? {
+                value: toBar(tenths),
+                trail,
+                color: MANUAL_TARGET_COLORS[activeControl]
+              }
+            : undefined
+        }
       />
       <div className="bar-needle__content">
-        <div className="pressure">Pressure</div>
+        <div className="pressure">{flowRing ? 'Flow' : 'Pressure'}</div>
         <div className="bar-needle__legend">
           <span className="bar-needle__value">
-            {formatStatValue(stats.sensors.p, 1)}
+            {formatStatValue(ringValue, 1)}
           </span>
-          <span className="bar-label">bar</span>
+          <span className="bar-label">{ringUnit}</span>
         </div>
         {isManualBrew && (
           <div className="bar-target">
-            Target {toBar(tenths).toFixed(1)} bar
+            Target {toBar(tenths).toFixed(1)} {ringUnit}
           </div>
         )}
 
@@ -88,11 +102,13 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
               <div className="column-unit">sec</div>
             </div>
           </div>
+          {/* The controlled quantity owns the big readout, so this cell shows
+              the other one: pressure while the machine drives flow. */}
           <div className="column-item">
-            <div className="column-label">Flow</div>
+            <div className="column-label">{flowRing ? 'Pressure' : 'Flow'}</div>
             <div className="column-value">
-              {formatStatValue(stats.sensors.f, 1)}
-              <div className="column-unit">ml/s</div>
+              {formatStatValue(flowRing ? stats.sensors.p : stats.sensors.f, 1)}
+              <div className="column-unit">{flowRing ? 'bar' : 'ml/s'}</div>
             </div>
           </div>
           <div className="column-item">

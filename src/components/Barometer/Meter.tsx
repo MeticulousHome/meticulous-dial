@@ -19,7 +19,7 @@ interface MeterProps {
   max: number;
   value: number;
   step: number;
-  target?: { value: number; trail: Trail | null };
+  target?: { value: number; trail: Trail | null; color: string };
 }
 
 export function Meter({
@@ -86,6 +86,7 @@ export function Meter({
           max={max}
           value={target.value}
           trail={target.trail}
+          color={target.color}
         />
       )}
     </div>

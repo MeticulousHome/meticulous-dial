@@ -19,9 +19,12 @@ interface TargetTickProps {
   max: number;
   value: number;
   trail: Trail | null;
+  // The colour of the control the machine is driving, so the marker and its
+  // trail read as part of the pressure ring or of the flow ring.
+  color: string;
 }
 
-export function TargetTick({ min, max, value, trail }: TargetTickProps) {
+export function TargetTick({ min, max, value, trail, color }: TargetTickProps) {
   const headAngle = valueToAngleRad(value, min, max);
 
   const geometry = trail
@@ -72,8 +75,8 @@ export function TargetTick({ min, max, value, trail }: TargetTickProps) {
               x2={geometry.gradient.x2}
               y2={geometry.gradient.y2}
             >
-              <stop offset="0" stopColor="#F5C444" stopOpacity="0" />
-              <stop offset="1" stopColor="#F5C444" stopOpacity="1" />
+              <stop offset="0" stopColor={color} stopOpacity="0" />
+              <stop offset="1" stopColor={color} stopOpacity="1" />
             </linearGradient>
           </defs>
           <path d={geometry.path} fill={`url(#${TRAIL_GRADIENT_ID})`} />
@@ -90,7 +93,7 @@ export function TargetTick({ min, max, value, trail }: TargetTickProps) {
           top: ARC_RADIUS - 1.5,
           width: TARGET_TICK_OUTER_RADIUS,
           height: 3,
-          background: `linear-gradient(to right, transparent 0px, transparent ${TARGET_TICK_INNER_RADIUS}px, #F5C444 ${TARGET_TICK_INNER_RADIUS}px, #F5C444 ${TARGET_TICK_OUTER_RADIUS}px)`
+          background: `linear-gradient(to right, transparent 0px, transparent ${TARGET_TICK_INNER_RADIUS}px, ${color} ${TARGET_TICK_INNER_RADIUS}px, ${color} ${TARGET_TICK_OUTER_RADIUS}px)`
         }}
       />
     </div>

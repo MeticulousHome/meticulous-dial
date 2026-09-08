@@ -7,6 +7,7 @@ import {
   TargetSample,
   Trail
 } from './manualTarget';
+import { ManualControl } from '../../constants/manualMode.ts';
 
 /**
  * Owns the manual brew target shown on the barometer.
@@ -19,7 +20,8 @@ import {
  */
 export function useManualTarget(
   isManualBrew: boolean,
-  streamedTarget?: number
+  streamedTarget?: number,
+  activeControl?: ManualControl | null
 ) {
   const [tenths, setTenths] = useState(0);
   const [trail, setTrail] = useState<Trail | null>(null);
@@ -49,7 +51,10 @@ export function useManualTarget(
     frameRef.current = requestAnimationFrame(step);
   }, []);
 
-  // Seed on entering a manual brew, and drop everything on leaving one.
+  // Seed on entering a manual brew or on switching control, and drop
+  // everything on leaving one. A switch is a new ring: the trail records the
+  // previous control's targets and means nothing on the new scale, so history
+  // goes and the tick re-seeds from the stream's value for the new control.
   useEffect(() => {
     stopLoop();
     historyRef.current = [];
@@ -60,9 +65,9 @@ export function useManualTarget(
       : 0;
     tenthsRef.current = seeded;
     setTenths(seeded);
-    // Deliberately keyed on isManualBrew only: the streamed target is read once
-    // here and tracked by the stream effect below from then on.
-  }, [isManualBrew, stopLoop]);
+    // Deliberately keyed on the brew and the control only: the streamed target
+    // is read once here and tracked by the stream effect below from then on.
+  }, [isManualBrew, activeControl, stopLoop]);
 
   // Follow the streamed setpoint.
   useEffect(() => {
