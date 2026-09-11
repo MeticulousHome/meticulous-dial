@@ -15,6 +15,7 @@
     "test:pour-over-profile": "ts-node --compiler-options '{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' tests/pourOverProfileContract.test.ts",
     "test:scale-overlay": "playwright test --config playwright.scale.config.ts",
     "types": "tsc --noEmit",
+    "test:slowdown": "node --experimental-strip-types --test tests/slowdownDetector.test.mts",
     "test:sw120": "node --experimental-strip-types --test tests/sw120-heating-long-press.test.mjs",
     "prepare": "husky",
     "lint": "eslint .",

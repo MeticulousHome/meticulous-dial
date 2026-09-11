@@ -26,6 +26,7 @@ serde_yaml = "0.9"
 tauri-plugin-log = "2.8.0"
 byte-unit = "5.2.0"
 log = "0.4.28"
+libc = "0.2"
 base64 = "0.22"
 ed25519-dalek = { version = "2.1", features = ["rand_core"] }
 rand_core = { version = "0.6", features = ["getrandom"] }
