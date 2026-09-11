@@ -1,4 +1,4 @@
-import { ActionKey } from '../../src/types';
+import type { ActionKey } from '../../src/types';
 
 export type StaticAction = {
   type: 'action';
@@ -49,4 +49,23 @@ export const HIDDEN_STAGES: string[] = [
   'boot',
   'END_STAGE',
   'starting...'
+];
+
+// Status names the firmware owns. A status outside this list while
+// `extracting` is a user-defined stage of the loaded profile.
+export const MACHINE_OWNED_STAGES: string[] = [
+  'heating',
+  'click to start',
+  'retracting',
+  'closing valve',
+  'purge',
+  'remove cup',
+  'click to purge',
+  'Pour water and click to continue',
+  'starting...',
+  'home',
+  'boot',
+  'idle',
+  'END_STAGE',
+  'finished'
 ];
