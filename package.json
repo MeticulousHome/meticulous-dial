@@ -10,6 +10,7 @@
     "format": "prettier --config .prettierrc \"{src/**/,.github/**/,}*.{tsx,ts,md,js,css,html,json,yml}\" --write",
     "format:check": "prettier --config .prettierrc \"{src/**/,.github/**/,}*.{tsx,ts,md,js,css,html,json,yml}\" --check",
     "types": "tsc --noEmit",
+    "test:slowdown": "node --experimental-strip-types --test tests/slowdownDetector.test.mts",
     "prepare": "husky",
     "lint": "eslint .",
     "dev": "VITE_SERVER_URL=\"${SERVER_URL}\" vite",

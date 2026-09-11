@@ -20,10 +20,9 @@ jobs:
       # Step 5
       - name: Check types
         run: npm run types
-      # Step 5
+      # Step 6
       - name: Static analysis
         run: npm run lint
-      # Step 6
-      - name: Build Application and Run unit Test
-        run: exit 0
-        if: false
+      # Step 7
+      - name: Test slowdown detector
+        run: npm run test:slowdown
