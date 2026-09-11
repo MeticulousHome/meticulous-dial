@@ -2,9 +2,9 @@ name: CI Pipeline PR
 on:
   pull_request:
     branches:
-      - stable
+      - master
       - beta
-      - nightly
+      - alpha
 jobs:
   continuous-integration:
     uses: ./.github/workflows/continuous-integration.yml
