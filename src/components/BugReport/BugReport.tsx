@@ -1,8 +1,12 @@
-import { useMemo, useRef, useState } from 'react';
+import { Fragment, useMemo, useRef, useState } from 'react';
 import { ZstdDec, ZstdInit } from '@oneidentity/zstd-js/decompress';
 import * as Sentry from '@sentry/react';
+import { AnimatedCounter } from 'react-animated-counter/dist/esm';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
+import {
+  BugReportAnimation,
+  BugReportAnimationPhase
+} from './BugReportAnimation';
 import { QrGeneratedImage } from '../QR/QrImage';
 import {
   setBubbleDisplay,
@@ -22,6 +26,8 @@ import './bugReport.css';
 
 enum ReportScreen {
   message = 'message',
+  reportSetup = 'reportSetup',
+  selectIssueDate = 'selectIssueDate',
   reportingBug = 'reportingBug',
   contactInfo = 'contactInfo',
   submitted = 'submitted'
@@ -31,7 +37,6 @@ enum ReportStatus {
   idle = 'idle',
   fetching = 'fetching',
   slowFetch = 'slowFetch',
-  fetched = 'fetched',
   submitting = 'submitting',
   failed = 'failed'
 }
@@ -55,11 +60,126 @@ type SubmissionStateType =
   | 'sendingFeedback'
   | 'savingRecord';
 
+// Every failure the user can land on gets a stable code, so support can map the
+// short on-screen message back to the stage that actually failed.
+const FAILURE_DETAILS: Record<
+  SubmissionFailType,
+  { code: string; message: string }
+> = {
+  creation: {
+    code: 'BR-01',
+    message: 'We could not collect the information needed for your report.'
+  },
+  reportLoad: {
+    code: 'BR-02',
+    message: 'We could not prepare your report for sending.'
+  },
+  TicketTrackRequest: {
+    code: 'BR-03',
+    message: 'We could not get a tracking number for your report.'
+  },
+  reportUpdate: {
+    code: 'BR-04',
+    message: 'We could not link the tracking number to your report.'
+  },
+  sentrySubmission: {
+    code: 'BR-05',
+    message: 'We could not send your report.'
+  },
+  submissionMark: {
+    code: 'BR-06',
+    message: 'We could not update your reports record.'
+  },
+  submissionTimeout: {
+    code: 'BR-07',
+    message: 'Sending your report took too long and was cancelled.'
+  }
+};
+
+const CONTACT_SUPPORT_NOTE = 'Please contact us for further information.';
+
+// The submitted screen waits on the closing animation. A dropped 'complete'
+// event would strand the user on a screen that offers no options at all, so the
+// wait is capped. A submission landing at the worst moment queues behind the
+// collecting loop's boundary (up to 2.0s), the bridge (2.4s) and Finished
+// itself (1.1s), so the cap has to clear 5.5s with room for a slow frame rate.
+const FINISHED_ANIMATION_TIMEOUT = 12 * 1000;
+
+type FailureView = {
+  code: string;
+  message: string;
+  /** Extra line shown above the code, e.g. a ticket the user should keep. */
+  note?: string;
+};
+
 type BugReportOption = {
-  key: 'contactInfo' | 'reportIssue' | 'back' | 'submit' | 'exit';
+  key:
+    | 'contactInfo'
+    | 'reportIssue'
+    | 'report'
+    | 'selectDate'
+    | 'back'
+    | 'cancel'
+    | 'exit';
   label: string;
   useableWidthPercentage: number;
 };
+
+type IssueDateField = 'day' | 'month' | 'year' | 'hours' | 'minutes';
+
+type CreateReportRun = {
+  cancelled: boolean;
+  slowTimeout: ReturnType<typeof setTimeout> | null;
+  controller: AbortController;
+};
+
+const ISSUE_DATE_FIELDS: IssueDateField[] = [
+  'day',
+  'month',
+  'year',
+  'hours',
+  'minutes'
+];
+
+const ISSUE_DATE_ACTIVE_COLOR = '#f5c444';
+const ISSUE_DATE_INACTIVE_COLOR = '#E6E6E6';
+const ISSUE_DATE_COUNTER_STYLE = {
+  margin: 0,
+  fontSize: 38,
+  fontFamily: 'ABC Diatype Mono',
+  fontWeight: 300,
+  letterSpacing: '-0.02em'
+};
+
+const ISSUE_DATE_HINTS = [
+  { input: 'Press', action: 'Change field' },
+  { input: 'Long press', action: 'Confirm' },
+  { input: 'Double press', action: 'Back' }
+];
+
+const padTwo = (value: number) => String(value).padStart(2, '0');
+
+// Both issue-date screens share these so the summary can never drift from the
+// format the picker edits in.
+const formatIssueDate = (date: Date) =>
+  `${padTwo(date.getDate())}.${padTwo(date.getMonth() + 1)}.${date.getFullYear()}`;
+
+const formatIssueTime = (date: Date) =>
+  `${padTwo(date.getHours())}:${padTwo(date.getMinutes())}`;
+
+// The summary labels its parts by splitting the formatted string rather than
+// re-deriving them, so it cannot grow a second definition of the format.
+const ISSUE_DATE_LABELS = ['Day', 'Month', 'Year'];
+const ISSUE_TIME_LABELS = ['Hour', 'Min'];
+
+const toLabelledParts = (
+  formatted: string,
+  separator: string,
+  labels: string[]
+) =>
+  formatted
+    .split(separator)
+    .map((value, index) => ({ label: labels[index], value }));
 
 export interface DraftFile {
   name: string;
@@ -83,13 +203,15 @@ const service_url =
 
 const textDecoder = new TextDecoder();
 
-const reportSubmissionError =
-  'failed to submit the report. Please contact us for further information';
-
-const captureException = (error: unknown) => {
-  console.error(error);
+const captureException = (error: unknown, errorCode?: string) => {
+  console.error(errorCode ? `[${errorCode}]` : '', error);
   if (Sentry.isInitialized()) {
-    Sentry.captureException(error);
+    Sentry.captureException(
+      error,
+      errorCode
+        ? { tags: { 'meticulous.bug_report_error_code': errorCode } }
+        : undefined
+    );
   }
 };
 
@@ -262,6 +384,66 @@ const sendSentryFeedback = async ({
   return eventID;
 };
 
+/** The read-only counterpart of the picker row, labelled the same way. */
+const IssueDateParts = ({
+  parts,
+  separator
+}: {
+  parts: { label: string; value: string }[];
+  separator: string;
+}) => (
+  <div className="bug-report-date-row">
+    {parts.map((part, index) => (
+      <Fragment key={part.label}>
+        {index > 0 && (
+          <span className="bug-report-date-separator">{separator}</span>
+        )}
+        <div className="bug-report-date-part">
+          <span className="bug-report-date-label">{part.label}</span>
+          <span className="bug-report-date-value">{part.value}</span>
+        </div>
+      </Fragment>
+    ))}
+  </div>
+);
+
+const IssueDateCounter = ({
+  active,
+  label,
+  value,
+  pad = false
+}: {
+  active: boolean;
+  /** Names the field, since digits alone do not say which is which. */
+  label: string;
+  value: number;
+  /** Keeps two-digit fields two digits wide, so the row never shifts. */
+  pad?: boolean;
+}) => (
+  <div className="bug-report-date-part">
+    {/* Above the digits: the underline below them already marks the active
+        field, and a label there would compete with it. */}
+    <span className="bug-report-date-label">{label}</span>
+    <div
+      className={`bug-report-date-picker-field${
+        active ? ' bug-report-date-picker-active' : ''
+      }`}
+    >
+      {/* AnimatedCounter takes a number, so the leading zero is drawn alongside it. */}
+      {pad && value < 10 && <span>0</span>}
+      <AnimatedCounter
+        value={value}
+        color={ISSUE_DATE_INACTIVE_COLOR}
+        decrementColor={ISSUE_DATE_ACTIVE_COLOR}
+        incrementColor={ISSUE_DATE_ACTIVE_COLOR}
+        includeDecimals={false}
+        fontSize="38px"
+        containerStyles={ISSUE_DATE_COUNTER_STYLE}
+      />
+    </div>
+  </div>
+);
+
 export const BugReport = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const currentScreen = useAppSelector((state) => state.screen.value);
@@ -269,11 +451,46 @@ export const BugReport = (): JSX.Element => {
   const [reportScreen, setReportScreen] = useState(ReportScreen.message);
   const [reportStatus, setReportStatus] = useState(ReportStatus.idle);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [failureError, setFailureError] = useState('');
+  const [failure, setFailure] = useState<FailureView | null>(null);
+  const [selectedIssueTimestamp, setSelectedIssueTimestamp] = useState<
+    number | undefined
+  >();
+  const [issueDateDraft, setIssueDateDraft] = useState(() => new Date());
+  const [activeIssueDateField, setActiveIssueDateField] =
+    useState<IssueDateField>('day');
+  const [isFinishing, setIsFinishing] = useState(false);
   const draftInfoRef = useRef<DraftInfo | null>(null);
-  const failureRef = useRef<SubmissionFailType | null>(null);
   const ticketRef = useRef<number | null>(null);
   const submissionStateRef = useRef<SubmissionStateType>(null);
+  const activeCreateRunRef = useRef<CreateReportRun | null>(null);
+  const finishedResolveRef = useRef<(() => void) | null>(null);
+
+  const animationPhase: BugReportAnimationPhase = isFinishing
+    ? 'finished'
+    : reportStatus === ReportStatus.submitting
+      ? 'submitting'
+      : 'collecting';
+
+  const handleFinishedAnimationEnd = () => {
+    const resolve = finishedResolveRef.current;
+    finishedResolveRef.current = null;
+    resolve?.();
+  };
+
+  // Switches the animation to Finished and settles once it has played out.
+  const playFinishedAnimation = () =>
+    new Promise<void>((resolve) => {
+      const safety = setTimeout(() => {
+        finishedResolveRef.current = null;
+        resolve();
+      }, FINISHED_ANIMATION_TIMEOUT);
+
+      finishedResolveRef.current = () => {
+        clearTimeout(safety);
+        resolve();
+      };
+      setIsFinishing(true);
+    });
 
   const options = useMemo<BugReportOption[]>(() => {
     if (reportScreen === ReportScreen.message) {
@@ -296,14 +513,24 @@ export const BugReport = (): JSX.Element => {
       return [{ key: 'back', label: 'Back', useableWidthPercentage: 81 }];
     }
 
+    if (reportScreen === ReportScreen.reportSetup) {
+      return [
+        { key: 'report', label: 'Report', useableWidthPercentage: 81 },
+        {
+          key: 'selectDate',
+          label: 'Select date',
+          useableWidthPercentage: 81
+        },
+        { key: 'back', label: 'Back', useableWidthPercentage: 81 }
+      ];
+    }
+
     if (
       reportScreen === ReportScreen.reportingBug &&
-      reportStatus === ReportStatus.fetched
+      (reportStatus === ReportStatus.fetching ||
+        reportStatus === ReportStatus.slowFetch)
     ) {
-      return [
-        { key: 'submit', label: 'Submit', useableWidthPercentage: 81 },
-        { key: 'exit', label: 'Exit', useableWidthPercentage: 81 }
-      ];
+      return [{ key: 'cancel', label: 'Cancel', useableWidthPercentage: 81 }];
     }
 
     if (
@@ -333,71 +560,214 @@ export const BugReport = (): JSX.Element => {
     dispatch(setBubbleDisplay({ visible: true, component: 'quick-settings' }));
   };
 
-  const startCreateReport = async () => {
-    setReportScreen(ReportScreen.reportingBug);
-    setReportStatus(ReportStatus.fetching);
+  const failSubmission = (
+    failureType: SubmissionFailType,
+    error: unknown,
+    note?: string
+  ) => {
+    const { code, message } = FAILURE_DETAILS[failureType];
+    setFailure({ code, message, note });
+    setReportStatus(ReportStatus.failed);
+    submissionStateRef.current = null;
+    setIsFinishing(false);
+    captureException(error, code);
+  };
+
+  const resetCancelledReport = () => {
+    setReportScreen(ReportScreen.message);
+    setReportStatus(ReportStatus.idle);
     setActiveIndex(0);
-    failureRef.current = null;
+    setFailure(null);
+    setSelectedIssueTimestamp(undefined);
+    setIssueDateDraft(new Date());
+    setActiveIssueDateField('day');
     draftInfoRef.current = null;
+    ticketRef.current = null;
+    submissionStateRef.current = null;
+    setIsFinishing(false);
+  };
 
-    const slowTimeout = setTimeout(() => {
-      setReportStatus(ReportStatus.slowFetch);
-    }, 60 * 1000); // message change on the first minute mark
-
+  const deleteCancelledDraft = async (localID: string) => {
     try {
-      const create_response = await api.createReport();
-      if (isReportError(create_response)) {
-        throw Error(create_response.error);
+      const deleteResponse = await api.deleteDraftReport(localID);
+      if (isReportError(deleteResponse)) {
+        throw new Error(deleteResponse.error);
       }
-      draftInfoRef.current = create_response;
-      setReportStatus(ReportStatus.fetched);
     } catch (error) {
-      failureRef.current = 'creation';
-      setFailureError(
-        'There was an error while getting the necessary information, You may contact us for further instructions'
-      );
-      setReportStatus(ReportStatus.failed);
+      // Cancellation is already complete from the user's perspective. Keep
+      // this failure out of the reset UI, while retaining it for diagnosis.
       captureException(error);
-    } finally {
-      clearTimeout(slowTimeout);
     }
   };
 
-  const failSubmission = (
-    failure: SubmissionFailType,
-    errorMessage: string,
-    error: unknown
-  ) => {
-    failureRef.current = failure;
-    setFailureError(errorMessage);
-    setReportStatus(ReportStatus.failed);
-    submissionStateRef.current = null;
-    captureException(error);
+  const cancelCreateReport = () => {
+    const createRun = activeCreateRunRef.current;
+    if (!createRun) return;
+
+    createRun.cancelled = true;
+    // Stops the in-flight request so the machine stops collecting; scoped to
+    // this run's own controller, so a later run is never touched by it.
+    createRun.controller.abort();
+    if (createRun.slowTimeout) {
+      clearTimeout(createRun.slowTimeout);
+      createRun.slowTimeout = null;
+    }
+    activeCreateRunRef.current = null;
+    resetCancelledReport();
+  };
+
+  const startCreateReport = () => {
+    // A fresh controller per run: it lives and dies with this createRun, is
+    // never reused, and a later run can never be aborted through it.
+    const createRun: CreateReportRun = {
+      cancelled: false,
+      slowTimeout: null,
+      controller: new AbortController()
+    };
+    const issueTime = selectedIssueTimestamp;
+
+    activeCreateRunRef.current = createRun;
+    setReportScreen(ReportScreen.reportingBug);
+    setReportStatus(ReportStatus.fetching);
+    setActiveIndex(0);
+    setFailure(null);
+    setIsFinishing(false);
+    draftInfoRef.current = null;
+
+    createRun.slowTimeout = setTimeout(() => {
+      if (!createRun.cancelled && activeCreateRunRef.current === createRun) {
+        setReportStatus(ReportStatus.slowFetch);
+      }
+    }, 60 * 1000); // message change on the first minute mark
+
+    void (async () => {
+      try {
+        const createResponse =
+          issueTime === undefined
+            ? await api.createReport(undefined, {
+                signal: createRun.controller.signal
+              })
+            : await api.createReport(
+                { issueTime },
+                { signal: createRun.controller.signal }
+              );
+        if (isReportError(createResponse)) {
+          throw new Error(createResponse.error);
+        }
+
+        if (createRun.cancelled) {
+          await deleteCancelledDraft(createResponse.localID);
+          return;
+        }
+
+        activeCreateRunRef.current = null;
+        draftInfoRef.current = createResponse;
+        setReportStatus(ReportStatus.submitting);
+        void submitReport(createResponse);
+      } catch (error) {
+        if (createRun.cancelled) {
+          // Aborting makes createReport() resolve to an APIError that surfaces
+          // here as a throw, indistinguishable from a genuine failure. Decide
+          // from the run's own token, not this value: cancellation is expected
+          // user action, not a failure, so it must never reach the
+          // already-reset UI, and it must never be reported to Sentry.
+          console.error(
+            '[bug-report] discarded error from a cancelled report creation',
+            error
+          );
+        } else if (activeCreateRunRef.current === createRun) {
+          activeCreateRunRef.current = null;
+          failSubmission('creation', error);
+        }
+      } finally {
+        if (createRun.slowTimeout) {
+          clearTimeout(createRun.slowTimeout);
+          createRun.slowTimeout = null;
+        }
+      }
+    })();
+  };
+
+  const openIssueDateSelector = () => {
+    setIssueDateDraft(() => {
+      const savedDate = new Date(
+        selectedIssueTimestamp === undefined
+          ? Date.now()
+          : selectedIssueTimestamp * 1000
+      );
+      savedDate.setMinutes(Math.floor(savedDate.getMinutes() / 30) * 30);
+      return savedDate;
+    });
+    setActiveIssueDateField('day');
+    setActiveIndex(0);
+    setReportScreen(ReportScreen.selectIssueDate);
+  };
+
+  const changeIssueDate = (direction: number) => {
+    setIssueDateDraft((previousDate) => {
+      const nextDate = new Date(previousDate.getTime());
+
+      // Minutes are always in 30-minute increments, so the user can only select 0 or 30.
+      nextDate.setMinutes(Math.floor(nextDate.getMinutes() / 30) * 30);
+
+      switch (activeIssueDateField) {
+        case 'day':
+          nextDate.setDate(nextDate.getDate() + direction);
+          break;
+        case 'month':
+          nextDate.setMonth(nextDate.getMonth() + direction);
+          break;
+        case 'year':
+          nextDate.setFullYear(nextDate.getFullYear() + direction);
+          break;
+        case 'hours':
+          nextDate.setHours(nextDate.getHours() + direction);
+          break;
+        case 'minutes':
+          nextDate.setMinutes(nextDate.getMinutes() + direction * 30);
+          break;
+      }
+
+      if (nextDate.getTime() > Date.now()) {
+        nextDate.setTime(Date.now());
+        nextDate.setMinutes(Math.floor(nextDate.getMinutes() / 30) * 30);
+      }
+
+      return nextDate;
+    });
+  };
+
+  const confirmIssueDate = () => {
+    setSelectedIssueTimestamp(Math.floor(issueDateDraft.getTime() / 1000));
+    setReportScreen(ReportScreen.reportSetup);
+    setReportStatus(ReportStatus.idle);
+    setActiveIndex(0);
+  };
+
+  const cancelIssueDateSelection = () => {
+    setReportScreen(ReportScreen.reportSetup);
+    setReportStatus(ReportStatus.idle);
+    setActiveIndex(0);
   };
 
   const setSubmissionStage = (stage: SubmissionStateType) => {
     submissionStateRef.current = stage;
   };
 
-  const submitReport = async () => {
-    const draftInfo = draftInfoRef.current;
-    if (!draftInfo?.localID) {
-      failSubmission('reportLoad', reportSubmissionError, 'No draft report');
+  const submitReport = async (draftInfo: DraftInfo) => {
+    if (!draftInfo.localID) {
+      failSubmission('reportLoad', 'No draft report');
       return;
     }
 
     setReportStatus(ReportStatus.submitting);
-    failureRef.current = null;
+    setFailure(null);
 
     let timedOut = false;
     const submissionTimeout = setTimeout(
       () => {
         timedOut = true;
-        failSubmission(
-          'submissionTimeout',
-          reportSubmissionError,
-          'Report submission timed out'
-        );
+        failSubmission('submissionTimeout', 'Report submission timed out');
       },
       5 * 60 * 1000
     ); // 5 minutes timeout
@@ -453,6 +823,11 @@ export const BugReport = (): JSX.Element => {
       }
       if (timedOut) return;
 
+      // The report is in. Everything left is animation, so retire the network
+      // timeout rather than let it fail a submission that already succeeded.
+      clearTimeout(submissionTimeout);
+      await playFinishedAnimation();
+
       setSubmissionStage(null);
       setReportScreen(ReportScreen.submitted);
       setReportStatus(ReportStatus.idle);
@@ -460,21 +835,20 @@ export const BugReport = (): JSX.Element => {
       if (timedOut) return;
 
       if (submissionStateRef.current === 'sendingFeedback') {
-        failSubmission('sentrySubmission', reportSubmissionError, error);
+        failSubmission('sentrySubmission', error);
       } else if (submissionStateRef.current === 'ticketing') {
-        failSubmission(
-          'TicketTrackRequest',
-          'Failed getting ticket number. Please contact us for further information',
-          error
-        );
+        failSubmission('TicketTrackRequest', error);
+      } else if (submissionStateRef.current === 'updatingReport') {
+        failSubmission('reportUpdate', error);
       } else if (submissionStateRef.current === 'savingRecord') {
+        // The report itself made it through, so the ticket is still usable.
         failSubmission(
           'submissionMark',
-          `failed to update your reports record, dont worry we received the ticket with number ${ticketRef.current}, save the ticket number for further tracking. Please contact us for further information`,
-          error
+          error,
+          `We received your report with ticket number ${ticketRef.current}. Save it for further tracking.`
         );
       } else {
-        failSubmission('reportLoad', reportSubmissionError, error);
+        failSubmission('reportLoad', error);
       }
     } finally {
       clearTimeout(submissionTimeout);
@@ -483,14 +857,31 @@ export const BugReport = (): JSX.Element => {
 
   useHandleGestures({
     left() {
+      if (reportScreen === ReportScreen.selectIssueDate) {
+        changeIssueDate(-1);
+        return;
+      }
       if (options.length === 0) return;
       setActiveIndex((prev) => Math.max(prev - 1, 0));
     },
     right() {
+      if (reportScreen === ReportScreen.selectIssueDate) {
+        changeIssueDate(1);
+        return;
+      }
       if (options.length === 0) return;
       setActiveIndex((prev) => Math.min(prev + 1, options.length - 1));
     },
     pressDown() {
+      if (reportScreen === ReportScreen.selectIssueDate) {
+        setActiveIssueDateField((previousField) => {
+          const currentIndex = ISSUE_DATE_FIELDS.indexOf(previousField);
+          return ISSUE_DATE_FIELDS[
+            (currentIndex + 1) % ISSUE_DATE_FIELDS.length
+          ];
+        });
+        return;
+      }
       const activeOption = options[activeIndex];
       if (!activeOption || reportStatus === ReportStatus.submitting) return;
 
@@ -501,22 +892,45 @@ export const BugReport = (): JSX.Element => {
           setActiveIndex(0);
           break;
         case 'reportIssue':
+          setReportScreen(ReportScreen.reportSetup);
+          setReportStatus(ReportStatus.idle);
+          setActiveIndex(0);
+          break;
+        case 'report':
           startCreateReport();
+          break;
+        case 'selectDate':
+          openIssueDateSelector();
+          break;
+        case 'cancel':
+          cancelCreateReport();
           break;
         case 'back':
           if (reportScreen === ReportScreen.message) {
             exitToQuickSettings();
+          } else if (reportScreen === ReportScreen.reportSetup) {
+            setReportScreen(ReportScreen.message);
+            setReportStatus(ReportStatus.idle);
+            setActiveIndex(0);
+            break;
           }
           setReportScreen(ReportScreen.message);
           setReportStatus(ReportStatus.idle);
           setActiveIndex(0);
           break;
-        case 'submit':
-          submitReport();
-          break;
         case 'exit':
           exitToQuickSettings();
           break;
+      }
+    },
+    longEncoder() {
+      if (reportScreen === ReportScreen.selectIssueDate) {
+        confirmIssueDate();
+      }
+    },
+    doubleClick() {
+      if (reportScreen === ReportScreen.selectIssueDate) {
+        cancelIssueDateSelection();
       }
     }
   });
@@ -544,28 +958,107 @@ export const BugReport = (): JSX.Element => {
       );
     }
 
+    if (reportScreen === ReportScreen.reportSetup) {
+      const reportDate = new Date(
+        selectedIssueTimestamp === undefined
+          ? Date.now()
+          : selectedIssueTimestamp * 1000
+      );
+      return (
+        <>
+          <span className="bug-report-eyebrow">Issue date &amp; time</span>
+          <div className="bug-report-issue-date-display">
+            <IssueDateParts
+              separator="."
+              parts={toLabelledParts(
+                formatIssueDate(reportDate),
+                '.',
+                ISSUE_DATE_LABELS
+              )}
+            />
+            <IssueDateParts
+              separator=":"
+              parts={toLabelledParts(
+                formatIssueTime(reportDate),
+                ':',
+                ISSUE_TIME_LABELS
+              )}
+            />
+          </div>
+        </>
+      );
+    }
+
+    if (reportScreen === ReportScreen.selectIssueDate) {
+      return (
+        <>
+          <span className="bug-report-eyebrow">
+            Guide us to when the issue occurred
+          </span>
+          <div className="bug-report-date-picker">
+            <div className="bug-report-date-row">
+              <IssueDateCounter
+                active={activeIssueDateField === 'day'}
+                label="Day"
+                value={issueDateDraft.getDate()}
+                pad
+              />
+              <span className="bug-report-date-separator">.</span>
+              <IssueDateCounter
+                active={activeIssueDateField === 'month'}
+                label="Month"
+                value={issueDateDraft.getMonth() + 1}
+                pad
+              />
+              <span className="bug-report-date-separator">.</span>
+              <IssueDateCounter
+                active={activeIssueDateField === 'year'}
+                label="Year"
+                value={issueDateDraft.getFullYear()}
+              />
+            </div>
+            <div className="bug-report-date-row">
+              <IssueDateCounter
+                active={activeIssueDateField === 'hours'}
+                label="Hour"
+                value={issueDateDraft.getHours()}
+                pad
+              />
+              <span className="bug-report-date-separator">:</span>
+              <IssueDateCounter
+                active={activeIssueDateField === 'minutes'}
+                label="Min"
+                value={issueDateDraft.getMinutes()}
+                pad
+              />
+            </div>
+            {/* <span className="bug-report-eyebrow">Approx</span> */}
+          </div>
+          <div className="bug-report-gesture-hints">
+            {ISSUE_DATE_HINTS.map((hint) => (
+              <Fragment key={hint.input}>
+                <span className="bug-report-gesture-hint-input">
+                  {hint.input}
+                </span>
+                <span className="bug-report-gesture-hint-dot" />
+                <span className="bug-report-gesture-hint-action">
+                  {hint.action}
+                </span>
+              </Fragment>
+            ))}
+          </div>
+        </>
+      );
+    }
+
     if (reportScreen === ReportScreen.reportingBug) {
       switch (reportStatus) {
         case ReportStatus.fetching:
           return 'Please wait while we compile the necessary information';
         case ReportStatus.slowFetch:
           return 'This is taking longer than expected, please wait';
-        case ReportStatus.fetched:
-          return (
-            <>
-              <div style={{ marginTop: '10px' }}>
-                <span>We are almost done.</span>
-              </div>
-              <div style={{ marginTop: '10px' }}>
-                <span>
-                  Clicking on <strong>Submit</strong> will send us the ticket
-                  and provide You with a report <strong>tracking number</strong>
-                </span>
-              </div>
-            </>
-          );
-        case ReportStatus.failed:
-          return failureError;
+        case ReportStatus.submitting:
+          return 'Sending Your report, this may take a moment';
       }
     }
 
@@ -587,7 +1080,39 @@ export const BugReport = (): JSX.Element => {
     }
 
     return '';
-  }, [failureError, reportScreen, reportStatus]);
+  }, [
+    activeIssueDateField,
+    issueDateDraft,
+    reportScreen,
+    reportStatus,
+    selectedIssueTimestamp
+  ]);
+
+  const optionList = options.length > 0 && (
+    <div
+      className="settings-fixed-item-container"
+      style={{ marginBottom: '50px' }}
+    >
+      {options.map((item, index) => {
+        const width = item.useableWidthPercentage || 90;
+        return (
+          <div
+            key={item.key}
+            className={`settings-fixed-item settings-item ${
+              index === activeIndex ? 'active-setting' : ''
+            }`}
+            style={{
+              marginBottom: '5px',
+              width: `${width}%`,
+              paddingRight: `${90 - width}%`
+            }}
+          >
+            <span className="settings-fixed-item-text">{item.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
 
   if (
     reportStatus === ReportStatus.submitting ||
@@ -595,15 +1120,55 @@ export const BugReport = (): JSX.Element => {
     reportStatus === ReportStatus.slowFetch
   ) {
     return (
-      <div className="bug-report-loading settings-explanation-container">
-        <div className="settings-explanation">
-          <div className="settings-explanation-shaper-left" />
-          <div className="settings-explanation-shaper-right" />
-          {reportStatus !== ReportStatus.submitting && (
-            <span className="bug-report-loading-text">{message}</span>
-          )}
-          <LoadingScreen />
+      <div className="bug-report-loading-screen">
+        <div className="bug-report-loading">
+          <BugReportAnimation
+            phase={animationPhase}
+            onFinished={handleFinishedAnimationEnd}
+            size={100}
+          />
+          <span className="bug-report-loading-text">{message}</span>
         </div>
+        {reportStatus !== ReportStatus.submitting && optionList}
+      </div>
+    );
+  }
+
+  // Failures are short and read as a notice, so they centre on the bubble panel
+  // with the code on its own line for the user to quote back to support.
+  if (reportStatus === ReportStatus.failed && failure) {
+    return (
+      <div className="bug-report-centered-screen">
+        <div className="bug-report-centered-body">
+          <div className="bug-report-error">
+            <span className="bug-report-eyebrow">Something went wrong</span>
+            <span className="bug-report-error-message">{failure.message}</span>
+            {failure.note && (
+              <span className="bug-report-error-note">{failure.note}</span>
+            )}
+            <span className="bug-report-error-note">
+              {CONTACT_SUPPORT_NOTE}
+            </span>
+            <span className="bug-report-error-code">
+              Error code {failure.code}
+            </span>
+          </div>
+        </div>
+        {optionList}
+      </div>
+    );
+  }
+
+  // The issue-date screens are a centred readout rather than wrapped prose, so
+  // they skip the shaper floats and centre on the bubble panel instead.
+  if (
+    reportScreen === ReportScreen.reportSetup ||
+    reportScreen === ReportScreen.selectIssueDate
+  ) {
+    return (
+      <div className="bug-report-centered-screen">
+        <div className="bug-report-centered-body">{message}</div>
+        {optionList}
       </div>
     );
   }
@@ -626,31 +1191,7 @@ export const BugReport = (): JSX.Element => {
           </>
         )}
       </div>
-      {options.length > 0 && (
-        <div
-          className="settings-fixed-item-container"
-          style={{ marginBottom: '50px' }}
-        >
-          {options.map((item, index) => {
-            const width = item.useableWidthPercentage || 90;
-            return (
-              <div
-                key={item.key}
-                className={`settings-fixed-item settings-item ${
-                  index === activeIndex ? 'active-setting' : ''
-                }`}
-                style={{
-                  marginBottom: '5px',
-                  width: `${width}%`,
-                  paddingRight: `${90 - width}%`
-                }}
-              >
-                <span className="settings-fixed-item-text">{item.label}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {optionList}
     </div>
   );
 };

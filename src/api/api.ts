@@ -2,10 +2,11 @@ import Api, {
   regionType,
   APIError,
   BrightnessRequest,
-  DeviceInfo,
   ManufacturingSettings,
   ManufacturingMenuItems
 } from '@meticulous-home/espresso-api';
+import { DialDeviceInfo } from '../types';
+import { invoke } from '@tauri-apps/api/core';
 
 export const API_URL =
   import.meta.env.VITE_SERVER_URL || 'http://localhost:8080';
@@ -31,14 +32,14 @@ export const getOSStatus = async () => {
   }
 };
 
-export async function getDeviceInfo(): Promise<DeviceInfo> {
+export async function getDeviceInfo(): Promise<DialDeviceInfo> {
   try {
     const response = await api.getDeviceInfo();
     const data = response.data;
     if (data && 'error' in data) {
       throw new Error((data as APIError).error);
     }
-    return data as DeviceInfo;
+    return data as DialDeviceInfo;
   } catch (error) {
     if (error.response) {
       console.error('Error fetching device Info: ', error.response.data);
@@ -143,6 +144,9 @@ export const updateManufacturingSettings = async (
 // The API package doesn't expose this endpoint
 export const factoryReset = async () => {
   try {
+    if ('__TAURI_INTERNALS__' in window) {
+      await invoke('community_factory_reset_local');
+    }
     const server = API_URL;
     const url = server + `/api/v1/machine/factory_reset?confirm=true`;
 

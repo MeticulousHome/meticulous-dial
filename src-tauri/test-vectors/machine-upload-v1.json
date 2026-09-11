@@ -1,0 +1,22 @@
+{
+  "contractVersion": 1,
+  "caseId": "ed25519-shot-request-001",
+  "installationId": "11111111-1111-4111-8111-111111111111",
+  "keyId": "22222222-2222-4222-8222-222222222222",
+  "keyVersion": 3,
+  "privateSeed": "nWGxne_9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A",
+  "publicKey": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+  "request": {
+    "method": "POST",
+    "path": "/api/machine-uploads/v1/shots",
+    "audience": "meticulous-community",
+    "timestamp": 1786700000,
+    "nonce": "AAECAwQFBgcICQoLDA0ODw",
+    "requestId": "33333333-3333-4333-8333-333333333333",
+    "body": "{\"contractVersion\":1,\"shot\":{\"id\":\"shot-vector-001\",\"time\":1720000000,\"profile_name\":\"Vector\",\"profile\":{\"name\":\"Vector\",\"unknown_future_field\":{\"kept\":true}},\"data\":[{\"time\":0,\"shot\":{\"pressure\":0,\"flow\":0,\"weight\":0}}]}}",
+    "bodySha256": "41dbe46dcd37cbbabb31c326adb363bbcf0070e6fd827a4a0a652d155e071306",
+    "canonical": "meticulous-machine-request-v1\nmethod:POST\npath:/api/machine-uploads/v1/shots\naudience:meticulous-community\nkey-id:22222222-2222-4222-8222-222222222222\nkey-version:3\ntimestamp:1786700000\nnonce:AAECAwQFBgcICQoLDA0ODw\nrequest-id:33333333-3333-4333-8333-333333333333\nbody-sha256:41dbe46dcd37cbbabb31c326adb363bbcf0070e6fd827a4a0a652d155e071306\n",
+    "signature": "fvIdgP7NOYaZDZOU57WfAlklhte9QGw0gExZPBpPJ_1pSyvTwQseEjRTfc-dd_ltPz_o6A_63q4Zm-itVvbADw",
+    "idempotencyKey": "0d688498617229c54549f26102e48d69ba7ec01fb6922c406f6412f802096875"
+  }
+}

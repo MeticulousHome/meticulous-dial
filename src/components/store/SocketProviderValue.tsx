@@ -35,6 +35,8 @@ import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { LASTS_PROFILE_QUERY_KEY } from '../../hooks/useProfiles';
 import { useProfileContext } from '../../context/ProfileContext';
 import { HIDDEN_STAGES } from '../../constants/setting';
+import { POUR_OVER_PROFILES_QUERY_KEY } from '../../features/freePour/profileApi';
+import { isPourOverProfileEvent } from '../../features/freePour/profileEvents';
 
 const socket: Socket | null = io(API_URL);
 
@@ -53,6 +55,13 @@ export const SocketProviderValue = () => {
   useSocketKeyboardListeners();
 
   useEffect(() => {
+    const refreshPourOverProfiles = () => {
+      queryClient.invalidateQueries({
+        queryKey: [POUR_OVER_PROFILES_QUERY_KEY]
+      });
+    };
+    socket.on('connect', refreshPourOverProfiles);
+
     socket.on('notification', (notification: string) => {
       resetIdleTimer();
 
@@ -138,10 +147,17 @@ export const SocketProviderValue = () => {
       dispatch(setWaterStatus(data));
     });
 
-    socket.on('profile', (event: ProfileUpdate) => {
-      console.log(`ProfileUpdate ${event}`);
-      onProfileEvent(event);
-    });
+    socket.on(
+      'profile',
+      (event: ProfileUpdate & { brew_type?: 'espresso' | 'pour_over' }) => {
+        console.log(`ProfileUpdate ${event}`);
+        if (isPourOverProfileEvent(event)) {
+          refreshPourOverProfiles();
+          return;
+        }
+        onProfileEvent(event);
+      }
+    );
 
     socket.on(
       'button',
@@ -192,6 +208,7 @@ export const SocketProviderValue = () => {
 
     return () => {
       socket.off('notification');
+      socket.off('connect', refreshPourOverProfiles);
       socket.off('heater_status');
       socket.off('sensors');
       socket.off('status');

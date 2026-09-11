@@ -9,9 +9,7 @@ import {
 
 export type DataTypeKey = 'weight' | 'pressure' | 'flow';
 export type ExtraSettingType =
-  | 'piston_position'
-  | 'motor_power'
-  | 'temperature';
+  'piston_position' | 'motor_power' | 'temperature';
 
 export interface DataType {
   minValue: number;
@@ -66,7 +64,7 @@ export const dataTypes: Record<DataTypeKey | ExtraSettingType, DataType> = {
     maxValue: 12,
     axisLabelStep: 2,
     unit: 'bar',
-    color: colorDataBlueLight,
+    color: colorDataGreenLight,
     precision: 1
   },
   flow: {
@@ -75,7 +73,7 @@ export const dataTypes: Record<DataTypeKey | ExtraSettingType, DataType> = {
     maxValue: 12,
     axisLabelStep: 2,
     unit: 'ml/s',
-    color: colorDataGreenLight,
+    color: colorDataBlueLight,
     precision: 1
   }
 };

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 
 import { SettingsKey } from '@meticulous-home/espresso-api';
+import type { Settings } from '@meticulous-home/espresso-api';
 
 import '../PressetSettings/pressetSettings.css';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
@@ -17,10 +18,9 @@ import Styled, {
   MARQUEE_MIN_TEXT_LENGTH
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
-import type { Settings } from '@meticulous-home/espresso-api';
-
-const cylinder_radius = 26.5; //ml
-const pi_r_squared = Math.PI * cylinder_radius * cylinder_radius;
+import type { DialSettings } from '../../types';
+import { retractionMmToVolumeMl } from '../../utils/retraction';
+import { useDeviceInfo } from '../../hooks/useDeviceOSStatus';
 
 const initialSettings: SettingsItem[] = [
   {
@@ -37,11 +37,18 @@ const initialSettings: SettingsItem[] = [
   },
   {
     key: 'shot_volume',
-    label: 'Shot volume',
+    label: 'Retraction distance',
     getLabel: (settings: Settings) =>
-      ((settings.partial_retraction * pi_r_squared) / 1000.0)
-        .toFixed()
-        .toString() + ' ml',
+      `${retractionMmToVolumeMl(settings.partial_retraction)} mL`,
+    visible: true
+  },
+  {
+    key: 'tare_behavior',
+    label: 'Auto Tare',
+    getLabel: (settings: Settings) =>
+      (settings as DialSettings).tare_behavior === 'before_retraction'
+        ? 'Before retraction'
+        : 'After retraction',
     visible: true
   },
   {
@@ -61,6 +68,7 @@ export function BrewSettings(): JSX.Element {
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const { data: globalSettings, isSuccess } = useSettings();
+  const { data: deviceInfo } = useDeviceInfo({ refetchInterval: 10000 });
   const updateSettings = useUpdateSettings();
 
   const updatedSettings = useMemo(() => {
@@ -71,11 +79,14 @@ export function BrewSettings(): JSX.Element {
     }
     return initialSettings.map((item) => ({
       ...item,
-      label: item.getLabel
-        ? `${item.label}: ${item.getLabel(globalSettings)}`
-        : item.label
+      label:
+        item.key === 'tare_behavior' && !deviceInfo?.tare_behavior_supported
+          ? `${item.label}: Unavailable`
+          : item.getLabel
+            ? `${item.label}: ${item.getLabel(globalSettings)}`
+            : item.label
     }));
-  }, [globalSettings, isSuccess]);
+  }, [deviceInfo?.tare_behavior_supported, globalSettings, isSuccess]);
 
   useHandleGestures(
     {
@@ -98,6 +109,18 @@ export function BrewSettings(): JSX.Element {
             break;
           case 'shot_volume':
             dispatch(setScreen('retraction_volume'));
+            dispatch(
+              setBubbleDisplay({
+                visible: false,
+                component: null
+              })
+            );
+            break;
+          case 'tare_behavior':
+            if (!deviceInfo?.tare_behavior_supported) {
+              break;
+            }
+            dispatch(setScreen('tare_behavior'));
             dispatch(
               setBubbleDisplay({
                 visible: false,

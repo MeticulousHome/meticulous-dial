@@ -37,9 +37,16 @@ export const WifiSettings = (): JSX.Element => {
   const isApMode = networkConfig?.config.mode === APMode.AP;
   const hasStaleNetworkConfig =
     !networkConfig || (isFetching && Date.now() - dataUpdatedAt > 2000);
+
+  const WifiHealthStatusLabel = useMemo(
+    () => getWifiHealthStatusLabel(wifiHealth, isWifiConnected),
+    [networkConfig, isWifiConnected, wifiHealth]
+  );
+
   const healthLabel = hasStaleNetworkConfig
     ? 'Checking...'
-    : getWifiHealthStatusLabel(wifiHealth, isWifiConnected);
+    : WifiHealthStatusLabel;
+
   const loadingMessages = useMemo(() => {
     if (repairWiFiMutation.isPending) {
       return ['Checking WiFi', 'Trying recovery', 'Verifying connection'];
@@ -99,7 +106,9 @@ export const WifiSettings = (): JSX.Element => {
       {
         key: 'repair',
         label: 'Repair WiFi',
-        visible: true
+        visible: !['CONNECTED', 'HOTSPOT ACTIVE'].includes(
+          WifiHealthStatusLabel
+        )
       },
       {
         key: 'back',
@@ -107,7 +116,7 @@ export const WifiSettings = (): JSX.Element => {
         visible: true
       }
     ],
-    [healthLabel, isWifiConnected, isApMode]
+    [healthLabel, isWifiConnected, isApMode, WifiHealthStatusLabel]
   );
 
   useHandleGestures(

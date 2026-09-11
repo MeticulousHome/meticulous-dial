@@ -20,6 +20,7 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { OptionsMenu } from './OptionsMenu';
 import { useContinueBrewAction } from '../store/SocketManager';
 import { useProfileContext } from '../../context/ProfileContext';
+import { createStartBrewGestureHandlers } from './startBrewGestures';
 
 const PushToStartLabel = styled.div`
   font-size: 20px;
@@ -172,20 +173,16 @@ export const HeatingScreen = () => {
     transition: `transform ${transitionDuration / 1000}s`
   };
 
-  useHandleGestures(
-    {
-      click() {
-        if (
-          heatingFinished &&
-          ['push_to_brew', 'brew_now'].includes(optionSeletected)
-        ) {
-          continueBrew();
-          console.log('action,continue');
-        }
-      }
-    },
-    bubbleDisplay.interceptsGesture
+  const startBrewGestureHandlers = createStartBrewGestureHandlers(
+    heatingFinished,
+    optionSeletected,
+    () => {
+      continueBrew();
+      console.log('action,continue');
+    }
   );
+
+  useHandleGestures(startBrewGestureHandlers, bubbleDisplay.interceptsGesture);
 
   return (
     <ModularScreen>

@@ -5,6 +5,7 @@ import { useNetworkConfig } from '../../hooks/useWifi';
 import { styled } from 'styled-components';
 
 import { WifiIndicator } from './WifiIndicator';
+import { startAnalogClock } from './analogClockTime';
 
 const CLOCK_DIAMETER = 480;
 const CLOCK_MAX_HAND_THICKNESS = 10;
@@ -95,27 +96,19 @@ function rotateString(degrees: number): string {
   return ROTATE_STRINGS[idx % 3600];
 }
 
-// getTimezoneOffset() returns UTC - local in minutes
-const TZ_OFFSET_MS = new Date().getTimezoneOffset() * 60 * 1000;
-
 export function AnalogClock() {
-  const requestId = useRef<number>(-1);
-  const hourRef = useRef(null);
-  const minuteRef = useRef(null);
-  const secondRef = useRef(null);
+  const hourRef = useRef<HTMLDivElement>(null);
+  const minuteRef = useRef<HTMLDivElement>(null);
+  const secondRef = useRef<HTMLDivElement>(null);
   const lastHour = useRef('');
   const lastMinute = useRef('');
   const lastSecond = useRef('');
 
-  const animateTime = () => {
+  const animateTime = (ms: number) => {
     if (!hourRef.current || !minuteRef.current || !secondRef.current) {
       return;
     }
 
-    // Use Date.now() + integer arithmetic instead of new Date() to avoid
-    // allocating a Date object every frame (~60/sec).
-    const now = Date.now();
-    const ms = (now - TZ_OFFSET_MS) % 86400000; // ms since midnight local time
     const totalSeconds = ms / 1000;
     const seconds = totalSeconds % 60;
     const totalMinutes = totalSeconds / 60;
@@ -131,23 +124,24 @@ export function AnalogClock() {
     // This avoids creating new template literal strings every frame.
     const hourStr = rotateString(hourRotation);
     if (hourStr !== lastHour.current) {
+      hourRef.current.style.visibility = 'visible';
       lastHour.current = hourStr;
       hourRef.current.style.transform = hourStr;
     }
 
     const minuteStr = rotateString(minuteRotation);
     if (minuteStr !== lastMinute.current) {
+      minuteRef.current.style.visibility = 'visible';
       lastMinute.current = minuteStr;
       minuteRef.current.style.transform = minuteStr;
     }
 
     const secondStr = rotateString(secondRotation);
     if (secondStr !== lastSecond.current) {
+      secondRef.current.style.visibility = 'visible';
       lastSecond.current = secondStr;
       secondRef.current.style.transform = secondStr;
     }
-
-    requestId.current = requestAnimationFrame(animateTime);
   };
 
   const { data: networkConfig, refetch: refetchNetworkConfig } =
@@ -155,11 +149,10 @@ export function AnalogClock() {
 
   useEffect(() => {
     refetchNetworkConfig();
-    requestId.current = requestAnimationFrame(animateTime);
-
-    return () => {
-      cancelAnimationFrame(requestId.current);
-    };
+    return startAnalogClock({
+      renderTime: animateTime,
+      onError: (error) => console.error('Failed to read OS local time', error)
+    });
   }, []);
 
   const isWifiConnected = networkConfig?.status.connected;
@@ -192,13 +185,13 @@ export function AnalogClock() {
           </RotationContainer>
         );
       })}
-      <RotationContainer ref={hourRef}>
+      <RotationContainer ref={hourRef} style={{ visibility: 'hidden' }}>
         <HourHand />
       </RotationContainer>
-      <RotationContainer ref={minuteRef}>
+      <RotationContainer ref={minuteRef} style={{ visibility: 'hidden' }}>
         <MinuteHand />
       </RotationContainer>
-      <RotationContainer ref={secondRef}>
+      <RotationContainer ref={secondRef} style={{ visibility: 'hidden' }}>
         <SecondHand />
       </RotationContainer>
     </ClockContainer>

@@ -37,8 +37,7 @@ export function EnterWifiPassword(): JSX.Element {
 
   const connectToWifiMutation = useConnectToWiFi();
   const connectionError = connectToWifiMutation.error as
-    | WiFiConnectionError
-    | undefined;
+    WiFiConnectionError | undefined;
   const isInvalidCredentials =
     connectToWifiMutation.isError &&
     connectionError?.code === 'invalid_credentials';
@@ -87,12 +86,6 @@ export function EnterWifiPassword(): JSX.Element {
 
   const updateSetting = (password: string) => {
     setKnownPassword(password);
-    console.log(
-      'Log ~ EnterWifiPassword ~ ssid',
-      wifi.selectedWifi,
-      '~ password:',
-      password
-    );
     const ssid = wifi.selectedWifi;
     connectToWifiMutation.mutate({ type: 'PSK', ssid, password });
   };
