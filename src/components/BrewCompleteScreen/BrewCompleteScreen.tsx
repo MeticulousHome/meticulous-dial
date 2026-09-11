@@ -17,6 +17,7 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useContinueBrewAction } from '../store/SocketManager';
 import { ShotGraph } from '../ShotGraph/ShotGraphScreen';
 import { useProfileContext } from '../../context/ProfileContext';
+import { useBrewDoubleClickHandler } from '../../hooks/useBrewDoubleClickHandler';
 
 const WeightContainer = styled.div`
   display: flex;
@@ -92,8 +93,13 @@ export const BrewCompleteScreen = () => {
     }
   }, [isIdle, keepGraph]);
 
+  // A brew screen, so a double click reaches the machine here too, but only
+  // the barometer may finish: this one can only abort.
+  const doubleClick = useBrewDoubleClickHandler({ allowFinish: false });
+
   useHandleGestures(
     {
+      doubleClick,
       click() {
         if (statsName === 'click to purge') {
           continueBrew();

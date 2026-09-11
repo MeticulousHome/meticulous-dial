@@ -14,6 +14,17 @@ import { MACHINE_OWNED_STAGES } from '../constants/setting.ts';
 export type DoubleClickDecision = 'abort' | 'finish' | null;
 
 /**
+ * What the screen that owns the gesture allows.
+ *
+ * `allowFinish` is the screen's permission, not a property of the machine:
+ * only the barometer passes `true`.
+ */
+export interface DoubleClickOptions {
+  allowFinish: boolean;
+  machineOwnedStages?: readonly string[];
+}
+
+/**
  * True while the machine is running a user-defined stage of the loaded
  * profile.
  *
@@ -29,17 +40,21 @@ export function isUserStage(
 }
 
 /**
- * Decide what a double click sends for the given machine status.
+ * Decide what a double click sends for the given machine status, on a screen
+ * that is allowed to send at all.
  *
  * Idle is left alone. Inside a user stage the shot is finished through the
- * normal retract; on every other non-idle stage the profile is aborted, which
- * is what the backend used to do itself on every double click.
+ * normal retract, but only where the screen permits it: the barometer is the
+ * only screen that may finish. Heating, brew-complete and purge pass
+ * `allowFinish: false` and can therefore only abort, which is what the backend
+ * used to do itself on every double click. Every other screen keeps its own
+ * double-click meaning and does not call this at all.
  */
 export function decideDoubleClick(
   s: { name: string; extracting: boolean },
-  machineOwnedStages?: readonly string[]
+  { allowFinish, machineOwnedStages }: DoubleClickOptions
 ): DoubleClickDecision {
   if (s.name === 'idle') return null;
-  if (isUserStage(s, machineOwnedStages)) return 'finish';
+  if (allowFinish && isUserStage(s, machineOwnedStages)) return 'finish';
   return 'abort';
 }

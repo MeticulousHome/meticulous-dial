@@ -6,6 +6,8 @@ import { setScreen } from '../store/features/screens/screens-slice';
 import { Meter } from './Meter';
 import { setWaitingForAction } from '../store/features/stats/stats-slice';
 import { notificationSelector } from '../store/features/notifications/notification-slice';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useBrewDoubleClickHandler } from '../../hooks/useBrewDoubleClickHandler';
 
 export interface IBarometerProps {
   maxValue?: number;
@@ -17,6 +19,12 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
   const hasNotifications = useAppSelector(
     notificationSelector.selectHasNotifications
   );
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+
+  // The only screen that may finish the shot; the retracts that close it are
+  // shown here too, and those can only abort.
+  const doubleClick = useBrewDoubleClickHandler({ allowFinish: true });
+  useHandleGestures({ doubleClick }, bubbleDisplay.interceptsGesture);
 
   useEffect(() => {
     if (
