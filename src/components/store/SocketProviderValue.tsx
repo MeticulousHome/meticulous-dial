@@ -6,7 +6,7 @@ import {
   ISensorData,
   ISensorDataAndMachineState
 } from '../../types/index';
-import { useAppDispatch } from './hooks';
+import { useAppDispatch, useAppSelector } from './hooks';
 import {
   setSensors,
   setStats,
@@ -46,6 +46,9 @@ const isBrewComplete = (state: string) => {
 
 export const SocketProviderValue = () => {
   const dispatch = useAppDispatch();
+  const cleaningStage = useAppSelector((state) => state.screen.cleaningStage);
+  const cleaningActive = useRef(false);
+  cleaningActive.current = cleaningStage !== null;
   const previousStateName = useRef<string>('idle');
   const queryClient = useQueryClient();
   const { resetTimer: resetIdleTimer } = useIdleTimer();
@@ -99,6 +102,14 @@ export const SocketProviderValue = () => {
         resetIdleTimer();
         queryClient.invalidateQueries({ queryKey: [LASTS_PROFILE_QUERY_KEY] });
         setProfileStarting(false);
+
+        // The cleaning firmware workflow owns the Raise -> Purge sequence.
+        // Status still updates Redux above so the exact existing piston
+        // animation follows the hardware, but normal coffee-profile routing
+        // must not replace the cleaning instructions.
+        if (cleaningActive.current) {
+          return;
+        }
 
         if (data?.name === 'heating') {
           dispatch(setWaterStatus(true));

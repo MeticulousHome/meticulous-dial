@@ -66,6 +66,7 @@ import {
 } from '../components/UnlockScreen/UnlockScreen';
 import { InfoQRCode } from '../components/Settings/Advanced/InfoQrCode';
 import { CommunitySettings } from '../components/Settings/Community/Community';
+import { CleaningScreen } from '../components/CleaningProfile/CleaningScreen';
 
 interface Route {
   component: ComponentType;
@@ -109,6 +110,21 @@ const selectPurgeTitle = (state: RootState) => {
 // Profile from "start" event may not exist in LCD. Prefer using
 // that profile name over selected preset
 const selectStatProfileName = (state: RootState) => state.stats.profile;
+
+const selectCleaningTitle = (state: RootState) => {
+  switch (state.screen.cleaningStage) {
+    case 'raising':
+      return 'Raising';
+    case 'purging':
+      return 'Purging';
+    case 'wipe':
+      return 'Wipe & Dry';
+    case 'error':
+      return 'Group Flush';
+    default:
+      return 'Group Flush';
+  }
+};
 
 export const routes: Record<ScreenType, Route> = {
   deviceInfoQR: {
@@ -284,6 +300,15 @@ export const routes: Record<ScreenType, Route> = {
     animationDirectionFrom: {
       barometer: 'in',
       heating: 'in'
+    }
+  },
+  cleaning: {
+    component: CleaningScreen,
+    title: selectCleaningTitle,
+    bottomStatusHidden: true,
+    parent: 'profileHome',
+    animationDirectionFrom: {
+      profileHome: 'in'
     }
   },
   heating: {

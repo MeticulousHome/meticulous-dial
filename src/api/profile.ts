@@ -5,6 +5,7 @@ import {
 } from '@meticulous-home/espresso-api';
 import { Profile } from '@meticulous-home/espresso-profile';
 import { api } from './api';
+import { MachineProfile } from '../types/MachineProfile';
 
 export const getDefaultProfiles = async (): Promise<DefaultProfiles> => {
   try {
@@ -97,9 +98,9 @@ export const deleteProfile = async (id: string) => {
   }
 };
 
-export const loadProfileData = async (body: Profile) => {
+export const loadProfileData = async (body: MachineProfile) => {
   try {
-    const { data } = await api.loadProfileFromJSON(body);
+    const { data } = await api.loadProfileFromJSON(body as Profile);
     return data;
   } catch (error) {
     console.error('LoadProfileData error: ', error.message);
