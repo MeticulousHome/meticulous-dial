@@ -5,6 +5,8 @@ import { api, API_URL } from '../../api/api';
 export const PROFILE_IMAGE_SIZE = 164;
 
 import { styled } from 'styled-components';
+import { isCleaningProfile } from '../CleaningProfile/cleaningProfile';
+import { CleaningProfileCard } from '../CleaningProfile/CleaningProfileCard';
 
 const Image = styled.img`
   flex-shrink: 0;
@@ -28,6 +30,10 @@ export const ProfileImage = ({ profile: preset }: { profile: Profile }) => {
         `${API_URL}${api.getProfileImageUrl(preset.display.image)}`
     );
   }, [preset.display?.image]);
+
+  if (isCleaningProfile(preset)) {
+    return <CleaningProfileCard />;
+  }
 
   return (
     <Image

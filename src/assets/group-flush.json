@@ -1,0 +1,14 @@
+{
+  "profile_type": "cleaning",
+  "name": "Group Flush",
+  "id": "fc14d89e-2b10-47b5-9ea0-a2735c7ee777",
+  "author": "Meticulous",
+  "author_id": "d9123a0a-d3d7-40fd-a548-b81376e43f23",
+  "previous_authors": [],
+  "display": {
+    "accentColor": "#173b31",
+    "shortDescription": "Flush and wipe the group head"
+  },
+  "temperature": 65,
+  "workflow": ["heat", "wait_for_dial", "raise", "purge"]
+}

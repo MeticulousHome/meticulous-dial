@@ -10,9 +10,22 @@ const MAX_POSITION = 74;
 const TOTAL_FRAMES = 60.0;
 const NO_FRAMES = 1000;
 
-export function PurgePiston(): JSX.Element {
+export function PurgePiston({
+  fixedPosition,
+  showBlink = true,
+  className,
+  exitOnMissingPosition = true
+}: {
+  fixedPosition?: number;
+  showBlink?: boolean;
+  className?: string;
+  exitOnMissingPosition?: boolean;
+} = {}): JSX.Element {
   const stats = useAppSelector((state) => state.stats);
-  const position = useAppSelector((state) => state.stats.sensorData.m_pos);
+  const sensorPosition = useAppSelector(
+    (state) => state.stats.sensorData.m_pos
+  );
+  const position = fixedPosition ?? sensorPosition;
   const pistonContainer = useRef<AnimationItem | null>(null);
   const pistonAnimator = useRef(null);
   const blinkContainer = useRef<AnimationItem | null>(null);
@@ -66,6 +79,8 @@ export function PurgePiston(): JSX.Element {
   }, []);
 
   useEffect(() => {
+    if (!showBlink) return;
+
     blinkContainer.current = lottie.loadAnimation({
       container: blinkAnimator.current,
       animationData: blink,
@@ -74,10 +89,10 @@ export function PurgePiston(): JSX.Element {
       autoplay: true
     });
 
-    if (stats.name === 'home') {
+    if (stats.name === 'home' && blinkAnimator.current) {
       blinkAnimator.current.style.top = '-206.5px';
     }
-  }, []);
+  }, [showBlink]);
 
   const initAnimation = (initial: number) => {
     setInitialPosition(initial);
@@ -126,6 +141,8 @@ export function PurgePiston(): JSX.Element {
   }, [position, animateToPosition, initialPosition]);
 
   useEffect(() => {
+    if (fixedPosition !== undefined || !exitOnMissingPosition) return;
+
     // If we didnt get a position within 2 seconds we exit the animation
     intervalRef.current = setInterval(() => {
       if (Number.isNaN(position)) {
@@ -136,7 +153,7 @@ export function PurgePiston(): JSX.Element {
     return () => {
       clearInterval(intervalRef.current);
     };
-  }, [position]);
+  }, [dispatch, exitOnMissingPosition, fixedPosition, position]);
 
   useEffect(() => {
     return () => {
@@ -152,9 +169,9 @@ export function PurgePiston(): JSX.Element {
   }, []);
 
   return (
-    <div>
-      <div id="blink" ref={blinkAnimator} className="lottie" />
-      <div id="piston" ref={pistonAnimator} className="lottie" />
+    <div className={className}>
+      {showBlink && <div ref={blinkAnimator} className="lottie" />}
+      <div ref={pistonAnimator} className="lottie" />
     </div>
   );
 }
