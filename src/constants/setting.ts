@@ -48,7 +48,11 @@ export const HIDDEN_STAGES: string[] = [
   'idle',
   'boot',
   'END_STAGE',
-  'starting...'
+  'starting...',
+  // The profile engine publishes its 'finished' label for a few milliseconds
+  // after the purge, before 'idle'. It must not change screens, otherwise the
+  // brew complete screen is unmounted.
+  'finished'
 ];
 
 // Status names the firmware owns. A status outside this list while

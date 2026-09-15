@@ -25,6 +25,8 @@ import { addSettingsToProfile } from '../../utils/profiles';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { logFreePour } from '../../features/freePour/logging';
 import { useDeletePourOverProfile } from '../../features/freePour/usePourOverProfiles';
+import { useManualBrew } from '../../hooks/useManualBrew';
+import { createProfileFromManualBrew } from '../../api/manualMode';
 
 export type QuickSettingOption = {
   key: string;
@@ -129,6 +131,26 @@ const defaultSettings: QuickSettingOption[] = [
   }
 ];
 
+// Offered while the graph of a manual brew is up - from the last purge until
+// the encoder is clicked - so the brew can be kept as a profile on demand
+// instead of through a prompt. Once saved, the entry only reports that it was.
+const saveManualBrewSetting: QuickSettingOption = {
+  key: 'save_manual_brew',
+  label: 'Save as profile',
+  hasSeparator: true
+};
+
+const manualBrewSavedSetting: QuickSettingOption = {
+  key: 'manual_brew_saved',
+  label: 'Profile saved',
+  hasSeparator: true
+};
+
+// The menu is unmounted with the bubble, so which brew was already saved is
+// remembered across openings by its brew time - the only identity the dial
+// holds for the shot it has just graphed.
+let savedManualBrewTime: number | null = null;
+
 const inBrewSettings: QuickSettingOption[] = [
   {
     key: 'skip_step',
@@ -181,6 +203,11 @@ export function QuickSettings(): JSX.Element {
   const deletePourOverProfileMutation = useDeletePourOverProfile();
   const currentScreen = useAppSelector((state) => state.screen.value);
   const statsName = useAppSelector((state) => state.stats.name);
+  const brewTime = useAppSelector((state) => state.stats.profile_time);
+  const { isManualProfile } = useManualBrew();
+  const [manualBrewSaved, setManualBrewSaved] = useState(
+    savedManualBrewTime === brewTime
+  );
 
   const [counterESGG, setCounterESGG] = useState(0);
   const [holdAnimation, setHoldAnimation] =
@@ -353,6 +380,22 @@ export function QuickSettings(): JSX.Element {
             );
             break;
           }
+          case 'save_manual_brew': {
+            savedManualBrewTime = brewTime;
+            setManualBrewSaved(true);
+            createProfileFromManualBrew().catch((error) => {
+              console.error(
+                'Could not save the manual brew as a profile:',
+                error
+              );
+              savedManualBrewTime = null;
+              setManualBrewSaved(false);
+            });
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
+            break;
+          }
           case 'last_shot': {
             dispatch(setScreen('shot_history'));
             dispatch(
@@ -488,13 +531,23 @@ export function QuickSettings(): JSX.Element {
         ]);
         break;
       case 'heating':
-      case 'brewComplete':
-        if (statsName === 'idle') {
-          setSettings(defaultSettings);
+      case 'brewComplete': {
+        const base = statsName === 'idle' ? defaultSettings : inBrewSettings;
+        const graphShowing =
+          currentScreen === 'brewComplete' &&
+          (statsName === 'purge' ||
+            statsName === 'idle' ||
+            statsName === 'END_STAGE');
+        if (isManualProfile && graphShowing) {
+          setSettings([
+            manualBrewSaved ? manualBrewSavedSetting : saveManualBrewSetting,
+            ...base
+          ]);
         } else {
-          setSettings(inBrewSettings);
+          setSettings(base);
         }
         break;
+      }
       case 'barometer':
         setSettings(inBrewSettings);
         break;
@@ -519,7 +572,15 @@ export function QuickSettings(): JSX.Element {
         }
         break;
     }
-  }, [currentScreen, homeMode, osStatusInfo, osStatusVisible]);
+  }, [
+    currentScreen,
+    homeMode,
+    osStatusInfo,
+    osStatusVisible,
+    statsName,
+    isManualProfile,
+    manualBrewSaved
+  ]);
 
   useEffect(() => {
     if (counterESGG >= 20) {
