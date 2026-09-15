@@ -6,10 +6,9 @@ export const CLEANING_PROFILE_ID = 'fc14d89e-2b10-47b5-9ea0-a2735c7ee777';
 export const CLEANING_TEMPERATURE = 65;
 
 /**
- * This fail-closed maintenance profile is bundled into the Dial rather than
- * saved to the user's profile store. Firmware that predates cleaning-profile
- * support rejects it because it intentionally has no espresso stages or final
- * weight.
+ * This node profile is bundled into the Dial rather than saved to the user's
+ * profile store. Its graph uses the firmware's existing node engine and the
+ * same Raise and Purge controllers used by the built-in machine operations.
  */
 export const CLEANING_PROFILE = groupFlushProfile as CleaningProfile;
 

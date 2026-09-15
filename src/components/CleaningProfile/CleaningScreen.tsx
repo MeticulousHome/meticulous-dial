@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { loadProfileData } from '../../api/profile';
-import { api } from '../../api/api';
+import { loadProfileData, startProfile } from '../../api/profile';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { PurgePiston } from '../PurgePiston/PurgePiston';
 import {
@@ -50,6 +49,10 @@ export const CleaningScreen = () => {
       sawPurge.current = false;
       sawFinished.current = false;
     }
+  }, [stage]);
+
+  useEffect(() => {
+    if (stage !== 'ready') setStarting(false);
   }, [stage]);
 
   useEffect(() => {
@@ -121,26 +124,33 @@ export const CleaningScreen = () => {
       return;
     }
 
+    const started = await startProfile();
+    if (!responseSucceeded(started)) {
+      dispatch(setCleaningStage('error'));
+      setStarting(false);
+      return;
+    }
+
     setStarting(false);
   };
 
-  const startFlush = async () => {
+  const confirmFlush = () => {
     if (starting) return;
+
+    // The physical Dial press is consumed directly by the node profile's
+    // button_trigger in firmware. Do not duplicate it with an API command.
     setStarting(true);
-    try {
-      const { data } = await api.executeAction('continue');
-      if (!responseSucceeded(data)) {
-        dispatch(setCleaningStage('error'));
-        return;
-      }
-      dispatch(setCleaningStage('raising'));
-    } catch (error) {
-      console.error('Failed to continue the cleaning profile:', error);
-      dispatch(setCleaningStage('error'));
-    } finally {
-      setStarting(false);
-    }
   };
+
+  useEffect(() => {
+    if (stage !== 'ready' || !starting) return;
+
+    const dialTriggerTimer = window.setTimeout(() => {
+      dispatch(setCleaningStage('error'));
+    }, 5000);
+
+    return () => window.clearTimeout(dialTriggerTimer);
+  }, [dispatch, stage, starting]);
 
   useHandleGestures(
     {
@@ -148,7 +158,7 @@ export const CleaningScreen = () => {
         if (stage === 'setup') {
           void startHeating();
         } else if (stage === 'ready') {
-          void startFlush();
+          confirmFlush();
         } else if (stage === 'wipe') {
           dispatch(finishCleaning());
         } else if (stage === 'error') {
