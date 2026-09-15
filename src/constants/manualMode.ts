@@ -8,10 +8,12 @@ import { colorDataBlueLight } from './colors.ts';
 export const MANUAL_MODE_PROFILE_ID = '4d616e75-616c-4d6f-8465-000000000001';
 
 /**
- * A `final_weight` at or above this is the convention for "no weight stop": the
- * machine can never reach it, so the shot ends on the long press instead.
+ * A `final_weight` at or above this is the convention for "no weight stop":
+ * 2000 g is the profile schema's own `maximum` for `final_weight`, unreachable
+ * by one shot and equal to the dial's weight ceiling, so the shot ends on the
+ * long press instead.
  */
-export const MANUAL_WEIGHT_DISABLED = 3000;
+export const MANUAL_WEIGHT_DISABLED = 2000;
 
 /** The quantity the machine is driving during a manual stage. */
 export type ManualControl = 'pressure' | 'flow';

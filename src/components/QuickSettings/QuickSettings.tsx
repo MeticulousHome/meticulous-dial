@@ -126,6 +126,10 @@ const defaultSettings: QuickSettingOption[] = [
     label: 'Report an issue'
   },
   {
+    key: 'experimental',
+    label: 'Experimental'
+  },
+  {
     key: 'exit',
     label: 'exit'
   }
@@ -453,6 +457,15 @@ export function QuickSettings(): JSX.Element {
           case 'config': {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'settings' })
+            );
+            break;
+          }
+          case 'experimental': {
+            dispatch(
+              setBubbleDisplay({
+                visible: true,
+                component: 'experimentalSettings'
+              })
             );
             break;
           }
