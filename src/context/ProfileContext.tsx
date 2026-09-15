@@ -16,6 +16,7 @@ import { IPresetAction, IPresetSetting } from '../types';
 import { useSettings } from '../hooks/useSettings';
 import demoProfile from '../assets/9BarItalian.json';
 import type { HomeMode } from '../components/ProfileHomeScreen/homeSelection';
+import { CLEANING_PROFILE } from '../components/CleaningProfile/cleaningProfile';
 
 type ProfileContextType = {
   profileQuery: ReturnType<typeof useProfiles>;
@@ -106,20 +107,27 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const limitedAccess = settings?.update_channel === 'factory';
 
   const mergedProfiles = useMemo<ExtendedProfile[]>(() => {
-    if (!profiles) return [];
-    if (limitedAccess) return [demoProfile as ExtendedProfile];
-
-    const last = lastProfile?.profile;
-    if (!last) return profiles;
-
-    const existingIndex = profiles.findIndex((p) => p.id === last.id);
-    const existing = existingIndex !== -1 ? profiles[existingIndex] : null;
-
-    const profilesExtended = profiles.map((p) => ({
+    const availableProfiles = limitedAccess
+      ? [demoProfile as ExtendedProfile]
+      : profiles || [];
+    const profilesWithCleaning = [
+      ...availableProfiles.filter(
+        (profile) => profile.id !== CLEANING_PROFILE.id
+      ),
+      CLEANING_PROFILE as unknown as ExtendedProfile
+    ];
+    const profilesExtended = profilesWithCleaning.map((p) => ({
       ...p,
       isLast: false,
       temporary: false
     }));
+
+    const last = lastProfile?.profile;
+    if (!last) return profilesExtended;
+
+    const existingIndex = profilesExtended.findIndex((p) => p.id === last.id);
+    const existing =
+      existingIndex !== -1 ? profilesExtended[existingIndex] : null;
 
     //It exists in profiles and is identical.
     // To re-add temporary profiles use  deepEqual(existing, last)

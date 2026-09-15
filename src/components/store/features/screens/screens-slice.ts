@@ -66,11 +66,16 @@ export type ScreenType =
   | 'displayAlignment'
   | 'masterCalibrationLock'
   | 'deviceInfoQR'
-  | 'unlock';
+  | 'unlock'
+  | 'cleaning';
+
+export type CleaningStage =
+  'setup' | 'heating' | 'ready' | 'raising' | 'purging' | 'wipe' | 'error';
 
 interface ScreenState {
   value: ScreenType;
   prev?: ScreenType;
+  cleaningStage: CleaningStage | null;
   bubbleDisplay: {
     interceptsGesture: boolean;
     visible: boolean;
@@ -81,6 +86,7 @@ interface ScreenState {
 
 const initialState: ScreenState = {
   prev: undefined,
+  cleaningStage: null,
   bubbleDisplay: {
     interceptsGesture: false,
     visible: false,
@@ -115,9 +121,31 @@ const screenSlice = createSlice({
       state.bubbleDisplay.component = action.payload.component;
       state.bubbleDisplay.interceptsGesture =
         action.payload.interceptsGesture || action.payload.visible;
+    },
+    startCleaning: (state: ScreenState) => {
+      state.prev = state.value;
+      state.value = 'cleaning';
+      state.cleaningStage = 'setup';
+    },
+    setCleaningStage: (
+      state: ScreenState,
+      action: PayloadAction<CleaningStage>
+    ) => {
+      state.cleaningStage = action.payload;
+    },
+    finishCleaning: (state: ScreenState) => {
+      state.prev = state.value;
+      state.value = 'profileHome';
+      state.cleaningStage = null;
     }
   }
 });
 
-export const { setScreen, setBubbleDisplay } = screenSlice.actions;
+export const {
+  setScreen,
+  setBubbleDisplay,
+  startCleaning,
+  setCleaningStage,
+  finishCleaning
+} = screenSlice.actions;
 export default screenSlice.reducer;

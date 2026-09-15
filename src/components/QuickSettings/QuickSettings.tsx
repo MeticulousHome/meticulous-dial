@@ -4,6 +4,7 @@ import { useUpdateSettings } from '../../hooks/useSettings';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   ScreenType,
+  finishCleaning,
   setBubbleDisplay,
   setScreen
 } from '../store/features/screens/screens-slice';
@@ -25,6 +26,7 @@ import { addSettingsToProfile } from '../../utils/profiles';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { logFreePour } from '../../features/freePour/logging';
 import { useDeletePourOverProfile } from '../../features/freePour/usePourOverProfiles';
+import { isCleaningProfile } from '../CleaningProfile/cleaningProfile';
 
 export type QuickSettingOption = {
   key: string;
@@ -154,6 +156,13 @@ const inBrewSettings: QuickSettingOption[] = [
   }
 ];
 
+const inCleaningSettings: QuickSettingOption[] = [
+  {
+    key: 'exit_cleaning',
+    label: 'Exit cleaning'
+  }
+];
+
 export type holdAnimationState = 'stopped' | 'running' | 'finished';
 
 export function QuickSettings(): JSX.Element {
@@ -225,7 +234,7 @@ export function QuickSettings(): JSX.Element {
       case 'delete': {
         // Prevent deleting an existing profile based on a temporary profile
         // that has modifications.
-        if (localProfile?.temporary) return;
+        if (localProfile?.temporary || isCleaningProfile(localProfile)) return;
         deletePresetMutation.mutate(localProfile?.id);
         dispatch(setScreen('profileHome'));
         dispatch(setBubbleDisplay({ visible: false, component: undefined }));
@@ -317,6 +326,14 @@ export function QuickSettings(): JSX.Element {
               setBubbleDisplay({ visible: false, component: undefined })
             );
             forceIdle();
+            break;
+          }
+          case 'exit_cleaning': {
+            socket.emit('action', 'abort');
+            dispatch(finishCleaning());
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
             break;
           }
           case 'raise': {
@@ -466,7 +483,8 @@ export function QuickSettings(): JSX.Element {
   const requiresProfileContext: boolean =
     profiles?.length > 0 &&
     currentScreen === 'profileHome' &&
-    homeMode === 'espresso';
+    homeMode === 'espresso' &&
+    !isCleaningProfile(localProfile);
   const requiresFreePourContext =
     currentScreen === 'profileHome' && homeMode === 'free_pour';
   const requiresPourOverProfileContext =
@@ -495,6 +513,10 @@ export function QuickSettings(): JSX.Element {
           setSettings(inBrewSettings);
         }
         break;
+      case 'cleaning':
+        setActiveOption(0);
+        setSettings(inCleaningSettings);
+        break;
       case 'barometer':
         setSettings(inBrewSettings);
         break;
@@ -519,7 +541,15 @@ export function QuickSettings(): JSX.Element {
         }
         break;
     }
-  }, [currentScreen, homeMode, osStatusInfo, osStatusVisible]);
+  }, [
+    currentScreen,
+    homeMode,
+    localProfile,
+    osStatusInfo,
+    osStatusVisible,
+    requiresProfileContext,
+    statsName
+  ]);
 
   useEffect(() => {
     if (counterESGG >= 20) {

@@ -4,7 +4,8 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import {
   setBubbleDisplay,
-  setScreen
+  setScreen,
+  startCleaning
 } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { PROFILE_ENTRY_SIZE, ProfileEntry } from './ProfileEntry';
@@ -34,6 +35,7 @@ import {
   getPourOverProfileOptionIndex,
   reconcilePourOverCatalogSelection
 } from './homeSelection';
+import { isCleaningProfile } from '../CleaningProfile/cleaningProfile';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -177,6 +179,11 @@ export const ProfileHomeScreen = () => {
 
     const loadAndStartProfile = async () => {
       const profile = mergedProfiles?.[activeOption];
+
+      if (isCleaningProfile(profile)) {
+        dispatch(startCleaning());
+        return true;
+      }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { isLast, temporary, ...cleanProfile } = profile;
