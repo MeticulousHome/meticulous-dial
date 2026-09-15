@@ -1,20 +1,17 @@
-// Basic trigonometry constants
-const CIRCLE = Math.PI * 2;
-const CIRCLE_DEG = 360;
-const CIRCLE_BOTTOM_ANGLE = 0.25 * CIRCLE;
-
-// For the steps/needle we don't want a full circle, but 300 deg
-const ARC_FILL_RATIO = (CIRCLE_DEG - 60) / CIRCLE_DEG;
-const ARC_START_ANGLE =
-  CIRCLE_BOTTOM_ANGLE + ((1 - ARC_FILL_RATIO) * CIRCLE) / 2;
-const ARC_END_ANGLE = ARC_START_ANGLE + ARC_FILL_RATIO * CIRCLE;
-
-// Sizing
-const ARC_SIZE = 478; // Basically window size, but can be anything as long as svg is sized properly
-const ARC_RADIUS = ARC_SIZE / 2;
-const STEP_LENGTH = 13;
-const STEP_EDGE_OFFSET = 19;
-const NEEDLE_LENGTH = ARC_RADIUS - STEP_LENGTH - STEP_EDGE_OFFSET - 10;
+import { TargetTick } from './TargetTick';
+import { Trail } from './manualTarget';
+import {
+  ARC_END_ANGLE,
+  ARC_RADIUS,
+  ARC_SIZE,
+  ARC_START_ANGLE,
+  CIRCLE,
+  CIRCLE_DEG,
+  NEEDLE_LENGTH,
+  STEP_EDGE_OFFSET,
+  STEP_LENGTH,
+  valueToAngleRad
+} from './meterGeometry';
 
 interface MeterProps {
   className?: string;
@@ -22,15 +19,20 @@ interface MeterProps {
   max: number;
   value: number;
   step: number;
+  target?: { value: number; trail: Trail | null };
 }
 
-export function Meter({ min, max, value, step, className }: MeterProps) {
+export function Meter({
+  min,
+  max,
+  value,
+  step,
+  className,
+  target
+}: MeterProps) {
   const range = max - min;
   const steps = range / step + 1;
-  const clampedValue = Math.max(min, Math.min(value, max));
-  const relativeValue = (clampedValue - min) / range;
-  const needleAngle =
-    ARC_START_ANGLE + relativeValue * (ARC_END_ANGLE - ARC_START_ANGLE);
+  const needleAngle = valueToAngleRad(value, min, max);
 
   return (
     <div style={{ width: ARC_SIZE, height: ARC_SIZE }} className={className}>
@@ -78,6 +80,14 @@ export function Meter({ min, max, value, step, className }: MeterProps) {
           zIndex: 99999
         }}
       />
+      {target && (
+        <TargetTick
+          min={min}
+          max={max}
+          value={target.value}
+          trail={target.trail}
+        />
+      )}
     </div>
   );
 }

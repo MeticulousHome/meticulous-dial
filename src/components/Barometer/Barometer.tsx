@@ -8,6 +8,10 @@ import { setWaitingForAction } from '../store/features/stats/stats-slice';
 import { notificationSelector } from '../store/features/notifications/notification-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useBrewDoubleClickHandler } from '../../hooks/useBrewDoubleClickHandler';
+import { useManualBrew } from '../../hooks/useManualBrew';
+import { useContinueBrewAction } from '../store/SocketManager';
+import { useManualTarget } from './useManualTarget';
+import { toBar } from './manualTarget';
 
 export interface IBarometerProps {
   maxValue?: number;
@@ -25,6 +29,16 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
   // shown here too, and those can only abort.
   const doubleClick = useBrewDoubleClickHandler({ allowFinish: true });
   useHandleGestures({ doubleClick }, bubbleDisplay.interceptsGesture);
+  const { isManualBrew, streamedTarget } = useManualBrew();
+  const { tenths, trail } = useManualTarget(isManualBrew, streamedTarget);
+  const continueBrew = useContinueBrewAction();
+
+  // During a manual brew a single click ends the stage; encoder turns are
+  // handled by the machine and come back through the streamed setpoint.
+  useHandleGestures(
+    { click: () => continueBrew() },
+    !isManualBrew || bubbleDisplay.interceptsGesture
+  );
 
   useEffect(() => {
     if (
@@ -50,6 +64,7 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
         step={1}
         value={stats.sensors.p}
         className="meter"
+        target={isManualBrew ? { value: toBar(tenths), trail } : undefined}
       />
       <div className="bar-needle__content">
         <div className="pressure">Pressure</div>
@@ -59,6 +74,11 @@ export function Barometer({ maxValue = 21 }: IBarometerProps): JSX.Element {
           </span>
           <span className="bar-label">bar</span>
         </div>
+        {isManualBrew && (
+          <div className="bar-target">
+            Target {toBar(tenths).toFixed(1)} bar
+          </div>
+        )}
 
         <div className="columns-grid">
           <div className="column-item">
