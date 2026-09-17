@@ -64,6 +64,7 @@ type ProfileContextType = {
 export type ExtendedProfile = Profile & {
   isLast?: boolean;
   temporary?: boolean;
+  manual?: boolean;
 };
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);

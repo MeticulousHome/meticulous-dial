@@ -1903,12 +1903,7 @@ fn header_value(value: &str) -> Result<reqwest::header::HeaderValue, RequestFail
     reqwest::header::HeaderValue::from_str(value).map_err(|_| permanent("header_invalid"))
 }
 
-fn schedule_queue_retry(
-    state: &mut PersistentState,
-    id: Uuid,
-    failure: &RequestFailure,
-    now: i64,
-) {
+fn schedule_queue_retry(state: &mut PersistentState, id: Uuid, failure: &RequestFailure, now: i64) {
     if let Some(item) = state.queue.iter_mut().find(|item| item.id == id) {
         item.attempt_count = item.attempt_count.saturating_add(1);
         item.last_error = Some(failure.category.clone());

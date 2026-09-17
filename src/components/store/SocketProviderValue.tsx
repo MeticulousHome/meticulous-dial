@@ -37,6 +37,7 @@ import { useProfileContext } from '../../context/ProfileContext';
 import { HIDDEN_STAGES } from '../../constants/setting';
 import { POUR_OVER_PROFILES_QUERY_KEY } from '../../features/freePour/profileApi';
 import { isPourOverProfileEvent } from '../../features/freePour/profileEvents';
+import { MANUAL_MODE_PROFILE_ID } from '../../constants/manualMode.ts';
 
 const socket: Socket | null = io(API_URL);
 
@@ -153,6 +154,13 @@ export const SocketProviderValue = () => {
         console.log(`ProfileUpdate ${event}`);
         if (isPourOverProfileEvent(event)) {
           refreshPourOverProfiles();
+          return;
+        }
+        // The manual profile is not in the catalog: the backend hides it from
+        // the listing and the dial saves it from the setup flow itself, so the
+        // `update` that comes straight back would only reshuffle the profile
+        // list under the screen that is already starting the shot.
+        if (event.profile_id === MANUAL_MODE_PROFILE_ID) {
           return;
         }
         onProfileEvent(event);
