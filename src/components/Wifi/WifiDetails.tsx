@@ -6,11 +6,6 @@ import { useAppDispatch } from '../store/hooks';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import './wifiDetails.css';
 import { useNetworkConfig } from '../../hooks/useWifi';
-import {
-  getWifiHealthMessage,
-  getWifiHealthStatusLabel,
-  getWifiRecoveryMessage
-} from './wifiHealthMessages';
 
 const initialWifiItems = [
   { key: 'network', label: 'NETWORK' },
@@ -19,12 +14,6 @@ const initialWifiItems = [
   { key: 'ap_password', label: 'AP PASSWORD' },
   { key: 'ips', label: 'IP' },
   { key: 'mac', label: 'MAC' },
-  { key: 'health', label: 'HEALTH' },
-  { key: 'gateway', label: 'GATEWAY' },
-  { key: 'dns', label: 'DNS' },
-  { key: 'internet', label: 'INTERNET' },
-  { key: 'last_error', label: 'LAST ERROR' },
-  { key: 'recovery', label: 'RECOVERY' },
   { key: 'back', label: 'Back' }
 ];
 
@@ -40,8 +29,6 @@ export const WifiDetails = (): JSX.Element => {
   const { data, isLoading, isSuccess } = useNetworkConfig();
   const wifiStatus = data?.status;
   const networkConfig = data?.config;
-  const wifiHealth = data?.health;
-  const isHotspotActive = wifiHealth?.mode === 'AP' && wifiHealth?.ap_active;
 
   const wifiItems = useMemo(() => {
     if (!isSuccess || !data) return initialWifiItems;
@@ -52,31 +39,7 @@ export const WifiDetails = (): JSX.Element => {
       ap_name: networkConfig?.apName || '',
       ap_password: networkConfig?.apPassword || '',
       ips: wifiStatus?.ips?.[0] || '',
-      mac: wifiStatus?.mac || '',
-      health: getWifiHealthStatusLabel(wifiHealth, wifiStatus?.connected),
-      gateway: isHotspotActive
-        ? 'N/A'
-        : wifiHealth
-          ? wifiHealth.gateway_reachable
-            ? 'OK'
-            : 'FAILED'
-          : '',
-      dns: isHotspotActive
-        ? 'N/A'
-        : wifiHealth
-          ? wifiHealth.dns_resolves
-            ? 'OK'
-            : 'FAILED'
-          : '',
-      internet: isHotspotActive
-        ? 'N/A'
-        : wifiHealth
-          ? wifiHealth.internet_reachable
-            ? 'OK'
-            : 'FAILED'
-          : '',
-      last_error: getWifiHealthMessage(wifiHealth),
-      recovery: getWifiRecoveryMessage(wifiHealth)
+      mac: wifiStatus?.mac || ''
     };
 
     return initialWifiItems.map((item) =>
@@ -87,7 +50,7 @@ export const WifiDetails = (): JSX.Element => {
             label: `${item.label}: ${valuesMap[item.key] || ''}`
           }
     );
-  }, [wifiStatus, networkConfig, wifiHealth, isHotspotActive, isSuccess]);
+  }, [wifiStatus, networkConfig, isSuccess]);
 
   useHandleGestures({
     left() {
