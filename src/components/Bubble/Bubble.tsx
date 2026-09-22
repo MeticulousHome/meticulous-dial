@@ -26,6 +26,7 @@ export default function Bubble() {
       ?.component;
   useHandleGestures({
     context() {
+      if (bubbleDisplay.visible && bubbleDisplay.pinned) return;
       dispatch(
         setBubbleDisplay({
           visible: !bubbleDisplay.visible,

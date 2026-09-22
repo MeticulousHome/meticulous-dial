@@ -27,9 +27,8 @@ import { warn, debug, trace, info, error } from '@tauri-apps/plugin-log';
 import { sanitizeAutomaticSentryEvent } from './sentryPrivacy';
 import { useDeviceInfo } from './hooks/useDeviceOSStatus';
 import { version as dialVersion } from '../package.json';
+import { SENTRY_DSN } from './sentryConfig';
 
-const SENTRY_DSN =
-  'https://d958eb514629903cf133ad2b19e80ead@sentry.meticulousespresso.com/8';
 const DIAL_RELEASE = `meticulous-dial@${dialVersion}`;
 
 if (SENTRY_DSN) {

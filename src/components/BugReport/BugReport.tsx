@@ -1,5 +1,4 @@
-import { Fragment, useMemo, useRef, useState } from 'react';
-import { ZstdDec, ZstdInit } from '@oneidentity/zstd-js/decompress';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import * as Sentry from '@sentry/react';
 import { AnimatedCounter } from 'react-animated-counter/dist/esm';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
@@ -10,6 +9,7 @@ import {
 import { QrGeneratedImage } from '../QR/QrImage';
 import {
   setBubbleDisplay,
+  setBubblePinned,
   setScreen
 } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -17,10 +17,14 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   ReportInfo,
   DraftInfo,
-  MeticulousIDRequestType
+  getReportErrorCode,
+  PreflightBlocker,
+  ReportErrorCode
 } from '@meticulous-home/espresso-api';
 
 import { api } from '../../api/api';
+import { useIdleTimer } from '../../hooks/useIdleTimer';
+import { REPORT_PROBE_URLS, TICKET_SERVICE_URL } from '../../sentryConfig';
 
 import './bugReport.css';
 
@@ -48,12 +52,15 @@ type SubmissionFailType =
   | 'submissionMark'
   | 'TicketTrackRequest'
   | 'submissionTimeout'
-  | 'reportLoad';
+  | 'reportLoad'
+  | 'noSerial'
+  | 'offline'
+  | 'diskSpace'
+  | 'busy';
 
 type SubmissionStateType =
   | null
   | 'fetchingFile'
-  | 'decompressing'
   | 'buildingFeedback'
   | 'ticketing'
   | 'updatingReport'
@@ -93,6 +100,22 @@ const FAILURE_DETAILS: Record<
   submissionTimeout: {
     code: 'BR-07',
     message: 'Sending your report took too long and was cancelled.'
+  },
+  noSerial: {
+    code: 'BR-08',
+    message: 'This machine has no serial number, so a report cannot be filed.'
+  },
+  offline: {
+    code: 'BR-09',
+    message: 'No internet connection. Connect to Wi-Fi or report from the mobile app.'
+  },
+  diskSpace: {
+    code: 'BR-10',
+    message: 'Not enough free space on the machine to collect a report.'
+  },
+  busy: {
+    code: 'BR-11',
+    message: 'Another report is being collected. Try again in a few minutes.'
   }
 };
 
@@ -104,7 +127,7 @@ const CONTACT_SUPPORT_NOTE = 'Please contact us for further information.';
 // collecting loop's boundary (up to 2.0s), the bridge (2.4s) and Finished
 // itself (1.1s), so the cap has to clear 5.5s with room for a slow frame rate.
 const FINISHED_ANIMATION_TIMEOUT = 12 * 1000;
-const SENTRY_FLUSH_TIMEOUT = 60 * 1000;
+const SENTRY_DELIVERY_TIMEOUT_MS = 30 * 1000;
 
 type FailureView = {
   code: string;
@@ -112,6 +135,15 @@ type FailureView = {
   /** Extra line shown above the code, e.g. a ticket the user should keep. */
   note?: string;
 };
+
+type InFlightSubmission = {
+  localID: string;
+  outcome: Promise<{ ticket: number | null; failure: FailureView | null }>;
+};
+
+// A bubble can be unmounted by navigation while delivery continues. Keep the
+// result outside the component so the next mount can show it.
+let inFlightSubmission: InFlightSubmission | null = null;
 
 type BugReportOption = {
   key:
@@ -199,10 +231,6 @@ export const getContentType = (filename: string) => {
 };
 
 const SUPPORT_WEBSITE_URL = 'https://meticuloushome.com/pages/contact';
-const service_url =
-  'https://a3qhsgqqfk.execute-api.us-east-1.amazonaws.com/Prod/ticket';
-
-const textDecoder = new TextDecoder();
 
 const captureException = (error: unknown, errorCode?: string) => {
   console.error(errorCode ? `[${errorCode}]` : '', error);
@@ -216,97 +244,29 @@ const captureException = (error: unknown, errorCode?: string) => {
   }
 };
 
-const readTarString = (data: Uint8Array, start: number, length: number) => {
-  const slice = data.slice(start, start + length);
-  const end = slice.indexOf(0);
-  return textDecoder.decode(end >= 0 ? slice.slice(0, end) : slice).trim();
-};
+const shortTag = (value: unknown) => String(value).slice(0, 200);
 
-const readTarSize = (data: Uint8Array, offset: number) => {
-  const sizeText = readTarString(data, offset + 124, 12);
-  return Number.parseInt(sizeText || '0', 8);
-};
-
-const isEmptyTarBlock = (data: Uint8Array, offset: number) => {
-  for (
-    let index = offset;
-    index < offset + 512 && index < data.length;
-    index++
-  ) {
-    if (data[index] !== 0) return false;
-  }
-  return true;
-};
-
-const untar = (data: Uint8Array): DraftFile[] => {
-  const files: DraftFile[] = [];
-  let offset = 0;
-
-  while (offset + 512 <= data.length && !isEmptyTarBlock(data, offset)) {
-    const name = readTarString(data, offset, 100);
-    const prefix = readTarString(data, offset + 345, 155);
-    const typeFlag = readTarString(data, offset + 156, 1);
-    const size = readTarSize(data, offset);
-    const fileStart = offset + 512;
-    const fileEnd = fileStart + size;
-
-    if (name && (!typeFlag || typeFlag === '0')) {
-      const filename = prefix ? `${prefix}/${name}` : name;
-      files.push({
-        name: filename,
-        data: data.slice(fileStart, fileEnd),
-        contentType: getContentType(filename)
-      });
-    }
-
-    offset = fileStart + Math.ceil(size / 512) * 512;
-  }
-
-  return files;
-};
-
-const decompressReportDraft = async (compressed: Uint8Array) => {
-  const { ZstdSimple, ZstdStream }: ZstdDec = await ZstdInit();
-
-  try {
-    return ZstdSimple.decompress(compressed);
-  } catch {
-    return ZstdStream.decompress(compressed);
-  }
-};
-
-const parseReportFiles = async (compressed: Uint8Array) => {
-  const decompressed = await decompressReportDraft(compressed);
-  const files = untar(decompressed);
-
-  if (files.length > 0) {
-    return files;
-  }
-
-  throw new Error('Report draft did not contain a readable tar archive');
-};
-
-const parseReportInfo = (files: DraftFile[]): ReportInfo => {
-  const reportInfoFile = files.find(
-    (file) => file.name.split('/').pop() === 'report_info.json'
-  );
-
-  if (!reportInfoFile) {
-    throw new Error('report_info.json missing from report draft');
-  }
-
-  return JSON.parse(textDecoder.decode(reportInfoFile.data));
-};
-
-const reportInfoTags = (reportInfo: ReportInfo) => {
+const reportInfoTags = (reportInfo: ReportInfo): Record<string, string> => {
+  const scalars: (keyof ReportInfo)[] = [
+    'localID', 'machineID', 'ticket', 'issueTime', 'dateAndTime', 'eventID', 'baseEventID'
+  ];
   return Object.fromEntries(
-    Object.entries(reportInfo)
-      .filter(([, value]) => value !== null && value !== undefined)
-      .map(([key, value]) => [
-        key,
-        typeof value === 'object' ? JSON.stringify(value) : String(value)
-      ])
+    scalars
+      .filter((key) => reportInfo[key] !== null && reportInfo[key] !== undefined)
+      .map((key) => [key, shortTag(reportInfo[key])])
   );
+};
+
+const BLOCKER_FAILURE: Record<PreflightBlocker, SubmissionFailType> = {
+  NO_SERIAL_NUMBER: 'noSerial',
+  NETWORK_UNREACHABLE: 'offline',
+  INSUFFICIENT_DISK_SPACE: 'diskSpace',
+  COLLECTION_IN_PROGRESS: 'busy'
+};
+
+const CREATE_ERROR_FAILURE: Partial<Record<ReportErrorCode, SubmissionFailType>> = {
+  INSUFFICIENT_DISK_SPACE: 'diskSpace',
+  COLLECTION_IN_PROGRESS: 'busy'
 };
 
 const isReportError = (response: unknown): response is { error: string } => {
@@ -341,16 +301,43 @@ const buildDraftAttachment = (draftFile: Uint8Array): DraftFile => {
 
 const sendSentryFeedback = async ({
   reportInfo,
-  attachment
+  attachment,
+  signal
 }: {
   reportInfo: ReportInfo;
   attachment: DraftFile;
+  signal: AbortSignal;
 }) => {
-  if (!Sentry.isInitialized()) {
+  const client = Sentry.getClient();
+  if (!client) {
     throw new Error('Sentry is not initialized');
   }
 
-  const eventID = Sentry.captureFeedback(
+  let unhook: (() => void) | undefined;
+  const delivered = new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      unhook?.();
+      reject(new Error('Sentry did not acknowledge the report in time'));
+    }, SENTRY_DELIVERY_TIMEOUT_MS);
+    const abort = () => {
+      clearTimeout(timer);
+      unhook?.();
+      reject(new Error('Report submission aborted'));
+    };
+    signal.addEventListener('abort', abort, { once: true });
+    unhook = client.on('afterSendEvent', (event, response) => {
+      if (!expectedEventID || event.event_id !== expectedEventID) return;
+      clearTimeout(timer);
+      signal.removeEventListener('abort', abort);
+      unhook?.();
+      const status = response?.statusCode;
+      if (status !== undefined && status >= 200 && status < 300) resolve();
+      else if (status === undefined) reject(new Error('Sentry transport failed (no response)'));
+      else reject(new Error(`Sentry rejected the report with HTTP ${status}`));
+    });
+  });
+
+  const expectedEventID = Sentry.captureFeedback(
     {
       ...(reportInfo.machineID ? { name: reportInfo.machineID } : {}),
       message:
@@ -368,6 +355,13 @@ const sendSentryFeedback = async ({
           'meticulous.report_attachment_bytes': String(
             attachment.data.byteLength
           )
+        },
+        contexts: {
+          report: {
+            attachments: reportInfo.attachments ?? null,
+            description: reportInfo.description ?? null,
+            multimedia: reportInfo.multimedia ?? null
+          }
         }
       },
       attachments: [
@@ -380,15 +374,44 @@ const sendSentryFeedback = async ({
     }
   );
 
-  const sent = await Sentry.flush(SENTRY_FLUSH_TIMEOUT);
-  if (!sent) {
-    console.warn(
-      `Sentry feedback flush did not finish within ${SENTRY_FLUSH_TIMEOUT}ms; ` +
-        `upload of ${attachment.data.byteLength} bytes continues in the background`
-    );
-  }
+  await Promise.all([delivered, Sentry.flush(SENTRY_DELIVERY_TIMEOUT_MS)]);
+  return expectedEventID;
+};
 
-  return eventID;
+const RETRY_DELAYS_MS = [2_000, 5_000, 10_000];
+
+const sleep = (ms: number, signal: AbortSignal) =>
+  new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(resolve, ms);
+    signal.addEventListener(
+      'abort',
+      () => {
+        clearTimeout(timer);
+        reject(new Error('aborted'));
+      },
+      { once: true }
+    );
+  });
+
+const withRetry = async <T,>(
+  attempt: () => Promise<T>,
+  signal: AbortSignal,
+  label: string
+): Promise<T> => {
+  let lastError: unknown;
+  for (let index = 0; index <= RETRY_DELAYS_MS.length; index++) {
+    if (signal.aborted) throw lastError ?? new Error('aborted');
+    try {
+      return await attempt();
+    } catch (error) {
+      lastError = error;
+      console.warn(`[bug-report] ${label} attempt ${index + 1} failed`, error);
+      if (index < RETRY_DELAYS_MS.length) {
+        await sleep(RETRY_DELAYS_MS[index], signal);
+      }
+    }
+  }
+  throw lastError;
 };
 
 /** The read-only counterpart of the picker row, labelled the same way. */
@@ -470,7 +493,14 @@ export const BugReport = (): JSX.Element => {
   const ticketRef = useRef<number | null>(null);
   const submissionStateRef = useRef<SubmissionStateType>(null);
   const activeCreateRunRef = useRef<CreateReportRun | null>(null);
+  const submitControllerRef = useRef<AbortController | null>(null);
   const finishedResolveRef = useRef<(() => void) | null>(null);
+  const { resetTimer: resetIdleTimer } = useIdleTimer();
+
+  const busy =
+    reportStatus === ReportStatus.fetching ||
+    reportStatus === ReportStatus.slowFetch ||
+    reportStatus === ReportStatus.submitting;
 
   const animationPhase: BugReportAnimationPhase = isFinishing
     ? 'finished'
@@ -555,6 +585,7 @@ export const BugReport = (): JSX.Element => {
   }, [reportScreen, reportStatus]);
 
   const exitToQuickSettings = () => {
+    dispatch(setBubblePinned(false));
     const targetScreen =
       currentScreen === 'bug-report'
         ? previousScreen || 'profileHome'
@@ -581,6 +612,7 @@ export const BugReport = (): JSX.Element => {
   };
 
   const resetCancelledReport = () => {
+    dispatch(setBubblePinned(false));
     setReportScreen(ReportScreen.message);
     setReportStatus(ReportStatus.idle);
     setActiveIndex(0);
@@ -649,6 +681,22 @@ export const BugReport = (): JSX.Element => {
 
     void (async () => {
       try {
+        const preflight = await api.getReportPreflight(REPORT_PROBE_URLS, {
+          signal: createRun.controller.signal,
+          timeout: 20_000
+        });
+        if (createRun.cancelled) return;
+        if (!isReportError(preflight)) {
+          const blocker = preflight.blockers[0] as PreflightBlocker | undefined;
+          if (blocker && BLOCKER_FAILURE[blocker]) {
+            activeCreateRunRef.current = null;
+            failSubmission(BLOCKER_FAILURE[blocker], preflight);
+            return;
+          }
+        } else {
+          // Old backends do not have preflight. Any API error is non-blocking.
+          console.warn('[bug-report] preflight unavailable, continuing', preflight);
+        }
         const createResponse =
           issueTime === undefined
             ? await api.createReport(undefined, {
@@ -659,12 +707,21 @@ export const BugReport = (): JSX.Element => {
                 { signal: createRun.controller.signal }
               );
         if (isReportError(createResponse)) {
-          throw new Error(createResponse.error);
+          throw Object.assign(new Error(createResponse.error), {
+            reportCode: getReportErrorCode(createResponse)
+          });
         }
 
         if (createRun.cancelled) {
           await deleteCancelledDraft(createResponse.localID);
           return;
+        }
+
+        if (!createResponse.machineID?.trim()) {
+          await deleteCancelledDraft(createResponse.localID);
+          throw Object.assign(new Error('Draft has no machineID'), {
+            failure: 'noSerial' as const
+          });
         }
 
         activeCreateRunRef.current = null;
@@ -684,7 +741,13 @@ export const BugReport = (): JSX.Element => {
           );
         } else if (activeCreateRunRef.current === createRun) {
           activeCreateRunRef.current = null;
-          failSubmission('creation', error);
+          const failure =
+            (error as { failure?: SubmissionFailType }).failure ??
+            CREATE_ERROR_FAILURE[
+              (error as { reportCode?: ReportErrorCode }).reportCode ?? 'INTERNAL'
+            ] ??
+            'creation';
+          failSubmission(failure, error);
         }
       } finally {
         if (createRun.slowTimeout) {
@@ -694,6 +757,28 @@ export const BugReport = (): JSX.Element => {
       }
     })();
   };
+
+  useEffect(() => {
+    dispatch(setBubblePinned(busy));
+    if (!busy) return;
+    resetIdleTimer();
+    const keepAlive = setInterval(resetIdleTimer, 30_000);
+    return () => clearInterval(keepAlive);
+  }, [busy, dispatch, resetIdleTimer]);
+
+  useEffect(
+    () => () => {
+      const run = activeCreateRunRef.current;
+      if (run) {
+        run.cancelled = true;
+        run.controller.abort();
+        if (run.slowTimeout) clearTimeout(run.slowTimeout);
+        activeCreateRunRef.current = null;
+      }
+      dispatch(setBubblePinned(false));
+    },
+    [dispatch]
+  );
 
   const openIssueDateSelector = () => {
     setIssueDateDraft(() => {
@@ -767,6 +852,21 @@ export const BugReport = (): JSX.Element => {
       return;
     }
 
+    const controller = new AbortController();
+    submitControllerRef.current = controller;
+    const { signal } = controller;
+    let resolveOutcome: (
+      value: { ticket: number | null; failure: FailureView | null }
+    ) => void;
+    const outcome = new Promise<{
+      ticket: number | null;
+      failure: FailureView | null;
+    }>((resolve) => {
+      resolveOutcome = resolve;
+    });
+    const submission = { localID: draftInfo.localID, outcome };
+    inFlightSubmission = submission;
+    let outcomeFailure: FailureView | null = null;
     setReportStatus(ReportStatus.submitting);
     setFailure(null);
 
@@ -774,61 +874,80 @@ export const BugReport = (): JSX.Element => {
     const submissionTimeout = setTimeout(
       () => {
         timedOut = true;
-        failSubmission('submissionTimeout', 'Report submission timed out');
+        controller.abort();
+        failSubmission(
+          'submissionTimeout',
+          'Report submission timed out',
+          ticketRef.current !== null
+            ? `A ticket number ${ticketRef.current} was reserved. Save it in case the report arrived.`
+            : undefined
+        );
+        outcomeFailure = {
+          ...FAILURE_DETAILS.submissionTimeout,
+          note:
+            ticketRef.current !== null
+              ? `A ticket number ${ticketRef.current} was reserved. Save it in case the report arrived.`
+              : undefined
+        };
       },
       5 * 60 * 1000
     ); // 5 minutes timeout
 
     try {
       setSubmissionStage('ticketing');
-      const ticketPayload: MeticulousIDRequestType = {
-        eventID: getTicketEventID(draftInfo)
-      };
-      const ticket = await api.getMeticulousReportTracking(
-        service_url,
-        ticketPayload
+      const ticket = await withRetry(
+        async () => {
+          const result = await api.getMeticulousReportTracking(
+            TICKET_SERVICE_URL,
+            { eventID: getTicketEventID(draftInfo) },
+            { signal, timeout: 15_000 }
+          );
+          if (isReportError(result)) throw new Error(result.error);
+          if (!Number.isSafeInteger(result)) {
+            throw new Error('Ticket service returned no ticket');
+          }
+          return result;
+        },
+        signal,
+        'ticket'
       );
-      if (isReportError(ticket)) throw Error(ticket.error);
       ticketRef.current = ticket;
-      if (timedOut) return;
 
       setSubmissionStage('updatingReport');
-      const updateResponse = await api.updateReport(draftInfo.localID, {
-        ticket
-      });
-      if (isReportError(updateResponse)) throw Error(updateResponse.error);
-      if (timedOut) return;
+      const reportInfo = await api.updateReport(
+        draftInfo.localID,
+        { ticket },
+        { signal, timeout: 30_000 }
+      );
+      if (isReportError(reportInfo)) throw Error(reportInfo.error);
 
       setSubmissionStage('fetchingFile');
-      const draftFile = await api.getDraftReport(draftInfo.localID);
+      const draftFile = await api.getDraftReport(draftInfo.localID, { signal });
       if (isReportError(draftFile)) throw Error(draftFile.error);
-      if (timedOut) return;
-
-      setSubmissionStage('decompressing');
-      const files = await parseReportFiles(draftFile);
-      if (timedOut) return;
 
       setSubmissionStage('buildingFeedback');
-      const reportInfo = parseReportInfo(files);
       const attachment = buildDraftAttachment(draftFile);
-      reportInfo.ticket = ticket;
-      if (timedOut) return;
 
       setSubmissionStage('sendingFeedback');
-      const eventID = await sendSentryFeedback({ reportInfo, attachment });
-      if (timedOut) return;
+      const eventID = await withRetry(
+        () => sendSentryFeedback({ reportInfo, attachment, signal }),
+        signal,
+        'sentry'
+      );
 
       setSubmissionStage('savingRecord');
-      const markSubmittedResponse = await api.markSubmittedReport({
-        localID: draftInfo.localID,
-        eventID,
-        ticket,
-        submissionTime: Math.floor(Date.now() / 1000)
-      });
+      const markSubmittedResponse = await api.markSubmittedReport(
+        {
+          localID: draftInfo.localID,
+          eventID,
+          ticket,
+          submissionTime: Math.floor(Date.now() / 1000)
+        },
+        { signal, timeout: 60_000 }
+      );
       if (isReportError(markSubmittedResponse)) {
         throw Error(markSubmittedResponse.error);
       }
-      if (timedOut) return;
 
       // The report is in. Everything left is animation, so retire the network
       // timeout rather than let it fail a submission that already succeeded.
@@ -839,14 +958,18 @@ export const BugReport = (): JSX.Element => {
       setReportScreen(ReportScreen.submitted);
       setReportStatus(ReportStatus.idle);
     } catch (error) {
-      if (timedOut) return;
+      if (timedOut || signal.aborted) return;
 
       if (submissionStateRef.current === 'sendingFeedback') {
         failSubmission('sentrySubmission', error);
+        outcomeFailure = FAILURE_DETAILS.sentrySubmission;
       } else if (submissionStateRef.current === 'ticketing') {
-        failSubmission('TicketTrackRequest', error);
+        const failure = isOfflineError(error) ? 'offline' : 'TicketTrackRequest';
+        failSubmission(failure, error);
+        outcomeFailure = FAILURE_DETAILS[failure];
       } else if (submissionStateRef.current === 'updatingReport') {
         failSubmission('reportUpdate', error);
+        outcomeFailure = FAILURE_DETAILS.reportUpdate;
       } else if (submissionStateRef.current === 'savingRecord') {
         // The report itself made it through, so the ticket is still usable.
         failSubmission(
@@ -854,13 +977,47 @@ export const BugReport = (): JSX.Element => {
           error,
           `We received your report with ticket number ${ticketRef.current}. Save it for further tracking.`
         );
+        outcomeFailure = {
+          ...FAILURE_DETAILS.submissionMark,
+          note: `We received your report with ticket number ${ticketRef.current}. Save it for further tracking.`
+        };
       } else {
         failSubmission('reportLoad', error);
+        outcomeFailure = FAILURE_DETAILS.reportLoad;
       }
     } finally {
       clearTimeout(submissionTimeout);
+      if (submitControllerRef.current === controller) submitControllerRef.current = null;
+      resolveOutcome!({ ticket: ticketRef.current, failure: outcomeFailure });
+      if (inFlightSubmission === submission) inFlightSubmission = null;
     }
   };
+
+  useEffect(() => {
+    const pending = inFlightSubmission;
+    if (!pending) return;
+    let disposed = false;
+    setReportScreen(ReportScreen.reportingBug);
+    setReportStatus(ReportStatus.submitting);
+    void pending.outcome.then(({ ticket, failure: pendingFailure }) => {
+      if (disposed) return;
+      ticketRef.current = ticket;
+      if (pendingFailure) {
+        setFailure(pendingFailure);
+        setReportStatus(ReportStatus.failed);
+      } else {
+        setReportScreen(ReportScreen.submitted);
+        setReportStatus(ReportStatus.idle);
+      }
+    });
+    return () => {
+      disposed = true;
+    };
+  }, []);
+
+  const isOfflineError = (error: unknown) =>
+    error instanceof Error &&
+    /Network Error|timeout|ERR_NETWORK|ECONN|ENOTFOUND/i.test(error.message);
 
   useHandleGestures({
     left() {
