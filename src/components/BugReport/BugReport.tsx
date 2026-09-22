@@ -313,6 +313,7 @@ const sendSentryFeedback = async ({
     throw new Error('Sentry is not initialized');
   }
 
+  const expectedEvent = { id: undefined as string | undefined };
   let unhook: (() => void) | undefined;
   const delivered = new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => {
@@ -326,7 +327,7 @@ const sendSentryFeedback = async ({
     };
     signal.addEventListener('abort', abort, { once: true });
     unhook = client.on('afterSendEvent', (event, response) => {
-      if (!expectedEventID || event.event_id !== expectedEventID) return;
+      if (!expectedEvent.id || event.event_id !== expectedEvent.id) return;
       clearTimeout(timer);
       signal.removeEventListener('abort', abort);
       unhook?.();
@@ -337,7 +338,7 @@ const sendSentryFeedback = async ({
     });
   });
 
-  const expectedEventID = Sentry.captureFeedback(
+  expectedEvent.id = Sentry.captureFeedback(
     {
       ...(reportInfo.machineID ? { name: reportInfo.machineID } : {}),
       message:
@@ -375,7 +376,8 @@ const sendSentryFeedback = async ({
   );
 
   await Promise.all([delivered, Sentry.flush(SENTRY_DELIVERY_TIMEOUT_MS)]);
-  return expectedEventID;
+  if (!expectedEvent.id) throw new Error('Sentry did not create an event ID');
+  return expectedEvent.id;
 };
 
 const RETRY_DELAYS_MS = [2_000, 5_000, 10_000];
