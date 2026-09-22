@@ -9,10 +9,10 @@ import {
 } from 'react';
 import { useLastProfile, useProfiles } from '../hooks/useProfiles';
 import {
+  isLimitedAccess,
   LastProfileIdent,
   ProfileUpdate
-} from '@meticulous-home/espresso-api/dist';
-import { isLimitedAccess } from '@meticulous-home/espresso-api';
+} from '@meticulous-home/espresso-api';
 import { IPresetAction, IPresetSetting } from '../types';
 import { useSettings } from '../hooks/useSettings';
 

@@ -42,7 +42,7 @@ export const UnlockScreen: React.FC = () => {
         dispatch(setScreen('profileHome'));
         return;
       }
-      if (result.status === 403) {
+      if (result.ok === false && result.status === 403) {
         lastRejected.current = code;
       }
     } finally {
