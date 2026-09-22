@@ -104,6 +104,7 @@ const CONTACT_SUPPORT_NOTE = 'Please contact us for further information.';
 // collecting loop's boundary (up to 2.0s), the bridge (2.4s) and Finished
 // itself (1.1s), so the cap has to clear 5.5s with room for a slow frame rate.
 const FINISHED_ANIMATION_TIMEOUT = 12 * 1000;
+const SENTRY_FLUSH_TIMEOUT = 60 * 1000;
 
 type FailureView = {
   code: string;
@@ -363,7 +364,10 @@ const sendSentryFeedback = async ({
       captureContext: {
         tags: {
           ...reportInfoTags(reportInfo),
-          'meticulous.report_source': 'dial'
+          'meticulous.report_source': 'dial',
+          'meticulous.report_attachment_bytes': String(
+            attachment.data.byteLength
+          )
         }
       },
       attachments: [
@@ -376,9 +380,12 @@ const sendSentryFeedback = async ({
     }
   );
 
-  const sent = await Sentry.flush(10_000);
+  const sent = await Sentry.flush(SENTRY_FLUSH_TIMEOUT);
   if (!sent) {
-    throw new Error('Sentry feedback flush timed out');
+    console.warn(
+      `Sentry feedback flush did not finish within ${SENTRY_FLUSH_TIMEOUT}ms; ` +
+        `upload of ${attachment.data.byteLength} bytes continues in the background`
+    );
   }
 
   return eventID;
