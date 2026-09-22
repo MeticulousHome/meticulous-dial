@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { SettingsItem } from '../../../types';
@@ -20,7 +20,10 @@ import Styled, {
 } from '../../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
 import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSetting';
-import type { Settings } from '@meticulous-home/espresso-api';
+import {
+  isLimitedAccess,
+  type Settings
+} from '@meticulous-home/espresso-api';
 
 const initialSettings: SettingsItem[] = [
   {
@@ -72,14 +75,19 @@ export const AdvancedSettings = () => {
 
   const { data: manufacturingSettings, isSuccess: isManufacturingSuccess } =
     useManufacturingSchema();
+  const limitedAccess = isLimitedAccess(globalSettings);
 
   const updatedSettings = useMemo(() => {
+    const baseSettings = limitedAccess
+      ? initialSettings.filter((item) => item.key !== 'set_update_channel')
+      : initialSettings;
+
     if (!isSettingsSuccess) {
-      return initialSettings.map((item) => ({
+      return baseSettings.map((item) => ({
         ...item
       }));
     }
-    const formattedInitialSettings = initialSettings.map((item) => ({
+    const formattedInitialSettings = baseSettings.map((item) => ({
       ...item,
       label:
         item.key === 'root_password'
@@ -121,9 +129,14 @@ export const AdvancedSettings = () => {
     globalSettings,
     isManufacturingSuccess,
     isSettingsSuccess,
+    limitedAccess,
     manufacturingSettings,
     rootPW
   ]);
+
+  useEffect(() => {
+    setActiveIndex((prev) => Math.min(prev, updatedSettings.length - 1));
+  }, [updatedSettings.length]);
 
   useHandleGestures(
     {

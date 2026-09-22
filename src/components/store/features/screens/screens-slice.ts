@@ -39,8 +39,6 @@ export type ScreenType =
   | 'deviceInfo'
   | 'updateChannel'
   | 'idleScreenSettings'
-  | 'defaultProfiles'
-  | 'defaultProfileDetails'
   | 'manual-purge'
   | 'heating'
   | 'heat_timeout_after_shot'

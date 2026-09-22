@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { useUpdateSettings } from '../../hooks/useSettings';
+import { useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { USER_SETTINGS_QUERY_KEY } from '../../hooks/useSettings';
+import { PROFILES_QUERY_KEY } from '../../hooks/useProfiles';
 import { useAppDispatch } from '../store/hooks';
 import { CircleKeyboard } from '../CircleKeyboard/CircleKeyboard';
 import {
@@ -7,23 +9,45 @@ import {
   setBubbleDisplay
 } from '../store/features/screens/screens-slice';
 import { useDeviceInfo } from '../../hooks/useDeviceOSStatus';
-import { startMasterCalibration } from '../../api/api';
+import { startMasterCalibration, unlockMachine } from '../../api/api';
+
+const looksComplete = (code: string) =>
+  code === 'met' || /^\d{5}$/.test(code);
 
 export const UnlockScreen: React.FC = () => {
   const dispatch = useAppDispatch();
-  const updateSettings = useUpdateSettings();
+  const queryClient = useQueryClient();
   const [password, setPassword] = useState<string>('');
   const { data: deviceInfo } = useDeviceInfo();
-  const deviceSerial = parseInt(deviceInfo?.serial) ?? 0;
-  const unlockCode = ((deviceSerial ^ 0xc0ffee) % 99999).toString();
+  const inFlight = useRef(false);
+  const lastRejected = useRef<string | null>(null);
 
-  const updateSetting = (input: string) => {
-    input = input.toLowerCase();
-    if (input !== 'met' && input !== unlockCode) {
+  const tryUnlock = async (input: string, explicit: boolean) => {
+    const code = input.trim().toLowerCase();
+    if (!code || inFlight.current) return;
+    if (!explicit && (!looksComplete(code) || lastRejected.current === code)) {
       return;
     }
-    updateSettings.mutate({ update_channel: 'stable' });
-    dispatch(setScreen('profileHome'));
+
+    inFlight.current = true;
+    try {
+      const result = await unlockMachine(code);
+      if (result.ok) {
+        await queryClient.invalidateQueries({
+          queryKey: [USER_SETTINGS_QUERY_KEY]
+        });
+        await queryClient.invalidateQueries({
+          queryKey: [PROFILES_QUERY_KEY]
+        });
+        dispatch(setScreen('profileHome'));
+        return;
+      }
+      if (result.status === 403) {
+        lastRejected.current = code;
+      }
+    } finally {
+      inFlight.current = false;
+    }
   };
 
   const onCancel = () => {
@@ -34,11 +58,11 @@ export const UnlockScreen: React.FC = () => {
     <CircleKeyboard
       name={`Unlock Code for S/N: ${deviceInfo?.serial ?? 'LOADING...'}`}
       defaultValue={password.split('')}
-      onSubmit={() => updateSetting(password)}
+      onSubmit={() => void tryUnlock(password, true)}
       onCancel={onCancel}
       onChange={(text: string) => {
         setPassword(text);
-        updateSetting(text);
+        void tryUnlock(text, false);
       }}
     />
   );

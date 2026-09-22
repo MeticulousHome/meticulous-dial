@@ -12,9 +12,9 @@ import {
   LastProfileIdent,
   ProfileUpdate
 } from '@meticulous-home/espresso-api/dist';
+import { isLimitedAccess } from '@meticulous-home/espresso-api';
 import { IPresetAction, IPresetSetting } from '../types';
 import { useSettings } from '../hooks/useSettings';
-import demoProfile from '../assets/9BarItalian.json';
 
 type ProfileContextType = {
   profileQuery: ReturnType<typeof useProfiles>;
@@ -27,12 +27,6 @@ type ProfileContextType = {
   setLocalProfile: React.Dispatch<React.SetStateAction<ExtendedProfile | null>>;
   localHoverState: boolean;
   setLocalHoverState: React.Dispatch<React.SetStateAction<boolean | null>>;
-
-  // Default profile state
-  detailProfileSelected: ExtendedProfile | null;
-  setDetailsProfileSelected: React.Dispatch<
-    React.SetStateAction<ExtendedProfile | null>
-  >;
 
   // Profile Editing
   settingsIndex: number;
@@ -72,8 +66,6 @@ export const useProfileContext = () => {
 
 export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const profileQuery = useProfiles();
-  const [defaultProfileSelected, setDefaultProfileSelected] =
-    useState<ExtendedProfile | null>(null);
   const { data: profiles } = profileQuery;
   const { data: lastProfile } = useLastProfile();
   const { data: settings } = useSettings();
@@ -93,12 +85,10 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [hasJustHandledProfileEvent, setHasJustHandledProfileEvent] =
     useState(false);
 
-  const limitedAccess = settings?.update_channel === 'factory';
+  const limitedAccess = isLimitedAccess(settings);
 
   const mergedProfiles = useMemo<ExtendedProfile[]>(() => {
     if (!profiles) return [];
-    if (limitedAccess) return [demoProfile as ExtendedProfile];
-
     const last = lastProfile?.profile;
     if (!last) return profiles;
 
@@ -129,7 +119,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     //   }
     // ];
     return profilesExtended;
-  }, [profiles, lastProfile?.profile, limitedAccess]);
+  }, [profiles, lastProfile?.profile]);
 
   // If the last profile changes scroll to the last profile
   useEffect(() => {
@@ -245,9 +235,6 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     setLocalProfile,
     localHoverState,
     setLocalHoverState,
-
-    detailProfileSelected: defaultProfileSelected,
-    setDetailsProfileSelected: setDefaultProfileSelected,
 
     settingsIndex,
     setSettingsIndex,

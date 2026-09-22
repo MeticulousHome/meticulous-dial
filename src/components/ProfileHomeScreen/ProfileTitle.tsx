@@ -44,7 +44,8 @@ export const getProfilesTitle = () => <TitleProfiles />;
 export const getActiveProfilesTitle = () => <TitleProfiles />;
 
 export const TitleProfiles = () => {
-  const { localHoverState, localProfile } = useProfileContext();
+  const { localHoverState, localProfile, settingsProfile } =
+    useProfileContext();
   const currentScreen = useAppSelector((state) => state.screen.value);
   const isHomeScreen = currentScreen == 'profileHome';
   const titleRef = useRef<HTMLSpanElement>(null);
@@ -58,12 +59,15 @@ export const TitleProfiles = () => {
       const parentWidth = titleRef.current.parentElement?.offsetWidth || 0;
       setMarqueeWidth(width > parentWidth ? width : 0);
     }
-  }, [localProfile?.name, titleRef.current]);
+  }, [localProfile?.name, settingsProfile?.name, titleRef.current]);
 
   const scroll = localHoverState && isHomeScreen;
   const marquee = (isHomeScreen && scroll) || !isHomeScreen;
 
-  let title = localProfile?.name || '';
+  let title =
+    (!isHomeScreen ? settingsProfile?.name : undefined) ??
+    localProfile?.name ??
+    '';
   if (title.length > 40) {
     title = title.slice(0, 40) + '...';
   }

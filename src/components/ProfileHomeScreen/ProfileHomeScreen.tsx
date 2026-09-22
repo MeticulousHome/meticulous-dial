@@ -23,6 +23,11 @@ import { loadProfileData, startProfile } from '../../api/profile';
 import { DownloadIcon } from './DownloadIcon';
 import { useSocket } from '../store/SocketManager';
 import { invoke } from '@tauri-apps/api/core';
+import { useSimpleProfile } from '../../hooks/useProfiles';
+import {
+  addSettingsToProfile,
+  newProfileFromTemplate
+} from '../../utils/profiles';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -76,6 +81,7 @@ export const ProfileHomeScreen = () => {
   const socket = useSocket();
 
   const profileState = useProfileContext();
+  const simpleProfileQuery = useSimpleProfile();
 
   const {
     localProfileIndex: activeOption,
@@ -85,7 +91,9 @@ export const ProfileHomeScreen = () => {
     localHoverState,
     setLocalHoverState,
     mergedProfiles,
-    limitedAccess
+    limitedAccess,
+    setSettingsIndex,
+    setSettingsProfile
   } = profileState;
 
   const [transitionDirection, setTransitionDirection] =
@@ -226,7 +234,17 @@ export const ProfileHomeScreen = () => {
             dispatch(setScreen('unlock'));
             return;
           }
-          dispatch(setScreen('defaultProfiles'));
+          const template = simpleProfileQuery.data;
+          if (!template) {
+            void simpleProfileQuery.refetch();
+            return;
+          }
+          setSettingsIndex(0);
+          setSettingsProfile(
+            addSettingsToProfile(newProfileFromTemplate(template))
+          );
+          dispatch(setScreen('pressetSettings'));
+          dispatch(setBubbleDisplay({ visible: false, component: undefined }));
         } else {
           if (!localHoverState) {
             setLocalHoverState(true);
