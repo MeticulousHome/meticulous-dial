@@ -23,8 +23,6 @@ import { AdvancedSettings } from '../components/Settings/Advanced/Advanced';
 import { WifiQrMenu } from '../../src/components/Wifi/WifiQrMenu';
 import { PressetProfileImage } from '../components/PressetSettings/PressetProfileImage';
 import { DeviceInfoScreen } from '../components/Settings/Advanced/DeviceInfoScreen';
-import { DefaultProfiles } from '../components/DefaultProfiles/DefaultProfiles';
-import { ProfileDetails } from '../components/DefaultProfiles/DefaultProfileDetails';
 import { PurgeScreen } from '../components/PurgePiston/PurgeScreen';
 import { UpdateChannel } from '../components/Settings/Advanced/UpdateChannel';
 import { ReadyAnimation } from '../components/ReadyAnimation/ReadyAnimation';
@@ -389,15 +387,6 @@ export const routes: Record<ScreenType, Route> = {
   },
   idleScreenSettings: {
     component: IdleScreenSetting
-  },
-  defaultProfiles: {
-    component: DefaultProfiles,
-    bottomStatusHidden: true,
-    parent: 'profileHome'
-  },
-  defaultProfileDetails: {
-    component: ProfileDetails,
-    bottomStatusHidden: true
   },
   shot_history: {
     component: ShotGraphScreen,

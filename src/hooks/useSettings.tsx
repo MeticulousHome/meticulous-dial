@@ -7,7 +7,7 @@ import {
   getRootPassword
 } from '../api/settings';
 
-const USER_SETTINGS_QUERY_KEY = 'user-settings';
+export const USER_SETTINGS_QUERY_KEY = 'user-settings';
 const ROOT_PASSWORD_QUERY_KEY = 'root-password';
 
 const DEFAULT_SETTINGS_REFETCH_INTERVAL = 2000;

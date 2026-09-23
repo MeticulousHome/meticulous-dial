@@ -133,7 +133,6 @@ export function QuickSettings(): JSX.Element {
   const {
     profileQuery: { data: profiles },
     localProfile,
-    detailProfileSelected: defaultProfileSelectedForDetails,
     setSettingsIndex: setProfileSettingsIndex,
     setSettingsProfile: setProfileSettings
   } = useProfileContext();
@@ -256,10 +255,6 @@ export function QuickSettings(): JSX.Element {
             );
             break;
           }
-          case 'details': {
-            dispatch(setScreen('defaultProfileDetails'));
-            break;
-          }
           case 'disable_ui_features': {
             updateSettings.mutate({
               disable_ui_features: true
@@ -374,15 +369,6 @@ export function QuickSettings(): JSX.Element {
     const backAvailable = !!routes[currentScreen].parent;
 
     switch (currentScreen) {
-      case 'defaultProfiles':
-        setSettings([
-          ...(defaultProfileSelectedForDetails
-            ? [{ key: 'details', label: 'Show details' }]
-            : []),
-          ...(backAvailable ? [prevScreenSetting] : []),
-          ...defaultSettings
-        ]);
-        break;
       case 'heating':
       case 'brewComplete':
         if (statsName === 'idle') {

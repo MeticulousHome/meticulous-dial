@@ -137,7 +137,7 @@ export function IdleScreen(): JSX.Element {
     if (shouldGoToIdle || prevScreen === 'idle') return;
     updateBrightness({ brightness: 1 });
 
-    if (bubbleDisplay.visible) {
+    if (bubbleDisplay.visible && !bubbleDisplay.pinned) {
       dispatch(
         setBubbleDisplay({
           visible: false,
