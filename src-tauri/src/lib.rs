@@ -97,6 +97,13 @@ fn community_factory_reset_local(service: State<'_, CommunityUploadRuntime>) -> 
 }
 
 #[tauri::command]
+fn community_start_history_recovery(
+    service: State<'_, CommunityUploadRuntime>,
+) -> Result<(), String> {
+    service.start_history_recovery()
+}
+
+#[tauri::command]
 fn community_scan_history(service: State<'_, CommunityUploadRuntime>) -> Result<(), String> {
     service.request_history_scan()
 }
@@ -202,6 +209,7 @@ pub fn run() {
             community_disconnect,
             community_factory_reset_local,
             community_scan_history,
+            community_start_history_recovery,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

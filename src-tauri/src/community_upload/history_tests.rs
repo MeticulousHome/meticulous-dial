@@ -757,3 +757,698 @@ fn rich_pour_over_metadata_uses_small_pages_and_discovers_the_next_page() {
             .any(|shot| shot.history_path == second_first)
     );
 }
+
+fn recovery_ready(fixture: &TestService) {
+    let mut state = fixture.service.inner.state.lock().unwrap();
+    state.volatile.recovery_upload_not_before = 0;
+    state.volatile.access_token = Some("inert-test-token".to_string());
+    state.volatile.access_token_expires_at = unix_seconds() + 500;
+    if let Some(job) = state.persistent.recovery.as_mut() {
+        job.espresso.next_scan_at = 0;
+        job.pour_over.next_scan_at = 0;
+    }
+    for item in &mut state.persistent.queue {
+        item.next_attempt_at = 0;
+    }
+}
+
+fn recovery_routes(url: &Url) -> Reply {
+    match url.path() {
+        "/api/v1/history/upload-index/last" => Reply::json(json!({"file":ESPRESSO_PATH})),
+        "/api/v1/history/pour-over/last" => Reply::json(json!({"file":POUR_PATH})),
+        "/api/v1/history/upload-index" => index(&[ESPRESSO_PATH.to_string()]),
+        "/api/v1/history/pour-over" => index(&[POUR_PATH.to_string()]),
+        path if path.starts_with("/api/v1/history/pour-over/files/") => Reply::json(pour_over()),
+        path if path.starts_with("/api/v1/history/files/") => Reply::json(espresso()),
+        RECOVERY_PATH | SHOT_PATH => {
+            Reply::json(json!({"success":true,"imported":true,"deleted":false}))
+        }
+        _ => Reply::bytes(500, "unexpected route"),
+    }
+}
+
+#[test]
+fn recovery_is_explicit_idempotent_and_can_start_while_paused() {
+    let server = MachineServer::start(recovery_routes);
+    let fixture = TestService::new(&server, true);
+    assert!(fixture.state().recovery.is_none());
+    fixture.service.set_paused(true).unwrap();
+    fixture.service.start_history_recovery().unwrap();
+    let id = fixture.state().recovery.unwrap().id;
+    fixture.service.start_history_recovery().unwrap();
+    fixture.reload();
+    assert_eq!(fixture.state().recovery.unwrap().id, id);
+    fixture.service.worker_tick().unwrap();
+    assert!(server.requests().is_empty());
+    fixture.service.set_paused(false).unwrap();
+    fixture.service.recover_saved_history();
+    assert_eq!(fixture.state().queue.len(), 2);
+    assert_eq!(fixture.service.status().recovery.unwrap().state, "running");
+}
+
+#[test]
+fn recovery_loads_legacy_json_without_starting_or_altering_live_cursors() {
+    let server = MachineServer::start(recovery_routes);
+    let fixture = TestService::new(&server, true);
+    fixture
+        .service
+        .queue_history_path(HistoryKind::Espresso, ESPRESSO_PATH)
+        .unwrap();
+    let mut legacy = serde_json::to_value(fixture.state()).unwrap();
+    legacy.as_object_mut().unwrap().remove("recovery");
+    legacy["queue"][0]
+        .as_object_mut()
+        .unwrap()
+        .remove("recoveryJobId");
+    legacy["queue"][0]
+        .as_object_mut()
+        .unwrap()
+        .remove("recoveryOnly");
+    fs::write(
+        &fixture.service.inner.state_path,
+        serde_json::to_vec(&legacy).unwrap(),
+    )
+    .unwrap();
+    fixture.reload();
+    assert!(fixture.state().recovery.is_none());
+    assert!(!fixture.state().queue[0].recovery_only);
+    assert_eq!(
+        fixture.state().history_cursor.as_deref(),
+        Some(ESPRESSO_PATH)
+    );
+}
+
+#[test]
+fn recovery_imports_both_old_methods_through_quiet_endpoint_without_rewinding_live_cursors() {
+    let server = MachineServer::start(recovery_routes);
+    let fixture = TestService::new(&server, true);
+    fixture
+        .service
+        .mutate_persistent(|state| {
+            state.history_cursor = Some("2026-10-01/newer.shot.json".to_string());
+            state.pour_over_history_cursor = Some("2026-10-01/newer.pour-over.json".to_string());
+            Ok(())
+        })
+        .unwrap();
+    fixture.service.start_history_recovery().unwrap();
+    fixture.service.recover_saved_history();
+    let queued = fixture.state().queue;
+    assert_eq!(queued.len(), 2);
+    assert!(queued.iter().all(|item| item.recovery_only));
+    for item in &queued {
+        let expected = match item.history_kind {
+            HistoryKind::Espresso => espresso(),
+            HistoryKind::PourOver => pour_over(),
+        };
+        let raw = serde_json::to_vec(&expected).unwrap();
+        let expected_body = [
+            b"{\"contractVersion\":1,\"shot\":".as_slice(),
+            raw.as_slice(),
+            b"}".as_slice(),
+        ]
+        .concat();
+        assert_eq!(
+            fs::read(fixture.service.inner.queue_dir.join(&item.body_file)).unwrap(),
+            expected_body
+        );
+    }
+    fixture.reload();
+    recovery_ready(&fixture);
+    fixture.service.upload_next_shot().unwrap();
+    assert_eq!(fixture.service.status().recovery.unwrap().state, "running");
+    recovery_ready(&fixture);
+    fixture.service.upload_next_shot().unwrap();
+    fixture.reload();
+    let status = fixture.service.status().recovery.unwrap();
+    assert_eq!(status.state, "completed");
+    assert_eq!(status.added, 2);
+    assert_eq!(status.pending_count, 0);
+    assert_eq!(
+        fixture.state().history_cursor.as_deref(),
+        Some("2026-10-01/newer.shot.json")
+    );
+    assert_eq!(
+        fixture.state().pour_over_history_cursor.as_deref(),
+        Some("2026-10-01/newer.pour-over.json")
+    );
+    assert_eq!(
+        server
+            .requests()
+            .iter()
+            .filter(|path| path.as_str() == RECOVERY_PATH)
+            .count(),
+        2
+    );
+    assert!(!server.requests().iter().any(|path| path == SHOT_PATH));
+    let previous = fixture.state().recovery.unwrap().id;
+    fixture.service.start_history_recovery().unwrap();
+    assert_ne!(fixture.state().recovery.unwrap().id, previous);
+}
+
+#[test]
+fn recovery_counts_existing_and_deleted_receipts_without_calling_them_added() {
+    let requests = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+    let count = Arc::clone(&requests);
+    let server = MachineServer::start(move |url| {
+        if url.path() == RECOVERY_PATH {
+            let deleted = count.fetch_add(1, Ordering::Relaxed) > 0;
+            Reply::json(json!({"success":true,"imported":false,"deleted":deleted}))
+        } else {
+            recovery_routes(url)
+        }
+    });
+    let fixture = TestService::new(&server, true);
+    fixture.service.start_history_recovery().unwrap();
+    fixture.service.recover_saved_history();
+    for _ in 0..2 {
+        recovery_ready(&fixture);
+        fixture.service.upload_next_shot().unwrap();
+    }
+    let status = fixture.service.status().recovery.unwrap();
+    assert_eq!(status.state, "completed");
+    assert_eq!(
+        (
+            status.added,
+            status.already_present,
+            status.preserved_deleted
+        ),
+        (0, 1, 1)
+    );
+}
+
+#[test]
+fn recovery_reuses_live_queue_and_live_discovery_promotes_recovery_queue_without_duplicate_bodies()
+{
+    let server = MachineServer::start(recovery_routes);
+    let fixture = TestService::new(&server, true);
+    fixture
+        .service
+        .queue_history_path(HistoryKind::Espresso, ESPRESSO_PATH)
+        .unwrap();
+    let original = fixture.state().queue[0].id;
+    fixture.service.start_history_recovery().unwrap();
+    fixture.service.recover_saved_history();
+    assert_eq!(fixture.state().queue.len(), 2);
+    assert_eq!(fixture.state().queue[0].id, original);
+    assert!(!fixture.state().queue[0].recovery_only);
+    assert!(fixture.state().queue[0].recovery_job_id.is_some());
+    fixture
+        .service
+        .queue_history_path(HistoryKind::PourOver, POUR_PATH)
+        .unwrap();
+    assert_eq!(fixture.state().queue.len(), 2);
+    assert!(!fixture.state().queue[1].recovery_only);
+    assert_eq!(
+        fs::read_dir(&fixture.service.inner.queue_dir)
+            .unwrap()
+            .count(),
+        2
+    );
+    assert_eq!(
+        server
+            .requests()
+            .iter()
+            .filter(|path| path.contains("/files/"))
+            .count(),
+        2
+    );
+    for _ in 0..2 {
+        recovery_ready(&fixture);
+        fixture.service.upload_next_shot().unwrap();
+    }
+    assert_eq!(fixture.service.status().recovery.unwrap().added, 2);
+    assert_eq!(
+        server
+            .requests()
+            .iter()
+            .filter(|path| path.as_str() == SHOT_PATH)
+            .count(),
+        2
+    );
+}
+
+#[test]
+fn recovery_one_unavailable_method_does_not_block_the_other_and_is_never_false_empty() {
+    let server = MachineServer::start(|url| {
+        if matches!(
+            url.path(),
+            "/api/v1/history/pour-over/last" | "/api/v1/history/pour-over"
+        ) {
+            Reply::bytes(404, "missing")
+        } else {
+            recovery_routes(url)
+        }
+    });
+    let fixture = TestService::new(&server, true);
+    fixture.service.start_history_recovery().unwrap();
+    fixture.service.recover_saved_history();
+    assert_eq!(fixture.state().queue.len(), 1);
+    let recovery = fixture.state().recovery.unwrap();
+    assert!(recovery.espresso.exhausted);
+    assert!(!recovery.pour_over.initialized);
+    assert!(!recovery.pour_over.exhausted);
+    assert_eq!(
+        recovery.pour_over.last_error.as_deref(),
+        Some("machine_pour_over_history_unavailable")
+    );
+    recovery_ready(&fixture);
+    fixture.service.upload_next_shot().unwrap();
+    assert_eq!(fixture.service.status().recovery.unwrap().state, "running");
+}
+
+#[test]
+fn recovery_confirmed_empty_indexes_complete_without_uploads() {
+    let server = MachineServer::start(|url| {
+        if url.path().ends_with("/last") {
+            Reply::bytes(404, "empty")
+        } else {
+            index(&[])
+        }
+    });
+    let fixture = TestService::new(&server, true);
+    fixture.service.start_history_recovery().unwrap();
+    fixture.service.recover_saved_history();
+    assert_eq!(
+        fixture.service.status().recovery.unwrap().state,
+        "completed"
+    );
+    assert!(fixture.state().queue.is_empty());
+}
+
+#[test]
+fn recovery_missing_endpoint_and_ambiguous_acknowledgements_retain_durable_queue() {
+    for (status, body, declared, expected) in [
+        (404, "missing", None, "recovery_server_upgrade_required"),
+        (405, "missing", None, "recovery_server_upgrade_required"),
+        (200, "{}", None, "upload_receipt_invalid"),
+        (
+            200,
+            "{\"success\":true,\"imported\":true,\"deleted\":true}",
+            None,
+            "upload_receipt_invalid",
+        ),
+        (
+            200,
+            "{\"success\":true,\"imported\":true,\"deleted\":false}",
+            Some(500),
+            "upload_receipt_invalid",
+        ),
+    ] {
+        let server = MachineServer::start(move |url| {
+            if url.path() == RECOVERY_PATH {
+                let mut reply = Reply::bytes(status, body);
+                if declared.is_some() {
+                    reply.declared_length = declared;
+                }
+                reply
+            } else {
+                recovery_routes(url)
+            }
+        });
+        let fixture = TestService::new(&server, true);
+        fixture.service.start_history_recovery().unwrap();
+        fixture.service.recover_saved_history();
+        recovery_ready(&fixture);
+        fixture.service.upload_next_shot().unwrap();
+        fixture.reload();
+        assert_eq!(fixture.state().queue.len(), 2);
+        assert_eq!(
+            fixture.state().queue[0].last_error.as_deref(),
+            Some(expected)
+        );
+        let progress = fixture.service.status().recovery.unwrap();
+        assert_eq!(progress.state, "running");
+        assert_eq!((progress.added, progress.failed), (0, 0));
+    }
+}
+
+#[test]
+fn recovery_missing_or_invalid_complete_files_retry_durably_then_report_partial_completion() {
+    for missing in [false, true] {
+        let server = MachineServer::start(move |url| {
+            if url.path().starts_with("/api/v1/history/files/") {
+                Reply::bytes(if missing { 404 } else { 200 }, "not json")
+            } else {
+                recovery_routes(url)
+            }
+        });
+        let fixture = TestService::new(&server, true);
+        fixture.service.start_history_recovery().unwrap();
+        for attempt in 1..=3 {
+            recovery_ready(&fixture);
+            fixture.service.recover_saved_history();
+            fixture.reload();
+            let job = fixture.state().recovery.unwrap();
+            assert_eq!(job.failed, if attempt == 3 { 1 } else { 0 });
+            assert_eq!(job.espresso.exhausted, attempt == 3);
+        }
+        recovery_ready(&fixture);
+        fixture.service.upload_next_shot().unwrap();
+        let progress = fixture.service.status().recovery.unwrap();
+        assert_eq!(progress.state, "completed");
+        assert_eq!((progress.added, progress.failed), (1, 1));
+        assert!(progress.last_error.is_some());
+        assert!(fixture.state().history_cursor.is_none());
+    }
+}
+
+#[test]
+fn recovery_truncated_file_never_uses_bad_file_retry_budget() {
+    let server = MachineServer::start(|url| {
+        if url.path().starts_with("/api/v1/history/files/") {
+            let mut reply = Reply::bytes(200, "{}");
+            reply.declared_length = Some(500);
+            reply
+        } else {
+            recovery_routes(url)
+        }
+    });
+    let fixture = TestService::new(&server, true);
+    fixture.service.start_history_recovery().unwrap();
+    for _ in 0..4 {
+        recovery_ready(&fixture);
+        fixture.service.recover_saved_history();
+        fixture.reload();
+    }
+    let job = fixture.state().recovery.unwrap();
+    assert_eq!(job.failed, 0);
+    assert_eq!(job.espresso.file_attempts, 0);
+    assert!(!job.espresso.exhausted);
+    assert_eq!(fixture.state().queue.len(), 1);
+}
+
+#[test]
+fn recovery_storage_failure_never_advances_checkpoint_and_ack_retry_counts_once() {
+    let server = MachineServer::start(recovery_routes);
+    let fixture = TestService::new(&server, true);
+    fixture.service.start_history_recovery().unwrap();
+    let job_id = fixture.state().recovery.unwrap().id;
+    let state_path = &fixture.service.inner.state_path;
+    fs::remove_file(state_path).unwrap();
+    fs::create_dir(state_path).unwrap();
+    let error = fixture
+        .service
+        .queue_history_path_for(
+            HistoryKind::Espresso,
+            ESPRESSO_PATH,
+            Checkpoint::Recovery(job_id),
+        )
+        .unwrap_err();
+    assert_eq!(error.category, "state_persist_failed");
+    assert!(fixture.state().recovery.unwrap().espresso.cursor.is_none());
+    assert!(fixture.state().queue.is_empty());
+    assert_eq!(
+        fs::read_dir(&fixture.service.inner.queue_dir)
+            .unwrap()
+            .count(),
+        0
+    );
+    fs::remove_dir(state_path).unwrap();
+    fixture.service.recover_saved_history();
+    recovery_ready(&fixture);
+    fs::remove_file(state_path).unwrap();
+    fs::create_dir(state_path).unwrap();
+    assert_eq!(
+        fixture.service.upload_next_shot().unwrap_err().category,
+        "state_persist_failed"
+    );
+    assert_eq!(fixture.state().queue.len(), 2);
+    assert_eq!(fixture.state().recovery.unwrap().added, 0);
+    fs::remove_dir(state_path).unwrap();
+    recovery_ready(&fixture);
+    fixture.service.upload_next_shot().unwrap();
+    fixture.reload();
+    assert_eq!(fixture.state().queue.len(), 1);
+    assert_eq!(fixture.state().recovery.unwrap().added, 1);
+}
+
+#[test]
+fn recovery_repair_cannot_transfer_historical_items_to_another_authorization() {
+    let server = MachineServer::start(recovery_routes);
+    let fixture = TestService::new(&server, true);
+    fixture
+        .service
+        .queue_history_path(HistoryKind::Espresso, ESPRESSO_PATH)
+        .unwrap();
+    fixture.service.start_history_recovery().unwrap();
+    fixture.service.recover_saved_history();
+    fixture
+        .service
+        .retire_local_authorization("authorization_revoked")
+        .unwrap();
+    let state = fixture.state();
+    assert_eq!(state.queue.len(), 1);
+    assert!(!state.queue[0].recovery_only);
+    assert!(state.queue[0].recovery_job_id.is_none());
+    assert_eq!(
+        fixture.service.status().recovery.unwrap().state,
+        "interrupted"
+    );
+    fixture
+        .service
+        .mutate_persistent(|state| {
+            state.authorization_id = Some(Uuid::new_v4());
+            state.key_id = Some(Uuid::new_v4());
+            state.key_version = Some(1);
+            Ok(())
+        })
+        .unwrap();
+    fixture.reload();
+    recovery_ready(&fixture);
+    fixture.service.upload_next_shot().unwrap();
+    assert!(!server.requests().iter().any(|path| path == RECOVERY_PATH));
+    assert_eq!(fixture.service.status().recovery.unwrap().added, 0);
+    fixture.service.start_history_recovery().unwrap();
+    assert_eq!(fixture.service.status().recovery.unwrap().state, "running");
+}
+
+#[test]
+fn recovery_snapshot_and_capacity_are_bounded_across_pages_and_new_brews() {
+    let paths = (1..=205)
+        .map(|n| format!("2026-09-24/{n:04}.shot.json"))
+        .collect::<Vec<_>>();
+    let boundary = paths[203].clone();
+    let captured = boundary.clone();
+    let server = MachineServer::start(move |url| match url.path() {
+        "/api/v1/history/upload-index/last" => Reply::json(json!({"file":captured})),
+        "/api/v1/history/upload-index" => {
+            let after = url
+                .query_pairs()
+                .find(|(key, _)| key == "after")
+                .map(|(_, v)| v.into_owned());
+            index(
+                &paths
+                    .iter()
+                    .filter(|path| after.as_ref().is_none_or(|cursor| *path > cursor))
+                    .take(200)
+                    .cloned()
+                    .collect::<Vec<_>>(),
+            )
+        }
+        "/api/v1/history/pour-over/last" => Reply::json(json!({"file":null})),
+        "/api/v1/history/pour-over" => index(&[]),
+        path if path.starts_with("/api/v1/history/files/") => {
+            let mut brew = espresso();
+            brew["id"] = json!(path);
+            Reply::json(brew)
+        }
+        RECOVERY_PATH | SHOT_PATH => {
+            Reply::json(json!({"success":true,"imported":true,"deleted":false}))
+        }
+        _ => Reply::bytes(500, "unexpected route"),
+    });
+    let fixture = TestService::new(&server, true);
+    fixture
+        .service
+        .mutate_persistent(|state| {
+            state.history_cursor = Some(boundary.clone());
+            Ok(())
+        })
+        .unwrap();
+    fixture.service.start_history_recovery().unwrap();
+    for _ in 0..5 {
+        recovery_ready(&fixture);
+        fixture.service.recover_saved_history();
+    }
+    assert_eq!(fixture.state().queue.len(), 4);
+    let request_count = server.requests().len();
+    recovery_ready(&fixture);
+    fixture.service.recover_saved_history();
+    assert_eq!(
+        server.requests().len(),
+        request_count,
+        "full recovery queue must not poll large indexes"
+    );
+    fixture.service.observe_new_shots().unwrap();
+    assert_eq!(fixture.state().queue.len(), 5);
+    recovery_ready(&fixture);
+    fixture.service.upload_next_shot().unwrap();
+    assert_eq!(
+        server.requests().last().unwrap(),
+        SHOT_PATH,
+        "new brew gets live priority"
+    );
+    for _ in 0..204 {
+        recovery_ready(&fixture);
+        fixture.service.upload_next_shot().unwrap();
+        fixture.service.recover_saved_history();
+    }
+    fixture.reload();
+    let progress = fixture.service.status().recovery.unwrap();
+    assert_eq!(progress.state, "completed");
+    assert_eq!(progress.added, 204);
+    assert_eq!(
+        fixture.state().recovery.unwrap().espresso.cursor.as_deref(),
+        Some(boundary.as_str())
+    );
+    assert_eq!(
+        fixture.state().history_cursor.as_deref(),
+        Some("2026-09-24/0205.shot.json")
+    );
+}
+
+#[test]
+fn recovery_scheduler_reserves_live_capacity_and_limits_backfill_to_twenty_per_minute() {
+    let server = MachineServer::start(recovery_routes);
+    let fixture = TestService::new(&server, true);
+    fixture.service.start_history_recovery().unwrap();
+    fixture.service.recover_saved_history();
+    fixture
+        .service
+        .queue_history_path(HistoryKind::Espresso, ESPRESSO_PATH)
+        .unwrap();
+    let mut state = fixture.service.inner.state.lock().unwrap();
+    for item in &mut state.persistent.queue {
+        item.next_attempt_at = 0;
+    }
+    state.volatile.recovery_upload_not_before = 103;
+    state.volatile.live_upload_streak = 3;
+    assert!(
+        !recovery::next_due_item(&mut state, 102)
+            .unwrap()
+            .recovery_only,
+        "pacing must never delay live"
+    );
+    assert!(
+        recovery::next_due_item(&mut state, 103)
+            .unwrap()
+            .recovery_only,
+        "recovery has bounded fairness"
+    );
+    state.persistent.queue.retain(|item| item.recovery_only);
+    assert!(recovery::next_due_item(&mut state, 102).is_none());
+    assert!(recovery::next_due_item(&mut state, 103).is_some());
+}
+
+#[test]
+fn recovery_rechecks_pause_and_authorization_after_download_before_checkpointing() {
+    for change_authorization in [false, true] {
+        let during_download: Arc<Mutex<Option<CommunityUploadService>>> =
+            Arc::new(Mutex::new(None));
+        let callback = Arc::clone(&during_download);
+        let server = MachineServer::start(move |url| {
+            if url.path().starts_with("/api/v1/history/files/") {
+                callback
+                    .lock()
+                    .unwrap()
+                    .as_ref()
+                    .unwrap()
+                    .mutate_persistent(|state| {
+                        if change_authorization {
+                            state.authorization_id = Some(Uuid::new_v4());
+                        } else {
+                            state.paused = true;
+                        }
+                        Ok(())
+                    })
+                    .unwrap();
+            }
+            recovery_routes(url)
+        });
+        let fixture = TestService::new(&server, true);
+        *during_download.lock().unwrap() = Some(fixture.service.clone());
+        fixture.service.start_history_recovery().unwrap();
+        fixture.service.recover_saved_history();
+        assert!(fixture.state().queue.is_empty());
+        assert!(fixture.state().recovery.unwrap().espresso.cursor.is_none());
+        assert_eq!(
+            fs::read_dir(&fixture.service.inner.queue_dir)
+                .unwrap()
+                .count(),
+            0
+        );
+        fixture.service.interrupt_mismatched_recovery().unwrap();
+        assert_eq!(
+            fixture.service.status().recovery.unwrap().state,
+            if change_authorization {
+                "interrupted"
+            } else {
+                "running"
+            }
+        );
+    }
+}
+
+#[test]
+fn recovery_permanent_rejection_and_missing_body_finish_with_visible_failures() {
+    let server = MachineServer::start(|url| {
+        if url.path() == RECOVERY_PATH {
+            Reply::bytes(409, r#"{"error":"idempotency_conflict"}"#)
+        } else {
+            recovery_routes(url)
+        }
+    });
+    let fixture = TestService::new(&server, true);
+    fixture.service.start_history_recovery().unwrap();
+    fixture.service.recover_saved_history();
+    let first = fixture.state().queue[0].body_file.clone();
+    fs::remove_file(fixture.service.inner.queue_dir.join(first)).unwrap();
+    recovery_ready(&fixture);
+    assert_eq!(
+        fixture.service.upload_next_shot().unwrap_err().category,
+        "queued_body_missing"
+    );
+    recovery_ready(&fixture);
+    fixture.service.upload_next_shot().unwrap();
+    let progress = fixture.service.status().recovery.unwrap();
+    assert_eq!(progress.state, "completed");
+    assert_eq!((progress.added, progress.failed), (0, 2));
+}
+
+#[test]
+fn recovery_queue_write_failure_leaves_original_machine_file_retryable() {
+    let server = MachineServer::start(recovery_routes);
+    let fixture = TestService::new(&server, true);
+    fixture.service.start_history_recovery().unwrap();
+    let job = fixture.state().recovery.unwrap().id;
+    fs::remove_dir(&fixture.service.inner.queue_dir).unwrap();
+    fs::write(&fixture.service.inner.queue_dir, b"not a directory").unwrap();
+    let failure = fixture
+        .service
+        .queue_history_path_for(
+            HistoryKind::Espresso,
+            ESPRESSO_PATH,
+            Checkpoint::Recovery(job),
+        )
+        .unwrap_err();
+    assert_eq!(failure.category, "queue_write_failed");
+    fixture.reload();
+    assert!(fixture.state().recovery.unwrap().espresso.cursor.is_none());
+    assert!(fixture.state().queue.is_empty());
+    fs::remove_file(&fixture.service.inner.queue_dir).unwrap();
+    create_private_dir(&fixture.service.inner.queue_dir).unwrap();
+    fixture.service.recover_saved_history();
+    assert_eq!(fixture.state().queue.len(), 2);
+}
+
+#[test]
+fn recovery_healthy_authorization_guard_does_not_write_state_on_every_worker_tick() {
+    let server = MachineServer::start(recovery_routes);
+    let fixture = TestService::new(&server, true);
+    fixture.service.start_history_recovery().unwrap();
+    // An unwritable state destination makes accidental no-op writes observable.
+    fs::remove_file(&fixture.service.inner.state_path).unwrap();
+    fs::create_dir(&fixture.service.inner.state_path).unwrap();
+    fixture.service.interrupt_mismatched_recovery().unwrap();
+    fs::remove_dir(&fixture.service.inner.state_path).unwrap();
+}

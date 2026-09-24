@@ -6,13 +6,19 @@ import {
   useBeginCommunityEnrollment,
   useCommunityUploadStatus,
   useDisconnectCommunity,
+  useStartCommunityHistoryRecovery,
   useSetCommunityUploadPaused
 } from '../../../hooks/useCommunityUpload';
 import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { useAppDispatch } from '../../store/hooks';
 import './Community.css';
 
-type ScreenMode = 'overview' | 'connected-success' | 'disconnect';
+type ScreenMode =
+  | 'overview'
+  | 'connected-success'
+  | 'disconnect'
+  | 'import-confirm'
+  | 'import-progress';
 
 function formatTimestamp(value: number | null | undefined): string {
   if (!value) return 'Not yet';
@@ -27,12 +33,66 @@ function readableError(value: string | null | undefined): string {
   return value.replace(/_/g, ' ');
 }
 
+function recoveryError(value: unknown): string {
+  const category = typeof value === 'string' ? value : '';
+  if (
+    category === 'waiting_server_upgrade' ||
+    category === 'recovery_server_upgrade_required'
+  )
+    return 'Waiting for the Community update. Import will resume automatically.';
+  if (category === 'machine_pour_over_history_unavailable')
+    return 'Pour-over history is unavailable. The import will retry.';
+  if (category.includes('authorization') || category.includes('not_connected'))
+    return 'Reconnect to Community, then import again.';
+  if (category.includes('persist') || category.includes('storage'))
+    return 'Could not save import progress. Check machine storage.';
+  if (category.includes('too_large') || category.includes('oversized'))
+    return 'A saved brew exceeds the upload size limit.';
+  if (category.includes('invalid') || category.includes('unsupported'))
+    return 'Some saved history could not be read.';
+  if (category.includes('capacity') || category.includes('queue_full'))
+    return 'Waiting for pending uploads to make room.';
+  return 'Import needs another attempt. Check the connection.';
+}
+
+function Actions({
+  labels,
+  active,
+  busy,
+  onSelect
+}: {
+  labels: string[];
+  active: number;
+  busy: boolean;
+  onSelect: (index: number) => void;
+}) {
+  return (
+    <div
+      className={`community-actions ${labels.length > 2 ? 'community-actions-grid' : ''}`}
+    >
+      {labels.map((label, index) => (
+        <button
+          type="button"
+          className={`community-action ${active === index ? 'active' : ''}`}
+          key={label}
+          disabled={busy}
+          aria-current={active === index ? 'true' : undefined}
+          onClick={() => onSelect(index)}
+        >
+          {busy && active === index ? 'Working...' : label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function CommunitySettings(): JSX.Element {
   const dispatch = useAppDispatch();
   const statusQuery = useCommunityUploadStatus();
   const beginEnrollment = useBeginCommunityEnrollment();
   const setPaused = useSetCommunityUploadPaused();
   const disconnect = useDisconnectCommunity();
+  const startRecovery = useStartCommunityHistoryRecovery();
   const { data: deviceInfo, isPending: deviceInfoPending } = useDeviceInfo();
   const [mode, setMode] = useState<ScreenMode>('overview');
   const [activeAction, setActiveAction] = useState(0);
@@ -48,11 +108,15 @@ export function CommunitySettings(): JSX.Element {
   const unavailable = status?.state === 'unavailable';
   const pairingExpired = Boolean(pairingExpiresAt && now >= pairingExpiresAt);
   const busy =
-    beginEnrollment.isPending || setPaused.isPending || disconnect.isPending;
+    beginEnrollment.isPending ||
+    setPaused.isPending ||
+    disconnect.isPending ||
+    startRecovery.isPending;
   const error =
     beginEnrollment.error ||
     setPaused.error ||
     disconnect.error ||
+    startRecovery.error ||
     statusQuery.error;
 
   const startEnrollment = useCallback(async () => {
@@ -80,6 +144,7 @@ export function CommunitySettings(): JSX.Element {
   useEffect(() => {
     if (
       statusQuery.isPending ||
+      statusQuery.isError ||
       deviceInfoPending ||
       connected ||
       unavailable ||
@@ -97,6 +162,7 @@ export function CommunitySettings(): JSX.Element {
     pairingUrl,
     startEnrollment,
     statusQuery.isPending,
+    statusQuery.isError,
     unavailable
   ]);
 
@@ -119,9 +185,21 @@ export function CommunitySettings(): JSX.Element {
     }
   }, [connected, mode]);
 
+  const recovery = status?.recovery;
   const actions = useMemo(() => {
+    if (connected && statusQuery.isError) return ['Back', 'Retry'];
+    if (connected && mode === 'connected-success') return ['Done'];
+    if (mode === 'disconnect') return ['Cancel', 'Disconnect'];
+    if (connected && mode === 'import-confirm') return ['Cancel', 'Import all'];
+    if (connected && mode === 'import-progress') {
+      if (!recovery) return ['Back', 'Retry'];
+      return recovery?.state === 'running'
+        ? ['Back', status?.paused ? 'Resume uploads' : 'Pause uploads']
+        : ['Back', 'Import again'];
+    }
     if (!connected) {
-      if (unavailable) return ['Back'];
+      if (statusQuery.isError) return ['Retry', 'Back'];
+      if (unavailable || statusQuery.isPending) return ['Back'];
       return beginEnrollment.isError || pairingExpired
         ? ['Try again', 'Back']
         : ['Back'];
@@ -129,67 +207,206 @@ export function CommunitySettings(): JSX.Element {
     return [
       'Back',
       status?.paused ? 'Resume uploads' : 'Pause uploads',
+      recovery ? 'View saved import' : 'Import saved brews',
       'Disconnect'
     ];
   }, [
+    mode,
+    recovery,
     beginEnrollment.isError,
     connected,
     pairingExpired,
     status?.paused,
+    statusQuery.isError,
+    statusQuery.isPending,
     unavailable
   ]);
+
+  const selectedAction = Math.min(activeAction, actions.length - 1);
+
+  const changeMode = (next: ScreenMode) => {
+    setMode(next);
+    setActiveAction(0);
+    startRecovery.reset();
+    setPaused.reset();
+    disconnect.reset();
+  };
 
   const goBack = () => {
     dispatch(setBubbleDisplay({ visible: true, component: 'settings' }));
   };
 
+  const selectAction = (index: number) => {
+    if (busy) return;
+    setActiveAction(index);
+    const action = actions[index];
+    if (action === 'Done') {
+      changeMode('overview');
+      goBack();
+    } else if (action === 'Cancel') {
+      changeMode('overview');
+    } else if (action === 'Import all') {
+      void startRecovery
+        .mutateAsync()
+        .then(() => {
+          changeMode('import-progress');
+        })
+        .catch(() => {
+          /* The mutation exposes the error below. */
+        });
+    } else if (action === 'Import saved brews' || action === 'Import again') {
+      changeMode('import-confirm');
+    } else if (action === 'View saved import') {
+      changeMode('import-progress');
+    } else if (action === 'Try again') {
+      enrollmentAttempted.current = false;
+      setPairingUrl(null);
+      setPairingExpiresAt(null);
+      beginEnrollment.reset();
+    } else if (action === 'Retry') {
+      void statusQuery.refetch();
+    } else if (action === 'Pause uploads' || action === 'Resume uploads') {
+      setPaused.mutate(action === 'Pause uploads');
+    } else if (action === 'Disconnect') {
+      if (mode !== 'disconnect') {
+        changeMode('disconnect');
+      } else {
+        void disconnect
+          .mutateAsync()
+          .then(() => {
+            changeMode('overview');
+          })
+          .catch(() => {
+            /* The mutation exposes the error below. */
+          });
+      }
+    } else if (action === 'Back') {
+      if (mode === 'import-progress' || mode === 'import-confirm')
+        changeMode('overview');
+      else goBack();
+    }
+  };
+
   useHandleGestures({
     left() {
-      if (mode === 'connected-success') return;
-      setActiveAction((previous) => Math.max(previous - 1, 0));
+      if (busy) return;
+      setActiveAction((previous) =>
+        Math.max(Math.min(previous, actions.length - 1) - 1, 0)
+      );
     },
     right() {
-      if (mode === 'connected-success') return;
-      const max = mode === 'disconnect' ? 1 : actions.length - 1;
-      setActiveAction((previous) => Math.min(previous + 1, max));
+      if (busy) return;
+      setActiveAction((previous) => Math.min(previous + 1, actions.length - 1));
     },
     pressDown() {
-      if (busy) return;
-      if (mode === 'connected-success') {
-        setMode('overview');
-        setActiveAction(0);
-        goBack();
-        return;
-      }
-      if (mode === 'disconnect') {
-        if (activeAction === 0) {
-          setMode('overview');
-          return;
-        }
-        void disconnect.mutateAsync().then(() => {
-          setMode('overview');
-          setActiveAction(0);
-        });
-        return;
-      }
-      const action = actions[activeAction];
-      if (action === 'Try again') {
-        enrollmentAttempted.current = false;
-        setPairingUrl(null);
-        setPairingExpiresAt(null);
-        beginEnrollment.reset();
-      } else if (action === 'Pause uploads') {
-        void setPaused.mutateAsync(true);
-      } else if (action === 'Resume uploads') {
-        void setPaused.mutateAsync(false);
-      } else if (action === 'Disconnect') {
-        setMode('disconnect');
-        setActiveAction(0);
-      } else if (action === 'Back') {
-        goBack();
-      }
+      selectAction(selectedAction);
     }
   });
+
+  const actionButtons = (
+    <Actions
+      labels={actions}
+      active={selectedAction}
+      busy={busy}
+      onSelect={selectAction}
+    />
+  );
+
+  if (connected && mode === 'import-confirm') {
+    return (
+      <div className="community-screen">
+        <h2>Import saved brews?</h2>
+        <p className="community-copy">
+          Add all saved espresso and pour-over brews from this machine to your
+          connected Community account’s private history.
+        </p>
+        <p className="community-copy">
+          Existing brews won’t be duplicated. Deleted brews stay deleted.
+        </p>
+        <p className="community-copy">
+          {status.paused
+            ? 'Uploads are paused. Resume them to begin importing.'
+            : 'You can keep brewing while the import runs.'}
+        </p>
+        {actionButtons}
+        {error ? (
+          <p className="community-error" role="alert">
+            {statusQuery.isError
+              ? 'Could not refresh the connection. Please retry.'
+              : recoveryError(error)}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (connected && mode === 'import-progress' && !recovery) {
+    return (
+      <div className="community-screen">
+        <h2>Saved brew import</h2>
+        <p className="community-copy" role="status">
+          {statusQuery.isError
+            ? 'Could not load import progress. Please retry.'
+            : 'Waiting for import progress…'}
+        </p>
+        {actionButtons}
+      </div>
+    );
+  }
+
+  if (connected && mode === 'import-progress') {
+    const running = recovery?.state === 'running';
+    const interrupted = recovery?.state === 'interrupted';
+    const hasIssues = (recovery?.failed ?? 0) > 0;
+    const title = running
+      ? status.paused
+        ? 'Import paused'
+        : 'Importing saved brews'
+      : interrupted
+        ? 'Import interrupted'
+        : hasIssues
+          ? 'Import finished with issues'
+          : 'Import complete';
+    return (
+      <div className="community-screen community-screen-recovery">
+        <h2>{title}</h2>
+        <p className="community-copy">
+          {running
+            ? status.paused
+              ? 'Resume uploads to continue this import and new brew uploads.'
+              : 'Espresso and pour-over history. New brews continue uploading.'
+            : interrupted
+              ? 'The connection changed. Confirm again to import to this account.'
+              : hasIssues
+                ? 'Some saved brews could not be imported. You can try again.'
+                : 'All available saved history has been checked.'}
+        </p>
+        <div
+          className="community-status-grid community-recovery-counts"
+          aria-label="Import results"
+        >
+          <span>Added to Community</span>
+          <span>{recovery?.added ?? 0}</span>
+          <span>Already in Community</span>
+          <span>{recovery?.alreadyPresent ?? 0}</span>
+          <span>Kept deleted</span>
+          <span>{recovery?.preservedDeleted ?? 0}</span>
+          <span>Could not import</span>
+          <span>{recovery?.failed ?? 0}</span>
+          <span>Pending uploads</span>
+          <span>{recovery?.pendingCount ?? 0}</span>
+        </div>
+        {error || recovery?.lastError ? (
+          <p className="community-error" role="alert">
+            {statusQuery.isError
+              ? 'Could not refresh progress. Please retry.'
+              : recoveryError(error || recovery?.lastError)}
+          </p>
+        ) : null}
+        {actionButtons}
+      </div>
+    );
+  }
 
   if (mode === 'disconnect') {
     return (
@@ -199,17 +416,14 @@ export function CommunitySettings(): JSX.Element {
           Future uploads will stop. Shots already stored in Community will
           remain in your account.
         </p>
-        <div className="community-actions">
-          {['Cancel', 'Disconnect'].map((label, index) => (
-            <div
-              className={`community-action ${activeAction === index ? 'active' : ''}`}
-              key={label}
-            >
-              {label}
-            </div>
-          ))}
-        </div>
-        {error ? <p className="community-error">{String(error)}</p> : null}
+        {actionButtons}
+        {error ? (
+          <p className="community-error" role="alert">
+            {statusQuery.isError
+              ? 'Could not refresh the connection. Please retry.'
+              : 'Could not update Community. Please try again.'}
+          </p>
+        ) : null}
       </div>
     );
   }
@@ -221,14 +435,25 @@ export function CommunitySettings(): JSX.Element {
         <p className="community-copy">
           New shots will be uploaded privately to your account.
         </p>
-        <div className="community-actions">
-          <div className="community-action active">Done</div>
-        </div>
+        {actionButtons}
       </div>
     );
   }
 
   if (!connected) {
+    if (statusQuery.isPending || statusQuery.isError) {
+      return (
+        <div className="community-screen">
+          <h2>Community</h2>
+          <p className="community-copy" role="status">
+            {statusQuery.isPending
+              ? 'Loading connection…'
+              : 'Could not load the connection. Please try again.'}
+          </p>
+          {actionButtons}
+        </div>
+      );
+    }
     if (unavailable) {
       return (
         <div className="community-screen">
@@ -237,9 +462,7 @@ export function CommunitySettings(): JSX.Element {
             Automatic backup could not access its storage. Brewing and Espresso
             remain available. Restart the Dial after checking machine storage.
           </p>
-          <div className="community-actions">
-            <div className="community-action active">Back</div>
-          </div>
+          {actionButtons}
           <p className="community-error">{readableError(status?.lastError)}</p>
         </div>
       );
@@ -254,7 +477,7 @@ export function CommunitySettings(): JSX.Element {
         </p>
         {pairingUrl && !pairingExpired ? (
           <div className="community-qr">
-            <QRCode value={pairingUrl} width={200} height={200} />
+            <QRCode value={pairingUrl} size={200} />
           </div>
         ) : (
           <div className="community-qr-placeholder" role="status">
@@ -278,17 +501,14 @@ export function CommunitySettings(): JSX.Element {
             'Keep this screen open while Community prepares the connection.'
           )}
         </p>
-        <div className="community-actions">
-          {actions.map((label, index) => (
-            <div
-              className={`community-action ${activeAction === index ? 'active' : ''}`}
-              key={label}
-            >
-              {busy && activeAction === index ? 'Working...' : label}
-            </div>
-          ))}
-        </div>
-        {error ? <p className="community-error">{String(error)}</p> : null}
+        {actionButtons}
+        {error ? (
+          <p className="community-error" role="alert">
+            {statusQuery.isError
+              ? 'Could not refresh the connection. Please retry.'
+              : 'Could not update Community. Please try again.'}
+          </p>
+        ) : null}
       </div>
     );
   }
@@ -307,17 +527,14 @@ export function CommunitySettings(): JSX.Element {
         <span>{readableError(status.lastError)}</span>
       </div>
 
-      <div className="community-actions">
-        {actions.map((label, index) => (
-          <div
-            className={`community-action ${activeAction === index ? 'active' : ''}`}
-            key={label}
-          >
-            {busy && activeAction === index ? 'Working...' : label}
-          </div>
-        ))}
-      </div>
-      {error ? <p className="community-error">{String(error)}</p> : null}
+      {actionButtons}
+      {error ? (
+        <p className="community-error" role="alert">
+          {statusQuery.isError
+            ? 'Could not refresh the connection. Please retry.'
+            : 'Could not update Community. Please try again.'}
+        </p>
+      ) : null}
     </div>
   );
 }

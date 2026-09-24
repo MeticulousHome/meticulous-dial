@@ -22,6 +22,7 @@ const AUDIENCE: &str = "meticulous-community";
 const EXCHANGE_PATH: &str = "/api/machine-uploads/v1/enrollments/exchange";
 const TOKEN_PATH: &str = "/api/machine-uploads/v1/token";
 const SHOT_PATH: &str = "/api/machine-uploads/v1/shots";
+const RECOVERY_PATH: &str = "/api/machine-uploads/v1/history-recovery";
 const REVOKE_PATH: &str = "/api/machine-uploads/v1/installations/current";
 const DEFAULT_COMMUNITY_BASE: &str = "https://community.meticuloushome.com";
 const DEFAULT_MACHINE_BASE: &str = "http://localhost:8080";
@@ -32,6 +33,9 @@ const HISTORY_PAGE_SIZE: usize = 200;
 const POUR_OVER_HISTORY_PAGE_SIZE: usize = 20;
 const MAX_POUR_OVER_DURATION_MS: u64 = 10 * 60 * 1000;
 const MAX_POUR_OVER_SAMPLES: usize = 3_001;
+const MAX_RECOVERY_ITEMS: usize = 4;
+const MAX_RECOVERY_BYTES: u64 = 8 * 1024 * 1024;
+const MAX_RECOVERY_FILE_ATTEMPTS: u32 = 3;
 const MAX_QUEUE_ITEMS: usize = 128;
 const MAX_QUEUE_BYTES: u64 = 64 * 1024 * 1024;
 const HISTORY_POLL_SECONDS: i64 = 60;
@@ -55,6 +59,10 @@ struct QueuedShot {
     history_path: String,
     #[serde(default)]
     history_kind: HistoryKind,
+    #[serde(default)]
+    recovery_job_id: Option<Uuid>,
+    #[serde(default)]
+    recovery_only: bool,
     body_file: String,
     attempt_count: u32,
     next_attempt_at: i64,
@@ -68,6 +76,61 @@ enum HistoryKind {
     Espresso,
     PourOver,
 }
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct RecoveryStream {
+    initialized: bool,
+    through: Option<String>,
+    cursor: Option<String>,
+    exhausted: bool,
+    next_scan_at: i64,
+    retry_path: Option<String>,
+    file_attempts: u32,
+    last_error: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct HistoryRecovery {
+    id: Uuid,
+    authorization_id: Uuid,
+    interrupted: bool,
+    espresso: RecoveryStream,
+    pour_over: RecoveryStream,
+    added: u64,
+    already_present: u64,
+    preserved_deleted: u64,
+    failed: u64,
+    last_issue: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct RecoveryStatus {
+    state: &'static str,
+    added: u64,
+    already_present: u64,
+    preserved_deleted: u64,
+    failed: u64,
+    pending_count: usize,
+    last_error: Option<String>,
+}
+
+#[derive(Clone, Copy)]
+enum Checkpoint {
+    Live,
+    Recovery(Uuid),
+}
+
+#[derive(Debug, Deserialize)]
+struct UploadReceipt {
+    success: bool,
+    imported: bool,
+    deleted: bool,
+}
+
+mod recovery;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -87,6 +150,8 @@ struct PersistentState {
     #[serde(default)]
     pour_over_history_cursor: Option<String>,
     queue: Vec<QueuedShot>,
+    #[serde(default)]
+    recovery: Option<HistoryRecovery>,
     last_success_at: Option<i64>,
     last_error: Option<String>,
     last_retry_at: Option<i64>,
@@ -100,6 +165,8 @@ struct VolatileState {
     worker_not_before: i64,
     worker_failure_count: u32,
     history_scan_not_before: i64,
+    live_upload_streak: u8,
+    recovery_upload_not_before: i64,
 }
 
 struct RuntimeState {
@@ -138,6 +205,7 @@ pub struct CommunityUploadStatus {
     last_error: Option<String>,
     last_retry_at: Option<i64>,
     enrollment_expires_at: Option<i64>,
+    recovery: Option<RecoveryStatus>,
 }
 
 #[derive(Debug, Serialize)]
@@ -230,6 +298,7 @@ impl CommunityUploadRuntime {
                 last_error: Some((**error).clone()),
                 last_retry_at: None,
                 enrollment_expires_at: None,
+                recovery: None,
             },
         }
     }
@@ -255,6 +324,10 @@ impl CommunityUploadRuntime {
 
     pub fn request_history_scan(&self) -> Result<(), String> {
         self.available()?.request_history_scan()
+    }
+
+    pub fn start_history_recovery(&self) -> Result<(), String> {
+        self.available()?.start_history_recovery()
     }
 
     fn available(&self) -> Result<&CommunityUploadService, String> {
@@ -356,6 +429,7 @@ impl CommunityUploadService {
             connected,
             paused: state.persistent.paused,
             pending_count: state.persistent.queue.len(),
+            recovery: recovery::status(&state.persistent),
             last_success_at: state.persistent.last_success_at,
             last_error: state.persistent.last_error.clone(),
             last_retry_at: state.persistent.last_retry_at,
@@ -476,6 +550,7 @@ impl CommunityUploadService {
 
     fn worker_tick(&self) -> Result<(), RequestFailure> {
         self.expire_local_enrollment();
+        self.interrupt_mismatched_recovery()?;
         let snapshot = {
             let state = self
                 .inner
@@ -531,8 +606,10 @@ impl CommunityUploadService {
                     5
                 },
             );
+            self.recover_saved_history();
             return upload.and(espresso.map(|_| ())).and(pour_over.map(|_| ()));
         }
+        self.recover_saved_history();
         upload
     }
 
@@ -868,7 +945,23 @@ impl CommunityUploadService {
         history_kind: HistoryKind,
         history_path: &str,
     ) -> Result<(), RequestFailure> {
+        self.queue_history_path_for(history_kind, history_path, Checkpoint::Live)
+    }
+
+    fn queue_history_path_for(
+        &self,
+        history_kind: HistoryKind,
+        history_path: &str,
+        checkpoint: Checkpoint,
+    ) -> Result<(), RequestFailure> {
+        // Reuse a durable pending file before touching the machine or capacity.
+        if self.attach_queued_history(history_kind, history_path, None, checkpoint)? {
+            return Ok(());
+        }
         self.ensure_queue_capacity(0)?;
+        if matches!(checkpoint, Checkpoint::Recovery(_)) {
+            self.ensure_recovery_capacity(0)?;
+        }
         let response = self
             .inner
             .client
@@ -876,7 +969,15 @@ impl CommunityUploadService {
             .send()
             .map_err(|_| temporary("shot_file_pending"))?;
         if !response.status().is_success() {
-            return Err(temporary("shot_file_pending"));
+            return Err(temporary(
+                if response.status().as_u16() == 404
+                    && matches!(checkpoint, Checkpoint::Recovery(_))
+                {
+                    "shot_file_missing"
+                } else {
+                    "shot_file_pending"
+                },
+            ));
         }
         let declared = response.content_length().unwrap_or(0);
         if declared as usize > MAX_SHOT_BODY_BYTES {
@@ -891,8 +992,16 @@ impl CommunityUploadService {
             return Err(permanent("shot_file_too_large"));
         }
         let parsed =
-            serde_json::from_slice::<Value>(&raw).map_err(|_| temporary("shot_file_pending"))?;
+            serde_json::from_slice::<Value>(&raw).map_err(|_| temporary("shot_file_invalid"))?;
         let source_shot_id = validate_history_record(&parsed, history_kind)?;
+        if self.attach_queued_history(
+            history_kind,
+            history_path,
+            Some(&source_shot_id),
+            checkpoint,
+        )? {
+            return Ok(());
+        }
         let mut body = Vec::with_capacity(raw.len() + 32);
         body.extend_from_slice(b"{\"contractVersion\":1,\"shot\":");
         body.extend_from_slice(&raw);
@@ -900,43 +1009,43 @@ impl CommunityUploadService {
         if body.len() > MAX_SHOT_BODY_BYTES {
             return Err(permanent("shot_file_too_large"));
         }
-
         self.ensure_queue_capacity(body.len() as u64)?;
-
+        if matches!(checkpoint, Checkpoint::Recovery(_)) {
+            self.ensure_recovery_capacity(body.len() as u64)?;
+        }
         let id = Uuid::new_v4();
         let body_file = format!("{id}.json");
         let body_path = self.inner.queue_dir.join(&body_file);
         write_private_file_atomic(&body_path, &body)
             .map_err(|_| temporary("queue_write_failed"))?;
-        let queued_source_id = source_shot_id.clone();
         let queued = QueuedShot {
             id,
             source_shot_id,
             history_path: history_path.to_string(),
             history_kind,
-            body_file: body_file.clone(),
+            recovery_job_id: match checkpoint {
+                Checkpoint::Live => None,
+                Checkpoint::Recovery(id) => Some(id),
+            },
+            recovery_only: matches!(checkpoint, Checkpoint::Recovery(_)),
+            body_file,
             attempt_count: 0,
             next_attempt_at: unix_seconds(),
             last_error: None,
         };
-        if let Err(error) = self.mutate_persistent_failure(|state| {
-            state.queue.push(queued);
-            match history_kind {
-                HistoryKind::Espresso => state.history_cursor = Some(history_path.to_string()),
-                HistoryKind::PourOver => {
-                    state.pour_over_history_cursor = Some(history_path.to_string())
-                }
+        let committed = self.mutate_persistent_failure(|state| {
+            if !recovery::checkpoint_allowed(state, checkpoint) {
+                return Ok(false);
             }
+            state.queue.push(queued);
+            recovery::advance_checkpoint(state, checkpoint, history_kind, history_path);
             state.last_error = None;
-            Ok(())
-        }) {
+            Ok(true)
+        });
+        if !matches!(committed, Ok(true)) {
             let _ = fs::remove_file(body_path);
-            return Err(error);
         }
-        log::info!(
-            "[CommunityUpload] queued kind={history_kind:?} history_path={history_path} source_id={queued_source_id}"
-        );
-        Ok(())
+        committed.map(|_| ())
     }
 
     fn ensure_queue_capacity(&self, additional_bytes: u64) -> Result<(), RequestFailure> {
@@ -975,12 +1084,12 @@ impl CommunityUploadService {
 
     fn upload_next_shot(&self) -> Result<(), RequestFailure> {
         let queued = {
-            let state = self
+            let mut state = self
                 .inner
                 .state
                 .lock()
                 .map_err(|_| temporary("state_unavailable"))?;
-            next_due_queue_item(&state.persistent.queue, unix_seconds())
+            recovery::next_due_item(&mut state, unix_seconds())
         };
         let Some(queued) = queued else {
             return Ok(());
@@ -1019,32 +1128,76 @@ impl CommunityUploadService {
                 unix_seconds() + state.volatile.clock_offset_seconds,
             )
         };
+        let upload_path = if queued.recovery_only {
+            RECOVERY_PATH
+        } else {
+            SHOT_PATH
+        };
         let mut headers = signed_headers(
             key_id,
             key_version,
             &private_seed,
             timestamp,
             "POST",
-            SHOT_PATH,
+            upload_path,
             &body,
         )?;
         headers.insert(
             "x-meticulous-idempotency-key",
             header_value(&idempotency_key(installation_id, &queued.source_shot_id))?,
         );
+        if !self.queued_upload_allowed(&queued)? {
+            return Ok(());
+        }
+        if queued.recovery_only {
+            self.inner
+                .state
+                .lock()
+                .map_err(|_| temporary("state_unavailable"))?
+                .volatile
+                .recovery_upload_not_before = unix_seconds() + 3;
+        }
         let response = self
             .inner
             .client
-            .post(self.community_url(SHOT_PATH))
+            .post(self.community_url(upload_path))
             .header(CONTENT_TYPE, "application/json")
             .header(AUTHORIZATION, format!("Bearer {token}"))
             .headers(headers)
             .body(body)
-            .send()
-            .map_err(|_| temporary("upload_network"))?;
+            .send();
+        let response = match response {
+            Ok(response) => response,
+            Err(_) => {
+                let failure = temporary("upload_network");
+                if queued.recovery_only {
+                    self.defer_queue_item(&queued, &failure)?;
+                    return Ok(());
+                }
+                return Err(failure);
+            }
+        };
         self.update_server_clock(&response);
         if response.status().is_success() {
-            self.complete_queue_item(queued.id, &body_path)?;
+            let receipt = if queued.recovery_job_id.is_some() {
+                match parse_json_response::<UploadReceipt>(response, "upload_receipt_invalid") {
+                    Ok(receipt) if receipt.success && !(receipt.imported && receipt.deleted) => {
+                        Some(receipt)
+                    }
+                    _ => {
+                        let failure = temporary("upload_receipt_invalid");
+                        self.defer_queue_item(&queued, &failure)?;
+                        return if queued.recovery_only {
+                            Ok(())
+                        } else {
+                            Err(failure)
+                        };
+                    }
+                }
+            } else {
+                None
+            };
+            self.complete_queue_item(queued.id, &body_path, receipt.as_ref())?;
             log::info!(
                 "[CommunityUpload] upload_succeeded kind={:?} history_path={} source_id={}",
                 queued.history_kind,
@@ -1053,10 +1206,19 @@ impl CommunityUploadService {
             );
             return Ok(());
         }
-        let failure = reclassify_upload_failure(
-            response_failure(response, "upload_failed"),
-            queued.history_kind,
-        );
+        let failure = if queued.recovery_only && matches!(response.status().as_u16(), 404 | 405) {
+            RequestFailure {
+                category: "recovery_server_upgrade_required".to_string(),
+                retry_after_seconds: Some(SERVER_UPGRADE_RETRY_SECONDS),
+                permanent: false,
+                status: Some(response.status().as_u16()),
+            }
+        } else {
+            reclassify_upload_failure(
+                response_failure(response, "upload_failed"),
+                queued.history_kind,
+            )
+        };
         if failure.category == "invalid_access" || failure.category == "expired_request" {
             let mut state = self
                 .inner
@@ -1072,7 +1234,11 @@ impl CommunityUploadService {
         }
         if failure.permanent {
             self.discard_rejected_queue_item(&queued, &failure)?;
-            return Err(failure);
+            return if queued.recovery_only {
+                Ok(())
+            } else {
+                Err(failure)
+            };
         }
         self.defer_queue_item(&queued, &failure)?;
         log::warn!(
@@ -1082,7 +1248,9 @@ impl CommunityUploadService {
             failure.category,
             failure.retry_after_seconds
         );
-        if failure.category == "community_pour_over_not_ready" {
+        if failure.category == "community_pour_over_not_ready"
+            || (queued.recovery_only && failure.status != Some(429))
+        {
             // This item has its own slow retry. Keep servicing later records
             // instead of applying a worker-wide backoff.
             return Ok(());
@@ -1213,8 +1381,14 @@ impl CommunityUploadService {
         Ok(())
     }
 
-    fn complete_queue_item(&self, id: Uuid, body_path: &Path) -> Result<(), RequestFailure> {
+    fn complete_queue_item(
+        &self,
+        id: Uuid,
+        body_path: &Path,
+        receipt: Option<&UploadReceipt>,
+    ) -> Result<(), RequestFailure> {
         self.mutate_persistent_failure(|state| {
+            recovery::record_outcome(state, id, receipt, None);
             state.queue.retain(|item| item.id != id);
             state.last_success_at = Some(unix_seconds());
             state.last_error = None;
@@ -1282,6 +1456,7 @@ impl CommunityUploadService {
 
     fn drop_queue_item(&self, id: Uuid, category: &str) -> Result<(), RequestFailure> {
         self.mutate_persistent_failure(|state| {
+            recovery::record_outcome(state, id, None, Some(category));
             state.queue.retain(|item| item.id != id);
             state.last_error = Some(safe_category(category));
             state.last_retry_at = None;
@@ -1290,7 +1465,14 @@ impl CommunityUploadService {
     }
 
     fn retire_local_authorization(&self, category: &str) -> Result<(), RequestFailure> {
-        self.mutate_persistent_failure(|state| {
+        let removed_files = self.mutate_persistent_failure(|state| {
+            let files = state
+                .queue
+                .iter()
+                .filter(|item| item.recovery_only)
+                .map(|item| item.body_file.clone())
+                .collect::<Vec<_>>();
+            recovery::interrupt(state);
             rotate_identity_preserving_queue(state)?;
             state.authorization_id = None;
             state.key_id = None;
@@ -1299,8 +1481,11 @@ impl CommunityUploadService {
             state.paused = false;
             state.last_error = Some(safe_category(category));
             state.last_retry_at = None;
-            Ok(())
+            Ok(files)
         })?;
+        for file in removed_files {
+            let _ = fs::remove_file(self.inner.queue_dir.join(file));
+        }
         let mut state = self
             .inner
             .state
@@ -1466,6 +1651,7 @@ fn fresh_state() -> Result<PersistentState, String> {
         pour_over_history_baselined: false,
         pour_over_history_cursor: None,
         queue: Vec::new(),
+        recovery: None,
         last_success_at: None,
         last_error: None,
         last_retry_at: None,
@@ -1996,13 +2182,6 @@ fn queue_capacity_allows(item_count: usize, current_bytes: u64, additional_bytes
         && current_bytes.saturating_add(additional_bytes) <= MAX_QUEUE_BYTES
 }
 
-fn next_due_queue_item(queue: &[QueuedShot], now: i64) -> Option<QueuedShot> {
-    queue
-        .iter()
-        .find(|item| item.next_attempt_at <= now)
-        .cloned()
-}
-
 fn header_value(value: &str) -> Result<reqwest::header::HeaderValue, RequestFailure> {
     reqwest::header::HeaderValue::from_str(value).map_err(|_| permanent("header_invalid"))
 }
@@ -2337,6 +2516,8 @@ mod tests {
             source_shot_id: "temporary-failure".to_string(),
             history_path: "2026-08-17/temporary.shot.json".to_string(),
             history_kind: HistoryKind::Espresso,
+            recovery_job_id: None,
+            recovery_only: false,
             body_file: "temporary.json".to_string(),
             attempt_count: 0,
             next_attempt_at: 0,
@@ -2369,6 +2550,8 @@ mod tests {
             source_shot_id: "pour-over-parked".to_string(),
             history_path: "2026-08-16/parked.json.zst".to_string(),
             history_kind: HistoryKind::PourOver,
+            recovery_job_id: None,
+            recovery_only: false,
             body_file: "parked.json".to_string(),
             attempt_count: 1,
             next_attempt_at: i64::MAX,
@@ -2420,6 +2603,8 @@ mod tests {
             source_shot_id: "queued-pour-over".to_string(),
             history_path: "2026-08-17/queued.pour-over.json.zst".to_string(),
             history_kind: HistoryKind::PourOver,
+            recovery_job_id: None,
+            recovery_only: false,
             body_file: "queued.json".to_string(),
             attempt_count: 0,
             next_attempt_at: 1_234,
@@ -2462,6 +2647,8 @@ mod tests {
             source_shot_id: "blocked-pour-over".to_string(),
             history_path: "2026-08-16/blocked.json.zst".to_string(),
             history_kind: HistoryKind::PourOver,
+            recovery_job_id: None,
+            recovery_only: false,
             body_file: "blocked.json".to_string(),
             attempt_count: 1,
             next_attempt_at: 10_000,
@@ -2472,14 +2659,22 @@ mod tests {
             source_shot_id: "ready-espresso".to_string(),
             history_path: "2026-08-16/ready.shot.json".to_string(),
             history_kind: HistoryKind::Espresso,
+            recovery_job_id: None,
+            recovery_only: false,
             body_file: "ready.json".to_string(),
             attempt_count: 0,
             next_attempt_at: 100,
             last_error: None,
         };
 
-        let selected = next_due_queue_item(&[blocked, espresso.clone()], 100)
-            .expect("espresso should be selected");
+        let mut persistent = fresh_state().unwrap();
+        persistent.queue = vec![blocked, espresso.clone()];
+        let mut runtime = RuntimeState {
+            persistent,
+            volatile: VolatileState::default(),
+        };
+        let selected =
+            recovery::next_due_item(&mut runtime, 100).expect("espresso should be selected");
         assert_eq!(selected.id, espresso.id);
     }
 
@@ -2493,6 +2688,8 @@ mod tests {
             source_shot_id: "queued-shot".to_string(),
             history_path: "2026-08-15/queued.shot.json".to_string(),
             history_kind: HistoryKind::Espresso,
+            recovery_job_id: None,
+            recovery_only: false,
             body_file: "queued.json".to_string(),
             attempt_count: 2,
             next_attempt_at: 123,
@@ -2515,6 +2712,8 @@ mod tests {
             source_shot_id: "legacy-shot".to_string(),
             history_path: "2026-08-15/legacy.shot.json".to_string(),
             history_kind: HistoryKind::PourOver,
+            recovery_job_id: None,
+            recovery_only: false,
             body_file: "legacy.json".to_string(),
             attempt_count: 0,
             next_attempt_at: 123,
