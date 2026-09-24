@@ -1274,7 +1274,7 @@ fn recovery_missing_endpoint_and_ambiguous_acknowledgements_retain_durable_queue
 }
 
 #[test]
-fn recovery_missing_or_invalid_complete_files_retry_durably_then_report_partial_completion() {
+fn recovery_missing_or_invalid_complete_files_remain_pending_after_repeated_failures() {
     for missing in [false, true] {
         let server = MachineServer::start(move |url| {
             if url.path().starts_with("/api/v1/history/files/") {
@@ -1288,16 +1288,20 @@ fn recovery_missing_or_invalid_complete_files_retry_durably_then_report_partial_
         for attempt in 1..=3 {
             recovery_ready(&fixture);
             fixture.service.recover_saved_history();
+            deferred::make_due(&mut fixture.service.inner.state.lock().unwrap().persistent);
+            fixture.service.retry_deferred_history().unwrap();
             fixture.reload();
             let job = fixture.state().recovery.unwrap();
-            assert_eq!(job.failed, if attempt == 3 { 1 } else { 0 });
-            assert_eq!(job.espresso.exhausted, attempt == 3);
+            assert_eq!(job.failed, 0, "attempt {attempt} must remain retryable");
+            assert!(job.espresso.exhausted);
+            assert_eq!(fixture.state().deferred_history.len(), 1);
         }
         recovery_ready(&fixture);
         fixture.service.upload_next_shot().unwrap();
         let progress = fixture.service.status().recovery.unwrap();
-        assert_eq!(progress.state, "completed");
-        assert_eq!((progress.added, progress.failed), (1, 1));
+        assert_eq!(progress.state, "running");
+        assert_eq!((progress.added, progress.failed), (1, 0));
+        assert_eq!(progress.pending_count, 1);
         assert!(progress.last_error.is_some());
         assert!(fixture.state().history_cursor.is_none());
     }
@@ -1325,6 +1329,8 @@ fn recovery_truncated_file_never_uses_bad_file_retry_budget() {
     assert_eq!(job.failed, 0);
     assert_eq!(job.espresso.file_attempts, 0);
     assert!(!job.espresso.exhausted);
+    assert!(fixture.state().deferred_history.is_empty());
+    assert_eq!(fixture.service.status().recovery.unwrap().state, "running");
     assert_eq!(fixture.state().queue.len(), 1);
 }
 
@@ -1775,7 +1781,7 @@ fn legacy_recovery_captures_filename_bound_across_pages_and_restart_instead_of_b
 }
 
 #[test]
-fn recovery_corrupt_compressed_files_retry_three_times_across_restart_then_import_later_brews() {
+fn recovery_corrupt_compressed_files_stay_retryable_while_later_brews_import() {
     const BAD_ESPRESSO: &str = "2026-09-24/0001.shot.json.zst";
     const GOOD_ESPRESSO: &str = "2026-09-24/0003.shot.json.zst";
     const BAD_POUR: &str = "2026-09-24/0002.pour-over.json.zst";
@@ -1814,26 +1820,14 @@ fn recovery_corrupt_compressed_files_retry_three_times_across_restart_then_impor
     });
     let fixture = TestService::new(&server, true);
     fixture.service.start_history_recovery().unwrap();
-    for attempt in 1..=3 {
-        recovery_ready(&fixture);
-        fixture.service.recover_saved_history();
+    fixture.service.recover_saved_history();
+    assert_eq!(fixture.state().deferred_history.len(), 2);
+    deferred::make_due(&mut fixture.service.inner.state.lock().unwrap().persistent);
+    for _ in 0..2 {
+        fixture.service.retry_deferred_history().unwrap();
         fixture.reload();
-        let job = fixture.state().recovery.unwrap();
-        assert_eq!(job.failed, if attempt == 3 { 2 } else { 0 });
-        if attempt < 3 {
-            assert_eq!(
-                (job.espresso.file_attempts, job.pour_over.file_attempts),
-                (attempt, attempt)
-            );
-            assert!(job.espresso.cursor.is_none());
-            assert!(job.pour_over.cursor.is_none());
-            assert_eq!(
-                job.espresso.last_error.as_deref(),
-                Some("shot_file_unreadable")
-            );
-        }
-        assert!(fixture.state().queue.is_empty());
     }
+    assert_eq!(fixture.state().recovery.unwrap().failed, 0);
     recovery_ready(&fixture);
     fixture.service.recover_saved_history();
     assert_eq!(fixture.state().queue.len(), 2);
@@ -1843,8 +1837,9 @@ fn recovery_corrupt_compressed_files_retry_three_times_across_restart_then_impor
     }
     fixture.reload();
     let progress = fixture.service.status().recovery.unwrap();
-    assert_eq!(progress.state, "completed");
-    assert_eq!((progress.added, progress.failed), (2, 2));
+    assert_eq!(progress.state, "running");
+    assert_eq!((progress.added, progress.failed), (2, 0));
+    assert_eq!(progress.pending_count, 2);
     assert_eq!(progress.last_error.as_deref(), Some("shot_file_unreadable"));
     assert!(fixture.state().history_cursor.is_none());
     assert!(fixture.state().pour_over_history_cursor.is_none());
@@ -1854,14 +1849,14 @@ fn recovery_corrupt_compressed_files_retry_three_times_across_restart_then_impor
             .iter()
             .filter(|path| path.ends_with(BAD_ESPRESSO))
             .count(),
-        3
+        2
     );
     assert_eq!(
         requests
             .iter()
             .filter(|path| path.ends_with(BAD_POUR))
             .count(),
-        3
+        2
     );
 }
 
@@ -1887,8 +1882,15 @@ fn recovery_service_and_gateway_failures_never_exhaust_the_bad_file_budget() {
         assert_eq!(job.espresso.file_attempts, 0);
         assert!(job.espresso.cursor.is_none());
         assert!(!job.espresso.exhausted);
+        assert!(fixture.state().deferred_history.is_empty());
         assert_eq!(
-            job.espresso.last_error.as_deref(),
+            fixture
+                .service
+                .status()
+                .recovery
+                .unwrap()
+                .last_error
+                .as_deref(),
             Some("shot_file_pending")
         );
         assert_eq!(fixture.state().queue.len(), 1, "other method must continue");
@@ -1896,7 +1898,7 @@ fn recovery_service_and_gateway_failures_never_exhaust_the_bad_file_budget() {
 }
 
 #[test]
-fn live_history_reads_keep_existing_retry_policy_for_500_and_invalid_json() {
+fn live_history_reads_classify_per_file_failures_for_durable_deferral() {
     for (status, body) in [(500, "corrupt zstd"), (200, "invalid json")] {
         let server = MachineServer::start(move |url| {
             if url.path().contains("/files/") {
@@ -1911,7 +1913,14 @@ fn live_history_reads_keep_existing_retry_policy_for_500_and_invalid_json() {
                 .service
                 .queue_history_path(HistoryKind::Espresso, ESPRESSO_PATH)
                 .unwrap_err();
-            assert_eq!(failure.category, "shot_file_pending");
+            assert_eq!(
+                failure.category,
+                if status == 500 {
+                    "shot_file_unreadable"
+                } else {
+                    "shot_file_invalid"
+                }
+            );
             assert!(!failure.permanent);
         }
         assert!(fixture.state().queue.is_empty());
@@ -1919,3 +1928,6 @@ fn live_history_reads_keep_existing_retry_policy_for_500_and_invalid_json() {
         assert!(fixture.state().recovery.is_none());
     }
 }
+
+#[path = "deferred_tests.rs"]
+mod deferred_tests;

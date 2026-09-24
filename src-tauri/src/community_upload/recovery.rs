@@ -34,6 +34,11 @@ impl HistoryRecovery {
             .iter()
             .filter(|item| item.recovery_job_id == Some(self.id))
             .count()
+            + state
+                .deferred_history
+                .iter()
+                .filter(|item| item.recovery_job_id == Some(self.id))
+                .count()
     }
     fn completed(&self, state: &PersistentState) -> bool {
         self.espresso.exhausted && self.pour_over.exhausted && self.pending(state) == 0
@@ -77,6 +82,13 @@ pub(super) fn status(state: &PersistentState) -> Option<RecoveryStatus> {
                     .find(|item| item.recovery_job_id == Some(job.id) && item.last_error.is_some())
                     .and_then(|item| item.last_error.clone())
             })
+            .or_else(|| {
+                state
+                    .deferred_history
+                    .iter()
+                    .find(|item| item.recovery_job_id == Some(job.id))
+                    .map(|item| item.last_error.clone())
+            })
             .or_else(|| job.last_issue.clone()),
     })
 }
@@ -105,8 +117,8 @@ pub(super) fn advance_checkpoint(
 ) {
     match checkpoint {
         Checkpoint::Live => match kind {
-            HistoryKind::Espresso => state.history_cursor = Some(path.to_string()),
-            HistoryKind::PourOver => state.pour_over_history_cursor = Some(path.to_string()),
+            HistoryKind::Espresso => advance_cursor(&mut state.history_cursor, path),
+            HistoryKind::PourOver => advance_cursor(&mut state.pour_over_history_cursor, path),
         },
         Checkpoint::Recovery(_) => {
             let stream = state
@@ -114,16 +126,24 @@ pub(super) fn advance_checkpoint(
                 .as_mut()
                 .expect("validated recovery job")
                 .stream_mut(kind);
-            stream.cursor = Some(path.to_string());
-            stream.exhausted = stream
-                .through
-                .as_deref()
-                .is_some_and(|through| path >= through);
+            advance_cursor(&mut stream.cursor, path);
+            stream.exhausted = stream.through.as_deref().is_some_and(|through| {
+                stream
+                    .cursor
+                    .as_deref()
+                    .is_some_and(|cursor| cursor >= through)
+            });
             stream.retry_path = None;
             stream.file_attempts = 0;
             stream.last_error = None;
             stream.next_scan_at = unix_seconds() + 1;
         }
+    }
+}
+
+fn advance_cursor(cursor: &mut Option<String>, path: &str) {
+    if cursor.as_deref().is_none_or(|previous| path > previous) {
+        *cursor = Some(path.to_string());
     }
 }
 
@@ -136,6 +156,9 @@ pub(super) fn interrupt(state: &mut PersistentState) {
     }
     job.interrupted = true;
     job.last_issue = Some("recovery_authorization_changed".to_string());
+    state
+        .deferred_history
+        .retain(|item| item.recovery_job_id != Some(job.id));
     state
         .queue
         .retain(|item| item.recovery_job_id != Some(job.id) || !item.recovery_only);
@@ -195,7 +218,10 @@ pub(super) fn record_outcome(
         job.failed = job.failed.saturating_add(1);
         job.last_issue = Some(safe_category(category));
     } else if let Some(receipt) = receipt {
-        if receipt.deleted {
+        if receipt.excluded {
+            // The server's ownership cutoff excludes older machine history.
+            // It is neither an imported/existing brew nor a failed upload.
+        } else if receipt.deleted {
             job.preserved_deleted = job.preserved_deleted.saturating_add(1);
         } else if receipt.imported {
             job.added = job.added.saturating_add(1);
@@ -345,6 +371,7 @@ impl CommunityUploadService {
         path: &str,
         source_id: Option<&str>,
         checkpoint: Checkpoint,
+        authorization_id: Uuid,
     ) -> Result<bool, RequestFailure> {
         // Avoid persisting a no-op for each lookup; perform the actual lookup
         // again under mutate_persistent's lock before attaching/checkpointing.
@@ -364,15 +391,21 @@ impl CommunityUploadService {
             return Ok(false);
         }
         self.mutate_persistent_failure(|state| {
-            if !checkpoint_allowed(state, checkpoint) {
+            if state.authorization_id != Some(authorization_id)
+                || state.paused
+                || !checkpoint_allowed(state, checkpoint)
+            {
                 return Ok(true);
             }
-            let Some(item) = state.queue.iter_mut().find(|item| {
+            let Some(index) = state.queue.iter().position(|item| {
                 (item.history_kind == kind && item.history_path == path)
                     || source_id == Some(item.source_shot_id.as_str())
             }) else {
                 return Ok(false);
             };
+            let deferred_job = deferred::complete_queueing(state, kind, path);
+            let item = &mut state.queue[index];
+            item.recovery_job_id = item.recovery_job_id.or(deferred_job);
             match checkpoint {
                 Checkpoint::Live => item.recovery_only = false,
                 Checkpoint::Recovery(id) => item.recovery_job_id = Some(id),
@@ -561,6 +594,28 @@ impl CommunityUploadService {
         path: Option<&str>,
         failure: &RequestFailure,
     ) -> Result<(), RequestFailure> {
+        if let Some(path) = path.filter(|_| deferred::retryable_file_failure(failure)) {
+            let authorization = self
+                .inner
+                .state
+                .lock()
+                .map_err(|_| temporary("state_unavailable"))?
+                .persistent
+                .recovery
+                .as_ref()
+                .filter(|job| job.id == id && !job.interrupted)
+                .map(|job| job.authorization_id);
+            if let Some(authorization_id) = authorization {
+                return self.defer_history_path(
+                    kind,
+                    path,
+                    Checkpoint::Recovery(id),
+                    authorization_id,
+                    failure,
+                );
+            }
+            return Ok(());
+        }
         self.mutate_persistent_failure(|state| {
             if !checkpoint_allowed(state, Checkpoint::Recovery(id)) {
                 return Ok(());
@@ -569,21 +624,8 @@ impl CommunityUploadService {
             let stream = job.stream_mut(kind);
             stream.last_error = Some(failure.category.clone());
             stream.next_scan_at = unix_seconds() + failure.retry_after_seconds.unwrap_or(5).max(1);
-            let bounded = matches!(
-                failure.category.as_str(),
-                "shot_file_missing" | "shot_file_invalid" | "shot_file_unreadable"
-            );
             if let Some(path) = path {
-                if bounded {
-                    if stream.retry_path.as_deref() != Some(path) {
-                        stream.file_attempts = 0;
-                    }
-                    stream.retry_path = Some(path.to_string());
-                    stream.file_attempts = stream.file_attempts.saturating_add(1);
-                }
-                if failure.permanent
-                    || (bounded && stream.file_attempts >= MAX_RECOVERY_FILE_ATTEMPTS)
-                {
+                if failure.permanent {
                     advance_checkpoint(state, Checkpoint::Recovery(id), kind, path);
                     let job = state.recovery.as_mut().unwrap();
                     job.failed = job.failed.saturating_add(1);
