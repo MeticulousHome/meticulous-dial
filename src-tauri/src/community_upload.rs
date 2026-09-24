@@ -27,6 +27,9 @@ const DEFAULT_COMMUNITY_BASE: &str = "https://community.meticuloushome.com";
 const DEFAULT_MACHINE_BASE: &str = "http://localhost:8080";
 const MAX_SHOT_BODY_BYTES: usize = 2 * 1024 * 1024;
 const MAX_CONTROL_RESPONSE_BYTES: usize = 256 * 1024;
+const HISTORY_PAGE_SIZE: usize = 200;
+// Pour-over indexes include bounded user names and IDs, not just file paths.
+const POUR_OVER_HISTORY_PAGE_SIZE: usize = 20;
 const MAX_POUR_OVER_DURATION_MS: u64 = 10 * 60 * 1000;
 const MAX_POUR_OVER_SAMPLES: usize = 3_001;
 const MAX_QUEUE_ITEMS: usize = 128;
@@ -174,6 +177,12 @@ struct HistoryEntry {
 #[derive(Debug, Deserialize)]
 struct BrewHistoryResponse {
     history: Vec<HistoryEntry>,
+}
+
+#[derive(Debug)]
+struct HistoryPage {
+    paths: Vec<String>,
+    complete: bool,
 }
 
 #[derive(Debug)]
@@ -491,17 +500,40 @@ impl CommunityUploadService {
         }
 
         // Drain one durable item first so a full queue can always make progress.
-        self.upload_next_shot()?;
-        if self.history_scan_is_due() {
-            let espresso_complete = self.observe_new_shots()?;
-            let pour_over_complete = self.observe_new_pour_overs()?;
-            self.schedule_next_history_scan(if espresso_complete && pour_over_complete {
-                HISTORY_POLL_SECONDS
-            } else {
-                5
-            });
+        let upload = self.upload_next_shot();
+        if upload
+            .as_ref()
+            .err()
+            .is_some_and(|failure| authorization_is_retired(&failure.category))
+        {
+            return upload;
         }
-        Ok(())
+        if self.history_scan_is_due() {
+            // Each stream owns its checkpoint. A failure must not prevent the
+            // other stream from discovering and durably queuing its records.
+            let espresso = self.observe_new_shots();
+            let pour_over = self.observe_new_pour_overs();
+            for (kind, result) in [
+                (HistoryKind::Espresso, &espresso),
+                (HistoryKind::PourOver, &pour_over),
+            ] {
+                if let Err(failure) = result {
+                    log::warn!(
+                        "[CommunityUpload] history_deferred kind={kind:?} category={}",
+                        failure.category
+                    );
+                }
+            }
+            self.schedule_next_history_scan(
+                if matches!(espresso, Ok(true)) && matches!(pour_over, Ok(true)) {
+                    HISTORY_POLL_SECONDS
+                } else {
+                    5
+                },
+            );
+            return upload.and(espresso.map(|_| ())).and(pour_over.map(|_| ()));
+        }
+        upload
     }
 
     fn expire_local_enrollment(&self) {
@@ -636,9 +668,8 @@ impl CommunityUploadService {
             return Ok(true);
         }
 
-        let paths = self.fetch_history_paths(cursor.as_deref())?;
-        let page_complete = paths.len() < 200;
-        for path in paths {
+        let page = self.fetch_history_paths(cursor.as_deref())?;
+        for path in page.paths {
             let current_cursor = {
                 self.inner
                     .state
@@ -662,7 +693,7 @@ impl CommunityUploadService {
                 Err(failure) => return Err(failure),
             }
         }
-        Ok(page_complete)
+        Ok(page.complete)
     }
 
     fn observe_new_pour_overs(&self) -> Result<bool, RequestFailure> {
@@ -687,9 +718,8 @@ impl CommunityUploadService {
             return Ok(true);
         }
 
-        let paths = self.fetch_pour_over_history_paths(cursor.as_deref())?;
-        let page_complete = paths.len() < 200;
-        for path in paths {
+        let page = self.fetch_pour_over_history_paths(cursor.as_deref())?;
+        for path in page.paths {
             let current_cursor = {
                 self.inner
                     .state
@@ -713,7 +743,7 @@ impl CommunityUploadService {
                 Err(failure) => return Err(failure),
             }
         }
-        Ok(page_complete)
+        Ok(page.complete)
     }
 
     fn fetch_last_pour_over_history_path(&self) -> Result<Option<String>, RequestFailure> {
@@ -729,23 +759,18 @@ impl CommunityUploadService {
         if !response.status().is_success() {
             return Err(temporary("machine_pour_over_history_unavailable"));
         }
-        let value = parse_json_response::<Value>(response, "machine_pour_over_history_invalid")?;
-        value
-            .get("file")
-            .and_then(Value::as_str)
-            .map(normalize_history_path)
-            .transpose()
+        parse_latest_history_path(response, "machine_pour_over_history")
     }
 
     fn fetch_pour_over_history_paths(
         &self,
         after: Option<&str>,
-    ) -> Result<Vec<String>, RequestFailure> {
+    ) -> Result<HistoryPage, RequestFailure> {
         let mut url = self.machine_url("/api/v1/history/pour-over");
         {
             let mut query = url.query_pairs_mut();
             query.append_pair("sort", "asc");
-            query.append_pair("max_results", "200");
+            query.append_pair("max_results", &POUR_OVER_HISTORY_PAGE_SIZE.to_string());
             if let Some(after) = after {
                 query.append_pair("after", after);
             }
@@ -759,47 +784,69 @@ impl CommunityUploadService {
         if !response.status().is_success() {
             return Err(temporary("machine_pour_over_history_unavailable"));
         }
-        let history = parse_json_response::<BrewHistoryResponse>(
+        parse_history_page(
             response,
-            "machine_pour_over_history_invalid",
-        )?;
-        let mut paths = history
-            .history
-            .into_iter()
-            .filter_map(|entry| entry.file.or(entry.url).or(entry.name))
-            .map(|path| normalize_history_path(&path))
-            .collect::<Result<Vec<_>, _>>()?;
-        paths.sort();
-        paths.dedup();
-        Ok(paths)
+            "machine_pour_over_history",
+            after,
+            POUR_OVER_HISTORY_PAGE_SIZE,
+        )
     }
 
     fn fetch_last_history_path(&self) -> Result<Option<String>, RequestFailure> {
         let response = self
             .inner
             .client
-            .get(self.machine_url("/api/v1/history/last"))
+            .get(self.machine_url("/api/v1/history/upload-index/last"))
             .send()
             .map_err(|_| temporary("machine_history_unavailable"))?;
-        if response.status().as_u16() == 404 || response.status().as_u16() == 204 {
-            return Ok(None);
+        if matches!(response.status().as_u16(), 404 | 405) {
+            // Snapshot once on older backends too: paging a baseline across
+            // ticks could skip a brew made while that baseline is still running.
+            // dump_data=false omits samples but legacy responses retain profiles,
+            // so allow the supported brew-body budget for this fallback only.
+            let mut url = self.machine_url("/api/v1/history");
+            url.query_pairs_mut()
+                .append_pair("sort", "desc")
+                .append_pair("max_results", "1")
+                .append_pair("dump_data", "false");
+            let response = self
+                .inner
+                .client
+                .get(url)
+                .send()
+                .map_err(|_| temporary("machine_history_unavailable"))?;
+            if !response.status().is_success() {
+                return Err(temporary("machine_history_unavailable"));
+            }
+            let history: BrewHistoryResponse =
+                parse_history_response(response, "machine_history", MAX_SHOT_BODY_BYTES)?;
+            return match history.history.as_slice() {
+                [] => Ok(None),
+                [entry] => entry
+                    .file
+                    .as_deref()
+                    .or(entry.url.as_deref())
+                    .or(entry.name.as_deref())
+                    .ok_or_else(|| temporary("machine_history_invalid"))
+                    .and_then(|path| {
+                        normalize_history_path(path)
+                            .map_err(|_| temporary("machine_history_invalid"))
+                    })
+                    .map(Some),
+                _ => Err(temporary("machine_history_invalid")),
+            };
         }
         if !response.status().is_success() {
             return Err(temporary("machine_history_unavailable"));
         }
-        let value = parse_json_response::<Value>(response, "machine_history_invalid")?;
-        value
-            .get("file")
-            .and_then(Value::as_str)
-            .map(normalize_history_path)
-            .transpose()
+        parse_latest_history_path(response, "machine_history")
     }
 
-    fn fetch_history_paths(&self, after: Option<&str>) -> Result<Vec<String>, RequestFailure> {
+    fn fetch_history_paths(&self, after: Option<&str>) -> Result<HistoryPage, RequestFailure> {
         let mut url = self.machine_url("/api/v1/history/upload-index");
         {
             let mut query = url.query_pairs_mut();
-            query.append_pair("max_results", "200");
+            query.append_pair("max_results", &HISTORY_PAGE_SIZE.to_string());
             if let Some(after) = after {
                 query.append_pair("after", after);
             }
@@ -813,17 +860,7 @@ impl CommunityUploadService {
         if !response.status().is_success() {
             return Err(temporary("machine_history_unavailable"));
         }
-        let history =
-            parse_json_response::<BrewHistoryResponse>(response, "machine_history_invalid")?;
-        let mut paths = history
-            .history
-            .into_iter()
-            .filter_map(|entry| entry.file.or(entry.url).or(entry.name))
-            .map(|path| normalize_history_path(&path))
-            .collect::<Result<Vec<_>, _>>()?;
-        paths.sort();
-        paths.dedup();
-        Ok(paths)
+        parse_history_page(response, "machine_history", after, HISTORY_PAGE_SIZE)
     }
 
     fn queue_history_path(
@@ -1681,18 +1718,22 @@ fn sign_message(private_seed: &str, message: &[u8]) -> Result<String, RequestFai
 }
 
 fn read_bounded_response(response: Response) -> Result<Vec<u8>, RequestFailure> {
+    read_response_with_limit(response, MAX_CONTROL_RESPONSE_BYTES)
+}
+
+fn read_response_with_limit(response: Response, limit: usize) -> Result<Vec<u8>, RequestFailure> {
     if response
         .content_length()
-        .is_some_and(|length| length > MAX_CONTROL_RESPONSE_BYTES as u64)
+        .is_some_and(|length| length > limit as u64)
     {
         return Err(temporary("response_too_large"));
     }
     let mut body = Vec::new();
     response
-        .take((MAX_CONTROL_RESPONSE_BYTES + 1) as u64)
+        .take((limit + 1) as u64)
         .read_to_end(&mut body)
         .map_err(|_| temporary("response_read_failed"))?;
-    if body.len() > MAX_CONTROL_RESPONSE_BYTES {
+    if body.len() > limit {
         return Err(temporary("response_too_large"));
     }
     Ok(body)
@@ -1704,6 +1745,69 @@ fn parse_json_response<T: DeserializeOwned>(
 ) -> Result<T, RequestFailure> {
     let body = read_bounded_response(response).map_err(|_| temporary(invalid_category))?;
     serde_json::from_slice(&body).map_err(|_| temporary(invalid_category))
+}
+
+fn parse_history_response<T: DeserializeOwned>(
+    response: Response,
+    category: &str,
+    limit: usize,
+) -> Result<T, RequestFailure> {
+    let body = read_response_with_limit(response, limit).map_err(|failure| {
+        let suffix = match failure.category.as_str() {
+            "response_too_large" => "response_too_large",
+            _ => "read_failed",
+        };
+        temporary(&format!("{category}_{suffix}"))
+    })?;
+    serde_json::from_slice(&body).map_err(|_| temporary(&format!("{category}_invalid")))
+}
+
+fn parse_latest_history_path(
+    response: Response,
+    category: &str,
+) -> Result<Option<String>, RequestFailure> {
+    let value: Value = parse_history_response(response, category, MAX_CONTROL_RESPONSE_BYTES)?;
+    match value.get("file") {
+        Some(Value::Null) => Ok(None),
+        Some(Value::String(path)) => normalize_history_path(path)
+            .map(Some)
+            .map_err(|_| temporary(&format!("{category}_invalid"))),
+        _ => Err(temporary(&format!("{category}_invalid"))),
+    }
+}
+
+fn parse_history_page(
+    response: Response,
+    category: &str,
+    after: Option<&str>,
+    page_size: usize,
+) -> Result<HistoryPage, RequestFailure> {
+    let history: BrewHistoryResponse =
+        parse_history_response(response, category, MAX_CONTROL_RESPONSE_BYTES)?;
+    let count = history.history.len();
+    if count > page_size {
+        return Err(temporary(&format!("{category}_invalid")));
+    }
+    let mut paths = Vec::with_capacity(count);
+    for entry in history.history {
+        let path = entry
+            .file
+            .or(entry.url)
+            .or(entry.name)
+            .ok_or_else(|| temporary(&format!("{category}_invalid")))?;
+        let path =
+            normalize_history_path(&path).map_err(|_| temporary(&format!("{category}_invalid")))?;
+        if after.is_some_and(|cursor| path.as_str() <= cursor) {
+            return Err(temporary(&format!("{category}_invalid")));
+        }
+        paths.push(path);
+    }
+    paths.sort();
+    paths.dedup();
+    Ok(HistoryPage {
+        paths,
+        complete: count < page_size,
+    })
 }
 
 fn response_failure(response: Response, fallback: &str) -> RequestFailure {
@@ -1903,12 +2007,7 @@ fn header_value(value: &str) -> Result<reqwest::header::HeaderValue, RequestFail
     reqwest::header::HeaderValue::from_str(value).map_err(|_| permanent("header_invalid"))
 }
 
-fn schedule_queue_retry(
-    state: &mut PersistentState,
-    id: Uuid,
-    failure: &RequestFailure,
-    now: i64,
-) {
+fn schedule_queue_retry(state: &mut PersistentState, id: Uuid, failure: &RequestFailure, now: i64) {
     if let Some(item) = state.queue.iter_mut().find(|item| item.id == id) {
         item.attempt_count = item.attempt_count.saturating_add(1);
         item.last_error = Some(failure.category.clone());
@@ -1969,6 +2068,10 @@ fn unix_seconds() -> i64 {
 fn enrollment_exchange_expired(issued_at: i64, now: i64) -> bool {
     issued_at + ENROLLMENT_TTL_SECONDS + ENROLLMENT_EXCHANGE_GRACE_SECONDS <= now
 }
+
+#[cfg(test)]
+#[path = "community_upload/history_tests.rs"]
+mod history_tests;
 
 #[cfg(test)]
 mod tests {
