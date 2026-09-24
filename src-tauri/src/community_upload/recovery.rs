@@ -1,6 +1,21 @@
 use super::*;
 
 impl HistoryRecovery {
+    fn new(authorization_id: Uuid) -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            authorization_id,
+            interrupted: false,
+            espresso: RecoveryStream::default(),
+            pour_over: RecoveryStream::default(),
+            added: 0,
+            already_present: 0,
+            preserved_deleted: 0,
+            failed: 0,
+            last_issue: None,
+        }
+    }
+
     fn stream(&self, kind: HistoryKind) -> &RecoveryStream {
         match kind {
             HistoryKind::Espresso => &self.espresso,
@@ -23,6 +38,17 @@ impl HistoryRecovery {
     fn completed(&self, state: &PersistentState) -> bool {
         self.espresso.exhausted && self.pour_over.exhausted && self.pending(state) == 0
     }
+}
+
+fn automatic_recovery_authorization(state: &PersistentState) -> Option<Uuid> {
+    state.authorization_id.filter(|authorization_id| {
+        state.key_id.is_some()
+            && state.key_version.is_some()
+            && !state
+                .recovery
+                .as_ref()
+                .is_some_and(|job| job.authorization_id == *authorization_id && !job.interrupted)
+    })
 }
 
 pub(super) fn status(state: &PersistentState) -> Option<RecoveryStatus> {
@@ -180,6 +206,28 @@ pub(super) fn record_outcome(
 }
 
 impl CommunityUploadService {
+    pub(super) fn ensure_automatic_history_recovery(&self) -> Result<(), RequestFailure> {
+        let needed = {
+            let state = self
+                .inner
+                .state
+                .lock()
+                .map_err(|_| temporary("state_unavailable"))?;
+            automatic_recovery_authorization(&state.persistent).is_some()
+        };
+        if !needed {
+            return Ok(());
+        }
+        // Check again under the persistence lock: pairing or a manual retry can
+        // change the authorization/job between the read and the durable write.
+        self.mutate_persistent_failure(|state| {
+            if let Some(authorization_id) = automatic_recovery_authorization(state) {
+                state.recovery = Some(HistoryRecovery::new(authorization_id));
+            }
+            Ok(())
+        })
+    }
+
     pub fn start_history_recovery(&self) -> Result<(), String> {
         self.interrupt_mismatched_recovery()
             .map_err(|failure| failure.to_string())?;
@@ -195,18 +243,7 @@ impl CommunityUploadService {
             {
                 return Ok(());
             }
-            state.recovery = Some(HistoryRecovery {
-                id: Uuid::new_v4(),
-                authorization_id,
-                interrupted: false,
-                espresso: RecoveryStream::default(),
-                pour_over: RecoveryStream::default(),
-                added: 0,
-                already_present: 0,
-                preserved_deleted: 0,
-                failed: 0,
-                last_issue: None,
-            });
+            state.recovery = Some(HistoryRecovery::new(authorization_id));
             Ok(())
         })
     }

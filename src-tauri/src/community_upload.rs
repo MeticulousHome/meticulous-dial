@@ -551,6 +551,7 @@ impl CommunityUploadService {
     fn worker_tick(&self) -> Result<(), RequestFailure> {
         self.expire_local_enrollment();
         self.interrupt_mismatched_recovery()?;
+        self.ensure_automatic_history_recovery()?;
         let snapshot = {
             let state = self
                 .inner

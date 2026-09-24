@@ -17,8 +17,8 @@ type ScreenMode =
   | 'overview'
   | 'connected-success'
   | 'disconnect'
-  | 'import-confirm'
-  | 'import-progress';
+  | 'recheck-confirm'
+  | 'sync-progress';
 
 function formatTimestamp(value: number | null | undefined): string {
   if (!value) return 'Not yet';
@@ -39,13 +39,13 @@ function recoveryError(value: unknown): string {
     category === 'waiting_server_upgrade' ||
     category === 'recovery_server_upgrade_required'
   )
-    return 'Waiting for the Community update. Import will resume automatically.';
+    return 'Waiting for the Community update. Sync will resume automatically.';
   if (category === 'machine_pour_over_history_unavailable')
-    return 'Pour-over history is unavailable. The import will retry.';
+    return 'Pour-over history is unavailable. Sync will retry.';
   if (category.includes('authorization') || category.includes('not_connected'))
-    return 'Reconnect to Community, then import again.';
+    return 'Reconnect to Community to resume automatic sync.';
   if (category.includes('persist') || category.includes('storage'))
-    return 'Could not save import progress. Check machine storage.';
+    return 'Could not save sync progress. Check machine storage.';
   if (category.includes('too_large') || category.includes('oversized'))
     return 'A saved brew exceeds the upload size limit.';
   if (category === 'shot_file_unreadable')
@@ -54,7 +54,7 @@ function recoveryError(value: unknown): string {
     return 'Some saved history could not be read.';
   if (category.includes('capacity') || category.includes('queue_full'))
     return 'Waiting for pending uploads to make room.';
-  return 'Import needs another attempt. Check the connection.';
+  return 'Saved brew sync needs attention. Check the connection.';
 }
 
 function Actions({
@@ -192,12 +192,12 @@ export function CommunitySettings(): JSX.Element {
     if (connected && statusQuery.isError) return ['Back', 'Retry'];
     if (connected && mode === 'connected-success') return ['Done'];
     if (mode === 'disconnect') return ['Cancel', 'Disconnect'];
-    if (connected && mode === 'import-confirm') return ['Cancel', 'Import all'];
-    if (connected && mode === 'import-progress') {
-      if (!recovery) return ['Back', 'Retry'];
-      return recovery?.state === 'running'
+    if (connected && mode === 'recheck-confirm')
+      return ['Cancel', 'Recheck now'];
+    if (connected && mode === 'sync-progress') {
+      return !recovery || recovery.state === 'running'
         ? ['Back', status?.paused ? 'Resume uploads' : 'Pause uploads']
-        : ['Back', 'Import again'];
+        : ['Back', 'Recheck history'];
     }
     if (!connected) {
       if (statusQuery.isError) return ['Retry', 'Back'];
@@ -209,7 +209,7 @@ export function CommunitySettings(): JSX.Element {
     return [
       'Back',
       status?.paused ? 'Resume uploads' : 'Pause uploads',
-      recovery ? 'View saved import' : 'Import saved brews',
+      'Saved brew sync',
       'Disconnect'
     ];
   }, [
@@ -247,19 +247,19 @@ export function CommunitySettings(): JSX.Element {
       goBack();
     } else if (action === 'Cancel') {
       changeMode('overview');
-    } else if (action === 'Import all') {
+    } else if (action === 'Recheck now') {
       void startRecovery
         .mutateAsync()
         .then(() => {
-          changeMode('import-progress');
+          changeMode('sync-progress');
         })
         .catch(() => {
           /* The mutation exposes the error below. */
         });
-    } else if (action === 'Import saved brews' || action === 'Import again') {
-      changeMode('import-confirm');
-    } else if (action === 'View saved import') {
-      changeMode('import-progress');
+    } else if (action === 'Recheck history') {
+      changeMode('recheck-confirm');
+    } else if (action === 'Saved brew sync') {
+      changeMode('sync-progress');
     } else if (action === 'Try again') {
       enrollmentAttempted.current = false;
       setPairingUrl(null);
@@ -283,7 +283,7 @@ export function CommunitySettings(): JSX.Element {
           });
       }
     } else if (action === 'Back') {
-      if (mode === 'import-progress' || mode === 'import-confirm')
+      if (mode === 'sync-progress' || mode === 'recheck-confirm')
         changeMode('overview');
       else goBack();
     }
@@ -314,21 +314,21 @@ export function CommunitySettings(): JSX.Element {
     />
   );
 
-  if (connected && mode === 'import-confirm') {
+  if (connected && mode === 'recheck-confirm') {
     return (
       <div className="community-screen">
-        <h2>Import saved brews?</h2>
+        <h2>Recheck saved brews?</h2>
         <p className="community-copy">
-          Add all saved espresso and pour-over brews from this machine to your
-          connected Community account’s private history.
+          Check all saved espresso and pour-over history again for missing brews
+          in your Community account’s private history.
         </p>
         <p className="community-copy">
           Existing brews won’t be duplicated. Deleted brews stay deleted.
         </p>
         <p className="community-copy">
           {status.paused
-            ? 'Uploads are paused. Resume them to begin importing.'
-            : 'You can keep brewing while the import runs.'}
+            ? 'Uploads remain paused. Resume them to continue syncing.'
+            : 'You can keep brewing while saved history syncs.'}
         </p>
         {actionButtons}
         {error ? (
@@ -342,50 +342,63 @@ export function CommunitySettings(): JSX.Element {
     );
   }
 
-  if (connected && mode === 'import-progress' && !recovery) {
+  if (connected && mode === 'sync-progress' && !recovery) {
     return (
       <div className="community-screen">
-        <h2>Saved brew import</h2>
+        <h2>{status.paused ? 'Saved sync paused' : 'Saved brew sync'}</h2>
+        <p className="community-copy">
+          Saved espresso and pour-over brews sync automatically to your
+          account’s private history.
+        </p>
         <p className="community-copy" role="status">
           {statusQuery.isError
-            ? 'Could not load import progress. Please retry.'
-            : 'Waiting for import progress…'}
+            ? 'Could not load sync progress. Please retry.'
+            : status.paused
+              ? 'Resume uploads to sync saved history and new brews.'
+              : status.lastError
+                ? 'Waiting to sync saved history.'
+                : 'Preparing saved history. No action is needed.'}
         </p>
+        {status.lastError && !statusQuery.isError ? (
+          <p className="community-error" role="alert">
+            {recoveryError(status.lastError)}
+          </p>
+        ) : null}
         {actionButtons}
       </div>
     );
   }
 
-  if (connected && mode === 'import-progress') {
+  if (connected && mode === 'sync-progress') {
     const running = recovery?.state === 'running';
     const interrupted = recovery?.state === 'interrupted';
     const hasIssues = (recovery?.failed ?? 0) > 0;
     const title = running
       ? status.paused
-        ? 'Import paused'
-        : 'Importing saved brews'
+        ? 'Saved sync paused'
+        : 'Syncing saved brews'
       : interrupted
-        ? 'Import interrupted'
+        ? 'Saved sync interrupted'
         : hasIssues
-          ? 'Import finished with issues'
-          : 'Import complete';
+          ? 'Sync finished with issues'
+          : 'Saved sync complete';
     return (
       <div className="community-screen community-screen-recovery">
         <h2>{title}</h2>
         <p className="community-copy">
           {running
             ? status.paused
-              ? 'Resume uploads to continue this import and new brew uploads.'
-              : 'Espresso and pour-over history. New brews continue uploading.'
+              ? 'Resume uploads to sync saved history and new brews.'
+              : 'Espresso and pour-over history syncs privately. New brews continue uploading.'
             : interrupted
-              ? 'The connection changed. Confirm again to import to this account.'
+              ? 'Saved history sync restarts automatically after reconnection.'
               : hasIssues
-                ? 'Some saved brews could not be imported. You can try again.'
+                ? 'Some saved brews could not be synced. Recheck after resolving the issue.'
                 : 'All available saved history has been checked.'}
         </p>
         <div
           className="community-status-grid community-recovery-counts"
-          aria-label="Import results"
+          aria-label="Saved sync results"
         >
           <span>Added to Community</span>
           <span>{recovery?.added ?? 0}</span>
@@ -393,7 +406,7 @@ export function CommunitySettings(): JSX.Element {
           <span>{recovery?.alreadyPresent ?? 0}</span>
           <span>Kept deleted</span>
           <span>{recovery?.preservedDeleted ?? 0}</span>
-          <span>Could not import</span>
+          <span>Could not sync</span>
           <span>{recovery?.failed ?? 0}</span>
           <span>Pending uploads</span>
           <span>{recovery?.pendingCount ?? 0}</span>
@@ -435,7 +448,8 @@ export function CommunitySettings(): JSX.Element {
       <div className="community-screen">
         <h2>Connected to Community</h2>
         <p className="community-copy">
-          New shots will be uploaded privately to your account.
+          Saved and new espresso and pour-over brews sync automatically to your
+          account’s private history.
         </p>
         {actionButtons}
       </div>
@@ -525,6 +539,22 @@ export function CommunitySettings(): JSX.Element {
         <span>{formatTimestamp(status.lastSuccessAt)}</span>
         <span>Pending</span>
         <span>{status.pendingCount}</span>
+        <span>Saved brews</span>
+        <span>
+          {status.paused
+            ? 'Paused'
+            : !recovery
+              ? status.lastError
+                ? 'Waiting'
+                : 'Starting automatically'
+              : recovery.state === 'running'
+                ? 'Syncing'
+                : recovery.state === 'interrupted'
+                  ? 'Interrupted'
+                  : recovery.failed > 0
+                    ? 'Finished with issues'
+                    : 'Synced'}
+        </span>
         <span>Retry state</span>
         <span>{readableError(status.lastError)}</span>
       </div>

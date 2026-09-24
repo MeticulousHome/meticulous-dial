@@ -27,6 +27,11 @@ export const probe = {
     enrollmentExpiresAt: null,
     recovery: null
   } as CommunityUploadStatus,
+  // Models the native worker independently of any component or IPC mutation.
+  runNativeWorkerTick() {
+    if (probe.status.connected && !probe.status.recovery)
+      probe.status.recovery = { ...recovery };
+  },
   startError: null as string | null,
   statusError: false,
   holdStart: false,

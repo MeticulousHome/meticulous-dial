@@ -25,13 +25,6 @@ async function select(page: Page, label: string) {
   await emit(page, 'pressDown');
 }
 
-async function openImport(page: Page) {
-  await select(page, 'Import saved brews');
-  await expect(
-    page.getByRole('heading', { name: 'Import saved brews?' })
-  ).toBeVisible();
-}
-
 async function setRecovery(
   page: Page,
   patch: Partial<CommunityHistoryRecovery>
@@ -109,27 +102,47 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByText('Connected', { exact: true })).toBeVisible();
 });
 
-test('rotary navigation requires consent and cancel leaves history untouched', async ({
+test('saved history sync appears automatically without a UI start action', async ({
   page
 }, info) => {
-  await capture(page, info, 'overview');
-  await openImport(page);
   await expect(
-    page.getByText(/all saved espresso and pour-over/)
+    page.getByText('Starting automatically', { exact: true })
   ).toBeVisible();
-  await expect(page.getByText(/private history/)).toBeVisible();
-  await expect(page.getByText(/Deleted brews stay deleted/)).toBeVisible();
-  await capture(page, info, 'confirmation');
+  await capture(page, info, 'overview-automatic-start');
+  await page.evaluate(() => window.communityProbe.runNativeWorkerTick());
+  await expect(page.getByText('Syncing', { exact: true })).toBeVisible();
   expect(
     await commandCalls(page, 'community_start_history_recovery')
   ).toHaveLength(0);
-  await select(page, 'Cancel');
+  await select(page, 'Saved brew sync');
   await expect(
-    page.getByRole('heading', { name: 'Community', exact: true })
+    page.getByRole('heading', { name: 'Syncing saved brews' })
+  ).toBeVisible();
+  await expect(page.getByText(/history syncs privately/)).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: /Import|Recheck/ })
+  ).toHaveCount(0);
+  await capture(page, info, 'automatically-running');
+});
+
+test('saved sync status is available before the worker starts and needs no confirmation', async ({
+  page
+}, info) => {
+  await select(page, 'Saved brew sync');
+  await expect(
+    page.getByRole('heading', { name: 'Saved brew sync' })
+  ).toBeVisible();
+  await expect(
+    page.getByText(/sync automatically to your account’s private history/)
+  ).toBeVisible();
+  await expect(
+    page.getByText('Preparing saved history. No action is needed.')
   ).toBeVisible();
   expect(
     await commandCalls(page, 'community_start_history_recovery')
   ).toHaveLength(0);
+  await capture(page, info, 'preparing-automatic-sync');
+  await select(page, 'Back');
   await select(page, 'Back');
   expect(await page.evaluate(() => window.communityProbe.dispatches)).toEqual([
     {
@@ -139,77 +152,107 @@ test('rotary navigation requires consent and cancel leaves history untouched', a
   ]);
 });
 
-test('start is single flight, results poll, pause resumes, and leaving does not restart', async ({
+test('automatic results poll, pause resumes, and leaving never restarts the job', async ({
   page
 }, info) => {
-  await openImport(page);
-  await page.evaluate(() => {
-    window.communityProbe.holdStart = true;
-  });
-  await select(page, 'Import all');
-  await expect(page.getByRole('button', { name: 'Working...' })).toBeDisabled();
-  await emit(page, 'pressDown');
-  await capture(page, info, 'starting');
-  expect(
-    await commandCalls(page, 'community_start_history_recovery')
-  ).toHaveLength(1);
-  await page.evaluate(() => window.communityProbe.releaseStart?.());
-  await expect(
-    page.getByRole('heading', { name: 'Importing saved brews' })
-  ).toBeVisible();
   await setRecovery(page, {});
+  await select(page, 'Saved brew sync');
+  await expect(
+    page.getByRole('heading', { name: 'Syncing saved brews' })
+  ).toBeVisible();
   await expect(page.locator('.community-recovery-counts')).toContainText('12');
   await capture(page, info, 'running');
   await select(page, 'Pause uploads');
   await expect(
-    page.getByRole('heading', { name: 'Import paused' })
+    page.getByRole('heading', { name: 'Saved sync paused' })
   ).toBeVisible();
   await capture(page, info, 'paused');
   await select(page, 'Resume uploads');
   await expect(
-    page.getByRole('heading', { name: 'Importing saved brews' })
+    page.getByRole('heading', { name: 'Syncing saved brews' })
   ).toBeVisible();
   await select(page, 'Back');
-  await select(page, 'View saved import');
+  await select(page, 'Saved brew sync');
   await expect(
-    page.getByRole('heading', { name: 'Importing saved brews' })
+    page.getByRole('heading', { name: 'Syncing saved brews' })
   ).toBeVisible();
   expect(
     await commandCalls(page, 'community_start_history_recovery')
-  ).toHaveLength(1);
+  ).toHaveLength(0);
   expect(await commandCalls(page, 'community_set_upload_paused')).toEqual([
     { command: 'community_set_upload_paused', args: { paused: true } },
     { command: 'community_set_upload_paused', args: { paused: false } }
   ]);
 });
 
-test('failed start stays on consent screen, exposes safe error and supports retry', async ({
+test('optional recheck after a terminal job requires confirmation and is single flight', async ({
   page
 }, info) => {
-  await openImport(page);
+  await setRecovery(page, { state: 'completed', pendingCount: 0 });
+  await select(page, 'Saved brew sync');
+  await expect(
+    page.getByRole('heading', { name: 'Saved sync complete' })
+  ).toBeVisible();
+  await select(page, 'Recheck history');
+  await expect(
+    page.getByRole('heading', { name: 'Recheck saved brews?' })
+  ).toBeVisible();
+  await expect(page.getByText(/Deleted brews stay deleted/)).toBeVisible();
+  await capture(page, info, 'optional-recheck-confirmation');
+  await select(page, 'Cancel');
+  expect(
+    await commandCalls(page, 'community_start_history_recovery')
+  ).toHaveLength(0);
+  await select(page, 'Saved brew sync');
+  await select(page, 'Recheck history');
+  await page.evaluate(() => {
+    window.communityProbe.holdStart = true;
+  });
+  await select(page, 'Recheck now');
+  await expect(page.getByRole('button', { name: 'Working...' })).toBeDisabled();
+  await emit(page, 'pressDown');
+  await capture(page, info, 'rechecking');
+  expect(
+    await commandCalls(page, 'community_start_history_recovery')
+  ).toHaveLength(1);
+  await page.evaluate(() => window.communityProbe.releaseStart?.());
+  await expect(
+    page.getByRole('heading', { name: 'Syncing saved brews' })
+  ).toBeVisible();
+});
+
+test('failed optional recheck exposes safe storage error and supports another attempt', async ({
+  page
+}, info) => {
+  await setRecovery(page, { state: 'completed', pendingCount: 0 });
+  await select(page, 'Saved brew sync');
+  await expect(
+    page.getByRole('heading', { name: 'Saved sync complete' })
+  ).toBeVisible();
+  await select(page, 'Recheck history');
   await page.evaluate(() => {
     window.communityProbe.startError =
       'state_persist_failed /private/sensitive-path';
   });
-  await select(page, 'Import all');
+  await select(page, 'Recheck now');
   await expect(page.getByRole('alert')).toHaveText(
-    'Could not save import progress. Check machine storage.'
+    'Could not save sync progress. Check machine storage.'
   );
   await expect(
-    page.getByRole('heading', { name: 'Import saved brews?' })
+    page.getByRole('heading', { name: 'Recheck saved brews?' })
   ).toBeVisible();
-  await capture(page, info, 'start-failed');
+  await capture(page, info, 'recheck-failed');
   await page.evaluate(() => {
     window.communityProbe.startError = null;
   });
-  await select(page, 'Import all');
+  await select(page, 'Recheck now');
   await expect(
-    page.getByRole('heading', { name: 'Importing saved brews' })
+    page.getByRole('heading', { name: 'Syncing saved brews' })
   ).toBeVisible();
 });
 
 for (const state of ['completed', 'interrupted'] as const) {
-  test(`${state} shows actual results and requires fresh consent to import again`, async ({
+  test(`${state} shows actual results without restarting from the status screen`, async ({
     page
   }, info) => {
     await setRecovery(page, {
@@ -219,36 +262,31 @@ for (const state of ['completed', 'interrupted'] as const) {
       preservedDeleted: 1234,
       pendingCount: 0
     });
-    await expect(
-      page.getByRole('button', { name: 'View saved import' })
-    ).toBeVisible();
-    await select(page, 'View saved import');
+    await select(page, 'Saved brew sync');
     await expect(
       page.getByRole('heading', {
-        name: state === 'completed' ? 'Import complete' : 'Import interrupted'
+        name:
+          state === 'completed'
+            ? 'Saved sync complete'
+            : 'Saved sync interrupted'
       })
     ).toBeVisible();
     await capture(page, info, state);
-    await select(page, 'Import again');
-    await expect(
-      page.getByRole('heading', { name: 'Import saved brews?' })
-    ).toBeVisible();
+    await select(page, 'Back');
+    await select(page, 'Saved brew sync');
     expect(
       await commandCalls(page, 'community_start_history_recovery')
     ).toHaveLength(0);
   });
 }
 
-test('partial import and service delay remain visible without pretending completion', async ({
+test('service delay resumes automatically but corrupt brews are reported as issues', async ({
   page
 }, info) => {
   await setRecovery(page, { lastError: 'recovery_server_upgrade_required' });
-  await expect(
-    page.getByRole('button', { name: 'View saved import' })
-  ).toBeVisible();
-  await select(page, 'View saved import');
+  await select(page, 'Saved brew sync');
   await expect(page.getByRole('alert')).toHaveText(
-    'Waiting for the Community update. Import will resume automatically.'
+    'Waiting for the Community update. Sync will resume automatically.'
   );
   await capture(page, info, 'waiting-for-service');
   await setRecovery(page, {
@@ -258,11 +296,16 @@ test('partial import and service delay remain visible without pretending complet
     lastError: 'machine_history_invalid'
   });
   await expect(
-    page.getByRole('heading', { name: 'Import finished with issues' })
+    page.getByRole('heading', { name: 'Sync finished with issues' })
   ).toBeVisible();
   await expect(page.getByRole('alert')).toHaveText(
     'Some saved history could not be read.'
   );
+  await expect(
+    page.getByText(
+      'Some saved brews could not be synced. Recheck after resolving the issue.'
+    )
+  ).toBeVisible();
   await capture(page, info, 'partial-results');
   await setRecovery(page, {
     state: 'completed',
@@ -273,18 +316,18 @@ test('partial import and service delay remain visible without pretending complet
   await expect(page.getByRole('alert')).toHaveText(
     'A saved brew could not be read.'
   );
-  await expect(
-    page.getByRole('button', { name: 'Import again' })
-  ).toBeVisible();
+  expect(
+    await commandCalls(page, 'community_start_history_recovery')
+  ).toHaveLength(0);
 });
 
-test('status failure does not pretend completion or reconnect and can retry', async ({
+test('status failure cannot pretend completion or reconnect and retry only refreshes status', async ({
   page
 }, info) => {
-  await openImport(page);
-  await select(page, 'Import all');
+  await setRecovery(page, {});
+  await select(page, 'Saved brew sync');
   await expect(
-    page.getByRole('heading', { name: 'Importing saved brews' })
+    page.getByRole('heading', { name: 'Syncing saved brews' })
   ).toBeVisible();
   await page.evaluate(() => {
     window.communityProbe.statusError = true;
@@ -292,31 +335,32 @@ test('status failure does not pretend completion or reconnect and can retry', as
   await expect(page.getByRole('alert')).toHaveText(
     'Could not refresh progress. Please retry.'
   );
-  await expect(
-    page.getByRole('button', { name: 'Retry', exact: true })
-  ).toBeVisible();
   await capture(page, info, 'refresh-failed');
   await page.evaluate(() => {
     window.communityProbe.statusError = false;
     window.communityProbe.setStatus({ recovery: null });
   });
   await select(page, 'Retry');
-  await expect(page.getByText('Waiting for import progress…')).toBeVisible();
   await expect(
-    page.getByRole('heading', { name: 'Import complete' })
+    page.getByText('Preparing saved history. No action is needed.')
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Saved sync complete' })
   ).toHaveCount(0);
   await capture(page, info, 'missing-progress');
-  await setRecovery(page, {});
-  await select(page, 'Retry');
+  await page.evaluate(() => window.communityProbe.runNativeWorkerTick());
   await expect(
-    page.getByRole('heading', { name: 'Importing saved brews' })
+    page.getByRole('heading', { name: 'Syncing saved brews' })
   ).toBeVisible();
   expect(await commandCalls(page, 'community_begin_enrollment')).toHaveLength(
     0
   );
+  expect(
+    await commandCalls(page, 'community_start_history_recovery')
+  ).toHaveLength(0);
 });
 
-test('disconnect confirmation and QR enrollment still work', async ({
+test('disconnect and enrollment still work and connection confirms automatic private sync', async ({
   page
 }, info) => {
   await select(page, 'Disconnect');
@@ -337,7 +381,15 @@ test('disconnect confirmation and QR enrollment still work', async ({
   await expect(
     page.getByRole('heading', { name: 'Connected to Community' })
   ).toBeVisible();
+  await expect(
+    page.getByText(
+      /Saved and new espresso and pour-over brews sync automatically/
+    )
+  ).toBeVisible();
   await capture(page, info, 'connected-success');
+  expect(
+    await commandCalls(page, 'community_start_history_recovery')
+  ).toHaveLength(0);
 });
 
 test('initial status failure has retry and cannot create a pairing code', async ({
@@ -358,23 +410,51 @@ test('initial status failure has retry and cannot create a pairing code', async 
   await expect(page.getByText('Connected', { exact: true })).toBeVisible();
 });
 
-test('starting while paused keeps both historical and new brew uploads paused', async ({
+test('automatic saved sync respects pause before and after its job is created', async ({
   page
 }, info) => {
   await select(page, 'Pause uploads');
   await expect(page.getByText('Upload paused', { exact: true })).toBeVisible();
-  await openImport(page);
+  await select(page, 'Saved brew sync');
   await expect(
-    page.getByText('Uploads are paused. Resume them to begin importing.')
+    page.getByRole('heading', { name: 'Saved sync paused' })
   ).toBeVisible();
-  await capture(page, info, 'paused-confirmation');
-  await select(page, 'Import all');
   await expect(
-    page.getByRole('heading', { name: 'Import paused' })
+    page.getByText('Resume uploads to sync saved history and new brews.')
   ).toBeVisible();
+  await capture(page, info, 'paused-before-job');
+  await page.evaluate(() => window.communityProbe.runNativeWorkerTick());
+  await expect(page.locator('.community-recovery-counts')).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Saved sync paused' })
+  ).toBeVisible();
+  expect(
+    await commandCalls(page, 'community_start_history_recovery')
+  ).toHaveLength(0);
   expect(await commandCalls(page, 'community_set_upload_paused')).toEqual([
     { command: 'community_set_upload_paused', args: { paused: true } }
   ]);
+});
+
+test('automatic startup failure shows its issue without offering a required start button', async ({
+  page
+}, info) => {
+  await page.evaluate(() =>
+    window.communityProbe.setStatus({ lastError: 'state_persist_failed' })
+  );
+  await select(page, 'Saved brew sync');
+  await expect(page.getByRole('alert')).toHaveText(
+    'Could not save sync progress. Check machine storage.'
+  );
+  await expect(
+    page.getByRole('button', { name: /Import|Recheck/ })
+  ).toHaveCount(0);
+  await expect(page.getByText('Waiting to sync saved history.')).toBeVisible();
+  await expect(page.getByText(/No action is needed/)).toHaveCount(0);
+  await capture(page, info, 'automatic-start-error');
+  expect(
+    await commandCalls(page, 'community_start_history_recovery')
+  ).toHaveLength(0);
 });
 
 test('status refresh failure keeps a rotary selection when overview actions shrink', async ({

@@ -776,8 +776,19 @@ fn recovery_routes(url: &Url) -> Reply {
     match url.path() {
         "/api/v1/history/upload-index/last" => Reply::json(json!({"file":ESPRESSO_PATH})),
         "/api/v1/history/pour-over/last" => Reply::json(json!({"file":POUR_PATH})),
-        "/api/v1/history/upload-index" => index(&[ESPRESSO_PATH.to_string()]),
-        "/api/v1/history/pour-over" => index(&[POUR_PATH.to_string()]),
+        "/api/v1/history/upload-index" | "/api/v1/history/pour-over" => {
+            let path = if url.path().ends_with("/pour-over") {
+                POUR_PATH
+            } else {
+                ESPRESSO_PATH
+            };
+            let after = url.query_pairs().find(|(key, _)| key == "after");
+            if after.is_some_and(|(_, cursor)| path <= cursor.as_ref()) {
+                index(&[])
+            } else {
+                index(&[path.to_string()])
+            }
+        }
         path if path.starts_with("/api/v1/history/pour-over/files/") => Reply::json(pour_over()),
         path if path.starts_with("/api/v1/history/files/") => Reply::json(espresso()),
         RECOVERY_PATH | SHOT_PATH => {
@@ -788,12 +799,12 @@ fn recovery_routes(url: &Url) -> Reply {
 }
 
 #[test]
-fn recovery_is_explicit_idempotent_and_can_start_while_paused() {
+fn recovery_starts_automatically_while_paused_and_manual_start_keeps_the_same_job() {
     let server = MachineServer::start(recovery_routes);
     let fixture = TestService::new(&server, true);
     assert!(fixture.state().recovery.is_none());
     fixture.service.set_paused(true).unwrap();
-    fixture.service.start_history_recovery().unwrap();
+    fixture.service.worker_tick().unwrap();
     let id = fixture.state().recovery.unwrap().id;
     fixture.service.start_history_recovery().unwrap();
     fixture.reload();
@@ -807,13 +818,14 @@ fn recovery_is_explicit_idempotent_and_can_start_while_paused() {
 }
 
 #[test]
-fn recovery_loads_legacy_json_without_starting_or_altering_live_cursors() {
+fn recovery_upgrades_legacy_connections_automatically_without_unpausing_or_altering_live_cursors() {
     let server = MachineServer::start(recovery_routes);
     let fixture = TestService::new(&server, true);
     fixture
         .service
         .queue_history_path(HistoryKind::Espresso, ESPRESSO_PATH)
         .unwrap();
+    fixture.service.set_paused(true).unwrap();
     let mut legacy = serde_json::to_value(fixture.state()).unwrap();
     legacy.as_object_mut().unwrap().remove("recovery");
     legacy["queue"][0]
@@ -836,6 +848,185 @@ fn recovery_loads_legacy_json_without_starting_or_altering_live_cursors() {
         fixture.state().history_cursor.as_deref(),
         Some(ESPRESSO_PATH)
     );
+    let previous_requests = server.requests().len();
+    fixture.service.worker_tick().unwrap();
+    let id = fixture.state().recovery.unwrap().id;
+    fixture.reload();
+    fixture.service.worker_tick().unwrap();
+    let state = fixture.state();
+    assert_eq!(state.recovery.unwrap().id, id);
+    assert!(state.paused);
+    assert_eq!(state.history_cursor.as_deref(), Some(ESPRESSO_PATH));
+    assert_eq!(state.queue.len(), 1);
+    assert!(!state.queue[0].recovery_only);
+    assert_eq!(server.requests().len(), previous_requests);
+}
+
+#[test]
+fn pairing_automatically_recovers_saved_brews_across_restart_and_does_not_repeat_completed_jobs() {
+    let authorization_id = Uuid::new_v4();
+    let key_id = Uuid::new_v4();
+    let server = MachineServer::start(move |url| {
+        if url.path() == EXCHANGE_PATH {
+            Reply::json(json!({
+                "accessToken": "inert-test-token",
+                "authorizationId": authorization_id,
+                "keyId": key_id,
+                "keyVersion": 1,
+            }))
+        } else {
+            recovery_routes(url)
+        }
+    });
+    let fixture = TestService::new(&server, false);
+    fixture.service.factory_reset_local().unwrap();
+    fixture.service.begin_enrollment(None).unwrap();
+    fixture.service.worker_tick().unwrap();
+    assert_eq!(fixture.state().authorization_id, Some(authorization_id));
+    fixture.service.worker_tick().unwrap();
+    let job_id = fixture.state().recovery.unwrap().id;
+    let queued = fixture.state().queue;
+    assert_eq!(queued.len(), 2);
+    assert!(queued.iter().all(|item| item.recovery_only));
+    fixture.reload();
+    for _ in 0..2 {
+        recovery_ready(&fixture);
+        fixture.service.worker_tick().unwrap();
+    }
+    let progress = fixture.service.status().recovery.unwrap();
+    assert_eq!(progress.state, "completed");
+    assert_eq!(progress.added, 2);
+    assert_eq!(progress.pending_count, 0);
+    assert_eq!(
+        fixture.state().history_cursor.as_deref(),
+        Some(ESPRESSO_PATH)
+    );
+    assert_eq!(
+        fixture.state().pour_over_history_cursor.as_deref(),
+        Some(POUR_PATH)
+    );
+    assert_eq!(
+        server
+            .requests()
+            .iter()
+            .filter(|path| *path == RECOVERY_PATH)
+            .count(),
+        2
+    );
+    assert!(!server.requests().iter().any(|path| path == SHOT_PATH));
+
+    // A restart and key rotation under the same authorization retain completion.
+    fixture
+        .service
+        .mutate_persistent(|state| {
+            state.key_id = Some(Uuid::new_v4());
+            state.key_version = Some(2);
+            Ok(())
+        })
+        .unwrap();
+    fixture.reload();
+    let requests_before = server.requests().len();
+    // No completed-job no-op fsyncs are permitted on the 500ms worker loop.
+    fs::remove_file(&fixture.service.inner.state_path).unwrap();
+    fs::create_dir(&fixture.service.inner.state_path).unwrap();
+    for _ in 0..3 {
+        fixture.service.worker_tick().unwrap();
+    }
+    assert_eq!(fixture.state().recovery.unwrap().id, job_id);
+    assert_eq!(server.requests().len(), requests_before);
+    fs::remove_dir(&fixture.service.inner.state_path).unwrap();
+}
+
+#[test]
+fn automatic_recovery_requires_complete_connection_credentials() {
+    for missing in ["authorization", "key", "version"] {
+        let server = MachineServer::start(recovery_routes);
+        let fixture = TestService::new(&server, true);
+        fixture
+            .service
+            .mutate_persistent(|state| {
+                match missing {
+                    "authorization" => state.authorization_id = None,
+                    "key" => state.key_id = None,
+                    _ => state.key_version = None,
+                }
+                state.paused = true;
+                Ok(())
+            })
+            .unwrap();
+        fixture.service.worker_tick().unwrap();
+        assert!(fixture.state().recovery.is_none());
+        assert!(server.requests().is_empty());
+    }
+}
+
+#[test]
+fn automatic_recovery_creation_retries_storage_failure_without_losing_pause_or_live_checkpoint() {
+    let server = MachineServer::start(recovery_routes);
+    let fixture = TestService::new(&server, true);
+    fixture
+        .service
+        .mutate_persistent(|state| {
+            state.paused = true;
+            state.history_cursor = Some(ESPRESSO_PATH.to_string());
+            Ok(())
+        })
+        .unwrap();
+    fs::remove_file(&fixture.service.inner.state_path).unwrap();
+    fs::create_dir(&fixture.service.inner.state_path).unwrap();
+    assert!(fixture.service.worker_tick().is_err());
+    assert!(fixture.state().recovery.is_none());
+    fs::remove_dir(&fixture.service.inner.state_path).unwrap();
+    fixture.service.worker_tick().unwrap();
+    fixture.reload();
+    assert!(fixture.state().recovery.is_some());
+    assert!(fixture.state().paused);
+    assert_eq!(
+        fixture.state().history_cursor.as_deref(),
+        Some(ESPRESSO_PATH)
+    );
+    assert!(server.requests().is_empty());
+}
+
+#[test]
+fn automatic_recovery_for_changed_authorization_discards_old_historical_bodies_before_starting() {
+    let server = MachineServer::start(recovery_routes);
+    let fixture = TestService::new(&server, false);
+    fixture.service.worker_tick().unwrap();
+    let old_job = fixture.state().recovery.unwrap().id;
+    let old_bodies = fixture
+        .state()
+        .queue
+        .iter()
+        .map(|item| item.body_file.clone())
+        .collect::<Vec<_>>();
+    assert_eq!(old_bodies.len(), 2);
+    let new_authorization = Uuid::new_v4();
+    fixture
+        .service
+        .mutate_persistent(|state| {
+            state.authorization_id = Some(new_authorization);
+            state.key_id = Some(Uuid::new_v4());
+            state.paused = true;
+            Ok(())
+        })
+        .unwrap();
+    fixture.reload();
+    let requests_before = server.requests().len();
+    fixture.service.worker_tick().unwrap();
+    let state = fixture.state();
+    let job = state.recovery.unwrap();
+    assert_ne!(job.id, old_job);
+    assert_eq!(job.authorization_id, new_authorization);
+    assert!(!job.interrupted);
+    assert_eq!(job.added, 0);
+    assert!(state.queue.is_empty());
+    assert!(
+        old_bodies
+            .iter()
+            .all(|file| !fixture.service.inner.queue_dir.join(file).exists())
+    );
+    assert_eq!(server.requests().len(), requests_before);
 }
 
 #[test]
