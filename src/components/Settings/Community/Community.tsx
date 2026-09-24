@@ -48,6 +48,8 @@ function recoveryError(value: unknown): string {
     return 'Could not save import progress. Check machine storage.';
   if (category.includes('too_large') || category.includes('oversized'))
     return 'A saved brew exceeds the upload size limit.';
+  if (category === 'shot_file_unreadable')
+    return 'A saved brew could not be read.';
   if (category.includes('invalid') || category.includes('unsupported'))
     return 'Some saved history could not be read.';
   if (category.includes('capacity') || category.includes('queue_full'))

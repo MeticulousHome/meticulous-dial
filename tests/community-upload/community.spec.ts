@@ -264,6 +264,18 @@ test('partial import and service delay remain visible without pretending complet
     'Some saved history could not be read.'
   );
   await capture(page, info, 'partial-results');
+  await setRecovery(page, {
+    state: 'completed',
+    failed: 2,
+    pendingCount: 0,
+    lastError: 'shot_file_unreadable'
+  });
+  await expect(page.getByRole('alert')).toHaveText(
+    'A saved brew could not be read.'
+  );
+  await expect(
+    page.getByRole('button', { name: 'Import again' })
+  ).toBeVisible();
 });
 
 test('status failure does not pretend completion or reconnect and can retry', async ({

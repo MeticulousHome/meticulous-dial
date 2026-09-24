@@ -23,6 +23,10 @@ history total. If a server commit succeeds but its response is lost, a retry
 can count that brew as already present. A completed scan is not complete while
 its queued uploads are still waiting for acknowledgement.
 
+An individually missing, malformed, or unreadable file receives three attempts
+before it is counted as an issue and the scan continues. The original machine
+file is not deleted. Connection failures and service outages remain retryable.
+
 ## Release order
 
 1. Review and apply the Community quiet-recovery migration through that

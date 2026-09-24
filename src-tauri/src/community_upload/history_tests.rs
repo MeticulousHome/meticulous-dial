@@ -1452,3 +1452,279 @@ fn recovery_healthy_authorization_guard_does_not_write_state_on_every_worker_tic
     fixture.service.interrupt_mismatched_recovery().unwrap();
     fs::remove_dir(&fixture.service.inner.state_path).unwrap();
 }
+
+#[test]
+fn legacy_recovery_captures_filename_bound_across_pages_and_restart_instead_of_brew_time() {
+    for missing_status in [404, 405] {
+        let paths = (1..=205)
+            .map(|n| format!("2026-09-24/{n:04}.shot.json"))
+            .collect::<Vec<_>>();
+        let expected_bound = paths.last().unwrap().clone();
+        let interrupted_page = Arc::new(AtomicBool::new(false));
+        let fail_page = Arc::clone(&interrupted_page);
+        let server = MachineServer::start(move |url| match url.path() {
+            "/api/v1/history/upload-index/last" => Reply::bytes(missing_status, "legacy firmware"),
+            // The old generic endpoint's latest brew-time row is deliberately
+            // lexicographically earlier than valid saved files. It is unsafe as
+            // an upload-index bound and recovery must never request it.
+            "/api/v1/history" => {
+                Reply::json(json!({"history":[{"file":paths[0],"timestamp":9999999999_u64}]}))
+            }
+            "/api/v1/history/upload-index" => {
+                let after = url
+                    .query_pairs()
+                    .find(|(key, _)| key == "after")
+                    .map(|(_, value)| value.into_owned());
+                if after.is_some() && fail_page.load(Ordering::Relaxed) {
+                    return Reply::bytes(503, "temporary index outage");
+                }
+                index(
+                    &paths
+                        .iter()
+                        .filter(|path| after.as_ref().is_none_or(|cursor| *path > cursor))
+                        .take(200)
+                        .cloned()
+                        .collect::<Vec<_>>(),
+                )
+            }
+            "/api/v1/history/pour-over/last" => Reply::json(json!({"file":null})),
+            "/api/v1/history/pour-over" => index(&[]),
+            path if path.starts_with("/api/v1/history/files/") => {
+                let mut brew = espresso();
+                brew["id"] = json!(path);
+                // File order and brew time need not agree (clock corrections).
+                brew["timestamp"] = json!(1);
+                Reply::json(brew)
+            }
+            RECOVERY_PATH => Reply::json(json!({"success":true,"imported":true,"deleted":false})),
+            _ => Reply::bytes(500, "unexpected route"),
+        });
+        let fixture = TestService::new(&server, true);
+        fixture
+            .service
+            .mutate_persistent(|state| {
+                state.history_cursor = Some("2026-10-01/live.shot.json".to_string());
+                Ok(())
+            })
+            .unwrap();
+        fixture.service.start_history_recovery().unwrap();
+        fixture.service.recover_saved_history();
+        fixture.reload();
+        let preparing = fixture.state().recovery.unwrap();
+        assert!(!preparing.espresso.initialized);
+        assert!(!preparing.espresso.exhausted);
+        assert_eq!(
+            preparing.espresso.through.as_deref(),
+            Some("2026-09-24/0200.shot.json")
+        );
+        assert!(preparing.espresso.cursor.is_none());
+        assert!(fixture.state().queue.is_empty());
+        assert_eq!(fixture.service.status().recovery.unwrap().state, "running");
+
+        interrupted_page.store(true, Ordering::Relaxed);
+        recovery_ready(&fixture);
+        fixture.service.recover_saved_history();
+        fixture.reload();
+        let interrupted = fixture.state().recovery.unwrap();
+        assert!(!interrupted.espresso.initialized);
+        assert_eq!(interrupted.espresso.through, preparing.espresso.through);
+        assert!(interrupted.espresso.cursor.is_none());
+        assert_eq!(interrupted.failed, 0);
+        assert_eq!(
+            interrupted.espresso.last_error.as_deref(),
+            Some("machine_history_unavailable")
+        );
+
+        interrupted_page.store(false, Ordering::Relaxed);
+        recovery_ready(&fixture);
+        fixture.service.recover_saved_history();
+        fixture.reload();
+        let captured = fixture.state().recovery.unwrap();
+        assert!(captured.espresso.initialized);
+        assert_eq!(
+            captured.espresso.through.as_deref(),
+            Some(expected_bound.as_str())
+        );
+        assert_eq!(
+            captured.espresso.cursor.as_deref(),
+            Some("2026-09-24/0001.shot.json")
+        );
+        for _ in 0..205 {
+            recovery_ready(&fixture);
+            fixture.service.upload_next_shot().unwrap();
+            fixture.service.recover_saved_history();
+        }
+        fixture.reload();
+        let progress = fixture.service.status().recovery.unwrap();
+        assert_eq!(progress.state, "completed");
+        assert_eq!((progress.added, progress.failed), (205, 0));
+        assert_eq!(
+            fixture.state().recovery.unwrap().espresso.cursor.as_deref(),
+            Some(expected_bound.as_str())
+        );
+        assert_eq!(
+            fixture.state().history_cursor.as_deref(),
+            Some("2026-10-01/live.shot.json")
+        );
+        let requests = server.requests();
+        assert_eq!(
+            requests
+                .iter()
+                .filter(|path| path.as_str() == "/api/v1/history/upload-index/last")
+                .count(),
+            1,
+            "restart resumes capture checkpoint without restarting legacy detection"
+        );
+        assert!(
+            !requests
+                .iter()
+                .any(|path| path == "/api/v1/history" || path.starts_with("/api/v1/history?"))
+        );
+    }
+}
+
+#[test]
+fn recovery_corrupt_compressed_files_retry_three_times_across_restart_then_import_later_brews() {
+    const BAD_ESPRESSO: &str = "2026-09-24/0001.shot.json.zst";
+    const GOOD_ESPRESSO: &str = "2026-09-24/0003.shot.json.zst";
+    const BAD_POUR: &str = "2026-09-24/0002.pour-over.json.zst";
+    const GOOD_POUR: &str = "2026-09-24/0004.pour-over.json.zst";
+    let server = MachineServer::start(|url| match url.path() {
+        "/api/v1/history/upload-index/last" => Reply::json(json!({"file":GOOD_ESPRESSO})),
+        "/api/v1/history/pour-over/last" => Reply::json(json!({"file":GOOD_POUR})),
+        "/api/v1/history/upload-index" | "/api/v1/history/pour-over" => {
+            let paths = if url.path().ends_with("/pour-over") {
+                [BAD_POUR, GOOD_POUR]
+            } else {
+                [BAD_ESPRESSO, GOOD_ESPRESSO]
+            };
+            let after = url
+                .query_pairs()
+                .find(|(key, _)| key == "after")
+                .map(|(_, value)| value.into_owned());
+            index(
+                &paths
+                    .into_iter()
+                    .filter(|path| after.as_ref().is_none_or(|cursor| *path > cursor.as_str()))
+                    .map(str::to_string)
+                    .collect::<Vec<_>>(),
+            )
+        }
+        path if path.ends_with(BAD_ESPRESSO) => {
+            Reply::bytes(500, "<html><title>500 Internal Server Error</title></html>")
+        }
+        path if path.ends_with(BAD_POUR) => {
+            Reply::bytes(500, r#"{"error":"Invalid history entry"}"#)
+        }
+        path if path.ends_with(GOOD_ESPRESSO) => Reply::json(espresso()),
+        path if path.ends_with(GOOD_POUR) => Reply::json(pour_over()),
+        RECOVERY_PATH => Reply::json(json!({"success":true,"imported":true,"deleted":false})),
+        _ => Reply::bytes(503, "unexpected route"),
+    });
+    let fixture = TestService::new(&server, true);
+    fixture.service.start_history_recovery().unwrap();
+    for attempt in 1..=3 {
+        recovery_ready(&fixture);
+        fixture.service.recover_saved_history();
+        fixture.reload();
+        let job = fixture.state().recovery.unwrap();
+        assert_eq!(job.failed, if attempt == 3 { 2 } else { 0 });
+        if attempt < 3 {
+            assert_eq!(
+                (job.espresso.file_attempts, job.pour_over.file_attempts),
+                (attempt, attempt)
+            );
+            assert!(job.espresso.cursor.is_none());
+            assert!(job.pour_over.cursor.is_none());
+            assert_eq!(
+                job.espresso.last_error.as_deref(),
+                Some("shot_file_unreadable")
+            );
+        }
+        assert!(fixture.state().queue.is_empty());
+    }
+    recovery_ready(&fixture);
+    fixture.service.recover_saved_history();
+    assert_eq!(fixture.state().queue.len(), 2);
+    for _ in 0..2 {
+        recovery_ready(&fixture);
+        fixture.service.upload_next_shot().unwrap();
+    }
+    fixture.reload();
+    let progress = fixture.service.status().recovery.unwrap();
+    assert_eq!(progress.state, "completed");
+    assert_eq!((progress.added, progress.failed), (2, 2));
+    assert_eq!(progress.last_error.as_deref(), Some("shot_file_unreadable"));
+    assert!(fixture.state().history_cursor.is_none());
+    assert!(fixture.state().pour_over_history_cursor.is_none());
+    let requests = server.requests();
+    assert_eq!(
+        requests
+            .iter()
+            .filter(|path| path.ends_with(BAD_ESPRESSO))
+            .count(),
+        3
+    );
+    assert_eq!(
+        requests
+            .iter()
+            .filter(|path| path.ends_with(BAD_POUR))
+            .count(),
+        3
+    );
+}
+
+#[test]
+fn recovery_service_and_gateway_failures_never_exhaust_the_bad_file_budget() {
+    for status in [502, 503, 504] {
+        let server = MachineServer::start(move |url| {
+            if url.path().starts_with("/api/v1/history/files/") {
+                Reply::bytes(status, "temporarily unavailable")
+            } else {
+                recovery_routes(url)
+            }
+        });
+        let fixture = TestService::new(&server, true);
+        fixture.service.start_history_recovery().unwrap();
+        for _ in 0..4 {
+            recovery_ready(&fixture);
+            fixture.service.recover_saved_history();
+            fixture.reload();
+        }
+        let job = fixture.state().recovery.unwrap();
+        assert_eq!(job.failed, 0);
+        assert_eq!(job.espresso.file_attempts, 0);
+        assert!(job.espresso.cursor.is_none());
+        assert!(!job.espresso.exhausted);
+        assert_eq!(
+            job.espresso.last_error.as_deref(),
+            Some("shot_file_pending")
+        );
+        assert_eq!(fixture.state().queue.len(), 1, "other method must continue");
+    }
+}
+
+#[test]
+fn live_history_reads_keep_existing_retry_policy_for_500_and_invalid_json() {
+    for (status, body) in [(500, "corrupt zstd"), (200, "invalid json")] {
+        let server = MachineServer::start(move |url| {
+            if url.path().contains("/files/") {
+                Reply::bytes(status, body)
+            } else {
+                recovery_routes(url)
+            }
+        });
+        let fixture = TestService::new(&server, true);
+        for _ in 0..4 {
+            let failure = fixture
+                .service
+                .queue_history_path(HistoryKind::Espresso, ESPRESSO_PATH)
+                .unwrap_err();
+            assert_eq!(failure.category, "shot_file_pending");
+            assert!(!failure.permanent);
+        }
+        assert!(fixture.state().queue.is_empty());
+        assert!(fixture.state().history_cursor.is_none());
+        assert!(fixture.state().recovery.is_none());
+    }
+}

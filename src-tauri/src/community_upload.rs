@@ -969,15 +969,15 @@ impl CommunityUploadService {
             .send()
             .map_err(|_| temporary("shot_file_pending"))?;
         if !response.status().is_success() {
-            return Err(temporary(
-                if response.status().as_u16() == 404
-                    && matches!(checkpoint, Checkpoint::Recovery(_))
-                {
-                    "shot_file_missing"
-                } else {
-                    "shot_file_pending"
-                },
-            ));
+            let category = match (checkpoint, response.status().as_u16()) {
+                (Checkpoint::Recovery(_), 404) => "shot_file_missing",
+                // A corrupt saved .zst record surfaces as HTTP500 from both
+                // backend readers. Bound retries for this individual file so
+                // later records can import; gateway/service failures still retry.
+                (Checkpoint::Recovery(_), 500) => "shot_file_unreadable",
+                _ => "shot_file_pending",
+            };
+            return Err(temporary(category));
         }
         let declared = response.content_length().unwrap_or(0);
         if declared as usize > MAX_SHOT_BODY_BYTES {
@@ -991,8 +991,12 @@ impl CommunityUploadService {
         if raw.len() > MAX_SHOT_BODY_BYTES {
             return Err(permanent("shot_file_too_large"));
         }
-        let parsed =
-            serde_json::from_slice::<Value>(&raw).map_err(|_| temporary("shot_file_invalid"))?;
+        let parsed = serde_json::from_slice::<Value>(&raw).map_err(|_| {
+            temporary(match checkpoint {
+                Checkpoint::Recovery(_) => "shot_file_invalid",
+                Checkpoint::Live => "shot_file_pending",
+            })
+        })?;
         let source_shot_id = validate_history_record(&parsed, history_kind)?;
         if self.attach_queued_history(
             history_kind,

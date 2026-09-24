@@ -389,7 +389,23 @@ impl CommunityUploadService {
         let operation = (|| {
             if !stream.initialized {
                 let through = match kind {
-                    HistoryKind::Espresso => self.fetch_last_history_path()?,
+                    HistoryKind::Espresso => {
+                        let (through, complete) =
+                            self.fetch_recovery_espresso_bound(stream.through.as_deref())?;
+                        if !complete {
+                            self.mutate_persistent_failure(|state| {
+                                if checkpoint_allowed(state, Checkpoint::Recovery(id)) {
+                                    let stream = state.recovery.as_mut().unwrap().stream_mut(kind);
+                                    stream.through = through;
+                                    stream.next_scan_at = unix_seconds() + 1;
+                                    stream.last_error = None;
+                                }
+                                Ok(())
+                            })?;
+                            return Ok(());
+                        }
+                        through
+                    }
                     HistoryKind::PourOver => self.fetch_last_pour_over_history_path()?,
                 };
                 // The legacy last endpoint returns 404 for both unsupported and
@@ -468,6 +484,39 @@ impl CommunityUploadService {
         Ok(())
     }
 
+    fn fetch_recovery_espresso_bound(
+        &self,
+        after: Option<&str>,
+    ) -> Result<(Option<String>, bool), RequestFailure> {
+        if after.is_none() {
+            let response = self
+                .inner
+                .client
+                .get(self.machine_url("/api/v1/history/upload-index/last"))
+                .send()
+                .map_err(|_| temporary("machine_history_unavailable"))?;
+            if response.status().is_success() {
+                return parse_latest_history_path(response, "machine_history")
+                    .map(|path| (path, true));
+            }
+            if !matches!(response.status().as_u16(), 404 | 405) {
+                return Err(temporary("machine_history_unavailable"));
+            }
+        }
+        // Legacy /history orders by brew time, whereas upload-index orders by
+        // filename. Establish the recovery bound in the same order as its scan.
+        // While uninitialized, through stores this bounded discovery checkpoint;
+        // the live cursor and the recovery import cursor stay untouched.
+        let page = self.fetch_history_paths(after)?;
+        Ok((
+            page.paths
+                .last()
+                .cloned()
+                .or_else(|| after.map(str::to_string)),
+            page.complete,
+        ))
+    }
+
     fn record_recovery_scan_error(
         &self,
         id: Uuid,
@@ -485,7 +534,7 @@ impl CommunityUploadService {
             stream.next_scan_at = unix_seconds() + failure.retry_after_seconds.unwrap_or(5).max(1);
             let bounded = matches!(
                 failure.category.as_str(),
-                "shot_file_missing" | "shot_file_invalid"
+                "shot_file_missing" | "shot_file_invalid" | "shot_file_unreadable"
             );
             if let Some(path) = path {
                 if bounded {
