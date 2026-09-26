@@ -210,6 +210,143 @@ impl Reporter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    /// Exercise the real queueing and completion paths with selective disk failure:
+    /// the body can be saved, but state.json is a directory so rename fails.
+    #[test]
+    fn queue_persist_failures_preserve_diagnostics_until_upload_completes() {
+        use super::super::{
+            Client, CommunityUploadService, HistoryKind, Inner, RuntimeState, Url, VolatileState,
+            create_private_dir, fresh_state,
+        };
+        use std::io::{Read, Write};
+        use std::net::TcpListener;
+        use std::sync::Arc;
+        use std::thread;
+        use std::time::Duration;
+
+        struct TestLog(Mutex<Vec<String>>);
+        impl log::Log for TestLog {
+            fn enabled(&self, _: &log::Metadata<'_>) -> bool {
+                true
+            }
+            fn log(&self, record: &log::Record<'_>) {
+                self.0.lock().unwrap().push(record.args().to_string());
+            }
+            fn flush(&self) {}
+        }
+        static LOG: TestLog = TestLog(Mutex::new(Vec::new()));
+        log::set_logger(&LOG).unwrap();
+        log::set_max_level(log::LevelFilter::Info);
+
+        let root = std::env::temp_dir().join(format!("upload-persist-{}", uuid::Uuid::new_v4()));
+        let state_path = root.join("state.json");
+        let queue_dir = root.join("queue");
+        create_private_dir(&queue_dir).unwrap();
+        std::fs::create_dir(&state_path).unwrap();
+
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = thread::spawn(move || {
+            for _ in 0..3 {
+                let (mut stream, _) = listener.accept().unwrap();
+                stream
+                    .set_read_timeout(Some(Duration::from_secs(5)))
+                    .unwrap();
+                let mut request = Vec::new();
+                let mut byte = [0];
+                while !request.ends_with(b"\r\n\r\n") {
+                    stream.read_exact(&mut byte).unwrap();
+                    request.push(byte[0]);
+                }
+                let body = r#"{"id":"persist-test-shot","data":[]}"#;
+                write!(stream, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}", body.len(), body).unwrap();
+            }
+        });
+        let service = CommunityUploadService {
+            inner: Arc::new(Inner {
+                state: Mutex::new(RuntimeState {
+                    persistent: fresh_state().unwrap(),
+                    volatile: VolatileState::default(),
+                }),
+                state_path: state_path.clone(),
+                queue_dir: queue_dir.clone(),
+                community_base: Url::parse("http://127.0.0.1:1").unwrap(),
+                machine_base: Url::parse(&format!("http://{address}")).unwrap(),
+                client: Client::builder()
+                    .no_proxy()
+                    .timeout(Duration::from_secs(5))
+                    .build()
+                    .unwrap(),
+            }),
+        };
+
+        failure("state_persist_failed", None, None, None);
+        let original = events().lock().unwrap().last.clone();
+        let first_emitted = events().lock().unwrap().last_emitted;
+        for _ in 0..2 {
+            let error = service
+                .queue_history_path(HistoryKind::Espresso, "2026-09-25/test.json")
+                .unwrap_err();
+            assert_eq!(error.category, "state_persist_failed");
+            assert_eq!(events().lock().unwrap().last, original);
+            service.record_worker_failure(&error);
+            assert_eq!(events().lock().unwrap().last, original);
+            assert_eq!(events().lock().unwrap().last_emitted, first_emitted);
+            let state = service.inner.state.lock().unwrap();
+            assert!(state.persistent.queue.is_empty());
+            assert!(state.persistent.history_cursor.is_none());
+            assert_eq!(std::fs::read_dir(&queue_dir).unwrap().count(), 0);
+        }
+        // Repair storage. Queueing succeeds, but an upload has not completed yet.
+        std::fs::remove_dir(&state_path).unwrap();
+        service
+            .queue_history_path(HistoryKind::Espresso, "2026-09-25/test.json")
+            .unwrap();
+        server.join().unwrap();
+        assert_eq!(events().lock().unwrap().last, original);
+        {
+            let messages = LOG.0.lock().unwrap();
+            assert!(!messages.iter().any(|line| line.contains("upload_resumed")));
+            assert_eq!(
+                messages
+                    .iter()
+                    .filter(|line| line.contains("[CommunityUpload] failure"))
+                    .count(),
+                1
+            );
+        }
+
+        // Even an acknowledged upload is not resumed until its completion is durable.
+        let queued = service.inner.state.lock().unwrap().persistent.queue[0].clone();
+        let body_path = queue_dir.join(&queued.body_file);
+        std::fs::remove_file(&state_path).unwrap();
+        std::fs::create_dir(&state_path).unwrap();
+        assert!(service.complete_queue_item(queued.id, &body_path).is_err());
+        assert_eq!(events().lock().unwrap().last, original);
+        assert!(body_path.exists());
+        assert!(
+            !LOG.0
+                .lock()
+                .unwrap()
+                .iter()
+                .any(|line| line.contains("upload_resumed"))
+        );
+        std::fs::remove_dir(&state_path).unwrap();
+        service.complete_queue_item(queued.id, &body_path).unwrap();
+        assert!(events().lock().unwrap().last.is_none());
+        assert!(!body_path.exists());
+        assert_eq!(
+            LOG.0
+                .lock()
+                .unwrap()
+                .iter()
+                .filter(|line| line.contains("upload_resumed"))
+                .count(),
+            1
+        );
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn snapshot_excludes_secrets_and_unknown_fields() {
         let value = snapshot(

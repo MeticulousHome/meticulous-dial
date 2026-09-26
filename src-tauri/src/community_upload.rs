@@ -900,7 +900,6 @@ impl CommunityUploadService {
             state.last_error = None;
             Ok(())
         }) {
-            diagnostics::recovered();
             let _ = fs::remove_file(body_path);
             return Err(error);
         }
