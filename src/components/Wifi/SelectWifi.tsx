@@ -9,7 +9,7 @@ import {
   setBubbleDisplay,
   setScreen
 } from '../store/features/screens/screens-slice';
-import { useAvailableWiFiList, useNetworkConfig } from '../../hooks/useWifi';
+import { useAvailableWiFiList } from '../../hooks/useWifi';
 
 import Styled, {
   VIEWPORT_HEIGHT,
@@ -28,7 +28,6 @@ export const SelectWifi = (): JSX.Element => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const { data, isFetching } = useAvailableWiFiList();
-  const { data: networkConfig } = useNetworkConfig({ idle: true });
 
   const wifiList = useMemo(() => {
     const networks = data || [];
@@ -64,12 +63,8 @@ export const SelectWifi = (): JSX.Element => {
           setBubbleDisplay({ visible: true, component: 'wifiSettings' })
         );
       } else {
-        const ssid = selectedItem.key;
-        const useKnownCredentials = Boolean(
-          networkConfig?.known_wifis && ssid in networkConfig.known_wifis
-        );
         dispatch(setBubbleDisplay({ visible: false, component: undefined }));
-        dispatch(selectWifi({ ssid, useKnownCredentials }));
+        dispatch(selectWifi(wifiList[activeIndex].key));
         dispatch(setScreen('enterWifiPassword'));
       }
     }

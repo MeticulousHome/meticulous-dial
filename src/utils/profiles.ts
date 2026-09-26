@@ -1,6 +1,21 @@
 import { Profile, Variable } from '@meticulous-home/espresso-profile/dist';
 import { IPresetAction, IPresetBaseNumerical, IPresetSetting } from '../types';
 import { StaticAction } from '../constants/setting';
+import { v4 as uuidv4 } from 'uuid';
+
+export const NEW_PROFILE_NAME = 'New profile';
+
+export const newProfileFromTemplate = (template: Profile): Profile => ({
+  ...template,
+  id: uuidv4(),
+  name: NEW_PROFILE_NAME,
+  previous_authors: [],
+  variables: template.variables ?? [],
+  display: {
+    ...template.display,
+    image: template.display?.image ?? ''
+  }
+});
 
 export const generateStaticActions = (
   settings: StaticAction[],

@@ -43,12 +43,7 @@ export const DeleteWifiMenu = (): JSX.Element => {
       switch (items[activeIndex].key) {
         case 'connect': {
           dispatch(setBubbleDisplay({ visible: false, component: undefined }));
-          dispatch(
-            selectWifi({
-              ssid: selectedWifiToDelete,
-              useKnownCredentials: true
-            })
-          );
+          dispatch(selectWifi(selectedWifiToDelete));
           dispatch(setScreen('enterWifiPassword'));
           break;
         }
@@ -96,13 +91,14 @@ export const DeleteWifiMenu = (): JSX.Element => {
   if (deleteKnownWifiMutation.isError) {
     return (
       <div className="main-container response">
-        <div className="connect-response-title error-entry">
+        <div className={`connect-response error-entry`}>
           An error occured. Please try again
         </div>
-        <div className="connect-response-message error-entry">
+        <div className={`connect-response error-entry`}>
           {deleteKnownWifiMutation.failureReason?.message}
         </div>
-        <div key="back" className="settings-item active-setting connect-item">
+        <br />
+        <div key="back" className={`settings-item active-setting connect-item`}>
           <div className="settings-entry connect-button">Ok</div>
         </div>
       </div>
