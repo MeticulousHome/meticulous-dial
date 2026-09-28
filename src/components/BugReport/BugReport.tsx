@@ -407,7 +407,9 @@ const withRetry = async <T,>(
       return await attempt();
     } catch (error) {
       lastError = error;
-      console.warn(`[bug-report] ${label} attempt ${index + 1} failed`, error);
+      console.warn(
+        `[bug-report] ${label} attempt ${index + 1} failed: ${error}`
+      );
       if (index < RETRY_DELAYS_MS.length) {
         await sleep(RETRY_DELAYS_MS[index], signal);
       }
