@@ -558,14 +558,14 @@ fn show_mem() {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let community_upload = CommunityUploadRuntime::initialize();
-    community_upload.start();
-    std::thread::spawn(|| {
-        show_mem();
-    });
     tauri::Builder::default()
-        .manage(community_upload)
         .setup(|_app| {
+            // Plugins (including stdout logging) are initialized before app setup.
+            let community_upload = CommunityUploadRuntime::initialize();
+            _app.manage(community_upload.clone());
+            community_upload.start();
+            std::thread::spawn(show_mem);
+
             #[cfg(debug_assertions)]
             {
                 let window = _app.get_webview_window("main").unwrap();

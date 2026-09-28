@@ -1,3 +1,5 @@
+mod diagnostics;
+
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use ed25519_dalek::{Signer, SigningKey};
 use rand_core::{OsRng, RngCore};
@@ -197,7 +199,7 @@ impl CommunityUploadRuntime {
         match CommunityUploadService::new() {
             Ok(service) => Self::Available(service),
             Err(error) => {
-                eprintln!("Community upload disabled: {error}");
+                log::error!("[CommunityUpload] initialization_failed");
                 Self::Unavailable(Arc::new(error))
             }
         }
@@ -317,6 +319,7 @@ impl CommunityUploadService {
     pub fn start(&self) {
         let service = self.clone();
         thread::spawn(move || {
+            let mut diagnostics = diagnostics::Reporter::default();
             loop {
                 if service.worker_is_ready() {
                     match service.worker_tick() {
@@ -324,6 +327,10 @@ impl CommunityUploadService {
                         Err(error) => service.record_worker_failure(&error),
                     }
                 }
+                diagnostics.observe(
+                    serde_json::to_value(service.status()).unwrap_or(Value::Null),
+                    &service.inner.state_path.with_file_name("diagnostics.json"),
+                );
                 thread::sleep(Duration::from_millis(500));
             }
         });
@@ -1184,6 +1191,7 @@ impl CommunityUploadService {
             state.last_retry_at = None;
             Ok(())
         })?;
+        diagnostics::recovered();
         let _ = fs::remove_file(body_path);
         Ok(())
     }
@@ -1193,6 +1201,12 @@ impl CommunityUploadService {
         queued: &QueuedShot,
         failure: &RequestFailure,
     ) -> Result<(), RequestFailure> {
+        diagnostics::failure(
+            &failure.category,
+            failure.status,
+            failure.retry_after_seconds,
+            None,
+        );
         self.mutate_persistent_failure(|state| {
             schedule_queue_retry(state, queued.id, failure, unix_seconds());
             Ok(())
@@ -1309,6 +1323,12 @@ impl CommunityUploadService {
     }
 
     fn record_worker_failure(&self, failure: &RequestFailure) {
+        diagnostics::failure(
+            &failure.category,
+            failure.status,
+            failure.retry_after_seconds,
+            None,
+        );
         let delay = {
             let mut state = match self.inner.state.lock() {
                 Ok(state) => state,
@@ -1708,6 +1728,12 @@ fn parse_json_response<T: DeserializeOwned>(
 
 fn response_failure(response: Response, fallback: &str) -> RequestFailure {
     let status = response.status();
+    let request_id = response
+        .headers()
+        .get("x-correlation-id")
+        .or_else(|| response.headers().get("x-request-id"))
+        .and_then(|value| value.to_str().ok())
+        .map(str::to_owned);
     let retry_after_seconds = response
         .headers()
         .get(RETRY_AFTER)
@@ -1719,6 +1745,12 @@ fn response_failure(response: Response, fallback: &str) -> RequestFailure {
         .and_then(|value| value.error)
         .map(|value| safe_category(&value))
         .unwrap_or_else(|| fallback.to_string());
+    diagnostics::failure(
+        &category,
+        Some(status.as_u16()),
+        retry_after_seconds,
+        request_id.as_deref(),
+    );
     RequestFailure {
         permanent: failure_is_permanent(status.as_u16(), &category),
         category,
