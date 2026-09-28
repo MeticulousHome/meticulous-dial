@@ -933,11 +933,14 @@ export const BugReport = (): JSX.Element => {
       const attachment = buildDraftAttachment(draftFile);
 
       setSubmissionStage('sendingFeedback');
-      const eventID = await withRetry(
-        () => sendSentryFeedback({ reportInfo, attachment, signal }),
-        signal,
-        'sentry'
-      );
+      // Single attempt on purpose: captureFeedback is create-only, so a retry
+      // after an ambiguous transport result (no response / timeout) files a
+      // brand-new duplicate report rather than re-sending this one.
+      const eventID = await sendSentryFeedback({
+        reportInfo,
+        attachment,
+        signal
+      });
 
       setSubmissionStage('savingRecord');
       const markSubmittedResponse = await api.markSubmittedReport(
