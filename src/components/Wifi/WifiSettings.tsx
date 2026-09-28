@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 
 import './wifiSettings.css';
 import { useAppDispatch } from '../store/hooks';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
@@ -70,7 +70,6 @@ export const WifiSettings = (): JSX.Element => {
 
     return () => clearInterval(interval);
   }, [loadingMessages]);
-
   const wifiSettingItems = useMemo(
     () => [
       {

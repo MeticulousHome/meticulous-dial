@@ -42,8 +42,6 @@ export type ScreenType =
   | 'deviceInfo'
   | 'updateChannel'
   | 'idleScreenSettings'
-  | 'defaultProfiles'
-  | 'defaultProfileDetails'
   | 'manualSetup'
   | 'manual-purge'
   | 'heating'
@@ -78,6 +76,7 @@ interface ScreenState {
     visible: boolean;
     component?: ScreenType;
     previousComponent?: ScreenType;
+    pinned?: boolean;
   };
 }
 
@@ -117,9 +116,14 @@ const screenSlice = createSlice({
       state.bubbleDisplay.component = action.payload.component;
       state.bubbleDisplay.interceptsGesture =
         action.payload.interceptsGesture || action.payload.visible;
+      if (!action.payload.visible) state.bubbleDisplay.pinned = false;
+    },
+    setBubblePinned: (state: ScreenState, action: PayloadAction<boolean>) => {
+      state.bubbleDisplay.pinned = action.payload;
     }
   }
 });
 
-export const { setScreen, setBubbleDisplay } = screenSlice.actions;
+export const { setScreen, setBubbleDisplay, setBubblePinned } =
+  screenSlice.actions;
 export default screenSlice.reducer;
