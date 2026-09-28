@@ -151,7 +151,7 @@ export async function updateNetworkConfig(
     if (error.response) {
       console.error('Error updating Network Config: ', error.response.data);
       throw new Error(
-        error.response.data?.message || 'Error updating Network Config.'
+        getApiErrorMessage(error, 'Error updating Network Config.')
       );
     } else {
       console.error(

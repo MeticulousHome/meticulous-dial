@@ -74,7 +74,7 @@ export const WifiSettings = (): JSX.Element => {
     () => [
       {
         key: 'status',
-        label: `Status: ${isWifiConnected ? 'CONNECTED' : 'NOT CONNECTED'}`,
+        label: `Status: ${healthLabel}`,
         visible: true
       },
       {
