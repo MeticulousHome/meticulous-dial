@@ -9,12 +9,12 @@ import {
 } from 'react';
 import { useLastProfile, useProfiles } from '../hooks/useProfiles';
 import {
+  isLimitedAccess,
   LastProfileIdent,
   ProfileUpdate
-} from '@meticulous-home/espresso-api/dist';
+} from '@meticulous-home/espresso-api';
 import { IPresetAction, IPresetSetting } from '../types';
 import { useSettings } from '../hooks/useSettings';
-import demoProfile from '../assets/9BarItalian.json';
 import type { HomeMode } from '../components/ProfileHomeScreen/homeSelection';
 
 type ProfileContextType = {
@@ -64,6 +64,7 @@ type ProfileContextType = {
 export type ExtendedProfile = Profile & {
   isLast?: boolean;
   temporary?: boolean;
+  manual?: boolean;
 };
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -103,12 +104,10 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [hasJustHandledProfileEvent, setHasJustHandledProfileEvent] =
     useState(false);
 
-  const limitedAccess = settings?.update_channel === 'factory';
+  const limitedAccess = isLimitedAccess(settings);
 
   const mergedProfiles = useMemo<ExtendedProfile[]>(() => {
     if (!profiles) return [];
-    if (limitedAccess) return [demoProfile as ExtendedProfile];
-
     const last = lastProfile?.profile;
     if (!last) return profiles;
 
@@ -139,7 +138,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     //   }
     // ];
     return profilesExtended;
-  }, [profiles, lastProfile?.profile, limitedAccess]);
+  }, [profiles, lastProfile?.profile]);
 
   // If the last profile changes scroll to the last profile
   useEffect(() => {
@@ -277,7 +276,6 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     selectedPourOverProfileId,
     setSelectedPourOverProfileId
   };
-
   return (
     <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>
   );

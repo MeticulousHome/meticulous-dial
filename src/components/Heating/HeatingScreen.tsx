@@ -20,6 +20,8 @@ import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { OptionsMenu } from './OptionsMenu';
 import { useContinueBrewAction } from '../store/SocketManager';
 import { useProfileContext } from '../../context/ProfileContext';
+import { createStartBrewGestureHandlers } from './startBrewGestures';
+import { useBrewDoubleClickHandler } from '../../hooks/useBrewDoubleClickHandler';
 
 const PushToStartLabel = styled.div`
   font-size: 20px;
@@ -172,18 +174,21 @@ export const HeatingScreen = () => {
     transition: `transform ${transitionDuration / 1000}s`
   };
 
+  const startBrewGestureHandlers = createStartBrewGestureHandlers(
+    heatingFinished,
+    optionSeletected,
+    () => {
+      continueBrew();
+      console.log('action,continue');
+    }
+  );
+
+  // A brew screen, so a double click reaches the machine here too, but only
+  // the barometer may finish: this one can only abort.
+  const doubleClick = useBrewDoubleClickHandler({ allowFinish: false });
+
   useHandleGestures(
-    {
-      click() {
-        if (
-          heatingFinished &&
-          ['push_to_brew', 'brew_now'].includes(optionSeletected)
-        ) {
-          continueBrew();
-          console.log('action,continue');
-        }
-      }
-    },
+    { ...startBrewGestureHandlers, doubleClick },
     bubbleDisplay.interceptsGesture
   );
 

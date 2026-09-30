@@ -20,6 +20,8 @@ jobs:
       # Step 5
       - name: Check types
         run: npm run types
+      - name: Test slowdown detector
+        run: npm run test:slowdown
       - name: Check Free Pour motion detection
         run: npm run test:free-pour
       - name: Check home screen selection

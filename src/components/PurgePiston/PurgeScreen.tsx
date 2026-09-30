@@ -7,6 +7,8 @@ import { notificationSelector } from '../store/features/notifications/notificati
 import './piston.css';
 import { setScreen } from '../store/features/screens/screens-slice';
 import { useProfileContext } from '../../context/ProfileContext';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useBrewDoubleClickHandler } from '../../hooks/useBrewDoubleClickHandler';
 
 export function PurgeScreen(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -18,6 +20,12 @@ export function PurgeScreen(): JSX.Element {
   const hasNotifications = useAppSelector(
     notificationSelector.selectHasNotifications
   );
+  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+
+  // A brew screen, so a double click reaches the machine here too, but only
+  // the barometer may finish: this one can only abort.
+  const doubleClick = useBrewDoubleClickHandler({ allowFinish: false });
+  useHandleGestures({ doubleClick }, bubbleDisplay.interceptsGesture);
 
   useEffect(() => {
     if (statsName === 'idle' && !hasNotifications && !profileStarting) {
