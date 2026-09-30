@@ -472,8 +472,9 @@ export const routes: Record<ScreenType, Route> = {
   },
   shotDataSharingPrompt: {
     component: ShotDataSharingPrompt,
-    bottomStatusHidden: true,
-    ignoreAsPrevious: true
+    // Deliberately a valid "previous" screen: after a notification or the
+    // idle screen the dial returns here while the prompt is unanswered.
+    bottomStatusHidden: true
   },
   displayAlignment: {
     component: DisplayAlignment,

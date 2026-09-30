@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { useSettings, useUpdateSettings } from '../../../hooks/useSettings';
-import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
+import {
+  ScreenType,
+  setBubbleDisplay,
+  setScreen
+} from '../../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
   OPT_IN_ACTIONS,
@@ -15,13 +19,20 @@ import {
   THANKS_SCREEN_DURATION_MS
 } from '../../ShotDataSharing/ShotDataSharingView';
 
+/**
+ * Config > Advanced settings > Help us improve. A full screen route opened
+ * from the Advanced bubble; Back and the thanks screen return to that bubble.
+ */
 export const HelpUsImprove = () => {
   const dispatch = useAppDispatch();
-  const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+  const screen = useAppSelector((state) => state.screen);
+  const bubbleDisplay = screen.bubbleDisplay;
   const { data: settings } = useSettings();
   const updateSettings = useUpdateSettings();
   const [activeIndex, setActiveIndex] = useState(0);
   const [showThanks, setShowThanks] = useState(false);
+  // The screen under the Advanced bubble when this route was opened.
+  const returnScreen = useRef<ScreenType>(screen.prev || 'profileHome');
 
   const sharing = settings?.shot_data_sharing === true;
   const actions = useMemo(
@@ -30,11 +41,12 @@ export const HelpUsImprove = () => {
   );
   const busy = updateSettings.isPending;
 
-  const goBack = () => {
+  const goBack = useCallback(() => {
+    dispatch(setScreen(returnScreen.current));
     dispatch(
       setBubbleDisplay({ visible: true, component: 'advancedSettings' })
     );
-  };
+  }, [dispatch]);
 
   useEffect(() => {
     setActiveIndex((prev) => Math.min(prev, actions.length - 1));
@@ -42,13 +54,9 @@ export const HelpUsImprove = () => {
 
   useEffect(() => {
     if (!showThanks) return;
-    const timer = setTimeout(() => {
-      dispatch(
-        setBubbleDisplay({ visible: true, component: 'advancedSettings' })
-      );
-    }, THANKS_SCREEN_DURATION_MS);
+    const timer = setTimeout(goBack, THANKS_SCREEN_DURATION_MS);
     return () => clearTimeout(timer);
-  }, [dispatch, showThanks]);
+  }, [goBack, showThanks]);
 
   useHandleGestures(
     {
@@ -79,7 +87,7 @@ export const HelpUsImprove = () => {
         }
       }
     },
-    showThanks || !bubbleDisplay.interceptsGesture
+    showThanks || bubbleDisplay.interceptsGesture
   );
 
   if (showThanks) {

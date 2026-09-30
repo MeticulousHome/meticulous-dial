@@ -45,7 +45,6 @@ type ShotDataSharingViewProps = {
   activeIndex: number;
   busy?: boolean;
   error?: boolean;
-  fullscreen?: boolean;
 };
 
 export const ShotDataSharingView = ({
@@ -55,10 +54,9 @@ export const ShotDataSharingView = ({
   actions,
   activeIndex,
   busy = false,
-  error = false,
-  fullscreen = false
+  error = false
 }: ShotDataSharingViewProps) => (
-  <div className={`shot-data-sharing-screen ${fullscreen ? 'fullscreen' : ''}`}>
+  <div className="shot-data-sharing-screen">
     <h2>{title}</h2>
     <p className="shot-data-sharing-copy">{copy}</p>
     {footnote ? <p className="shot-data-sharing-footnote">{footnote}</p> : null}
@@ -78,12 +76,8 @@ export const ShotDataSharingView = ({
   </div>
 );
 
-export const ShotDataSharingThanks = ({
-  fullscreen = false
-}: {
-  fullscreen?: boolean;
-}) => (
-  <div className={`shot-data-sharing-screen ${fullscreen ? 'fullscreen' : ''}`}>
+export const ShotDataSharingThanks = () => (
+  <div className="shot-data-sharing-screen">
     <h2>Thanks!</h2>
     <p className="shot-data-sharing-copy">
       Your brews will now help make every Meticulous better.

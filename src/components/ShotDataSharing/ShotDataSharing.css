@@ -1,5 +1,6 @@
-/* Shared by the boot prompt (full screen) and the Advanced settings bubble.
-   Type sizes are deliberately large: the dial is read at arm's length. */
+/* Shared by the boot prompt and the Advanced settings screen, both full
+   screen. Type sizes are deliberately large: the dial is read at arm's
+   length. */
 .shot-data-sharing-screen {
   box-sizing: border-box;
   width: 100%;
@@ -9,15 +10,9 @@
   align-items: center;
   justify-content: center;
   gap: 14px;
-  /* The settings bubble container sits 60px right of the display centre, so
-     keep more room on the right to stay inside the round display. */
-  padding: 40px 56px 44px 20px;
+  padding: 48px 56px 52px;
   color: #e7e7e7;
   text-align: center;
-}
-
-.shot-data-sharing-screen.fullscreen {
-  padding: 48px 56px 52px;
 }
 
 .shot-data-sharing-screen h2 {

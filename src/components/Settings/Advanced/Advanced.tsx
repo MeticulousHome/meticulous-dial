@@ -186,12 +186,16 @@ export const AdvancedSettings = () => {
             );
             break;
           case 'help_us_improve':
+            // Full screen route: keep gestures blocked until the bubble has
+            // closed so the release of this press cannot select an option.
             dispatch(
               setBubbleDisplay({
-                visible: true,
-                component: 'helpUsImprove'
+                visible: false,
+                component: null,
+                interceptsGesture: true
               })
             );
+            dispatch(setScreen('helpUsImprove'));
             break;
           case 'manufacturing':
             dispatch(

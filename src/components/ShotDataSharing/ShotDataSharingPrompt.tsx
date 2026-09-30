@@ -65,12 +65,11 @@ export const ShotDataSharingPrompt = () => {
   );
 
   if (showThanks) {
-    return <ShotDataSharingThanks fullscreen />;
+    return <ShotDataSharingThanks />;
   }
 
   return (
     <ShotDataSharingView
-      fullscreen
       title={SHOT_DATA_SHARING_TITLE}
       copy={SHOT_DATA_SHARING_OPT_IN_COPY}
       footnote={SHOT_DATA_SHARING_LATER_NOTE}
