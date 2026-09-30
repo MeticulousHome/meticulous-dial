@@ -54,6 +54,11 @@ const initialSettings: SettingsItem[] = [
     caseSensitive: true
   },
   {
+    key: 'help_us_improve',
+    label: 'Help us improve',
+    visible: true
+  },
+  {
     key: 'factory_reset',
     label: 'Factory reset',
     visible: true,
@@ -177,6 +182,14 @@ export const AdvancedSettings = () => {
               setBubbleDisplay({
                 visible: true,
                 component: 'factoryReset'
+              })
+            );
+            break;
+          case 'help_us_improve':
+            dispatch(
+              setBubbleDisplay({
+                visible: true,
+                component: 'helpUsImprove'
               })
             );
             break;

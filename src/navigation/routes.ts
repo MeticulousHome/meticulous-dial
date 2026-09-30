@@ -55,6 +55,7 @@ import {
   getProfilesTitle
 } from '../components/ProfileHomeScreen/ProfileTitle';
 import { FactoryReset } from '../components/Settings/Advanced/FactoryReset';
+import { HelpUsImprove } from '../components/Settings/Advanced/HelpUsImprove';
 import { Manufacturing } from '../components/Settings/Advanced/Manufacturing';
 import { RetractionSettingGauge } from '../components/Settings/Advanced/RetractionVolume';
 import { TareBehaviorSetting } from '../components/Settings/TareBehavior';
@@ -462,6 +463,10 @@ export const routes: Record<ScreenType, Route> = {
   },
   factoryReset: {
     component: FactoryReset,
+    bottomStatusHidden: true
+  },
+  helpUsImprove: {
+    component: HelpUsImprove,
     bottomStatusHidden: true
   },
   displayAlignment: {

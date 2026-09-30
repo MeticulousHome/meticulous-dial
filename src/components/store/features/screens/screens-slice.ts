@@ -60,6 +60,7 @@ export type ScreenType =
   | 'guidedPourOver'
   | 'freePourHistory'
   | 'factoryReset'
+  | 'helpUsImprove'
   | 'retraction_volume'
   | 'tare_behavior'
   | 'manufacturingSettings'
