@@ -1,9 +1,14 @@
-import { VariableType } from '@meticulous-home/espresso-profile';
+import { Profile, VariableType } from '@meticulous-home/espresso-profile';
 import {
   DeviceInfo,
   StatusData,
   Settings
 } from '@meticulous-home/espresso-api';
+
+export type ManualCapableProfile = Profile & { manual?: boolean };
+
+export const isManualProfile = (profile?: Profile | null): boolean =>
+  (profile as ManualCapableProfile | undefined)?.manual === true;
 
 export type TareBehavior = 'after_retraction' | 'before_retraction';
 export type DialSettings = Settings & { tare_behavior: TareBehavior };

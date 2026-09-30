@@ -45,8 +45,13 @@ export const getProfilesTitle = () => <TitleProfiles />;
 export const getActiveProfilesTitle = () => <TitleProfiles />;
 
 export const TitleProfiles = () => {
-  const { homeMode, localHoverState, localProfile, selectedPourOverProfileId } =
-    useProfileContext();
+  const {
+    homeMode,
+    localHoverState,
+    localProfile,
+    selectedPourOverProfileId,
+    settingsProfile
+  } = useProfileContext();
   const { data: pourOverProfiles = [] } = usePourOverProfiles();
   const currentScreen = useAppSelector((state) => state.screen.value);
   const isHomeScreen = currentScreen == 'profileHome';
@@ -64,7 +69,12 @@ export const TitleProfiles = () => {
       const parentWidth = titleRef.current.parentElement?.offsetWidth || 0;
       setMarqueeWidth(width > parentWidth ? width : 0);
     }
-  }, [localProfile?.name, selectedPourOverProfile?.name]);
+  }, [
+    localProfile?.name,
+    settingsProfile?.name,
+    titleRef.current,
+    selectedPourOverProfile?.name
+  ]);
 
   const scroll = localHoverState && isHomeScreen;
   const marquee = (isHomeScreen && scroll) || !isHomeScreen;

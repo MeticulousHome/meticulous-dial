@@ -28,6 +28,7 @@ export function EnterWifiPassword(): JSX.Element {
   const [knownPassword, setKnownPassword] = useState<string | undefined>(
     undefined
   );
+
   const knownConnectionSubmitted = useRef(false);
 
   const screen = useAppSelector(
@@ -86,12 +87,6 @@ export function EnterWifiPassword(): JSX.Element {
 
   const updateSetting = (password: string) => {
     setKnownPassword(password);
-    console.log(
-      'Log ~ EnterWifiPassword ~ ssid',
-      wifi.selectedWifi,
-      '~ password:',
-      password
-    );
     const ssid = wifi.selectedWifi;
     connectToWifiMutation.mutate({ type: 'PSK', ssid, password });
   };

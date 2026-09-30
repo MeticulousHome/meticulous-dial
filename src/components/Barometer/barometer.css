@@ -120,3 +120,12 @@ Barometer styles
   text-align: center;
   margin-bottom: 10px;
 }
+
+.bar-target {
+  text-align: center;
+  font-size: 14px;
+  letter-spacing: 1.125px;
+  color: #808080;
+  margin-top: -8px;
+  margin-bottom: 6px;
+}

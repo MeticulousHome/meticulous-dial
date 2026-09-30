@@ -3,7 +3,8 @@ import Api, {
   APIError,
   BrightnessRequest,
   ManufacturingSettings,
-  ManufacturingMenuItems
+  ManufacturingMenuItems,
+  UnlockMachineResponse
 } from '@meticulous-home/espresso-api';
 import { DialDeviceInfo } from '../types';
 import { invoke } from '@tauri-apps/api/core';
@@ -12,6 +13,30 @@ export const API_URL =
   import.meta.env.VITE_SERVER_URL || 'http://localhost:8080';
 
 export const api = new Api(undefined, API_URL);
+
+export type UnlockMachineResult =
+  | { ok: true; response: UnlockMachineResponse }
+  | { ok: false; status: 400 | 403 | 429 | 404 | 0; error?: APIError };
+
+export async function unlockMachine(
+  code: string
+): Promise<UnlockMachineResult> {
+  try {
+    const response = await api.unlockMachine(code);
+    if (response.status === 200 && !('error' in response.data)) {
+      return { ok: true, response: response.data as UnlockMachineResponse };
+    }
+    return {
+      ok: false,
+      status: response.status as 400 | 403 | 429,
+      error: response.data as APIError
+    };
+  } catch (error) {
+    if (error?.response?.status === 404) return { ok: false, status: 404 };
+    console.error('unlockMachine error: ', error?.message);
+    return { ok: false, status: 0 };
+  }
+}
 
 export const startMasterCalibration = async () => {
   try {

@@ -24,8 +24,7 @@ import { AdvancedSettings } from '../components/Settings/Advanced/Advanced';
 import { WifiQrMenu } from '../../src/components/Wifi/WifiQrMenu';
 import { PressetProfileImage } from '../components/PressetSettings/PressetProfileImage';
 import { DeviceInfoScreen } from '../components/Settings/Advanced/DeviceInfoScreen';
-import { DefaultProfiles } from '../components/DefaultProfiles/DefaultProfiles';
-import { ProfileDetails } from '../components/DefaultProfiles/DefaultProfileDetails';
+import { ManualModeSetup } from '../components/ManualModeSetup/ManualModeSetup';
 import { PurgeScreen } from '../components/PurgePiston/PurgeScreen';
 import { UpdateChannel } from '../components/Settings/Advanced/UpdateChannel';
 import { ReadyAnimation } from '../components/ReadyAnimation/ReadyAnimation';
@@ -41,6 +40,7 @@ import { IdleScreenSetting } from '../components/Settings/Advanced/IdleScreenSet
 
 import CalibrateScale from '../components/Scale/CalibrateScale';
 import { BrewSettings } from '../components/Settings/BrewSettings';
+import { ExperimentalSettings } from '../components/Settings/Experimental';
 import { TimeConfig } from '../components/Settings/Advanced/TimeDate/TimeConfig';
 import { DateConfig } from '../components/Settings/Advanced/TimeDate/DateConfig';
 import { ShotGraphScreen } from '../components/ShotGraph/ShotGraphScreen';
@@ -412,13 +412,9 @@ export const routes: Record<ScreenType, Route> = {
   idleScreenSettings: {
     component: IdleScreenSetting
   },
-  defaultProfiles: {
-    component: DefaultProfiles,
-    bottomStatusHidden: true,
-    parent: 'profileHome'
-  },
-  defaultProfileDetails: {
-    component: ProfileDetails,
+  manualSetup: {
+    component: ManualModeSetup,
+    title: 'Manual mode',
     bottomStatusHidden: true
   },
   shot_history: {
@@ -449,6 +445,10 @@ export const routes: Record<ScreenType, Route> = {
   },
   brewSettings: {
     component: BrewSettings,
+    bottomStatusHidden: true
+  },
+  experimentalSettings: {
+    component: ExperimentalSettings,
     bottomStatusHidden: true
   },
   scrollDirections: {
