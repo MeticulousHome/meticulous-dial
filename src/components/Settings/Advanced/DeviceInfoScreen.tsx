@@ -3,8 +3,9 @@ import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { useDeviceInfo } from '../../../hooks/useDeviceOSStatus';
-import { DeviceInfo } from '@meticulous-home/espresso-api';
 import { LoadingScreen } from '../../LoadingScreen/LoadingScreen';
+import { DialDeviceInfo } from '../../../types';
+import { formatMachineFingerprint } from '../../../features/machineIdentity';
 
 import Styled, {
   VIEWPORT_HEIGHT,
@@ -21,7 +22,7 @@ interface RepositoryInfo {
   [key: string]: RepositoryEntry;
 }
 
-interface ExtendedDeviceInfo extends DeviceInfo {
+interface ExtendedDeviceInfo extends DialDeviceInfo {
   mainVoltage: number;
   batch_number: string;
   build_date: string;
@@ -39,7 +40,9 @@ export const DeviceInfoScreen = () => {
   const updatedDeviceInfo = useMemo(() => {
     if (!deviceInfo || isLoading) return [];
 
-    const { repository_info, ...basicData } = deviceInfo as ExtendedDeviceInfo;
+    const { repository_info, identity, ...basicData } =
+      deviceInfo as ExtendedDeviceInfo;
+    const shortFingerprint = formatMachineFingerprint(identity?.fingerprint);
 
     const basicInfo = Object.entries(basicData)
       .filter(([key]) => key !== 'tare_behavior_supported')
@@ -69,6 +72,14 @@ export const DeviceInfoScreen = () => {
         key: 'info_qr',
         label: 'Show device info QR'
       },
+      ...(shortFingerprint
+        ? [
+            {
+              key: 'machine_identity',
+              label: `Machine identity: ${shortFingerprint}`
+            }
+          ]
+        : []),
       ...basicInfo,
       ...repositoryInfo,
       ...[{ key: 'back', label: 'Back' }]

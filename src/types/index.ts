@@ -4,6 +4,7 @@ import {
   StatusData,
   Settings
 } from '@meticulous-home/espresso-api';
+import type { MachineIdentity } from '../features/machineIdentity';
 
 export type ManualCapableProfile = Profile & { manual?: boolean };
 
@@ -14,6 +15,7 @@ export type TareBehavior = 'after_retraction' | 'before_retraction';
 export type DialSettings = Settings & { tare_behavior: TareBehavior };
 export type DialDeviceInfo = DeviceInfo & {
   tare_behavior_supported?: boolean;
+  identity?: MachineIdentity;
 };
 
 export type GestureType =
