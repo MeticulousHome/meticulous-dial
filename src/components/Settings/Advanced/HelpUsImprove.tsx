@@ -4,24 +4,16 @@ import { useHandleGestures } from '../../../hooks/useHandleGestures';
 import { useSettings, useUpdateSettings } from '../../../hooks/useSettings';
 import { setBubbleDisplay } from '../../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import './HelpUsImprove.css';
-
-export const THANKS_SCREEN_DURATION_MS = 3000;
-
-type HelpUsImproveAction =
-  'help_improve' | 'no_thanks' | 'stop_sharing' | 'back';
-
-type ActionItem = { key: HelpUsImproveAction; label: string };
-
-const OPT_IN_ACTIONS: ActionItem[] = [
-  { key: 'help_improve', label: 'Help improve' },
-  { key: 'no_thanks', label: 'No thanks' }
-];
-
-const OPT_OUT_ACTIONS: ActionItem[] = [
-  { key: 'stop_sharing', label: 'Stop sharing shot data' },
-  { key: 'back', label: 'Back' }
-];
+import {
+  OPT_IN_ACTIONS,
+  OPT_OUT_ACTIONS,
+  SHOT_DATA_SHARING_OPT_IN_COPY,
+  SHOT_DATA_SHARING_SHARING_COPY,
+  SHOT_DATA_SHARING_TITLE,
+  ShotDataSharingThanks,
+  ShotDataSharingView,
+  THANKS_SCREEN_DURATION_MS
+} from '../../ShotDataSharing/ShotDataSharingView';
 
 export const HelpUsImprove = () => {
   const dispatch = useAppDispatch();
@@ -91,49 +83,19 @@ export const HelpUsImprove = () => {
   );
 
   if (showThanks) {
-    return (
-      <div className="help-improve-screen">
-        <h2>Thanks!</h2>
-        <p className="help-improve-copy">
-          Your brews will now help make every Meticulous better.
-        </p>
-      </div>
-    );
+    return <ShotDataSharingThanks />;
   }
 
   return (
-    <div className="help-improve-screen">
-      <h2>Help us improve</h2>
-      {sharing ? (
-        <p className="help-improve-copy">
-          Anonymous sensor data from your brews is currently shared with
-          Meticulous to improve brew quality and reliability. You can stop
-          sharing at any time.
-        </p>
-      ) : (
-        <p className="help-improve-copy">
-          Share sensor data from your brews (pressure, flow, temperature and
-          motor readings) anonymously with Meticulous. Data is sent for every
-          brew until you stop sharing. It never includes your name, serial
-          number or network details, and helps us improve the quality and
-          reliability of every brew.
-        </p>
-      )}
-      <div className="help-improve-actions">
-        {actions.map((action, index) => (
-          <div
-            className={`help-improve-action ${activeIndex === index ? 'active' : ''}`}
-            key={action.key}
-          >
-            {busy && activeIndex === index ? 'Saving...' : action.label}
-          </div>
-        ))}
-      </div>
-      {updateSettings.isError ? (
-        <p className="help-improve-error">
-          Could not update the setting. Please try again.
-        </p>
-      ) : null}
-    </div>
+    <ShotDataSharingView
+      title={SHOT_DATA_SHARING_TITLE}
+      copy={
+        sharing ? SHOT_DATA_SHARING_SHARING_COPY : SHOT_DATA_SHARING_OPT_IN_COPY
+      }
+      actions={actions}
+      activeIndex={activeIndex}
+      busy={busy}
+      error={updateSettings.isError}
+    />
   );
 };

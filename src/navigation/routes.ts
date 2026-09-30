@@ -56,6 +56,7 @@ import {
 } from '../components/ProfileHomeScreen/ProfileTitle';
 import { FactoryReset } from '../components/Settings/Advanced/FactoryReset';
 import { HelpUsImprove } from '../components/Settings/Advanced/HelpUsImprove';
+import { ShotDataSharingPrompt } from '../components/ShotDataSharing/ShotDataSharingPrompt';
 import { Manufacturing } from '../components/Settings/Advanced/Manufacturing';
 import { RetractionSettingGauge } from '../components/Settings/Advanced/RetractionVolume';
 import { TareBehaviorSetting } from '../components/Settings/TareBehavior';
@@ -468,6 +469,11 @@ export const routes: Record<ScreenType, Route> = {
   helpUsImprove: {
     component: HelpUsImprove,
     bottomStatusHidden: true
+  },
+  shotDataSharingPrompt: {
+    component: ShotDataSharingPrompt,
+    bottomStatusHidden: true,
+    ignoreAsPrevious: true
   },
   displayAlignment: {
     component: DisplayAlignment,
