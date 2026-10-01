@@ -55,7 +55,7 @@ import {
   getProfilesTitle
 } from '../components/ProfileHomeScreen/ProfileTitle';
 import { FactoryReset } from '../components/Settings/Advanced/FactoryReset';
-import { HelpUsImprove } from '../components/Settings/Advanced/HelpUsImprove';
+import { HelpUsImprove } from '../components/ShotDataSharing/HelpUsImprove';
 import { ShotDataSharingPrompt } from '../components/ShotDataSharing/ShotDataSharingPrompt';
 import { Manufacturing } from '../components/Settings/Advanced/Manufacturing';
 import { RetractionSettingGauge } from '../components/Settings/Advanced/RetractionVolume';

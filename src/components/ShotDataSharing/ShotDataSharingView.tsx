@@ -1,6 +1,7 @@
 import './ShotDataSharing.css';
 
-export const THANKS_SCREEN_DURATION_MS = 3000;
+/** How long the thanks / stopped confirmation stays before leaving. */
+export const THANKS_SCREEN_DURATION_MS = 4000;
 
 export type ShotDataSharingActionKey =
   'help_improve' | 'no_thanks' | 'stop_sharing' | 'back';
@@ -32,7 +33,7 @@ export const SHOT_DATA_SHARING_SHARING_COPY =
   'You can stop sharing at any time.';
 
 export const SHOT_DATA_SHARING_LATER_NOTE =
-  'You can change this any time in Config > Advanced settings > Help us improve.';
+  'You can change this any time from the menu under Help us improve.';
 
 export const SHOT_DATA_SHARING_ERROR =
   'Could not save your choice. Please try again.';
@@ -81,6 +82,15 @@ export const ShotDataSharingThanks = () => (
     <h2>Thanks!</h2>
     <p className="shot-data-sharing-copy">
       Your brews will now help make every Meticulous better.
+    </p>
+  </div>
+);
+
+export const ShotDataSharingStopped = () => (
+  <div className="shot-data-sharing-screen">
+    <h2>Sharing stopped</h2>
+    <p className="shot-data-sharing-copy">
+      Your machine will no longer send brew data to Meticulous.
     </p>
   </div>
 );

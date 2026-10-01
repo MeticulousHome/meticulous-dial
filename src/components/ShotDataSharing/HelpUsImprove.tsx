@@ -1,27 +1,28 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { useHandleGestures } from '../../../hooks/useHandleGestures';
-import { useSettings, useUpdateSettings } from '../../../hooks/useSettings';
+import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useSettings, useUpdateSettings } from '../../hooks/useSettings';
 import {
   ScreenType,
   setBubbleDisplay,
   setScreen
-} from '../../store/features/screens/screens-slice';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+} from '../store/features/screens/screens-slice';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   OPT_IN_ACTIONS,
   OPT_OUT_ACTIONS,
   SHOT_DATA_SHARING_OPT_IN_COPY,
   SHOT_DATA_SHARING_SHARING_COPY,
   SHOT_DATA_SHARING_TITLE,
+  ShotDataSharingStopped,
   ShotDataSharingThanks,
   ShotDataSharingView,
   THANKS_SCREEN_DURATION_MS
-} from '../../ShotDataSharing/ShotDataSharingView';
+} from './ShotDataSharingView';
 
 /**
- * Config > Advanced settings > Help us improve. A full screen route opened
- * from the Advanced bubble; Back and the thanks screen return to that bubble.
+ * Menu > Help us improve. A full screen route opened from the quick settings
+ * menu; Back and the thanks / stopped screens return to that menu.
  */
 export const HelpUsImprove = () => {
   const dispatch = useAppDispatch();
@@ -30,8 +31,9 @@ export const HelpUsImprove = () => {
   const { data: settings } = useSettings();
   const updateSettings = useUpdateSettings();
   const [activeIndex, setActiveIndex] = useState(0);
-  const [showThanks, setShowThanks] = useState(false);
-  // The screen under the Advanced bubble when this route was opened.
+  // Confirmation shown after a choice before returning to the menu.
+  const [outcome, setOutcome] = useState<'thanks' | 'stopped' | null>(null);
+  // The screen under the menu when this route was opened.
   const returnScreen = useRef<ScreenType>(screen.prev || 'profileHome');
 
   const sharing = settings?.shot_data_sharing === true;
@@ -43,9 +45,7 @@ export const HelpUsImprove = () => {
 
   const goBack = useCallback(() => {
     dispatch(setScreen(returnScreen.current));
-    dispatch(
-      setBubbleDisplay({ visible: true, component: 'advancedSettings' })
-    );
+    dispatch(setBubbleDisplay({ visible: true, component: 'quick-settings' }));
   }, [dispatch]);
 
   useEffect(() => {
@@ -53,10 +53,10 @@ export const HelpUsImprove = () => {
   }, [actions.length]);
 
   useEffect(() => {
-    if (!showThanks) return;
+    if (!outcome) return;
     const timer = setTimeout(goBack, THANKS_SCREEN_DURATION_MS);
     return () => clearTimeout(timer);
-  }, [goBack, showThanks]);
+  }, [goBack, outcome]);
 
   useHandleGestures(
     {
@@ -72,13 +72,13 @@ export const HelpUsImprove = () => {
           case 'help_improve':
             updateSettings.mutate(
               { shot_data_sharing: true },
-              { onSuccess: () => setShowThanks(true) }
+              { onSuccess: () => setOutcome('thanks') }
             );
             break;
           case 'stop_sharing':
             updateSettings.mutate(
               { shot_data_sharing: false },
-              { onSuccess: goBack }
+              { onSuccess: () => setOutcome('stopped') }
             );
             break;
           default:
@@ -87,11 +87,15 @@ export const HelpUsImprove = () => {
         }
       }
     },
-    showThanks || bubbleDisplay.interceptsGesture
+    outcome !== null || bubbleDisplay.interceptsGesture
   );
 
-  if (showThanks) {
+  if (outcome === 'thanks') {
     return <ShotDataSharingThanks />;
+  }
+
+  if (outcome === 'stopped') {
+    return <ShotDataSharingStopped />;
   }
 
   return (
