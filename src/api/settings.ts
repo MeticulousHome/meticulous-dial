@@ -1,15 +1,14 @@
 import { APIError, Settings } from '@meticulous-home/espresso-api';
-import { DialSettings } from '../types';
 import { api } from './api';
 
-export async function getSettings(): Promise<DialSettings> {
+export async function getSettings(): Promise<Settings> {
   try {
     const response = await api.getSettings();
     const data = response.data;
     if (data && 'error' in data) {
       throw new Error((data as APIError).error);
     }
-    return data as DialSettings;
+    return data as Settings;
   } catch (error) {
     if (error.response) {
       console.error('Error getting Settings: ', error.response.data);
@@ -24,15 +23,15 @@ export async function getSettings(): Promise<DialSettings> {
 }
 
 export async function updateSettings(
-  update: Partial<DialSettings>
-): Promise<DialSettings> {
+  update: Partial<Settings>
+): Promise<Settings> {
   try {
-    const response = await api.updateSetting(update as Partial<Settings>);
+    const response = await api.updateSetting(update);
     const data = response.data;
     if (data && 'error' in data) {
       throw new Error((data as APIError).error);
     }
-    return data as DialSettings;
+    return data as Settings;
   } catch (error) {
     if (error.response) {
       console.error('Error updating settings: ', error.response.data);
