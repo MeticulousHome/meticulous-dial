@@ -11,7 +11,12 @@ export const isManualProfile = (profile?: Profile | null): boolean =>
   (profile as ManualCapableProfile | undefined)?.manual === true;
 
 export type TareBehavior = 'after_retraction' | 'before_retraction';
-export type DialSettings = Settings & { tare_behavior: TareBehavior };
+export type DialSettings = Settings & {
+  tare_behavior: TareBehavior;
+  // Opt-in anonymous upload of debug shot data. null means never answered;
+  // older backends omit the key.
+  shot_data_sharing?: boolean | null;
+};
 export type DialDeviceInfo = DeviceInfo & {
   tare_behavior_supported?: boolean;
 };
