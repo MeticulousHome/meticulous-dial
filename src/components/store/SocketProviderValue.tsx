@@ -1,11 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-import {
-  GestureType,
-  ISensorData,
-  ISensorDataAndMachineState
-} from '../../types/index';
+import { GestureType, ISensorDataAndMachineState } from '../../types/index';
 import { useAppDispatch } from './hooks';
 import {
   setSensors,
@@ -27,7 +23,11 @@ import { api, API_URL } from '../../api/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { OS_UPDATE_STATUS } from '../../hooks/useDeviceOSStatus';
 import {
+  ButtonEvent,
+  ButtonEventType,
+  MachineSensors,
   OSStatusResponse,
+  ProfileHoverEvent,
   ProfileUpdate,
   NotificationItem
 } from '@meticulous-home/espresso-api';
@@ -84,7 +84,7 @@ export const SocketProviderValue = () => {
       dispatch(updatePreheatTimeLeft(timeLeft));
     });
 
-    socket.on('sensors', (data: ISensorData) => {
+    socket.on('sensors', (data: MachineSensors) => {
       dispatch(setSensors(data));
     });
 
@@ -148,71 +148,62 @@ export const SocketProviderValue = () => {
       dispatch(setWaterStatus(data));
     });
 
-    socket.on(
-      'profile',
-      (event: ProfileUpdate & { brew_type?: 'espresso' | 'pour_over' }) => {
-        console.log(`ProfileUpdate ${event}`);
-        if (isPourOverProfileEvent(event)) {
-          refreshPourOverProfiles();
-          return;
-        }
-        // The manual profile is not in the catalog: the backend hides it from
-        // the listing and the dial saves it from the setup flow itself, so the
-        // `update` that comes straight back would only reshuffle the profile
-        // list under the screen that is already starting the shot.
-        if (event.profile_id === MANUAL_MODE_PROFILE_ID) {
-          return;
-        }
-        onProfileEvent(event);
+    socket.on('profile', (event: ProfileUpdate) => {
+      console.log(`ProfileUpdate ${event}`);
+      if (isPourOverProfileEvent(event)) {
+        refreshPourOverProfiles();
+        return;
       }
-    );
-
-    socket.on(
-      'button',
-      (data: { type: string; time_since_last_event: number }) => {
-        const eventGestureMap: Record<string, GestureType> = {
-          ENCODER_CLOCKWISE: 'right',
-          ENCODER_COUNTERCLOCKWISE: 'left',
-          ENCODER_PUSH: 'click',
-          ENCODER_DOUBLE: 'doubleClick',
-          ENCODER_LONG: 'longEncoder',
-          TARE: 'singleTare',
-          TARE_DOUBLE: 'doubleTare',
-          TARE_LONG: 'longTare',
-          TARE_PRESSED: 'tareDown',
-          TARE_RELEASED: 'tareUp',
-          CONTEXT: 'context',
-          ENCODER_PRESSED: 'pressDown',
-          ENCODER_RELEASED: 'pressUp'
-        };
-
-        const gesture = eventGestureMap[data.type];
-        if (gesture) {
-          if (
-            gesture === 'right' ||
-            gesture === 'left' ||
-            gesture === 'pressDown' ||
-            gesture === 'context' ||
-            gesture === 'singleTare'
-          ) {
-            resetIdleTimer();
-          }
-          handleEvents.emit('gesture', gesture, data.time_since_last_event);
-        }
+      // The manual profile is not in the catalog: the backend hides it from
+      // the listing and the dial saves it from the setup flow itself, so the
+      // `update` that comes straight back would only reshuffle the profile
+      // list under the screen that is already starting the shot.
+      if (event.profile_id === MANUAL_MODE_PROFILE_ID) {
+        return;
       }
-    );
+      onProfileEvent(event);
+    });
 
-    socket.on(
-      'profileHover',
-      (data: { id: string; from: string; type: 'focus' | 'scroll' }) => {
-        resetIdleTimer();
+    socket.on('button', (data: ButtonEvent) => {
+      const eventGestureMap: Partial<Record<ButtonEventType, GestureType>> = {
+        ENCODER_CLOCKWISE: 'right',
+        ENCODER_COUNTERCLOCKWISE: 'left',
+        ENCODER_PUSH: 'click',
+        ENCODER_DOUBLE: 'doubleClick',
+        ENCODER_LONG: 'longEncoder',
+        TARE: 'singleTare',
+        TARE_DOUBLE: 'doubleTare',
+        TARE_LONG: 'longTare',
+        TARE_PRESSED: 'tareDown',
+        TARE_RELEASED: 'tareUp',
+        CONTEXT: 'context',
+        ENCODER_PRESSED: 'pressDown',
+        ENCODER_RELEASED: 'pressUp'
+      };
 
-        if (data.from === 'dial') {
-          return;
+      const gesture = eventGestureMap[data.type];
+      if (gesture) {
+        if (
+          gesture === 'right' ||
+          gesture === 'left' ||
+          gesture === 'pressDown' ||
+          gesture === 'context' ||
+          gesture === 'singleTare'
+        ) {
+          resetIdleTimer();
         }
-        onProfileHover(data.type, data.id);
+        handleEvents.emit('gesture', gesture, data.time_since_last_event);
       }
-    );
+    });
+
+    socket.on('profileHover', (data: ProfileHoverEvent) => {
+      resetIdleTimer();
+
+      if (data.from === 'dial') {
+        return;
+      }
+      onProfileHover(data.type, data.id);
+    });
 
     return () => {
       socket.off('notification');

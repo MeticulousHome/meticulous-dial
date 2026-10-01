@@ -1,3 +1,8 @@
+import type {
+  ProfileHoverEvent,
+  ProfileHoverType
+} from '@meticulous-home/espresso-api';
+
 export type HomeMode = 'espresso' | 'pour_over_profile' | 'free_pour' | 'new';
 
 export type HomeSelection = {
@@ -15,12 +20,6 @@ type ActiveHomeOption = HomeLayout & {
   mode: HomeMode;
   profileIndex: number | null;
   pourOverProfileIndex: number | null;
-};
-
-export type DialProfileHover = {
-  id: string;
-  from: 'dial';
-  type: 'focus' | 'scroll';
 };
 
 export const removePourOverProfileFromCatalog = <T extends { id: string }>(
@@ -158,8 +157,8 @@ export const createDialProfileHover = (
   option: number,
   profiles: ReadonlyArray<{ id?: string }>,
   pourOverProfileCount: number,
-  type: 'focus' | 'scroll'
-): DialProfileHover | null => {
+  type: ProfileHoverType
+): ProfileHoverEvent | null => {
   const selection = getHomeSelection(option, {
     profileCount: profiles.length,
     pourOverProfileCount
