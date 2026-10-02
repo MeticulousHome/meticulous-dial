@@ -130,6 +130,10 @@ const defaultSettings: QuickSettingOption[] = [
     label: 'Experimental'
   },
   {
+    key: 'help_us_improve',
+    label: 'Help us improve'
+  },
+  {
     key: 'exit',
     label: 'exit'
   }
@@ -474,6 +478,19 @@ export function QuickSettings(): JSX.Element {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'brewSettings' })
             );
+            break;
+          }
+          case 'help_us_improve': {
+            // Full screen route: keep gestures blocked until the bubble has
+            // closed so the release of this press cannot select an option.
+            dispatch(
+              setBubbleDisplay({
+                visible: false,
+                component: undefined,
+                interceptsGesture: true
+              })
+            );
+            dispatch(setScreen('helpUsImprove'));
             break;
           }
 

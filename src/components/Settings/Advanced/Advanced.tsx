@@ -54,11 +54,6 @@ const initialSettings: SettingsItem[] = [
     caseSensitive: true
   },
   {
-    key: 'help_us_improve',
-    label: 'Help us improve',
-    visible: true
-  },
-  {
     key: 'factory_reset',
     label: 'Factory reset',
     visible: true,
@@ -184,18 +179,6 @@ export const AdvancedSettings = () => {
                 component: 'factoryReset'
               })
             );
-            break;
-          case 'help_us_improve':
-            // Full screen route: keep gestures blocked until the bubble has
-            // closed so the release of this press cannot select an option.
-            dispatch(
-              setBubbleDisplay({
-                visible: false,
-                component: null,
-                interceptsGesture: true
-              })
-            );
-            dispatch(setScreen('helpUsImprove'));
             break;
           case 'manufacturing':
             dispatch(
