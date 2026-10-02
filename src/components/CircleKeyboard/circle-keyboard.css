@@ -113,6 +113,14 @@
   word-wrap: break-word;
 }
 
+/* Fixed text around the input (e.g. the "@" of an email): visibly not part
+   of what the user typed, but read as one string with it. */
+.circle-caption-affix {
+  color: #ffffff;
+  opacity: 0.4;
+  font-weight: 300;
+}
+
 .icon-space-selected {
   -webkit-text-stroke: 1px #000;
   font-size: 52px;

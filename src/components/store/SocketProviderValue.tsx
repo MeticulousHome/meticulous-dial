@@ -29,8 +29,13 @@ import {
   OSStatusResponse,
   ProfileHoverEvent,
   ProfileUpdate,
-  NotificationItem
+  NotificationItem,
+  UploadReportEvent
 } from '@meticulous-home/espresso-api';
+import {
+  describeDispatchedReportOutcome,
+  dispatchedReports
+} from '../BugReport/dispatchedReports';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { LASTS_PROFILE_QUERY_KEY } from '../../hooks/useProfiles';
 import { useProfileContext } from '../../context/ProfileContext';
@@ -226,6 +231,41 @@ export const SocketProviderValue = () => {
       socket.off('OSUpdate');
     };
   }, [queryClient]);
+
+  // Reports dispatched from the mobile app are collected and uploaded here,
+  // headless; only the outcome reaches the user, as a notification. The
+  // pending list is replayed on every connect because a dispatch sent while
+  // the dial was down never arrives as a live event.
+  useEffect(() => {
+    const onUploadReport = (event: UploadReportEvent) => {
+      dispatchedReports.enqueue(event);
+    };
+    const syncPending = () => {
+      void dispatchedReports.syncPending().catch((error) => {
+        console.warn('[dispatched-report] pending sync failed', error);
+      });
+    };
+    socket.on('upload_report', onUploadReport);
+    socket.on('connect', syncPending);
+    if (socket.connected) syncPending();
+
+    const unsubscribe = dispatchedReports.onOutcome((outcome) => {
+      dispatch(
+        addOneNotification({
+          id: `dispatched-report-${outcome.localID}`,
+          message: describeDispatchedReportOutcome(outcome),
+          responses: ['Ok'],
+          timestamp: new Date().toISOString()
+        })
+      );
+    });
+
+    return () => {
+      socket.off('upload_report', onUploadReport);
+      socket.off('connect', syncPending);
+      unsubscribe();
+    };
+  }, [dispatch]);
 
   return socket;
 };
