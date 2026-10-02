@@ -1017,7 +1017,7 @@ export const BugReport = (): JSX.Element => {
 
   const optionList = options.length > 0 && (
     <div
-      className="settings-fixed-item-container"
+      className="settings-fixed-item-container bug-report-options"
       style={{ marginBottom: '50px' }}
     >
       {options.map((item, index) => {
@@ -1029,7 +1029,7 @@ export const BugReport = (): JSX.Element => {
               index === activeIndex ? 'active-setting' : ''
             }`}
             style={{
-              marginBottom: '5px',
+              marginBottom: '3px',
               width: `${width}%`,
               paddingRight: `${90 - width}%`
             }}

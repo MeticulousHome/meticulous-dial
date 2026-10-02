@@ -225,6 +225,19 @@
   justify-self: start;
 }
 
+/* Option pills ---------------------------------------------------------
+   Shorter than the quick settings ones: the main screen stacks four of them
+   under three paragraphs of text. */
+.bug-report-options .settings-fixed-item {
+  height: 30px;
+}
+
+.bug-report-options .settings-item {
+  font-size: 18px;
+  letter-spacing: 1px;
+  padding-left: 14px;
+}
+
 /* Your contact info ----------------------------------------------------- */
 .bug-report-copy {
   font-family: 'ABC Diatype';
