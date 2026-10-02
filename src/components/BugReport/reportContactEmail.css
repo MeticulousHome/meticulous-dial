@@ -108,3 +108,44 @@
   color: #808080;
   text-align: left;
 }
+
+/* Below the domain grid: back to the email keyboard. */
+.report-contact-backspace {
+  min-width: 0;
+  padding: 6px 24px;
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+/* Confirm step: the part the knob is on lights up. The parts are blocks so
+   a long address breaks at the "@" rather than inside a word; only a part
+   wider than the screen breaks within itself. */
+.report-contact-confirm {
+  font-size: 24px;
+}
+
+.report-contact-part {
+  display: inline-block;
+  max-width: 100%;
+  border-bottom: 2px solid transparent;
+  padding-bottom: 2px;
+  overflow-wrap: anywhere;
+}
+
+.report-contact-part.active {
+  border-bottom-color: #f5c444;
+  color: #f5c444;
+}
+
+.report-contact-at {
+  color: #808080;
+}
+
+.report-contact-legend {
+  max-width: 330px;
+  margin: 0;
+  color: #b3b3b3;
+  font-family: 'ABC Diatype';
+  font-size: 17px;
+  line-height: 1.3;
+}

@@ -224,3 +224,34 @@
   color: #808080;
   justify-self: start;
 }
+
+/* Your contact info ----------------------------------------------------- */
+.bug-report-copy {
+  font-family: 'ABC Diatype';
+  font-size: 20px;
+  line-height: 1.3;
+  margin: 12px 0 0;
+  max-width: 320px;
+}
+
+/* The saved address as an option: shown as typed, a long one ends in an
+   ellipsis. */
+.bug-report-option-address {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+/* Under the issue date on the report setup screen: where the reply goes. */
+.bug-report-contact-legend {
+  color: #808080;
+  font-family: 'ABC Diatype';
+  font-size: 16px;
+  line-height: 1.3;
+  margin-top: 22px;
+  max-width: 340px;
+  overflow-wrap: anywhere;
+}

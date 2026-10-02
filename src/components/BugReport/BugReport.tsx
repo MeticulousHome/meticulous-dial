@@ -19,6 +19,7 @@ import { api } from '../../api/api';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { useSettings } from '../../hooks/useSettings';
 import { TICKET_SERVICE_URL } from '../../sentryConfig';
+import { contactEmailEdit } from './contactEmailEdit';
 import {
   cancelCollection,
   CollectionRun,
@@ -45,7 +46,8 @@ enum ReportScreen {
   reportSetup = 'reportSetup',
   selectIssueDate = 'selectIssueDate',
   reportingBug = 'reportingBug',
-  contactInfo = 'contactInfo',
+  contactUs = 'contactUs',
+  yourContactInfo = 'yourContactInfo',
   submitted = 'submitted'
 }
 
@@ -86,7 +88,9 @@ let inFlightSubmission: InFlightSubmission | null = null;
 
 type BugReportOption = {
   key:
-    | 'contactInfo'
+    | 'yourContactInfo'
+    | 'editContactEmail'
+    | 'contactUs'
     | 'reportIssue'
     | 'report'
     | 'selectDate'
@@ -232,6 +236,8 @@ export const BugReport = (): JSX.Element => {
   const finishedResolveRef = useRef<(() => void) | null>(null);
   const { resetTimer: resetIdleTimer } = useIdleTimer();
   const { data: settings } = useSettings();
+  // The address on file; "Your contact info" and the report legend show it.
+  const savedEmail = settings?.report_contact_mail?.trim() || null;
   // The email the current report goes out with: the saved setting, or what
   // the user answered on the contact email screen. null once declined.
   const contactEmailRef = useRef<string | null>(null);
@@ -271,9 +277,18 @@ export const BugReport = (): JSX.Element => {
   const options = useMemo<BugReportOption[]>(() => {
     if (reportScreen === ReportScreen.message) {
       return [
+        ...(savedEmail
+          ? [
+              {
+                key: 'yourContactInfo' as const,
+                label: 'Your contact info',
+                useableWidthPercentage: 81
+              }
+            ]
+          : []),
         {
-          key: 'contactInfo',
-          label: 'Contact info',
+          key: 'contactUs',
+          label: 'Contact us',
           useableWidthPercentage: 81
         },
         {
@@ -285,8 +300,23 @@ export const BugReport = (): JSX.Element => {
       ];
     }
 
-    if (reportScreen === ReportScreen.contactInfo) {
+    if (reportScreen === ReportScreen.contactUs) {
       return [{ key: 'back', label: 'Back', useableWidthPercentage: 81 }];
+    }
+
+    if (reportScreen === ReportScreen.yourContactInfo) {
+      return [
+        ...(savedEmail
+          ? [
+              {
+                key: 'editContactEmail' as const,
+                label: savedEmail,
+                useableWidthPercentage: 81
+              }
+            ]
+          : []),
+        { key: 'back', label: 'Back', useableWidthPercentage: 81 }
+      ];
     }
 
     if (reportScreen === ReportScreen.reportSetup) {
@@ -321,7 +351,7 @@ export const BugReport = (): JSX.Element => {
     }
 
     return [];
-  }, [reportScreen, reportStatus]);
+  }, [reportScreen, reportStatus, savedEmail]);
 
   const exitToQuickSettings = () => {
     dispatch(setBubblePinned(false));
@@ -410,7 +440,7 @@ export const BugReport = (): JSX.Element => {
   };
 
   const beginReport = () => {
-    const knownEmail = settings?.report_contact_mail?.trim() || null;
+    const knownEmail = savedEmail;
     contactEmailRef.current = knownEmail;
     const run = startCollection(selectedIssueTimestamp);
     attachCollection(run);
@@ -432,6 +462,20 @@ export const BugReport = (): JSX.Element => {
     dispatch(setScreen('reportContactEmail'));
   };
 
+  // "Your contact info": change the saved address on the full screen route.
+  // The bubble comes back on that screen once the edit is saved or dropped.
+  const editContactEmail = (email: string) => {
+    contactEmailEdit.open(email);
+    dispatch(
+      setBubbleDisplay({
+        visible: false,
+        component: undefined,
+        interceptsGesture: true
+      })
+    );
+    dispatch(setScreen('reportContactEmail'));
+  };
+
   useEffect(() => {
     dispatch(setBubblePinned(busy));
     if (!busy) return;
@@ -443,6 +487,11 @@ export const BugReport = (): JSX.Element => {
   // Back from the contact email screen: resume the run left behind with the
   // address the user gave, if any.
   useEffect(() => {
+    // Back from changing the saved address: reopen where it was pressed.
+    if (contactEmailEdit.takeReturn()) {
+      setReportScreen(ReportScreen.yourContactInfo);
+      setActiveIndex(0);
+    }
     const run = reportHandoff.takeRun();
     const decision = reportHandoff.takeContactDecision();
     if (!run) return;
@@ -738,8 +787,16 @@ export const BugReport = (): JSX.Element => {
       if (!activeOption || reportStatus === ReportStatus.submitting) return;
 
       switch (activeOption.key) {
-        case 'contactInfo':
-          setReportScreen(ReportScreen.contactInfo);
+        case 'yourContactInfo':
+          setReportScreen(ReportScreen.yourContactInfo);
+          setReportStatus(ReportStatus.idle);
+          setActiveIndex(0);
+          break;
+        case 'editContactEmail':
+          if (savedEmail) editContactEmail(savedEmail);
+          break;
+        case 'contactUs':
+          setReportScreen(ReportScreen.contactUs);
           setReportStatus(ReportStatus.idle);
           setActiveIndex(0);
           break;
@@ -791,19 +848,19 @@ export const BugReport = (): JSX.Element => {
     if (reportScreen === ReportScreen.message) {
       return (
         <>
-          <div style={{ marginTop: '10px' }}>
+          <div style={{ marginTop: '6px' }}>
             <span>
               This action will send debug data and provide You with a{' '}
               <strong>bug report number</strong>.
             </span>
           </div>
-          <div style={{ marginTop: '10px' }}>
+          <div style={{ marginTop: '6px' }}>
             <span>
-              Click on <strong>contact info</strong> to display QR coded contact
+              Click on <strong>contact us</strong> to display QR coded contact
               information or <strong>report an issue</strong> to continue.
             </span>
           </div>
-          <div style={{ marginTop: '10px' }}>
+          <div style={{ marginTop: '6px' }}>
             <span>We strongly recommend reporting from the mobile app</span>
           </div>
         </>
@@ -837,6 +894,23 @@ export const BugReport = (): JSX.Element => {
               )}
             />
           </div>
+          {savedEmail && (
+            <span className="bug-report-contact-legend">
+              We will reach you back at {savedEmail}
+            </span>
+          )}
+        </>
+      );
+    }
+
+    if (reportScreen === ReportScreen.yourContactInfo) {
+      return (
+        <>
+          <span className="bug-report-eyebrow">Your contact info</span>
+          <p className="bug-report-copy">
+            We reach you back about your reports at the address below. Press it
+            to change it.
+          </p>
         </>
       );
     }
@@ -937,6 +1011,7 @@ export const BugReport = (): JSX.Element => {
     issueDateDraft,
     reportScreen,
     reportStatus,
+    savedEmail,
     selectedIssueTimestamp
   ]);
 
@@ -959,7 +1034,15 @@ export const BugReport = (): JSX.Element => {
               paddingRight: `${90 - width}%`
             }}
           >
-            <span className="settings-fixed-item-text">{item.label}</span>
+            <span
+              className={`settings-fixed-item-text ${
+                item.key === 'editContactEmail'
+                  ? 'bug-report-option-address'
+                  : ''
+              }`}
+            >
+              {item.label}
+            </span>
           </div>
         );
       })}
@@ -1015,7 +1098,8 @@ export const BugReport = (): JSX.Element => {
   // they skip the shaper floats and centre on the bubble panel instead.
   if (
     reportScreen === ReportScreen.reportSetup ||
-    reportScreen === ReportScreen.selectIssueDate
+    reportScreen === ReportScreen.selectIssueDate ||
+    reportScreen === ReportScreen.yourContactInfo
   ) {
     return (
       <div className="bug-report-centered-screen">
@@ -1028,7 +1112,7 @@ export const BugReport = (): JSX.Element => {
   return (
     <div className="main-quick-settings settings-explanation-container">
       <div className="settings-explanation">
-        {reportScreen === ReportScreen.contactInfo ? (
+        {reportScreen === ReportScreen.contactUs ? (
           <QrGeneratedImage
             size={240}
             value={SUPPORT_WEBSITE_URL}
