@@ -17,7 +17,7 @@ import { DraftInfo } from '@meticulous-home/espresso-api';
 
 import { api } from '../../api/api';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
-import { useSettings } from '../../hooks/useSettings';
+import { useSettings, useUpdateSettings } from '../../hooks/useSettings';
 import { TICKET_SERVICE_URL } from '../../sentryConfig';
 import { contactEmailEdit } from './contactEmailEdit';
 import {
@@ -90,6 +90,7 @@ type BugReportOption = {
   key:
     | 'yourContactInfo'
     | 'editContactEmail'
+    | 'removeContactEmail'
     | 'contactUs'
     | 'reportIssue'
     | 'report'
@@ -99,7 +100,14 @@ type BugReportOption = {
     | 'exit';
   label: string;
   useableWidthPercentage: number;
+  /** Runs on a held press, with the slide-away fill, never on a plain press. */
+  hold?: boolean;
 };
+
+// A held press on a `hold` option: the fill runs on press down, the action
+// fires when it completes and an early release cancels it (quick settings do
+// the same).
+type HoldAnimationState = 'stopped' | 'running' | 'finished';
 
 type IssueDateField = 'day' | 'month' | 'year' | 'hours' | 'minutes';
 
@@ -236,8 +244,11 @@ export const BugReport = (): JSX.Element => {
   const finishedResolveRef = useRef<(() => void) | null>(null);
   const { resetTimer: resetIdleTimer } = useIdleTimer();
   const { data: settings } = useSettings();
+  const updateSettings = useUpdateSettings();
   // The address on file; "Your contact info" and the report legend show it.
   const savedEmail = settings?.report_contact_mail?.trim() || null;
+  const [holdAnimation, setHoldAnimation] =
+    useState<HoldAnimationState>('stopped');
   // The email the current report goes out with: the saved setting, or what
   // the user answered on the contact email screen. null once declined.
   const contactEmailRef = useRef<string | null>(null);
@@ -312,6 +323,12 @@ export const BugReport = (): JSX.Element => {
                 key: 'editContactEmail' as const,
                 label: savedEmail,
                 useableWidthPercentage: 81
+              },
+              {
+                key: 'removeContactEmail' as const,
+                label: 'Remove contact info',
+                useableWidthPercentage: 81,
+                hold: true
               }
             ]
           : []),
@@ -474,6 +491,23 @@ export const BugReport = (): JSX.Element => {
       })
     );
     dispatch(setScreen('reportContactEmail'));
+  };
+
+  // The hold on "Remove contact info" ran to the end: forget the address and
+  // go back to the main screen, where its entry has gone.
+  const handleHoldAnimationEnd = () => {
+    setHoldAnimation('finished');
+    const activeOption = options[activeIndex];
+    if (activeOption?.key !== 'removeContactEmail') return;
+    updateSettings.mutate(
+      { report_contact_mail: null },
+      {
+        onSuccess: () => {
+          setReportScreen(ReportScreen.message);
+          setActiveIndex(0);
+        }
+      }
+    );
   };
 
   useEffect(() => {
@@ -785,6 +819,10 @@ export const BugReport = (): JSX.Element => {
       }
       const activeOption = options[activeIndex];
       if (!activeOption || reportStatus === ReportStatus.submitting) return;
+      if (activeOption.hold) {
+        setHoldAnimation('running');
+        return;
+      }
 
       switch (activeOption.key) {
         case 'yourContactInfo':
@@ -831,6 +869,10 @@ export const BugReport = (): JSX.Element => {
           exitToQuickSettings();
           break;
       }
+    },
+    pressUp() {
+      // Released: a finished hold already acted, an unfinished one is off.
+      setHoldAnimation('stopped');
     },
     longEncoder() {
       if (reportScreen === ReportScreen.selectIssueDate) {
@@ -909,7 +951,7 @@ export const BugReport = (): JSX.Element => {
           <span className="bug-report-eyebrow">Your contact info</span>
           <p className="bug-report-copy">
             We reach you back about your reports at the address below. Press it
-            to change it.
+            to change it, or hold the option under it to forget it.
           </p>
         </>
       );
@@ -1018,21 +1060,28 @@ export const BugReport = (): JSX.Element => {
   const optionList = options.length > 0 && (
     <div
       className="settings-fixed-item-container bug-report-options"
-      style={{ marginBottom: '50px' }}
+      style={{
+        // "Your contact info" sits higher, clear of the display's curve.
+        marginBottom:
+          reportScreen === ReportScreen.yourContactInfo ? '80px' : '50px'
+      }}
     >
       {options.map((item, index) => {
         const width = item.useableWidthPercentage || 90;
+        const active = index === activeIndex;
+        const holding = active && item.hold && holdAnimation === 'running';
         return (
           <div
             key={item.key}
             className={`settings-fixed-item settings-item ${
-              index === activeIndex ? 'active-setting' : ''
-            }`}
+              active ? 'active-setting' : ''
+            } ${holding ? 'bug-report-option-holding' : ''}`}
             style={{
               marginBottom: '3px',
               width: `${width}%`,
               paddingRight: `${90 - width}%`
             }}
+            onAnimationEnd={holding ? handleHoldAnimationEnd : undefined}
           >
             <span
               className={`settings-fixed-item-text ${
@@ -1043,6 +1092,7 @@ export const BugReport = (): JSX.Element => {
             >
               {item.label}
             </span>
+            {item.hold && <span className="bug-report-option-badge">HOLD</span>}
           </div>
         );
       })}
