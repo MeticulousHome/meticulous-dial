@@ -6,7 +6,6 @@ import {
   BugReportAnimationPhase
 } from './BugReportAnimation';
 import { QrGeneratedImage } from '../QR/QrImage';
-import { CircleKeyboard } from '../CircleKeyboard/CircleKeyboard';
 import {
   setBubbleDisplay,
   setBubblePinned,
@@ -14,22 +13,21 @@ import {
 } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 
-import {
-  DraftInfo,
-  getReportErrorCode,
-  PreflightBlocker,
-  ReportErrorCode
-} from '@meticulous-home/espresso-api';
+import { DraftInfo } from '@meticulous-home/espresso-api';
 
 import { api } from '../../api/api';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
-import { useSettings, useUpdateSettings } from '../../hooks/useSettings';
-import { REPORT_PROBE_URLS, TICKET_SERVICE_URL } from '../../sentryConfig';
+import { useSettings } from '../../hooks/useSettings';
+import { TICKET_SERVICE_URL } from '../../sentryConfig';
 import {
-  BLOCKER_FAILURE,
+  cancelCollection,
+  CollectionRun,
+  reportHandoff,
+  startCollection
+} from './reportCollection';
+import {
   buildDraftAttachment,
   captureException,
-  CREATE_ERROR_FAILURE,
   FAILURE_DETAILS,
   FailureView,
   getTicketEventID,
@@ -48,41 +46,8 @@ enum ReportScreen {
   selectIssueDate = 'selectIssueDate',
   reportingBug = 'reportingBug',
   contactInfo = 'contactInfo',
-  submitted = 'submitted',
-  // Contact email, asked once before the first report while the machine is
-  // already collecting. Keyboard for the part before the "@", a list of
-  // common domains, a keyboard for a custom domain, and the screen shown when
-  // the user backs out of giving an address.
-  contactEmailLocal = 'contactEmailLocal',
-  contactEmailDomain = 'contactEmailDomain',
-  contactEmailCustomDomain = 'contactEmailCustomDomain',
-  contactEmailDeclined = 'contactEmailDeclined'
+  submitted = 'submitted'
 }
-
-const CONTACT_EMAIL_SCREENS = new Set<ReportScreen>([
-  ReportScreen.contactEmailLocal,
-  ReportScreen.contactEmailDomain,
-  ReportScreen.contactEmailCustomDomain,
-  ReportScreen.contactEmailDeclined
-]);
-
-const EMAIL_DOMAINS = [
-  'gmail.com',
-  'outlook.com',
-  'proton.me',
-  'hotmail.com',
-  'icloud.com'
-];
-const CUSTOM_DOMAIN_LABEL = 'Custom';
-const EMAIL_DOMAIN_OPTIONS = [...EMAIL_DOMAINS, CUSTOM_DOMAIN_LABEL];
-// Rows visible at once in the domain list; the list scrolls around the
-// active one so six entries fit the round display.
-const EMAIL_DOMAIN_WINDOW = 3;
-
-const CONTACT_EMAIL_HINTS = [
-  { input: 'Press', action: 'Select' },
-  { input: 'Long press', action: 'Skip' }
-];
 
 enum ReportStatus {
   idle = 'idle',
@@ -127,43 +92,12 @@ type BugReportOption = {
     | 'selectDate'
     | 'back'
     | 'cancel'
-    | 'exit'
-    | 'skipEmail'
-    | 'enterEmail';
+    | 'exit';
   label: string;
   useableWidthPercentage: number;
 };
 
-// The keyboard reports every keystroke; the part before the "@" and the
-// custom domain are kept here so a user who backs out and comes back finds
-// what they had typed.
-type ContactEmailDraft = {
-  localPart: string;
-  /** The user typed an "@" themselves, so no domain is asked for. */
-  customDomainEntered: boolean;
-  domain: string;
-};
-
-const EMPTY_CONTACT_EMAIL_DRAFT: ContactEmailDraft = {
-  localPart: '',
-  customDomainEntered: false,
-  domain: ''
-};
-
-const stripSpaces = (value: string) => value.replace(/\s+/g, '');
-
-const looksLikeEmail = (value: string) => {
-  const [localPart, domain, ...rest] = value.split('@');
-  return rest.length === 0 && Boolean(localPart) && Boolean(domain);
-};
-
 type IssueDateField = 'day' | 'month' | 'year' | 'hours' | 'minutes';
-
-type CreateReportRun = {
-  cancelled: boolean;
-  slowTimeout: ReturnType<typeof setTimeout> | null;
-  controller: AbortController;
-};
 
 const ISSUE_DATE_FIELDS: IssueDateField[] = [
   'day',
@@ -293,31 +227,19 @@ export const BugReport = (): JSX.Element => {
   const draftInfoRef = useRef<DraftInfo | null>(null);
   const ticketRef = useRef<number | null>(null);
   const submissionStateRef = useRef<SubmissionStateType>(null);
-  const activeCreateRunRef = useRef<CreateReportRun | null>(null);
+  const activeCreateRunRef = useRef<CollectionRun | null>(null);
   const submitControllerRef = useRef<AbortController | null>(null);
   const finishedResolveRef = useRef<(() => void) | null>(null);
   const { resetTimer: resetIdleTimer } = useIdleTimer();
   const { data: settings } = useSettings();
-  const updateSettings = useUpdateSettings();
-  const [contactEmailDraft, setContactEmailDraft] = useState(
-    EMPTY_CONTACT_EMAIL_DRAFT
-  );
   // The email the current report goes out with: the saved setting, or what
-  // the user enters now. null once they declined.
+  // the user answered on the contact email screen. null once declined.
   const contactEmailRef = useRef<string | null>(null);
-  // True while the email screens are up. The collection runs underneath;
-  // a draft that finishes meanwhile parks here until the user is done, so
-  // nothing is uploaded before the email is known or declined.
-  const contactPendingRef = useRef(false);
-  const pendingDraftRef = useRef<DraftInfo | null>(null);
-  // Where "Enter email" on the declined screen returns to.
-  const declinedFromRef = useRef<ReportScreen>(ReportScreen.contactEmailLocal);
 
   const busy =
     reportStatus === ReportStatus.fetching ||
     reportStatus === ReportStatus.slowFetch ||
     reportStatus === ReportStatus.submitting;
-  const contactFlowActive = CONTACT_EMAIL_SCREENS.has(reportScreen);
 
   const animationPhase: BugReportAnimationPhase = isFinishing
     ? 'finished'
@@ -365,17 +287,6 @@ export const BugReport = (): JSX.Element => {
 
     if (reportScreen === ReportScreen.contactInfo) {
       return [{ key: 'back', label: 'Back', useableWidthPercentage: 81 }];
-    }
-
-    if (reportScreen === ReportScreen.contactEmailDeclined) {
-      return [
-        { key: 'skipEmail', label: 'Ok', useableWidthPercentage: 81 },
-        {
-          key: 'enterEmail',
-          label: 'Enter email',
-          useableWidthPercentage: 81
-        }
-      ];
     }
 
     if (reportScreen === ReportScreen.reportSetup) {
@@ -452,257 +363,100 @@ export const BugReport = (): JSX.Element => {
     ticketRef.current = null;
     submissionStateRef.current = null;
     setIsFinishing(false);
-    setContactEmailDraft(EMPTY_CONTACT_EMAIL_DRAFT);
     contactEmailRef.current = null;
-    contactPendingRef.current = false;
-    pendingDraftRef.current = null;
-  };
-
-  const deleteCancelledDraft = async (localID: string) => {
-    try {
-      const deleteResponse = await api.deleteDraftReport(localID);
-      if (isReportError(deleteResponse)) {
-        throw new Error(deleteResponse.error);
-      }
-    } catch (error) {
-      // Cancellation is already complete from the user's perspective. Keep
-      // this failure out of the reset UI, while retaining it for diagnosis.
-      captureException(error);
-    }
   };
 
   const cancelCreateReport = () => {
-    const createRun = activeCreateRunRef.current;
-    if (!createRun) return;
-
-    createRun.cancelled = true;
-    // Stops the in-flight request so the machine stops collecting; scoped to
-    // this run's own controller, so a later run is never touched by it.
-    createRun.controller.abort();
-    if (createRun.slowTimeout) {
-      clearTimeout(createRun.slowTimeout);
-      createRun.slowTimeout = null;
-    }
+    const run = activeCreateRunRef.current;
+    if (!run) return;
+    cancelCollection(run);
     activeCreateRunRef.current = null;
     resetCancelledReport();
   };
 
-  const startCreateReport = () => {
-    // A fresh controller per run: it lives and dies with this createRun, is
-    // never reused, and a later run can never be aborted through it.
-    const createRun: CreateReportRun = {
-      cancelled: false,
-      slowTimeout: null,
-      controller: new AbortController()
-    };
-    const issueTime = selectedIssueTimestamp;
-
-    activeCreateRunRef.current = createRun;
+  // Shows a collection run and carries on with its outcome. Used for a run
+  // started here and for one picked back up after the contact email screen.
+  const attachCollection = (run: CollectionRun) => {
+    activeCreateRunRef.current = run;
     setReportScreen(ReportScreen.reportingBug);
-    setReportStatus(ReportStatus.fetching);
+    setReportStatus(run.slow ? ReportStatus.slowFetch : ReportStatus.fetching);
     setActiveIndex(0);
     setFailure(null);
     setIsFinishing(false);
     draftInfoRef.current = null;
 
-    createRun.slowTimeout = setTimeout(() => {
-      if (!createRun.cancelled && activeCreateRunRef.current === createRun) {
+    run.onSlow = () => {
+      if (activeCreateRunRef.current === run) {
         setReportStatus(ReportStatus.slowFetch);
       }
-    }, 60 * 1000); // message change on the first minute mark
+    };
 
-    void (async () => {
-      try {
-        const preflight = await api.getReportPreflight(REPORT_PROBE_URLS, {
-          signal: createRun.controller.signal,
-          timeout: 20_000
-        });
-        if (createRun.cancelled) return;
-        if (!isReportError(preflight)) {
-          const blocker = preflight.blockers[0] as PreflightBlocker | undefined;
-          if (blocker && BLOCKER_FAILURE[blocker]) {
-            activeCreateRunRef.current = null;
-            failSubmission(BLOCKER_FAILURE[blocker], preflight);
-            return;
-          }
-        } else {
-          // Old backends do not have preflight. Any API error is non-blocking.
-          console.warn(
-            '[bug-report] preflight unavailable, continuing',
-            preflight
-          );
-        }
-        const createResponse =
-          issueTime === undefined
-            ? await api.createReport(undefined, {
-                signal: createRun.controller.signal
-              })
-            : await api.createReport(
-                { issueTime },
-                { signal: createRun.controller.signal }
-              );
-        if (isReportError(createResponse)) {
-          throw Object.assign(new Error(createResponse.error), {
-            reportCode: getReportErrorCode(createResponse)
-          });
-        }
-
-        if (createRun.cancelled) {
-          await deleteCancelledDraft(createResponse.localID);
-          return;
-        }
-
-        if (!createResponse.machineID?.trim()) {
-          await deleteCancelledDraft(createResponse.localID);
-          throw Object.assign(new Error('Draft has no machineID'), {
-            failure: 'noSerial' as const
-          });
-        }
-
-        activeCreateRunRef.current = null;
-        draftInfoRef.current = createResponse;
-        if (contactPendingRef.current) {
-          // The user is still on the email screens. Hold the draft; the
-          // upload starts from finishContactFlow once they are done.
-          pendingDraftRef.current = createResponse;
-          return;
-        }
-        setReportStatus(ReportStatus.submitting);
-        void submitReport(createResponse);
-      } catch (error) {
-        if (createRun.cancelled) {
-          // Aborting makes createReport() resolve to an APIError that surfaces
-          // here as a throw, indistinguishable from a genuine failure. Decide
-          // from the run's own token, not this value: cancellation is expected
-          // user action, not a failure, so it must never reach the
-          // already-reset UI, and it must never be reported to Sentry.
-          console.error(
-            '[bug-report] discarded error from a cancelled report creation',
-            error
-          );
-        } else if (activeCreateRunRef.current === createRun) {
-          activeCreateRunRef.current = null;
-          const failure =
-            (error as { failure?: SubmissionFailType }).failure ??
-            CREATE_ERROR_FAILURE[
-              (error as { reportCode?: ReportErrorCode }).reportCode ??
-                'INTERNAL'
-            ] ??
-            'creation';
-          failSubmission(failure, error);
-        }
-      } finally {
-        if (createRun.slowTimeout) {
-          clearTimeout(createRun.slowTimeout);
-          createRun.slowTimeout = null;
-        }
+    void run.outcome.then((outcome) => {
+      // A bubble that unmounted meanwhile let go of the run (see the unmount
+      // effect); the mount that picked it up handles the outcome instead.
+      if (activeCreateRunRef.current !== run) return;
+      activeCreateRunRef.current = null;
+      run.onSlow = null;
+      // Cancelled: the UI was already reset by cancelCreateReport.
+      if (!outcome) return;
+      if ('failure' in outcome) {
+        failSubmission(outcome.failure, outcome.error);
+        return;
       }
-    })();
+      draftInfoRef.current = outcome.draft;
+      setReportStatus(ReportStatus.submitting);
+      void submitReport(outcome.draft);
+    });
   };
-
-  // The email screens pin the bubble too: the collection underneath may have
-  // already failed, and the user must still be able to finish or decline.
-  const keepBubble = busy || contactFlowActive;
-  useEffect(() => {
-    dispatch(setBubblePinned(keepBubble));
-    if (!keepBubble) return;
-    resetIdleTimer();
-    const keepAlive = setInterval(resetIdleTimer, 30_000);
-    return () => clearInterval(keepAlive);
-  }, [keepBubble, dispatch, resetIdleTimer]);
 
   const beginReport = () => {
     const knownEmail = settings?.report_contact_mail?.trim() || null;
     contactEmailRef.current = knownEmail;
-    contactPendingRef.current = knownEmail === null;
-    pendingDraftRef.current = null;
-    setContactEmailDraft(EMPTY_CONTACT_EMAIL_DRAFT);
-    startCreateReport();
-    if (knownEmail === null) {
-      // Collection is already running; ask for the email meanwhile. The
-      // screen set by startCreateReport is replaced by the keyboard.
-      declinedFromRef.current = ReportScreen.contactEmailLocal;
-      setReportScreen(ReportScreen.contactEmailLocal);
-    }
+    const run = startCollection(selectedIssueTimestamp);
+    attachCollection(run);
+    if (knownEmail !== null) return;
+
+    // No address on file: ask for one on a full screen while the machine
+    // collects. The run outlives this bubble and is picked up again when the
+    // contact email screen reopens it.
+    reportHandoff.detach(run);
+    // Gestures stay blocked until the bubble has closed, so the release of
+    // this press cannot type on the keyboard.
+    dispatch(
+      setBubbleDisplay({
+        visible: false,
+        component: undefined,
+        interceptsGesture: true
+      })
+    );
+    dispatch(setScreen('reportContactEmail'));
   };
 
-  const finishContactFlow = (email: string | null) => {
-    contactEmailRef.current = email;
-    contactPendingRef.current = false;
-    if (email) {
-      // Saved for next time regardless of how this report ends. A failed
-      // save only costs asking again on the next report.
-      updateSettings.mutate({ report_contact_mail: email });
-    }
-    setReportScreen(ReportScreen.reportingBug);
-    setActiveIndex(0);
-    const draft = pendingDraftRef.current;
-    if (draft) {
-      pendingDraftRef.current = null;
-      setReportStatus(ReportStatus.submitting);
-      void submitReport(draft);
-    }
-  };
+  useEffect(() => {
+    dispatch(setBubblePinned(busy));
+    if (!busy) return;
+    resetIdleTimer();
+    const keepAlive = setInterval(resetIdleTimer, 30_000);
+    return () => clearInterval(keepAlive);
+  }, [busy, dispatch, resetIdleTimer]);
 
-  const declineContact = () => {
-    if (reportScreen !== ReportScreen.contactEmailDeclined) {
-      declinedFromRef.current = reportScreen;
-    }
-    setActiveIndex(0);
-    setReportScreen(ReportScreen.contactEmailDeclined);
-  };
-
-  const resumeContactFlow = () => {
-    setActiveIndex(0);
-    setReportScreen(declinedFromRef.current);
-  };
-
-  const submitContactLocalPart = (text: string) => {
-    const localPart = stripSpaces(text);
-    if (!localPart) return;
-    if (localPart.includes('@')) {
-      // They typed the whole address; no domain to pick.
-      if (!looksLikeEmail(localPart)) return;
-      setContactEmailDraft((draft) => ({
-        ...draft,
-        localPart,
-        customDomainEntered: true
-      }));
-      finishContactFlow(localPart);
-      return;
-    }
-    setContactEmailDraft((draft) => ({
-      ...draft,
-      localPart,
-      customDomainEntered: false
-    }));
-    setActiveIndex(0);
-    setReportScreen(ReportScreen.contactEmailDomain);
-  };
-
-  const chooseContactDomain = (index: number) => {
-    const choice = EMAIL_DOMAIN_OPTIONS[index];
-    if (choice === CUSTOM_DOMAIN_LABEL) {
-      setReportScreen(ReportScreen.contactEmailCustomDomain);
-      return;
-    }
-    finishContactFlow(`${contactEmailDraft.localPart}@${choice}`);
-  };
-
-  const submitContactCustomDomain = (text: string) => {
-    const domain = stripSpaces(text).replace(/^@+/, '');
-    if (!domain || domain.includes('@')) return;
-    setContactEmailDraft((draft) => ({ ...draft, domain }));
-    finishContactFlow(`${contactEmailDraft.localPart}@${domain}`);
-  };
+  // Back from the contact email screen: resume the run left behind with the
+  // address the user gave, if any.
+  useEffect(() => {
+    const run = reportHandoff.takeRun();
+    const decision = reportHandoff.takeContactDecision();
+    if (!run) return;
+    contactEmailRef.current = decision?.email ?? null;
+    attachCollection(run);
+  }, []);
 
   useEffect(
     () => () => {
       const run = activeCreateRunRef.current;
       if (run) {
-        run.cancelled = true;
-        run.controller.abort();
-        if (run.slowTimeout) clearTimeout(run.slowTimeout);
+        // A detached run keeps collecting for the bubble that comes back.
+        if (!run.detached) cancelCollection(run);
+        run.onSlow = null;
         activeCreateRunRef.current = null;
       }
       dispatch(setBubblePinned(false));
@@ -953,43 +707,24 @@ export const BugReport = (): JSX.Element => {
     };
   }, []);
 
-  // The keyboard screens own the encoder while they are up; this component
-  // only sees their long press, through onLongPress.
-  const keyboardScreen =
-    reportScreen === ReportScreen.contactEmailLocal ||
-    reportScreen === ReportScreen.contactEmailCustomDomain;
-
   useHandleGestures({
     left() {
-      if (keyboardScreen) return;
       if (reportScreen === ReportScreen.selectIssueDate) {
         changeIssueDate(-1);
-        return;
-      }
-      if (reportScreen === ReportScreen.contactEmailDomain) {
-        setActiveIndex((prev) => Math.max(prev - 1, 0));
         return;
       }
       if (options.length === 0) return;
       setActiveIndex((prev) => Math.max(prev - 1, 0));
     },
     right() {
-      if (keyboardScreen) return;
       if (reportScreen === ReportScreen.selectIssueDate) {
         changeIssueDate(1);
-        return;
-      }
-      if (reportScreen === ReportScreen.contactEmailDomain) {
-        setActiveIndex((prev) =>
-          Math.min(prev + 1, EMAIL_DOMAIN_OPTIONS.length - 1)
-        );
         return;
       }
       if (options.length === 0) return;
       setActiveIndex((prev) => Math.min(prev + 1, options.length - 1));
     },
     pressDown() {
-      if (keyboardScreen) return;
       if (reportScreen === ReportScreen.selectIssueDate) {
         setActiveIssueDateField((previousField) => {
           const currentIndex = ISSUE_DATE_FIELDS.indexOf(previousField);
@@ -997,10 +732,6 @@ export const BugReport = (): JSX.Element => {
             (currentIndex + 1) % ISSUE_DATE_FIELDS.length
           ];
         });
-        return;
-      }
-      if (reportScreen === ReportScreen.contactEmailDomain) {
-        chooseContactDomain(activeIndex);
         return;
       }
       const activeOption = options[activeIndex];
@@ -1026,12 +757,6 @@ export const BugReport = (): JSX.Element => {
         case 'cancel':
           cancelCreateReport();
           break;
-        case 'skipEmail':
-          finishContactFlow(null);
-          break;
-        case 'enterEmail':
-          resumeContactFlow();
-          break;
         case 'back':
           if (reportScreen === ReportScreen.message) {
             exitToQuickSettings();
@@ -1053,12 +778,6 @@ export const BugReport = (): JSX.Element => {
     longEncoder() {
       if (reportScreen === ReportScreen.selectIssueDate) {
         confirmIssueDate();
-        return;
-      }
-      // The keyboard screens report their long press through onLongPress,
-      // after taking back the character the press typed on the way down.
-      if (reportScreen === ReportScreen.contactEmailDomain) {
-        declineContact();
       }
     },
     doubleClick() {
@@ -1184,18 +903,6 @@ export const BugReport = (): JSX.Element => {
       );
     }
 
-    if (reportScreen === ReportScreen.contactEmailDeclined) {
-      return (
-        <>
-          <span className="bug-report-eyebrow">No contact email</span>
-          <span className="bug-report-contact-note">
-            Without an email address we will not be able to reach back to you
-            about this report.
-          </span>
-        </>
-      );
-    }
-
     if (reportScreen === ReportScreen.reportingBug) {
       switch (reportStatus) {
         case ReportStatus.fetching:
@@ -1233,17 +940,6 @@ export const BugReport = (): JSX.Element => {
     selectedIssueTimestamp
   ]);
 
-  // CircleKeyboard resets its caption whenever defaultValue changes identity,
-  // so these are memoised on the text and not rebuilt every render.
-  const contactLocalPartValue = useMemo(
-    () => contactEmailDraft.localPart.split(''),
-    [contactEmailDraft.localPart]
-  );
-  const contactDomainValue = useMemo(
-    () => contactEmailDraft.domain.split(''),
-    [contactEmailDraft.domain]
-  );
-
   const optionList = options.length > 0 && (
     <div
       className="settings-fixed-item-container"
@@ -1269,109 +965,6 @@ export const BugReport = (): JSX.Element => {
       })}
     </div>
   );
-
-  // The email screens come first: the collection (or its failure) is shown
-  // only once the user has given or declined an address.
-  if (reportScreen === ReportScreen.contactEmailLocal) {
-    return (
-      <CircleKeyboard
-        name="email to reach you back"
-        defaultValue={contactLocalPartValue}
-        suffix={contactEmailDraft.customDomainEntered ? undefined : '@'}
-        onChange={(text) =>
-          setContactEmailDraft((draft) => ({
-            ...draft,
-            localPart: text,
-            customDomainEntered: text.includes('@')
-          }))
-        }
-        onSubmit={submitContactLocalPart}
-        onCancel={declineContact}
-        onLongPress={declineContact}
-        capitalizeFirstLetter={false}
-        shouldIgnoreGesture={false}
-      />
-    );
-  }
-
-  if (reportScreen === ReportScreen.contactEmailCustomDomain) {
-    return (
-      <CircleKeyboard
-        name={`domain for ${contactEmailDraft.localPart}`}
-        defaultValue={contactDomainValue}
-        prefix="@"
-        onChange={(text) =>
-          setContactEmailDraft((draft) => ({ ...draft, domain: text }))
-        }
-        onSubmit={submitContactCustomDomain}
-        onCancel={declineContact}
-        onLongPress={declineContact}
-        capitalizeFirstLetter={false}
-        shouldIgnoreGesture={false}
-      />
-    );
-  }
-
-  if (reportScreen === ReportScreen.contactEmailDomain) {
-    const windowStart = Math.min(
-      Math.max(activeIndex - 1, 0),
-      EMAIL_DOMAIN_OPTIONS.length - EMAIL_DOMAIN_WINDOW
-    );
-    const visibleDomains = EMAIL_DOMAIN_OPTIONS.slice(
-      windowStart,
-      windowStart + EMAIL_DOMAIN_WINDOW
-    );
-    return (
-      <div className="bug-report-centered-screen">
-        <div className="bug-report-centered-body">
-          <span className="bug-report-eyebrow">Your email domain</span>
-          <span className="bug-report-contact-address">
-            {contactEmailDraft.localPart}@
-          </span>
-          <div className="bug-report-gesture-hints">
-            {CONTACT_EMAIL_HINTS.map((hint) => (
-              <Fragment key={hint.input}>
-                <span className="bug-report-gesture-hint-input">
-                  {hint.input}
-                </span>
-                <span className="bug-report-gesture-hint-dot" />
-                <span className="bug-report-gesture-hint-action">
-                  {hint.action}
-                </span>
-              </Fragment>
-            ))}
-          </div>
-        </div>
-        <div
-          className="settings-fixed-item-container"
-          style={{ marginBottom: '50px' }}
-        >
-          {visibleDomains.map((domain, index) => (
-            <div
-              key={domain}
-              className={`settings-fixed-item settings-item bug-report-domain-item ${
-                windowStart + index === activeIndex ? 'active-setting' : ''
-              }`}
-              style={{ marginBottom: '5px', width: '81%', paddingRight: '9%' }}
-            >
-              <span className="settings-fixed-item-text">
-                {domain === CUSTOM_DOMAIN_LABEL ? domain : `@${domain}`}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (reportScreen === ReportScreen.contactEmailDeclined) {
-    return (
-      <div className="bug-report-centered-screen">
-        <div className="bug-report-centered-body">{message}</div>
-        {optionList}
-      </div>
-    );
-  }
 
   if (
     reportStatus === ReportStatus.submitting ||

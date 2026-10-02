@@ -224,28 +224,3 @@
   color: #808080;
   justify-self: start;
 }
-
-/* Contact email -----------------------------------------------------------
-   The domain list and the declined notice reuse the centred layout; the
-   address is shown large so the user can check what they typed. */
-.bug-report-contact-address {
-  font-family: 'ABC Diatype Mono';
-  font-size: 26px;
-  font-weight: 700;
-  margin-top: 12px;
-  max-width: 340px;
-  overflow-wrap: anywhere;
-}
-
-.bug-report-contact-note {
-  font-size: 20px;
-  line-height: 26px;
-  margin-top: 14px;
-  max-width: 320px;
-  text-align: center;
-}
-
-/* Domain entries are lower case addresses, not menu labels. */
-.bug-report-domain-item {
-  text-transform: none;
-}

@@ -15,6 +15,7 @@ import { RootState } from '../components/store/store';
 import { Notification } from '../components/Notification/Notification';
 import { ConnectWifiViaApp } from '../components/Wifi/ConnetWifiViaApp';
 import { BugReport } from '../components/BugReport/BugReport';
+import { ReportContactEmail } from '../components/BugReport/ReportContactEmail';
 import { OSStatus } from '../components/OSStatus/OSStatus';
 import { QuickSettings } from '../../src/components/QuickSettings/QuickSettings';
 import { SnakeGame } from '../../src/components/Snake/Snake';
@@ -469,6 +470,12 @@ export const routes: Record<ScreenType, Route> = {
   helpUsImprove: {
     component: HelpUsImprove,
     bottomStatusHidden: true
+  },
+  reportContactEmail: {
+    component: ReportContactEmail,
+    bottomStatusHidden: true,
+    // Only ever reached from the bug report bubble, which it reopens itself.
+    ignoreAsPrevious: true
   },
   shotDataSharingPrompt: {
     component: ShotDataSharingPrompt,
