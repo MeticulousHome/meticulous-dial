@@ -61,6 +61,7 @@ export type ScreenType =
   | 'freePourHistory'
   | 'factoryReset'
   | 'helpUsImprove'
+  | 'reportContactEmail'
   | 'shotDataSharingPrompt'
   | 'retraction_volume'
   | 'tare_behavior'
