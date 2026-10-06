@@ -7,3 +7,5 @@
 - `existing-edit.png`: after creating and saving a new profile, open TURBO through Quick Settings → Edit profile; its title remains visible.
 
 The browser check also exercised the new profile's Name, Temperature and Output screens, adjusted numeric values, checked the simulated save payload (same generated ID, name and edited values), and discarded an existing edit without an additional save. Profile-name input was seeded through the fixture; physical keyboard, firmware and machine persistence were not tested.
+
+The follow-up route regression check creates a profile, saves or discards it, then opens Heating and Shot History without entering an existing-profile editor first. Both retain TURBO even while creation mode remains set. The Dose parent title stays hidden inside new-profile editing. This check detects the overbroad suppression in the first PR version (`7f9c8fc1`) and passes after restricting suppression to `pressetSettings` and routes whose parent is `pressetSettings`.

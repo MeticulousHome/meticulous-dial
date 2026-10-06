@@ -28,6 +28,10 @@ export const Router = memo(
     }
     const RouteComponent = route.component;
     const { isCreatingProfile } = useProfileContext();
+    const hideProfileTitle =
+      isCreatingProfile &&
+      (currentScreen === 'pressetSettings' ||
+        route.parent === 'pressetSettings');
     const title = useAppSelector((state) =>
       typeof route.title === 'function' ? route.title(state) : route.title
     );
@@ -68,13 +72,13 @@ export const Router = memo(
           direction={direction}
           screen={currentScreen}
           title={
-            isCreatingProfile && route.title === getActiveProfilesTitle
+            hideProfileTitle && route.title === getActiveProfilesTitle
               ? undefined
               : title
           }
           titleShared={route.titleShared}
           parentTitle={
-            isCreatingProfile && route.parentTitle === getActiveProfilesTitle
+            hideProfileTitle && route.parentTitle === getActiveProfilesTitle
               ? undefined
               : parentTitle
           }
