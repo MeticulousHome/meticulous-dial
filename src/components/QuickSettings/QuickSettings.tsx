@@ -204,6 +204,7 @@ export function QuickSettings(): JSX.Element {
     selectedPourOverProfileId,
     setSelectedPourOverProfileId,
     setSettingsIndex: setProfileSettingsIndex,
+    setIsCreatingProfile,
     setSettingsProfile: setProfileSettings
   } = useProfileContext();
   const deletePresetMutation = useDeletePreset();
@@ -376,6 +377,7 @@ export function QuickSettings(): JSX.Element {
               break;
             }
             setProfileSettingsIndex(0);
+            setIsCreatingProfile(false);
             setProfileSettings(addSettingsToProfile(localProfile));
             dispatch(setScreen('pressetSettings'));
             dispatch(

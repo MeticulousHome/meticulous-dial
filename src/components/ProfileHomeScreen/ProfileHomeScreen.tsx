@@ -118,6 +118,7 @@ export const ProfileHomeScreen = () => {
     selectedPourOverProfileId,
     setSelectedPourOverProfileId,
     setSettingsIndex,
+    setIsCreatingProfile,
     setSettingsProfile
   } = profileState;
 
@@ -382,6 +383,7 @@ export const ProfileHomeScreen = () => {
             return;
           }
           setSettingsIndex(0);
+          setIsCreatingProfile(true);
           setSettingsProfile(
             addSettingsToProfile(newProfileFromTemplate(template))
           );
