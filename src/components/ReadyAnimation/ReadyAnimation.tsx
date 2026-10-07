@@ -11,6 +11,7 @@ import { useFetchData } from '../../hooks/useFetchData';
 import { useSettings } from '../../hooks/useSettings';
 import { resolvePostReadyScreen } from '../ShotDataSharing/postReadyScreen';
 import { loadNotifications } from '../store/features/notifications/notification-slice';
+import { invoke } from '@tauri-apps/api/core';
 
 export function ReadyAnimation(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -28,6 +29,11 @@ export function ReadyAnimation(): JSX.Element {
   function handleReadyAnimation2Completed(): void {
     animation.current?.destroy();
     animation.current = undefined;
+    if ('__TAURI_INTERNALS__' in window) {
+      invoke('home_ready').catch((error) => {
+        console.error('Failed to report profile home ready:', error);
+      });
+    }
     if (destroyedRef.current) return;
     dispatch(setScreen(resolvePostReadyScreen(settingsRef.current)));
     dispatch(loadNotifications());
