@@ -36,6 +36,8 @@ type ProfileContextType = {
   >;
 
   // Profile Editing
+  isCreatingProfile: boolean;
+  setIsCreatingProfile: React.Dispatch<React.SetStateAction<boolean>>;
   settingsIndex: number;
   setSettingsIndex: React.Dispatch<React.SetStateAction<number>>;
   settingsProfile:
@@ -97,6 +99,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     string | null
   >(null);
   const [settingsIndex, setSettingsIndex] = useState(0);
+  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [settingsProfile, setSettingsProfile] = useState<
     (ExtendedProfile & { settings: IPresetSetting[] }) | null
   >(null);
@@ -262,6 +265,8 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
     settingsIndex,
     setSettingsIndex,
+    isCreatingProfile,
+    setIsCreatingProfile,
     settingsProfile,
     setSettingsProfile,
 
