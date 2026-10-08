@@ -6,6 +6,16 @@ export const COMMUNITY_UPLOAD_STATUS_QUERY_KEY = 'community-upload-status';
 export type CommunityConnectionState =
   'not_connected' | 'connected' | 'upload_paused' | 'unavailable';
 
+export interface CommunityHistoryRecovery {
+  state: 'running' | 'completed' | 'interrupted';
+  added: number;
+  alreadyPresent: number;
+  preservedDeleted: number;
+  failed: number;
+  pendingCount: number;
+  lastError: string | null;
+}
+
 export interface CommunityUploadStatus {
   state: CommunityConnectionState;
   connected: boolean;
@@ -15,6 +25,7 @@ export interface CommunityUploadStatus {
   lastError: string | null;
   lastRetryAt: number | null;
   enrollmentExpiresAt: number | null;
+  recovery?: CommunityHistoryRecovery | null;
 }
 
 export interface CommunityEnrollment {
@@ -61,6 +72,17 @@ export function useDisconnectCommunity() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => invoke<void>('community_disconnect'),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: [COMMUNITY_UPLOAD_STATUS_QUERY_KEY]
+      })
+  });
+}
+
+export function useStartCommunityHistoryRecovery() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => invoke<void>('community_start_history_recovery'),
     onSuccess: () =>
       queryClient.invalidateQueries({
         queryKey: [COMMUNITY_UPLOAD_STATUS_QUERY_KEY]
