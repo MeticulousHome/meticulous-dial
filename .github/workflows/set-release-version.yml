@@ -9,6 +9,9 @@ jobs:
     name: Set release version
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    concurrency:
+      group: set-release-version-${{ github.ref }}
+      cancel-in-progress: false
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,12 +24,26 @@ jobs:
 
       - name: Disable "include administrators" branch protection
         id: disable_include_admins
-        uses: benjefferies/branch-protection-bot@1.0.8
-        if: always()
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
-          access_token: ${{ secrets.GH_TOKEN }}
-          branch: ${{ github.ref_name }}
-          enforce_admins: false
+          github-token: ${{ secrets.GH_TOKEN }}
+          script: |
+            const branch = { ...context.repo, branch: context.ref.replace(/^refs\/heads\//, '') };
+            let protection;
+            try {
+              ({ data: protection } = await github.rest.repos.getBranchProtection(branch));
+            } catch (error) {
+              if (error.status === 404 && error.response?.data?.message === 'Branch not protected') {
+                core.info('No classic branch protection to update. Repository rulesets remain unchanged.');
+                return;
+              }
+              throw error;
+            }
+            if (protection.enforce_admins.enabled) {
+              // Record restoration before the request in case its response is lost.
+              core.setOutput('restore_admins', 'true');
+              await github.rest.repos.deleteAdminBranchProtection(branch);
+            }
 
       - name: Install dependencies
         run: npm install
@@ -36,10 +53,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: npx semantic-release --branches ${{ github.ref_name }}
 
-      - name: Enable "include administrators" branch protection
-        uses: benjefferies/branch-protection-bot@1.0.8
-        if: always()
+      - name: Restore "include administrators" branch protection
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        if: always() && steps.disable_include_admins.outputs.restore_admins == 'true'
         with:
-          access_token: ${{ secrets.GH_TOKEN }}
-          branch: ${{ github.ref_name }}
-          enforce_admins: ${{ steps.disable_include_admins.outputs.initial_status }}
+          github-token: ${{ secrets.GH_TOKEN }}
+          script: |
+            const branch = { ...context.repo, branch: context.ref.replace(/^refs\/heads\//, '') };
+            await github.rest.repos.setAdminBranchProtection(branch);
