@@ -307,7 +307,7 @@ export function CommunitySettings(): JSX.Element {
         <span>{readableError(status.lastError)}</span>
       </div>
 
-      <div className="community-actions">
+      <div className="community-actions community-actions--compact">
         {actions.map((label, index) => (
           <div
             className={`community-action ${activeAction === index ? 'active' : ''}`}
