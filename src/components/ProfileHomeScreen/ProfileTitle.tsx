@@ -47,6 +47,7 @@ export const getActiveProfilesTitle = () => <TitleProfiles />;
 export const TitleProfiles = () => {
   const {
     homeMode,
+    homeCardSelected,
     localHoverState,
     localProfile,
     selectedPourOverProfileId,
@@ -76,7 +77,9 @@ export const TitleProfiles = () => {
     selectedPourOverProfile?.name
   ]);
 
-  const scroll = localHoverState && isHomeScreen;
+  // Reveal the selected card's name: an espresso profile focused here or from
+  // the app (localHoverState), or any card zoomed in on the home.
+  const scroll = (localHoverState || homeCardSelected) && isHomeScreen;
   const marquee = (isHomeScreen && scroll) || !isHomeScreen;
 
   let title =
