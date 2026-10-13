@@ -7,8 +7,8 @@ import { setBubbleDisplay } from '../../../store/features/screens/screens-slice'
 import '../../../OSStatus/OSStatus.css';
 
 import type { SettingsItem, TimeDateValues } from '../../../../types';
-import type { Settings } from '@meticulous-home/espresso-api';
-import { useSettings } from '../../../../hooks/useSettings';
+import type { Settings } from '../../../../api/settings';
+import { useSettings, useUpdateSettings } from '../../../../hooks/useSettings';
 import { useCurrentTime } from '../../../../hooks/useCurrentTime';
 
 import Styled, {
@@ -22,6 +22,12 @@ const initialSettings: SettingsItem[] = [
     key: 'time_zone',
     label: 'Set time zone',
     getLabel: (settings: Settings) => `${settings.time_zone || 'Not set'}`
+  },
+  {
+    key: 'clock_format_24_hour',
+    label: 'Time format',
+    getLabel: (settings: Settings) =>
+      (settings.clock_format_24_hour ?? true) ? '24-hour' : '12-hour'
   },
   {
     key: 'set_time',
@@ -49,6 +55,7 @@ export function TimeDate(): JSX.Element {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const [activeIndex, setActiveIndex] = useState(0);
   const { data: globalSettings, isSuccess } = useSettings();
+  const updateSettings = useUpdateSettings();
 
   const { hours, minutes, day, month, year } = useCurrentTime();
 
@@ -81,6 +88,16 @@ export function TimeDate(): JSX.Element {
       },
       pressDown() {
         switch (settings[activeIndex].key) {
+          case 'clock_format_24_hour': {
+            if (globalSettings && !updateSettings.isPending) {
+              updateSettings.mutate({
+                clock_format_24_hour: !(
+                  globalSettings.clock_format_24_hour ?? true
+                )
+              });
+            }
+            break;
+          }
           case 'time_zone': {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'timeZoneConfig' })
