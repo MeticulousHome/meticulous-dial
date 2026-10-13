@@ -28,6 +28,10 @@ type ProfileContextType = {
   setLocalProfile: React.Dispatch<React.SetStateAction<ExtendedProfile | null>>;
   localHoverState: boolean;
   setLocalHoverState: React.Dispatch<React.SetStateAction<boolean | null>>;
+  // A card of the home carousel is selected (zoomed in by a push), whatever
+  // its kind: the title pill then shows its name instead of "Catalog".
+  homeCardSelected: boolean;
+  setHomeCardSelected: React.Dispatch<React.SetStateAction<boolean>>;
 
   // Default profile state
   detailProfileSelected: ExtendedProfile | null;
@@ -91,6 +95,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     null
   );
   const [localHoverState, setLocalHoverState] = useState<boolean>(false);
+  const [homeCardSelected, setHomeCardSelected] = useState<boolean>(false);
   const [profileIdToFind, setProfileIdToFind] = useState<string | null>(null);
   const [profileEvent, setProfileEvent] = useState<ProfileUpdate | null>(null);
   const [profileStarting, setProfileStarting] = useState(false);
@@ -259,6 +264,8 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     setLocalProfile,
     localHoverState,
     setLocalHoverState,
+    homeCardSelected,
+    setHomeCardSelected,
 
     detailProfileSelected: defaultProfileSelected,
     setDetailsProfileSelected: setDefaultProfileSelected,
