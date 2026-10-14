@@ -45,19 +45,34 @@ interface IKeyboardProps {
   onLongPress?: () => void;
 }
 
+interface IWheelState {
+  alphabet: string[];
+  mainLetter: string;
+  rotate: number;
+}
+
 export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
   const { data: globalSettings } = useSettings();
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const [rotate, setRotate] = useState<number>(FIRST_POSITION);
   const [keyboardType, setKeyboardType] = useState<KEYBOARD_TYPE>(() =>
     props.onlyLetters ? KEYBOARD_TYPE.OnlyLetters : KEYBOARD_TYPE.Default
   );
-  const [alphabet, setAlphabet] = useState<string[]>(() => {
-    return props.onlyLetters
+  const [wheel, setWheel] = useState<IWheelState>(() => ({
+    alphabet: props.onlyLetters
       ? massageAlphabetWithMainChar(ALPHABETH_ONLY_LETTERS, 0)
-      : massageAlphabetWithMainChar(DEFAULT_ALPHABET, 0);
-  });
-  const [mainLetter, setMainLetter] = useState<string>('a');
+      : massageAlphabetWithMainChar(DEFAULT_ALPHABET, 0),
+    mainLetter: 'a',
+    rotate: FIRST_POSITION
+  }));
+  const { alphabet, mainLetter, rotate } = wheel;
+  // Encoder steps can arrive faster than React re-renders. Gesture handlers
+  // read and write the wheel through this ref so every step builds on the
+  // previous one instead of on the last rendered position.
+  const wheelRef = useRef<IWheelState>(wheel);
+  const updateWheel = (changes: Partial<IWheelState>) => {
+    wheelRef.current = { ...wheelRef.current, ...changes };
+    setWheel(wheelRef.current);
+  };
   const [capsLockActive, setCapsLockActive] = useState<{
     active: boolean;
     keep: boolean;
@@ -113,6 +128,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
   }, [defaultValue]);
 
   const moveElements = (right: boolean) => {
+    const { alphabet, mainLetter, rotate } = wheelRef.current;
     const newAlphabet = [...alphabet];
     const i = alphabet.findIndex((element) => {
       return element.toLowerCase() === mainLetter.toLowerCase();
@@ -141,9 +157,6 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         newAlphabet.unshift(' ');
       }
 
-      setAlphabet(toUpperOrLowerCase(newAlphabet) as string[]);
-      setMainLetter(toUpperOrLowerCase(!right ? LAST_KEY : firstKey) as string);
-
       const jumpRotate = getJumpRotate(keyboardType);
       console.log('jumpRotate: ', jumpRotate);
       const new_rotate =
@@ -161,7 +174,11 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       //     : rotate - ROTATE_VALUE - jumpRotate
       // );
 
-      setRotate(new_rotate);
+      updateWheel({
+        alphabet: toUpperOrLowerCase(newAlphabet) as string[],
+        mainLetter: toUpperOrLowerCase(!right ? LAST_KEY : firstKey) as string,
+        rotate: new_rotate
+      });
       return;
     }
 
@@ -171,9 +188,11 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
     newAlphabet[!right ? p1 : m1] = mainLetter;
     newAlphabet[!right ? m1 : p1] = newLetter;
 
-    setAlphabet(toUpperOrLowerCase(newAlphabet) as string[]);
-    setMainLetter(toUpperOrLowerCase(newLetter) as string);
-    setRotate(pmr);
+    updateWheel({
+      alphabet: toUpperOrLowerCase(newAlphabet) as string[],
+      mainLetter: toUpperOrLowerCase(newLetter) as string,
+      rotate: pmr
+    });
   };
 
   const addAnimation = () => {
@@ -204,6 +223,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         }
       },
       doubleClick() {
+        const { mainLetter } = wheelRef.current;
         if (mainLetter === 'capslock') {
           setCapsLockActive((currentCapsLockActive) =>
             currentCapsLockActive.keep
@@ -213,6 +233,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
         }
       },
       click() {
+        const { mainLetter } = wheelRef.current;
         if (mainLetter === 'capslock') {
           setCapsLockActive((currentCapsLockActive) =>
             currentCapsLockActive.active
@@ -233,6 +254,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
       },
       pressDown() {
         lastPressInsertedRef.current = false;
+        const { mainLetter } = wheelRef.current;
         if (caption.length >= inputLimit && mainLetter !== 'backspace') {
           if (mainLetter === 'ok') {
             onSubmit(caption.join('').trim());
@@ -290,39 +312,39 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
             if (keyboardType === KEYBOARD_TYPE.Default) {
               setKeyboardType(KEYBOARD_TYPE.AccentCharacters);
               if (capsLockActive.active) {
-                setAlphabet(
-                  massageAlphabetWithMainChar(
+                updateWheel({
+                  alphabet: massageAlphabetWithMainChar(
                     CAPITAL_ACCENT_CHARACTERS,
                     CAPITAL_ACCENT_CHARACTERS.length - 2
                   )
-                );
+                });
               } else {
-                setAlphabet(
-                  massageAlphabetWithMainChar(
+                updateWheel({
+                  alphabet: massageAlphabetWithMainChar(
                     SMALL_ACCENT_CHARACTERS,
                     SMALL_ACCENT_CHARACTERS.length - 2
                   )
-                );
+                });
               }
-              setRotate(467);
+              updateWheel({ rotate: 467 });
             } else if (keyboardType === KEYBOARD_TYPE.AccentCharacters) {
               setKeyboardType(KEYBOARD_TYPE.SpecialCharacters);
-              setAlphabet(
-                massageAlphabetWithMainChar(
+              updateWheel({
+                alphabet: massageAlphabetWithMainChar(
                   SPECIAL_CHARACTERS,
                   SPECIAL_CHARACTERS.length - 2
-                )
-              );
-              setRotate(466);
+                ),
+                rotate: 466
+              });
             } else {
               setKeyboardType(KEYBOARD_TYPE.Default);
-              setAlphabet(
-                massageAlphabetWithMainChar(
+              updateWheel({
+                alphabet: massageAlphabetWithMainChar(
                   DEFAULT_ALPHABET,
                   DEFAULT_ALPHABET.length - 2
-                )
-              );
-              setRotate(423);
+                ),
+                rotate: 423
+              });
             }
             return;
           default: {
@@ -379,8 +401,10 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
   };
 
   useEffect(() => {
-    setAlphabet(toUpperOrLowerCase([...alphabet]) as string[]);
-    setMainLetter(toUpperOrLowerCase(mainLetter) as string);
+    updateWheel({
+      alphabet: toUpperOrLowerCase([...wheelRef.current.alphabet]) as string[],
+      mainLetter: toUpperOrLowerCase(wheelRef.current.mainLetter) as string
+    });
   }, [capsLockActive]);
 
   // Recalculate caption style when the caption changes length
