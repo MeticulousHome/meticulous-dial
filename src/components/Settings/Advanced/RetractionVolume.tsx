@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSettings, useUpdateSettings } from '../../../hooks/useSettings';
 import { Gauge } from '../../SettingNumerical/Gauge';
 import { useHandleGestures } from '../../../hooks/useHandleGestures';
+import { useSyncedState } from '../../../hooks/useSyncedState';
 import {
   setBubbleDisplay,
   setScreen
@@ -25,11 +26,12 @@ export const RetractionSettingGauge: React.FC = () => {
   const { data: globalSettings } = useSettings();
   const updateSettings = useUpdateSettings();
 
-  const [localRetractionVolume, setLocalRetractionVolume] = useState(
-    globalSettings
-      ? retractionMmToVolumeMl(globalSettings.partial_retraction)
-      : RETRACTION_DEFAULT_VOLUME_ML
-  );
+  const [localRetractionVolume, setLocalRetractionVolume, retractionVolumeRef] =
+    useSyncedState(
+      globalSettings
+        ? retractionMmToVolumeMl(globalSettings.partial_retraction)
+        : RETRACTION_DEFAULT_VOLUME_ML
+    );
   const initializedFromSettings = useRef(Boolean(globalSettings));
 
   useEffect(() => {
@@ -46,22 +48,26 @@ export const RetractionSettingGauge: React.FC = () => {
   useHandleGestures(
     {
       left() {
-        const newValue = Math.max(
-          localRetractionVolume - RETRACTION_VOLUME_STEP_ML,
-          RETRACTION_MIN_VOLUME_ML
+        setLocalRetractionVolume((current) =>
+          Math.max(
+            current - RETRACTION_VOLUME_STEP_ML,
+            RETRACTION_MIN_VOLUME_ML
+          )
         );
-        setLocalRetractionVolume(newValue);
       },
       right() {
-        const newValue = Math.min(
-          localRetractionVolume + RETRACTION_VOLUME_STEP_ML,
-          RETRACTION_MAX_VOLUME_ML
+        setLocalRetractionVolume((current) =>
+          Math.min(
+            current + RETRACTION_VOLUME_STEP_ML,
+            RETRACTION_MAX_VOLUME_ML
+          )
         );
-        setLocalRetractionVolume(newValue);
       },
       pressDown() {
         updateSettings.mutate({
-          partial_retraction: volumeMlToRetractionMm(localRetractionVolume)
+          partial_retraction: volumeMlToRetractionMm(
+            retractionVolumeRef.current
+          )
         });
         dispatch(setScreen(prevScreen));
         dispatch(

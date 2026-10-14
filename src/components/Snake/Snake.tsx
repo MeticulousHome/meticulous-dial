@@ -153,7 +153,12 @@ export const SnakeGame: React.FC = () => {
     });
   }, [directionQueue, apple]);
 
-  const handleDirectionChange = (newDirection: Point) => {
+  // Encoder steps can arrive faster than React re-renders, so each turn is
+  // validated against the queued directions instead of the rendered ones.
+  const handleDirectionChange = (
+    directionQueue: Point[],
+    newDirection: Point
+  ): Point[] => {
     // Check if the new direction is valid
     const isValidDirection = () => {
       if (
@@ -179,32 +184,47 @@ export const SnakeGame: React.FC = () => {
       return true;
     };
 
-    if (isValidDirection()) {
-      // Enqueue the new direction
-      setDirectionQueue((prevQueue) => [...prevQueue, newDirection]);
-    }
+    // Enqueue the new direction
+    return isValidDirection()
+      ? [...directionQueue, newDirection]
+      : directionQueue;
   };
 
-  const handleTurn = (clockwise = false) => {
-    const turnClockwise = clockwise ? 1 : -1;
-
-    if (!directionQueue || directionQueue.length == 0) return;
+  const turnDirectionQueue = (
+    directionQueue: Point[],
+    turnClockwise: number
+  ): Point[] => {
+    if (!directionQueue || directionQueue.length == 0) return directionQueue;
 
     const lastDirection = directionQueue[directionQueue.length - 1];
 
     if (lastDirection.x === 0 && lastDirection.y === -1) {
       // Up to Right
-      handleDirectionChange({ x: turnClockwise, y: 0 });
+      return handleDirectionChange(directionQueue, { x: turnClockwise, y: 0 });
     } else if (lastDirection.x === 1 && lastDirection.y === 0) {
       // Right to Down
-      handleDirectionChange({ x: 0, y: turnClockwise });
+      return handleDirectionChange(directionQueue, { x: 0, y: turnClockwise });
     } else if (lastDirection.x === 0 && lastDirection.y === 1) {
       // Down to Left
-      handleDirectionChange({ x: 0 - turnClockwise, y: 0 });
+      return handleDirectionChange(directionQueue, {
+        x: 0 - turnClockwise,
+        y: 0
+      });
     } else if (lastDirection.x === -1 && lastDirection.y === 0) {
       // Left to Up
-      handleDirectionChange({ x: 0, y: 0 - turnClockwise });
+      return handleDirectionChange(directionQueue, {
+        x: 0,
+        y: 0 - turnClockwise
+      });
     }
+    return directionQueue;
+  };
+
+  const handleTurn = (clockwise = false) => {
+    const turnClockwise = clockwise ? 1 : -1;
+    setDirectionQueue((prevQueue) =>
+      turnDirectionQueue(prevQueue, turnClockwise)
+    );
   };
 
   useHandleGestures({
