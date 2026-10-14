@@ -23,6 +23,12 @@ const initialSnake: Point[] = [
 ];
 const initialDirection: Point = { x: 0, y: 1 };
 
+// Rotates a direction 90 degrees: 1 is clockwise, -1 counterclockwise
+const turnDirection = (direction: Point, turn: number): Point => ({
+  x: -direction.y * turn,
+  y: direction.x * turn
+});
+
 const getRandomPosition = (): Point => {
   const centerX = gridSize / 2;
   const centerY = gridSize / 2;
@@ -71,9 +77,11 @@ export const SnakeGame: React.FC = () => {
 
   const [snake, setSnake] = useState<Point[]>(initialSnake);
   const [apple, setApple] = useState<Point>(getRandomPosition);
-  const [directionQueue, setDirectionQueue] = useState<Point[]>([
-    initialDirection
-  ]);
+  // The direction the snake last moved in, and the turn the knob asked for
+  // since then. However many steps arrive between two moves, only the last
+  // turn counts; with no turn the snake keeps going straight.
+  const directionRef = useRef<Point>(initialDirection);
+  const pendingTurnRef = useRef(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const appleImageRef = useRef(new Image());
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -95,13 +103,30 @@ export const SnakeGame: React.FC = () => {
       // A snake has at minimum a head
       if (!prevSnake.length) return initialSnake;
 
-      let currentDirection = directionQueue[0] || initialDirection;
+      let currentDirection = directionRef.current;
 
-      // Pop the next direction from the queue, leaving always at least one
-      if (directionQueue.length > 1) {
-        currentDirection = directionQueue[1];
-        setDirectionQueue((prevQueue) => prevQueue.slice(1));
+      if (pendingTurnRef.current !== 0) {
+        const turnedDirection = turnDirection(
+          currentDirection,
+          pendingTurnRef.current
+        );
+        pendingTurnRef.current = 0;
+        // Ignore the turn when it leads straight into the snake
+        const turnedHead = {
+          x: prevSnake[0].x + turnedDirection.x,
+          y: prevSnake[0].y + turnedDirection.y
+        };
+        if (
+          !prevSnake.some(
+            (segment) =>
+              segment.x === turnedHead.x && segment.y === turnedHead.y
+          )
+        ) {
+          currentDirection = turnedDirection;
+        }
       }
+      directionRef.current = currentDirection;
+
       let newHead: Point = {
         x: prevSnake[0].x,
         y: prevSnake[0].y
@@ -146,85 +171,16 @@ export const SnakeGame: React.FC = () => {
           .some((segment) => segment.x === newHead.x && segment.y === newHead.y)
       ) {
         // FIXME display game over
+        directionRef.current = initialDirection;
         return initialSnake; // Reset snake
       }
 
       return newSnake;
     });
-  }, [directionQueue, apple]);
-
-  // Encoder steps can arrive faster than React re-renders, so each turn is
-  // validated against the queued directions instead of the rendered ones.
-  const handleDirectionChange = (
-    directionQueue: Point[],
-    newDirection: Point
-  ): Point[] => {
-    // Check if the new direction is valid
-    const isValidDirection = () => {
-      if (
-        directionQueue.length &&
-        ((newDirection.x === -directionQueue[directionQueue.length - 1].x &&
-          newDirection.y === -directionQueue[directionQueue.length - 1].y) || // Opposite direction
-          (newDirection.x === directionQueue[directionQueue.length - 1].x &&
-            newDirection.y === directionQueue[directionQueue.length - 1].y)) // Same direction
-      ) {
-        return false;
-      }
-      if (directionQueue.length == 1) {
-        // Check if the new direction leads to collision with the snake
-        const head = snake[0];
-        const newHead = {
-          x: head.x + newDirection.x,
-          y: head.y + newDirection.y
-        };
-        return !snake.some(
-          (segment) => segment.x === newHead.x && segment.y === newHead.y
-        );
-      }
-      return true;
-    };
-
-    // Enqueue the new direction
-    return isValidDirection()
-      ? [...directionQueue, newDirection]
-      : directionQueue;
-  };
-
-  const turnDirectionQueue = (
-    directionQueue: Point[],
-    turnClockwise: number
-  ): Point[] => {
-    if (!directionQueue || directionQueue.length == 0) return directionQueue;
-
-    const lastDirection = directionQueue[directionQueue.length - 1];
-
-    if (lastDirection.x === 0 && lastDirection.y === -1) {
-      // Up to Right
-      return handleDirectionChange(directionQueue, { x: turnClockwise, y: 0 });
-    } else if (lastDirection.x === 1 && lastDirection.y === 0) {
-      // Right to Down
-      return handleDirectionChange(directionQueue, { x: 0, y: turnClockwise });
-    } else if (lastDirection.x === 0 && lastDirection.y === 1) {
-      // Down to Left
-      return handleDirectionChange(directionQueue, {
-        x: 0 - turnClockwise,
-        y: 0
-      });
-    } else if (lastDirection.x === -1 && lastDirection.y === 0) {
-      // Left to Up
-      return handleDirectionChange(directionQueue, {
-        x: 0,
-        y: 0 - turnClockwise
-      });
-    }
-    return directionQueue;
-  };
+  }, [apple]);
 
   const handleTurn = (clockwise = false) => {
-    const turnClockwise = clockwise ? 1 : -1;
-    setDirectionQueue((prevQueue) =>
-      turnDirectionQueue(prevQueue, turnClockwise)
-    );
+    pendingTurnRef.current = clockwise ? 1 : -1;
   };
 
   useHandleGestures({
