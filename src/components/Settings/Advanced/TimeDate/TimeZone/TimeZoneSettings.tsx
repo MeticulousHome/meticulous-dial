@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { useHandleGestures } from '../../../../../hooks/useHandleGestures';
+import { useSyncedState } from '../../../../../hooks/useSyncedState';
 import {
   setBubbleDisplay,
   setScreen
@@ -24,7 +25,7 @@ const TimeZone = styled.span<{ isactive?: boolean }>`
 `;
 
 export default function TimeZoneSettings() {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex, activeIndexRef] = useSyncedState(0);
 
   const country = useAppSelector((state) => state.settings.country);
   const [timeZones, setTimeZones] = useState<Regions>({ cities: [] });
@@ -57,18 +58,17 @@ export default function TimeZoneSettings() {
   useHandleGestures(
     {
       left() {
-        const nextActiveIndex = activeIndex - 1;
-        if (nextActiveIndex < 0) return;
-        console.log('left, nextActiveIndex', nextActiveIndex);
-        setActiveIndex(nextActiveIndex);
+        setActiveIndex((current) => Math.max(current - 1, 0));
+        console.log('left, nextActiveIndex', activeIndexRef.current);
       },
       right() {
-        const nextActiveIndex = activeIndex + 1;
-        if (nextActiveIndex >= timeZones['cities'].length + 1) return;
-        setActiveIndex(nextActiveIndex);
-        console.log('rigth, nextActiveIndex', nextActiveIndex);
+        setActiveIndex((current) =>
+          Math.min(current + 1, timeZones['cities'].length)
+        );
+        console.log('rigth, nextActiveIndex', activeIndexRef.current);
       },
       pressDown() {
+        const activeIndex = activeIndexRef.current;
         if (activeIndex === 0) {
           dispatch(setScreen('countrySettings'));
         } else {
