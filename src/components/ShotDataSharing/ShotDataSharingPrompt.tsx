@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import { useUpdateSettings } from '../../hooks/useSettings';
@@ -25,6 +26,15 @@ export const ShotDataSharingPrompt = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [showThanks, setShowThanks] = useState(false);
   const busy = updateSettings.isPending;
+
+  useEffect(() => {
+    if (!('__TAURI_INTERNALS__' in window)) return;
+    // Reaching this interactive prompt proves startup passed the white dot.
+    // Boot smoke must not depend on when the user answers the consent prompt.
+    void invoke('home_ready').catch((error) => {
+      console.error('Failed to report startup prompt ready:', error);
+    });
+  }, []);
 
   const goHome = () => {
     dispatch(setScreen('profileHome'));
