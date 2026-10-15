@@ -407,7 +407,9 @@ const withRetry = async <T,>(
       return await attempt();
     } catch (error) {
       lastError = error;
-      console.warn(`[bug-report] ${label} attempt ${index + 1} failed`, error);
+      console.warn(
+        `[bug-report] ${label} attempt ${index + 1} failed: ${error}`
+      );
       if (index < RETRY_DELAYS_MS.length) {
         await sleep(RETRY_DELAYS_MS[index], signal);
       }
@@ -931,11 +933,14 @@ export const BugReport = (): JSX.Element => {
       const attachment = buildDraftAttachment(draftFile);
 
       setSubmissionStage('sendingFeedback');
-      const eventID = await withRetry(
-        () => sendSentryFeedback({ reportInfo, attachment, signal }),
-        signal,
-        'sentry'
-      );
+      // Single attempt on purpose: captureFeedback is create-only, so a retry
+      // after an ambiguous transport result (no response / timeout) files a
+      // brand-new duplicate report rather than re-sending this one.
+      const eventID = await sendSentryFeedback({
+        reportInfo,
+        attachment,
+        signal
+      });
 
       setSubmissionStage('savingRecord');
       const markSubmittedResponse = await api.markSubmittedReport(
