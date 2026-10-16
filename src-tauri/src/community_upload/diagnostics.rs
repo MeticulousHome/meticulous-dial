@@ -214,6 +214,27 @@ mod tests {
     /// the body can be saved, but state.json is a directory so rename fails.
     #[test]
     fn queue_persist_failures_preserve_diagnostics_until_upload_completes() {
+        // Diagnostics and the logger are process-global. Run this fixture alone
+        // so concurrent recovery tests cannot replace its expected last failure.
+        const CHILD: &str = "DIAL_DIAGNOSTICS_PERSIST_TEST";
+        if std::env::var_os(CHILD).is_none() {
+            let output = std::process::Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "community_upload::diagnostics::tests::queue_persist_failures_preserve_diagnostics_until_upload_completes",
+                    "--nocapture",
+                ])
+                .env(CHILD, "1")
+                .output()
+                .unwrap();
+            assert!(
+                output.status.success(),
+                "{}\n{}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+            return;
+        }
         use super::super::{
             Client, CommunityUploadService, HistoryKind, Inner, RuntimeState, Url, VolatileState,
             create_private_dir, fresh_state,
@@ -262,10 +283,13 @@ mod tests {
                 write!(stream, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}", body.len(), body).unwrap();
             }
         });
+        // Queueing now requires a connected authorization, just like the worker.
+        let mut persistent = fresh_state().unwrap();
+        persistent.authorization_id = Some(uuid::Uuid::new_v4());
         let service = CommunityUploadService {
             inner: Arc::new(Inner {
                 state: Mutex::new(RuntimeState {
-                    persistent: fresh_state().unwrap(),
+                    persistent,
                     volatile: VolatileState::default(),
                 }),
                 state_path: state_path.clone(),
@@ -321,7 +345,11 @@ mod tests {
         let body_path = queue_dir.join(&queued.body_file);
         std::fs::remove_file(&state_path).unwrap();
         std::fs::create_dir(&state_path).unwrap();
-        assert!(service.complete_queue_item(queued.id, &body_path).is_err());
+        assert!(
+            service
+                .complete_queue_item(queued.id, &body_path, None)
+                .is_err()
+        );
         assert_eq!(events().lock().unwrap().last, original);
         assert!(body_path.exists());
         assert!(
@@ -332,7 +360,9 @@ mod tests {
                 .any(|line| line.contains("upload_resumed"))
         );
         std::fs::remove_dir(&state_path).unwrap();
-        service.complete_queue_item(queued.id, &body_path).unwrap();
+        service
+            .complete_queue_item(queued.id, &body_path, None)
+            .unwrap();
         assert!(events().lock().unwrap().last.is_none());
         assert!(!body_path.exists());
         assert_eq!(

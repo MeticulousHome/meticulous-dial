@@ -34,9 +34,11 @@ const events = load('socketio_events.json');
 const payloads = load('socketio_payloads.json');
 const settingsDefaults = load('settings_defaults.json').user;
 
-// Drift the Dial already has. Each entry must still be true: when one is fixed
-// the check fails until it is removed here, so the list only shrinks.
+// Explicit compatibility exceptions. Each must still be true: when the backend
+// publishes it, the check fails until the exception is removed here.
 const KNOWN_GAPS = {
+  'get /api/v1/history/upload-index/last':
+    'optional capability probe pending meticulous-backend#426; both callers fall back on 404/405 to published history endpoints (covered by native legacy-backend tests)',
   'listens to water_status':
     'the backend stopped emitting water_status (497b9f7, now sensors.w_stat); the listener in SocketProviderValue.tsx never fires'
 };
