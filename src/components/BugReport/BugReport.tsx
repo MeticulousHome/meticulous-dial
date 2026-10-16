@@ -23,9 +23,9 @@ import { contactEmailEdit } from './contactEmailEdit';
 import {
   cancelCollection,
   CollectionRun,
-  reportHandoff,
   startCollection
 } from './reportCollection';
+import { holdRun, reportHandoff } from './reportHandoff';
 import {
   buildDraftAttachment,
   captureException,
@@ -424,7 +424,6 @@ export const BugReport = (): JSX.Element => {
   // Shows a collection run and carries on with its outcome. Used for a run
   // started here and for one picked back up after the contact email screen.
   const attachCollection = (run: CollectionRun) => {
-    activeCreateRunRef.current = run;
     setReportScreen(ReportScreen.reportingBug);
     setReportStatus(run.slow ? ReportStatus.slowFetch : ReportStatus.fetching);
     setActiveIndex(0);
@@ -438,11 +437,9 @@ export const BugReport = (): JSX.Element => {
       }
     };
 
-    void run.outcome.then((outcome) => {
-      // A bubble that unmounted meanwhile let go of the run (see the unmount
-      // effect); the mount that picked it up handles the outcome instead.
-      if (activeCreateRunRef.current !== run) return;
-      activeCreateRunRef.current = null;
+    // A bubble that closed for the contact email screen let go of the run;
+    // the mount that picked it up handles the outcome instead.
+    holdRun(activeCreateRunRef, run, (outcome) => {
       run.onSlow = null;
       // Cancelled: the UI was already reset by cancelCreateReport.
       if (!outcome) return;
@@ -465,8 +462,9 @@ export const BugReport = (): JSX.Element => {
 
     // No address on file: ask for one on a full screen while the machine
     // collects. The run outlives this bubble and is picked up again when the
-    // contact email screen reopens it.
-    reportHandoff.detach(run);
+    // contact email screen reopens it. This bubble lets go of it now, as it
+    // still renders through its closing animation.
+    reportHandoff.detach(activeCreateRunRef);
     // Gestures stay blocked until the bubble has closed, so the release of
     // this press cannot type on the keyboard.
     dispatch(
@@ -535,10 +533,11 @@ export const BugReport = (): JSX.Element => {
 
   useEffect(
     () => () => {
+      // A run handed over for the contact email screen is no longer held
+      // here; it keeps collecting for the bubble that comes back.
       const run = activeCreateRunRef.current;
       if (run) {
-        // A detached run keeps collecting for the bubble that comes back.
-        if (!run.detached) cancelCollection(run);
+        cancelCollection(run);
         run.onSlow = null;
         activeCreateRunRef.current = null;
       }
