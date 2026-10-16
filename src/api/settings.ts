@@ -1,5 +1,11 @@
-import { APIError, Settings } from '@meticulous-home/espresso-api';
+import {
+  APIError,
+  Settings as APISettings
+} from '@meticulous-home/espresso-api';
 import { api } from './api';
+
+// The backend supports this field; the published API type does not yet include it.
+export type Settings = APISettings & { clock_format_24_hour?: boolean };
 
 export async function getSettings(): Promise<Settings> {
   try {
