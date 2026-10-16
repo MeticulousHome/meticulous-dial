@@ -7,7 +7,7 @@ import Styled, {
   VIEWPORT_HEIGHT
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
-import type { TareBehavior } from '../../types';
+import type { TareBehavior } from '@meticulous-home/espresso-api';
 import {
   setBubbleDisplay,
   setScreen

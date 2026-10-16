@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useSyncedState } from '../../hooks/useSyncedState';
 import { useUpdateSettings } from '../../hooks/useSettings';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
@@ -130,6 +131,10 @@ const defaultSettings: QuickSettingOption[] = [
     label: 'Experimental'
   },
   {
+    key: 'help_us_improve',
+    label: 'Help us improve'
+  },
+  {
     key: 'exit',
     label: 'exit'
   }
@@ -199,8 +204,8 @@ export function QuickSettings(): JSX.Element {
     setHomeMode,
     selectedPourOverProfileId,
     setSelectedPourOverProfileId,
-    detailProfileSelected: defaultProfileSelectedForDetails,
     setSettingsIndex: setProfileSettingsIndex,
+    setIsCreatingProfile,
     setSettingsProfile: setProfileSettings
   } = useProfileContext();
   const deletePresetMutation = useDeletePreset();
@@ -231,7 +236,7 @@ export function QuickSettings(): JSX.Element {
   const osStatusVisible =
     osStatusData.status !== 'IDLE' &&
     !HIDDEN_OS_STATUS_SCREENS.includes(currentScreen);
-  const [activeOption, setActiveOption] = useState(0);
+  const [activeOption, setActiveOption, activeOptionRef] = useSyncedState(0);
 
   const osStatusInfo = useMemo(() => {
     if (osStatusError) {
@@ -313,9 +318,10 @@ export function QuickSettings(): JSX.Element {
         setCounterESGG(0);
       },
       right() {
+        const previousOption = activeOptionRef.current;
         setActiveOption((prev) => Math.min(prev + 1, settings.length - 1));
-        if (settings[activeOption].key === 'exit') {
-          setCounterESGG(counterESGG + 1);
+        if (settings[previousOption].key === 'exit') {
+          setCounterESGG((prev) => prev + 1);
         }
       },
       pressUp() {
@@ -326,6 +332,7 @@ export function QuickSettings(): JSX.Element {
         setHoldAnimation('stopped');
       },
       pressDown() {
+        const activeOption = activeOptionRef.current;
         if (settings[activeOption].longpress) {
           setHoldAnimation('running');
           return;
@@ -358,10 +365,6 @@ export function QuickSettings(): JSX.Element {
             );
             break;
           }
-          case 'details': {
-            dispatch(setScreen('defaultProfileDetails'));
-            break;
-          }
           case 'disable_ui_features': {
             updateSettings.mutate({
               disable_ui_features: true
@@ -377,6 +380,7 @@ export function QuickSettings(): JSX.Element {
               break;
             }
             setProfileSettingsIndex(0);
+            setIsCreatingProfile(false);
             setProfileSettings(addSettingsToProfile(localProfile));
             dispatch(setScreen('pressetSettings'));
             dispatch(
@@ -481,6 +485,19 @@ export function QuickSettings(): JSX.Element {
             );
             break;
           }
+          case 'help_us_improve': {
+            // Full screen route: keep gestures blocked until the bubble has
+            // closed so the release of this press cannot select an option.
+            dispatch(
+              setBubbleDisplay({
+                visible: false,
+                component: undefined,
+                interceptsGesture: true
+              })
+            );
+            dispatch(setScreen('helpUsImprove'));
+            break;
+          }
 
           case 'exit': {
             setTimeout(() => {
@@ -534,15 +551,6 @@ export function QuickSettings(): JSX.Element {
     const backAvailable = !!routes[currentScreen].parent;
 
     switch (currentScreen) {
-      case 'defaultProfiles':
-        setSettings([
-          ...(defaultProfileSelectedForDetails
-            ? [{ key: 'details', label: 'Show details' }]
-            : []),
-          ...(backAvailable ? [prevScreenSetting] : []),
-          ...defaultSettings
-        ]);
-        break;
       case 'heating':
       case 'brewComplete': {
         const base = statsName === 'idle' ? defaultSettings : inBrewSettings;

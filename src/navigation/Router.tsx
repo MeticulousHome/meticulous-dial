@@ -7,6 +7,8 @@ import { useAppSelector } from '../components/store/hooks';
 import Bubble from '../../src/components/Bubble/Bubble';
 import { memoizedRoutes } from '../../src/utils';
 import { routes } from './routes';
+import { useProfileContext } from '../context/ProfileContext';
+import { getActiveProfilesTitle } from '../components/ProfileHomeScreen/ProfileTitle';
 const routeKeys = Object.keys(routes);
 export interface RouteProps {
   transitioning: boolean;
@@ -25,6 +27,11 @@ export const Router = memo(
       return <div>Error: Route not found "{currentScreen}"</div>;
     }
     const RouteComponent = route.component;
+    const { isCreatingProfile } = useProfileContext();
+    const hideProfileTitle =
+      isCreatingProfile &&
+      (currentScreen === 'pressetSettings' ||
+        route.parent === 'pressetSettings');
     const title = useAppSelector((state) =>
       typeof route.title === 'function' ? route.title(state) : route.title
     );
@@ -64,9 +71,17 @@ export const Router = memo(
         <Transitioner
           direction={direction}
           screen={currentScreen}
-          title={title}
+          title={
+            hideProfileTitle && route.title === getActiveProfilesTitle
+              ? undefined
+              : title
+          }
           titleShared={route.titleShared}
-          parentTitle={parentTitle}
+          parentTitle={
+            hideProfileTitle && route.parentTitle === getActiveProfilesTitle
+              ? undefined
+              : parentTitle
+          }
           bottomTitle={route.bottomTitle}
         >
           <RouteComponent {...route.props} />

@@ -23,7 +23,6 @@ import { useIsOnline } from '../../hooks/useIsOnline';
 import { loadProfileData, startProfile } from '../../api/profile';
 import { DownloadIcon } from './DownloadIcon';
 import { useSocket } from '../store/SocketManager';
-import { invoke } from '@tauri-apps/api/core';
 import { usePourOverProfiles } from '../../features/freePour/usePourOverProfiles';
 import {
   createDialProfileHover,
@@ -34,6 +33,11 @@ import {
   getPourOverProfileOptionIndex,
   reconcilePourOverCatalogSelection
 } from './homeSelection';
+import { useSimpleProfile } from '../../hooks/useProfiles';
+import {
+  addSettingsToProfile,
+  newProfileFromTemplate
+} from '../../utils/profiles';
 
 const CARD_GAP = 79;
 const CARD_SIZE = PROFILE_ENTRY_SIZE + CARD_GAP;
@@ -97,6 +101,7 @@ export const ProfileHomeScreen = () => {
   const installedPourOverProfiles = pourOverProfilesQuery.data ?? [];
 
   const profileState = useProfileContext();
+  const simpleProfileQuery = useSimpleProfile();
 
   const {
     localProfileIndex,
@@ -107,18 +112,28 @@ export const ProfileHomeScreen = () => {
     setProfileStarting,
     localHoverState,
     setLocalHoverState,
+    setHomeCardSelected,
     mergedProfiles,
     limitedAccess,
     selectedPourOverProfileId,
-    setSelectedPourOverProfileId
+    setSelectedPourOverProfileId,
+    setSettingsIndex,
+    setIsCreatingProfile,
+    setSettingsProfile
   } = profileState;
 
   const [transitionDirection, setTransitionDirection] =
     useState<dialDirection>('none');
   const [homeHoverState, setHomeHoverState] = useState(false);
   const [isPressingDown, setIsPressingDown] = useState(false);
+
+  // The title pill names the selected card: espresso profiles, Free Pour and
+  // pour-over profiles alike (homeHoverState is the zoomed-in card).
+  useEffect(() => {
+    setHomeCardSelected(homeHoverState);
+  }, [homeHoverState, setHomeCardSelected]);
+  useEffect(() => () => setHomeCardSelected(false), [setHomeCardSelected]);
   const pressThroughTimer = useRef<NodeJS.Timeout | null>(null);
-  const homeReadyReported = useRef(false);
 
   // Espresso selection stays in ProfileContext so app and Dial socket events
   // share one source of truth. Installed Pour Over profiles use their stable IDs.
@@ -240,14 +255,6 @@ export const ProfileHomeScreen = () => {
 
   useEffect(() => {
     if (!mergedProfiles) return;
-
-    if (!homeReadyReported.current && '__TAURI_INTERNALS__' in window) {
-      homeReadyReported.current = true;
-      invoke('home_ready').catch((error) => {
-        console.error('Failed to report profile home ready:', error);
-      });
-    }
-
     // We are never zoomed in on the new button
     if (activeOption == newOptionIndex) {
       setHomeHoverState(false);
@@ -368,7 +375,18 @@ export const ProfileHomeScreen = () => {
             dispatch(setScreen('unlock'));
             return;
           }
-          dispatch(setScreen('defaultProfiles'));
+          const template = simpleProfileQuery.data;
+          if (!template) {
+            void simpleProfileQuery.refetch();
+            return;
+          }
+          setSettingsIndex(0);
+          setIsCreatingProfile(true);
+          setSettingsProfile(
+            addSettingsToProfile(newProfileFromTemplate(template))
+          );
+          dispatch(setScreen('pressetSettings'));
+          dispatch(setBubbleDisplay({ visible: false, component: undefined }));
         } else if (
           activeOption === freePourOptionIndex ||
           getHomeSelection(activeOption, homeLayout).mode ===

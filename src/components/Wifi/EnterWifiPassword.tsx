@@ -28,6 +28,7 @@ export function EnterWifiPassword(): JSX.Element {
   const [knownPassword, setKnownPassword] = useState<string | undefined>(
     undefined
   );
+
   const knownConnectionSubmitted = useRef(false);
 
   const screen = useAppSelector(

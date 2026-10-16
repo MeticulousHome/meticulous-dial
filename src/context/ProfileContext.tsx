@@ -9,12 +9,12 @@ import {
 } from 'react';
 import { useLastProfile, useProfiles } from '../hooks/useProfiles';
 import {
+  isLimitedAccess,
   LastProfileIdent,
   ProfileUpdate
-} from '@meticulous-home/espresso-api/dist';
+} from '@meticulous-home/espresso-api';
 import { IPresetAction, IPresetSetting } from '../types';
 import { useSettings } from '../hooks/useSettings';
-import demoProfile from '../assets/9BarItalian.json';
 import type { HomeMode } from '../components/ProfileHomeScreen/homeSelection';
 
 type ProfileContextType = {
@@ -28,6 +28,10 @@ type ProfileContextType = {
   setLocalProfile: React.Dispatch<React.SetStateAction<ExtendedProfile | null>>;
   localHoverState: boolean;
   setLocalHoverState: React.Dispatch<React.SetStateAction<boolean | null>>;
+  // A card of the home carousel is selected (zoomed in by a push), whatever
+  // its kind: the title pill then shows its name instead of "Catalog".
+  homeCardSelected: boolean;
+  setHomeCardSelected: React.Dispatch<React.SetStateAction<boolean>>;
 
   // Default profile state
   detailProfileSelected: ExtendedProfile | null;
@@ -36,6 +40,8 @@ type ProfileContextType = {
   >;
 
   // Profile Editing
+  isCreatingProfile: boolean;
+  setIsCreatingProfile: React.Dispatch<React.SetStateAction<boolean>>;
   settingsIndex: number;
   setSettingsIndex: React.Dispatch<React.SetStateAction<number>>;
   settingsProfile:
@@ -89,6 +95,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     null
   );
   const [localHoverState, setLocalHoverState] = useState<boolean>(false);
+  const [homeCardSelected, setHomeCardSelected] = useState<boolean>(false);
   const [profileIdToFind, setProfileIdToFind] = useState<string | null>(null);
   const [profileEvent, setProfileEvent] = useState<ProfileUpdate | null>(null);
   const [profileStarting, setProfileStarting] = useState(false);
@@ -97,6 +104,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     string | null
   >(null);
   const [settingsIndex, setSettingsIndex] = useState(0);
+  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [settingsProfile, setSettingsProfile] = useState<
     (ExtendedProfile & { settings: IPresetSetting[] }) | null
   >(null);
@@ -104,12 +112,10 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [hasJustHandledProfileEvent, setHasJustHandledProfileEvent] =
     useState(false);
 
-  const limitedAccess = settings?.update_channel === 'factory';
+  const limitedAccess = isLimitedAccess(settings);
 
   const mergedProfiles = useMemo<ExtendedProfile[]>(() => {
     if (!profiles) return [];
-    if (limitedAccess) return [demoProfile as ExtendedProfile];
-
     const last = lastProfile?.profile;
     if (!last) return profiles;
 
@@ -140,7 +146,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     //   }
     // ];
     return profilesExtended;
-  }, [profiles, lastProfile?.profile, limitedAccess]);
+  }, [profiles, lastProfile?.profile]);
 
   // If the last profile changes scroll to the last profile
   useEffect(() => {
@@ -258,12 +264,16 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     setLocalProfile,
     localHoverState,
     setLocalHoverState,
+    homeCardSelected,
+    setHomeCardSelected,
 
     detailProfileSelected: defaultProfileSelected,
     setDetailsProfileSelected: setDefaultProfileSelected,
 
     settingsIndex,
     setSettingsIndex,
+    isCreatingProfile,
+    setIsCreatingProfile,
     settingsProfile,
     setSettingsProfile,
 
@@ -278,7 +288,6 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     selectedPourOverProfileId,
     setSelectedPourOverProfileId
   };
-
   return (
     <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>
   );

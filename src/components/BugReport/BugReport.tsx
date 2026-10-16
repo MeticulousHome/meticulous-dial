@@ -1,6 +1,4 @@
-import { Fragment, useMemo, useRef, useState } from 'react';
-import { ZstdDec, ZstdInit } from '@oneidentity/zstd-js/decompress';
-import * as Sentry from '@sentry/react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatedCounter } from 'react-animated-counter/dist/esm';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
 import {
@@ -10,17 +8,36 @@ import {
 import { QrGeneratedImage } from '../QR/QrImage';
 import {
   setBubbleDisplay,
+  setBubblePinned,
   setScreen
 } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 
-import {
-  ReportInfo,
-  DraftInfo,
-  MeticulousIDRequestType
-} from '@meticulous-home/espresso-api';
+import { DraftInfo } from '@meticulous-home/espresso-api';
 
 import { api } from '../../api/api';
+import { useIdleTimer } from '../../hooks/useIdleTimer';
+import { useSettings, useUpdateSettings } from '../../hooks/useSettings';
+import { TICKET_SERVICE_URL } from '../../sentryConfig';
+import { contactEmailEdit } from './contactEmailEdit';
+import {
+  cancelCollection,
+  CollectionRun,
+  startCollection
+} from './reportCollection';
+import { holdRun, reportHandoff } from './reportHandoff';
+import {
+  buildDraftAttachment,
+  captureException,
+  FAILURE_DETAILS,
+  FailureView,
+  getTicketEventID,
+  isOfflineError,
+  isReportError,
+  sendSentryFeedback,
+  SubmissionFailType,
+  withRetry
+} from './reportSubmission';
 
 import './bugReport.css';
 
@@ -29,7 +46,8 @@ enum ReportScreen {
   reportSetup = 'reportSetup',
   selectIssueDate = 'selectIssueDate',
   reportingBug = 'reportingBug',
-  contactInfo = 'contactInfo',
+  contactUs = 'contactUs',
+  yourContactInfo = 'yourContactInfo',
   submitted = 'submitted'
 }
 
@@ -41,60 +59,14 @@ enum ReportStatus {
   failed = 'failed'
 }
 
-type SubmissionFailType =
-  | 'creation'
-  | 'sentrySubmission'
-  | 'reportUpdate'
-  | 'submissionMark'
-  | 'TicketTrackRequest'
-  | 'submissionTimeout'
-  | 'reportLoad';
-
 type SubmissionStateType =
   | null
   | 'fetchingFile'
-  | 'decompressing'
   | 'buildingFeedback'
   | 'ticketing'
   | 'updatingReport'
   | 'sendingFeedback'
   | 'savingRecord';
-
-// Every failure the user can land on gets a stable code, so support can map the
-// short on-screen message back to the stage that actually failed.
-const FAILURE_DETAILS: Record<
-  SubmissionFailType,
-  { code: string; message: string }
-> = {
-  creation: {
-    code: 'BR-01',
-    message: 'We could not collect the information needed for your report.'
-  },
-  reportLoad: {
-    code: 'BR-02',
-    message: 'We could not prepare your report for sending.'
-  },
-  TicketTrackRequest: {
-    code: 'BR-03',
-    message: 'We could not get a tracking number for your report.'
-  },
-  reportUpdate: {
-    code: 'BR-04',
-    message: 'We could not link the tracking number to your report.'
-  },
-  sentrySubmission: {
-    code: 'BR-05',
-    message: 'We could not send your report.'
-  },
-  submissionMark: {
-    code: 'BR-06',
-    message: 'We could not update your reports record.'
-  },
-  submissionTimeout: {
-    code: 'BR-07',
-    message: 'Sending your report took too long and was cancelled.'
-  }
-};
 
 const CONTACT_SUPPORT_NOTE = 'Please contact us for further information.';
 
@@ -105,16 +77,21 @@ const CONTACT_SUPPORT_NOTE = 'Please contact us for further information.';
 // itself (1.1s), so the cap has to clear 5.5s with room for a slow frame rate.
 const FINISHED_ANIMATION_TIMEOUT = 12 * 1000;
 
-type FailureView = {
-  code: string;
-  message: string;
-  /** Extra line shown above the code, e.g. a ticket the user should keep. */
-  note?: string;
+type InFlightSubmission = {
+  localID: string;
+  outcome: Promise<{ ticket: number | null; failure: FailureView | null }>;
 };
+
+// A bubble can be unmounted by navigation while delivery continues. Keep the
+// result outside the component so the next mount can show it.
+let inFlightSubmission: InFlightSubmission | null = null;
 
 type BugReportOption = {
   key:
-    | 'contactInfo'
+    | 'yourContactInfo'
+    | 'editContactEmail'
+    | 'removeContactEmail'
+    | 'contactUs'
     | 'reportIssue'
     | 'report'
     | 'selectDate'
@@ -123,15 +100,16 @@ type BugReportOption = {
     | 'exit';
   label: string;
   useableWidthPercentage: number;
+  /** Runs on a held press, with the slide-away fill, never on a plain press. */
+  hold?: boolean;
 };
+
+// A held press on a `hold` option: the fill runs on press down, the action
+// fires when it completes and an early release cancels it (quick settings do
+// the same).
+type HoldAnimationState = 'stopped' | 'running' | 'finished';
 
 type IssueDateField = 'day' | 'month' | 'year' | 'hours' | 'minutes';
-
-type CreateReportRun = {
-  cancelled: boolean;
-  slowTimeout: ReturnType<typeof setTimeout> | null;
-  controller: AbortController;
-};
 
 const ISSUE_DATE_FIELDS: IssueDateField[] = [
   'day',
@@ -181,208 +159,7 @@ const toLabelledParts = (
     .split(separator)
     .map((value, index) => ({ label: labels[index], value }));
 
-export interface DraftFile {
-  name: string;
-  data: Uint8Array;
-  contentType: string;
-}
-
-export const getContentType = (filename: string) => {
-  if (filename.endsWith('.json')) return 'application/json';
-  if (filename.endsWith('.zst')) return 'application/zstd';
-  if (filename.endsWith('.txt') || filename.endsWith('.log')) {
-    return 'text/plain';
-  }
-  if (filename.endsWith('.csv')) return 'text/csv';
-  return 'application/octet-stream';
-};
-
 const SUPPORT_WEBSITE_URL = 'https://meticuloushome.com/pages/contact';
-const service_url =
-  'https://a3qhsgqqfk.execute-api.us-east-1.amazonaws.com/Prod/ticket';
-
-const textDecoder = new TextDecoder();
-
-const captureException = (error: unknown, errorCode?: string) => {
-  console.error(errorCode ? `[${errorCode}]` : '', error);
-  if (Sentry.isInitialized()) {
-    Sentry.captureException(
-      error,
-      errorCode
-        ? { tags: { 'meticulous.bug_report_error_code': errorCode } }
-        : undefined
-    );
-  }
-};
-
-const readTarString = (data: Uint8Array, start: number, length: number) => {
-  const slice = data.slice(start, start + length);
-  const end = slice.indexOf(0);
-  return textDecoder.decode(end >= 0 ? slice.slice(0, end) : slice).trim();
-};
-
-const readTarSize = (data: Uint8Array, offset: number) => {
-  const sizeText = readTarString(data, offset + 124, 12);
-  return Number.parseInt(sizeText || '0', 8);
-};
-
-const isEmptyTarBlock = (data: Uint8Array, offset: number) => {
-  for (
-    let index = offset;
-    index < offset + 512 && index < data.length;
-    index++
-  ) {
-    if (data[index] !== 0) return false;
-  }
-  return true;
-};
-
-const untar = (data: Uint8Array): DraftFile[] => {
-  const files: DraftFile[] = [];
-  let offset = 0;
-
-  while (offset + 512 <= data.length && !isEmptyTarBlock(data, offset)) {
-    const name = readTarString(data, offset, 100);
-    const prefix = readTarString(data, offset + 345, 155);
-    const typeFlag = readTarString(data, offset + 156, 1);
-    const size = readTarSize(data, offset);
-    const fileStart = offset + 512;
-    const fileEnd = fileStart + size;
-
-    if (name && (!typeFlag || typeFlag === '0')) {
-      const filename = prefix ? `${prefix}/${name}` : name;
-      files.push({
-        name: filename,
-        data: data.slice(fileStart, fileEnd),
-        contentType: getContentType(filename)
-      });
-    }
-
-    offset = fileStart + Math.ceil(size / 512) * 512;
-  }
-
-  return files;
-};
-
-const decompressReportDraft = async (compressed: Uint8Array) => {
-  const { ZstdSimple, ZstdStream }: ZstdDec = await ZstdInit();
-
-  try {
-    return ZstdSimple.decompress(compressed);
-  } catch {
-    return ZstdStream.decompress(compressed);
-  }
-};
-
-const parseReportFiles = async (compressed: Uint8Array) => {
-  const decompressed = await decompressReportDraft(compressed);
-  const files = untar(decompressed);
-
-  if (files.length > 0) {
-    return files;
-  }
-
-  throw new Error('Report draft did not contain a readable tar archive');
-};
-
-const parseReportInfo = (files: DraftFile[]): ReportInfo => {
-  const reportInfoFile = files.find(
-    (file) => file.name.split('/').pop() === 'report_info.json'
-  );
-
-  if (!reportInfoFile) {
-    throw new Error('report_info.json missing from report draft');
-  }
-
-  return JSON.parse(textDecoder.decode(reportInfoFile.data));
-};
-
-const reportInfoTags = (reportInfo: ReportInfo) => {
-  return Object.fromEntries(
-    Object.entries(reportInfo)
-      .filter(([, value]) => value !== null && value !== undefined)
-      .map(([key, value]) => [
-        key,
-        typeof value === 'object' ? JSON.stringify(value) : String(value)
-      ])
-  );
-};
-
-const isReportError = (response: unknown): response is { error: string } => {
-  return (
-    typeof response === 'object' &&
-    response !== null &&
-    'error' in response &&
-    typeof response.error === 'string'
-  );
-};
-
-const getTicketEventID = (draftInfo: DraftInfo) => {
-  const machineID = draftInfo.machineID?.trim();
-  const localID = draftInfo.localID?.trim();
-
-  if (!machineID || !localID) {
-    throw new Error('Draft info is missing machineID or localID');
-  }
-
-  return `${machineID}-${localID}`;
-};
-
-const buildDraftAttachment = (draftFile: Uint8Array): DraftFile => {
-  const name = `bug-report-information.tar.zst`;
-
-  return {
-    name,
-    data: draftFile,
-    contentType: getContentType(name)
-  };
-};
-
-const sendSentryFeedback = async ({
-  reportInfo,
-  attachment
-}: {
-  reportInfo: ReportInfo;
-  attachment: DraftFile;
-}) => {
-  if (!Sentry.isInitialized()) {
-    throw new Error('Sentry is not initialized');
-  }
-
-  const eventID = Sentry.captureFeedback(
-    {
-      ...(reportInfo.machineID ? { name: reportInfo.machineID } : {}),
-      message:
-        reportInfo.description || 'Bug report submitted through quick report',
-      source: 'custom',
-      ...(reportInfo.baseEventID
-        ? { associatedEventId: reportInfo.baseEventID }
-        : {})
-    },
-    {
-      captureContext: {
-        tags: {
-          ...reportInfoTags(reportInfo),
-          'meticulous.report_source': 'dial'
-        }
-      },
-      attachments: [
-        {
-          filename: attachment.name.replace(/\//g, '_'),
-          data: attachment.data,
-          contentType: attachment.contentType
-        }
-      ]
-    }
-  );
-
-  const sent = await Sentry.flush(10_000);
-  if (!sent) {
-    throw new Error('Sentry feedback flush timed out');
-  }
-
-  return eventID;
-};
 
 /** The read-only counterpart of the picker row, labelled the same way. */
 const IssueDateParts = ({
@@ -462,8 +239,24 @@ export const BugReport = (): JSX.Element => {
   const draftInfoRef = useRef<DraftInfo | null>(null);
   const ticketRef = useRef<number | null>(null);
   const submissionStateRef = useRef<SubmissionStateType>(null);
-  const activeCreateRunRef = useRef<CreateReportRun | null>(null);
+  const activeCreateRunRef = useRef<CollectionRun | null>(null);
+  const submitControllerRef = useRef<AbortController | null>(null);
   const finishedResolveRef = useRef<(() => void) | null>(null);
+  const { resetTimer: resetIdleTimer } = useIdleTimer();
+  const { data: settings } = useSettings();
+  const updateSettings = useUpdateSettings();
+  // The address on file; "Your contact info" and the report legend show it.
+  const savedEmail = settings?.report_contact_mail?.trim() || null;
+  const [holdAnimation, setHoldAnimation] =
+    useState<HoldAnimationState>('stopped');
+  // The email the current report goes out with: the saved setting, or what
+  // the user answered on the contact email screen. null once declined.
+  const contactEmailRef = useRef<string | null>(null);
+
+  const busy =
+    reportStatus === ReportStatus.fetching ||
+    reportStatus === ReportStatus.slowFetch ||
+    reportStatus === ReportStatus.submitting;
 
   const animationPhase: BugReportAnimationPhase = isFinishing
     ? 'finished'
@@ -495,9 +288,18 @@ export const BugReport = (): JSX.Element => {
   const options = useMemo<BugReportOption[]>(() => {
     if (reportScreen === ReportScreen.message) {
       return [
+        ...(savedEmail
+          ? [
+              {
+                key: 'yourContactInfo' as const,
+                label: 'Your contact info',
+                useableWidthPercentage: 81
+              }
+            ]
+          : []),
         {
-          key: 'contactInfo',
-          label: 'Contact info',
+          key: 'contactUs',
+          label: 'Contact us',
           useableWidthPercentage: 81
         },
         {
@@ -509,8 +311,29 @@ export const BugReport = (): JSX.Element => {
       ];
     }
 
-    if (reportScreen === ReportScreen.contactInfo) {
+    if (reportScreen === ReportScreen.contactUs) {
       return [{ key: 'back', label: 'Back', useableWidthPercentage: 81 }];
+    }
+
+    if (reportScreen === ReportScreen.yourContactInfo) {
+      return [
+        ...(savedEmail
+          ? [
+              {
+                key: 'editContactEmail' as const,
+                label: savedEmail,
+                useableWidthPercentage: 81
+              },
+              {
+                key: 'removeContactEmail' as const,
+                label: 'Remove contact info',
+                useableWidthPercentage: 81,
+                hold: true
+              }
+            ]
+          : []),
+        { key: 'back', label: 'Back', useableWidthPercentage: 81 }
+      ];
     }
 
     if (reportScreen === ReportScreen.reportSetup) {
@@ -545,9 +368,10 @@ export const BugReport = (): JSX.Element => {
     }
 
     return [];
-  }, [reportScreen, reportStatus]);
+  }, [reportScreen, reportStatus, savedEmail]);
 
   const exitToQuickSettings = () => {
+    dispatch(setBubblePinned(false));
     const targetScreen =
       currentScreen === 'bug-report'
         ? previousScreen || 'profileHome'
@@ -574,6 +398,7 @@ export const BugReport = (): JSX.Element => {
   };
 
   const resetCancelledReport = () => {
+    dispatch(setBubblePinned(false));
     setReportScreen(ReportScreen.message);
     setReportStatus(ReportStatus.idle);
     setActiveIndex(0);
@@ -585,108 +410,141 @@ export const BugReport = (): JSX.Element => {
     ticketRef.current = null;
     submissionStateRef.current = null;
     setIsFinishing(false);
-  };
-
-  const deleteCancelledDraft = async (localID: string) => {
-    try {
-      const deleteResponse = await api.deleteDraftReport(localID);
-      if (isReportError(deleteResponse)) {
-        throw new Error(deleteResponse.error);
-      }
-    } catch (error) {
-      // Cancellation is already complete from the user's perspective. Keep
-      // this failure out of the reset UI, while retaining it for diagnosis.
-      captureException(error);
-    }
+    contactEmailRef.current = null;
   };
 
   const cancelCreateReport = () => {
-    const createRun = activeCreateRunRef.current;
-    if (!createRun) return;
-
-    createRun.cancelled = true;
-    // Stops the in-flight request so the machine stops collecting; scoped to
-    // this run's own controller, so a later run is never touched by it.
-    createRun.controller.abort();
-    if (createRun.slowTimeout) {
-      clearTimeout(createRun.slowTimeout);
-      createRun.slowTimeout = null;
-    }
+    const run = activeCreateRunRef.current;
+    if (!run) return;
+    cancelCollection(run);
     activeCreateRunRef.current = null;
     resetCancelledReport();
   };
 
-  const startCreateReport = () => {
-    // A fresh controller per run: it lives and dies with this createRun, is
-    // never reused, and a later run can never be aborted through it.
-    const createRun: CreateReportRun = {
-      cancelled: false,
-      slowTimeout: null,
-      controller: new AbortController()
-    };
-    const issueTime = selectedIssueTimestamp;
-
-    activeCreateRunRef.current = createRun;
+  // Shows a collection run and carries on with its outcome. Used for a run
+  // started here and for one picked back up after the contact email screen.
+  const attachCollection = (run: CollectionRun) => {
     setReportScreen(ReportScreen.reportingBug);
-    setReportStatus(ReportStatus.fetching);
+    setReportStatus(run.slow ? ReportStatus.slowFetch : ReportStatus.fetching);
     setActiveIndex(0);
     setFailure(null);
     setIsFinishing(false);
     draftInfoRef.current = null;
 
-    createRun.slowTimeout = setTimeout(() => {
-      if (!createRun.cancelled && activeCreateRunRef.current === createRun) {
+    run.onSlow = () => {
+      if (activeCreateRunRef.current === run) {
         setReportStatus(ReportStatus.slowFetch);
       }
-    }, 60 * 1000); // message change on the first minute mark
+    };
 
-    void (async () => {
-      try {
-        const createResponse =
-          issueTime === undefined
-            ? await api.createReport(undefined, {
-                signal: createRun.controller.signal
-              })
-            : await api.createReport(
-                { issueTime },
-                { signal: createRun.controller.signal }
-              );
-        if (isReportError(createResponse)) {
-          throw new Error(createResponse.error);
-        }
+    // A bubble that closed for the contact email screen let go of the run;
+    // the mount that picked it up handles the outcome instead.
+    holdRun(activeCreateRunRef, run, (outcome) => {
+      run.onSlow = null;
+      // Cancelled: the UI was already reset by cancelCreateReport.
+      if (!outcome) return;
+      if ('failure' in outcome) {
+        failSubmission(outcome.failure, outcome.error);
+        return;
+      }
+      draftInfoRef.current = outcome.draft;
+      setReportStatus(ReportStatus.submitting);
+      void submitReport(outcome.draft);
+    });
+  };
 
-        if (createRun.cancelled) {
-          await deleteCancelledDraft(createResponse.localID);
-          return;
-        }
+  const beginReport = () => {
+    const knownEmail = savedEmail;
+    contactEmailRef.current = knownEmail;
+    const run = startCollection(selectedIssueTimestamp);
+    attachCollection(run);
+    if (knownEmail !== null) return;
 
-        activeCreateRunRef.current = null;
-        draftInfoRef.current = createResponse;
-        setReportStatus(ReportStatus.submitting);
-        void submitReport(createResponse);
-      } catch (error) {
-        if (createRun.cancelled) {
-          // Aborting makes createReport() resolve to an APIError that surfaces
-          // here as a throw, indistinguishable from a genuine failure. Decide
-          // from the run's own token, not this value: cancellation is expected
-          // user action, not a failure, so it must never reach the
-          // already-reset UI, and it must never be reported to Sentry.
-          console.error(
-            '[bug-report] discarded error from a cancelled report creation',
-            error
-          );
-        } else if (activeCreateRunRef.current === createRun) {
-          activeCreateRunRef.current = null;
-          failSubmission('creation', error);
-        }
-      } finally {
-        if (createRun.slowTimeout) {
-          clearTimeout(createRun.slowTimeout);
-          createRun.slowTimeout = null;
+    // No address on file: ask for one on a full screen while the machine
+    // collects. The run outlives this bubble and is picked up again when the
+    // contact email screen reopens it. This bubble lets go of it now, as it
+    // still renders through its closing animation.
+    reportHandoff.detach(activeCreateRunRef);
+    // Gestures stay blocked until the bubble has closed, so the release of
+    // this press cannot type on the keyboard.
+    dispatch(
+      setBubbleDisplay({
+        visible: false,
+        component: undefined,
+        interceptsGesture: true
+      })
+    );
+    dispatch(setScreen('reportContactEmail'));
+  };
+
+  // "Your contact info": change the saved address on the full screen route.
+  // The bubble comes back on that screen once the edit is saved or dropped.
+  const editContactEmail = (email: string) => {
+    contactEmailEdit.open(email);
+    dispatch(
+      setBubbleDisplay({
+        visible: false,
+        component: undefined,
+        interceptsGesture: true
+      })
+    );
+    dispatch(setScreen('reportContactEmail'));
+  };
+
+  // The hold on "Remove contact info" ran to the end: forget the address and
+  // go back to the main screen, where its entry has gone.
+  const handleHoldAnimationEnd = () => {
+    setHoldAnimation('finished');
+    const activeOption = options[activeIndex];
+    if (activeOption?.key !== 'removeContactEmail') return;
+    updateSettings.mutate(
+      { report_contact_mail: null },
+      {
+        onSuccess: () => {
+          setReportScreen(ReportScreen.message);
+          setActiveIndex(0);
         }
       }
-    })();
+    );
   };
+
+  useEffect(() => {
+    dispatch(setBubblePinned(busy));
+    if (!busy) return;
+    resetIdleTimer();
+    const keepAlive = setInterval(resetIdleTimer, 30_000);
+    return () => clearInterval(keepAlive);
+  }, [busy, dispatch, resetIdleTimer]);
+
+  // Back from the contact email screen: resume the run left behind with the
+  // address the user gave, if any.
+  useEffect(() => {
+    // Back from changing the saved address: reopen where it was pressed.
+    if (contactEmailEdit.takeReturn()) {
+      setReportScreen(ReportScreen.yourContactInfo);
+      setActiveIndex(0);
+    }
+    const run = reportHandoff.takeRun();
+    const decision = reportHandoff.takeContactDecision();
+    if (!run) return;
+    contactEmailRef.current = decision?.email ?? null;
+    attachCollection(run);
+  }, []);
+
+  useEffect(
+    () => () => {
+      // A run handed over for the contact email screen is no longer held
+      // here; it keeps collecting for the bubble that comes back.
+      const run = activeCreateRunRef.current;
+      if (run) {
+        cancelCollection(run);
+        run.onSlow = null;
+        activeCreateRunRef.current = null;
+      }
+      dispatch(setBubblePinned(false));
+    },
+    [dispatch]
+  );
 
   const openIssueDateSelector = () => {
     setIssueDateDraft(() => {
@@ -760,6 +618,22 @@ export const BugReport = (): JSX.Element => {
       return;
     }
 
+    const controller = new AbortController();
+    submitControllerRef.current = controller;
+    const { signal } = controller;
+    let resolveOutcome: (value: {
+      ticket: number | null;
+      failure: FailureView | null;
+    }) => void;
+    const outcome = new Promise<{
+      ticket: number | null;
+      failure: FailureView | null;
+    }>((resolve) => {
+      resolveOutcome = resolve;
+    });
+    const submission = { localID: draftInfo.localID, outcome };
+    inFlightSubmission = submission;
+    let outcomeFailure: FailureView | null = null;
     setReportStatus(ReportStatus.submitting);
     setFailure(null);
 
@@ -767,61 +641,84 @@ export const BugReport = (): JSX.Element => {
     const submissionTimeout = setTimeout(
       () => {
         timedOut = true;
-        failSubmission('submissionTimeout', 'Report submission timed out');
+        controller.abort();
+        failSubmission(
+          'submissionTimeout',
+          'Report submission timed out',
+          ticketRef.current !== null
+            ? `A ticket number ${ticketRef.current} was reserved. Save it in case the report arrived.`
+            : undefined
+        );
+        outcomeFailure = {
+          ...FAILURE_DETAILS.submissionTimeout,
+          note:
+            ticketRef.current !== null
+              ? `A ticket number ${ticketRef.current} was reserved. Save it in case the report arrived.`
+              : undefined
+        };
       },
       5 * 60 * 1000
     ); // 5 minutes timeout
 
     try {
       setSubmissionStage('ticketing');
-      const ticketPayload: MeticulousIDRequestType = {
-        eventID: getTicketEventID(draftInfo)
-      };
-      const ticket = await api.getMeticulousReportTracking(
-        service_url,
-        ticketPayload
+      const ticket = await withRetry(
+        async () => {
+          const result = await api.getMeticulousReportTracking(
+            TICKET_SERVICE_URL,
+            { eventID: getTicketEventID(draftInfo) },
+            { signal, timeout: 15_000 }
+          );
+          if (isReportError(result)) throw new Error(result.error);
+          if (!Number.isSafeInteger(result)) {
+            throw new Error('Ticket service returned no ticket');
+          }
+          return result;
+        },
+        signal,
+        'ticket'
       );
-      if (isReportError(ticket)) throw Error(ticket.error);
       ticketRef.current = ticket;
-      if (timedOut) return;
 
       setSubmissionStage('updatingReport');
-      const updateResponse = await api.updateReport(draftInfo.localID, {
-        ticket
-      });
-      if (isReportError(updateResponse)) throw Error(updateResponse.error);
-      if (timedOut) return;
+      const reportInfo = await api.updateReport(
+        draftInfo.localID,
+        { ticket },
+        { signal, timeout: 30_000 }
+      );
+      if (isReportError(reportInfo)) throw Error(reportInfo.error);
 
       setSubmissionStage('fetchingFile');
-      const draftFile = await api.getDraftReport(draftInfo.localID);
+      const draftFile = await api.getDraftReport(draftInfo.localID, { signal });
       if (isReportError(draftFile)) throw Error(draftFile.error);
-      if (timedOut) return;
-
-      setSubmissionStage('decompressing');
-      const files = await parseReportFiles(draftFile);
-      if (timedOut) return;
 
       setSubmissionStage('buildingFeedback');
-      const reportInfo = parseReportInfo(files);
       const attachment = buildDraftAttachment(draftFile);
-      reportInfo.ticket = ticket;
-      if (timedOut) return;
 
       setSubmissionStage('sendingFeedback');
-      const eventID = await sendSentryFeedback({ reportInfo, attachment });
-      if (timedOut) return;
+      // Single attempt on purpose: captureFeedback is create-only, so a retry
+      // after an ambiguous transport result (no response / timeout) files a
+      // brand-new duplicate report rather than re-sending this one.
+      const eventID = await sendSentryFeedback({
+        reportInfo,
+        attachment,
+        signal,
+        contact: { email: contactEmailRef.current }
+      });
 
       setSubmissionStage('savingRecord');
-      const markSubmittedResponse = await api.markSubmittedReport({
-        localID: draftInfo.localID,
-        eventID,
-        ticket,
-        submissionTime: Math.floor(Date.now() / 1000)
-      });
+      const markSubmittedResponse = await api.markSubmittedReport(
+        {
+          localID: draftInfo.localID,
+          eventID,
+          ticket,
+          submissionTime: Math.floor(Date.now() / 1000)
+        },
+        { signal, timeout: 60_000 }
+      );
       if (isReportError(markSubmittedResponse)) {
         throw Error(markSubmittedResponse.error);
       }
-      if (timedOut) return;
 
       // The report is in. Everything left is animation, so retire the network
       // timeout rather than let it fail a submission that already succeeded.
@@ -832,14 +729,20 @@ export const BugReport = (): JSX.Element => {
       setReportScreen(ReportScreen.submitted);
       setReportStatus(ReportStatus.idle);
     } catch (error) {
-      if (timedOut) return;
+      if (timedOut || signal.aborted) return;
 
       if (submissionStateRef.current === 'sendingFeedback') {
         failSubmission('sentrySubmission', error);
+        outcomeFailure = FAILURE_DETAILS.sentrySubmission;
       } else if (submissionStateRef.current === 'ticketing') {
-        failSubmission('TicketTrackRequest', error);
+        const failure = isOfflineError(error)
+          ? 'offline'
+          : 'TicketTrackRequest';
+        failSubmission(failure, error);
+        outcomeFailure = FAILURE_DETAILS[failure];
       } else if (submissionStateRef.current === 'updatingReport') {
         failSubmission('reportUpdate', error);
+        outcomeFailure = FAILURE_DETAILS.reportUpdate;
       } else if (submissionStateRef.current === 'savingRecord') {
         // The report itself made it through, so the ticket is still usable.
         failSubmission(
@@ -847,13 +750,44 @@ export const BugReport = (): JSX.Element => {
           error,
           `We received your report with ticket number ${ticketRef.current}. Save it for further tracking.`
         );
+        outcomeFailure = {
+          ...FAILURE_DETAILS.submissionMark,
+          note: `We received your report with ticket number ${ticketRef.current}. Save it for further tracking.`
+        };
       } else {
         failSubmission('reportLoad', error);
+        outcomeFailure = FAILURE_DETAILS.reportLoad;
       }
     } finally {
       clearTimeout(submissionTimeout);
+      if (submitControllerRef.current === controller)
+        submitControllerRef.current = null;
+      resolveOutcome!({ ticket: ticketRef.current, failure: outcomeFailure });
+      if (inFlightSubmission === submission) inFlightSubmission = null;
     }
   };
+
+  useEffect(() => {
+    const pending = inFlightSubmission;
+    if (!pending) return;
+    let disposed = false;
+    setReportScreen(ReportScreen.reportingBug);
+    setReportStatus(ReportStatus.submitting);
+    void pending.outcome.then(({ ticket, failure: pendingFailure }) => {
+      if (disposed) return;
+      ticketRef.current = ticket;
+      if (pendingFailure) {
+        setFailure(pendingFailure);
+        setReportStatus(ReportStatus.failed);
+      } else {
+        setReportScreen(ReportScreen.submitted);
+        setReportStatus(ReportStatus.idle);
+      }
+    });
+    return () => {
+      disposed = true;
+    };
+  }, []);
 
   useHandleGestures({
     left() {
@@ -884,10 +818,22 @@ export const BugReport = (): JSX.Element => {
       }
       const activeOption = options[activeIndex];
       if (!activeOption || reportStatus === ReportStatus.submitting) return;
+      if (activeOption.hold) {
+        setHoldAnimation('running');
+        return;
+      }
 
       switch (activeOption.key) {
-        case 'contactInfo':
-          setReportScreen(ReportScreen.contactInfo);
+        case 'yourContactInfo':
+          setReportScreen(ReportScreen.yourContactInfo);
+          setReportStatus(ReportStatus.idle);
+          setActiveIndex(0);
+          break;
+        case 'editContactEmail':
+          if (savedEmail) editContactEmail(savedEmail);
+          break;
+        case 'contactUs':
+          setReportScreen(ReportScreen.contactUs);
           setReportStatus(ReportStatus.idle);
           setActiveIndex(0);
           break;
@@ -897,7 +843,7 @@ export const BugReport = (): JSX.Element => {
           setActiveIndex(0);
           break;
         case 'report':
-          startCreateReport();
+          beginReport();
           break;
         case 'selectDate':
           openIssueDateSelector();
@@ -923,6 +869,10 @@ export const BugReport = (): JSX.Element => {
           break;
       }
     },
+    pressUp() {
+      // Released: a finished hold already acted, an unfinished one is off.
+      setHoldAnimation('stopped');
+    },
     longEncoder() {
       if (reportScreen === ReportScreen.selectIssueDate) {
         confirmIssueDate();
@@ -939,19 +889,19 @@ export const BugReport = (): JSX.Element => {
     if (reportScreen === ReportScreen.message) {
       return (
         <>
-          <div style={{ marginTop: '10px' }}>
+          <div style={{ marginTop: '6px' }}>
             <span>
               This action will send debug data and provide You with a{' '}
               <strong>bug report number</strong>.
             </span>
           </div>
-          <div style={{ marginTop: '10px' }}>
+          <div style={{ marginTop: '6px' }}>
             <span>
-              Click on <strong>contact info</strong> to display QR coded contact
+              Click on <strong>contact us</strong> to display QR coded contact
               information or <strong>report an issue</strong> to continue.
             </span>
           </div>
-          <div style={{ marginTop: '10px' }}>
+          <div style={{ marginTop: '6px' }}>
             <span>We strongly recommend reporting from the mobile app</span>
           </div>
         </>
@@ -985,6 +935,23 @@ export const BugReport = (): JSX.Element => {
               )}
             />
           </div>
+          {savedEmail && (
+            <span className="bug-report-contact-legend">
+              We will reach you back at {savedEmail}
+            </span>
+          )}
+        </>
+      );
+    }
+
+    if (reportScreen === ReportScreen.yourContactInfo) {
+      return (
+        <>
+          <span className="bug-report-eyebrow">Your contact info</span>
+          <p className="bug-report-copy">
+            We reach you back about your reports at the address below. Press it
+            to change it, or hold the option under it to forget it.
+          </p>
         </>
       );
     }
@@ -1085,29 +1052,46 @@ export const BugReport = (): JSX.Element => {
     issueDateDraft,
     reportScreen,
     reportStatus,
+    savedEmail,
     selectedIssueTimestamp
   ]);
 
   const optionList = options.length > 0 && (
     <div
-      className="settings-fixed-item-container"
-      style={{ marginBottom: '50px' }}
+      className="settings-fixed-item-container bug-report-options"
+      style={{
+        // "Your contact info" sits higher, clear of the display's curve.
+        marginBottom:
+          reportScreen === ReportScreen.yourContactInfo ? '80px' : '50px'
+      }}
     >
       {options.map((item, index) => {
         const width = item.useableWidthPercentage || 90;
+        const active = index === activeIndex;
+        const holding = active && item.hold && holdAnimation === 'running';
         return (
           <div
             key={item.key}
             className={`settings-fixed-item settings-item ${
-              index === activeIndex ? 'active-setting' : ''
-            }`}
+              active ? 'active-setting' : ''
+            } ${holding ? 'bug-report-option-holding' : ''}`}
             style={{
-              marginBottom: '5px',
+              marginBottom: '3px',
               width: `${width}%`,
               paddingRight: `${90 - width}%`
             }}
+            onAnimationEnd={holding ? handleHoldAnimationEnd : undefined}
           >
-            <span className="settings-fixed-item-text">{item.label}</span>
+            <span
+              className={`settings-fixed-item-text ${
+                item.key === 'editContactEmail'
+                  ? 'bug-report-option-address'
+                  : ''
+              }`}
+            >
+              {item.label}
+            </span>
+            {item.hold && <span className="bug-report-option-badge">HOLD</span>}
           </div>
         );
       })}
@@ -1163,7 +1147,8 @@ export const BugReport = (): JSX.Element => {
   // they skip the shaper floats and centre on the bubble panel instead.
   if (
     reportScreen === ReportScreen.reportSetup ||
-    reportScreen === ReportScreen.selectIssueDate
+    reportScreen === ReportScreen.selectIssueDate ||
+    reportScreen === ReportScreen.yourContactInfo
   ) {
     return (
       <div className="bug-report-centered-screen">
@@ -1176,7 +1161,7 @@ export const BugReport = (): JSX.Element => {
   return (
     <div className="main-quick-settings settings-explanation-container">
       <div className="settings-explanation">
-        {reportScreen === ReportScreen.contactInfo ? (
+        {reportScreen === ReportScreen.contactUs ? (
           <QrGeneratedImage
             size={240}
             value={SUPPORT_WEBSITE_URL}

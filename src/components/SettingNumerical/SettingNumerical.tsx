@@ -96,30 +96,37 @@ export function SettingNumerical({ type }: Props): JSX.Element {
 
   useDimScreen();
 
+  // Encoder steps can arrive faster than React re-renders, so each step is
+  // computed from the queued profile state instead of the rendered value.
   const updateValue = (gesture: 'left' | 'right') => {
-    if (
-      (total === maxValue && gesture === 'right') ||
-      (total === (minValue || 0) && gesture === 'left')
-    ) {
-      return;
-    }
-    const mTotal = total + (gesture === 'left' ? -interval : +interval);
-    const value = type === 'output' ? mTotal : roundPrecision(mTotal, 1);
-    const updatedSetting = {
-      ...setting,
-      value
-    } as unknown as
-      | IPresetNumericalTemperature
-      | IPresetNumericalPressure
-      | IPresetNumericalOutput;
-    setSettingsProfile((prev) => ({
-      ...prev,
-      settings: [
-        ...prev.settings.slice(0, settingsIndex),
-        updatedSetting,
-        ...prev.settings.slice(settingsIndex + 1)
-      ]
-    }));
+    setSettingsProfile((prev) => {
+      const currentSetting = prev.settings[settingsIndex];
+      const currentTotal = Number(currentSetting?.value || 0);
+      if (
+        (currentTotal === maxValue && gesture === 'right') ||
+        (currentTotal === (minValue || 0) && gesture === 'left')
+      ) {
+        return prev;
+      }
+      const mTotal =
+        currentTotal + (gesture === 'left' ? -interval : +interval);
+      const value = type === 'output' ? mTotal : roundPrecision(mTotal, 1);
+      const updatedSetting = {
+        ...currentSetting,
+        value
+      } as unknown as
+        | IPresetNumericalTemperature
+        | IPresetNumericalPressure
+        | IPresetNumericalOutput;
+      return {
+        ...prev,
+        settings: [
+          ...prev.settings.slice(0, settingsIndex),
+          updatedSetting,
+          ...prev.settings.slice(settingsIndex + 1)
+        ]
+      };
+    });
   };
 
   useHandleGestures(

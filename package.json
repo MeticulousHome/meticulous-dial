@@ -9,7 +9,7 @@
     "commit": "git-cz",
     "format": "prettier --config .prettierrc \"{src/**/,.github/**/,}*.{tsx,ts,md,js,css,html,json,yml}\" --write",
     "format:check": "prettier --config .prettierrc \"{src/**/,.github/**/,}*.{tsx,ts,md,js,css,html,json,yml}\" --check",
-    "test": "node --test --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types tests/*.test.mts",
+    "test": "node --test --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types tests/*.test.mts tests/*.test.mjs",
     "test:free-pour": "node --experimental-strip-types --test scripts/test-free-pour-detectors.cjs",
     "test:profile-home-selection": "ts-node --compiler-options '{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' tests/profileHomeSelection.test.ts",
     "test:pour-over-profile": "ts-node --compiler-options '{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' tests/pourOverProfileContract.test.ts",
@@ -26,7 +26,8 @@
     "docker:arm64-cross": "docker build . -t rust_cross_compile_trixie/arm64 -f Dockerfile.arm64-cross",
     "package:arm64-qemu": "docker run --platform linux/arm64/v8 --rm -v `pwd`:/app rust_native_compile/arm64",
     "package:arm64-cross": "docker run --rm -v `pwd`:/app rust_cross_compile_trixie/arm64",
-    "test:community-upload": "playwright test --config playwright.community.config.ts"
+    "test:community-upload": "playwright test --config playwright.community.config.ts",
+    "test:all": "npm test && npm run test:free-pour && npm run test:profile-home-selection && npm run test:pour-over-profile"
   },
   "repository": {
     "type": "git",
@@ -89,9 +90,8 @@
     "vite": "^7.3.1"
   },
   "dependencies": {
-    "@meticulous-home/espresso-api": "^0.11.5",
+    "@meticulous-home/espresso-api": "^0.15.0",
     "@meticulous-home/espresso-profile": "^0.4.2",
-    "@oneidentity/zstd-js": "^1.0.3",
     "@reduxjs/toolkit": "^2.11.2",
     "@sentry/react": "^10.53.1",
     "@tanstack/react-query": "^5.91.0",

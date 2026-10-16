@@ -937,6 +937,139 @@ fn pairing_automatically_recovers_saved_brews_across_restart_and_does_not_repeat
     fs::remove_dir(&fixture.service.inner.state_path).unwrap();
 }
 
+/// A guided brew made before the first successful history baseline must not
+/// disappear while the next Free Pour uploads normally. Expected eligibility
+/// and duplicate outcomes come from Community's excluded/imported receipts;
+/// recovered uploads use RECOVERY_PATH so current Next Brew plans stay untouched.
+/// Existing pairing coverage does not exercise guided-first baseline loss followed
+/// by a successful live Free Pour. Disabling automatic recovery must fail this test.
+#[test]
+fn automatic_recovery_restores_first_guided_brew_skipped_by_baseline_after_next_free_pour_uploads()
+{
+    const OLD: &str = "2026-09-23/0001.pour-over.json";
+    const GUIDED: &str = "2026-09-24/0001.pour-over.json";
+    const FREE: &str = "2026-09-24/0002.pour-over.json";
+    let free_completed = Arc::new(AtomicBool::new(false));
+    let machine_free_completed = Arc::clone(&free_completed);
+    let recovered = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+    let recovery_count = Arc::clone(&recovered);
+    let server = MachineServer::start(move |url| {
+        let free_available = machine_free_completed.load(Ordering::Relaxed);
+        match url.path() {
+            "/api/v1/history/upload-index/last" => Reply::json(json!({"file":null})),
+            "/api/v1/history/upload-index" => index(&[]),
+            "/api/v1/history/pour-over/last" => {
+                Reply::json(json!({"file":if free_available { FREE } else { GUIDED }}))
+            }
+            "/api/v1/history/pour-over" => {
+                let after = url
+                    .query_pairs()
+                    .find(|(key, _)| key == "after")
+                    .map(|(_, value)| value.into_owned());
+                let paths = [OLD, GUIDED, FREE]
+                    .into_iter()
+                    .filter(|path| {
+                        (*path != FREE || free_available)
+                            && after.as_deref().is_none_or(|cursor| *path > cursor)
+                    })
+                    .map(str::to_string)
+                    .collect::<Vec<_>>();
+                index(&paths)
+            }
+            path if path.starts_with("/api/v1/history/pour-over/files/") => {
+                let mut session = pour_over();
+                let (id, mode) = if path.ends_with(OLD) {
+                    ("pre-connection", "profile")
+                } else if path.ends_with(GUIDED) {
+                    ("first-guided", "profile")
+                } else {
+                    ("next-free-pour", "free_pour")
+                };
+                session["id"] = json!(id);
+                session["mode"] = json!(mode);
+                if mode == "profile" {
+                    session["recipe"]["pourTargets"] =
+                        json!([{ "number":1,"startTimeMs":0,"stopWeightG":40,"flowGps":4 }]);
+                }
+                Reply::json(session)
+            }
+            SHOT_PATH => Reply::json(json!({"success":true,"imported":true,"deleted":false})),
+            RECOVERY_PATH => {
+                // Indexed order is pre-connection, missed guided, then Free Pour.
+                // Community enforces the authorization boundary and idempotency.
+                match recovery_count.fetch_add(1, Ordering::Relaxed) {
+                    0 => Reply::json(
+                        json!({"success":true,"imported":false,"deleted":false,"excluded":true}),
+                    ),
+                    1 => Reply::json(json!({"success":true,"imported":true,"deleted":false})),
+                    2 => Reply::json(json!({"success":true,"imported":false,"deleted":false})),
+                    _ => panic!("completed recovery must not upload records again"),
+                }
+            }
+            _ => Reply::bytes(500, "unexpected route"),
+        }
+    });
+    let fixture = TestService::new(&server, false);
+    // Reproduce the old baseline boundary before automatic recovery is present.
+    fixture.service.observe_new_pour_overs().unwrap();
+    assert_eq!(
+        fixture.state().pour_over_history_cursor.as_deref(),
+        Some(GUIDED)
+    );
+    assert!(
+        fixture.state().queue.is_empty(),
+        "the old live baseline skipped the first guided brew"
+    );
+    free_completed.store(true, Ordering::Relaxed);
+    fixture.service.observe_new_pour_overs().unwrap();
+    assert_eq!(fixture.state().queue[0].source_shot_id, "next-free-pour");
+    recovery_ready(&fixture);
+    fixture.service.upload_next_shot().unwrap();
+    assert!(fixture.state().queue.is_empty());
+    // The regular worker must recover the skipped guided brew without a manual
+    // Settings action, and tolerate the already-uploaded Free Pour receipt.
+    for _ in 0..8 {
+        recovery_ready(&fixture);
+        fixture.service.worker_tick().unwrap();
+    }
+    let progress = fixture
+        .service
+        .status()
+        .recovery
+        .expect("automatic recovery must start");
+    assert_eq!(progress.state, "completed");
+    assert_eq!(
+        (
+            progress.added,
+            progress.already_present,
+            progress.failed,
+            progress.pending_count
+        ),
+        (1, 1, 0, 0)
+    );
+    assert_eq!(recovered.load(Ordering::Relaxed), 3);
+    assert_eq!(
+        server
+            .requests()
+            .iter()
+            .filter(|path| path.as_str() == SHOT_PATH)
+            .count(),
+        1,
+        "only the subsequent live Free Pour may consume the live Next Brew path"
+    );
+    assert!(fixture.state().queue.is_empty());
+    fixture.reload();
+    for _ in 0..3 {
+        recovery_ready(&fixture);
+        fixture.service.worker_tick().unwrap();
+    }
+    assert_eq!(
+        recovered.load(Ordering::Relaxed),
+        3,
+        "restart must not repeat completed recovery"
+    );
+}
+
 #[test]
 fn automatic_recovery_requires_complete_connection_credentials() {
     for missing in ["authorization", "key", "version"] {

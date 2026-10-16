@@ -73,6 +73,15 @@ export const useDefaultProfiles = () => {
   });
 };
 
+/** The backend-owned simple profile used as the template for a new profile. */
+export const useSimpleProfile = () => {
+  const query = useDefaultProfiles();
+  return {
+    ...query,
+    data: query.data?.default?.[0] ?? null
+  };
+};
+
 export const useProfileDefaultImages = () => {
   return useQuery({
     queryKey: [DEFAULT_PROFILE_IMAGES_QUERY_KEY],
