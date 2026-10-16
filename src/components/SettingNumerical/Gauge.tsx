@@ -8,14 +8,7 @@ const transform = `rotate(90, ${radius}, ${radius})`;
 const minDigits = 3;
 
 export type Unit =
-  | 'bar'
-  | 'celcius'
-  | 'gram'
-  | 'sec'
-  | 'ml'
-  | 'min'
-  | 'volume'
-  | 'percentage';
+  'bar' | 'celcius' | 'gram' | 'sec' | 'ml' | 'min' | 'volume' | 'percentage';
 
 const unitNameMap: Record<Unit, string> = {
   bar: 'bar',

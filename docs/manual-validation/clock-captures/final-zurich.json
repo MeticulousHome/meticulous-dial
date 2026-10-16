@@ -1,0 +1,11 @@
+{
+  "stage": "final-zurich",
+  "osBefore": "2026-09-04T01:56:42,430717421+02:00",
+  "settings": {
+    "time_zone": "Europe/Zurich",
+    "timezone_sync": "manual",
+    "idle_screen": "analog"
+  },
+  "pid": "3425",
+  "osAfter": "2026-09-04T01:56:42,644064667+02:00"
+}

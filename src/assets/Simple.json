@@ -17,14 +17,8 @@
       "dynamics": {
         "over": "time",
         "points": [
-          [
-            0,
-            "$flow_Fill Rate"
-          ],
-          [
-            3,
-            "$flow_Fill Rate"
-          ]
+          [0, "$flow_Fill Rate"],
+          [3, "$flow_Fill Rate"]
         ],
         "interpolation": "linear"
       },
@@ -62,14 +56,8 @@
       "dynamics": {
         "over": "time",
         "points": [
-          [
-            0,
-            "$flow_Constant Flow"
-          ],
-          [
-            45,
-            "$flow_Constant Flow"
-          ]
+          [0, "$flow_Constant Flow"],
+          [45, "$flow_Constant Flow"]
         ],
         "interpolation": "linear"
       },

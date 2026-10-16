@@ -1,0 +1,11 @@
+{
+  "stage": "final-london",
+  "osBefore": "2026-09-04T00:56:38,060196664+01:00",
+  "settings": {
+    "time_zone": "Europe/London",
+    "timezone_sync": "manual",
+    "idle_screen": "analog"
+  },
+  "pid": "3425",
+  "osAfter": "2026-09-04T00:56:38,277653118+01:00"
+}

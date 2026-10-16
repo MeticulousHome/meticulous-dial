@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SW-103 real machine comparison</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: system-ui, sans-serif;
+      }
+      body {
+        margin: 24px;
+        background: #111;
+        color: #eee;
+      }
+      h1 {
+        font-size: 22px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+      }
+      figure {
+        margin: 0;
+        padding: 16px;
+        border: 1px solid #444;
+        border-radius: 12px;
+        background: #191919;
+      }
+      .frame {
+        width: min(100%, 480px);
+        aspect-ratio: 1;
+        overflow: hidden;
+        margin: auto;
+      }
+      img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        transform: rotate(90deg);
+      }
+      figcaption {
+        margin-top: 12px;
+        line-height: 1.4;
+      }
+      strong {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>SW-103 — real machine at about three seconds after push</h1>
+    <div class="grid">
+      <figure>
+        <div class="frame">
+          <img
+            src="baseline/04-first-click-plus-3s.png"
+            alt="Baseline retracting after the first click"
+          />
+        </div>
+        <figcaption>
+          <strong>Baseline, first click</strong>One continue; retracting.
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="frame">
+          <img
+            src="candidate/04-first-click-plus-3s.png"
+            alt="Candidate still at Push to brew after the first click"
+          />
+        </div>
+        <figcaption>
+          <strong>Candidate, first click</strong>Zero actions; still Push to
+          brew.
+        </figcaption>
+      </figure>
+      <figure>
+        <div class="frame">
+          <img
+            src="candidate/06-second-click-plus-3s.png"
+            alt="Candidate retracting after the second click"
+          />
+        </div>
+        <figcaption>
+          <strong>Candidate, next click</strong>Exactly one continue;
+          retracting.
+        </figcaption>
+      </figure>
+    </div>
+  </body>
+</html>

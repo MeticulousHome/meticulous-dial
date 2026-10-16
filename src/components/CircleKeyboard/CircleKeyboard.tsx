@@ -33,6 +33,16 @@ interface IKeyboardProps {
   onlyLetters?: boolean;
   capitalizeFirstLetter?: boolean;
   shouldIgnoreGesture?: boolean;
+  /** Fixed text shown before the input, not part of the value. */
+  prefix?: string;
+  /** Fixed text shown after the input, not part of the value. */
+  suffix?: string;
+  /**
+   * Long encoder press. The press that starts it already typed a character
+   * on the way down; that character is removed again before this fires, so
+   * the caller sees the text as it was before the long press.
+   */
+  onLongPress?: () => void;
 }
 
 export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
@@ -74,11 +84,23 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
           ? ALPHABETH_ONLY_LETTERS[0]
           : SPECIAL_CHARACTERS[0];
 
-  const { name, defaultValue, onSubmit, onCancel, onChange } = props;
+  const {
+    name,
+    defaultValue,
+    onSubmit,
+    onCancel,
+    onChange,
+    prefix,
+    suffix,
+    onLongPress
+  } = props;
   const inputLimit = 64;
 
   const captionRef = useRef<HTMLDivElement>(null);
   const [caption, setCaption] = useState(defaultValue || []);
+  // Whether the most recent press-down appended a character, so a long
+  // press can take it back (see onLongPress).
+  const lastPressInsertedRef = useRef(false);
 
   const capsLockIconClass = capsLockActive.keep
     ? 'caps-locked'
@@ -199,7 +221,18 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
           );
         }
       },
+      longEncoder() {
+        if (!onLongPress) return;
+        if (lastPressInsertedRef.current) {
+          const captionValue = caption.slice(0, -1);
+          setCaption(captionValue);
+          if (onChange) onChange(captionValue.join(''));
+        }
+        lastPressInsertedRef.current = false;
+        onLongPress();
+      },
       pressDown() {
+        lastPressInsertedRef.current = false;
         if (caption.length >= inputLimit && mainLetter !== 'backspace') {
           if (mainLetter === 'ok') {
             onSubmit(caption.join('').trim());
@@ -230,6 +263,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
             }
             const captioValue = caption.concat(' ');
             setCaption(captioValue);
+            lastPressInsertedRef.current = true;
             if (onChange) onChange(captioValue.join(''));
             return;
           }
@@ -294,6 +328,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
           default: {
             const captionValue = caption.concat(mainLetter);
             setCaption(captionValue);
+            lastPressInsertedRef.current = true;
             if (onChange) onChange(captionValue.join(''));
             if (!/^[A-Za-z]$/.test(mainLetter) && capsLockActive.active) {
               return;
@@ -534,6 +569,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
               ... <br />
             </span>
           )}
+          {prefix && <span className="circle-caption-affix">{prefix}</span>}
           {caption
             .slice(Math.max(caption.length - maxShownCharacters, 0))
             .map((el, index) => (
@@ -546,6 +582,7 @@ export function CircleKeyboard(props: IKeyboardProps): JSX.Element {
           {caption.length > 0 && caption.length < inputLimit && (
             <span className="blink">_</span>
           )}
+          {suffix && <span className="circle-caption-affix">{suffix}</span>}
         </div>
       </div>
       <svg height="390" width="390">

@@ -1,5 +1,10 @@
-import { VariableType } from '@meticulous-home/espresso-profile';
+import { Profile, VariableType } from '@meticulous-home/espresso-profile';
 import { StatusData, Settings } from '@meticulous-home/espresso-api';
+
+export type ManualCapableProfile = Profile & { manual?: boolean };
+
+export const isManualProfile = (profile?: Profile | null): boolean =>
+  (profile as ManualCapableProfile | undefined)?.manual === true;
 
 export type GestureType =
   | 'right'
@@ -20,32 +25,6 @@ export type GestureType =
   | 'contextUp';
 
 export type IPresetSettings = string[];
-
-export interface ISensorData {
-  t_ext_1: number;
-  t_ext_2: number;
-  t_bar_up: number;
-  t_bar_mu: number;
-  t_bar_md: number;
-  t_bar_down: number;
-  t_tube: number;
-  t_motor_temp: number;
-  lam_temp: number;
-  p: number;
-  a_0: number;
-  a_1: number;
-  a_2: number;
-  a_3: number;
-  m_pos: number;
-  m_spd: number;
-  m_pwr: number;
-  m_cur: number;
-  bh_pwr: number;
-  bh_cur: number;
-  w_stat: number;
-  motor_temp: number;
-  weight_pred: number;
-}
 
 export interface ISensorDataAndMachineState extends StatusData {
   waitingForActionAlreadySent: boolean;
@@ -166,12 +145,7 @@ export interface IPresetsSettingData {
 }
 
 export type IPresetType =
-  | NameKey
-  | PressureKey
-  | TemperatureKey
-  | OutputKey
-  | ActionKey
-  | '';
+  NameKey | PressureKey | TemperatureKey | OutputKey | ActionKey | '';
 
 export type ISettingType = PressureKey | TemperatureKey | OutputKey;
 
@@ -204,10 +178,3 @@ export enum YesNoEnum {
   Yes = 'yes',
   No = 'no'
 }
-
-export type ProfileCause =
-  | 'create'
-  | 'update'
-  | 'delete'
-  | 'full_reload'
-  | 'load';

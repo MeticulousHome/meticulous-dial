@@ -224,3 +224,78 @@
   color: #808080;
   justify-self: start;
 }
+
+/* Option pills ---------------------------------------------------------
+   Shorter than the quick settings ones: the main screen stacks four of them
+   under three paragraphs of text. */
+.bug-report-options .settings-fixed-item {
+  height: 30px;
+}
+
+.bug-report-options .settings-item {
+  font-size: 18px;
+  letter-spacing: 1px;
+  padding-left: 14px;
+}
+
+/* Your contact info ----------------------------------------------------- */
+.bug-report-copy {
+  font-family: 'ABC Diatype';
+  font-size: 20px;
+  line-height: 1.3;
+  margin: 12px 0 0;
+  max-width: 320px;
+}
+
+/* The saved address as an option: shown as typed, a long one ends in an
+   ellipsis. */
+.bug-report-option-address {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+/* Under the issue date on the report setup screen: where the reply goes. */
+.bug-report-contact-legend {
+  color: #808080;
+  font-family: 'ABC Diatype';
+  font-size: 16px;
+  line-height: 1.3;
+  margin-top: 22px;
+  max-width: 340px;
+  overflow-wrap: anywhere;
+}
+
+/* Hold options: the highlight slides away while the text turns white, and
+   the action fires when the animation completes (handleHoldAnimationEnd). */
+@keyframes bug-report-hold-fill {
+  from {
+    background-position: 100% 100%;
+    color: #0f0f0f;
+  }
+
+  to {
+    background-position: 0% 100%;
+    color: #ffffff;
+  }
+}
+
+.bug-report-options .bug-report-option-holding {
+  animation: bug-report-hold-fill 1s ease forwards;
+}
+
+.bug-report-option-badge {
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  flex-shrink: 0;
+  font-family: 'ABC Diatype Mono';
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  line-height: 1;
+  margin-left: 10px;
+  padding: 3px 4px 2px;
+  text-transform: none;
+}

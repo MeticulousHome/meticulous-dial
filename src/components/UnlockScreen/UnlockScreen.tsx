@@ -11,8 +11,7 @@ import {
 import { useDeviceInfo } from '../../hooks/useDeviceOSStatus';
 import { startMasterCalibration, unlockMachine } from '../../api/api';
 
-const looksComplete = (code: string) =>
-  code === 'met' || /^\d{5}$/.test(code);
+const looksComplete = (code: string) => code === 'met' || /^\d{5}$/.test(code);
 
 export const UnlockScreen: React.FC = () => {
   const dispatch = useAppDispatch();

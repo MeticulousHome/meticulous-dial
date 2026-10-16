@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import { Provider } from 'react-redux';
@@ -27,11 +27,15 @@ import { warn, debug, trace, info, error } from '@tauri-apps/plugin-log';
 import { sanitizeAutomaticSentryEvent } from './sentryPrivacy';
 import { useDeviceInfo } from './hooks/useDeviceOSStatus';
 import { version as dialVersion } from '../package.json';
+import { useDialSlowdownMonitor } from './hooks/useDialSlowdownMonitor';
+import { syncPendingFreePourSessions } from './features/freePour/storage';
+import { logFreePour, logFreePourError } from './features/freePour/logging';
 import { SENTRY_DSN } from './sentryConfig';
 
 const DIAL_RELEASE = `meticulous-dial@${dialVersion}`;
+const isTauriRuntime = () => '__TAURI_INTERNALS__' in window;
 
-if (SENTRY_DSN) {
+if (SENTRY_DSN && import.meta.env.PROD && isTauriRuntime()) {
   Sentry.init({
     dsn: SENTRY_DSN,
     release: DIAL_RELEASE,
@@ -47,9 +51,12 @@ if (SENTRY_DSN) {
     integrations: (defaultIntegrations) =>
       defaultIntegrations.filter(
         (integration) =>
-          !['Breadcrumbs', 'HttpContext', 'BrowserSession'].includes(
-            integration.name
-          )
+          ![
+            'Breadcrumbs',
+            'HttpContext',
+            'BrowserSession',
+            'CultureContext'
+          ].includes(integration.name)
       )
   });
 }
@@ -71,6 +78,20 @@ const SentryRuntimeMetadata = () => {
       Sentry.setTag('build-channel', deviceInfo.image_build_channel);
     }
   }, [deviceInfo]);
+
+  return null;
+};
+
+const DialSlowdownMonitor = () => {
+  const screen = useAppSelector((state) => state.screen.value);
+  const isExtracting = useAppSelector((state) => state.stats?.extracting);
+  const { data: deviceInfo } = useDeviceInfo();
+
+  useDialSlowdownMonitor({
+    screen,
+    serial: deviceInfo?.serial ? String(deviceInfo.serial).trim() : undefined,
+    isExtracting: Boolean(isExtracting)
+  });
 
   return null;
 };
@@ -109,10 +130,40 @@ const App = (): JSX.Element => {
   useEffect(() => {
     sendReady();
     setBrightness({ brightness: 1 });
+    syncPendingFreePourSessions()
+      .then(({ pending, synced }) => {
+        if (pending || synced) {
+          logFreePour('backend_history_sync_completed', { pending, synced });
+        }
+      })
+      .catch((syncError) => {
+        logFreePourError('backend_history_sync_failed', syncError);
+      });
   }, []);
 
   const isExtracting = useAppSelector((state) => state.stats?.extracting);
+  const extractionWasActive = useRef(false);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
+
+  useEffect(() => {
+    const completed = extractionWasActive.current && !isExtracting;
+    extractionWasActive.current = Boolean(isExtracting);
+    if (!completed || !('__TAURI_INTERNALS__' in window)) return;
+
+    const requestScan = () => {
+      void invoke('community_scan_history').catch((error) => {
+        console.error('Failed to request Community history scan:', error);
+      });
+    };
+    // Espresso history is compressed asynchronously after extraction. The
+    // second wake-up covers unusually slow flash writes without busy polling.
+    const firstScan = window.setTimeout(requestScan, 3_000);
+    const secondScan = window.setTimeout(requestScan, 10_000);
+    return () => {
+      window.clearTimeout(firstScan);
+      window.clearTimeout(secondScan);
+    };
+  }, [isExtracting]);
 
   useNotification();
   useNotificationHandler();
@@ -144,6 +195,7 @@ const App = (): JSX.Element => {
   return (
     <QueryClientProvider client={queryClient}>
       <SentryRuntimeMetadata />
+      <DialSlowdownMonitor />
       <div className="meticulous-main-canvas">
         {dev && <div className="main-circle-overlay" />}
         <IdleTimerProvider>

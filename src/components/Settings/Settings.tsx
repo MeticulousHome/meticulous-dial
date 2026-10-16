@@ -15,11 +15,17 @@ import type { SettingsItem } from '../../types';
 import Styled, { VIEWPORT_HEIGHT } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
 import type { Settings } from '@meticulous-home/espresso-api';
+import { useCommunityUploadStatus } from '../../hooks/useCommunityUpload';
 
 const initialSettings: SettingsItem[] = [
   {
     key: 'device_info',
     label: 'Device Info',
+    visible: true
+  },
+  {
+    key: 'community',
+    label: 'Community',
     visible: true
   },
   {
@@ -59,6 +65,7 @@ export function Settings(): JSX.Element {
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const updateSettings = useUpdateSettings();
+  const communityStatus = useCommunityUploadStatus();
 
   const updatedSettings = useMemo(() => {
     if (!isSuccess) {
@@ -68,11 +75,20 @@ export function Settings(): JSX.Element {
     }
     return initialSettings.map((item) => ({
       ...item,
-      label: item.getLabel
-        ? `${item.label}: ${item.getLabel(globalSettings)}`
-        : item.label
+      label:
+        item.key === 'community'
+          ? `Community: ${
+              communityStatus.data?.state === 'connected'
+                ? 'Connected'
+                : communityStatus.data?.state === 'upload_paused'
+                  ? 'Upload paused'
+                  : 'Not connected'
+            }`
+          : item.getLabel
+            ? `${item.label}: ${item.getLabel(globalSettings)}`
+            : item.label
     }));
-  }, [globalSettings, isSuccess]);
+  }, [communityStatus.data?.state, globalSettings, isSuccess]);
 
   useHandleGestures(
     {
@@ -95,6 +111,12 @@ export function Settings(): JSX.Element {
           case 'advanced': {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'advancedSettings' })
+            );
+            break;
+          }
+          case 'community': {
+            dispatch(
+              setBubbleDisplay({ visible: true, component: 'community' })
             );
             break;
           }

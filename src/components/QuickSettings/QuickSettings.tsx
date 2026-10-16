@@ -23,6 +23,10 @@ import { useProfileContext } from '../../context/ProfileContext';
 import { useDeletePreset } from '../../hooks/useProfiles';
 import { addSettingsToProfile } from '../../utils/profiles';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
+import { logFreePour } from '../../features/freePour/logging';
+import { useDeletePourOverProfile } from '../../features/freePour/usePourOverProfiles';
+import { useManualBrew } from '../../hooks/useManualBrew';
+import { createProfileFromManualBrew } from '../../api/manualMode';
 
 export type QuickSettingOption = {
   key: string;
@@ -47,6 +51,40 @@ const profileContextSettings: QuickSettingOption[] = [
     label: 'Delete profile',
     longpress: true,
     hasSeparator: true
+  }
+];
+
+const freePourContextSettings: QuickSettingOption[] = [
+  {
+    key: 'last_free_pour',
+    label: 'Last pour-over'
+  }
+];
+
+const pourOverProfileContextSettings: QuickSettingOption[] = [
+  ...freePourContextSettings,
+  {
+    key: 'delete_pour_over_profile',
+    label: 'Delete profile',
+    longpress: true,
+    hasSeparator: true
+  }
+];
+
+const freePourInProgressSettings: QuickSettingOption[] = [
+  {
+    key: 'resume_free_pour',
+    label: 'Resume Free Pour'
+  },
+  {
+    key: 'abort_free_pour',
+    label: 'Abort Free Pour',
+    longpress: true,
+    hasSeparator: true
+  },
+  {
+    key: 'exit',
+    label: 'Exit menu'
   }
 ];
 
@@ -88,10 +126,38 @@ const defaultSettings: QuickSettingOption[] = [
     label: 'Report an issue'
   },
   {
+    key: 'experimental',
+    label: 'Experimental'
+  },
+  {
+    key: 'help_us_improve',
+    label: 'Help us improve'
+  },
+  {
     key: 'exit',
     label: 'exit'
   }
 ];
+
+// Offered while the graph of a manual brew is up - from the last purge until
+// the encoder is clicked - so the brew can be kept as a profile on demand
+// instead of through a prompt. Once saved, the entry only reports that it was.
+const saveManualBrewSetting: QuickSettingOption = {
+  key: 'save_manual_brew',
+  label: 'Save as profile',
+  hasSeparator: true
+};
+
+const manualBrewSavedSetting: QuickSettingOption = {
+  key: 'manual_brew_saved',
+  label: 'Profile saved',
+  hasSeparator: true
+};
+
+// The menu is unmounted with the bubble, so which brew was already saved is
+// remembered across openings by its brew time - the only identity the dial
+// holds for the shot it has just graphed.
+let savedManualBrewTime: number | null = null;
 
 const inBrewSettings: QuickSettingOption[] = [
   {
@@ -133,12 +199,23 @@ export function QuickSettings(): JSX.Element {
   const {
     profileQuery: { data: profiles },
     localProfile,
+    homeMode,
+    setHomeMode,
+    selectedPourOverProfileId,
+    setSelectedPourOverProfileId,
     setSettingsIndex: setProfileSettingsIndex,
+    setIsCreatingProfile,
     setSettingsProfile: setProfileSettings
   } = useProfileContext();
   const deletePresetMutation = useDeletePreset();
+  const deletePourOverProfileMutation = useDeletePourOverProfile();
   const currentScreen = useAppSelector((state) => state.screen.value);
   const statsName = useAppSelector((state) => state.stats.name);
+  const brewTime = useAppSelector((state) => state.stats.profile_time);
+  const { isManualProfile } = useManualBrew();
+  const [manualBrewSaved, setManualBrewSaved] = useState(
+    savedManualBrewTime === brewTime
+  );
 
   const [counterESGG, setCounterESGG] = useState(0);
   const [holdAnimation, setHoldAnimation] =
@@ -179,16 +256,39 @@ export function QuickSettings(): JSX.Element {
 
   const handleAnimationEnd = () => {
     setHoldAnimation('finished');
-    if (localProfile?.temporary) return; //To prevent deleting an existing profile based on a temporary profile that has modifications.
     switch (settings[activeOption].key) {
       case 'delete': {
+        // Prevent deleting an existing profile based on a temporary profile
+        // that has modifications.
+        if (localProfile?.temporary) return;
         deletePresetMutation.mutate(localProfile?.id);
+        dispatch(setScreen('profileHome'));
+        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
+        break;
+      }
+      case 'delete_pour_over_profile': {
+        if (!selectedPourOverProfileId) return;
+        const deletedProfileId = selectedPourOverProfileId;
+        setSelectedPourOverProfileId(null);
+        setHomeMode('free_pour');
+        deletePourOverProfileMutation.mutate(deletedProfileId, {
+          onError: () => {
+            setSelectedPourOverProfileId(deletedProfileId);
+            setHomeMode('pour_over_profile');
+          }
+        });
         dispatch(setScreen('profileHome'));
         dispatch(setBubbleDisplay({ visible: false, component: undefined }));
         break;
       }
       case 'abort_brew': {
         socket.emit('action', 'abort');
+        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
+        break;
+      }
+      case 'abort_free_pour': {
+        logFreePour('aborted', { source: 'context_menu' });
+        dispatch(setScreen('profileHome'));
         dispatch(setBubbleDisplay({ visible: false, component: undefined }));
         break;
       }
@@ -204,6 +304,13 @@ export function QuickSettings(): JSX.Element {
             component: !bubbleDisplay.visible ? 'quick-settings' : null
           })
         );
+      },
+      doubleClick() {
+        if (currentScreen !== 'freePour' && currentScreen !== 'guidedPourOver')
+          return;
+        logFreePour('aborted', { source: 'double_press_context_menu' });
+        dispatch(setScreen('profileHome'));
+        dispatch(setBubbleDisplay({ visible: false, component: undefined }));
       },
       left() {
         setActiveOption((prev) => Math.max(prev - 1, 0));
@@ -270,8 +377,25 @@ export function QuickSettings(): JSX.Element {
               break;
             }
             setProfileSettingsIndex(0);
+            setIsCreatingProfile(false);
             setProfileSettings(addSettingsToProfile(localProfile));
             dispatch(setScreen('pressetSettings'));
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
+            break;
+          }
+          case 'save_manual_brew': {
+            savedManualBrewTime = brewTime;
+            setManualBrewSaved(true);
+            createProfileFromManualBrew().catch((error) => {
+              console.error(
+                'Could not save the manual brew as a profile:',
+                error
+              );
+              savedManualBrewTime = null;
+              setManualBrewSaved(false);
+            });
             dispatch(
               setBubbleDisplay({ visible: false, component: undefined })
             );
@@ -281,6 +405,33 @@ export function QuickSettings(): JSX.Element {
             dispatch(setScreen('shot_history'));
             dispatch(
               setBubbleDisplay({ visible: false, component: undefined })
+            );
+            break;
+          }
+          case 'last_free_pour': {
+            dispatch(setScreen('freePourHistory'));
+            // The menu opens entries on pressDown. Keep the underlying chart
+            // blocked until the bubble finishes closing so the same physical
+            // press cannot resolve into a click that immediately exits it.
+            dispatch(
+              setBubbleDisplay({
+                visible: false,
+                component: undefined,
+                interceptsGesture: true
+              })
+            );
+            break;
+          }
+          case 'resume_free_pour': {
+            logFreePour('context_closed', { action: 'resume' });
+            // Keep gestures intercepted during the close animation so the
+            // resolved click cannot leak through to the Free Pour screen.
+            dispatch(
+              setBubbleDisplay({
+                visible: false,
+                component: undefined,
+                interceptsGesture: true
+              })
             );
             break;
           }
@@ -310,6 +461,15 @@ export function QuickSettings(): JSX.Element {
             );
             break;
           }
+          case 'experimental': {
+            dispatch(
+              setBubbleDisplay({
+                visible: true,
+                component: 'experimentalSettings'
+              })
+            );
+            break;
+          }
           case 'bug_report': {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'bug-report' })
@@ -320,6 +480,19 @@ export function QuickSettings(): JSX.Element {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'brewSettings' })
             );
+            break;
+          }
+          case 'help_us_improve': {
+            // Full screen route: keep gestures blocked until the bubble has
+            // closed so the release of this press cannot select an option.
+            dispatch(
+              setBubbleDisplay({
+                visible: false,
+                component: undefined,
+                interceptsGesture: true
+              })
+            );
+            dispatch(setScreen('helpUsImprove'));
             break;
           }
 
@@ -361,7 +534,13 @@ export function QuickSettings(): JSX.Element {
   );
 
   const requiresProfileContext: boolean =
-    profiles?.length > 0 && currentScreen === 'profileHome';
+    profiles?.length > 0 &&
+    currentScreen === 'profileHome' &&
+    homeMode === 'espresso';
+  const requiresFreePourContext =
+    currentScreen === 'profileHome' && homeMode === 'free_pour';
+  const requiresPourOverProfileContext =
+    currentScreen === 'profileHome' && homeMode === 'pour_over_profile';
 
   useEffect(() => {
     const context: QuickSettingOption[] = profileContextSettings;
@@ -370,15 +549,29 @@ export function QuickSettings(): JSX.Element {
 
     switch (currentScreen) {
       case 'heating':
-      case 'brewComplete':
-        if (statsName === 'idle') {
-          setSettings(defaultSettings);
+      case 'brewComplete': {
+        const base = statsName === 'idle' ? defaultSettings : inBrewSettings;
+        const graphShowing =
+          currentScreen === 'brewComplete' &&
+          (statsName === 'purge' ||
+            statsName === 'idle' ||
+            statsName === 'END_STAGE');
+        if (isManualProfile && graphShowing) {
+          setSettings([
+            manualBrewSaved ? manualBrewSavedSetting : saveManualBrewSetting,
+            ...base
+          ]);
         } else {
-          setSettings(inBrewSettings);
+          setSettings(base);
         }
         break;
+      }
       case 'barometer':
         setSettings(inBrewSettings);
+        break;
+      case 'freePour':
+      case 'guidedPourOver':
+        setSettings(freePourInProgressSettings);
         break;
       default:
         {
@@ -387,13 +580,25 @@ export function QuickSettings(): JSX.Element {
             : context;
           setSettings([
             ...(requiresProfileContext ? newContext : []),
+            ...(requiresFreePourContext ? freePourContextSettings : []),
+            ...(requiresPourOverProfileContext
+              ? pourOverProfileContextSettings
+              : []),
             ...(backAvailable ? [prevScreenSetting] : []),
             ...defaultSettings
           ]);
         }
         break;
     }
-  }, [currentScreen, osStatusInfo, osStatusVisible]);
+  }, [
+    currentScreen,
+    homeMode,
+    osStatusInfo,
+    osStatusVisible,
+    statsName,
+    isManualProfile,
+    manualBrewSaved
+  ]);
 
   useEffect(() => {
     if (counterESGG >= 20) {

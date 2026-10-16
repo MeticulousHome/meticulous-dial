@@ -1,10 +1,10 @@
-import {
-  ISensorDataAndMachineState,
-  ISensorData
-} from './../../../../types/index';
+import { MachineSensors } from '@meticulous-home/espresso-api';
+import { ISensorDataAndMachineState } from './../../../../types/index';
 import { createSlice, PayloadAction, Draft } from '@reduxjs/toolkit';
 
-const initialState: ISensorDataAndMachineState & { sensorData: ISensorData } = {
+const initialState: ISensorDataAndMachineState & {
+  sensorData: MachineSensors;
+} = {
   id: '',
   state: 'idle',
   name: 'idle',
@@ -42,7 +42,7 @@ const initialState: ISensorDataAndMachineState & { sensorData: ISensorData } = {
     m_cur: 0,
     bh_pwr: 0,
     bh_cur: 0,
-    w_stat: 0,
+    w_stat: false,
     motor_temp: 0,
     weight_pred: 0
   },
@@ -57,7 +57,7 @@ const statsSlice = createSlice({
   reducers: {
     setSensors: (
       state: Draft<typeof initialState>,
-      action: PayloadAction<ISensorData>
+      action: PayloadAction<MachineSensors>
     ) => {
       state = { ...state, sensorData: action.payload };
       return state;

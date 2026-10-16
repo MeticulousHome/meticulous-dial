@@ -17,10 +17,12 @@ export type ScreenType =
   | 'dose'
   | 'output'
   | 'settings'
+  | 'community'
   | 'timeDate'
   | 'timeZoneConfig'
   | 'notifications'
   | 'wifiSettings'
+  | 'wifiModeSettings'
   | 'wifiQrMenu'
   | 'wifiDetails'
   | 'connectWifiMenu'
@@ -31,6 +33,7 @@ export type ScreenType =
   | 'enterWifiPassword'
   | 'quick-settings'
   | 'brewSettings'
+  | 'experimentalSettings'
   | 'snake'
   | 'KnownWifi'
   | 'deleteKnowWifiMenu'
@@ -39,6 +42,7 @@ export type ScreenType =
   | 'deviceInfo'
   | 'updateChannel'
   | 'idleScreenSettings'
+  | 'manualSetup'
   | 'manual-purge'
   | 'heating'
   | 'heat_timeout_after_shot'
@@ -52,8 +56,15 @@ export type ScreenType =
   | 'shot_history'
   | 'scrollDirections'
   | 'brewComplete'
+  | 'freePour'
+  | 'guidedPourOver'
+  | 'freePourHistory'
   | 'factoryReset'
+  | 'helpUsImprove'
+  | 'reportContactEmail'
+  | 'shotDataSharingPrompt'
   | 'retraction_volume'
+  | 'tare_behavior'
   | 'manufacturingSettings'
   | 'displayAlignment'
   | 'masterCalibrationLock'
@@ -116,5 +127,6 @@ const screenSlice = createSlice({
   }
 });
 
-export const { setScreen, setBubbleDisplay, setBubblePinned } = screenSlice.actions;
+export const { setScreen, setBubbleDisplay, setBubblePinned } =
+  screenSlice.actions;
 export default screenSlice.reducer;

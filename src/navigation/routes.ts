@@ -7,6 +7,7 @@ import { ScreenType } from '../components/store/features/screens/screens-slice';
 import { EditNameScreen } from '../components/EditNameScreen/EditNameScreen';
 import { ConnectWifiMenu } from '../components/Wifi/ConnectWifiMenu';
 import { WifiSettings } from './../components/Wifi/WifiSettings';
+import { WifiModeSettings } from '../components/Wifi/WifiModeSettings';
 import { SelectWifi } from '../components/Wifi/SelectWifi';
 import { EnterWifiPassword } from '../components/Wifi/EnterWifiPassword';
 import { WifiDetails } from '../components/Wifi/WifiDetails';
@@ -14,6 +15,7 @@ import { RootState } from '../components/store/store';
 import { Notification } from '../components/Notification/Notification';
 import { ConnectWifiViaApp } from '../components/Wifi/ConnetWifiViaApp';
 import { BugReport } from '../components/BugReport/BugReport';
+import { ReportContactEmail } from '../components/BugReport/ReportContactEmail';
 import { OSStatus } from '../components/OSStatus/OSStatus';
 import { QuickSettings } from '../../src/components/QuickSettings/QuickSettings';
 import { SnakeGame } from '../../src/components/Snake/Snake';
@@ -23,6 +25,7 @@ import { AdvancedSettings } from '../components/Settings/Advanced/Advanced';
 import { WifiQrMenu } from '../../src/components/Wifi/WifiQrMenu';
 import { PressetProfileImage } from '../components/PressetSettings/PressetProfileImage';
 import { DeviceInfoScreen } from '../components/Settings/Advanced/DeviceInfoScreen';
+import { ManualModeSetup } from '../components/ManualModeSetup/ManualModeSetup';
 import { PurgeScreen } from '../components/PurgePiston/PurgeScreen';
 import { UpdateChannel } from '../components/Settings/Advanced/UpdateChannel';
 import { ReadyAnimation } from '../components/ReadyAnimation/ReadyAnimation';
@@ -38,9 +41,13 @@ import { IdleScreenSetting } from '../components/Settings/Advanced/IdleScreenSet
 
 import CalibrateScale from '../components/Scale/CalibrateScale';
 import { BrewSettings } from '../components/Settings/BrewSettings';
+import { ExperimentalSettings } from '../components/Settings/Experimental';
 import { TimeConfig } from '../components/Settings/Advanced/TimeDate/TimeConfig';
 import { DateConfig } from '../components/Settings/Advanced/TimeDate/DateConfig';
 import { ShotGraphScreen } from '../components/ShotGraph/ShotGraphScreen';
+import { FreePourScreen } from '../features/freePour/FreePourScreen';
+import { GuidedPourOverScreen } from '../features/freePour/GuidedPourOverScreen';
+import { FreePourHistoryScreen } from '../features/freePour/FreePourHistoryScreen';
 import { ScrollDirectionSettings } from '../components/Settings/ScrollDirection';
 import { BrewCompleteScreen } from '../components/BrewCompleteScreen/BrewCompleteScreen';
 import { ProfileHomeScreen } from '../components/ProfileHomeScreen/ProfileHomeScreen';
@@ -49,8 +56,11 @@ import {
   getProfilesTitle
 } from '../components/ProfileHomeScreen/ProfileTitle';
 import { FactoryReset } from '../components/Settings/Advanced/FactoryReset';
+import { HelpUsImprove } from '../components/ShotDataSharing/HelpUsImprove';
+import { ShotDataSharingPrompt } from '../components/ShotDataSharing/ShotDataSharingPrompt';
 import { Manufacturing } from '../components/Settings/Advanced/Manufacturing';
 import { RetractionSettingGauge } from '../components/Settings/Advanced/RetractionVolume';
+import { TareBehaviorSetting } from '../components/Settings/TareBehavior';
 import { useProfileContext } from '../context/ProfileContext';
 import { DisplayAlignment } from '../components/Settings/Advanced/DisplayAlignment';
 import {
@@ -58,6 +68,7 @@ import {
   UnlockMasterCalibration
 } from '../components/UnlockScreen/UnlockScreen';
 import { InfoQRCode } from '../components/Settings/Advanced/InfoQrCode';
+import { CommunitySettings } from '../components/Settings/Community/Community';
 
 interface Route {
   component: ComponentType;
@@ -148,6 +159,11 @@ export const routes: Record<ScreenType, Route> = {
     title: 'settings',
     bottomStatusHidden: true
   },
+  community: {
+    component: CommunitySettings,
+    title: 'Community',
+    bottomStatusHidden: true
+  },
   profileHome: {
     component: ProfileHomeScreen,
     parentTitle: getProfilesTitle
@@ -190,10 +206,16 @@ export const routes: Record<ScreenType, Route> = {
   retraction_volume: {
     component: RetractionSettingGauge,
     title: 'retraction',
-    bottomTitle: 'shot volume',
+    bottomTitle: 'distance',
     props: {
       type: 'retraction_volume'
     },
+    bottomStatusHidden: true,
+    parent: 'brewSettings'
+  },
+  tare_behavior: {
+    component: TareBehaviorSetting,
+    title: 'auto tare',
     bottomStatusHidden: true,
     parent: 'brewSettings'
   },
@@ -313,6 +335,11 @@ export const routes: Record<ScreenType, Route> = {
     title: 'wifi settings',
     bottomStatusHidden: true
   },
+  wifiModeSettings: {
+    component: WifiModeSettings,
+    title: 'wifi mode',
+    bottomStatusHidden: true
+  },
   wifiQrMenu: {
     component: WifiQrMenu,
     title: 'show connection code',
@@ -388,11 +415,31 @@ export const routes: Record<ScreenType, Route> = {
   idleScreenSettings: {
     component: IdleScreenSetting
   },
+  manualSetup: {
+    component: ManualModeSetup,
+    title: 'Manual mode',
+    bottomStatusHidden: true
+  },
   shot_history: {
     component: ShotGraphScreen,
     title: getActiveProfilesTitle,
     parent: 'profileHome',
     bottomStatusHidden: true
+  },
+  freePour: {
+    component: FreePourScreen,
+    bottomStatusHidden: true,
+    parent: 'profileHome'
+  },
+  guidedPourOver: {
+    component: GuidedPourOverScreen,
+    bottomStatusHidden: true,
+    parent: 'profileHome'
+  },
+  freePourHistory: {
+    component: FreePourHistoryScreen,
+    bottomStatusHidden: true,
+    parent: 'profileHome'
   },
   idle: {
     component: IdleScreen,
@@ -401,6 +448,10 @@ export const routes: Record<ScreenType, Route> = {
   },
   brewSettings: {
     component: BrewSettings,
+    bottomStatusHidden: true
+  },
+  experimentalSettings: {
+    component: ExperimentalSettings,
     bottomStatusHidden: true
   },
   scrollDirections: {
@@ -414,6 +465,22 @@ export const routes: Record<ScreenType, Route> = {
   },
   factoryReset: {
     component: FactoryReset,
+    bottomStatusHidden: true
+  },
+  helpUsImprove: {
+    component: HelpUsImprove,
+    bottomStatusHidden: true
+  },
+  reportContactEmail: {
+    component: ReportContactEmail,
+    bottomStatusHidden: true,
+    // Only ever reached from the bug report bubble, which it reopens itself.
+    ignoreAsPrevious: true
+  },
+  shotDataSharingPrompt: {
+    component: ShotDataSharingPrompt,
+    // Deliberately a valid "previous" screen: after a notification or the
+    // idle screen the dial returns here while the prompt is unanswered.
     bottomStatusHidden: true
   },
   displayAlignment: {

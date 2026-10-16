@@ -2,6 +2,8 @@ import { useProfileContext } from '../../context/ProfileContext';
 import { css, keyframes, styled } from 'styled-components';
 import { useAppSelector } from '../store/hooks';
 import { useEffect, useRef, useState } from 'react';
+import { usePourOverProfiles } from '../../features/freePour/usePourOverProfiles';
+import { getActiveHomeOption, getHomeSelection } from './homeSelection';
 
 const Title = styled.div<{ $scroll: boolean; $isMarquee?: boolean }>`
   height: 44px;
@@ -44,11 +46,46 @@ export const getProfilesTitle = () => <TitleProfiles />;
 export const getActiveProfilesTitle = () => <TitleProfiles />;
 
 export const TitleProfiles = () => {
-  const { localHoverState, localProfile, settingsProfile } =
-    useProfileContext();
+  const {
+    homeMode,
+    homeCardSelected,
+    localHoverState,
+    localProfile,
+    localProfileIndex,
+    mergedProfiles,
+    selectedPourOverProfileId,
+    settingsProfile
+  } = useProfileContext();
+  const { data: pourOverProfiles = [] } = usePourOverProfiles();
   const currentScreen = useAppSelector((state) => state.screen.value);
   const isHomeScreen = currentScreen == 'profileHome';
   const titleRef = useRef<HTMLSpanElement>(null);
+
+  // Name the card the home shows, which is not always the mode's: with no
+  // espresso profile, the espresso mode shows the next card
+  // (getActiveHomeOption), as on a new machine.
+  const layout = {
+    profileCount: mergedProfiles.length,
+    pourOverProfileCount: pourOverProfiles.length
+  };
+  const shownCard = getHomeSelection(
+    getActiveHomeOption({
+      mode: homeMode,
+      profileIndex: localProfileIndex,
+      pourOverProfileIndex: Math.max(
+        pourOverProfiles.findIndex(
+          (profile) => profile.id === selectedPourOverProfileId
+        ),
+        0
+      ),
+      ...layout
+    }),
+    layout
+  );
+  const shownPourOverProfile =
+    shownCard.pourOverProfileIndex === null
+      ? undefined
+      : pourOverProfiles[shownCard.pourOverProfileIndex];
 
   // Dynamically adjust marquee animation speed based on title width
   const [marqueeWidth, setMarqueeWidth] = useState(0);
@@ -59,15 +96,24 @@ export const TitleProfiles = () => {
       const parentWidth = titleRef.current.parentElement?.offsetWidth || 0;
       setMarqueeWidth(width > parentWidth ? width : 0);
     }
-  }, [localProfile?.name, settingsProfile?.name, titleRef.current]);
+  }, [
+    localProfile?.name,
+    settingsProfile?.name,
+    titleRef.current,
+    shownPourOverProfile?.name
+  ]);
 
-  const scroll = localHoverState && isHomeScreen;
+  // Reveal the selected card's name: an espresso profile focused here or from
+  // the app (localHoverState), or any card zoomed in on the home.
+  const scroll = (localHoverState || homeCardSelected) && isHomeScreen;
   const marquee = (isHomeScreen && scroll) || !isHomeScreen;
 
   let title =
-    (!isHomeScreen ? settingsProfile?.name : undefined) ??
-    localProfile?.name ??
-    '';
+    isHomeScreen && shownCard.mode === 'free_pour'
+      ? 'Free Pour'
+      : isHomeScreen && shownCard.mode === 'pour_over_profile'
+        ? shownPourOverProfile?.name || 'Pour Over'
+        : localProfile?.name || '';
   if (title.length > 40) {
     title = title.slice(0, 40) + '...';
   }

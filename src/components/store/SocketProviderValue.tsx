@@ -1,11 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-import {
-  GestureType,
-  ISensorData,
-  ISensorDataAndMachineState
-} from '../../types/index';
+import { GestureType, ISensorDataAndMachineState } from '../../types/index';
 import { useAppDispatch } from './hooks';
 import {
   setSensors,
@@ -27,14 +23,26 @@ import { api, API_URL } from '../../api/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { OS_UPDATE_STATUS } from '../../hooks/useDeviceOSStatus';
 import {
+  ButtonEvent,
+  ButtonEventType,
+  MachineSensors,
   OSStatusResponse,
+  ProfileHoverEvent,
   ProfileUpdate,
-  NotificationItem
+  NotificationItem,
+  UploadReportEvent
 } from '@meticulous-home/espresso-api';
+import {
+  describeDispatchedReportOutcome,
+  dispatchedReports
+} from '../BugReport/dispatchedReports';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { LASTS_PROFILE_QUERY_KEY } from '../../hooks/useProfiles';
 import { useProfileContext } from '../../context/ProfileContext';
 import { HIDDEN_STAGES } from '../../constants/setting';
+import { POUR_OVER_PROFILES_QUERY_KEY } from '../../features/freePour/profileApi';
+import { isPourOverProfileEvent } from '../../features/freePour/profileEvents';
+import { MANUAL_MODE_PROFILE_ID } from '../../constants/manualMode.ts';
 
 const socket: Socket | null = io(API_URL);
 
@@ -53,6 +61,13 @@ export const SocketProviderValue = () => {
   useSocketKeyboardListeners();
 
   useEffect(() => {
+    const refreshPourOverProfiles = () => {
+      queryClient.invalidateQueries({
+        queryKey: [POUR_OVER_PROFILES_QUERY_KEY]
+      });
+    };
+    socket.on('connect', refreshPourOverProfiles);
+
     socket.on('notification', (notification: string) => {
       resetIdleTimer();
 
@@ -74,7 +89,7 @@ export const SocketProviderValue = () => {
       dispatch(updatePreheatTimeLeft(timeLeft));
     });
 
-    socket.on('sensors', (data: ISensorData) => {
+    socket.on('sensors', (data: MachineSensors) => {
       dispatch(setSensors(data));
     });
 
@@ -140,58 +155,64 @@ export const SocketProviderValue = () => {
 
     socket.on('profile', (event: ProfileUpdate) => {
       console.log(`ProfileUpdate ${event}`);
+      if (isPourOverProfileEvent(event)) {
+        refreshPourOverProfiles();
+        return;
+      }
+      // The manual profile is not in the catalog: the backend hides it from
+      // the listing and the dial saves it from the setup flow itself, so the
+      // `update` that comes straight back would only reshuffle the profile
+      // list under the screen that is already starting the shot.
+      if (event.profile_id === MANUAL_MODE_PROFILE_ID) {
+        return;
+      }
       onProfileEvent(event);
     });
 
-    socket.on(
-      'button',
-      (data: { type: string; time_since_last_event: number }) => {
-        const eventGestureMap: Record<string, GestureType> = {
-          ENCODER_CLOCKWISE: 'right',
-          ENCODER_COUNTERCLOCKWISE: 'left',
-          ENCODER_PUSH: 'click',
-          ENCODER_DOUBLE: 'doubleClick',
-          ENCODER_LONG: 'longEncoder',
-          TARE: 'singleTare',
-          TARE_DOUBLE: 'doubleTare',
-          TARE_LONG: 'longTare',
-          TARE_PRESSED: 'tareDown',
-          TARE_RELEASED: 'tareUp',
-          CONTEXT: 'context',
-          ENCODER_PRESSED: 'pressDown',
-          ENCODER_RELEASED: 'pressUp'
-        };
+    socket.on('button', (data: ButtonEvent) => {
+      const eventGestureMap: Partial<Record<ButtonEventType, GestureType>> = {
+        ENCODER_CLOCKWISE: 'right',
+        ENCODER_COUNTERCLOCKWISE: 'left',
+        ENCODER_PUSH: 'click',
+        ENCODER_DOUBLE: 'doubleClick',
+        ENCODER_LONG: 'longEncoder',
+        TARE: 'singleTare',
+        TARE_DOUBLE: 'doubleTare',
+        TARE_LONG: 'longTare',
+        TARE_PRESSED: 'tareDown',
+        TARE_RELEASED: 'tareUp',
+        CONTEXT: 'context',
+        ENCODER_PRESSED: 'pressDown',
+        ENCODER_RELEASED: 'pressUp'
+      };
 
-        const gesture = eventGestureMap[data.type];
-        if (gesture) {
-          if (
-            gesture === 'right' ||
-            gesture === 'left' ||
-            gesture === 'pressDown' ||
-            gesture === 'context' ||
-            gesture === 'singleTare'
-          ) {
-            resetIdleTimer();
-          }
-          handleEvents.emit('gesture', gesture, data.time_since_last_event);
+      const gesture = eventGestureMap[data.type];
+      if (gesture) {
+        if (
+          gesture === 'right' ||
+          gesture === 'left' ||
+          gesture === 'pressDown' ||
+          gesture === 'context' ||
+          gesture === 'singleTare'
+        ) {
+          resetIdleTimer();
         }
+        handleEvents.emit('gesture', gesture, data.time_since_last_event);
       }
-    );
+    });
 
-    socket.on(
-      'profileHover',
-      (data: { id: string; from: string; type: 'focus' | 'scroll' }) => {
-        resetIdleTimer();
+    socket.on('profileHover', (data: ProfileHoverEvent) => {
+      resetIdleTimer();
 
-        if (data.from === 'dial') {
-          return;
-        }
-        onProfileHover(data.type, data.id);
+      if (data.from === 'dial') {
+        return;
       }
-    );
+      onProfileHover(data.type, data.id);
+    });
 
     return () => {
       socket.off('notification');
+      socket.off('connect', refreshPourOverProfiles);
       socket.off('heater_status');
       socket.off('sensors');
       socket.off('status');
@@ -210,6 +231,41 @@ export const SocketProviderValue = () => {
       socket.off('OSUpdate');
     };
   }, [queryClient]);
+
+  // Reports dispatched from the mobile app are collected and uploaded here,
+  // headless; only the outcome reaches the user, as a notification. The
+  // pending list is replayed on every connect because a dispatch sent while
+  // the dial was down never arrives as a live event.
+  useEffect(() => {
+    const onUploadReport = (event: UploadReportEvent) => {
+      dispatchedReports.enqueue(event);
+    };
+    const syncPending = () => {
+      void dispatchedReports.syncPending().catch((error) => {
+        console.warn('[dispatched-report] pending sync failed', error);
+      });
+    };
+    socket.on('upload_report', onUploadReport);
+    socket.on('connect', syncPending);
+    if (socket.connected) syncPending();
+
+    const unsubscribe = dispatchedReports.onOutcome((outcome) => {
+      dispatch(
+        addOneNotification({
+          id: `dispatched-report-${outcome.localID}`,
+          message: describeDispatchedReportOutcome(outcome),
+          responses: ['Ok'],
+          timestamp: new Date().toISOString()
+        })
+      );
+    });
+
+    return () => {
+      socket.off('upload_report', onUploadReport);
+      socket.off('connect', syncPending);
+      unsubscribe();
+    };
+  }, [dispatch]);
 
   return socket;
 };

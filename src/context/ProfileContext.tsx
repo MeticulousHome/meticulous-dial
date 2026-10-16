@@ -15,6 +15,7 @@ import {
 } from '@meticulous-home/espresso-api';
 import { IPresetAction, IPresetSetting } from '../types';
 import { useSettings } from '../hooks/useSettings';
+import type { HomeMode } from '../components/ProfileHomeScreen/homeSelection';
 
 type ProfileContextType = {
   profileQuery: ReturnType<typeof useProfiles>;
@@ -27,13 +28,24 @@ type ProfileContextType = {
   setLocalProfile: React.Dispatch<React.SetStateAction<ExtendedProfile | null>>;
   localHoverState: boolean;
   setLocalHoverState: React.Dispatch<React.SetStateAction<boolean | null>>;
+  // A card of the home carousel is selected (zoomed in by a push), whatever
+  // its kind: the title pill then shows its name instead of "Catalog".
+  homeCardSelected: boolean;
+  setHomeCardSelected: React.Dispatch<React.SetStateAction<boolean>>;
+
+  // Default profile state
+  detailProfileSelected: ExtendedProfile | null;
+  setDetailsProfileSelected: React.Dispatch<
+    React.SetStateAction<ExtendedProfile | null>
+  >;
 
   // Profile Editing
+  isCreatingProfile: boolean;
+  setIsCreatingProfile: React.Dispatch<React.SetStateAction<boolean>>;
   settingsIndex: number;
   setSettingsIndex: React.Dispatch<React.SetStateAction<number>>;
   settingsProfile:
-    | (ExtendedProfile & { settings: (IPresetSetting | IPresetAction)[] })
-    | null;
+    (ExtendedProfile & { settings: (IPresetSetting | IPresetAction)[] }) | null;
   setSettingsProfile: React.Dispatch<
     React.SetStateAction<
       (ExtendedProfile & { settings: IPresetSetting[] }) | null
@@ -47,11 +59,18 @@ type ProfileContextType = {
   onProfileHover: (type: string, profile_id: string) => void;
   mergedProfiles: ExtendedProfile[];
   limitedAccess: boolean;
+  homeMode: HomeMode;
+  setHomeMode: React.Dispatch<React.SetStateAction<HomeMode>>;
+  selectedPourOverProfileId: string | null;
+  setSelectedPourOverProfileId: React.Dispatch<
+    React.SetStateAction<string | null>
+  >;
 };
 
 export type ExtendedProfile = Profile & {
   isLast?: boolean;
   temporary?: boolean;
+  manual?: boolean;
 };
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -66,6 +85,8 @@ export const useProfileContext = () => {
 
 export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const profileQuery = useProfiles();
+  const [defaultProfileSelected, setDefaultProfileSelected] =
+    useState<ExtendedProfile | null>(null);
   const { data: profiles } = profileQuery;
   const { data: lastProfile } = useLastProfile();
   const { data: settings } = useSettings();
@@ -74,10 +95,16 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     null
   );
   const [localHoverState, setLocalHoverState] = useState<boolean>(false);
+  const [homeCardSelected, setHomeCardSelected] = useState<boolean>(false);
   const [profileIdToFind, setProfileIdToFind] = useState<string | null>(null);
   const [profileEvent, setProfileEvent] = useState<ProfileUpdate | null>(null);
   const [profileStarting, setProfileStarting] = useState(false);
+  const [homeMode, setHomeMode] = useState<HomeMode>('espresso');
+  const [selectedPourOverProfileId, setSelectedPourOverProfileId] = useState<
+    string | null
+  >(null);
   const [settingsIndex, setSettingsIndex] = useState(0);
+  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [settingsProfile, setSettingsProfile] = useState<
     (ExtendedProfile & { settings: IPresetSetting[] }) | null
   >(null);
@@ -218,6 +245,8 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
   const onProfileHover = (type: string, profile_id: string) => {
     setLocalHoverState(type === 'focus');
+    setHomeMode('espresso');
+    setSelectedPourOverProfileId(null);
     setProfileIdToFind(profile_id);
   };
 
@@ -235,9 +264,16 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     setLocalProfile,
     localHoverState,
     setLocalHoverState,
+    homeCardSelected,
+    setHomeCardSelected,
+
+    detailProfileSelected: defaultProfileSelected,
+    setDetailsProfileSelected: setDefaultProfileSelected,
 
     settingsIndex,
     setSettingsIndex,
+    isCreatingProfile,
+    setIsCreatingProfile,
     settingsProfile,
     setSettingsProfile,
 
@@ -246,9 +282,12 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     onProfileEvent,
     onProfileHover,
     mergedProfiles,
-    limitedAccess
+    limitedAccess,
+    homeMode,
+    setHomeMode,
+    selectedPourOverProfileId,
+    setSelectedPourOverProfileId
   };
-
   return (
     <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>
   );

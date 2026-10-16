@@ -20,10 +20,7 @@ import Styled, {
 } from '../../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
 import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSetting';
-import {
-  isLimitedAccess,
-  type Settings
-} from '@meticulous-home/espresso-api';
+import { isLimitedAccess, type Settings } from '@meticulous-home/espresso-api';
 
 const initialSettings: SettingsItem[] = [
   {

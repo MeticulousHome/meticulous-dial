@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 
 import './wifiSettings.css';
 import { useAppDispatch } from '../store/hooks';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { setBubbleDisplay } from '../store/features/screens/screens-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
-import { useNetworkConfig, useUpdateNetworkConfig } from '../../hooks/useWifi';
+import { useNetworkConfig, useRepairWiFi } from '../../hooks/useWifi';
 import { APMode } from '@meticulous-home/espresso-api';
 import { LoadingScreen } from '../LoadingScreen/LoadingScreen';
 import Styled, {
@@ -13,47 +14,46 @@ import Styled, {
   MARQUEE_MIN_TEXT_LENGTH
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
+import { getWifiHealthStatusLabel } from './wifiHealthMessages';
 
 export const WifiSettings = (): JSX.Element => {
   const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
   const [activeIndex, setActiveIndex] = useState(0);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
-  const [networkConfigMode, setNetworkConfigMode] = useState<APMode>(
-    APMode.CLIENT
-  );
 
-  const { data: networkConfig, error, isLoading } = useNetworkConfig();
-  const updateNetworkConfigMutation = useUpdateNetworkConfig();
-
-  useEffect(() => {
-    if (!networkConfig?.config.mode) {
-      return;
-    }
-    setNetworkConfigMode(networkConfig?.config.mode);
-  }, [networkConfig]);
+  const {
+    data: networkConfig,
+    dataUpdatedAt,
+    error,
+    isFetching,
+    refetch
+  } = useNetworkConfig();
+  const repairWiFiMutation = useRepairWiFi(queryClient);
 
   const isWifiConnected = networkConfig?.status.connected;
+  const wifiHealth = networkConfig?.health;
 
-  const isApMode = isWifiConnected && networkConfigMode === APMode.AP;
-  const loadingState = updateNetworkConfigMutation.isPending
-    ? `update-${networkConfigMode}`
-    : 'idle';
+  const isApMode = networkConfig?.config.mode === APMode.AP;
+  const hasStaleNetworkConfig =
+    !networkConfig || (isFetching && Date.now() - dataUpdatedAt > 2000);
+
+  const WifiHealthStatusLabel = useMemo(
+    () => getWifiHealthStatusLabel(wifiHealth, isWifiConnected),
+    [networkConfig, isWifiConnected, wifiHealth]
+  );
+
+  const healthLabel = hasStaleNetworkConfig
+    ? 'Checking...'
+    : WifiHealthStatusLabel;
+
   const loadingMessages = useMemo(() => {
-    if (loadingState === `update-${APMode.AP}`) {
-      return [
-        'Starting hotspot',
-        'Trying WiFi channels',
-        'Checking hotspot',
-        'Keeping current WiFi safe'
-      ];
-    }
-
-    if (loadingState === `update-${APMode.CLIENT}`) {
-      return ['Joining WiFi mode', 'Checking connection', 'Updating WiFi'];
+    if (repairWiFiMutation.isPending) {
+      return ['Checking WiFi', 'Trying recovery', 'Verifying connection'];
     }
 
     return [];
-  }, [loadingState]);
+  }, [repairWiFiMutation.isPending]);
 
   useEffect(() => {
     setLoadingMessageIndex(0);
@@ -74,7 +74,7 @@ export const WifiSettings = (): JSX.Element => {
     () => [
       {
         key: 'status',
-        label: `Status: ${isWifiConnected ? 'CONNECTED' : 'NOT CONNECTED'}`,
+        label: `Status: ${healthLabel}`,
         visible: true
       },
       {
@@ -103,9 +103,11 @@ export const WifiSettings = (): JSX.Element => {
         visible: true
       },
       {
-        key: 'save',
-        label: 'Save',
-        visible: networkConfigMode !== networkConfig?.config.mode
+        key: 'repair',
+        label: 'Repair WiFi',
+        visible: !['CONNECTED', 'HOTSPOT ACTIVE'].includes(
+          WifiHealthStatusLabel
+        )
       },
       {
         key: 'back',
@@ -113,7 +115,7 @@ export const WifiSettings = (): JSX.Element => {
         visible: true
       }
     ],
-    [isWifiConnected, isApMode, networkConfigMode]
+    [healthLabel, isWifiConnected, isApMode, WifiHealthStatusLabel]
   );
 
   useHandleGestures(
@@ -131,19 +133,23 @@ export const WifiSettings = (): JSX.Element => {
       },
       pressDown() {
         // In case of error we go back
-        if (updateNetworkConfigMutation.isError || error) {
+        if (repairWiFiMutation.isError || error) {
           dispatch(
             setBubbleDisplay({ visible: true, component: 'quick-settings' })
           );
+          return;
         }
         const filter = wifiSettingItems.filter((item) => item.visible)[
           activeIndex
         ].key;
         switch (filter) {
           case 'network_mode': {
-            const mode =
-              networkConfigMode === APMode.AP ? APMode.CLIENT : APMode.AP;
-            setNetworkConfigMode(mode);
+            dispatch(
+              setBubbleDisplay({
+                visible: true,
+                component: 'wifiModeSettings'
+              })
+            );
             break;
           }
           case 'qr_code': {
@@ -156,14 +162,6 @@ export const WifiSettings = (): JSX.Element => {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'wifiDetails' })
             );
-            break;
-          }
-          case 'save': {
-            updateNetworkConfigMutation.mutate({
-              ...networkConfig?.config,
-              mode: networkConfigMode
-            });
-            setActiveIndex(0);
             break;
           }
           case 'known_wifis': {
@@ -184,12 +182,21 @@ export const WifiSettings = (): JSX.Element => {
             );
             break;
           }
+          case 'repair': {
+            repairWiFiMutation.mutate(undefined, {
+              onSuccess: () => {
+                refetch();
+              }
+            });
+            setActiveIndex(0);
+            break;
+          }
           default:
             break;
         }
       }
     },
-    updateNetworkConfigMutation.isPending
+    repairWiFiMutation.isPending
   );
   const optionPositionOutter = useMemo(
     () =>
@@ -210,25 +217,25 @@ export const WifiSettings = (): JSX.Element => {
     [activeIndex, wifiSettingItems]
   );
 
-  if (isLoading || updateNetworkConfigMutation.isPending) {
+  if (repairWiFiMutation.isPending) {
     return <LoadingScreen message={loadingMessages[loadingMessageIndex]} />;
   }
 
-  if (updateNetworkConfigMutation.isError || error) {
+  if (repairWiFiMutation.isError || error) {
+    const title = repairWiFiMutation.isError
+      ? 'Network issue'
+      : 'Could not load WiFi';
+    const message = repairWiFiMutation.isError
+      ? repairWiFiMutation.error?.message ||
+        'WiFi repair could not complete. Please check the network.'
+      : 'Connection could not be verified. Please check the connection details.';
+
     return (
-      <div className="quick-settings">
-        <div
-          className={` deleted-response ${
-            updateNetworkConfigMutation.isError ? 'error-entry' : ''
-          }`}
-        >
-          {updateNetworkConfigMutation.isError
-            ? 'An unknown error occured. Please try again'
-            : 'Connection could not be verified, please check the connection details'}
-        </div>
-        <br />
-        <div key="back" className={`settings-item active-setting deleted-item`}>
-          <div className="settings-entry deleted-button">Ok</div>
+      <div className="main-container response">
+        <div className="connect-response-title error-entry">{title}</div>
+        <div className="connect-response-message error-entry">{message}</div>
+        <div key="back" className="settings-item active-setting connect-item">
+          <div className="settings-entry connect-button">Ok</div>
         </div>
       </div>
     );
