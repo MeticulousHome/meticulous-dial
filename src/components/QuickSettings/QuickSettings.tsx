@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useSyncedState } from '../../hooks/useSyncedState';
 import { useUpdateSettings } from '../../hooks/useSettings';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
@@ -235,7 +236,7 @@ export function QuickSettings(): JSX.Element {
   const osStatusVisible =
     osStatusData.status !== 'IDLE' &&
     !HIDDEN_OS_STATUS_SCREENS.includes(currentScreen);
-  const [activeOption, setActiveOption] = useState(0);
+  const [activeOption, setActiveOption, activeOptionRef] = useSyncedState(0);
 
   const osStatusInfo = useMemo(() => {
     if (osStatusError) {
@@ -317,9 +318,10 @@ export function QuickSettings(): JSX.Element {
         setCounterESGG(0);
       },
       right() {
+        const previousOption = activeOptionRef.current;
         setActiveOption((prev) => Math.min(prev + 1, settings.length - 1));
-        if (settings[activeOption].key === 'exit') {
-          setCounterESGG(counterESGG + 1);
+        if (settings[previousOption].key === 'exit') {
+          setCounterESGG((prev) => prev + 1);
         }
       },
       pressUp() {
@@ -330,6 +332,7 @@ export function QuickSettings(): JSX.Element {
         setHoldAnimation('stopped');
       },
       pressDown() {
+        const activeOption = activeOptionRef.current;
         if (settings[activeOption].longpress) {
           setHoldAnimation('running');
           return;
