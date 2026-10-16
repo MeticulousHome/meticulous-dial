@@ -21,9 +21,9 @@ import {
  *
  * The bubble asks for a contact email on a full screen the first time, which
  * unmounts it while the machine is still collecting. The run therefore keeps
- * its own promise, the bubble attaches to it on mount and lets go of it on
- * unmount, and the hand-off below carries the run and the user's answer
- * across the screen change.
+ * its own promise, the bubble holds it while it shows it, and the hand-off in
+ * reportHandoff.ts carries the run and the user's answer across the screen
+ * change.
  */
 
 export type CollectionOutcome =
@@ -39,8 +39,6 @@ export type CollectionRun = {
   /** The first minute passed without a draft; the copy changes. */
   slow: boolean;
   onSlow: (() => void) | null;
-  /** Survives the bubble unmounting while the contact email screen is up. */
-  detached: boolean;
   outcome: Promise<CollectionOutcome>;
 };
 
@@ -134,7 +132,6 @@ export const startCollection = (
     controller: new AbortController(),
     slow: false,
     onSlow: null,
-    detached: false,
     outcome: Promise.resolve(null)
   };
   const slowTimer = setTimeout(() => {
@@ -149,34 +146,4 @@ export const startCollection = (
 export const cancelCollection = (run: CollectionRun) => {
   run.cancelled = true;
   run.controller.abort();
-};
-
-let detachedRun: CollectionRun | null = null;
-let contactDecision: { email: string | null } | null = null;
-
-export const reportHandoff = {
-  /** The bubble is about to unmount for the contact email screen. */
-  detach(run: CollectionRun) {
-    run.detached = true;
-    detachedRun = run;
-  },
-
-  /** The bubble is back; the run is its own again. */
-  takeRun(): CollectionRun | null {
-    const run = detachedRun;
-    detachedRun = null;
-    if (run) run.detached = false;
-    return run;
-  },
-
-  /** What the contact email screen ended with: an address, or none. */
-  setContactDecision(email: string | null) {
-    contactDecision = { email };
-  },
-
-  takeContactDecision(): { email: string | null } | null {
-    const decision = contactDecision;
-    contactDecision = null;
-    return decision;
-  }
 };

@@ -1,6 +1,7 @@
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { useEffect, useState } from 'react';
 import { useHandleGestures } from '../../../../../hooks/useHandleGestures';
+import { useSyncedState } from '../../../../../hooks/useSyncedState';
 import { setScreen } from '../../../../store/features/screens/screens-slice';
 import { setCountry } from '../../../../store/features/settings/settings-slice';
 import { getTimezoneRegion } from '../../../../../api/api';
@@ -15,7 +16,7 @@ import {
 } from './Timezone.styled';
 
 export default function CountrySettings() {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex, activeIndexRef] = useSyncedState(0);
 
   const [availableCountries, setAvailableCountries] = useState<Regions>({
     countries: []
@@ -50,17 +51,15 @@ export default function CountrySettings() {
   useHandleGestures(
     {
       left() {
-        const nextActiveIndex = activeIndex - 1;
-        if (nextActiveIndex < 0) return;
-        setActiveIndex(nextActiveIndex);
+        setActiveIndex((current) => Math.max(current - 1, 0));
       },
       right() {
-        const nextActiveIndex = activeIndex + 1;
-        if (nextActiveIndex >= availableCountries['countries'].length + 1)
-          return;
-        setActiveIndex(nextActiveIndex);
+        setActiveIndex((current) =>
+          Math.min(current + 1, availableCountries['countries'].length)
+        );
       },
       pressDown() {
+        const activeIndex = activeIndexRef.current;
         if (activeIndex === 0) {
           dispatch(setScreen('selectLetterCountry'));
         } else {

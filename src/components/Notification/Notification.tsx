@@ -5,6 +5,7 @@ import {
   removeOneNotification
 } from '../store/features/notifications/notification-slice';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useSyncedState } from '../../hooks/useSyncedState';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { acknowledgeNotification } from '../../../src/api/wifi';
 import './notification.css';
@@ -18,8 +19,10 @@ export function Notification(): JSX.Element {
   const notifications = useSelector(notificationSelector.selectAll);
   const [currentNotification] = notifications.slice(-1);
   const [isScrollable, setIsScrollable] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(0);
-  const [canSelectOption, setCanSelectOption] = useState(false);
+  const [selectedOption, setSelectedOption, selectedOptionRef] =
+    useSyncedState(0);
+  const [canSelectOption, setCanSelectOption, canSelectOptionRef] =
+    useSyncedState(false);
 
   useEffect(() => {
     if (messageRef.current) {
@@ -35,9 +38,9 @@ export function Notification(): JSX.Element {
     {
       left: () => {
         if (
-          canSelectOption &&
+          canSelectOptionRef.current &&
           currentNotification.responses.length > 1 &&
-          selectedOption > 0
+          selectedOptionRef.current > 0
         ) {
           setSelectedOption((prev) => prev - 1);
         } else {
@@ -46,9 +49,9 @@ export function Notification(): JSX.Element {
       },
       right: () => {
         if (
-          canSelectOption &&
+          canSelectOptionRef.current &&
           currentNotification.responses.length > 1 &&
-          selectedOption < currentNotification.responses.length - 1
+          selectedOptionRef.current < currentNotification.responses.length - 1
         ) {
           setSelectedOption((prev) => prev + 1);
         } else {
@@ -60,7 +63,7 @@ export function Notification(): JSX.Element {
           const { id, responses } = currentNotification;
           await acknowledgeNotification({
             id,
-            response: responses && responses[selectedOption]
+            response: responses && responses[selectedOptionRef.current]
           });
           dispatch(removeOneNotification(id));
         }
@@ -80,13 +83,13 @@ export function Notification(): JSX.Element {
       messageRef.current.scrollTop += up ? -SCROLL_VALUE : SCROLL_VALUE;
 
       if (
-        !canSelectOption &&
+        !canSelectOptionRef.current &&
         messageRef.current.scrollHeight - messageRef.current.scrollTop ===
           messageRef.current.clientHeight
       ) {
         setCanSelectOption(true);
       } else if (
-        canSelectOption &&
+        canSelectOptionRef.current &&
         messageRef.current.scrollTop <
           messageRef.current.scrollHeight - messageRef.current.clientHeight
       ) {
