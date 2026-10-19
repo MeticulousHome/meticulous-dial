@@ -1,0 +1,58 @@
+name: Build the ErP Dial preview package
+
+# Lab component build only. This branch is not intended for merge and creates
+# neither an OS image nor a release/upload to the fleet.
+on:
+  push:
+    branches: [codex/erp-preview-package]
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: docker/setup-qemu-action@v3
+      - name: Build the repository's cross compiler
+        run: docker build -f Dockerfile.arm64-cross -t erp-dial-builder .
+      - name: Install locked Linux dependencies
+        run: |
+          docker run --rm --user "$(id -u):$(id -g)" \
+            -e HOME=/tmp -e npm_config_cache=/tmp/.npm \
+            -v "$PWD:/app" -w /app node:22-bookworm npm ci
+      - name: Build and verify the ARM64 component
+        shell: bash
+        run: |
+          set -euo pipefail
+          marker="$RUNNER_TEMP/dial-build-start"
+          touch "$marker"
+          docker run --rm -v "$PWD:/app" erp-dial-builder
+          output=src-tauri/target/aarch64-unknown-linux-gnu/release/bundle/deb
+          deb="$(find "$output" -maxdepth 1 -type f \
+            -name 'meticulous-dial_*_arm64.deb' -newer "$marker" -size +0c -print -quit)"
+          test -n "$deb"
+          test "$(dpkg-deb -f "$deb" Architecture)" = arm64
+          extracted="$RUNNER_TEMP/dial-extracted"
+          dpkg-deb -x "$deb" "$extracted"
+          file "$extracted/usr/bin/meticulous-dial" | grep -q 'ARM aarch64'
+          mkdir artifacts
+          cp "$deb" artifacts/
+          {
+            echo "source_commit=$GITHUB_SHA"
+            echo 'product_commit=b9093ea18fa332fd674d9bc49c6d805276a1dcc1'
+            sha256sum artifacts/*.deb
+            sha256sum "$extracted/usr/bin/meticulous-dial"
+            dpkg-deb -f "$deb" Package Version Architecture Depends
+            file "$extracted/usr/bin/meticulous-dial"
+          } | tee artifacts/provenance.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dial-erp-preview-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 7
