@@ -6,17 +6,8 @@ import { useSettings } from '../../hooks/useSettings';
 
 import { MetCatClock } from './MetCatClock';
 import { DigitalClockBase } from './DigitalClockBase';
+import { formatTime, uses24HourClock } from './digitalClockTime';
 import './DigitalClock.css';
-
-export function formatTime(use24Hour = true, time = new Date()) {
-  const hours = time.getHours();
-  return {
-    hours: use24Hour ? hours : ((hours + 11) % 12) + 1,
-    minutes: time.getMinutes(),
-    seconds: time.getSeconds(),
-    midday: use24Hour ? '' : hours < 12 ? 'AM' : 'PM'
-  };
-}
 
 export function DigitalClock({
   useMetCat
@@ -25,7 +16,7 @@ export function DigitalClock({
 }): JSX.Element {
   const [now, setNow] = useState(() => new Date());
   const { data: settings } = useSettings({ idle: true });
-  const time = formatTime(settings?.clock_format_24_hour ?? true, now);
+  const time = formatTime(uses24HourClock(settings), now);
 
   const { data: networkConfig, refetch: refetchNetworkConfig } =
     useNetworkConfig({ idle: true });

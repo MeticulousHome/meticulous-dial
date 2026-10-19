@@ -1,4 +1,4 @@
-import { formatTime } from './DigitalClock';
+import { formatTime } from './digitalClockTime';
 
 export const DigitalClockBase = ({
   time

@@ -10,6 +10,7 @@ import type { SettingsItem, TimeDateValues } from '../../../../types';
 import type { Settings } from '../../../../api/settings';
 import { useSettings, useUpdateSettings } from '../../../../hooks/useSettings';
 import { useCurrentTime } from '../../../../hooks/useCurrentTime';
+import { uses24HourClock } from '../../../IdleScreen/digitalClockTime';
 
 import Styled, {
   VIEWPORT_HEIGHT,
@@ -27,7 +28,7 @@ const initialSettings: SettingsItem[] = [
     key: 'clock_format_24_hour',
     label: 'Time format',
     getLabel: (settings: Settings) =>
-      (settings.clock_format_24_hour ?? true) ? '24-hour' : '12-hour'
+      uses24HourClock(settings) ? '24-hour' : '12-hour'
   },
   {
     key: 'set_time',
@@ -91,9 +92,7 @@ export function TimeDate(): JSX.Element {
           case 'clock_format_24_hour': {
             if (globalSettings && !updateSettings.isPending) {
               updateSettings.mutate({
-                clock_format_24_hour: !(
-                  globalSettings.clock_format_24_hour ?? true
-                )
+                clock_format_24_hour: !uses24HourClock(globalSettings)
               });
             }
             break;
