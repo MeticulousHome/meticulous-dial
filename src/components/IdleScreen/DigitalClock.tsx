@@ -2,32 +2,21 @@ import { useEffect, useState } from 'react';
 
 import { setBrightness } from '../../api/api';
 import { useNetworkConfig } from '../../hooks/useWifi';
+import { useSettings } from '../../hooks/useSettings';
 
 import { MetCatClock } from './MetCatClock';
 import { DigitalClockBase } from './DigitalClockBase';
+import { formatTime, uses24HourClock } from './digitalClockTime';
 import './DigitalClock.css';
-
-export function formatTime() {
-  const time = new Date();
-  const localeString = time.toLocaleTimeString().toUpperCase();
-  // This would be the perfect usecase for a regex. But it is somehow significantly slower :C
-  const am = localeString.includes('AM') && 'AM';
-  const pm = localeString.includes('PM') && 'PM';
-  const midday = am || pm;
-  return {
-    hours: midday ? ((time.getHours() + 11) % 12) + 1 : time.getHours(),
-    minutes: time.getMinutes(),
-    seconds: time.getSeconds(),
-    midday: midday
-  };
-}
 
 export function DigitalClock({
   useMetCat
 }: {
   useMetCat: boolean;
 }): JSX.Element {
-  const [time, setTime] = useState(formatTime());
+  const [now, setNow] = useState(() => new Date());
+  const { data: settings } = useSettings({ idle: true });
+  const time = formatTime(uses24HourClock(settings), now);
 
   const { data: networkConfig, refetch: refetchNetworkConfig } =
     useNetworkConfig({ idle: true });
@@ -35,7 +24,7 @@ export function DigitalClock({
   useEffect(() => {
     refetchNetworkConfig();
     setBrightness({ brightness: 0 });
-    const intervalId = setInterval(() => setTime(formatTime()), 250);
+    const intervalId = setInterval(() => setNow(new Date()), 250);
 
     return () => {
       setBrightness({ brightness: 1 });
