@@ -27,6 +27,18 @@ Restoring DigitalClock alone makes the digital test reject its extra full-bright
 request while entering screen off. Candidate sources are restored after each
 mutation and the suite is rerun.
 
+Four additional menu tests mount the production QuickSettings, SocketManager,
+SocketProviderValue, IdleTimerProvider and IdleScreen. Only the transport and
+unrelated machine/catalog boundaries are substituted. Starting with the quick
+menu open, clockwise input selects Screen off; ENCODER_PRESSED, RELEASED and
+PUSH are delivered separately and in one browser turn, with analog and digital
+clocks. The press tail must keep brightness at zero; a later counterclockwise
+event must restore it to one. The menu must close and no machine action may be
+sent. Outer routing is reduced; this does not replace physical input validation.
+
+Planting a reset of idle on `pressUp` makes the new menu test fail while all eight
+original idle tests still pass. The mutation was removed; all twelve tests pass.
+
 The existing scale-overlay component suite, unit tests, formatting, types, lint,
 production frontend build, CI test-file coverage and backend contract are also
 checked. All six PR CI jobs and the separate integration/e2e check passed for

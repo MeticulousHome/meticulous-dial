@@ -1,4 +1,10 @@
 export const brightnessRequests: number[] = [];
+export const API_URL = 'http://127.0.0.1:1435';
+export const useUpdateSettings = () => ({
+  mutate: () => {
+    throw new Error('Unexpected settings mutation in screen fixture');
+  }
+});
 export const api = new Proxy(
   {},
   {

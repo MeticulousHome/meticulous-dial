@@ -10,6 +10,11 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: [
+      { find: 'socket.io-client', replacement: path.join(root, 'socket.ts') },
+      {
+        find: /.*\/(context\/ProfileContext|hooks\/(useDeviceOSStatus|useProfiles|useManualBrew)|features\/freePour\/usePourOverProfiles|api\/manualMode|BugReport\/dispatchedReports)$/,
+        replacement: path.join(root, 'menu-mocks.ts')
+      },
       {
         find: /.*\/hooks\/(useSettings|useWifi)$/,
         replacement: path.join(root, 'mocks.ts')
