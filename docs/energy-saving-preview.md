@@ -1,7 +1,9 @@
 # Pantalla apagada — guía de la versión de prueba
 
-Esta versión está preparada para revisión y pruebas. Aún no está instalada ni
-validada en la máquina dedicada.
+La versión de prueba está instalada en la máquina dedicada desde el 19 de
+octubre. El control de brillo llegó a cero automáticamente y permaneció así
+durante más de un minuto. Aún falta que una persona pruebe el menú y el
+despertar con los controles físicos.
 
 ## Entrar manualmente
 

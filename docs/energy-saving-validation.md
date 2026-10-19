@@ -10,8 +10,8 @@ same simulated clock, settings and backlight API. Both captures are at the
 existing five-minute idle deadline plus ten minutes on the clock screen.
 These are component screenshots, not photographs of the physical backlight.
 
-| Beta before this change | Candidate |
-| --- | --- |
+| Beta before this change                                             | Candidate                                                                      |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | ![Clock still rendered](assets/energy-saving/before-15-minutes.png) | ![Clock unmounted and black screen](assets/energy-saving/after-15-minutes.png) |
 
 ## Regression evidence
@@ -29,5 +29,49 @@ mutation and the suite is rerun.
 
 The existing scale-overlay component suite, unit tests, formatting, types, lint,
 production frontend build, CI test-file coverage and backend contract are also
-checked. ARM64 packaging, physical menu navigation and physical wake must be
-validated separately; a simulated backlight cannot establish watts or compliance.
+checked. All six PR CI jobs and the separate integration/e2e check passed for
+product commit `b9093ea18fa332fd674d9bc49c6d805276a1dcc1`.
+
+## Installed ARM64 preview
+
+The [standalone package build](https://github.com/MeticulousHome/meticulous-dial/actions/runs/39336681626)
+completed successfully. Build commit `2cc1c52dd304b98f913fa5fff68891f190048169`
+contains the same product tree as `b9093ea18fa332fd674d9bc49c6d805276a1dcc1`,
+plus the preview build workflow. It produced a Dial `.deb`, not a machine image.
+
+| Artifact                             | SHA-256                                                            |
+| ------------------------------------ | ------------------------------------------------------------------ |
+| `meticulous-dial_0.1.0_arm64.deb`    | `ed7ea9b7f047bb2211a16368a90d2082aa34deaa1063fc7d61867791fe8abbc8` |
+| Installed `/usr/bin/meticulous-dial` | `d2612e4782596af4b70c6f4d732cf5d59375d06d4978f0ac0f1c054ea5d8b721` |
+
+On the USB-correlated dedicated machine, package metadata, shared-library
+resolution and a simulated package installation passed before installation.
+Only the Dial binary differed from the installed package files. The original
+binary and package metadata were backed up before installing the preview.
+The service started at 16:57:33 on 2026-10-19 (UTC−06:00); React reported ready
+at 16:57:37 and the profile home screen at 16:57:42.
+
+## Automatic entry on the dedicated machine
+
+The real driver brightness was sampled once per second without operating the
+menu or changing the idle settings. With the installed digital clock selected:
+
+| Local time, 2026-10-19 (UTC−06:00) | Observation                                         |
+| ---------------------------------- | --------------------------------------------------- |
+| 16:58:04                           | Driver brightness 100, maximum 100                  |
+| 17:02:39–17:02:40                  | Animated transition from 100 to 33; clock visible   |
+| 17:12:38–17:12:39                  | Animated transition from 33 to 0                    |
+| Following 65 seconds               | Every one-second sample remains at 0; no relighting |
+
+`actual_brightness` also read 0. The 480 × 480 compositor capture taken at
+17:12:45 contains only black RGB pixels. These are unmodified compositor
+captures from the machine, not photographs or a measurement of emitted light.
+The clock capture retains the compositor's rotation; the physical panel handles
+its orientation.
+
+| Clock screen                                                 | Automatic screen off                                              |
+| ------------------------------------------------------------ | ----------------------------------------------------------------- |
+| ![Device clock frame](assets/energy-saving/device-clock.png) | ![Device black frame](assets/energy-saving/device-screen-off.png) |
+
+Physical menu navigation and physical wake remain unvalidated. Neither the
+component suite nor a real backlight reading establishes watts or compliance.
