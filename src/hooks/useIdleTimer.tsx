@@ -12,6 +12,8 @@ interface TimerContextType {
   setTimer: (timeout: number) => void;
   isIdle: boolean;
   forceIdle: () => void;
+  forceScreenOff: () => void;
+  screenOffRequested: boolean;
   forceBubbleReopen: boolean;
   setForceBubbleReopen: (value: boolean) => void;
 }
@@ -39,6 +41,7 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
   const [idleTime, setIdleTime] = useState(DEFAULT_TIMEOUT);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isIdle, setIsIdle] = useState(false);
+  const [screenOffRequested, setScreenOffRequested] = useState(false);
   const [forceBubbleReopen, setForceBubbleReopen] = useState(false);
 
   const startTimer = useCallback(() => {
@@ -52,6 +55,7 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
       clearTimeout(timeoutRef.current);
     }
     setIsIdle(false);
+    setScreenOffRequested(false);
     startTimer();
   }, [startTimer]);
 
@@ -68,6 +72,15 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
+    setScreenOffRequested(false);
+    setIsIdle(true);
+  }, []);
+
+  const forceScreenOff = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    setScreenOffRequested(true);
     setIsIdle(true);
   }, []);
 
@@ -78,6 +91,8 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
         setTimer: setIdleTime,
         isIdle,
         forceIdle,
+        forceScreenOff,
+        screenOffRequested,
         forceBubbleReopen,
         setForceBubbleReopen
       }}

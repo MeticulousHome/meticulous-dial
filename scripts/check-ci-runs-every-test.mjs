@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Fails when a test file exists that CI does not run.
 //
-// CI runs `npm run test:all` and `npm run test:scale-overlay` (see
+// CI runs test:all, test:scale-overlay and test:idle-screen (see
 // .github/workflows/continuous-integration.yml). A test file is run when one of
 // the commands behind those scripts names it, or names a glob that matches it,
 // or when it sits under a Playwright testDir. A new test that matches none of
@@ -61,7 +61,11 @@ function playwrightTestDirs(configs) {
   });
 }
 
-const ciCommands = [...commands('test:all'), ...commands('test:scale-overlay')];
+const ciCommands = [
+  ...commands('test:all'),
+  ...commands('test:scale-overlay'),
+  ...commands('test:idle-screen')
+];
 const words = ciCommands.flatMap((command) => command.split(/\s+/));
 const globs = words
   .filter((word) => /[*]/.test(word))
@@ -80,9 +84,7 @@ const unrun = tests.filter(
 );
 
 if (unrun.length) {
-  console.error(
-    'These test files are not run by CI (npm run test:all / test:scale-overlay):'
-  );
+  console.error('These test files are not run by the CI test scripts:');
   for (const file of unrun) console.error(`  ${file}`);
   console.error(
     'Add them to a script that test:all runs, or match them with its glob.'

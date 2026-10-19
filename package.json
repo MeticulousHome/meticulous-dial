@@ -26,7 +26,8 @@
     "docker:arm64-cross": "docker build . -t rust_cross_compile_trixie/arm64 -f Dockerfile.arm64-cross",
     "package:arm64-qemu": "docker run --platform linux/arm64/v8 --rm -v `pwd`:/app rust_native_compile/arm64",
     "package:arm64-cross": "docker run --rm -v `pwd`:/app rust_cross_compile_trixie/arm64",
-    "test:all": "npm test && npm run test:free-pour && npm run test:profile-home-selection && npm run test:pour-over-profile"
+    "test:all": "npm test && npm run test:free-pour && npm run test:profile-home-selection && npm run test:pour-over-profile",
+    "test:idle-screen": "playwright test --config playwright.idle.config.ts"
   },
   "repository": {
     "type": "git",

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 
-import { setBrightness } from '../../api/api';
 import { useNetworkConfig } from '../../hooks/useWifi';
 
 import { MetCatClock } from './MetCatClock';
@@ -34,11 +33,9 @@ export function DigitalClock({
 
   useEffect(() => {
     refetchNetworkConfig();
-    setBrightness({ brightness: 0 });
     const intervalId = setInterval(() => setTime(formatTime()), 250);
 
     return () => {
-      setBrightness({ brightness: 1 });
       clearInterval(intervalId);
     };
   }, []);

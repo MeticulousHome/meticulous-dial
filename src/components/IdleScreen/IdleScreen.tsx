@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import {
@@ -15,15 +15,10 @@ import { updateBrightness } from '../../hooks/useDimScreen';
 import { routes } from '../../navigation/routes';
 import { keyframes, styled } from 'styled-components';
 
-const FadeOverlay = styled.div<{ $hide: boolean }>`
-  position: absolute;
+const ScreenOff = styled.div`
   width: 480px;
   height: 480px;
   background: black;
-  z-index: 99999;
-  opacity: ${({ $hide }) => ($hide ? 0.7 : 0)};
-
-  transition: opacity 1s;
 `;
 
 const pixelShift = keyframes`
@@ -71,54 +66,28 @@ export function IdleScreen(): JSX.Element {
   const dispatch = useAppDispatch();
   const {
     isIdle: shouldGoToIdle,
+    screenOffRequested,
     forceBubbleReopen,
     setForceBubbleReopen
   } = useIdleTimer();
   const prevScreen = useAppSelector((state) => state.screen.prev);
   const { data: globalSettings } = useSettings({ idle: true });
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const screenDimTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
-  const cancelledRef = useRef(false);
-  const [isScreenDim, setIsScreenDim] = useState(false);
-
-  const cycleScreenDim = () => {
-    if (cancelledRef.current) return;
-    setIsScreenDim((prev) => {
-      if (cancelledRef.current) return prev;
-      // Screen is dark, dim up for 5 seconds
-      if (prev) {
-        screenDimTimeoutRef.current = setTimeout(() => {
-          if (cancelledRef.current) return;
-          updateBrightness({ brightness: 0.03 });
-          cycleScreenDim();
-        }, 5 * 1000);
-      } else {
-        screenDimTimeoutRef.current = setTimeout(() => {
-          if (cancelledRef.current) return;
-          updateBrightness({ brightness: 0.33 });
-          cycleScreenDim();
-        }, 55 * 1000);
-      }
-      return !prev;
-    });
-  };
+  const [screenTimedOut, setScreenTimedOut] = useState(false);
+  const screenOff = screenOffRequested || screenTimedOut;
 
   useEffect(() => {
-    cancelledRef.current = false;
-    updateBrightness({ brightness: 0.33 });
+    if (screenOffRequested) return;
+    const timeout = setTimeout(() => setScreenTimedOut(true), SCREEN_TIMEOUT);
+    return () => clearTimeout(timeout);
+  }, [screenOffRequested]);
 
-    // Start a timer to completely disable the screen after a while
-    screenDimTimeoutRef.current = setTimeout(() => {
-      cycleScreenDim();
-    }, SCREEN_TIMEOUT);
+  useEffect(() => {
+    updateBrightness({ brightness: screenOff ? 0 : 0.33 });
+  }, [screenOff]);
 
+  useEffect(() => {
     return () => {
-      cancelledRef.current = true;
-      if (screenDimTimeoutRef.current) {
-        clearTimeout(screenDimTimeoutRef.current);
-      }
       updateBrightness({ brightness: 1 });
 
       if (forceBubbleReopen) {
@@ -152,9 +121,12 @@ export function IdleScreen(): JSX.Element {
     dispatch(setScreen(prevScreen));
   }, [shouldGoToIdle]);
 
+  // Stop the clocks' timers and animation frames as well as the backlight.
+  // This is a screen mode; the SoM, firmware and network remain running.
+  if (screenOff) return <ScreenOff role="img" aria-label="Screen off" />;
+
   return (
     <ShiftContainer>
-      <FadeOverlay $hide={isScreenDim} />
       {selectIdleComponent(globalSettings?.idle_screen)}
     </ShiftContainer>
   );

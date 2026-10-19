@@ -101,6 +101,10 @@ const defaultSettings: QuickSettingOption[] = [
     label: 'sleep'
   },
   {
+    key: 'screen_off',
+    label: 'Screen off'
+  },
+  {
     key: 'raise',
     label: 'raise'
   },
@@ -222,7 +226,7 @@ export function QuickSettings(): JSX.Element {
   const [holdAnimation, setHoldAnimation] =
     useState<holdAnimationState>('stopped');
 
-  const { forceIdle } = useIdleTimer();
+  const { forceIdle, forceScreenOff } = useIdleTimer();
 
   const { data: deviceInfo, isPending } = useDeviceInfo();
   const { data: osStatusData, error: osStatusError } = useOSStatus();
@@ -355,6 +359,13 @@ export function QuickSettings(): JSX.Element {
               setBubbleDisplay({ visible: false, component: undefined })
             );
             forceIdle();
+            break;
+          }
+          case 'screen_off': {
+            dispatch(
+              setBubbleDisplay({ visible: false, component: undefined })
+            );
+            forceScreenOff();
             break;
           }
           case 'raise': {
