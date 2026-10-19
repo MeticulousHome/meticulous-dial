@@ -6,7 +6,11 @@ import { useSettings } from '../../hooks/useSettings';
 
 import { MetCatClock } from './MetCatClock';
 import { DigitalClockBase } from './DigitalClockBase';
-import { formatTime, uses24HourClock } from './digitalClockTime';
+import {
+  formatTime,
+  startDigitalClock,
+  uses24HourClock
+} from './digitalClockTime';
 import './DigitalClock.css';
 
 export function DigitalClock({
@@ -14,9 +18,12 @@ export function DigitalClock({
 }: {
   useMetCat: boolean;
 }): JSX.Element {
-  const [now, setNow] = useState(() => new Date());
+  const [milliseconds, setMilliseconds] = useState<number | null>(null);
   const { data: settings } = useSettings({ idle: true });
-  const time = formatTime(uses24HourClock(settings), now);
+  const time =
+    milliseconds === null
+      ? null
+      : formatTime(uses24HourClock(settings), milliseconds);
 
   const { data: networkConfig, refetch: refetchNetworkConfig } =
     useNetworkConfig({ idle: true });
@@ -24,11 +31,14 @@ export function DigitalClock({
   useEffect(() => {
     refetchNetworkConfig();
     setBrightness({ brightness: 0 });
-    const intervalId = setInterval(() => setNow(new Date()), 250);
+    const stopClock = startDigitalClock({
+      renderTime: setMilliseconds,
+      onError: (error) => console.error('Failed to read OS local time', error)
+    });
 
     return () => {
       setBrightness({ brightness: 1 });
-      clearInterval(intervalId);
+      stopClock();
     };
   }, []);
 
@@ -45,7 +55,7 @@ export function DigitalClock({
         )}
         {isWifiConnected ? 'Ready' : 'Not connected'}
       </div>
-      {<ClockComponent time={time} />}
+      {time && <ClockComponent time={time} />}
     </div>
   );
 }
