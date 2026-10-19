@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import { useSettings, useUpdateSettings } from '../..//hooks/useSettings';
 import { Gauge } from '../../components/SettingNumerical/Gauge';
 import { useHandleGestures } from '../../hooks/useHandleGestures';
+import { useSyncedState } from '../../hooks/useSyncedState';
 import {
   setBubbleDisplay,
   setScreen
@@ -19,24 +19,23 @@ export const HeatTimeoutAfterShot: React.FC = () => {
   const { data: globalSettings } = useSettings();
   const updateSettings = useUpdateSettings();
 
-  const [localHeatingTimeout, setLocalHeatingTimeout] = useState(
-    globalSettings?.heating_timeout || MAX_TIMEOUT
-  );
+  const [localHeatingTimeout, setLocalHeatingTimeout, heatingTimeoutRef] =
+    useSyncedState(globalSettings?.heating_timeout || MAX_TIMEOUT);
 
   useDimScreen();
 
   useHandleGestures(
     {
       left() {
-        const newValue = Math.max(localHeatingTimeout - INTERVAL, 0);
-        setLocalHeatingTimeout(newValue);
+        setLocalHeatingTimeout((current) => Math.max(current - INTERVAL, 0));
       },
       right() {
-        const newValue = Math.min(localHeatingTimeout + INTERVAL, MAX_TIMEOUT);
-        setLocalHeatingTimeout(newValue);
+        setLocalHeatingTimeout((current) =>
+          Math.min(current + INTERVAL, MAX_TIMEOUT)
+        );
       },
       pressDown() {
-        updateSettings.mutate({ heating_timeout: localHeatingTimeout });
+        updateSettings.mutate({ heating_timeout: heatingTimeoutRef.current });
         dispatch(setScreen('profileHome'));
         dispatch(
           setBubbleDisplay({ visible: true, component: 'brewSettings' })

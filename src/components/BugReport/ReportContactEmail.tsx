@@ -11,7 +11,7 @@ import {
 } from '../store/features/screens/screens-slice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { contactEmailEdit } from './contactEmailEdit';
-import { reportHandoff } from './reportCollection';
+import { reportHandoff } from './reportHandoff';
 
 import './reportContactEmail.css';
 
