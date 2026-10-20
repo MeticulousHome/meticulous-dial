@@ -164,3 +164,39 @@ for (const [name, events, normalGestures] of wakeCases) {
     ]);
   });
 }
+
+test('holding context to wake does not consume the next context click', async ({
+  page
+}) => {
+  // Firmware registers only attachClick for context. OneButton's long-press
+  // state can therefore end with raw release and no decoded CONTEXT event.
+  // The nine wake cases above all have a decoded terminal (or only rotation).
+  await page.goto('/menu.html');
+  await page.waitForFunction(() => window.menuProbe.buttonListenerReady());
+  await page.evaluate(() => {
+    for (const type of [
+      'ENCODER_CLOCKWISE',
+      'ENCODER_PRESSED',
+      'ENCODER_RELEASED',
+      'ENCODER_PUSH'
+    ])
+      window.menuProbe.receiveButton(type);
+  });
+  await expect(
+    page.getByRole('img', { name: 'Screen off', exact: true })
+  ).toBeVisible();
+  await page.evaluate(() => {
+    window.menuProbe.gestures.length = 0;
+    window.menuProbe.receiveButton('CONTEXT_PRESSED');
+    window.menuProbe.receiveButton('CONTEXT_RELEASED');
+  });
+  await expect(page.getByText('Machine awake')).toBeVisible();
+  expect(await page.evaluate(() => window.menuProbe.gestures)).toEqual([]);
+  await page.evaluate(() => {
+    for (const type of ['CONTEXT_PRESSED', 'CONTEXT_RELEASED', 'CONTEXT'])
+      window.menuProbe.receiveButton(type);
+  });
+  expect(await page.evaluate(() => window.menuProbe.gestures)).toEqual([
+    'context'
+  ]);
+});

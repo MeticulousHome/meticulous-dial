@@ -47,6 +47,11 @@ that a subsequent interaction is delivered normally. Raw context/tare presses
 now wake immediately instead of waiting for the decoded click. Grouping follows
 the firmware/backend event sequence, with no new timeout heuristic.
 
+A tenth wake scenario covers holding context: firmware registers only its click
+callback, so OneButton can complete a long press with no decoded terminal event.
+The next context press starts a fresh gesture. Before this correction the new
+test failed while all 21 previous tests passed; all 22 pass after the correction.
+
 Removing the socket boundary's consume return makes the new wake scenarios fail
 while the previous twelve still pass. The mutation was removed. This remains a
 component check, not a physical-button or firmware-side action-suppression check.

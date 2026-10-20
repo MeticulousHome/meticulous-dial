@@ -37,7 +37,9 @@ export class WakeInputGate {
     if (phase === 'press') {
       // A fresh edge after a long-press terminal also recovers from a missing
       // raw release. Two presses awaiting a double-click remain one group.
-      if (!press || press.terminal) {
+      // Context has no double-click or long-press callback. A held context
+      // button can release without a terminal event; its next press is fresh.
+      if (!press || press.terminal || (name === 'context' && !press.down)) {
         press = { down: true, terminal: false, consume: idle };
         this.presses[name] = press;
       } else {
