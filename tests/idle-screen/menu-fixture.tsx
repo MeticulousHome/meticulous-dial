@@ -13,9 +13,17 @@ import { IdleScreen } from '../../src/components/IdleScreen/IdleScreen';
 import { IdleTimerProvider, useIdleTimer } from '../../src/hooks/useIdleTimer';
 import { brightnessRequests } from './mocks';
 import { receiveButton, buttonListenerReady } from './socket';
+import { handleEvents } from '../../src/HandleEvents';
 import '../../src/globals.css';
 
-const probe = { brightnessRequests, receiveButton, buttonListenerReady };
+const gestures: string[] = [];
+handleEvents.on('gesture', (gesture) => gestures.push(gesture));
+const probe = {
+  brightnessRequests,
+  receiveButton,
+  buttonListenerReady,
+  gestures
+};
 declare global {
   interface Window {
     menuProbe: typeof probe;

@@ -25,6 +25,14 @@ de reposo de toda la máquina.
 La pantalla deja de iluminarse cada minuto cuando queda en reposo. **Screen off**
 permite obtener ese mismo estado inmediatamente.
 
+La revisión siguiente, todavía no instalada, permite despertar girando o
+pulsando la perilla y pulsando contexto o tara. La primera interacción y su
+liberación despiertan la pantalla sin ejecutar otra acción en la interfaz; la
+siguiente interacción funciona normalmente. Falta validar los controles físicos
+y bloquear los efectos que el firmware ejecuta por su cuenta. Despertar al tocar
+la báscula requiere distinguir un cambio de peso real del ruido y la deriva;
+todavía no está implementado.
+
 La computadora interna, la electrónica de control y la conexión de red continúan
 funcionando. La opción no corta la alimentación ni cancela un precalentamiento.
 No sustituye el interruptor trasero ni es una forma de detener una preparación.

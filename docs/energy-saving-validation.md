@@ -39,10 +39,27 @@ sent. Outer routing is reduced; this does not replace physical input validation.
 Planting a reset of idle on `pressUp` makes the new menu test fail while all eight
 original idle tests still pass. The mutation was removed; all twelve tests pass.
 
+Nine additional wake-input scenarios cover both rotation directions, encoder
+click/double/long, context, tare click/long and decoded-click compatibility. Each
+enters Screen off through the real quick menu, wakes on the initial interaction,
+requires that no part of the wake gesture reach the action event bus, and verifies
+that a subsequent interaction is delivered normally. Raw context/tare presses
+now wake immediately instead of waiting for the decoded click. Grouping follows
+the firmware/backend event sequence, with no new timeout heuristic.
+
+Removing the socket boundary's consume return makes the new wake scenarios fail
+while the previous twelve still pass. The mutation was removed. This remains a
+component check, not a physical-button or firmware-side action-suppression check.
+Scale interaction is not implemented: the current stream exposes weight, not a
+touch event; a wake detector needs measured noise/drift evidence before choosing
+a criterion. The overlay's existing 2 g hide-timer rule is not a wake threshold.
+
 The existing scale-overlay component suite, unit tests, formatting, types, lint,
 production frontend build, CI test-file coverage and backend contract are also
 checked. All six PR CI jobs and the separate integration/e2e check passed for
 product commit `b9093ea18fa332fd674d9bc49c6d805276a1dcc1`.
+The later wake-input implementation is newer than that installed preview and
+requires fresh CI, independent review and physical validation.
 
 ## Installed ARM64 preview
 

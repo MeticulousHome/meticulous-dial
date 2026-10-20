@@ -11,6 +11,7 @@ interface TimerContextType {
   resetTimer: () => void;
   setTimer: (timeout: number) => void;
   isIdle: boolean;
+  isIdleNow: () => boolean;
   forceIdle: () => void;
   forceScreenOff: () => void;
   screenOffRequested: boolean;
@@ -41,11 +42,16 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
   const [idleTime, setIdleTime] = useState(DEFAULT_TIMEOUT);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isIdle, setIsIdle] = useState(false);
+  // Input events can arrive in one browser turn, before React renders the
+  // transition. The socket boundary needs the immediately updated state.
+  const idleRef = useRef(false);
+  const isIdleNow = useCallback(() => idleRef.current, []);
   const [screenOffRequested, setScreenOffRequested] = useState(false);
   const [forceBubbleReopen, setForceBubbleReopen] = useState(false);
 
   const startTimer = useCallback(() => {
     timeoutRef.current = setTimeout(() => {
+      idleRef.current = true;
       setIsIdle(true);
     }, idleTime);
   }, [idleTime]);
@@ -54,6 +60,7 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
+    idleRef.current = false;
     setIsIdle(false);
     setScreenOffRequested(false);
     startTimer();
@@ -72,6 +79,7 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
+    idleRef.current = true;
     setScreenOffRequested(false);
     setIsIdle(true);
   }, []);
@@ -80,6 +88,7 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
+    idleRef.current = true;
     setScreenOffRequested(true);
     setIsIdle(true);
   }, []);
@@ -90,6 +99,7 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
         resetTimer,
         setTimer: setIdleTime,
         isIdle,
+        isIdleNow,
         forceIdle,
         forceScreenOff,
         screenOffRequested,

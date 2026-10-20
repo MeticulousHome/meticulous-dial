@@ -37,6 +37,7 @@ import {
   dispatchedReports
 } from '../BugReport/dispatchedReports';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
+import { WakeInputGate } from '../../utils/wakeInputGate';
 import { LASTS_PROFILE_QUERY_KEY } from '../../hooks/useProfiles';
 import { useProfileContext } from '../../context/ProfileContext';
 import { HIDDEN_STAGES } from '../../constants/setting';
@@ -54,7 +55,8 @@ export const SocketProviderValue = () => {
   const dispatch = useAppDispatch();
   const previousStateName = useRef<string>('idle');
   const queryClient = useQueryClient();
-  const { resetTimer: resetIdleTimer } = useIdleTimer();
+  const { resetTimer: resetIdleTimer, isIdleNow } = useIdleTimer();
+  const wakeInputGate = useRef(new WakeInputGate());
   const { setProfileStarting, onProfileEvent, onProfileHover } =
     useProfileContext();
   // For development purpose
@@ -170,6 +172,9 @@ export const SocketProviderValue = () => {
     });
 
     socket.on('button', (data: ButtonEvent) => {
+      const input = wakeInputGate.current.handle(data.type, isIdleNow());
+      if (input.wake || (input.activity && !input.consume)) resetIdleTimer();
+      if (input.consume) return;
       const eventGestureMap: Partial<Record<ButtonEventType, GestureType>> = {
         ENCODER_CLOCKWISE: 'right',
         ENCODER_COUNTERCLOCKWISE: 'left',
@@ -188,15 +193,6 @@ export const SocketProviderValue = () => {
 
       const gesture = eventGestureMap[data.type];
       if (gesture) {
-        if (
-          gesture === 'right' ||
-          gesture === 'left' ||
-          gesture === 'pressDown' ||
-          gesture === 'context' ||
-          gesture === 'singleTare'
-        ) {
-          resetIdleTimer();
-        }
         handleEvents.emit('gesture', gesture, data.time_since_last_event);
       }
     });

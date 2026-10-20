@@ -6,6 +6,10 @@
  * idle hooks directly and cannot catch a release resetting idle, a missing menu
  * action, or a broken button mapping. Mutation: reset idle on pressUp.
  * This is simulated transport input, not physical encoder validation.
+ * Wake inputs additionally follow the requested encoder/context/tare contract:
+ * the first interaction wakes, and none of its tail may reach action handlers.
+ * Mutation: remove the consume return at the production socket boundary. The
+ * earlier entry/rotation tests do not check that a wake gesture is swallowed.
  */
 import { test, expect } from '@playwright/test';
 import type {} from './menu-fixture';
@@ -76,4 +80,87 @@ for (const clock of ['analog', 'digital']) {
       await expect.poll(lastBrightness).toBe(1);
     });
   }
+}
+
+const wakeCases = [
+  ['clockwise', ['ENCODER_CLOCKWISE'], ['right']],
+  ['counterclockwise', ['ENCODER_COUNTERCLOCKWISE'], ['left']],
+  [
+    'encoder',
+    ['ENCODER_PRESSED', 'ENCODER_RELEASED', 'ENCODER_PUSH'],
+    ['pressDown', 'pressUp', 'click']
+  ],
+  [
+    'encoder double',
+    [
+      'ENCODER_PRESSED',
+      'ENCODER_RELEASED',
+      'ENCODER_PRESSED',
+      'ENCODER_RELEASED',
+      'ENCODER_DOUBLE'
+    ],
+    ['pressDown', 'pressUp', 'pressDown', 'pressUp', 'doubleClick']
+  ],
+  [
+    'encoder long',
+    ['ENCODER_PRESSED', 'ENCODER_LONG', 'ENCODER_RELEASED'],
+    ['pressDown', 'longEncoder', 'pressUp']
+  ],
+  ['context', ['CONTEXT_PRESSED', 'CONTEXT_RELEASED', 'CONTEXT'], ['context']],
+  [
+    'tare',
+    ['TARE_PRESSED', 'TARE_RELEASED', 'TARE'],
+    ['tareDown', 'tareUp', 'singleTare']
+  ],
+  [
+    'tare long',
+    ['TARE_PRESSED', 'TARE_LONG', 'TARE_SUPER_LONG', 'TARE_RELEASED'],
+    ['tareDown', 'longTare', 'tareUp']
+  ],
+  ['decoded legacy click', ['ENCODER_PUSH'], ['click']]
+] as const;
+
+for (const [name, events, normalGestures] of wakeCases) {
+  test(`wake input ${name}: wake consumes the whole gesture, next interaction works`, async ({
+    page
+  }) => {
+    await page.goto('/menu.html');
+    await page.waitForFunction(() => window.menuProbe.buttonListenerReady());
+    await page.evaluate(() => {
+      for (const type of [
+        'ENCODER_CLOCKWISE',
+        'ENCODER_PRESSED',
+        'ENCODER_RELEASED',
+        'ENCODER_PUSH'
+      ])
+        window.menuProbe.receiveButton(type);
+    });
+    await expect(
+      page.getByRole('img', { name: 'Screen off', exact: true })
+    ).toBeVisible();
+    await page.evaluate(() => {
+      window.menuProbe.gestures.length = 0;
+    });
+    await page.evaluate(
+      (type) => window.menuProbe.receiveButton(type),
+      events[0]
+    );
+    await expect(page.getByText('Machine awake')).toBeVisible();
+    await page.evaluate((tail) => {
+      for (const type of tail) window.menuProbe.receiveButton(type);
+    }, events.slice(1));
+    expect(await page.evaluate(() => window.menuProbe.gestures)).toEqual([]);
+    expect(
+      await page.evaluate(() => window.menuProbe.brightnessRequests.at(-1))
+    ).toBe(1);
+    await page.evaluate(
+      (events) => {
+        for (const type of events) window.menuProbe.receiveButton(type);
+      },
+      [...events]
+    );
+    expect(await page.evaluate(() => window.menuProbe.gestures)).toEqual([
+      ...normalGestures
+    ]);
+  });
 }
