@@ -28,6 +28,11 @@ import { logFreePour } from '../../features/freePour/logging';
 import { useDeletePourOverProfile } from '../../features/freePour/usePourOverProfiles';
 import { useManualBrew } from '../../hooks/useManualBrew';
 import { createProfileFromManualBrew } from '../../api/manualMode';
+import { reportProgressStore } from '../BugReport/reportProgressStore';
+import {
+  useOwnReportRunning,
+  useReportInProgress
+} from '../BugReport/useReportProgress';
 
 export type QuickSettingOption = {
   key: string;
@@ -94,6 +99,11 @@ const prevScreenSetting: QuickSettingOption = {
   label: 'Back',
   hasSeparator: true
 };
+
+// While a report is running, from either app, the entry says so and opens its
+// progress. The Dial's own quick report keeps the usual entry: it shows its
+// blocking flow.
+const REPORTING_LABEL = 'Reporting an issue';
 
 const defaultSettings: QuickSettingOption[] = [
   {
@@ -223,6 +233,21 @@ export function QuickSettings(): JSX.Element {
     useState<holdAnimationState>('stopped');
 
   const { forceIdle } = useIdleTimer();
+
+  const reportInProgress = useReportInProgress();
+  const ownReportRunning = useOwnReportRunning();
+  const showReportProgress = reportInProgress && !ownReportRunning;
+  const shownSettings = useMemo(
+    () =>
+      showReportProgress
+        ? settings.map((option) =>
+            option.key === 'bug_report'
+              ? { ...option, label: REPORTING_LABEL }
+              : option
+          )
+        : settings,
+    [settings, showReportProgress]
+  );
 
   const { data: deviceInfo, isPending } = useDeviceInfo();
   const { data: osStatusData, error: osStatusError } = useOSStatus();
@@ -474,6 +499,7 @@ export function QuickSettings(): JSX.Element {
             break;
           }
           case 'bug_report': {
+            if (showReportProgress) reportProgressStore.requestView();
             dispatch(
               setBubbleDisplay({ visible: true, component: 'bug-report' })
             );
@@ -644,7 +670,7 @@ export function QuickSettings(): JSX.Element {
           $osInfo={osStatusVisible ? osStatusInfo : null}
           $SWVersion={`${!isPending ? deviceInfo.image_version : 'loading ...'}`}
         >
-          {settings.map((option) => (
+          {shownSettings.map((option) => (
             <Styled.Option
               key={option.key}
               $hasSeparator={option.hasSeparator}
@@ -665,7 +691,7 @@ export function QuickSettings(): JSX.Element {
             }
             $osInfo={osStatusVisible ? osStatusInfo : null}
           >
-            {settings.map((option, index) => (
+            {shownSettings.map((option, index) => (
               <Styled.Option
                 key={option.key}
                 $hasSeparator={option.hasSeparator}

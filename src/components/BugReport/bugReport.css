@@ -299,3 +299,64 @@
   padding: 3px 4px 2px;
   text-transform: none;
 }
+
+/* Progress view -------------------------------------------------------------
+   One segment per stage the machine lists, sized so about ten fit the chord of
+   the round display at this height: the row is narrower than the 340px notice
+   above it, and the segments share it equally. */
+.bug-report-progress {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 340px;
+  padding: 0 20px;
+}
+
+.bug-report-progress-stage {
+  font-size: 24px;
+  line-height: 30px;
+  margin-top: 4px;
+}
+
+.bug-report-progress-detail {
+  color: #b3b3b3;
+  font-family: 'ABC Diatype Mono';
+  font-size: 18px;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+}
+
+.bug-report-progress-segments {
+  display: flex;
+  gap: 4px;
+  margin: 8px 0;
+  width: 300px;
+}
+
+.bug-report-progress-segment {
+  background: #3a3a3a;
+  border-radius: 3px;
+  flex: 1;
+  height: 8px;
+  min-width: 0;
+}
+
+.bug-report-progress-segment-done {
+  background: #f5c444;
+}
+
+@keyframes bug-report-progress-pulse {
+  0%,
+  100% {
+    background: #f5c444;
+  }
+
+  50% {
+    background: #7a6222;
+  }
+}
+
+.bug-report-progress-segment-current {
+  animation: bug-report-progress-pulse 1.2s ease-in-out infinite;
+}

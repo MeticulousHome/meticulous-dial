@@ -1,9 +1,14 @@
-import {
-  getReportErrorCode,
-  UploadReportEvent
-} from '@meticulous-home/espresso-api';
+import { UploadReportEvent } from '@meticulous-home/espresso-api';
 
 import { api } from '../../api/api';
+import {
+  cancelledError,
+  isCancelledError,
+  reportApiError,
+  watchForCancel
+} from './reportProgressErrors';
+import { postReportProgress } from './reportProgressApi';
+import { reportProgressStore } from './reportProgressStore';
 import {
   buildDraftAttachment,
   captureException,
@@ -27,6 +32,13 @@ import {
  * through the notification system rather than a screen, so a brew in
  * progress is never interrupted.
  *
+ * A report cancelled from either app is dropped: the work in flight is
+ * aborted when the machine says `cancelled` (or answers 409 REPORT_CANCELLED
+ * to a call), nothing is retried, and the outcome notification says
+ * `Report cancelled`. The upload tells the machine where it is
+ * ({stage: 'uploading'} before Sentry) and that it gave up ({failed}), see
+ * reportProgressApi.ts.
+ *
  * Dispatches are processed one at a time. The backend keeps a dispatch
  * `queued` until the collection succeeds, so after a reconnect the pending
  * list is replayed and nothing is lost when the live event was missed.
@@ -40,6 +52,8 @@ export type DispatchedReportOutcome = {
   ok: boolean;
   /** Set when `ok` is false. */
   failure?: FailureView;
+  /** Cancelled from an app; neither a success nor a failure to announce. */
+  cancelled?: boolean;
 };
 
 type Stage =
@@ -75,6 +89,7 @@ export const describeDispatchedReportOutcome = (
   outcome: DispatchedReportOutcome
 ): string => {
   const subject = `The report with ticket number ${outcome.ticket} from the mobile app`;
+  if (outcome.cancelled) return `Report cancelled. ${subject} was not sent.`;
   if (outcome.ok || !outcome.failure) {
     return `${subject} was sent together with the machine's diagnostics.`;
   }
@@ -82,7 +97,17 @@ export const describeDispatchedReportOutcome = (
   return `${subject} could not be sent. ${message}${note ? ` ${note}` : ''} Error code ${code}.`;
 };
 
+const cancelledOutcome = (
+  event: UploadReportEvent
+): DispatchedReportOutcome => ({
+  localID: event.localID,
+  ticket: event.ticket,
+  ok: false,
+  cancelled: true
+});
+
 const queue: UploadReportEvent[] = [];
+const cancelledIDs = new Set<string>();
 const attempts = new Map<string, number>();
 const listeners = new Set<Listener>();
 let active: string | null = null;
@@ -105,11 +130,7 @@ const collectDraft = async (event: UploadReportEvent, signal: AbortSignal) => {
           { localID: event.localID },
           { signal }
         );
-        if (isReportError(result)) {
-          throw Object.assign(new Error(result.error), {
-            reportCode: getReportErrorCode(result)
-          });
-        }
+        if (isReportError(result)) throw reportApiError(result);
         return result;
       },
       signal,
@@ -137,7 +158,17 @@ const uploadDispatchedReport = async (
   const timeout = setTimeout(() => controller.abort(), DISPATCH_TIMEOUT_MS);
   let stage: Stage = 'collecting';
 
+  // The mobile app may cancel until the upload to Sentry starts; the machine
+  // would refuse it after that, so a `cancelled` is only acted on before.
+  let cancelled = false;
+  const stopWatching = watchForCancel(event.localID, () => {
+    if (stage === 'sendingFeedback' || stage === 'savingRecord') return;
+    cancelled = true;
+    controller.abort();
+  });
+
   try {
+    if (cancelled) return cancelledOutcome(event);
     const draft = await collectDraft(event, signal);
     if (!draft.machineID?.trim()) {
       throw Object.assign(new Error('Draft has no machineID'), {
@@ -151,12 +182,21 @@ const uploadDispatchedReport = async (
       { ticket: event.ticket, description: event.description },
       { signal, timeout: 30_000 }
     );
-    if (isReportError(reportInfo)) throw new Error(reportInfo.error);
+    if (isReportError(reportInfo)) throw reportApiError(reportInfo);
 
     stage = 'fetchingFile';
     const draftFile = await api.getDraftReport(event.localID, { signal });
-    if (isReportError(draftFile)) throw new Error(draftFile.error);
+    if (isReportError(draftFile)) throw reportApiError(draftFile);
     const attachment = buildDraftAttachment(draftFile);
+
+    // Best effort, except for a cancel that got here first: then the report
+    // must not reach Sentry.
+    const post = await postReportProgress(
+      event.localID,
+      { stage: 'uploading' },
+      signal
+    );
+    if (post === 'cancelled') throw cancelledError();
 
     stage = 'sendingFeedback';
     // Single attempt, as in the interactive flow: captureFeedback is
@@ -179,10 +219,11 @@ const uploadDispatchedReport = async (
       },
       { signal, timeout: 60_000 }
     );
-    if (isReportError(marked)) throw new Error(marked.error);
+    if (isReportError(marked)) throw reportApiError(marked);
 
     return { localID: event.localID, ticket: event.ticket, ok: true };
   } catch (error) {
+    if (cancelled || isCancelledError(error)) return cancelledOutcome(event);
     const failureType: SubmissionFailType = signal.aborted
       ? 'submissionTimeout'
       : ((error as { failure?: SubmissionFailType }).failure ??
@@ -194,6 +235,22 @@ const uploadDispatchedReport = async (
         STAGE_FAILURE[stage]);
     const { code, message } = FAILURE_DETAILS[failureType];
     captureException(error, code);
+    // Gives up for good once nothing will try again: the draft exists (only a
+    // queued report is replayed), or the attempts of this session are spent.
+    // Until then the machine keeps it queued.
+    // Not when only the record failed: Sentry has the report already.
+    const givingUp =
+      stage !== 'savingRecord' &&
+      (stage !== 'collecting' ||
+        (attempts.get(event.localID) ?? 0) >= ATTEMPT_LIMIT);
+    if (
+      givingUp &&
+      (await postReportProgress(event.localID, {
+        failed: { code, message }
+      })) === 'cancelled'
+    ) {
+      return cancelledOutcome(event);
+    }
     return {
       localID: event.localID,
       ticket: event.ticket,
@@ -209,6 +266,7 @@ const uploadDispatchedReport = async (
     };
   } finally {
     clearTimeout(timeout);
+    stopWatching();
   }
 };
 
@@ -219,7 +277,9 @@ const drain = async () => {
   active = next.localID;
   attempts.set(next.localID, (attempts.get(next.localID) ?? 0) + 1);
   try {
-    notify(await uploadDispatchedReport(next));
+    const outcome = await uploadDispatchedReport(next);
+    if (outcome.cancelled) cancelledIDs.add(next.localID);
+    notify(outcome);
   } finally {
     active = null;
     void drain();
@@ -236,7 +296,9 @@ export const dispatchedReports = {
     if (
       active === event.localID ||
       queue.some((queued) => queued.localID === event.localID) ||
-      (attempts.get(event.localID) ?? 0) >= ATTEMPT_LIMIT
+      (attempts.get(event.localID) ?? 0) >= ATTEMPT_LIMIT ||
+      cancelledIDs.has(event.localID) ||
+      reportProgressStore.get(event.localID)?.stage === 'cancelled'
     ) {
       return;
     }

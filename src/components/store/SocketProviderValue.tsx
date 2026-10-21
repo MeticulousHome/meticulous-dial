@@ -36,6 +36,9 @@ import {
   describeDispatchedReportOutcome,
   dispatchedReports
 } from '../BugReport/dispatchedReports';
+import { syncReportProgress } from '../BugReport/reportProgressApi';
+import { reportProgressStore } from '../BugReport/reportProgressStore';
+import type { ReportProgress } from '../BugReport/reportProgressTypes';
 import { useIdleTimer } from '../../hooks/useIdleTimer';
 import { LASTS_PROFILE_QUERY_KEY } from '../../hooks/useProfiles';
 import { useProfileContext } from '../../context/ProfileContext';
@@ -266,6 +269,29 @@ export const SocketProviderValue = () => {
       unsubscribe();
     };
   }, [dispatch]);
+
+  // What the machine says about the reports in flight, from either app. Events
+  // sent while the dial was away are lost, so the list is read on every connect.
+  // A backend without progress never emits the event and answers the list with
+  // a 404: the store stays empty and the report flows do not change.
+  useEffect(() => {
+    const onReportProgress = (data: ReportProgress) => {
+      reportProgressStore.apply(data);
+    };
+    const syncProgress = () => {
+      void syncReportProgress().catch((error) => {
+        console.warn('[report-progress] sync failed', error);
+      });
+    };
+    socket.on('report_progress', onReportProgress);
+    socket.on('connect', syncProgress);
+    if (socket.connected) syncProgress();
+
+    return () => {
+      socket.off('report_progress', onReportProgress);
+      socket.off('connect', syncProgress);
+    };
+  }, []);
 
   return socket;
 };

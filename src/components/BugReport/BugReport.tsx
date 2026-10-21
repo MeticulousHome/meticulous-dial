@@ -26,6 +26,26 @@ import {
   startCollection
 } from './reportCollection';
 import { holdRun, reportHandoff } from './reportHandoff';
+import { ownReport } from './ownReport';
+import {
+  cancelledError,
+  isCancelledError,
+  reportApiError,
+  reportErrorCode,
+  TOO_LATE_TO_CANCEL,
+  UNKNOWN_LOCAL_ID,
+  watchForCancel
+} from './reportProgressErrors';
+import {
+  cancelReport,
+  postReportProgress,
+  syncReportProgress
+} from './reportProgressApi';
+import { reportProgressStore } from './reportProgressStore';
+import type { ReportProgress } from './reportProgressTypes';
+import { ReportProgressView } from './ReportProgressView';
+import { clampIndex } from './reportProgressView';
+import { useReportProgress } from './useReportProgress';
 import {
   buildDraftAttachment,
   captureException,
@@ -48,7 +68,9 @@ enum ReportScreen {
   reportingBug = 'reportingBug',
   contactUs = 'contactUs',
   yourContactInfo = 'yourContactInfo',
-  submitted = 'submitted'
+  submitted = 'submitted',
+  /** Where a report stands, from the machine; never blocks the bubble. */
+  progress = 'progress'
 }
 
 enum ReportStatus {
@@ -56,7 +78,9 @@ enum ReportStatus {
   fetching = 'fetching',
   slowFetch = 'slowFetch',
   submitting = 'submitting',
-  failed = 'failed'
+  failed = 'failed',
+  /** The report was cancelled from the mobile app while this one sent it. */
+  cancelled = 'cancelled'
 }
 
 type SubmissionStateType =
@@ -77,9 +101,16 @@ const CONTACT_SUPPORT_NOTE = 'Please contact us for further information.';
 // itself (1.1s), so the cap has to clear 5.5s with room for a slow frame rate.
 const FINISHED_ANIMATION_TIMEOUT = 12 * 1000;
 
+type SubmissionOutcome = {
+  ticket: number | null;
+  failure: FailureView | null;
+  /** Cancelled from the mobile app, so neither sent nor failed. */
+  cancelled?: boolean;
+};
+
 type InFlightSubmission = {
   localID: string;
-  outcome: Promise<{ ticket: number | null; failure: FailureView | null }>;
+  outcome: Promise<SubmissionOutcome>;
 };
 
 // A bubble can be unmounted by navigation while delivery continues. Keep the
@@ -225,7 +256,22 @@ export const BugReport = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const currentScreen = useAppSelector((state) => state.screen.value);
   const previousScreen = useAppSelector((state) => state.screen.prev);
-  const [reportScreen, setReportScreen] = useState(ReportScreen.message);
+  // Quick settings ask for the progress view of a report that is running
+  // (the entry reads "Reporting an issue"): the oldest one not over, unless
+  // the Dial's own quick report is running, whose blocking flow shows instead.
+  // Only read here; the request is consumed by the mount effect below.
+  const viewRequestedRef = useRef(reportProgressStore.peekViewRequest());
+  const [initialViewID] = useState<string | null>(() => {
+    if (!viewRequestedRef.current || ownReport.isRunning()) return null;
+    return reportProgressStore.pickActive()?.localID ?? null;
+  });
+  const [viewedID, setViewedID] = useState(initialViewID);
+  const [endedReport, setEndedReport] = useState<ReportProgress | null>(null);
+  const [cancelRefused, setCancelRefused] = useState(false);
+  const cancellingRef = useRef(false);
+  const [reportScreen, setReportScreen] = useState(
+    initialViewID ? ReportScreen.progress : ReportScreen.message
+  );
   const [reportStatus, setReportStatus] = useState(ReportStatus.idle);
   const [activeIndex, setActiveIndex] = useState(0);
   const [failure, setFailure] = useState<FailureView | null>(null);
@@ -257,6 +303,16 @@ export const BugReport = (): JSX.Element => {
     reportStatus === ReportStatus.fetching ||
     reportStatus === ReportStatus.slowFetch ||
     reportStatus === ReportStatus.submitting;
+
+  // The progress view shows the report the machine lists, until it ends: the
+  // ending is kept here, shown once, and dropped from the store.
+  const viewedProgress = useReportProgress(viewedID);
+  const progressEntry = endedReport ?? viewedProgress;
+  const canCancel =
+    !!progressEntry &&
+    !progressEntry.final &&
+    progressEntry.cancellable &&
+    !cancelRefused;
 
   const animationPhase: BugReportAnimationPhase = isFinishing
     ? 'finished'
@@ -315,6 +371,24 @@ export const BugReport = (): JSX.Element => {
       return [{ key: 'back', label: 'Back', useableWidthPercentage: 81 }];
     }
 
+    if (reportScreen === ReportScreen.progress) {
+      if (progressEntry?.final) {
+        return [{ key: 'exit', label: 'Exit', useableWidthPercentage: 81 }];
+      }
+      return [
+        ...(canCancel
+          ? [
+              {
+                key: 'cancel' as const,
+                label: 'Cancel',
+                useableWidthPercentage: 81
+              }
+            ]
+          : []),
+        { key: 'back', label: 'Back', useableWidthPercentage: 81 }
+      ];
+    }
+
     if (reportScreen === ReportScreen.yourContactInfo) {
       return [
         ...(savedEmail
@@ -363,12 +437,21 @@ export const BugReport = (): JSX.Element => {
       return [{ key: 'exit', label: 'Exit', useableWidthPercentage: 81 }];
     }
 
-    if (reportScreen === ReportScreen.submitted) {
+    if (
+      reportScreen === ReportScreen.submitted ||
+      reportStatus === ReportStatus.cancelled
+    ) {
       return [{ key: 'exit', label: 'Exit', useableWidthPercentage: 81 }];
     }
 
     return [];
-  }, [reportScreen, reportStatus, savedEmail]);
+  }, [canCancel, progressEntry?.final, reportScreen, reportStatus, savedEmail]);
+
+  // The list can shrink under the cursor (Cancel goes away, the report ends).
+  const selectedIndex = clampIndex(activeIndex, options.length);
+  useEffect(() => {
+    if (selectedIndex !== activeIndex) setActiveIndex(selectedIndex);
+  }, [activeIndex, selectedIndex]);
 
   const exitToQuickSettings = () => {
     dispatch(setBubblePinned(false));
@@ -395,6 +478,25 @@ export const BugReport = (): JSX.Element => {
     submissionStateRef.current = null;
     setIsFinishing(false);
     captureException(error, code);
+    // Once the report has a draft the apps follow it, so tell them it failed.
+    // Best effort; a failure before the draft is the backend's to report. Not
+    // when only the record failed: Sentry has the report, and the apps would
+    // say it failed while this screen says the ticket was received.
+    const localID = draftInfoRef.current?.localID;
+    if (localID && failureType !== 'submissionMark')
+      void postReportProgress(localID, { failed: { code, message } });
+  };
+
+  // The mobile app cancelled the report this Dial is sending (or collecting):
+  // same ending as the Dial's own Cancel, with its own outcome on screen.
+  const showCancelled = () => {
+    submissionStateRef.current = null;
+    activeCreateRunRef.current = null;
+    setIsFinishing(false);
+    setFailure(null);
+    setReportScreen(ReportScreen.reportingBug);
+    setReportStatus(ReportStatus.cancelled);
+    setActiveIndex(0);
   };
 
   const resetCancelledReport = () => {
@@ -443,6 +545,10 @@ export const BugReport = (): JSX.Element => {
       run.onSlow = null;
       // Cancelled: the UI was already reset by cancelCreateReport.
       if (!outcome) return;
+      if ('cancelled' in outcome) {
+        showCancelled();
+        return;
+      }
       if ('failure' in outcome) {
         failSubmission(outcome.failure, outcome.error);
         return;
@@ -465,6 +571,9 @@ export const BugReport = (): JSX.Element => {
     // contact email screen reopens it. This bubble lets go of it now, as it
     // still renders through its closing animation.
     reportHandoff.detach(activeCreateRunRef);
+    // The bubble closes now but the machine keeps collecting: still the
+    // Dial's own report.
+    ownReport.set('handoff', true);
     // Gestures stay blocked until the bubble has closed, so the release of
     // this press cannot type on the keyboard.
     dispatch(
@@ -495,7 +604,7 @@ export const BugReport = (): JSX.Element => {
   // go back to the main screen, where its entry has gone.
   const handleHoldAnimationEnd = () => {
     setHoldAnimation('finished');
-    const activeOption = options[activeIndex];
+    const activeOption = options[selectedIndex];
     if (activeOption?.key !== 'removeContactEmail') return;
     updateSettings.mutate(
       { report_contact_mail: null },
@@ -508,6 +617,13 @@ export const BugReport = (): JSX.Element => {
     );
   };
 
+  // Quick settings read this to tell the Dial's own report from one the mobile
+  // app started; the bubble is closed (and unmounted) while it hands over.
+  useEffect(() => {
+    ownReport.set('bubble', busy);
+    return () => ownReport.set('bubble', false);
+  }, [busy]);
+
   useEffect(() => {
     dispatch(setBubblePinned(busy));
     if (!busy) return;
@@ -519,11 +635,14 @@ export const BugReport = (): JSX.Element => {
   // Back from the contact email screen: resume the run left behind with the
   // address the user gave, if any.
   useEffect(() => {
+    // The progress view request, if any, has been honoured by the first render.
+    reportProgressStore.takeViewRequest();
     // Back from changing the saved address: reopen where it was pressed.
     if (contactEmailEdit.takeReturn()) {
       setReportScreen(ReportScreen.yourContactInfo);
       setActiveIndex(0);
     }
+    ownReport.set('handoff', false);
     const run = reportHandoff.takeRun();
     const decision = reportHandoff.takeContactDecision();
     if (!run) return;
@@ -621,19 +740,15 @@ export const BugReport = (): JSX.Element => {
     const controller = new AbortController();
     submitControllerRef.current = controller;
     const { signal } = controller;
-    let resolveOutcome: (value: {
-      ticket: number | null;
-      failure: FailureView | null;
-    }) => void;
-    const outcome = new Promise<{
-      ticket: number | null;
-      failure: FailureView | null;
-    }>((resolve) => {
+    let resolveOutcome: (value: SubmissionOutcome) => void;
+    const outcome = new Promise<SubmissionOutcome>((resolve) => {
       resolveOutcome = resolve;
     });
     const submission = { localID: draftInfo.localID, outcome };
     inFlightSubmission = submission;
     let outcomeFailure: FailureView | null = null;
+    let outcomeCancelled = false;
+    ownReport.set('submission', true);
     setReportStatus(ReportStatus.submitting);
     setFailure(null);
 
@@ -660,8 +775,26 @@ export const BugReport = (): JSX.Element => {
       5 * 60 * 1000
     ); // 5 minutes timeout
 
+    // The mobile app can cancel until the upload starts. The machine tells it
+    // here, or answers 409 REPORT_CANCELLED to the next call.
+    const stopWatching = watchForCancel(draftInfo.localID, () => {
+      outcomeCancelled = true;
+      controller.abort();
+      showCancelled();
+    });
+
     try {
       setSubmissionStage('ticketing');
+      // Best effort: only a cancel stops the report here.
+      if (
+        (await postReportProgress(
+          draftInfo.localID,
+          { stage: 'ticketing' },
+          signal
+        )) === 'cancelled'
+      ) {
+        throw cancelledError();
+      }
       const ticket = await withRetry(
         async () => {
           const result = await api.getMeticulousReportTracking(
@@ -686,14 +819,26 @@ export const BugReport = (): JSX.Element => {
         { ticket },
         { signal, timeout: 30_000 }
       );
-      if (isReportError(reportInfo)) throw Error(reportInfo.error);
+      if (isReportError(reportInfo)) throw reportApiError(reportInfo);
 
       setSubmissionStage('fetchingFile');
       const draftFile = await api.getDraftReport(draftInfo.localID, { signal });
-      if (isReportError(draftFile)) throw Error(draftFile.error);
+      if (isReportError(draftFile)) throw reportApiError(draftFile);
 
       setSubmissionStage('buildingFeedback');
       const attachment = buildDraftAttachment(draftFile);
+
+      // Right before Sentry gets it, a cancel is still possible: this is the
+      // last point where it is honoured.
+      if (
+        (await postReportProgress(
+          draftInfo.localID,
+          { stage: 'uploading' },
+          signal
+        )) === 'cancelled'
+      ) {
+        throw cancelledError();
+      }
 
       setSubmissionStage('sendingFeedback');
       // Single attempt on purpose: captureFeedback is create-only, so a retry
@@ -717,7 +862,7 @@ export const BugReport = (): JSX.Element => {
         { signal, timeout: 60_000 }
       );
       if (isReportError(markSubmittedResponse)) {
-        throw Error(markSubmittedResponse.error);
+        throw reportApiError(markSubmittedResponse);
       }
 
       // The report is in. Everything left is animation, so retire the network
@@ -731,7 +876,10 @@ export const BugReport = (): JSX.Element => {
     } catch (error) {
       if (timedOut || signal.aborted) return;
 
-      if (submissionStateRef.current === 'sendingFeedback') {
+      if (isCancelledError(error)) {
+        outcomeCancelled = true;
+        showCancelled();
+      } else if (submissionStateRef.current === 'sendingFeedback') {
         failSubmission('sentrySubmission', error);
         outcomeFailure = FAILURE_DETAILS.sentrySubmission;
       } else if (submissionStateRef.current === 'ticketing') {
@@ -760,9 +908,15 @@ export const BugReport = (): JSX.Element => {
       }
     } finally {
       clearTimeout(submissionTimeout);
+      stopWatching();
+      ownReport.set('submission', false);
       if (submitControllerRef.current === controller)
         submitControllerRef.current = null;
-      resolveOutcome!({ ticket: ticketRef.current, failure: outcomeFailure });
+      resolveOutcome!({
+        ticket: ticketRef.current,
+        failure: outcomeFailure,
+        cancelled: outcomeCancelled
+      });
       if (inFlightSubmission === submission) inFlightSubmission = null;
     }
   };
@@ -773,21 +927,70 @@ export const BugReport = (): JSX.Element => {
     let disposed = false;
     setReportScreen(ReportScreen.reportingBug);
     setReportStatus(ReportStatus.submitting);
-    void pending.outcome.then(({ ticket, failure: pendingFailure }) => {
-      if (disposed) return;
-      ticketRef.current = ticket;
-      if (pendingFailure) {
-        setFailure(pendingFailure);
-        setReportStatus(ReportStatus.failed);
-      } else {
-        setReportScreen(ReportScreen.submitted);
-        setReportStatus(ReportStatus.idle);
+    void pending.outcome.then(
+      ({ ticket, failure: pendingFailure, cancelled }) => {
+        if (disposed) return;
+        ticketRef.current = ticket;
+        if (cancelled) {
+          setReportStatus(ReportStatus.cancelled);
+        } else if (pendingFailure) {
+          setFailure(pendingFailure);
+          setReportStatus(ReportStatus.failed);
+        } else {
+          setReportScreen(ReportScreen.submitted);
+          setReportStatus(ReportStatus.idle);
+        }
       }
-    });
+    );
     return () => {
       disposed = true;
     };
   }, []);
+
+  // The viewed report ended: keep it to show and let the store forget it.
+  useEffect(() => {
+    if (reportScreen !== ReportScreen.progress || !viewedProgress?.final) {
+      return;
+    }
+    setEndedReport(viewedProgress);
+    reportProgressStore.acknowledge(viewedProgress.localID);
+  }, [reportScreen, viewedProgress]);
+
+  // A report the machine no longer lists (a restart forgot it) has nothing
+  // left to show: the usual start of the bubble.
+  useEffect(() => {
+    if (reportScreen === ReportScreen.progress && !progressEntry) {
+      setReportScreen(ReportScreen.message);
+      setViewedID(null);
+      setActiveIndex(0);
+    }
+  }, [progressEntry, reportScreen]);
+
+  // Cancel in the progress view. Cancelling twice is not an error for the
+  // machine, and the answer (or the event) turns the view into the ending.
+  const cancelViewedReport = async () => {
+    if (!viewedID || cancellingRef.current) return;
+    cancellingRef.current = true;
+    try {
+      const result = await cancelReport(viewedID);
+      if (isReportError(result)) {
+        const code = reportErrorCode(result);
+        if (code === TOO_LATE_TO_CANCEL) {
+          setCancelRefused(true);
+        } else if (code === UNKNOWN_LOCAL_ID) {
+          // The machine forgot it (a restart): the list drops it, and with it
+          // this view.
+          void syncReportProgress();
+        } else {
+          console.warn('[bug-report] cancel failed', result);
+        }
+        return;
+      }
+      reportProgressStore.apply(result);
+    } finally {
+      cancellingRef.current = false;
+    }
+  };
 
   useHandleGestures({
     left() {
@@ -796,7 +999,9 @@ export const BugReport = (): JSX.Element => {
         return;
       }
       if (options.length === 0) return;
-      setActiveIndex((prev) => Math.max(prev - 1, 0));
+      setActiveIndex((prev) =>
+        Math.max(clampIndex(prev, options.length) - 1, 0)
+      );
     },
     right() {
       if (reportScreen === ReportScreen.selectIssueDate) {
@@ -804,7 +1009,9 @@ export const BugReport = (): JSX.Element => {
         return;
       }
       if (options.length === 0) return;
-      setActiveIndex((prev) => Math.min(prev + 1, options.length - 1));
+      setActiveIndex((prev) =>
+        Math.min(clampIndex(prev, options.length) + 1, options.length - 1)
+      );
     },
     pressDown() {
       if (reportScreen === ReportScreen.selectIssueDate) {
@@ -816,7 +1023,7 @@ export const BugReport = (): JSX.Element => {
         });
         return;
       }
-      const activeOption = options[activeIndex];
+      const activeOption = options[selectedIndex];
       if (!activeOption || reportStatus === ReportStatus.submitting) return;
       if (activeOption.hold) {
         setHoldAnimation('running');
@@ -849,9 +1056,17 @@ export const BugReport = (): JSX.Element => {
           openIssueDateSelector();
           break;
         case 'cancel':
-          cancelCreateReport();
+          if (reportScreen === ReportScreen.progress) {
+            void cancelViewedReport();
+          } else {
+            cancelCreateReport();
+          }
           break;
         case 'back':
+          if (reportScreen === ReportScreen.progress) {
+            exitToQuickSettings();
+            break;
+          }
           if (reportScreen === ReportScreen.message) {
             exitToQuickSettings();
           } else if (reportScreen === ReportScreen.reportSetup) {
@@ -1067,7 +1282,7 @@ export const BugReport = (): JSX.Element => {
     >
       {options.map((item, index) => {
         const width = item.useableWidthPercentage || 90;
-        const active = index === activeIndex;
+        const active = index === selectedIndex;
         const holding = active && item.hold && holdAnimation === 'running';
         return (
           <div
@@ -1114,6 +1329,33 @@ export const BugReport = (): JSX.Element => {
           <span className="bug-report-loading-text">{message}</span>
         </div>
         {reportStatus !== ReportStatus.submitting && optionList}
+      </div>
+    );
+  }
+
+  // Cancelled from the mobile app while this Dial was sending the report.
+  if (reportStatus === ReportStatus.cancelled) {
+    return (
+      <div className="bug-report-centered-screen">
+        <div className="bug-report-centered-body">
+          <span className="bug-report-progress-stage">Report cancelled</span>
+        </div>
+        {optionList}
+      </div>
+    );
+  }
+
+  // Where a report stands. Not busy, so the bubble is never pinned.
+  if (reportScreen === ReportScreen.progress && progressEntry) {
+    return (
+      <div className="bug-report-centered-screen">
+        <div className="bug-report-centered-body">
+          <ReportProgressView
+            progress={progressEntry}
+            notCancellable={!canCancel}
+          />
+        </div>
+        {optionList}
       </div>
     );
   }

@@ -6,6 +6,8 @@ import {
   ReportInfo
 } from '@meticulous-home/espresso-api';
 
+import { isCancelledError } from './reportProgressErrors';
+
 /**
  * Pieces of the report upload shared by the interactive flow in BugReport
  * and the headless upload of reports dispatched from the mobile app
@@ -325,6 +327,8 @@ export const withRetry = async <T>(
     try {
       return await attempt();
     } catch (error) {
+      // A cancelled report stays cancelled: retrying cannot change the answer.
+      if (isCancelledError(error)) throw error;
       lastError = error;
       console.warn(
         `[bug-report] ${label} attempt ${index + 1} failed: ${error}`

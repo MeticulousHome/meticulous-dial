@@ -7,6 +7,7 @@ import {
 
 import { api } from '../../api/api';
 import { REPORT_PROBE_URLS } from '../../sentryConfig';
+import { isCancelledResponse } from './reportProgressErrors';
 import {
   BLOCKER_FAILURE,
   captureException,
@@ -29,6 +30,8 @@ import {
 export type CollectionOutcome =
   | { draft: DraftInfo }
   | { failure: SubmissionFailType; error: unknown }
+  /** Cancelled from the mobile app while collecting: create answered 409 REPORT_CANCELLED. */
+  | { cancelled: true }
   /** Cancelled by the user; the UI was already reset. */
   | null;
 
@@ -83,6 +86,9 @@ const collect = async (
         ? await api.createReport(undefined, { signal })
         : await api.createReport({ issueTime }, { signal });
     if (isReportError(createResponse)) {
+      if (isCancelledResponse(createResponse)) {
+        return run.cancelled ? null : { cancelled: true };
+      }
       throw Object.assign(new Error(createResponse.error), {
         reportCode: getReportErrorCode(createResponse)
       });
