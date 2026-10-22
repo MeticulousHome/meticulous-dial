@@ -10,7 +10,7 @@ import {
   STAGE_LABELS,
   ticketLabel,
   UNKNOWN_STAGE_LABEL
-} from '../src/components/BugReport/reportProgressView.ts';
+} from '../src/components/BugReport/reportProgressViewHelpers.ts';
 import type {
   ReportProgress,
   ReportStage

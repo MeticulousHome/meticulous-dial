@@ -6,11 +6,11 @@ import {
   segmentsFor,
   stageLabel,
   ticketLabel
-} from './reportProgressView';
+} from './reportProgressViewHelpers';
 
 /**
  * The body of the non-blocking progress view: where a report stands, drawn
- * from the machine's payload (see reportProgressView.ts). The options below it
+ * from the machine's payload (see reportProgressViewHelpers.ts). The options below it
  * (Cancel, Back or Exit) belong to BugReport.
  */
 export const ReportProgressView = ({

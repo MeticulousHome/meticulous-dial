@@ -44,7 +44,7 @@ import {
 import { reportProgressStore } from './reportProgressStore';
 import type { ReportProgress } from './reportProgressTypes';
 import { ReportProgressView } from './ReportProgressView';
-import { clampIndex } from './reportProgressView';
+import { clampIndex } from './reportProgressViewHelpers';
 import { useReportProgress } from './useReportProgress';
 import {
   buildDraftAttachment,
