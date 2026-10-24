@@ -46,7 +46,19 @@ Item {
     readonly property int dialProbe_graphCurves: count > 1 ? 3 : 0
     readonly property int dialProbe_selectedIndex: selectedIndex
     readonly property string dialProbe_selection: selectionTime.value + " " + labelValues.join(" ")
-    readonly property var labelValues: types.map(t => ((selectedPoint && selectedPoint.shot[t.key]) || 0.0).toFixed(t.precision))
+    readonly property var labelValues: types.map(t => valueOf(selectedPoint, t.key).toFixed(t.precision))
+
+    // A sample's value as a number. The backend writes a reading it does not have as the string "NaN" (the
+    // weight without a scale), which `(value || 0.0).toFixed()` turned into a TypeError that froze every label;
+    // such a value reads 0.0, what React's `|| 0.0` means, and is left out of the curve.
+    function number(value) {
+        const n = typeof value === "number" ? value : Number(value)
+        return isFinite(n) ? n : NaN
+    }
+    function valueOf(point, key) {
+        const n = point && point.shot ? number(point.shot[key]) : NaN
+        return isFinite(n) ? n : 0.0
+    }
 
     // useHistoryShot(lastShotForProfileQuery(profile)): disabled without a profile.
     property int _request: 0
@@ -178,8 +190,10 @@ Item {
                         const flat = []
                         const d = graph.samples
                         for (let i = 0; i < d.length; i++) {
+                            const value = d[i].shot ? graph.number(d[i].shot[type.key]) : NaN
+                            if (!isFinite(value)) continue
                             flat.push(d[i].time - graph.startTime)
-                            flat.push(Math.min(type.max, Math.max(type.min, d[i].shot[type.key])))
+                            flat.push(Math.min(type.max, Math.max(type.min, value)))
                         }
                         setFlat(flat)
                     }
@@ -213,7 +227,7 @@ Item {
             ValueText {
                 x: graph.graphWidth + 5
                 baselineY: -5
-                value: ((graph.count ? graph.samples[graph.count - 1].shot.weight : 0) || 0.0).toFixed(1)
+                value: graph.valueOf(graph.count ? graph.samples[graph.count - 1] : null, "weight").toFixed(1)
                 unit: "g"
             }
             ValueText {

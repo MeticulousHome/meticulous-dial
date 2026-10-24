@@ -524,6 +524,109 @@ def test_the_shot_graph_stays_while_you_look_at_it_and_a_push_puts_it_away(scree
     screen.wait_for_route("profileHome")
 
 
+# The graph's value labels, in ShotGraph's order (dataTypes: flow, pressure, weight; one decimal each).
+GRAPH_KEYS = ["flow", "pressure", "weight"]
+
+# Finds the ShotGraph on the route shown, through the test port's eval (TestServer's scope: `router`).
+_FIND_GRAPH = ("(function(){ function find(it) { if (!it) return null;"
+               " if (it.hasOwnProperty('labelValues') && it.hasOwnProperty('samples')) return it;"
+               " const k = it.children; for (let i = 0; i < k.length; i++) { const f = find(k[i]); if (f) return f }"
+               " return null } return find(router.current) })()")
+
+
+def show_shot_on_the_graph(screen, shot):
+    """The last shot screen with `shot` as the graph's shot (once its own query has answered)."""
+    screen.c.call({"cmd": "screen", "name": "shot_history"})
+    screen.wait_for_route("shot_history")
+    wait_for(lambda: screen.c.call({"cmd": "eval", "js": f"{_FIND_GRAPH} ? !{_FIND_GRAPH}.loading : false"})["value"] == "true",
+             15, "the graph's own query")
+    answer = screen.c.call({"cmd": "eval", "js": f"({_FIND_GRAPH}.shot = JSON.parse({json.dumps(json.dumps(shot))}), 'set')"})
+    assert answer["value"] == "set", answer
+    wait_for(lambda: screen.probe("graphShown"), 5, "the graph with the shot")
+
+
+def expected_selection(point) -> str:
+    """What the graph should read at `point`: the time in s, then flow, pressure and weight, a value the
+    backend does not have (its "NaN") reading 0.0."""
+    def value(key):
+        v = point["shot"].get(key)
+        try:
+            v = float(v)
+        except (TypeError, ValueError):
+            return "0.0"
+        return "0.0" if math.isnan(v) or math.isinf(v) else f"{v:.1f}"
+    return " ".join([f"{point['time'] / 1000:.1f}"] + [value(k) for k in GRAPH_KEYS])
+
+
+def scrub_and_compare(screen, shot, detents=(0, 3, 7, 12, 25, 60)):
+    """Turns right through the graph and checks the readout against the shot's own data at every stop."""
+    data = shot["data"]
+    step = round(max(0, len(data) - 1) / 50)
+    turned = 0
+    for target in detents:
+        screen.controls.right(target - turned)
+        turned = target
+        index = min(target * step, len(data) - 1)
+        wait_for(lambda: screen.probe("selectedIndex") == index, 5, f"the cursor at sample {index}")
+        assert screen.probe("selection") == expected_selection(data[index]), (index, data[index]["shot"])
+    return turned
+
+
+def a_recorded_shot(n=121, weight=lambda i: round(i * 0.4, 1)) -> dict:
+    """A shot as the machine's history holds it (POST /history with dump_data), every 250 ms."""
+    data = []
+    for i in range(n):
+        data.append({"shot": {"pressure": round(min(9.0, i * 0.2), 1), "flow": round(2.0 + (i % 17) * 0.3, 1),
+                              "weight": weight(i), "gravimetric_flow": 0.0,
+                              "setpoints": {"active": "pressure", "pressure": 9.0}},
+                     "time": 53 + i * 250, "profile_time": 53 + i * 250, "status": "Infusion"})
+    return {"id": str(uuid.uuid4()), "name": "Graph test", "time": time.time(), "data": data,
+            "profile": {"id": str(uuid.uuid4()), "name": "Graph test"}}
+
+
+def test_scrubbing_the_shot_graph_reads_the_shot_at_the_cursor(screen, backend):
+    """Protects: reading how the shot went: turning moves the cursor through the shot and the flow, pressure
+    and weight under it are the shot's own values at that time (ShotGraphScreen: selectedPoint.shot[key]).
+    The graph shows one of the emulated backend's own shots, as POST /history with dump_data returns it."""
+    status, body = backend.post("/api/v1/history", {"max_results": 1, "dump_data": True})
+    if status != 200 or not body.get("history"):
+        pytest.skip("the backend has no shot yet")
+    shot = body["history"][0]
+    show_shot_on_the_graph(screen, shot)
+    assert screen.probe("selectedIndex") == 0
+    assert screen.probe("selection") == expected_selection(shot["data"][0])
+    scrub_and_compare(screen, shot)
+    screen.controls.push()
+    screen.wait_for_route("profileHome")
+
+
+def test_a_reading_the_shot_lacks_reads_zero_and_the_others_still_follow(screen):
+    """Protects: the graph of a shot made without a scale (Alu, 10.10.0.130): the machine writes the missing
+    weight as the string "NaN"; the labels froze at 0 while the cursor moved (a TypeError in the readout).
+    Now the weight reads 0.0 (React's `|| 0.0`) and flow and pressure follow the cursor."""
+    shot = a_recorded_shot(weight=lambda i: "NaN")
+    show_shot_on_the_graph(screen, shot)
+    assert screen.probe("selection") == expected_selection(shot["data"][0])
+    scrub_and_compare(screen, shot)
+    # The end of the shot: the last sample, and the end weight above the plot reads 0.0 too.
+    screen.controls.right(30)
+    last = shot["data"][-1]
+    wait_for(lambda: screen.probe("selectedIndex") == len(shot["data"]) - 1, 5, "the cursor at the end")
+    assert screen.probe("selection") == expected_selection(last)
+    assert "0.0" in screen.texts()
+    screen.controls.push()
+    screen.wait_for_route("profileHome")
+
+
+def test_the_graph_follows_a_recorded_shot_with_every_reading(screen):
+    """Protects: the same readout on a shot with a scale: every value is the sample's own at the cursor."""
+    shot = a_recorded_shot()
+    show_shot_on_the_graph(screen, shot)
+    scrub_and_compare(screen, shot)
+    screen.controls.push()
+    screen.wait_for_route("profileHome")
+
+
 def test_aborting_the_retract_raises_the_piston_and_returns_home(screen, backend, shot_profile):
     """Protects: a double push during the retract aborts (end_profile: the machine homes the piston); the
     Dial shows the raise and comes back home. Inside the profile's stage it finishes (the emulation

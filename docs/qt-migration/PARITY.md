@@ -57,7 +57,7 @@ antialiasing differs). On the machine (10.10.0.130, eglfs) see "Performance" at 
 | barometer | Barometer/** | screens/brew/Barometer.qml | done | meter, target tick and trail of manual brews (meterGeometry, trailGeometry, manualTarget tests pass) |
 | manual-purge | PurgePiston/**, MiniPurgePiston | screens/brew/PurgeScreen.qml | done | |
 | brewComplete | BrewCompleteScreen | screens/brew/BrewCompleteScreen.qml | done | remove cup animation, double push (brewDoubleClick test passes) |
-| shot_history | ShotGraph/** | screens/brew/ShotGraphScreen.qml | done | PlotLine graph |
+| shot_history | ShotGraph/** | screens/brew/ShotGraphScreen.qml | done | PlotLine graph; a reading the backend writes as "NaN" (the weight without a scale) reads 0.0 and is left out of its curve (it froze every label; React's `(v || 0.0).toFixed()` throws on that string too) |
 | heat_timeout_after_shot | HeatTimeoutAfterShot | screens/brew/HeatTimeoutAfterShot.qml | done | |
 | pressetSettings | PressetSettings, Pressets | screens/profile/PressetSettings.qml | done | save / discard / brew without saving, new profile |
 | pressure, piston_position, motor_power, time, weight, flow, temperature, output | SettingNumerical | screens/profile/SettingNumerical.qml, Gauge.qml | done | |
