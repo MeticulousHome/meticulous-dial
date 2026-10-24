@@ -1,5 +1,6 @@
 #include "socketio.h"
 
+#include <QJSValue>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -93,8 +94,10 @@ void SocketIO::emitEvent(const QString &name, const QVariant &data)
     if (!m_connected)
         return;
     QJsonArray packet{name};
-    if (data.isValid())
-        packet.append(QJsonValue::fromVariant(data));
+    // A JS object or array from QML arrives as a QJSValue, which QJsonValue::fromVariant turns into null.
+    const QVariant payload = data.userType() == qMetaTypeId<QJSValue>() ? data.value<QJSValue>().toVariant() : data;
+    if (payload.isValid())
+        packet.append(QJsonValue::fromVariant(payload));
     m_socket.sendTextMessage(QStringLiteral("42") + QString::fromUtf8(QJsonDocument(packet).toJson(QJsonDocument::Compact)));
 }
 

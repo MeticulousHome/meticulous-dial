@@ -80,8 +80,10 @@ Item {
         })
     }
     property string profileId: profile && profile.id ? profile.id : ""
-    onProfileIdChanged: fetch()
-    Component.onCompleted: fetch()
+    // Once per profile: at creation the profile may arrive after the first binding pass, and Qt.callLater
+    // folds that change and onCompleted into one query.
+    onProfileIdChanged: Qt.callLater(fetch)
+    Component.onCompleted: Qt.callLater(fetch)
 
     GestureHandler {
         enabled: !(Nav.bubbleInterceptsGesture || graph.isStatic)

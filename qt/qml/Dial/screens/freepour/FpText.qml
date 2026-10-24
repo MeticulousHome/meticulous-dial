@@ -11,7 +11,10 @@ Text {
     property bool tabular: true
     property int cssWeight: 400
     property real letterSpacingPx: 0
-    property real lineHeightPx: font.pixelSize * (mono ? Css.MONO_NORMAL : Css.DIATYPE_NORMAL)
+    property real lineHeightPx: pixelSize * (mono ? Css.MONO_NORMAL : Css.DIATYPE_NORMAL)
+    // The size alone: the spacing bindings below write `font`, and reading font.pixelSize in them would make
+    // each write re-run them (a binding loop).
+    readonly property real pixelSize: font.pixelSize
 
     width: parent ? parent.width : 480
     height: lineHeightPx
@@ -21,6 +24,6 @@ Text {
     font.family: mono ? Theme.fontMono : Theme.fontRegular
     font.weight: Css.weight(cssWeight)
     font.letterSpacing: letterSpacingPx + (Css.isSyntheticBold(cssWeight) ? Css.SYNTHETIC_BOLD_OFFSET : 0)
-                        + (mono ? Css.monoAdvanceRounding(font.pixelSize) : 0)
-    font.wordSpacing: tabular && !mono ? font.pixelSize * Css.TABULAR_WORD_SPACING_EM : 0
+                        + (mono ? Css.monoAdvanceRounding(pixelSize) : 0)
+    font.wordSpacing: tabular && !mono ? pixelSize * Css.TABULAR_WORD_SPACING_EM : 0
 }

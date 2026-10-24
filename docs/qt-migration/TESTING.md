@@ -54,9 +54,10 @@ e2e.sh`), and several backends (`DIAL_BACKEND_NAME=... PORT=... STATE=... dev-ba
 The same tests can drive the Dial on a machine through a tunnel (`ssh -N -L 9311:127.0.0.1:9310 root@<machine>`,
 `DIAL_TEST_PORT=9311 DIAL_API=http://<machine>`); avoid journeys that start shots or purges there.
 
-Against the real firmware: meticulous-integration's stack (backend + fika-sil) can host the Qt Dial too; its
-`dial_app.py` would need a Qt variant that starts the Dial binary with `--test-port` instead of Chromium. Not
-done yet (see PARITY.md).
+Against the real firmware: `qt/tests/integration/` runs meticulous-integration's 31 Dial journeys unchanged
+on the Qt Dial, with the real backend and the real firmware on fika-sil (`bash qt/tests/integration/run.sh`,
+about 13 min, no network in the container; `MODE=react` runs the same journeys on the React Dial). Results
+and the gaps it found: `parity/integration.md`.
 
 ## Results
 
