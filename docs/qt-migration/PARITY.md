@@ -1,8 +1,13 @@
 # Parity checklist: React Dial → Qt Dial
 
 Every route of `src/navigation/routes.ts` and every feature outside the routes, with its state in the Qt Dial.
-Details per group in [parity/](parity/). Status: **done** (ported and checked), **partial** (works, with the
-gaps noted), **missing**. Out of scope: Pit's take / QTE.
+Details, deliberate differences and test lists per group in [parity/](parity/). Status: **done** (ported,
+compared with the React Dial, covered by tests), **partial** (works, with the gaps noted), **missing**.
+Out of scope: Pit's take / QTE.
+
+Fidelity was checked screen by screen against the React Dial itself: its production web build in headless
+Chromium against the same emulated backend, screenshots side by side (most screens within 1-2 px; text
+antialiasing differs). On the machine (10.10.0.130, eglfs) see "Performance" at the end.
 
 ## Framework and app-wide behaviour
 
@@ -12,48 +17,87 @@ gaps noted), **missing**. Out of scope: Pit's take / QTE.
 | Route table and order | navigation/routes.ts | Core/Routes.qml | done | same 70 routes, same order |
 | Route transitions (spring 450 ms, fade) | Transitioner.tsx, navigation.less | components/Router.qml, RouteHost.qml | done | title hand-over ported (never triggers, as in React) |
 | Title pill, bottom title, profile pill with marquee | Transitioner Title, ProfileTitle.tsx | components/NavTitle.qml | done | |
-| Bubble (spring slide, component switch, pinned) | Bubble.tsx, bubble.less | components/Bubble.qml | done | QuickSettings kept alive (no hitch) |
+| Bubble (spring slide, component switch, pinned) | Bubble.tsx, bubble.less | components/Bubble.qml | done | QuickSettings kept created (no hitch when it opens) |
+| Menus with the yellow bar (mixins.ts) | styles/utils/mixins.ts | components/OptionsMenu.qml | done | hold-to-confirm, marquee, OS status line, version box, annotations, Chromium dashes |
 | Context button toggles quick settings | App.tsx, Bubble.tsx | main.qml | done | |
 | Bottom status (temp, weight, preheat funnel, offline, motor hot) | BottomStatus/* | components/BottomStatus.qml | done | |
 | Socket.IO events → stores, status → screens | SocketProviderValue.tsx | Core/Backend.qml, src/socketio.cpp | done | status, sensors, button, notification, heater_status, water_status, profile, profileHover, OSUpdate, upload_report, settings |
-| Knob / buttons → gestures | SocketProviderValue eventGestureMap | Core/Input.qml, components/GestureHandler.qml | done | dev keyboard keys too |
+| Knob / buttons → gestures | eventGestureMap | Core/Input.qml, components/GestureHandler.qml | done | the development keyboard keys too |
 | Stores (screens, stats, notifications, wifi, settings, images slices) | store/features/* | Core/Nav, Stats, Notifications, UiState | done | |
-| Profile context and queries | context/ProfileContext.tsx, hooks/useProfiles.tsx | Core/Profiles.qml | done | profile events, hover from the app, last profile |
-| Backend settings (polled 2 s), update | hooks/useSettings.tsx | Core/BackendSettings.qml | done | also refetches on the `settings` event |
+| Profile context and queries | ProfileContext.tsx, useProfiles.tsx | Core/Profiles.qml, Core/HomeSelection.js | done | the React unit test of homeSelection passes against HomeSelection.js |
+| Backend settings (polled 2 s), update | useSettings.tsx | Core/BackendSettings.qml | done | also refetches on the `settings` event |
 | Device info, OS update status, online | useDeviceOSStatus, useIsOnline | Core/Device.qml | done | |
 | Idle timer, sleep | useIdleTimer.tsx | Core/Idle.qml | done | |
 | Notifications take the screen | useNotification.ts | main.qml | done | |
 | REST API (espresso-api 0.15) | api/*.ts | Core/Api.qml | done | every call of the package |
+| Circular keyboard | CircleKeyboard/** | components/CircleKeyboard.qml | done | shared by name, Wi-Fi password, report email, unlock, factory reset, country letter |
 | Tauri: ready / home_ready markers | lib.rs | src/native.cpp | done | /run/meticulous-dial-ready, -home-ready |
 | Tauri: get_os_local_time | local_time.rs | Native.localTime() | done | |
 | Tauri: plugin-log (console → journal) | App.tsx forwardConsole | src/main.cpp message handler | done | syslog priorities |
-| Tauri: community_* | community_upload.rs | src/community (C++) | in progress | see parity/community.md |
+| Tauri: community_* (Community uploader) | community_upload.rs, diagnostics.rs | src/community/ (C++) | done | same files and protocol as the Tauri Dial (interop tested both ways); not run against the real server |
+| Community history scan after a shot | App.tsx | main.qml → Community.scanHistory() | done | |
+| Free Pour pending sessions sync at start | App.tsx | main.qml → FreePourStorage.syncAtStartup() | done | |
+| Mobile app's dispatched reports, headless | SocketProviderValue | main.qml → DispatchedReports.start() | done | |
 | Tauri: get_profiles (offline prefetch) | profiles.rs | — | missing | disabled in React too (FIXME in useProfiles) |
-| Tauri: dial_performance_*, get_dial_resource_snapshot, slowdown monitor | lib.rs, useDialSlowdownMonitor | Native.resourceSnapshot() | partial | detector reported to Sentry only; not ported |
-| Sentry | App.tsx | — | missing | no Sentry SDK for Qt in bookworm; errors in the journal |
+| Tauri: dial_performance_*, resource snapshot, slowdown monitor | lib.rs, useDialSlowdownMonitor | Native.resourceSnapshot() | partial | the detector only reported to Sentry: not ported |
+| Sentry | App.tsx | — | partial | no Sentry SDK for Qt in bookworm; errors go to the journal; a bug report still reaches support as its Sentry feedback (plain HTTP POST, on the machine only) |
 | Boot animation (Lottie) and post-ready screen | ReadyAnimation.tsx | screens/brew/ReadyAnimation.qml | done | rlottie |
 | Brightness 100 % at start | App.tsx | main.qml | done | |
-| Community history scan after a shot | App.tsx | main.qml communityScanRequested | partial | wired when Community lands |
-| Free Pour pending sessions sync at start | App.tsx | — | in progress | freepour group |
 
 ## Screens (routes)
 
-| Route | React | Qt file | Group | Status |
+| Route(s) | React | Qt | Status | Notes |
 |---|---|---|---|---|
-| ready | ReadyAnimation | screens/brew/ReadyAnimation.qml | core | done |
-| profileHome | ProfileHomeScreen | screens/home/ProfileHome.qml | core | done |
-| quick-settings | QuickSettings | screens/home/QuickSettings.qml | core | done |
-| heating, barometer, manual-purge, brewComplete, shot_history, heat_timeout_after_shot | Heating, Barometer, PurgePiston, BrewCompleteScreen, ShotGraph, HeatTimeoutAfterShot | screens/brew/ | brew | in progress |
-| pressetSettings, pressure, piston_position, motor_power, time, weight, flow, temperature, output, name, pressetProfileImage | PressetSettings, SettingNumerical, EditNameScreen, CircleKeyboard, PressetProfileImage | screens/profile/, components/CircleKeyboard.qml | profile | in progress |
-| settings, brewSettings, experimentalSettings, scrollDirections, tare_behavior, retraction_volume, advancedSettings, deviceInfo, deviceInfoQR, updateChannel, idleScreenSettings, factoryReset, manufacturingSettings, displayAlignment, OSStatus, community | Settings/** | screens/settings/ | settings | in progress |
-| timeDate, timeZoneConfig, timeConfig, dateConfig, selectLetterCountry, countrySettings, timeZoneSettings | Settings/Advanced/TimeDate/** | screens/time/ | settings | in progress |
-| wifiSettings, wifiModeSettings, wifiQrMenu, wifiDetails, KnownWifi, deleteKnowWifiMenu, connectWifiMenu, selectWifi, connectWifiViaApp, enterWifiPassword | Wifi/** | screens/wifi/ | wifi | in progress |
-| notifications | Notification | screens/notifications/Notification.qml | support | in progress |
-| bug-report, reportContactEmail, helpUsImprove, shotDataSharingPrompt | BugReport/**, ShotDataSharing/** | screens/support/ | support | in progress |
-| unlock, masterCalibrationLock | UnlockScreen | screens/misc/ | support | in progress |
-| idle | IdleScreen/** | screens/idle/IdleScreen.qml | idle | in progress |
-| (scale overlay), calibrateScale | Scale/** | screens/scale/ | idle | in progress |
-| snake | Snake | screens/misc/Snake.qml | idle | in progress |
-| manualSetup | ManualModeSetup | screens/manual/ManualModeSetup.qml | freepour | in progress |
-| freePour, guidedPourOver, freePourHistory | features/freePour/** | screens/freepour/ | freepour | in progress |
-| dose | (no component in React) | — | — | n/a |
+| ready | ReadyAnimation | screens/brew/ReadyAnimation.qml | done | |
+| profileHome | ProfileHomeScreen | screens/home/ProfileHome.qml | done | carousel, zoom, hold ring, slide-exit on delete |
+| quick-settings | QuickSettings | screens/home/QuickSettings.qml | done | every context (profile, Free Pour, pour-over, brewing, Free Pour in progress, manual brew save), snake easter egg |
+| heating | Heating/** | screens/brew/HeatingScreen.qml | done | water bubbles (baked Lottie), temperatures, options, long press (sw120 test passes) |
+| barometer | Barometer/** | screens/brew/Barometer.qml | done | meter, target tick and trail of manual brews (meterGeometry, trailGeometry, manualTarget tests pass) |
+| manual-purge | PurgePiston/**, MiniPurgePiston | screens/brew/PurgeScreen.qml | done | |
+| brewComplete | BrewCompleteScreen | screens/brew/BrewCompleteScreen.qml | done | remove cup animation, double push (brewDoubleClick test passes) |
+| shot_history | ShotGraph/** | screens/brew/ShotGraphScreen.qml | done | PlotLine graph |
+| heat_timeout_after_shot | HeatTimeoutAfterShot | screens/brew/HeatTimeoutAfterShot.qml | done | |
+| pressetSettings | PressetSettings, Pressets | screens/profile/PressetSettings.qml | done | save / discard / brew without saving, new profile |
+| pressure, piston_position, motor_power, time, weight, flow, temperature, output | SettingNumerical | screens/profile/SettingNumerical.qml, Gauge.qml | done | |
+| name | EditNameScreen | screens/profile/EditNameScreen.qml | done | |
+| pressetProfileImage | PressetProfileImage | screens/profile/PressetProfileImage.qml | done | |
+| settings, brewSettings, experimentalSettings, scrollDirections, tare_behavior, retraction_volume, advancedSettings, deviceInfo, deviceInfoQR, updateChannel, idleScreenSettings, factoryReset, manufacturingSettings, displayAlignment, community | Settings/** | screens/settings/ | done | |
+| OSStatus | OSStatus | screens/settings/OSStatus.qml | partial | laid out from the code; nothing in React opens it |
+| timeDate, timeConfig, dateConfig, timeZoneConfig, selectLetterCountry | TimeDate/** | screens/time/ | done | |
+| countrySettings, timeZoneSettings | TimeZone/** | screens/time/ | partial | checked against the CSS only (the reference backend has no zone data) |
+| wifiSettings, wifiModeSettings, wifiQrMenu, wifiDetails, KnownWifi, deleteKnowWifiMenu, connectWifiMenu, selectWifi, connectWifiViaApp, enterWifiPassword | Wifi/** | screens/wifi/ | done | lists tested with a fake of the Wi-Fi endpoints (the emulated backend stubs NetworkManager) |
+| notifications | Notification | screens/notifications/Notification.qml | done | |
+| bug-report, reportContactEmail | BugReport/** | screens/support/ | done | collection, hand-off, submission with BR-01..BR-11 (reportHandoff test passes) |
+| helpUsImprove, shotDataSharingPrompt | ShotDataSharing/** | screens/support/ | done | |
+| unlock, masterCalibrationLock | UnlockScreen | screens/misc/Unlock*.qml | done | |
+| idle | IdleScreen/** | screens/idle/ | done | analog, digital 12/24 h, MetCat, DVD, Barista; dimming (digitalClockTime test passes) |
+| (scale overlay), calibrateScale | Scale/** | screens/scale/ | done | Playwright scale-overlay cases ported but one (needs a live "click to start" mid-press) |
+| snake | Snake | screens/misc/Snake.qml | done | |
+| manualSetup | ManualModeSetup | screens/manual/ManualModeSetup.qml | done | manualSetup test passes; the brew's manual stages need the firmware (not in the emulated backend) |
+| freePour, guidedPourOver, freePourHistory | features/freePour/** | screens/freepour/ | done | pourOverProfileContract and freePourSetup tests pass; local history keeps 16 brews (React 128) |
+| dose | (no component in React) | — | n/a | |
+
+## Tests
+
+- React unit tests run against the Qt ports (`qt/scripts/js-tests.sh`): 11 of the 14 `tests/*.test.*` files
+  pass unchanged (homeSelection, digitalClockTime, brewDoubleClick, sw120 heating long press, meterGeometry,
+  manualTarget, trailGeometry, reportHandoff, pourOverProfileContract, freePourSetup, manualSetup). Not mapped:
+  analogClockTime (3 of its cases fake the browser's Date; the others run in test_idle.py), postReadyScreen
+  (a one-line rule inside ReadyAnimation.qml), slowdownDetector (not ported).
+- End-to-end (`qt/scripts/e2e.sh`): per-group suites in `qt/tests/e2e/`; results in TESTING.md.
+- Integration journeys with the real backend and fika-sil: `qt/tests/integration/` (see parity/integration.md).
+
+## Performance on the machine (10.10.0.130, eglfs, frames that reach the panel)
+
+| Scenario | fps while moving | frames on consecutive vblanks |
+|---|---|---|
+| Home carousel, one detent at a time / fast spin | 63.5 | 99-100 % |
+| Quick settings open, scroll, close | 63-65 (counter double-counts a few) | 97-100 % |
+| Bubble component switch (quick settings → config) | 63.4 | 98 % |
+| Route transitions | 63.9 | 99 % |
+| Heating (bubbles) / extraction (live meter and graph) / brew complete | 62-63.5 / 62.5 / 63.5 | 99-100 % / 98-99 % / 100 % |
+| Nothing moving | 0 frames, ~2 % CPU | |
+
+Memory ~145 MB RSS (WebKit Dial: 330-540 MB), stable over a 20-minute loop. Start: first frame 1.1 s after the
+service starts. Remaining cost: creating a screen takes 100-250 ms on the A53 before its transition starts
+(latency, not a dropped frame); the most used bubble menu is created ahead of time.

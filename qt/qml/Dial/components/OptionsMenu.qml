@@ -22,6 +22,8 @@ Item {
     property color headerColor: Theme.warning
     property string footerText: ""
     property int paddingLeft: 28
+    // MenuAnnotation $marginRigth="1.2rem": the grey list's annotation sits this much further in.
+    property real annotationOuterMargin: 19.2
     // Marquee for long labels in the bar (MARQUEE_MIN_TEXT_LENGTH).
     property int marqueeMinTextLength: Theme.marqueeMinTextLength
     property bool animated: true
@@ -92,7 +94,7 @@ Item {
         Item {
             id: labelBox
             x: 16
-            width: row.width - 32 - (annotationBox.visible ? annotationBox.width + 8 : 0)
+            width: row.width - 32 - (annotationBox.visible ? annotationBox.width + (row.inner ? 0 : menu.annotationOuterMargin) : 0)
             height: parent.height
             clip: row.marquee
             Text {
@@ -123,41 +125,55 @@ Item {
             }
         }
 
-        // MenuAnnotation ("HOLD" on long-press options).
+        // MenuAnnotation ("HOLD" on long-press options, "current" / "selected" in a SelectedOption): 12 px mono
+        // with the option's 2.2 px letter spacing, padding 5 5 2 5 around a 15 px line, 1 px border (24 px tall,
+        // margin-top -5 px: 8 px from the top); at the right end (the grey list's 1.2rem further in, as every
+        // React menu with an outer annotation sets it), or right after the label when they do not fit.
         Rectangle {
             id: annotationBox
             readonly property string annotation: row.option.annotation || (row.inner && row.option.longpress ? "HOLD" : "")
             visible: annotation.length > 0
-            anchors.right: parent.right
-            anchors.rightMargin: 16
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.verticalCenterOffset: -3
-            width: annotationText.implicitWidth + 10
-            height: 22
+            x: Math.max(row.width - 16 - (row.inner ? 0 : menu.annotationOuterMargin) - width, labelBox.x + label.implicitWidth)
+            y: 8
+            width: annotationText.implicitWidth + 12
+            height: 24
             radius: 4
             color: "transparent"
             border.width: 1
             border.color: label.color
             Text {
                 id: annotationText
-                x: 5
-                y: 5
+                x: 6
+                y: 6
+                height: 15
+                verticalAlignment: Text.AlignVCenter
                 text: annotationBox.annotation
                 color: label.color
                 font.family: Theme.fontMono
                 font.pixelSize: 12
+                font.letterSpacing: 2.2
             }
         }
 
-        // The dashed separator: 85 % wide, 2 px, 13 px under the option.
-        Row {
+        // The dashed separator: a 2 px dashed border-top 85 % wide, 13 px under the option, drawn as Chromium
+        // and WebKit draw it: 6 px dashes, the gaps (about 4 px) stretched so it starts and ends with a dash.
+        Item {
+            id: separator
             visible: !row.inner && !!row.option.hasSeparator
             x: 16
             y: row.height + 11
-            spacing: 4
+            readonly property real length: row.width * 0.85
+            readonly property int dashes: Math.max(2, Math.floor((length + 4) / 10))
+            readonly property real gap: (length - 6 * dashes) / (dashes - 1)
             Repeater {
-                model: Math.floor(row.width * 0.85 / 8)
-                Rectangle { width: 4; height: 2; color: Qt.rgba(245 / 255, 196 / 255, 68 / 255, 0.5) }
+                model: separator.visible ? separator.dashes : 0
+                Rectangle {
+                    required property int index
+                    x: index * (6 + separator.gap)
+                    width: 6
+                    height: 2
+                    color: Qt.rgba(245 / 255, 196 / 255, 68 / 255, 0.5)
+                }
             }
         }
     }
