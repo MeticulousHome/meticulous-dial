@@ -12,9 +12,13 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickWindow>
+#include <QSocketNotifier>
 #include <QSurfaceFormat>
 
+#include <csignal>
 #include <cstdio>
+#include <sys/socket.h>
+#include <unistd.h>
 
 #include "community.h"
 #include "lottieitem.h"
@@ -62,6 +66,41 @@ static QString findQmlDir(const QString &requested)
     return QString();
 }
 
+static int quitSignalFds[2] = {-1, -1};
+
+static void onQuitSignal(int)
+{
+    // If the event loop is stuck, SIGALRM ends the process in 10 s rather than leaving systemd to time out.
+    alarm(10);
+    const char byte = 1;
+    const ssize_t written = ::write(quitSignalFds[0], &byte, 1);
+    (void)written;
+}
+
+// systemd stops the service with SIGTERM. eglfs's VT handler answers SIGTERM and SIGINT with _exit(1), which
+// systemd counts as a failure and hands to OnFailure= (the crash reporter). Quit the event loop instead: a stop
+// exits 0, and the VT handler still restores the tty when the platform integration is torn down.
+// Called after QGuiApplication exists, so it replaces the handlers the platform plugin installed.
+static void quitOnStopSignals(QCoreApplication &app)
+{
+    if (::socketpair(AF_UNIX, SOCK_STREAM, 0, quitSignalFds) != 0) {
+        qWarning("socketpair failed: SIGTERM keeps Qt's default handling");
+        return;
+    }
+    auto *notifier = new QSocketNotifier(quitSignalFds[1], QSocketNotifier::Read, &app);
+    QObject::connect(notifier, &QSocketNotifier::activated, &app, [notifier] {
+        notifier->setEnabled(false);
+        qInfo("stop requested: quitting");
+        QCoreApplication::quit();
+    });
+    struct sigaction action = {};
+    action.sa_handler = onQuitSignal;
+    sigemptyset(&action.sa_mask);
+    action.sa_flags = SA_RESTART;
+    sigaction(SIGTERM, &action, nullptr);
+    sigaction(SIGINT, &action, nullptr);
+}
+
 int main(int argc, char *argv[])
 {
     if (qEnvironmentVariableIsSet("INVOCATION_ID") || qEnvironmentVariableIsSet("JOURNAL_STREAM"))
@@ -79,6 +118,7 @@ int main(int argc, char *argv[])
     QSurfaceFormat::setDefaultFormat(format);
 
     QGuiApplication app(argc, argv);
+    quitOnStopSignals(app);
     QCoreApplication::setOrganizationName(QStringLiteral("meticulous"));
     QCoreApplication::setApplicationName(QStringLiteral("meticulous-dial-qt"));
     QCoreApplication::setApplicationVersion(QStringLiteral(DIAL_QT_VERSION));
