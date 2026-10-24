@@ -46,7 +46,8 @@ for (const [test, imports] of Object.entries(MAP)) {
     // Values made in the vm context have its own prototypes: strict deepEqual would refuse them, so results
     // are cloned into this realm.
     fs.writeFileSync(shim, `import { loadQmlJs } from './load-qml-js.mjs';\nconst m = loadQmlJs(${JSON.stringify(qml(lib))});\n` +
-      `const clone = (v) => (v === undefined || v === null || typeof v === 'function' ? v : structuredClone(v));\n` +
+      `const clone = (v) => { if (v === null || typeof v !== 'object') return v; if (Array.isArray(v)) return v.map(clone);` +
+      ` const o = {}; for (const k of Object.keys(v)) o[k] = clone(v[k]); return o; };\n` +
       `const wrap = (v) => (typeof v === 'function' ? (...a) => clone(v(...a)) : clone(v));\n` +
       [...names].map((x) => `export const ${x} = wrap(m.${x});`).join('\n') + '\nexport default m;\n');
     const quoted = new RegExp(`(['"])${specifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\.tsx?|\\.mts|\\.js)?\\1`, 'g');

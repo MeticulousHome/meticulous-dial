@@ -199,7 +199,7 @@ def run(scenario, port, hz, rep):
                 hitches.append({"at_ms": round(at), "ms": round(1000 * (b - a), 1), "after": before[-1] if before else None})
     dur = sum(s[-1] - s[0] for s in segs)
     return {
-        "scenario": scenario, "rep": rep, "frames": len(F),
+        "scenario": scenario, "rep": rep, "frames": len(F), "t0_mono": round(t0, 3),
         "fps_motion": round(len(iv) / dur, 2) if dur else 0.0, "motion_s": round(dur, 2),
         "on_every_vblank_pct": round(100 * vb.count(1) / len(vb), 1) if vb else None,
         "hitches_ge3": sum(1 for x in vb if x >= 3), "worst_ms": round(1000 * max(iv), 1) if iv else None,
