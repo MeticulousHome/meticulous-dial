@@ -141,6 +141,11 @@ Window {
     }
     Timer { id: firstScan; interval: 3000; onTriggered: window.communityScanRequested() }
     Timer { id: secondScan; interval: 10000; onTriggered: window.communityScanRequested() }
+    onCommunityScanRequested: {
+        if (typeof Community === "undefined") return
+        const error = Community.scanHistory()
+        if (error) console.error("Failed to request Community history scan:", error)
+    }
 
     TestServer {
         root: canvas

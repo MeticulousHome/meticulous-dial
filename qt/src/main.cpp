@@ -16,6 +16,7 @@
 
 #include <cstdio>
 
+#include "community.h"
 #include "lottieitem.h"
 #include "native.h"
 #include "plotline.h"
@@ -117,6 +118,9 @@ int main(int argc, char *argv[])
 
     qmlRegisterSingletonInstance("Dial.Native", 1, 0, "Native", native);
     qmlRegisterSingletonInstance("Dial.Native", 1, 0, "Socket", socket);
+    // The Community uploader (community_upload.rs); its worker thread starts here.
+    auto *community = new Community(options.apiUrl, &app);
+    qmlRegisterSingletonInstance("Dial.Native", 1, 0, "Community", community);
     qmlRegisterType<PlotLine>("Dial.Native", 1, 0, "PlotLine");
     qmlRegisterType<LottieItem>("Dial.Native", 1, 0, "LottieItem");
     qmlRegisterType<QrCodeItem>("Dial.Native", 1, 0, "QrCode");

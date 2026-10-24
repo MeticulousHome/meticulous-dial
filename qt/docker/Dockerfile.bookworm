@@ -25,3 +25,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends librlottie-dev 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       libgl1-mesa-dri libglx-mesa0 libegl-mesa0 mesa-utils x11-utils curl python3-pil python3-pytest \
     && rm -rf /var/lib/apt/lists/*
+# OpenSSL's libcrypto (Ed25519) for the Community uploader (src/community).
+RUN apt-get update && apt-get install -y --no-install-recommends libssl-dev libssl-dev:arm64 \
+    && rm -rf /var/lib/apt/lists/*

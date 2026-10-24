@@ -1,5 +1,85 @@
-// Not ported yet: see docs/qt-migration/PARITY.md.
+// "config" of the quick settings (src/components/Settings/Settings.tsx), in the bubble: Device Info,
+// Community (with its connection state), time & date, sounds (toggled here), calibrate scale, Scroll
+// Directions, Advanced Settings, Back. Labels without values until the settings arrive. Unlike the other
+// menus this one never scrolls a long label in the bar.
 import QtQuick
 import Dial
+import Dial.Native
 
-PendingScreen {}
+Item {
+    id: screen
+    anchors.fill: parent
+    property bool inBubble: false
+
+    readonly property var settings: BackendSettings.data
+    // useCommunityUploadStatus: the Community uploader's status, when it exists.
+    readonly property var communityStatus: typeof Community !== "undefined" && Community ? Community.status : null
+
+    readonly property var initialSettings: [
+        { key: "device_info", label: "Device Info" },
+        { key: "community", label: "Community" },
+        { key: "time_date", label: "time & date" },
+        { key: "enable_sounds", label: "sounds" },
+        { key: "calibrate", label: "calibrate scale" },
+        { key: "scroll_directions", label: "Scroll Directions" },
+        { key: "advanced", label: "Advanced Settings" },
+        { key: "back", label: "Back" }
+    ]
+
+    readonly property var options: {
+        if (!settings) return initialSettings
+        const state = communityStatus ? communityStatus.state : undefined
+        return initialSettings.map(item => {
+            let label = item.label
+            if (item.key === "community")
+                label = "Community: " + (state === "connected" ? "Connected" : state === "upload_paused" ? "Upload paused" : "Not connected")
+            else if (item.key === "enable_sounds")
+                label = item.label + ": " + (settings.enable_sounds ? "ENABLED" : "DISABLED")
+            return { key: item.key, label: label }
+        })
+    }
+
+    GestureHandler {
+        enabled: Nav.bubbleInterceptsGesture
+        onTurnLeft: menu.previous()
+        onTurnRight: menu.next()
+        onPressDown: {
+            const item = screen.options[menu.activeIndex]
+            if (!item) return
+            switch (item.key) {
+            case "device_info":
+                Nav.openBubble("deviceInfo")
+                break
+            case "advanced":
+                Nav.openBubble("advancedSettings")
+                break
+            case "community":
+                Nav.openBubble("community")
+                break
+            case "calibrate":
+                Nav.closeBubble()
+                Nav.setScreen("calibrateScale")
+                break
+            case "enable_sounds":
+                if (screen.settings) BackendSettings.update({ enable_sounds: !screen.settings.enable_sounds }).catch(() => {})
+                break
+            case "time_date":
+                Nav.openBubble("timeDate")
+                break
+            case "scroll_directions":
+                Nav.openBubble("scrollDirections")
+                break
+            case "back":
+                Nav.openBubble("quick-settings")
+                break
+            }
+        }
+    }
+
+    OptionsMenu {
+        id: menu
+        options: screen.options
+        // Settings.tsx gives its inner options no $isMarquee: long labels are cut by the bar.
+        marqueeMinTextLength: 100000
+    }
+}
