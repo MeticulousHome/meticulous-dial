@@ -32,6 +32,12 @@ MultiEffect. The Dial is GPLv3, so the LGPL/GPL Qt modules are fine.
   `Requires=weston.service`): the image's nightly `meticulous-restart` restarts `meticulous-dial` (it also ran
   at boot and, with a separately named unit, brought Weston and the WebKit Dial back), and the watcher,
   crash-reporter and the smoke report all refer to that name. `dial-switch qt|web` chooses.
+- **A stop is a clean exit.** eglfs's VT handler answers SIGTERM with `_exit(1)`, which systemd counted as a
+  failure: every stop (upgrade, `dial-switch`, the nightly restart) ran `crash-reporter@meticulous-dial`,
+  which reports a crash to Sentry and restarts the Dial. `main.cpp` takes SIGTERM/SIGINT itself and quits
+  the event loop (exit 0, the tty restored on the way out; a stuck loop ends by SIGALRM after 10 s).
+- **No real services off the machine.** Only the machine's launcher sets `DIAL_EXTERNAL_SERVICES=1`; anything
+  else (development, tests, profiling) reaches only the backend and the machine it runs on (`src/netguard.*`).
 - **The backend as today.** REST and Socket.IO on `http://localhost:8080`; the knob and buttons arrive as
   the backend's socket.io `button` events, mapped to the same gestures (`Input.qml` = `SocketProviderValue`).
 - **Same state shape as the React store.** `Dial.Core` singletons mirror the Redux slices and contexts:
