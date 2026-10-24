@@ -33,5 +33,8 @@
   "tests/manualSetup.test.mts": {
     "../src/components/ManualModeSetup/manualSetup": "screens/manual/ManualSetup.js",
     "../src/constants/manualMode": "screens/manual/ManualSetup.js"
+  },
+  "tests/sw120-heating-long-press.test.mjs": {
+    "../src/components/Heating/startBrewGestures": "screens/brew/BrewLogic.js"
   }
 }

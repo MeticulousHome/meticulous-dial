@@ -20,7 +20,7 @@ Item {
     readonly property string digits: Math.max(Math.abs(value), 0).toFixed(0)
     readonly property bool negative: value < 0
     readonly property real columnWidth: zero.advanceWidth + letterSpacing
-    readonly property int maxColumns: 6
+    readonly property int maxColumns: 4
 
     implicitWidth: digits.length * columnWidth + (negative ? minus.implicitWidth + fontSize / 5 : 0)
     implicitHeight: fontSize

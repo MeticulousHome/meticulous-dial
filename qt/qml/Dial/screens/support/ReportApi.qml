@@ -6,9 +6,12 @@ pragma Singleton
 // Its own XMLHttpRequest wrapper rather than Core's Api: a collection is cancelled by aborting the request
 // (the backend stops collecting when the client goes away), and the draft archive is binary.
 //
-// Sentry: the React Dial initializes it only in its production build under Tauri (App.tsx), so a browser
-// build never delivers a report (BR-05). Here it is on when the Dial runs on the machine (eglfs / wayland /
-// linuxfb), off under the development X server; DIAL_SENTRY_DSN overrides the DSN (empty: off) and
+// Sentry: a report reaches support as a Sentry feedback with the archive attached. There is no Sentry SDK
+// for Qt (DECISIONS.md), so the feedback goes out as Sentry's envelope over HTTP, as the JS SDK sends it;
+// nothing else of the Dial goes to Sentry. The React Dial initializes Sentry only in its production build
+// under Tauri (App.tsx), so a browser build never delivers a report (BR-05). Here it is on when the Dial
+// runs on the machine (eglfs / wayland / linuxfb), off under the development X server; DIAL_SENTRY_DSN
+// overrides the DSN (empty: off) and
 // DIAL_TICKET_SERVICE_URL the ticket service. With the test port open, the storage key
 // "support.reportServices" ({ ticketServiceUrl, sentryDsn }) overrides both, so end-to-end tests answer
 // them locally instead of reaching the real services.
@@ -333,22 +336,9 @@ QtObject {
         })
     }
 
-    // captureException: logged, and sent to Sentry when it is on, tagged with the failure code.
+    // captureException: to the journal with the failure code (DECISIONS.md: the Qt Dial reports its errors
+    // to the journal, not to Sentry; only the report itself, which is a Sentry feedback, goes there).
     function captureException(error, errorCode) {
         console.error(errorCode ? "[" + errorCode + "]" : "", error && error.message ? error.message : JSON.stringify(error))
-        const dsn = sentryDsn()
-        const parts = dsn ? _dsnParts(dsn) : null
-        if (!parts) return
-        const isError = error instanceof Error
-        const event = Object.assign(_baseEvent(ReportLib.randomHex32()), {
-            level: "error",
-            exception: { values: [{ type: isError ? (error.name || "Error") : "Error",
-                                    value: isError ? error.message : (typeof error === "string" ? error : JSON.stringify(error)) }] },
-            tags: Object.assign(_scopeTags(), errorCode ? { "meticulous.bug_report_error_code": errorCode } : {})
-        })
-        http("POST", _envelopeUrl(parts), _envelope(parts, dsn, event, "event"), {
-            timeout: ReportLib.SENTRY_DELIVERY_TIMEOUT_MS,
-            headers: { "Content-Type": "application/x-sentry-envelope" }
-        }).catch(e => console.warn("[bug-report] Sentry did not take the exception:", e.message))
     }
 }

@@ -41,6 +41,13 @@ Item {
         })
     }
 
+    // The bubble keeps this menu instead of mounting it each time (Bubble.kept): start as a fresh mount.
+    function bubbleShown() {
+        menu.animated = false
+        menu.activeIndex = 0
+        menu.animated = true
+    }
+
     GestureHandler {
         enabled: Nav.bubbleInterceptsGesture
         onTurnLeft: menu.previous()

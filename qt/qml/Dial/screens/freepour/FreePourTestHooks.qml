@@ -2,7 +2,9 @@
 // port's eval cannot name): created through the test port under the window's canvas, found by objectName.
 // The asynchronous answers land in `lastSync` / `lastLatest` as JSON.
 import QtQuick
+import Dial
 import Dial.Native
+import "ProfileContract.js" as Contract
 
 Item {
     visible: false
@@ -29,6 +31,14 @@ Item {
         }, error => { lastLatest = "error " + error })
         return "started"
     }
+    // What main.qml does at start (docs/qt-migration/parity/freepour.md): the contract parser as Profiles'
+    // hook, then a refetch of the installed profiles through it.
+    function installContract() {
+        Profiles.parsePourOverProfile = Contract.parsePourOverProfile
+        Profiles.refetchPourOver()
+        return "installed"
+    }
+    function storage() { return FreePourStorage }
     function clearLocal() {
         Native.storageRemove(FreePourStorage.sessionsKey)
         Native.storageRemove(FreePourStorage.pendingKey)

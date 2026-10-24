@@ -26,7 +26,7 @@ Item {
 
     // Test probes
     readonly property real dialProbe_pistonFrame: pistonFrame
-    readonly property bool dialProbe_blinkRaised: blink.y < 0
+    readonly property bool dialProbe_blinkRaised: blinkRaised
 
     function brewDoubleClick() {
         const decision = Logic.decideDoubleClick({ name: Stats.name, extracting: Stats.extracting }, { allowFinish: false })
@@ -86,22 +86,29 @@ Item {
     Component.onCompleted: {
         idleEffect()
         // At home the blink sits 206.5 px higher.
-        if (Stats.name === "home") blink.y = -206.5
+        if (Stats.name === "home") blinkRaised = true
         positionEffect()
     }
+    property bool blinkRaised: false
 
+    // Both Lotties are 480 x 480 full-screen in React; the files are cropped to the part they draw in
+    // (screens/brew/tools/crop_lottie.py) and placed there 1:1.
     LottieItem {
         id: blink
-        width: 480
-        height: 480
+        x: 160
+        y: 324 - (purge.blinkRaised ? 206.5 : 0)
+        width: 160
+        height: 96
         source: Theme.asset("lottie/brew-blink.json")
         loops: -1
         onLoadedChanged: if (loaded) play()
     }
     LottieItem {
         id: piston
-        width: 480
-        height: 480
+        x: 160
+        y: 116
+        width: 160
+        height: 300
         source: Theme.asset("lottie/brew-piston.json")
         loops: 1
         // LottieItem rewinds to the segment start right after loadedChanged: place it a moment later.

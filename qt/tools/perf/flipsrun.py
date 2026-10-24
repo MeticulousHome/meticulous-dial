@@ -5,7 +5,11 @@ from DRM debugfs; the same counter as the Qt prototype's flips.py). Runs ON the 
 
     python3 flipsrun.py SCENARIO [--port 9310] [--hz 63.533] [--reps 1]
 
-Scenarios: browse, spin, menu, zoom, static, bubble. Prints one JSON line per run: frames per second while
+Scenarios: browse, spin, menu, zoom, static, bubble, routes.
+
+A gap of 3+ vblanks between two new frames counts as a hitch unless it is longer than 100 ms (then it is
+idle time between two animations). Events are spaced so that idle gaps stay above 100 ms: a gap below it
+can be an animation that ended early, not a stall (qmlprofile.sh tells them apart). Prints one JSON line per run: frames per second while
 something moves, the share of frames on consecutive vblanks, hitches of 3+ vblanks, worst interval, and the
 CPU use of the Dial process.
 """
@@ -50,7 +54,7 @@ SCENARIOS = {
     # Quick settings -> "config" (a bubble component switch) -> close. The entry is found by its label
     # (SELECT, resolved before measuring), never by position: positions differ per screen and some entries
     # act on the machine.
-    "bubble": ([(0, CTX), (800, "SELECT:config"), (3800, CTX)], 7),
+    "bubble": ([(0, CTX), (800, "SELECT:config"), (4600, CTX)], 8),
 }
 
 
@@ -183,7 +187,7 @@ def run(scenario, port, hz, rep):
     for at, kind in seq:
         if kind.startswith("SELECT:"):
             n = steps_to(ws, kind.split(":", 1)[1])
-            resolved += [(at + i * 250, CW) for i in range(n)] + [(at + n * 250 + 100, DOWN), (at + n * 250 + 200, UP)]
+            resolved += [(at + i * 300, CW) for i in range(n)] + [(at + n * 300 + 100, DOWN), (at + n * 300 + 200, UP)]
         else:
             resolved.append((at, kind))
     seq = sorted(resolved, key=lambda e: e[0])

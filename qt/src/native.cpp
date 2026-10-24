@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QGuiApplication>
+#include <QJSValue>
 #include <QJsonDocument>
 #include <QLoggingCategory>
 #include <QSaveFile>
@@ -101,7 +102,9 @@ QVariant Native::storageGet(const QString &key, const QVariant &fallback) const
 
 void Native::storageSet(const QString &key, const QVariant &value)
 {
-    m_storage.insert(key, QJsonValue::fromVariant(value));
+    // A JavaScript object or array arrives wrapped in a QJSValue, which QJsonValue reads as null.
+    const QVariant plain = value.canConvert<QJSValue>() ? value.value<QJSValue>().toVariant() : value;
+    m_storage.insert(key, QJsonValue::fromVariant(plain));
     saveStorage();
 }
 

@@ -162,8 +162,11 @@ def test_heating_without_water_asks_for_it(screen, machine):
     screen.wait_for_text("Waiting...")
     screen.wait_for_text("Tap to retry")
     assert screen.probe("bubbleGradient") == 0
-    # Water again: the temperature comes back (the footer fades out and in, 600 ms).
+    # The bubbles finish their loop, then drain (frames 314-375).
+    wait_for(lambda: screen.probe("bubbleSegment") == [314, 375], 15, "the bubbles draining")
+    # Water again: the temperature comes back (the footer fades out and in, 600 ms), the bubbles restart.
     machine.water(True)
+    wait_for(lambda: screen.probe("bubbleSegment") == [0, 314], 2, "the bubbles back")
     wait_for(lambda: not screen.has_text("No water"), 3, "the temperature back")
     screen.wait_for_text("Estimated time")
 
@@ -530,8 +533,13 @@ def test_aborting_the_retract_raises_the_piston_and_returns_home(screen, backend
     screen.wait_for_route("barometer")
     screen.controls.double_push()
     assert sent(screen) == ["finish"]
+    assert machine_status(screen) == "Infusion", "the shot did not go on after finish"
     wait_for(lambda: machine_status(screen) == "retracting", 90, "the retract")
     screen.controls.double_push()
-    assert sent(screen)[-1] == "abort"
+    # The abort makes the backend home the piston (only then does the emulation play "home"): the raise
+    # follows at once, so the barometer (and its probe) may be gone already.
     screen.wait_for_route("manual-purge", timeout_s=15)
+    seen = routes(screen)
+    last_barometer = len(seen) - 1 - seen[::-1].index("barometer")
+    assert seen[last_barometer:][:2] == ["barometer", "manual-purge"], seen
     screen.wait_for_route("profileHome", timeout_s=60)

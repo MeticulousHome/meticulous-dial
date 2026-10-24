@@ -29,7 +29,7 @@ QtObject {
         return Api.getSettings().then(value => {
             fetching = false
             if (value && value.error) throw new Error(value.error)
-            if (JSON.stringify(value) !== JSON.stringify(data)) data = value
+            if (value && typeof value === "object" && JSON.stringify(value) !== JSON.stringify(data)) data = value
             return value
         }).catch(error => {
             fetching = false
@@ -41,8 +41,14 @@ QtObject {
         return Api.updateSetting(partial).then(value => {
             if (value && value.error) throw new Error(value.error)
             console.log("User Settings updated successfully.")
-            data = value
-            updated(value)
+            // The emulated backend can answer with two JSON documents (a string here): keep the settings
+            // and let the next poll bring them.
+            if (value && typeof value === "object") {
+                data = value
+                updated(value)
+            } else {
+                refetch()
+            }
             return value
         }).catch(error => {
             console.error("Error updating User Settings:", error && error.message ? error.message : error)

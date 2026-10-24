@@ -160,10 +160,34 @@ def short_pour_over_profile():
     }
 
 
-def stop_machine(backend):
-    """Ends the emulated shot a manual setup started."""
+def stop_machine(backend, screen):
+    """Ends the emulated shot a manual setup started: stop until the machine stays idle for 3 s."""
+    deadline = time.monotonic() + 90
+    idle_since = None
     backend.get("/api/v1/action/stop")
-    time.sleep(1.5)
+    while time.monotonic() < deadline:
+        name = ev(screen, "Stats.name")
+        if name == "idle":
+            idle_since = idle_since or time.monotonic()
+            if time.monotonic() - idle_since >= 3:
+                return
+        else:
+            idle_since = None
+            backend.get("/api/v1/action/stop")
+        time.sleep(0.5)
+    raise AssertionError(f"the emulated machine did not stop: {ev(screen, 'Stats.name')}")
+
+
+def wait_for_route_shown(screen, names, after, timeout_s=15):
+    """A route among `names` shown since history entry `after` (the emulated shot can move on from the
+    heating screen faster than a poll of the current route sees it)."""
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        shown = [name for _, name in screen.state()["history"][after:]]
+        if any(name in names for name in shown):
+            return shown
+        time.sleep(0.1)
+    raise AssertionError(f"the Dial showed none of {names}: {screen.state()['history'][after:]}")
 
 
 def reseed_manual_profile(backend):
@@ -444,6 +468,26 @@ def test_a_guided_pour_over_follows_the_installed_profile(screen, backend):
         backend.request("DELETE", f"/api/v1/pour-over/profile/delete/{POUR_OVER_ID}")
 
 
+def test_the_contract_parser_installs_as_the_profiles_hook(screen, backend):
+    """Protects: the installed pour-over profiles reaching the home in the Dial's shape (doseG,
+    pourTargets...) through ProfileContract.parsePourOverProfile installed as Profiles.parsePourOverProfile,
+    the line main.qml runs at start."""
+    status, body = backend.post("/api/v1/profile/save", short_pour_over_profile())
+    assert status == 200, body
+    try:
+        assert hooks(screen)("installContract()") == "installed"
+        deadline = time.monotonic() + 10
+        shape = None
+        while time.monotonic() < deadline:
+            shape = json.loads(ev(screen, "JSON.stringify(Profiles.pourOverProfiles.map(p => [p.id, p.doseG, p.targetDurationMs, (p.pourTargets || []).length]))"))
+            if [POUR_OVER_ID, 15, 60000, 2] in shape:
+                break
+            time.sleep(0.2)
+        assert [POUR_OVER_ID, 15, 60000, 2] in shape, shape
+    finally:
+        backend.request("DELETE", f"/api/v1/pour-over/profile/delete/{POUR_OVER_ID}")
+
+
 def test_a_guided_pour_over_without_a_selection_goes_home(screen):
     """Protects: the guided route never runs without a selected profile (GuidedPourOverScreen)."""
     screen.wait_for_home()
@@ -470,6 +514,7 @@ def test_manual_mode_is_reached_from_the_experimental_menu(screen, backend):
 
     Breaks when the settings group's Experimental menu does not open the setup (xfail until it is ported).
     """
+    reseed_manual_profile(backend)
     screen.wait_for_home()
     screen.controls.context()
     screen.select("Experimental")
@@ -484,13 +529,14 @@ def test_manual_mode_is_reached_from_the_experimental_menu(screen, backend):
     screen.wait_for_text("Click to continue")
     screen.controls.push()  # output: as saved
     screen.wait_for_focus("Start on pressure")
+    before = len(screen.state()["history"])
     screen.controls.push()
     try:
-        screen.wait_for_any_route(["heating", "manual-purge"], timeout_s=15)
+        wait_for_route_shown(screen, ["heating", "manual-purge"], before)
         _, profile = backend.get(f"/api/v1/profile/get/{MANUAL_PROFILE_ID}")
         assert profile["manual"] is True and profile["stages"][0]["type"] == "pressure", profile
     finally:
-        stop_machine(backend)
+        stop_machine(backend, screen)
 
 
 def test_the_manual_setup_saves_the_three_answers_and_starts_the_shot(screen, backend):
@@ -524,16 +570,17 @@ def test_the_manual_setup_saves_the_three_answers_and_starts_the_shot(screen, ba
     screen.controls.push()
     wait_probe(screen, "manualStep", "start")
     screen.focus("Start on flow")
+    before = len(screen.state()["history"])
     screen.controls.push()
     try:
-        screen.wait_for_any_route(["heating", "manual-purge"], timeout_s=15)
+        wait_for_route_shown(screen, ["heating", "manual-purge"], before)
         _, profile = backend.get(f"/api/v1/profile/get/{MANUAL_PROFILE_ID}")
         assert profile["temperature"] == min(99, temperature + 1.5), profile
         assert profile["final_weight"] == 38, profile
         assert [s["type"] for s in profile["stages"]] == ["flow", "pressure"], profile["stages"]
         assert profile["manual"] is True
     finally:
-        stop_machine(backend)
+        stop_machine(backend, screen)
         reseed_manual_profile(backend)
 
 

@@ -6,6 +6,9 @@ import QtQuick
 import QtQuick.Window
 import Dial
 import Dial.Native
+import "Dial/screens/freepour" as FreePour
+import "Dial/screens/freepour/ProfileContract.js" as PourOverContract
+import "Dial/screens/support" as Support
 
 Window {
     id: window
@@ -90,6 +93,13 @@ Window {
         Api.setBrightness({ brightness: 1 }).catch(e => console.error("Error setting brightness", e.message))
         Notifications.load()
         Backend.connected   // instantiate the socket bridge
+        // Installed pour-over profiles go through the Free Pour contract (profileApi.ts).
+        Profiles.parsePourOverProfile = PourOverContract.parsePourOverProfile
+        Profiles.refetchPourOver()
+        // App.tsx: pour-over sessions saved while the backend was away are sent now.
+        FreePour.FreePourStorage.syncAtStartup()
+        // SocketProviderValue: reports dispatched from the app are collected and uploaded, headless.
+        Support.DispatchedReports.start()
     }
 
     // The context button toggles the quick settings (App.tsx and Bubble.tsx's handlers: App's is off during

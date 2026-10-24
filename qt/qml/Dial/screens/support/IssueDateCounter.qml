@@ -18,6 +18,8 @@ Item {
     property bool active: false
     property bool readOnly: false
     property string textValue: ""
+    // The most digits the value can have (the year: 4).
+    property int maxDigits: 2
 
     readonly property color activeColor: "#f5c444"
     readonly property color inactiveColor: "#E6E6E6"
@@ -93,7 +95,7 @@ Item {
             height: 38
             clip: true
             Repeater {
-                model: field.readOnly ? 0 : 6
+                model: field.readOnly ? 0 : field.maxDigits
                 DigitColumn {
                     visible: present
                     x: (field.digits.length - 1 - index) * field.digitWidth
@@ -249,24 +251,18 @@ Item {
                            field.inactiveColor.b + (field.activeColor.b - field.inactiveColor.b) * k, 1)
         }
 
-        Column {
-            // bottom: 0 of a 38 px container, 380 px tall (9 at the top), moved down by translateY
+        // The column of digits 9..0, one 38 px line each: bottom: 0 of the 38 px container (9 at the top),
+        // moved down by translateY.
+        CssText {
             y: 38 - 380 + column.pos
-            Repeater {
-                model: 10
-                CssText {
-                    required property int index
-                    width: field.digitWidth
-                    height: 38
-                    text: String(9 - index)
-                    color: column.digitColor
-                    font.family: Theme.fontMono
-                    font.weight: Font.Light
-                    font.pixelSize: field.fontSize
-                    font.letterSpacing: field.letterSpacing
-                    cssLineHeight: 38
-                }
-            }
+            width: field.digitWidth
+            text: "9\n8\n7\n6\n5\n4\n3\n2\n1\n0"
+            color: column.digitColor
+            font.family: Theme.fontMono
+            font.weight: Font.Light
+            font.pixelSize: field.fontSize
+            font.letterSpacing: field.letterSpacing
+            cssLineHeight: 38
         }
     }
 }

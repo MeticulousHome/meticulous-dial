@@ -590,7 +590,7 @@ Item {
                         Separator { text: "." }
                         IssueDateCounter { active: report.activeIssueDateField === "month"; label: "Month"; value: report.issueDateDraft.getMonth() + 1; pad: true }
                         Separator { text: "." }
-                        IssueDateCounter { active: report.activeIssueDateField === "year"; label: "Year"; value: report.issueDateDraft.getFullYear() }
+                        IssueDateCounter { active: report.activeIssueDateField === "year"; label: "Year"; value: report.issueDateDraft.getFullYear(); maxDigits: 4 }
                     }
                     Row {
                         anchors.horizontalCenter: parent.horizontalCenter

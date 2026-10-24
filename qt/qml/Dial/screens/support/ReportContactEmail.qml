@@ -179,14 +179,12 @@ Item {
     }
 
     // CircleKeyboard resets its caption whenever its defaultValue is replaced (a new array in React, even an
-    // equal one): a new seed equal to the current one is replaced twice so the keyboard still sees it.
+    // equal one); a string equal to the current seed changes nothing, so the keyboard is reset explicitly.
     function resetKeyboard(seed) {
         const kb = keyboardLoader.item
+        const same = keyboardSeed === seed
         keyboardSeed = seed
-        if (kb && kb.defaultValue === seed) {
-            kb.defaultValue = seed + " "
-            kb.defaultValue = Qt.binding(() => screen.keyboardSeed)
-        }
+        if (kb && same) kb.reset(seed)
     }
 
     // The keyboard steps own the encoder; this drives the lists and the confirm step, where the focus
@@ -228,6 +226,7 @@ Item {
             defaultValue: screen.keyboardSeed
             suffix: "@"
             capitalizeFirstLetter: false
+            longPressEnabled: true
             onEdited: (text) => screen.localPartTyped(text)
             onSubmitted: (text) => screen.submitLocalPart(text)
             onCancelled: screen.bail()
@@ -241,6 +240,7 @@ Item {
             defaultValue: screen.keyboardSeed
             prefix: "@"
             capitalizeFirstLetter: false
+            longPressEnabled: true
             onEdited: (text) => { screen.domain = text }
             onSubmitted: (text) => screen.submitCustomDomain(text)
             onCancelled: screen.bail()

@@ -13,8 +13,9 @@ Some tests change settings that matter beyond this Dial (shot data sharing uploa
 Supabase when on): those run only against a backend of your own (DIAL_PRIVATE_BACKEND=1). The boot prompt
 needs a backend whose `shot_data_sharing` was never answered (a fresh STATE).
 
-The keyboard (CircleKeyboard) is ported by another group; until it types, the tests feed the contact email
-screen the keyboard's signals through its own handlers (the route's item, over the test port's eval).
+Typing a whole address with the knob on CircleKeyboard (the profile group's) takes long: the tests that need
+typed text hand the screen what the keyboard reports (its handlers, through the route's item over the test
+port's eval); long presses and the other steps go through the knob.
 """
 
 import http.server
@@ -30,6 +31,12 @@ PRIVATE_BACKEND = os.environ.get("DIAL_PRIVATE_BACKEND") == "1"
 private_backend = pytest.mark.skipif(
     not PRIVATE_BACKEND,
     reason="changes settings other Dials on this backend depend on (shot data sharing uploads brews): "
+    "run with DIAL_PRIVATE_BACKEND=1 against a backend of your own")
+
+# upload_report goes to every Dial on the backend: each would upload the dispatch and show its outcome.
+dispatches = pytest.mark.skipif(
+    not PRIVATE_BACKEND,
+    reason="a dispatched report reaches every Dial on this backend (each uploads it and shows a notification): "
     "run with DIAL_PRIVATE_BACKEND=1 against a backend of your own")
 
 TICKET = 424242
@@ -328,8 +335,6 @@ def test_a_report_without_an_email_creates_the_report_and_sends_only_its_id(scre
     screen.wait_for_text("email to reach you back")
     time.sleep(1)  # the keyboard settles before it takes gestures, as a person reads it
     screen.controls.long_push()  # skip the email
-    if screen.probe("contactStep") != "declined":
-        js(screen, "router.current.item.bail(), 1")  # the keyboard placeholder has no long press yet
     screen.wait_for_text("No contact email")
     screen.controls.push()  # Ok, send without one
 
@@ -571,6 +576,7 @@ def dispatch(backend, ticket, **extra):
     return minted["localID"]
 
 
+@dispatches
 def test_a_report_dispatched_from_the_app_is_uploaded_and_announced(screen, backend, services, dispatched_reports_started):
     """Protects: the mobile app's reports: the backend's upload_report reaches the Dial, which collects,
     links the ticket, delivers to Sentry with the app user's contact and announces it as a notification
@@ -593,6 +599,7 @@ def test_a_report_dispatched_from_the_app_is_uploaded_and_announced(screen, back
     screen.wait_for_home()
 
 
+@dispatches
 def test_a_dispatched_report_that_cannot_reach_sentry_says_so(screen, backend, services, dispatched_reports_started):
     """Protects: a failed upload of an app report is announced with its message and code (BR-05)."""
     ticket = 600000 + int(time.time()) % 100000
@@ -698,7 +705,7 @@ def test_the_master_calibration_lock_ignores_wrong_codes_and_cancels_to_the_manu
     screen.c.call({"cmd": "screen", "name": "masterCalibrationLock"})
     screen.wait_for_route("masterCalibrationLock")
     screen.wait_for_text("Unlock Master Calibration")
-    # The keyboard's signals (CircleKeyboard is another group's; its placeholder does not type).
+    # What the keyboard reports (typing digits with the knob takes long).
     keyboard = "router.current.item.children[0]"
     js(screen, f"{keyboard}.edited('1234'), {keyboard}.submitted('1234'), 1")
     time.sleep(1)

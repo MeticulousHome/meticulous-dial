@@ -150,10 +150,10 @@ void LottieItem::load()
     if (width() <= 0 && height() <= 0) {
         setImplicitSize(w, h);
     }
-    emit loadedChanged();
     m_frame = segmentStart();
     emit frameChanged();
     requestRender(m_frame);
+    emit loadedChanged();
     if (m_playing)
         play();
 }

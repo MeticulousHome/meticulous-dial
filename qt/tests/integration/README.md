@@ -17,7 +17,19 @@ bash qt/tests/integration/run.sh                                   # the whole D
 bash qt/tests/integration/run.sh -k pill                           # pytest arguments
 JOURNEYS=tests/test_dial_02_home.py bash qt/tests/integration/run.sh
 REBUILD=1 bash qt/tests/integration/run.sh                         # rebuild the image first
+MODE=react bash qt/tests/integration/run.sh                        # the same journeys on the React Dial
+python3 qt/tests/integration/compare.py qt/build/integration-artifacts/<react run> qt/build/integration-artifacts/<qt run>
+bash qt/tests/integration/plant.sh && RUN_ID=plant QT_DIAL_QML=/repo/qt/build/integration-plant/qml \
+  JOURNEYS="tests/test_dial_01_first_boot.py tests/test_dial_02_home.py" bash qt/tests/integration/run.sh
 ```
+
+`MODE=react` is the reference: the suite unchanged (its conftest and dial_app, Chromium, Playwright) on
+the React web build of `DIAL_DIR` (default `~/integration-dial`, whose `src/` is this repository's), in
+the same container. `compare.py` puts both runs side by side, journey by journey: outcome, the screens
+shown, every focused menu entry the journey read (`trace_plugin.py` adds them to the timeline in both
+modes) and the turns of each "Go to" / "Choose" step. `plant.sh` copies the QML with two planted bugs (the
+pill never names the selected card; Device Info values end in "!") to check that the journeys, through
+this overlay, catch them: the two pill journeys and the Device Info journey must fail.
 
 It needs, on the WSL host: Docker, the amd64 binary (`qt/scripts/build.sh amd64`), and the pieces
 ci/local.sh takes: `INTEGRATION_DIR` (default `~/work/meticulous-integration`), `BACKEND_DIR`
@@ -26,7 +38,7 @@ ci/local.sh takes: `INTEGRATION_DIR` (default `~/work/meticulous-integration`), 
 on the first boot (`test_dial_01_first_boot.py`) needs a fresh machine: every run starts one (a new
 fika-sil NVS and backend data directory), and the files run in name order, so it runs first.
 
-Artifacts: `qt/build/integration-artifacts/<RUN_ID>/` (default a timestamp; `latest` names the last):
+Artifacts: `qt/build/integration-artifacts/<RUN_ID>/` (default `<mode>-<timestamp>`; `latest` names the last):
 `results.md` (one line per journey: outcome, failing check, screenshots), `junit.xml`,
 `screens/<test>-NN-<what>.png` (a screenshot at each failed wait and at the end of a failed test),
 `pages/<test>.dial.log` (the Dial's own log, every start) and `pages/<test>.json` (its JavaScript
@@ -42,6 +54,7 @@ test did, each machine status, each screen), `backend.log`, `fika-sil.stderr.log
 | Runner | `run.sh`, `in-container.sh` | the container `qt-dial-integ-run` (own network namespace), the backend's virtualenv (volume `qt-dial-integ-opt`, uv cache `meticulous-integration-cache`), the journeys copied with the overlay first, pytest, `summarize.py` |
 | Fixtures | `conftest.py` | imports meticulous-integration's conftest (copied as `integration_conftest.py`) and replaces `dial_server`, `browser`, `dial_app`: Xvfb for the session; the Qt Dial process for each test (new storage file), `screen.restart()` a new process on the same storage |
 | Screen | `dial_app.py` | tests/dial_app.py's API over the test port (`qt/tests/e2e/dialctl.py`): `route()` (Nav.screen), `routes()` (Nav.history), `text()` (visible Texts), `focused()` (`dialFocusedLabel`), `active_card()` / `carousel()` / `card_selected()` (ProfileHome's `dialProbe_activeCard` / `cards` / `cardSelected`), `pill_text()` (the Text inside the pill's box), `inject_turns()` (test-port gestures and `button` events); the controls, timeline and profile helpers are the suite's own |
+| Tracing, comparing | `trace_plugin.py`, `compare.py`, `summarize.py` | focused entries on the timeline (both modes); React vs Qt side by side; `results.md` |
 | Network | `qt_dial_net.py` | `--api` is a recording proxy to the backend (HTTP and Socket.IO): `dial_app.watch.requests`; the Dial's `http_proxy`/`https_proxy` is a gate that refuses every third party (`dial_app.refused`) and answers the ones a test declares (`dial_app.answer_external`, over TLS with a CA of the run installed in the container's trust store) |
 
 What a journey reads from the React page itself is mapped in `dial_app.QtPage.evaluate`: Brew
