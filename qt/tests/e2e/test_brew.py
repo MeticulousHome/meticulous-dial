@@ -113,6 +113,14 @@ class Machine:
         self.status(name="idle", state="idle", extracting=False)
 
 
+def restore_last_profile(screen):
+    """The backend's own last profile again: manual_brew plants a manual one, and Brew complete treats a
+    shot as manual (and keeps its graph at idle) while that is the last profile."""
+    js(screen, "Profiles.refetchLast(); 'ok'")
+    wait_for(lambda: js(screen, "(Profiles.lastProfile && Profiles.lastProfile.profile && Profiles.lastProfile.profile.id === 'manual') ? 'planted' : 'real'") == "real",
+             10, "the backend's last profile")
+
+
 @pytest.fixture
 def machine(screen):
     screen.wait_for_home()
@@ -122,6 +130,7 @@ def machine(screen):
     yield m
     m.idle()
     m.resume()
+    restore_last_profile(screen)
 
 
 # ---- heating
