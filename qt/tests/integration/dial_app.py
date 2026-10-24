@@ -270,7 +270,9 @@ class Screen:
         return text.casefold() in self.text().casefold()
 
     def focused(self) -> str | None:
-        return self.client.focused()
+        """The focused entry's label, trimmed as the React fixture trims the label's innerText."""
+        value = self.client.focused()
+        return value.strip() if isinstance(value, str) else value
 
     def wait_for_focus(self, label: str, timeout_s: float = 5) -> None:
         deadline = time.monotonic() + timeout_s

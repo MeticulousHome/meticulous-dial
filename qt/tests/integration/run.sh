@@ -5,6 +5,9 @@
 #   bash qt/tests/integration/run.sh [pytest args]          e.g. -x, -k pill
 #   JOURNEYS=tests/test_dial_02_home.py bash qt/tests/integration/run.sh
 #   MODE=react bash qt/tests/integration/run.sh             the React Dial (DIAL_DIR), the reference
+# Two containers: a setup one with network (virtualenv, Node, Chromium into volumes), then the test one with
+# no network at all (--network none): no journey can reach a real service (support tickets, Sentry,
+# Community), and the Qt Dial runs with its own guard on (DIAL_EXTERNAL_SERVICES=0, checked in its log).
 # INTEGRATION_DIR (default ~/work/meticulous-integration, mounted read-only), BACKEND_DIR (~/backend-beta),
 # FIRMWARE_DIR (~/fw-beta, for sil/harness), FIKASIL_BINARY (~/fika-sil-beta/fika-sil) and FIKASIL_VERSION
 # (its fika-sil.version), SIL_SPEED (5, as CI), RUN_ID (artifacts go to
@@ -25,16 +28,24 @@ name="${QT_INTEG_NAME:-qt-dial-integ-run}"
 image="${QT_INTEG_IMAGE:-qt-dial-integ:24.04}"
 run_id="${RUN_ID:-$mode-$(date +%Y%m%d-%H%M)}"
 
+if [ "${DIAL_EXTERNAL_SERVICES:-0}" = 1 ]; then
+    echo "DIAL_EXTERNAL_SERVICES=1: the journeys never run with real services" >&2
+    exit 2
+fi
 if ! docker image inspect "$image" >/dev/null 2>&1 || [ "${REBUILD:-0}" = 1 ]; then
     docker build -t "$image" "$here"
 fi
-mkdir -p "$repo/qt/build/integration-artifacts/$run_id"
-echo "$run_id" > "$repo/qt/build/integration-artifacts/latest"
-docker rm -f "$name" >/dev/null 2>&1 || true
 dial=(-e DIAL_DIR=/repo)
 if [ "$mode" = react ]; then
+    if ! docker image inspect qt-dial-integ-react:24.04 >/dev/null 2>&1 || [ "${REBUILD:-0}" = 1 ]; then
+        docker build -t qt-dial-integ-react:24.04 -f "$here/Dockerfile.react" "$here"
+    fi
+    image=qt-dial-integ-react:24.04
     dial=(-v "$(realpath "${DIAL_DIR:-$HOME/integration-dial}"):/dial" -e DIAL_DIR=/dial)
 fi
+mkdir -p "$repo/qt/build/integration-artifacts/$run_id"
+echo "$run_id" > "$repo/qt/build/integration-artifacts/latest"
+docker rm -f "$name" "$name-setup" >/dev/null 2>&1 || true
 # A checkout that is a git worktree keeps its objects in the main checkout's .git: mount that too (at
 # the same path, read-only), so the run records the commits it ran (run.json).
 gitdirs=()
@@ -45,16 +56,17 @@ for checkout in "$repo" "$backend" "$firmware"; do
         *) gitdirs+=(-v "$common:$common:ro") ;;
     esac
 done
-# Its own network namespace (not the host's): the backend, fika-sil, the proxy and the Dial's test port
-# live on the container's loopback, so nothing clashes with the other Dials and backends on the host.
+common=(
+    -v "$repo:/repo" -v "$integration:/integration:ro" -v "$backend:/backend" -v "$firmware:/firmware:ro"
+    -v "$fikasil:/prebuilt/fika-sil:ro" "${dial[@]}"
+    -v meticulous-integration-cache:/root/.cache -v qt-dial-integ-opt:/opt/qt-integ "${gitdirs[@]}"
+    -e BACKEND_DIR=/backend -e FIRMWARE_DIR=/firmware -e SUITE=dial -e MODE="$mode"
+    -e FIKASIL_BINARY=/prebuilt/fika-sil -e FIKASIL_VERSION="$version" -e SIL_SPEED="${SIL_SPEED:-5}"
+    -e ARTIFACTS_DIR="/repo/qt/build/integration-artifacts/$run_id" -e JOURNEYS="${JOURNEYS:-}"
+    -e QT_DIAL_FAIL_ON_QML_ERRORS="${QT_DIAL_FAIL_ON_QML_ERRORS:-0}" -e QT_DIAL_QML="${QT_DIAL_QML:-/repo/qt/qml}"
+    -e DIAL_EXTERNAL_SERVICES=0 -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -w /repo
+)
 # The script runs from a copy, so editing it does not disturb a run in progress.
-exec docker run --rm --name "$name" \
-    -v "$repo:/repo" -v "$integration:/integration:ro" -v "$backend:/backend" -v "$firmware:/firmware:ro" \
-    -v "$fikasil:/prebuilt/fika-sil:ro" "${dial[@]}" \
-    -v meticulous-integration-cache:/root/.cache -v qt-dial-integ-opt:/opt/qt-integ "${gitdirs[@]}" \
-    -e BACKEND_DIR=/backend -e FIRMWARE_DIR=/firmware -e SUITE=dial -e MODE="$mode" \
-    -e FIKASIL_BINARY=/prebuilt/fika-sil -e FIKASIL_VERSION="$version" -e SIL_SPEED="${SIL_SPEED:-5}" \
-    -e ARTIFACTS_DIR="/repo/qt/build/integration-artifacts/$run_id" -e JOURNEYS="${JOURNEYS:-}" \
-    -e QT_DIAL_FAIL_ON_QML_ERRORS="${QT_DIAL_FAIL_ON_QML_ERRORS:-0}" -e QT_DIAL_QML="${QT_DIAL_QML:-/repo/qt/qml}" \
-    -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
-    -w /repo "$image" bash -c 'cp /repo/qt/tests/integration/in-container.sh /tmp/in-container.sh && exec bash /tmp/in-container.sh "$@"' _ "$@"
+launch='cp /repo/qt/tests/integration/in-container.sh /tmp/in-container.sh && exec bash /tmp/in-container.sh "$@"'
+docker run --rm --name "$name-setup" "${common[@]}" -e PHASE=setup "$image" bash -c "$launch" _
+exec docker run --rm --name "$name" --network none "${common[@]}" -e PHASE=test "$image" bash -c "$launch" _ "$@"

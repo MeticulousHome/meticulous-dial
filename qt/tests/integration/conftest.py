@@ -12,6 +12,10 @@ journey reports); only the three fixtures that open the React Dial are replaced:
                a recording proxy, with its test port open; screen.restart() starts it again on the same
                storage, as a page reload keeps the browser's localStorage.
 
+The Dial never reaches a real service: it runs with DIAL_EXTERNAL_SERVICES=0 (its own guard,
+src/netguard.cpp) and a Dial whose log does not say "external services are off" is stopped; its
+http_proxy is a local gate that refuses third parties; and run.sh gives the test phase no network.
+
 Environment (set by in-container.sh):
   QT_DIAL_BINARY  default /repo/qt/build/amd64/meticulous-dial-qt
   QT_DIAL_QML     default /repo/qt/qml
@@ -37,6 +41,7 @@ from qt_dial_net import DialNetwork, SuiteCA  # noqa: E402
 QT_DIAL_BINARY = os.environ.get("QT_DIAL_BINARY", "/repo/qt/build/amd64/meticulous-dial-qt")
 QT_DIAL_QML = os.environ.get("QT_DIAL_QML", "/repo/qt/qml")
 FAIL_ON_QML_ERRORS = os.environ.get("QT_DIAL_FAIL_ON_QML_ERRORS", "0") == "1"
+EXTERNAL_SERVICES_OFF = "external services are off"
 
 
 class QtDialHost:
@@ -70,6 +75,9 @@ class QtDialHost:
             "LIBGL_ALWAYS_SOFTWARE": "1",
             "QSG_RENDER_LOOP": "basic",
             "XDG_RUNTIME_DIR": str(self.workdir),
+            # Never real services: the Dial's own guard (src/netguard.cpp) stays on whatever the caller's
+            # environment says; QtDialApp checks its log for it.
+            "DIAL_EXTERNAL_SERVICES": "0",
             # Nothing but this machine: third parties go to the gate (qt_dial_net.py).
             "http_proxy": gate_url, "https_proxy": gate_url,
             "HTTP_PROXY": gate_url, "HTTPS_PROXY": gate_url,
@@ -168,6 +176,13 @@ class QtDialApp:
                 time.sleep(0.1)
         self.client = dialctl.DialClient(port)
         self.starts += 1
+        # The guard against real services must be on (main.cpp logs it at start); a Dial without it is
+        # stopped before the test touches it.
+        this_start = self._log_path.read_text(errors="replace").rsplit("---- start", 1)[-1]
+        if EXTERNAL_SERVICES_OFF not in this_start:
+            self._stop()
+            raise RuntimeError(f"the Qt Dial did not log {EXTERNAL_SERVICES_OFF!r}: an old binary or "
+                               f"DIAL_EXTERNAL_SERVICES is set; see {self._log_path}")
 
     def _stop(self):
         if self.client is not None:
