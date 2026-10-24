@@ -224,7 +224,7 @@ def test_a_free_pour_is_guided_by_the_scale_and_saved_to_the_pour_over_history(s
 
     Limit: eight steps, each weight recorded once the scale is stable and then tared; the pour detected from
     the weight; lifting the brewer leaves the server's beverage; retained = poured - brewed; the brew saved to
-    /history/pour-over and nothing left queued on the Dial.
+    /history/pour-over and nothing kept on the Dial (the backend is the only history).
     """
     before = last_pour_over(backend)
     scale = open_free_pour(screen)
@@ -265,7 +265,7 @@ def test_a_free_pour_is_guided_by_the_scale_and_saved_to_the_pour_over_history(s
     assert (m["setupG"], m["doseG"], m["waterPouredG"], m["beverageG"], m["retainedG"]) == (115, 15, 250, 210, 40), m
     assert m["serverBaselineG"] == 300 and m["status"] == "measured", m
     assert record["completion"] == "dial_fallback" and record["samples"], record["completion"]
-    assert json.loads(hooks(screen)("pendingIds()")) == []
+    assert json.loads(hooks(screen)("legacyKeys()")) == []
 
 
 def test_the_temperature_step_turns_between_70_and_100(screen):
@@ -356,12 +356,10 @@ def test_a_double_press_aborts_the_free_pour(screen):
     screen.wait_for_home()
 
 
-def test_queued_brews_are_sent_to_the_backend_when_the_dial_syncs(screen, backend):
-    """Protects: a brew the backend did not take (offline) reaching the history later: App.tsx's
-    syncPendingFreePourSessions, which main.qml runs at start."""
-    call = hooks(screen)
-    started = datetime.now(timezone.utc) - timedelta(minutes=2)
-    session = {
+def a_session(minutes_ago=2) -> dict:
+    """A finished Free Pour brew as the Dial records it (schema 4)."""
+    started = datetime.now(timezone.utc) - timedelta(minutes=minutes_ago)
+    return {
         "schemaVersion": 4, "id": str(uuid.uuid4()), "brewType": "pour_over", "mode": "free_pour", "name": "Free Pour",
         "source": "dial", "startedAt": started.isoformat().replace("+00:00", "Z"),
         "completedAt": (started + timedelta(seconds=90)).isoformat().replace("+00:00", "Z"),
@@ -374,32 +372,73 @@ def test_queued_brews_are_sent_to_the_backend_when_the_dial_syncs(screen, backen
         "samples": [{"t": 0, "w": 0, "f": 0, "p": 1}, {"t": 25000, "w": 250, "f": 0, "p": 0}],
         "completion": "brewer_removed", "sync": {"status": "pending", "attempts": 0},
     }
-    assert call("queueWithoutSaving(%s)" % json.dumps(json.dumps(session))) == "queued"
-    assert session["id"] in json.loads(call("pendingIds()"))
-    assert call("syncPending()") == "started"
-    deadline = time.monotonic() + 15
-    while time.monotonic() < deadline and not call("lastSync"):
+
+
+def wait_for_hook(call, name, timeout_s=30):
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        value = call(name)
+        if value:
+            return value
         time.sleep(0.1)
-    result = json.loads(call("lastSync"))
-    assert result["synced"] >= 1 and result["pending"] == 0, result
-    assert session["id"] not in json.loads(call("pendingIds()"))
+    raise AssertionError(f"no answer in {name} after {timeout_s} s")
+
+
+def backend_has(backend, session_id) -> bool:
     status, body = backend.get("/api/v1/history/pour-over?max_results=200")
-    assert status == 200 and session["id"] in [h["id"] for h in body["history"]], body
+    return status == 200 and session_id in [h["id"] for h in body["history"]]
 
 
-def test_the_history_shows_the_newest_of_the_local_and_the_backend_brew(screen, backend):
-    """Protects: the last pour-over after a restart: the Dial's cache, or the backend's newer brew."""
+def test_a_brew_is_saved_once_the_restarting_backend_answers(screen, backend):
+    """Protects: a finished brew reaching the history when the machine's backend is restarting at that moment.
+    Limit: the backend is the only Pour Over history (no local cache or queue, Alu's decision); saving retries
+    a request that gets no answer or a 5xx after 2, 4 and 8 s, then gives up (FreePourStorage)."""
     call = hooks(screen)
-    call("clearLocal()")
+    session = a_session()
+    assert call("saveThroughRestart(%s, 2)" % json.dumps(json.dumps(session))) == "started"
+    result = json.loads(wait_for_hook(call, "lastSave", 30))
+    assert result["ok"], result
+    assert call("failedRequests") == "2"
+    assert backend_has(backend, session["id"])
+    assert json.loads(call("legacyKeys()")) == []
+
+
+def test_a_brew_the_backend_never_takes_is_not_kept_on_the_dial(screen, backend):
+    """Protects: no second history on the Dial: after the retries the brew is reported lost, not queued."""
+    call = hooks(screen)
+    session = a_session()
+    assert call("saveThroughRestart(%s, 9)" % json.dumps(json.dumps(session))) == "started"
+    result = json.loads(wait_for_hook(call, "lastSave", 40))
+    assert not result["ok"], result
+    assert call("failedRequests") == "4"   # the first try and three retries
+    assert not backend_has(backend, session["id"])
+    assert json.loads(call("legacyKeys()")) == []
+
+
+def test_the_old_local_cache_is_sent_to_the_backend_and_removed(screen, backend):
+    """Protects: brews an older build left queued on the Dial reaching the history once, at start, and the old
+    cache going away (main.qml runs FreePourStorage.syncAtStartup)."""
+    call = hooks(screen)
+    session = a_session(minutes_ago=5)
+    assert call("plantLegacy(%s)" % json.dumps(json.dumps(session))) == "planted"
+    assert len(json.loads(call("legacyKeys()"))) == 2
+    assert call("startupSync()") == "started"
+    result = json.loads(wait_for_hook(call, "lastSync", 30))
+    assert result == {"sent": 1}, result
+    assert backend_has(backend, session["id"])
+    assert json.loads(call("legacyKeys()")) == []
+
+
+def test_the_history_shows_the_backends_newest_brew(screen, backend):
+    """Protects: the last pour-over on the history screen comes from the backend (GET /history/pour-over/last
+    and its file), with nothing on the Dial."""
+    call = hooks(screen)
     last = last_pour_over(backend)
     if not last:
         pytest.skip("the backend has no pour-over brew yet")
     assert call("latest()") == "started"
-    deadline = time.monotonic() + 15
-    while time.monotonic() < deadline and not call("lastLatest"):
-        time.sleep(0.1)
-    assert json.loads(call("lastLatest"))["id"] == last["id"]
-    assert last["id"] in json.loads(call("cachedIds()"))
+    assert json.loads(wait_for_hook(call, "lastLatest", 15))["id"] == last["id"]
+    assert json.loads(call("legacyKeys()")) == []
     screen.c.call({"cmd": "screen", "name": "freePourHistory"})
     screen.wait_for_route("freePourHistory")
     deadline = time.monotonic() + 10

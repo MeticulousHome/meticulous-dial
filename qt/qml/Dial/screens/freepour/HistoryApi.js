@@ -4,12 +4,16 @@
 
 const HISTORY_REQUEST_TIMEOUT_MS = 10000
 
-// apiError: "<the body's error, or the fallback> (<status>)"
+// apiError: "<the body's error, or the fallback> (<status>)", with the status kept on the error (0: no answer),
+// which FreePourStorage's retry reads.
 function apiError(error, fallback) {
     let message = fallback
     const body = error ? error.data : null
     if (body && typeof body === "object" && body.error) message = body.error
-    return new Error(message + " (" + (error && error.status !== undefined ? error.status : 0) + ")")
+    const status = error && error.status !== undefined ? error.status : 0
+    const result = new Error(message + " (" + status + ")")
+    result.status = status
+    return result
 }
 
 function historyRequest(api, method, path, body) {

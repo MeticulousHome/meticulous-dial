@@ -1,16 +1,17 @@
 pragma Singleton
-// src/features/freePour/storage.ts on the Dial's own storage (Native.storageGet / storageSet instead of
-// IndexedDB): the local cache of finished Pour Over brews, newest first by completedAt, and the queue of
-// those the backend has not stored yet. Every function answers a Promise, as the async React functions do.
+// The Pour Over history, kept by the backend only (Alu's decision, docs/qt-migration/DECISIONS.md): the
+// backend is the source of truth, as it is for espresso profiles and shots. The React Dial
+// (src/features/freePour/storage.ts) also kept the last 128 brews in IndexedDB and a queue of those the
+// backend had not taken; the Qt Dial keeps nothing on its own disk. Every function answers a Promise.
 //
-//   saveFreePourSession(session)       cache it, queue it, POST it to /history/pour-over, unqueue it
-//   getFreePourSessions(limit = 50)    the cached brews, newest first
-//   getLatestFreePourSession()         the newest of the cached brew and the backend's last one
-//   syncPendingFreePourSessions()      up to 10 queued brews to the backend -> { pending, synced }
+//   saveFreePourSession(session)   POST it to /history/pour-over, retried briefly while the backend restarts
+//   getLatestFreePourSession()     the backend's newest brew (GET /history/pour-over/last, then its file), or null
+//   syncAtStartup()                one-off clean-up of the local cache older builds kept (see below)
 //
-// App.tsx runs syncPendingFreePourSessions() at start; main.qml does it through this singleton:
-//   import "Dial/screens/freepour" as FreePour
-//   FreePour.FreePourStorage.syncPendingFreePourSessions()
+// The retry: only for a backend that does not answer (network error) or answers 5xx, as when it restarts
+// (about 8-15 s on the machine; the nightly restart restarts it). Saving tries 4 times over ~14 s, reading
+// 3 times over ~3 s; a 4xx is never retried. A brew the backend still does not take is logged
+// (session_save_failed) and lost: there is no disk queue.
 import QtQuick
 import Dial
 import Dial.Native
@@ -20,20 +21,44 @@ import "Logging.js" as Log
 QtObject {
     id: storage
 
-    // The IndexedDB database and stores of the React Dial, as storage keys.
-    readonly property string sessionsKey: "meticulous-brew-history/brew-sessions"
-    readonly property string pendingKey: "meticulous-brew-history/pending-backend-sessions"
-    // React keeps 128 brews. Native storage is one JSON file rewritten on every storageSet (by any feature),
-    // and a brew carries up to 3000 samples: 16 keeps that file small. The backend holds the full history
-    // and the Dial only ever shows the newest brew.
-    readonly property int maxLocalSessions: 16
-    readonly property int maxPendingSyncPerRun: 10
+    readonly property var saveRetryDelaysMs: [2000, 4000, 8000]
+    readonly property var readRetryDelaysMs: [1000, 2000]
+    // The REST client (the Api singleton); the end-to-end tests swap in one that fails first.
+    property var api: Api
 
-    property var latestSessionCache: null
+    // Retries `attempt` (a function answering a Promise) after each delay while the failure is the backend
+    // not answering or answering 5xx.
+    function _withRestartRetry(attempt, delays, what) {
+        const run = (index) => attempt().catch(error => {
+            const status = error && error.status !== undefined ? error.status : 0
+            const backendDown = status === 0 || status >= 500
+            if (!backendDown || index >= delays.length) throw error
+            Log.logFreePour("backend_retry", { what: what, attempt: index + 1, status: status })
+            return new Promise(resolve => {
+                const timer = Qt.createQmlObject("import QtQml; Timer { repeat: false }", storage)
+                timer.interval = delays[index]
+                timer.triggered.connect(() => { timer.destroy(); resolve() })
+                timer.start()
+            }).then(() => run(index + 1))
+        })
+        return run(0)
+    }
 
-    // The lists are stored as JSON text: Native.storageSet keeps strings and numbers, but a JS array or
-    // object reaches it as a QJSValue and is written as null.
-    function _readList(key) {
+    function saveFreePourSession(session) {
+        return _withRestartRetry(() => HistoryApi.persistFreePourSession(storage.api, session), saveRetryDelaysMs, "save")
+    }
+
+    function getLatestFreePourSession() {
+        return _withRestartRetry(() => HistoryApi.getLatestBackendFreePourSession(storage.api), readRetryDelaysMs, "read")
+    }
+
+    // Builds before this change kept a local cache and a queue in the Dial's storage (keys of the React
+    // IndexedDB names). Once: send what was queued (the backend answers "existing" for a brew it has), then
+    // drop both keys. Kept while the backend cannot be reached, so the next start tries again.
+    readonly property string legacySessionsKey: "meticulous-brew-history/brew-sessions"
+    readonly property string legacyPendingKey: "meticulous-brew-history/pending-backend-sessions"
+
+    function _legacyList(key) {
         const value = Native.storageGet(key, "")
         if (Array.isArray(value)) return value
         if (typeof value !== "string" || !value.length) return []
@@ -41,107 +66,27 @@ QtObject {
             const parsed = JSON.parse(value)
             return Array.isArray(parsed) ? parsed : []
         } catch (error) {
-            Log.logFreePourError("local_history_unreadable", error, { key: key })
             return []
         }
     }
-    function _writeList(key, list) { Native.storageSet(key, JSON.stringify(list)) }
-    function _readSessions() { return _readList(sessionsKey) }
-    function _readPending() { return _readList(pendingKey).filter(p => p && p.id !== undefined) }
-    // The 'completedAt' index walked backwards: newest first, ties by id (the primary key) descending.
-    function _newestFirst(a, b) {
-        const ca = String(a.completedAt), cb = String(b.completedAt)
-        if (ca !== cb) return ca < cb ? 1 : -1
-        const ia = String(a.id), ib = String(b.id)
-        return ia === ib ? 0 : (ia < ib ? 1 : -1)
-    }
 
-    function cacheSession(session, queueForBackend) {
-        latestSessionCache = session
-        return new Promise(resolve => {
-            let sessions = _readSessions().filter(item => item.id !== session.id)
-            sessions.push(session)
-            sessions.sort(_newestFirst)
-            let pending = _readPending()
-            let pendingChanged = false
-            if (queueForBackend) {
-                pending = pending.filter(item => item.id !== session.id)
-                pending.push({ id: session.id, queuedAt: Date.now() })
-                pendingChanged = true
-            }
-            if (sessions.length > maxLocalSessions) {
-                const dropped = sessions.slice(maxLocalSessions).map(item => item.id)
-                sessions = sessions.slice(0, maxLocalSessions)
-                const kept = pending.filter(item => dropped.indexOf(item.id) < 0)
-                if (kept.length !== pending.length) { pending = kept; pendingChanged = true }
-            }
-            _writeList(sessionsKey, sessions)
-            if (pendingChanged) _writeList(pendingKey, pending)
-            resolve()
-        })
-    }
-
-    function markBackendPersisted(sessionId) {
-        const pending = _readPending()
-        const kept = pending.filter(item => String(item.id) !== String(sessionId))
-        if (kept.length !== pending.length) _writeList(pendingKey, kept)
-        return Promise.resolve()
-    }
-
-    function saveFreePourSession(session) {
-        return cacheSession(session, true)
-            .then(() => HistoryApi.persistFreePourSession(Api, session))
-            .then(() => markBackendPersisted(session.id))
-    }
-
-    function getFreePourSessions(limit) {
-        if (limit === undefined) limit = 50
-        return Promise.resolve(_readSessions().slice(0, limit))
-    }
-
-    function _getSessionById(sessionId) {
-        return _readSessions().find(item => String(item.id) === String(sessionId)) || null
-    }
-
-    function getLatestFreePourSession() {
-        const local = latestSessionCache !== null ? latestSessionCache : (_readSessions()[0] || null)
-        return HistoryApi.getLatestBackendFreePourSession(Api).then(backend => {
-            if (backend && (!local || new Date(backend.completedAt).getTime() > new Date(local.completedAt).getTime()))
-                return cacheSession(backend, false).then(() => backend)
-            return local
-        }).catch(() => {
-            // The local cache remains usable while the backend is starting or offline.
-            return local
-        })
-    }
-
-    function syncPendingFreePourSessions() {
-        // getAllKeys(): the queued ids in key order.
-        const pendingIds = _readPending().map(item => String(item.id)).sort()
-        const attemptIds = pendingIds.slice(0, maxPendingSyncPerRun)
-        let synced = 0
-        let chain = Promise.resolve()
-        for (const sessionId of attemptIds) {
-            chain = chain.then(() => {
-                const session = _getSessionById(sessionId)
-                if (!session) return markBackendPersisted(sessionId)
-                return HistoryApi.persistFreePourSession(Api, session).then(() => {
-                    synced += 1
-                    return markBackendPersisted(sessionId)
-                }, () => {
-                    // Keep this session pending for the next startup or completed brew.
-                })
-            })
-        }
-        return chain.then(() => ({ pending: pendingIds.length - synced, synced: synced }))
-    }
-
-    // App.tsx's start-up call, with its logging.
     function syncAtStartup() {
-        return syncPendingFreePourSessions().then(result => {
-            if (result.pending || result.synced)
-                Log.logFreePour("backend_history_sync_completed", { pending: result.pending, synced: result.synced })
-            return result
-        }).catch(error => Log.logFreePourError("backend_history_sync_failed", error))
+        const hasLegacy = Native.storageGet(legacySessionsKey, null) !== null || Native.storageGet(legacyPendingKey, null) !== null
+        if (!hasLegacy) return Promise.resolve({ sent: 0 })
+        const sessions = _legacyList(legacySessionsKey)
+        const pendingIds = _legacyList(legacyPendingKey).filter(p => p && p.id !== undefined).map(p => String(p.id))
+        const queued = sessions.filter(s => s && pendingIds.indexOf(String(s.id)) >= 0)
+        let chain = Promise.resolve()
+        for (const session of queued)
+            chain = chain.then(() => saveFreePourSession(session))
+        return chain.then(() => {
+            Native.storageRemove(legacySessionsKey)
+            Native.storageRemove(legacyPendingKey)
+            Log.logFreePour("legacy_local_history_removed", { cached: sessions.length, sent: queued.length })
+            return { sent: queued.length }
+        }).catch(error => {
+            Log.logFreePourError("legacy_local_history_send_failed", error, { queued: queued.length })
+            return { sent: 0, error: String(error && error.message ? error.message : error) }
+        })
     }
 }

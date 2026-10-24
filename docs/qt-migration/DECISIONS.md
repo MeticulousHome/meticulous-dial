@@ -36,6 +36,10 @@ MultiEffect. The Dial is GPLv3, so the LGPL/GPL Qt modules are fine.
   failure: every stop (upgrade, `dial-switch`, the nightly restart) ran `crash-reporter@meticulous-dial`,
   which reports a crash to Sentry and restarts the Dial. `main.cpp` takes SIGTERM/SIGINT itself and quits
   the event loop (exit 0, the tty restored on the way out; a stuck loop ends by SIGALRM after 10 s).
+- **The backend is the only Pour Over history.** (Alu, 2026-10-24.) As with profiles and shots, Free Pour
+  and guided pour-over brews are saved to `/history/pour-over` and read from it; the Dial keeps no cache
+  or queue (React keeps 128 brews in IndexedDB). A short retry covers a restarting backend: a request
+  without answer or a 5xx is retried after 2, 4 and 8 s when saving, 1 and 2 s when reading; 4xx never.
 - **No real services off the machine.** Only the machine's launcher sets `DIAL_EXTERNAL_SERVICES=1`; anything
   else (development, tests, profiling) reaches only the backend and the machine it runs on (`src/netguard.*`).
 - **The backend as today.** REST and Socket.IO on `http://localhost:8080`; the knob and buttons arrive as

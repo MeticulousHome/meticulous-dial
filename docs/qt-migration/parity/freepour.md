@@ -22,10 +22,10 @@ removal, server missing, accepted weights).
 | Brewer lift: removal threshold (max(28, 55 % of setup)), 3 s + 700 ms stable confirmation, "setup still on scale" rejection, measuring, server missing → "Server removed", put back or push to skip | FreePourScreen.tsx, brewWeightFilter.ts | FreePourScreen.qml, BrewWeightFilter.js | done | |
 | Live screen: timer, status (READY / POUR n [OF n] / WAITING / DRAWDOWN), pour rail, weight (or CURRENT → STOP), flow meter with the profile's target tick, instructions | FreePourScreen.tsx (FlowMeter, PourRail, TargetPourRail) | FreePourScreen.qml, FlowMeter.qml, PourRail.qml, TargetPourRail.qml, RailPoint.qml | done | cue: 5 × (0.5 s white / 0.5 s plain) when ≤ 5 s remain, white when due |
 | Result: brewed, water poured, retained, total time; push → history; double press aborts everywhere (exit on the result) | FreePourScreen.tsx | FreePourScreen.qml | done | |
-| Session record (schema 4) and save: cache, queue, POST /history/pour-over, unqueue; community scan request after a save | FreePourScreen.tsx createSession, storage.ts, historyApi.ts | FreePourScreen.qml, FreePourStorage.qml, HistoryApi.js | done | the scan goes to main.qml's `communityScanRequested` signal (via `Window.window`) |
-| Local history on Native storage, newest first, pending queue, pruning | storage.ts (IndexedDB) | FreePourStorage.qml | done | keeps 16 brews instead of 128, stored as JSON text (see below) |
-| syncPendingFreePourSessions (10 per run, key order, missing records dropped, failures kept) | storage.ts, App.tsx | FreePourStorage.syncPendingFreePourSessions / syncAtStartup | done | main.qml must call it (requests) |
-| getLatestFreePourSession: the cache or the backend's newer brew (/history/pour-over/last + file), cached | storage.ts, historyApi.ts | FreePourStorage.qml, HistoryApi.js | done | |
+| Session record (schema 4) and save: POST /history/pour-over; community scan request after a save | FreePourScreen.tsx createSession, storage.ts, historyApi.ts | FreePourScreen.qml, FreePourStorage.qml, HistoryApi.js | done, differs on purpose | the backend is the only history: no local cache or queue; a request without answer or a 5xx is retried after 2, 4 and 8 s (a backend restart), then the brew is logged as lost (`session_save_failed`). The scan goes to main.qml's `communityScanRequested` signal |
+| Local history (IndexedDB, 128 brews) and the pending queue | storage.ts | — | removed on purpose | Alu's decision: the backend is the source of truth, as for profiles |
+| syncPendingFreePourSessions at start | storage.ts, App.tsx | FreePourStorage.syncAtStartup | replaced | only sends, once, what an older Qt build had queued on the Dial, then removes that cache |
+| getLatestFreePourSession | storage.ts, historyApi.ts | FreePourStorage.qml, HistoryApi.js | done, differs on purpose | always the backend's newest brew (/history/pour-over/last + file), retried after 1 and 2 s; nothing cached |
 | Guided pour-over: GET /pour-over/profile/get/<id>?include_image=false, contract check, loading ring, home without a selection or on errors, reload on a new selection | features/freePour/GuidedPourOverScreen.tsx, profileApi.ts | freepour/GuidedPourOverScreen.qml, ProfileApi.js | done | |
 | Pour-over profile contract (structure + semantics), Dial shape | profileContract.ts | freepour/ProfileContract.js | done | `parsePourOverProfile(value)` for `Profiles.parsePourOverProfile` (requests) |
 | Installed profiles list / refetch / delete | usePourOverProfiles.ts, profileApi.ts | Core Profiles (existing) | done | ProfileApi.js also has them for completeness |
@@ -41,10 +41,12 @@ removal, server missing, accepted weights).
 
 ## Tests
 
-- `qt/tests/e2e/test_freepour.py`, 16 tests, all passing against the group's emulated backend: the free pour
+- `qt/tests/e2e/test_freepour.py`, 18 tests, all passing against the emulated backend: the free pour
   journey of meticulous-integration (setup, pour, lift, totals, history, backend record with its
-  measurements, nothing left queued), temperature limits, tare timeout and retry, setup review restart,
-  server lifted + skip, double-press abort, pending sync to the backend, newest local / backend brew, the
+  measurements, nothing kept on the Dial), temperature limits, tare timeout and retry, setup review restart,
+  server lifted + skip, double-press abort, a save that waits out a restarting backend, a save the backend
+  never takes (lost, not queued), the old local cache sent once and removed, the history read from the
+  backend, the
   guided pour-over (rail, stop weight, next pour, drawdown, record naming the profile), the contract
   installed as Profiles' hook, guided without a selection, the manual setup from the Experimental menu, the
   three answers saved before the start, abort / double press back to the menu, and the JS libraries'
@@ -59,9 +61,12 @@ removal, server missing, accepted weights).
 
 ## Differences on purpose
 
-- The local history keeps 16 brews, not 128: Native storage is one JSON file rewritten on every
-  `storageSet` (by any feature) and a brew carries up to 3000 samples. The backend keeps the full history
-  and the Dial only shows the newest brew; queued brews beyond 16 are pruned as React prunes beyond 128.
+- No local Pour Over history (2026-10-24, Alu's decision): the backend is the source of truth, as for
+  profiles and shots. React keeps 128 brews in IndexedDB plus a queue of brews the backend did not take;
+  the Qt Dial saves with a short retry for a restarting backend (requests without answer or 5xx: after 2, 4
+  and 8 s; 4xx never) and reads the newest brew from the backend (after 1 and 2 s). A brew the backend
+  still does not take is logged and lost. Builds before this kept a 16-brew cache: `syncAtStartup` sends
+  what they had queued, once, and removes it.
 - `font-variant-numeric: tabular-nums`: ABC Diatype's tnum makes the space, digits and `: · + ° –` 0.6 em
   wide. Qt 6.4 has no font features: spaces get the difference as word spacing (word gaps match); digits
   and punctuation keep proportional widths (a line like "NEXT POUR · START 0:15" is ~10 px narrower).
@@ -90,7 +95,6 @@ removal, server missing, accepted weights).
   ```
 - `Native.storageSet` writes a JS array or object as null (the QVariant holds a QJSValue; convert it with
   `QJSValue::toVariant()` before `QJsonValue::fromVariant`). FreePourStorage stores JSON text meanwhile.
-- Native storage rewrites one file on every set: a per-key file would let the Free Pour cache keep 128 brews.
 - `qt/tests/js/run.mjs`: `v.map(clone)` makes the copy in the vm's realm (species), so deepStrictEqual on
   arrays fails; `Array.from(v, clone)` fixes tests/manualSetup.test.mts (verified with a local copy).
 - `run-dev.sh`: every instance starts Xvfb on :99 with `--network host`, and the abstract X socket is shared

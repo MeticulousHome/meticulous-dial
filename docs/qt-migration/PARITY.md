@@ -36,7 +36,7 @@ antialiasing differs). On the machine (10.10.0.130, eglfs) see "Performance" at 
 | Tauri: plugin-log (console → journal) | App.tsx forwardConsole | src/main.cpp message handler | done | syslog priorities |
 | Tauri: community_* (Community uploader) | community_upload.rs, diagnostics.rs | src/community/ (C++) | done | same files and protocol as the Tauri Dial (interop tested both ways); not run against the real server |
 | Community history scan after a shot | App.tsx | main.qml → Community.scanHistory() | done | |
-| Free Pour pending sessions sync at start | App.tsx | main.qml → FreePourStorage.syncAtStartup() | done | |
+| Free Pour pending sessions sync at start | App.tsx | main.qml → FreePourStorage.syncAtStartup() | replaced | no local queue any more: it only sends and removes what older Qt builds kept |
 | Mobile app's dispatched reports, headless | SocketProviderValue | main.qml → DispatchedReports.start() | done | |
 | Tauri: get_profiles (offline prefetch) | profiles.rs | — | missing | disabled in React too (FIXME in useProfiles) |
 | Tauri: dial_performance_*, resource snapshot, slowdown monitor | lib.rs, useDialSlowdownMonitor | Native.resourceSnapshot() | partial | the detector only reported to Sentry: not ported |
@@ -76,7 +76,7 @@ antialiasing differs). On the machine (10.10.0.130, eglfs) see "Performance" at 
 | (scale overlay), calibrateScale | Scale/** | screens/scale/ | done | Playwright scale-overlay cases ported but one (needs a live "click to start" mid-press) |
 | snake | Snake | screens/misc/Snake.qml | done | |
 | manualSetup | ManualModeSetup | screens/manual/ManualModeSetup.qml | done | manualSetup test passes; the brew's manual stages need the firmware (not in the emulated backend) |
-| freePour, guidedPourOver, freePourHistory | features/freePour/** | screens/freepour/ | done | pourOverProfileContract and freePourSetup tests pass; local history keeps 16 brews (React 128) |
+| freePour, guidedPourOver, freePourHistory | features/freePour/** | screens/freepour/ | done | pourOverProfileContract and freePourSetup tests pass; the history lives in the backend only, no local cache (Alu's decision; React keeps 128 brews in IndexedDB) |
 | dose | (no component in React) | — | n/a | |
 
 ## Tests
@@ -119,7 +119,8 @@ the most used bubble menu is created ahead of time.
   real ticket service (ported; off the machine it ends in BR-03/BR-05 by design of the guard).
 - **Partial screens**: OSStatus (nothing in React opens it), countrySettings / timeZoneSettings (checked
   against the CSS only, the reference backend has no zone data).
-- **Free Pour local history** keeps 16 brews (React 128).
+- **Free Pour history**: in the backend only (no local cache or queue, by decision); a brew the backend does
+  not take within ~14 s of retries is lost.
 - **Tauri `get_profiles` offline prefetch**: not ported (disabled in React too).
 - **Tests not run here**: the Wi-Fi list journeys need a Wi-Fi fake (6 skipped: the emulated backend stubs
   NetworkManager); changing the Wi-Fi mode, the shot-data-sharing prompt, dispatched reports and "help us
