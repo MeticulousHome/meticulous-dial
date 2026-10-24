@@ -455,6 +455,7 @@ Item {
         }
 
         Arc {
+            id: ring
             anchors.centerIn: parent
             radius: 235
             lineWidth: 5
@@ -471,7 +472,7 @@ Item {
                 from: 0; to: 1
                 duration: 1500
                 loops: Animation.Infinite
-                running: parent.visible
+                running: ring.visible
             }
             onVisibleChanged: ringPulse.t = 0
         }

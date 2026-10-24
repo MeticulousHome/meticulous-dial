@@ -2,6 +2,10 @@
 // holds the quick settings and the menus opened from them. It springs in from the right (mass 1,
 // stiffness 51, damping 11: translateX 100 % → 1 % in 450 ms, then rests at 0 when the enter class goes)
 // and back out; while it closes it keeps showing the component it had.
+//
+// React mounts the component each time. Creating it costs 50-100 ms on the machine, a visible hitch at the
+// start of the slide, so the components in `kept` are created once (ahead of time) and kept hidden; they
+// get bubbleShown() when shown again, where they reset what a fresh mount would.
 import QtQuick
 import Dial
 
@@ -16,10 +20,12 @@ Item {
     property string component: ""
     property real progress: 1
     property bool entering: true
-    readonly property bool active: shown
+    readonly property Item current: _current
+    property Item _current: null
+    property var _kept: ({})
+    readonly property var kept: ["quick-settings"]
 
     visible: shown
-    enabled: Nav.bubbleVisible
 
     readonly property real shift: progress >= 1 ? (entering ? 0 : 480)
                                  : entering ? Motion.lerp(480, 4.8, Motion.bubbleSpring(progress))
@@ -35,23 +41,78 @@ Item {
         onFinished: {
             if (!bubble.entering) {
                 bubble.shown = false
-                content.source = ""
-                bubble.component = ""
+                bubble.unload()
                 // handleExited
                 if (!Nav.bubbleVisible) Nav.setBubbleDisplay({ visible: false, component: "" })
             }
         }
     }
 
-    function load(name) {
+    function create(name) {
         const route = Routes.route(name)
         if (!route || !route.url) {
             if (name) console.error("Bubble component not found:", name)
-            return
+            return null
         }
-        if (component === name && content.status !== Loader.Null) return
+        const component = Qt.createComponent(route.url)
+        if (component.status !== Component.Ready) {
+            console.error("Bubble component failed to load", name, component.errorString())
+            return null
+        }
+        const item = component.createObject(panel, Object.assign({ visible: false }, route.props || {}))
+        if (item && item.hasOwnProperty("inBubble")) item.inBubble = true
+        return item
+    }
+
+    // Shows `name`, switching at once from whatever was shown.
+    function load(name) {
+        if (component === name && _current) return
+        unload()
         component = name
-        content.setSource(route.url, route.props || {})
+        let item = _kept[name]
+        if (!item) {
+            item = create(name)
+            if (item && kept.indexOf(name) >= 0) {
+                const k = Object.assign({}, _kept)
+                k[name] = item
+                _kept = k
+            }
+        } else if (typeof item.bubbleShown === "function") {
+            item.bubbleShown()
+        }
+        if (!item) return
+        item.visible = true
+        item.enabled = Qt.binding(() => bubble.enabled)
+        _current = item
+    }
+    function unload() {
+        if (_current) {
+            if (_kept[component] === _current) {
+                _current.visible = false
+                _current.enabled = false
+            } else {
+                _current.destroy()
+            }
+        }
+        _current = null
+        component = ""
+    }
+
+    // Create the kept components while nothing moves, so the first opening is smooth too.
+    Timer {
+        interval: 1500
+        running: true
+        onTriggered: {
+            for (const name of bubble.kept) {
+                if (bubble._kept[name]) continue
+                const item = bubble.create(name)
+                if (!item) continue
+                item.enabled = false
+                const k = Object.assign({}, bubble._kept)
+                k[name] = item
+                bubble._kept = k
+            }
+        }
     }
 
     Connections {
@@ -83,12 +144,6 @@ Item {
             width: 420
             height: 480
             color: Theme.bubble
-            Loader {
-                id: content
-                anchors.fill: parent
-                onLoaded: if (item && item.hasOwnProperty("inBubble")) item.inBubble = true
-                onStatusChanged: if (status === Loader.Error) console.error("Bubble component failed to load", bubble.component)
-            }
         }
     }
 }

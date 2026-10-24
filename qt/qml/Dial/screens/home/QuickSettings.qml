@@ -110,6 +110,15 @@ Item {
         }
     }
     Component.onCompleted: rebuild()
+    // The bubble keeps this menu instead of mounting it each time: start as a fresh mount would.
+    function bubbleShown() {
+        menu.holdAnimation = "stopped"
+        menu.animated = false
+        menu.activeIndex = 0
+        menu.animated = true
+        counterESGG = 0
+        rebuild()
+    }
     onCurrentScreenChanged: rebuild()
     onStatsNameChanged: rebuild()
     onIsManualProfileChanged: rebuild()

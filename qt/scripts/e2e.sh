@@ -6,4 +6,4 @@
 set -euo pipefail
 name="${DIAL_RUN_NAME:-qt-dial-run}"
 docker exec -e DIAL_TEST_PORT="${DIAL_TEST_PORT:-9310}" -e DIAL_API="${DIAL_API:-http://127.0.0.1:18080}" \
-    -w /repo/qt "$name" python3 -m pytest -p no:cacheprovider -q tests/e2e "$@"
+    -w /repo/qt "$name" python3 -m pytest -p no:cacheprovider -q "${@:-tests/e2e}"
