@@ -19,6 +19,16 @@ so its journeys port almost line by line. The pure-logic unit tests of `tests/*.
 detectors, selection rules, profile contracts) are ported as checks of the JS libraries that replace those
 modules, inside the e2e files of each group.
 
+## No real services in tests
+
+A Dial started without `DIAL_EXTERNAL_SERVICES=1` (every test and development run; only the machine's
+launcher sets it) reaches only the backend and the machine it runs on: requests of the QML to any other host
+go to a dead local port and are logged ("blocked a request to ..."), the Community uploader talks to a dead
+address, and the bug report has no real ticket service / Sentry defaults and asks the backend to probe
+nothing. Tests that exercise those flows give the Dial local stand-ins (the support tests' report-service
+override, the settings tests' Community stand-in). The Dial logs "external services are off" when it starts
+this way.
+
 ## Running the end-to-end tests
 
 ```bash
