@@ -75,6 +75,9 @@ The machine is an i.MX8M Nano (4 x A53, GPU GC7000UL with OpenGL ES 2.0 only). T
 dropped frames, in every animation.
 
 - Sizes in px as the CSS computes them (mind `box-sizing: content-box`: padding and borders add up).
+- Line heights: in the Dial's WebKit `line-height: normal` is 1 em for ABC Diatype and Diatype Mono (1.24 em
+  for the thin cut), Qt's font metrics give 1.25 em: a CSS box of normal line height is `height: fontSize`
+  with `verticalAlignment: Text.AlignVCenter` (centering then matches Chromium).
 - Fonts: `Theme.fontRegular` ('ABC Diatype'; weight 300 = `Font.Light`), `Theme.fontThin` (weight 200),
   `Theme.fontMono` ('ABC Diatype Mono'), `Theme.fontIcons` (fontello). `letter-spacing: 0.1em` at 22 px is
   `font.letterSpacing: 2.2`. `text-transform: uppercase` is `font.capitalization: Font.AllUppercase`.

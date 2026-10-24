@@ -43,9 +43,9 @@ Needs root SSH by key. Once per machine, the runtime packages from bookworm (nev
 
 ```bash
 ssh root@<machine> apt-get install -y -t bookworm --no-install-recommends \
-  libqt6core6 libqt6gui6 libqt6network6 libqt6qml6 libqt6quick6 libqt6websockets6 libqt6concurrent6 \
-  libqt6svg6 qt6-qpa-plugins librlottie0-1 libqrcodegencpp1 qml6-module-qtquick qml6-module-qtquick-window \
-  qml6-module-qtquick-shapes qml6-module-qtqml-workerscript qml6-module-qtwebsockets qml6-module-qt-labs-lottieqt
+  libqt6core6 libqt6gui6 libqt6network6 libqt6qml6 libqt6quick6 libqt6websockets6 libqt6svg6 \
+  qt6-qpa-plugins librlottie0-1 libqrcodegencpp1 libssl3 ca-certificates qml6-module-qtquick \
+  qml6-module-qtquick-window qml6-module-qtquick-shapes qml6-module-qtqml-workerscript qml6-module-qtwebsockets
 ```
 
 Then:
@@ -58,8 +58,14 @@ qt/scripts/dev-off.sh <machine>                # stop it, start Weston and the W
 
 The development run is a transient unit: nothing changes at boot, a reboot brings the stock Dial back.
 Its test port is the machine's 127.0.0.1:9310 (`ssh -N -L 9311:127.0.0.1:9310 root@<machine>`, then
-`qt/scripts/device-shot.sh <name>` for a screenshot). Frame rate: copy `qt/tools/perf/flipsrun.py` to the
-machine and run `python3 flipsrun.py browse|spin|menu|zoom|bubble|static`.
+`qt/scripts/device-shot.sh <name>` for a screenshot).
+
+Frame rate on the machine (`qt/tools/perf/`, copy it to the machine): `python3 flipsrun.py
+browse|spin|menu|zoom|bubble|routes|static` counts the frames that reach the panel while it plays knob events
+(only entries that open menus; never purge, raise or brew); `python3 fake_shot.py` measures the brewing
+screens with a made-up shot fed to the Dial (its socket paused; nothing reaches the machine); `soak.py` loops
+them for a long run; `qmlprofile.sh` (with a `-DDIAL_QML_DEBUG=ON` build and bookworm's
+`qt6-qmltooling-plugins`) records a qmlprofiler trace and `qtd_top.py` lists what blocked the GUI thread.
 
 ## Install it on a machine (package)
 
