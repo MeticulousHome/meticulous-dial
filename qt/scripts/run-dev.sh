@@ -18,12 +18,18 @@ name="${DIAL_RUN_NAME:-qt-dial-run}"
 case "$cmd" in
 start|restart)
     docker rm -f "$name" >/dev/null 2>&1 || true
-    # Extra arguments go to the Dial (e.g. --screen=settings).
+    # Extra arguments go to the Dial (e.g. --screen=settings). Each instance gets its own X display: on the
+    # host network the containers share X's abstract socket namespace, so a fixed :99 would be shared.
+    # The Community uploader keeps its files in the container and talks to a dead address unless
+    # COMMUNITY_API_BASE says otherwise: a development enrollment never reaches the production server.
+    display=$(( port % 1000 + 100 ))
     docker run -d --name "$name" --network host -u "$(id -u):$(id -g)" -e HOME=/tmp \
+        -e DISPLAY_NUM="$display" -e CONFIG_PATH=/tmp/dial-config \
+        -e COMMUNITY_API_BASE="${COMMUNITY_API_BASE:-http://127.0.0.1:9}" -e MACHINE_API_BASE="$api" \
         -v "$repo:/repo" -w /repo/qt qt-dial-bookworm bash -c '
-            Xvfb :99 -screen 0 480x480x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &
+            Xvfb ":$DISPLAY_NUM" -screen 0 480x480x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &
             sleep 1
-            export DISPLAY=:99 QT_QPA_PLATFORM=xcb LIBGL_ALWAYS_SOFTWARE=1 QSG_RENDER_LOOP=basic
+            export DISPLAY=":$DISPLAY_NUM" QT_QPA_PLATFORM=xcb LIBGL_ALWAYS_SOFTWARE=1 QSG_RENDER_LOOP=basic
             exec /repo/qt/build/amd64/meticulous-dial-qt --qml-dir /repo/qt/qml --storage /tmp/dial-storage.json "$@"
         ' _ --api "$api" --test-port "$port" "$@" >/dev/null
     for _ in $(seq 40); do

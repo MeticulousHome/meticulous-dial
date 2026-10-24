@@ -151,5 +151,6 @@ Window {
         root: canvas
         router: router
         bubble: bubble
+        overlay: scaleOverlay.item
     }
 }

@@ -48,8 +48,9 @@ SCENARIOS = {
     # Nothing moves: should be ~0 frames.
     "static": ([], 6),
     # Quick settings -> "config" (a bubble component switch) -> close. The entry is found by its label
-    # (SELECT below), never by position: positions differ per screen and some entries act on the machine.
-    "bubble": ([(0, CTX), (800, "SELECT:config"), (2400, CTX)], 6),
+    # (SELECT, resolved before measuring), never by position: positions differ per screen and some entries
+    # act on the machine.
+    "bubble": ([(0, CTX), (800, "SELECT:config"), (3800, CTX)], 7),
 }
 
 
@@ -94,6 +95,26 @@ class WS:
 
 
 SAFE = {"config", "wifi", "experimental", "brew settings", "report an issue", "exit", "back"}
+
+
+def steps_to(ws, label):
+    """Opens the quick settings, counts the clockwise detents to `label` (one of SAFE), closes them."""
+    if label.lower() not in SAFE:
+        raise SystemExit(f"refusing to select {label!r}: only menus, never machine actions")
+    ws.call({"cmd": "button", "type": CTX, "t": 300})
+    time.sleep(1.0)
+    count = None
+    for i in range(16):
+        if (ws.call({"cmd": "focused"}).get("focused") or "").lower() == label.lower():
+            count = i
+            break
+        ws.call({"cmd": "button", "type": CW, "t": 300})
+        time.sleep(0.25)
+    ws.call({"cmd": "button", "type": CTX, "t": 300})
+    time.sleep(1.2)
+    if count is None:
+        raise SystemExit(f"no {label!r} in the menu")
+    return count
 
 
 def select(ws, label):
@@ -157,6 +178,15 @@ def run(scenario, port, hz, rep):
     if state.get("screen") != "profileHome":
         ws.call({"cmd": "screen", "name": "profileHome"})
     time.sleep(1.5)
+    # Resolve "SELECT:label" into plain detents first (see steps_to).
+    resolved = []
+    for at, kind in seq:
+        if kind.startswith("SELECT:"):
+            n = steps_to(ws, kind.split(":", 1)[1])
+            resolved += [(at + i * 250, CW) for i in range(n)] + [(at + n * 250 + 100, DOWN), (at + n * 250 + 200, UP)]
+        else:
+            resolved.append((at, kind))
+    seq = sorted(resolved, key=lambda e: e[0])
     pid = dial_pid()
     stamps = []
     t = threading.Thread(target=flips, args=(cap, stamps))

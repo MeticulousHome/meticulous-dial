@@ -31,14 +31,23 @@ QtObject {
 
     property var latestSessionCache: null
 
-    function _readSessions() {
-        const value = Native.storageGet(sessionsKey, [])
-        return Array.isArray(value) ? value : []
+    // The lists are stored as JSON text: Native.storageSet keeps strings and numbers, but a JS array or
+    // object reaches it as a QJSValue and is written as null.
+    function _readList(key) {
+        const value = Native.storageGet(key, "")
+        if (Array.isArray(value)) return value
+        if (typeof value !== "string" || !value.length) return []
+        try {
+            const parsed = JSON.parse(value)
+            return Array.isArray(parsed) ? parsed : []
+        } catch (error) {
+            Log.logFreePourError("local_history_unreadable", error, { key: key })
+            return []
+        }
     }
-    function _readPending() {
-        const value = Native.storageGet(pendingKey, [])
-        return Array.isArray(value) ? value.filter(p => p && p.id !== undefined) : []
-    }
+    function _writeList(key, list) { Native.storageSet(key, JSON.stringify(list)) }
+    function _readSessions() { return _readList(sessionsKey) }
+    function _readPending() { return _readList(pendingKey).filter(p => p && p.id !== undefined) }
     // The 'completedAt' index walked backwards: newest first, ties by id (the primary key) descending.
     function _newestFirst(a, b) {
         const ca = String(a.completedAt), cb = String(b.completedAt)
@@ -66,8 +75,8 @@ QtObject {
                 const kept = pending.filter(item => dropped.indexOf(item.id) < 0)
                 if (kept.length !== pending.length) { pending = kept; pendingChanged = true }
             }
-            Native.storageSet(sessionsKey, sessions)
-            if (pendingChanged) Native.storageSet(pendingKey, pending)
+            _writeList(sessionsKey, sessions)
+            if (pendingChanged) _writeList(pendingKey, pending)
             resolve()
         })
     }
@@ -75,7 +84,7 @@ QtObject {
     function markBackendPersisted(sessionId) {
         const pending = _readPending()
         const kept = pending.filter(item => String(item.id) !== String(sessionId))
-        if (kept.length !== pending.length) Native.storageSet(pendingKey, kept)
+        if (kept.length !== pending.length) _writeList(pendingKey, kept)
         return Promise.resolve()
     }
 

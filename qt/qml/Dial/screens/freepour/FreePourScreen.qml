@@ -806,7 +806,7 @@ Item {
                 y: parent.tops[0]
                 cssWeight: 600
                 font.pixelSize: 18
-                font.letterSpacing: 3
+                letterSpacingPx: 3
                 color: screen.muted
                 text: "WATER TEMPERATURE"
             }
@@ -823,7 +823,7 @@ Item {
                     cssWeight: 300
                     font.pixelSize: 104
                     lineHeightPx: 104
-                    font.letterSpacing: -8
+                    letterSpacingPx: -8
                     text: String(screen.temperatureC)
                 }
                 FpText {
@@ -834,7 +834,7 @@ Item {
                     cssWeight: 300
                     font.pixelSize: 35
                     lineHeightPx: 35
-                    font.letterSpacing: -2
+                    letterSpacingPx: -2
                     color: screen.muted
                     // the span's baseline on the line's
                     y: tempValue.baselineOffset - baselineOffset
@@ -845,7 +845,7 @@ Item {
                 y: parent.tops[2]
                 mono: true
                 font.pixelSize: 13
-                font.letterSpacing: 2
+                letterSpacingPx: 2
                 color: screen.muted
                 text: "ROTATE DIAL TO ADJUST"
             }
@@ -853,7 +853,7 @@ Item {
                 y: 480 - 84 - lineHeightPx
                 cssWeight: 650
                 font.pixelSize: 16
-                font.letterSpacing: 1.5
+                letterSpacingPx: 1.5
                 text: "PRESS DIAL TO CONTINUE"
             }
             AbortHint {}
@@ -879,7 +879,7 @@ Item {
                 y: setup.tops[0]
                 cssWeight: 600
                 font.pixelSize: 18
-                font.letterSpacing: 3
+                letterSpacingPx: 3
                 color: screen.muted
                 text: setup.kind === "server" ? "WEIGH EMPTY SERVER" : setup.kind === "brewer" ? "ADD BREWER" : "ADD COFFEE"
             }
@@ -889,7 +889,7 @@ Item {
                 cssWeight: 300
                 font.pixelSize: 104
                 lineHeightPx: 104
-                font.letterSpacing: -8
+                letterSpacingPx: -8
                 text: Math.round(setup.kind === "brewer" ? Setup.normalizeBrewerWeight(screen.weight) : screen.weight) + "g"
             }
             Readiness {
@@ -920,7 +920,7 @@ Item {
                         lineHeightPx: 16 * 1.42
                         cssWeight: setup.actionLines[index][1] ? 700 : 400
                         font.pixelSize: 16
-                        font.letterSpacing: 1.4
+                        letterSpacingPx: 1.4
                         text: setup.actionLines[index][0]
                     }
                 }
@@ -945,7 +945,7 @@ Item {
                 y: review.tops[0]
                 cssWeight: 600
                 font.pixelSize: 18
-                font.letterSpacing: 3
+                letterSpacingPx: 3
                 color: screen.muted
                 text: review.recorded ? String(screen.reviewedSetupStage).toUpperCase() + " WEIGHT" : "CONTINUE SETUP"
             }
@@ -956,7 +956,7 @@ Item {
                 cssWeight: 300
                 font.pixelSize: 96
                 lineHeightPx: 96
-                font.letterSpacing: -7
+                letterSpacingPx: -7
                 text: Math.round(screen.reviewedSetupWeight === null ? 0 : screen.reviewedSetupWeight) + "g"
             }
             Repeater {
@@ -969,7 +969,7 @@ Item {
                     mono: true
                     cssWeight: 650
                     font.pixelSize: 11
-                    font.letterSpacing: 1.2
+                    letterSpacingPx: 1.2
                     color: "#f5dc91"
                     text: modelData
                 }
@@ -988,16 +988,15 @@ Item {
                 font.family: Theme.fontRegular
                 font.weight: Css.weight(650)
                 font.pixelSize: 31
-                font.letterSpacing: 1.4
-                // half-leading: Qt puts each fixed-height line's ascent at its top
-                topPadding: (review.mainLineHeight - 31 * Css.DIATYPE_NORMAL) / 2
+                font.letterSpacing: 1.4 + Css.SYNTHETIC_BOLD_OFFSET
+                font.wordSpacing: 31 * Css.TABULAR_WORD_SPACING_EM
                 text: screen.setupReviewReturnStage === "ready" ? "RETURN TO BREW" : "RETURN TO " + screen.setupReviewReturnStage.toUpperCase()
             }
             FpText {
                 y: 480 - 112 - lineHeightPx
                 mono: true
                 font.pixelSize: 11
-                font.letterSpacing: 1.25
+                letterSpacingPx: 1.25
                 color: screen.muted
                 text: "TURN DIAL BACK OR FORWARD TO REVIEW"
             }
@@ -1005,7 +1004,7 @@ Item {
                 y: 480 - 82 - lineHeightPx
                 cssWeight: 650
                 font.pixelSize: 14
-                font.letterSpacing: 1.35
+                letterSpacingPx: 1.35
                 text: review.recorded ? "PRESS DIAL TO RE-ENTER THIS WEIGHT" : "PRESS DIAL TO CONTINUE"
             }
             AbortHint {}
@@ -1022,7 +1021,7 @@ Item {
                 y: 53
                 cssWeight: 600
                 font.pixelSize: 16
-                font.letterSpacing: 2.7
+                letterSpacingPx: 2.7
                 color: screen.muted
                 text: screen.profile ? screen.profile.name : "FREE POUR"
             }
@@ -1032,14 +1031,14 @@ Item {
                 cssWeight: 300
                 font.pixelSize: 81
                 lineHeightPx: 81
-                font.letterSpacing: -5
+                letterSpacingPx: -5
                 text: Format.formatBrewTime(screen.elapsedMs)
             }
             FpText {
                 y: 157
                 cssWeight: 650
                 font.pixelSize: 15
-                font.letterSpacing: 3
+                letterSpacingPx: 3
                 text: screen.statusLabel
             }
             Loader {
@@ -1076,7 +1075,7 @@ Item {
                         FpText {
                             cssWeight: 600
                             font.pixelSize: 11
-                            font.letterSpacing: 2
+                            letterSpacingPx: 2
                             color: screen.muted
                             text: parent.modelData[0]
                         }
@@ -1086,7 +1085,7 @@ Item {
                             cssWeight: 300
                             font.pixelSize: 51
                             lineHeightPx: 51
-                            font.letterSpacing: -4
+                            letterSpacingPx: -4
                             text: parent.modelData[0] === "CURRENT" ? screen.roundedWeight + "g"
                                 : (screen.activeTarget ? Math.round(screen.activeTarget.stopWeightG) + "g" : "")
                         }
@@ -1109,7 +1108,7 @@ Item {
                 cssWeight: 300
                 font.pixelSize: 77
                 lineHeightPx: 77
-                font.letterSpacing: -5
+                letterSpacingPx: -5
                 text: screen.roundedWeight + "g"
             }
             // .free-pour-live-feedback: 72 px tall from 325, its content centered.
@@ -1141,7 +1140,7 @@ Item {
                         lineHeightPx: 14 * 1.35
                         cssWeight: instruction.lines[index][1] ? 750 : 550
                         font.pixelSize: 14
-                        font.letterSpacing: 1.4
+                        letterSpacingPx: 1.4
                         text: instruction.lines[index][0]
                     }
                 }
@@ -1174,7 +1173,7 @@ Item {
                     lineHeightPx: message.mainLineHeight
                     cssWeight: 650
                     font.pixelSize: 32
-                    font.letterSpacing: 1
+                    letterSpacingPx: 1
                     text: message.mainLines[index]
                 }
             }
@@ -1186,7 +1185,7 @@ Item {
                     lineHeightPx: message.subLineHeight
                     cssWeight: 550
                     font.pixelSize: 16
-                    font.letterSpacing: 1.7
+                    letterSpacingPx: 1.7
                     color: screen.muted
                     text: message.subLines[index]
                 }
@@ -1196,7 +1195,7 @@ Item {
                 y: 480 - 88 - lineHeightPx
                 mono: true
                 font.pixelSize: 13
-                font.letterSpacing: 2
+                letterSpacingPx: 2
                 color: screen.muted
                 text: "WEIGHT STABILIZING"
             }
@@ -1204,7 +1203,7 @@ Item {
                 visible: screen.stage === "replace-server"
                 y: 480 - 80 - lineHeightPx
                 font.pixelSize: 12
-                font.letterSpacing: 1.2
+                letterSpacingPx: 1.2
                 color: screen.muted
                 text: "BEVERAGE MUST REMAIN · PRESS TO SKIP"
             }
@@ -1227,7 +1226,7 @@ Item {
                 y: resultItem.tops[0]
                 cssWeight: 600
                 font.pixelSize: 18
-                font.letterSpacing: 3
+                letterSpacingPx: 3
                 color: screen.muted
                 text: "FREE POUR COMPLETE"
             }
@@ -1237,13 +1236,13 @@ Item {
                 cssWeight: 300
                 font.pixelSize: 94
                 lineHeightPx: 94
-                font.letterSpacing: -7
+                letterSpacingPx: -7
                 text: resultItem.beverage === null || resultItem.beverage === undefined ? "—" : Math.round(resultItem.beverage) + "g"
             }
             FpText {
                 y: resultItem.tops[2]
                 font.pixelSize: 14
-                font.letterSpacing: 3
+                letterSpacingPx: 3
                 color: screen.muted
                 text: "BREWED"
             }
@@ -1259,7 +1258,7 @@ Item {
                     height: resultItem.statsHeight
                     FpText {
                         font.pixelSize: 11
-                        font.letterSpacing: 1.5
+                        letterSpacingPx: 1.5
                         color: screen.muted
                         text: ["WATER POURED", "RETAINED", "TOTAL TIME"][parent.index]
                     }
@@ -1281,7 +1280,7 @@ Item {
                 y: 480 - 84 - lineHeightPx
                 cssWeight: 650
                 font.pixelSize: 17
-                font.letterSpacing: 1.6
+                letterSpacingPx: 1.6
                 text: "PRESS TO REVIEW"
             }
         }

@@ -63,7 +63,14 @@ Item {
         }
     }
 
-    LoadingScreen { visible: screen.isLoading }
+    // .loading-center is position: fixed: the whole display, also in the bubble.
+    Item {
+        visible: screen.isLoading
+        x: screen.inBubble ? -60 : 0
+        width: 480
+        height: 480
+        LoadingScreen {}
+    }
 
     OptionsMenu {
         id: menu

@@ -1,7 +1,15 @@
+singleton ReportFlow 1.0 ReportFlow.qml
+singleton ReportApi 1.0 ReportApi.qml
+singleton DispatchedReports 1.0 DispatchedReports.qml
 CssText 1.0 CssText.qml
 Pill 1.0 Pill.qml
 ShotDataSharingView 1.0 ShotDataSharingView.qml
 ShotDataSharingPrompt 1.0 ShotDataSharingPrompt.qml
 HelpUsImprove 1.0 HelpUsImprove.qml
 BugReport 1.0 BugReport.qml
+BugReportAnimation 1.0 BugReportAnimation.qml
+BugReportOptions 1.0 BugReportOptions.qml
+IssueDateCounter 1.0 IssueDateCounter.qml
+GestureHints 1.0 GestureHints.qml
+ExplanationText 1.0 ExplanationText.qml
 ReportContactEmail 1.0 ReportContactEmail.qml

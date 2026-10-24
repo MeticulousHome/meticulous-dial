@@ -16,6 +16,14 @@ Item {
     anchors.fill: parent
     property bool transitioning: false
 
+    // The socket "action" events this screen sent (a test probe).
+    property var sentActions: []
+    readonly property var dialProbe_sent: sentActions
+    function send(name) {
+        sentActions = sentActions.concat([name])
+        Backend.action(name)
+    }
+
     readonly property int headerTop: 115
 
     // ---- state (HeatingScreen's selectors and useState)
@@ -28,6 +36,7 @@ Item {
 
     // Test probes
     readonly property bool dialProbe_heatingFinished: heatingFinished
+    readonly property int dialProbe_temperature: temperature
     readonly property string dialProbe_option: optionSelected
     readonly property real dialProbe_temperatureTarget: temperatureTarget
     readonly property string dialProbe_estimate: estimate.text
@@ -60,7 +69,7 @@ Item {
     function autoStartEffect() {
         if (!heatingFinished) return
         if (optionSelected === "auto_start") {
-            Backend.continueBrew()
+            send("continue")
             console.log("action,continue")
         }
     }
@@ -74,14 +83,14 @@ Item {
     }
 
     function startBrew() {
-        Backend.continueBrew()
+        send("continue")
         console.log("action,continue")
     }
     // A brew screen: a double click reaches the machine, but only the barometer may finish.
     function brewDoubleClick() {
         const decision = Logic.decideDoubleClick({ name: Stats.name, extracting: Stats.extracting }, { allowFinish: false })
         console.log("doubleClick decision", JSON.stringify({ screen: Nav.screen, decision: decision, name: Stats.name, extracting: Stats.extracting }))
-        if (decision) Backend.action(decision)
+        if (decision) send(decision)
     }
 
     GestureHandler {

@@ -2,5 +2,36 @@
   "tests/profileHomeSelection.test.ts": {
     "../src/components/ProfileHomeScreen/homeSelection": "Core/HomeSelection.js",
     "../src/features/freePour/profileEvents": "screens/freepour/ProfileEvents.js"
+  },
+  "tests/digitalClockTime.test.mts": {
+    "../src/components/IdleScreen/digitalClockTime": "screens/idle/clockTime.js"
+  },
+  "tests/brewDoubleClick.test.mts": {
+    "../src/hooks/brewDoubleClick": "screens/brew/BrewLogic.js",
+    "../src/constants/setting": "Core/Constants.js"
+  },
+  "tests/meterGeometry.test.mts": {
+    "../src/components/Barometer/meterGeometry": "screens/brew/BarometerLogic.js"
+  },
+  "tests/manualTarget.test.mts": {
+    "../src/components/Barometer/manualTarget": "screens/brew/BarometerLogic.js"
+  },
+  "tests/trailGeometry.test.mts": {
+    "../src/components/Barometer/meterGeometry": "screens/brew/BarometerLogic.js",
+    "../src/components/Barometer/trailGeometry": "screens/brew/BarometerLogic.js"
+  },
+  "tests/reportHandoff.test.mts": {
+    "../src/components/BugReport/reportHandoff": "screens/support/ReportLib.js"
+  },
+  "tests/pourOverProfileContract.test.ts": {
+    "../src/features/freePour/profileContract": "screens/freepour/ProfileContract.js"
+  },
+  "tests/freePourSetup.test.mts": {
+    "../src/features/freePour/setupFlow": "screens/freepour/SetupFlow.js",
+    "../src/features/freePour/format": "screens/freepour/Format.js"
+  },
+  "tests/manualSetup.test.mts": {
+    "../src/components/ManualModeSetup/manualSetup": "screens/manual/ManualSetup.js",
+    "../src/constants/manualMode": "screens/manual/ManualSetup.js"
   }
 }

@@ -20,6 +20,8 @@ WebSocketServer {
     property Item root
     property Item router
     property Item bubble
+    // The scale overlay (on top of everything when open).
+    property Item overlay
     host: "127.0.0.1"
     port: Native.testPort
     listen: Native.testPort > 0
@@ -90,6 +92,7 @@ WebSocketServer {
                      online: Device.isOnline, idle: Idle.isIdle }
         case "texts": {
             const out = []
+            if (overlay) collectTexts(overlay, out)
             if (bubble.shown) collectTexts(bubble, out)
             collectTexts(router, out)
             return { texts: out }
@@ -100,7 +103,8 @@ WebSocketServer {
             return { focused: f }
         }
         case "probe": {
-            let v = bubble.shown ? findProbe(bubble, m.name) : undefined
+            let v = overlay ? findProbe(overlay, m.name) : undefined
+            if (v === undefined && bubble.shown) v = findProbe(bubble, m.name)
             if (v === undefined && router.current) v = findProbe(router.current, m.name)
             return { value: v === undefined ? null : v }
         }

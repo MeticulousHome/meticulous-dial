@@ -50,7 +50,7 @@ Item {
 
     WifiMutation {
         id: updateMutation
-        Component.onCompleted: fn = config => WifiStore.updateConfig(config)
+        fn: config => WifiStore.updateConfig(config)
     }
 
     // The draft starts at the current mode, once it is known (an effect: after the binding settles).

@@ -43,7 +43,7 @@ Item {
             mono: true
             cssWeight: 700
             font.pixelSize: 13
-            font.letterSpacing: 1.15
+            letterSpacingPx: 1.15
             color: "#17201d"
             text: readiness.lines[index] || ""
         }

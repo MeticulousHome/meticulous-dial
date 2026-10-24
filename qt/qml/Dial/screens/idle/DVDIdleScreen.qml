@@ -150,6 +150,15 @@ Item {
         bq.start()
     }
 
+    // For the tests: each logo's position and how far its farthest corner is from the center.
+    function positions() {
+        return [met, bq].map(l => {
+            let far = 0
+            for (const c of [[0, 0], [0, logoSize], [logoSize, 0], [logoSize, logoSize]])
+                far = Math.max(far, Math.hypot(l.x + c[0] - 240, l.y + c[1] - 240))
+            return { x: l.x, y: l.y, farthestCorner: far }
+        })
+    }
     // For the tests (they change on a bounce only, not on every frame).
     readonly property int dialProbe_dvdBounces: met.bounces + bq.bounces
     readonly property var dialProbe_dvdColors: [String(met.color), String(bq.color)]

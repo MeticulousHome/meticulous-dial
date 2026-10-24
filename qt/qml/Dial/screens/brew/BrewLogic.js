@@ -1,14 +1,23 @@
 .pragma library
 // The pure logic of the brew screens, as the React modules have it (each function names its source). The
-// e2e test (qt/tests/e2e/test_brew.py) runs the cases of the React unit tests against this file.
+// React unit tests run against it (qt/scripts/js-tests.sh, qt/tests/js/map.json): brewDoubleClick and
+// sw120-heating-long-press.
 .import "../../Core/Constants.js" as Constants
 
 // ---- src/hooks/brewDoubleClick.ts
 
+// MACHINE_OWNED_STAGES (src/constants/setting.ts) from Core/Constants.js. The node test runner drops the
+// .import lines, so it gets this copy; the React test then checks every stage of Constants.js against it.
+function defaultMachineOwnedStages() {
+    if (typeof Constants !== "undefined") return Constants.MACHINE_OWNED_STAGES
+    return ["heating", "click to start", "retracting", "closing valve", "purge", "remove cup", "click to purge",
+            "Pour water and click to continue", "starting...", "home", "boot", "idle", "END_STAGE", "finished"]
+}
+
 // True while the machine runs a user-defined stage of the loaded profile: `extracting` stays true through
 // the final retract, so the name check is what keeps the machine-owned tail out.
 function isUserStage(s, machineOwnedStages) {
-    const owned = machineOwnedStages || Constants.MACHINE_OWNED_STAGES
+    const owned = machineOwnedStages || defaultMachineOwnedStages()
     return !!s.extracting && owned.indexOf(s.name) < 0
 }
 

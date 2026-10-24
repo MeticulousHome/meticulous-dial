@@ -110,41 +110,54 @@ Item {
             }
         }
 
-        // MenuAnnotation ("current" / "selected").
+        // MenuAnnotation ("current" / "selected") in a SelectedOption (space-between): 12 px mono with the
+        // option's 2.2 px letter spacing, padding 5 5 2 5 around a 15 px line, 1 px border (24 px tall,
+        // margin-top -5 px: 8 px from the top); at the right end, or right after the label when they do not fit.
         Rectangle {
             id: annotationBox
             readonly property string annotation: row.option.annotation || ""
             visible: annotation.length > 0
-            anchors.right: parent.right
-            anchors.rightMargin: 16 + (row.inner ? 0 : menu.annotationOuterMargin)
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.verticalCenterOffset: -3
-            width: annotationText.implicitWidth + 10
-            height: 22
+            x: Math.max(row.width - 16 - (row.inner ? 0 : menu.annotationOuterMargin) - width, labelBox.x + content.width)
+            y: 8
+            width: annotationText.implicitWidth + 12
+            height: 24
             radius: 4
             color: "transparent"
             border.width: 1
             border.color: row.textColor
             Text {
                 id: annotationText
-                x: 5
-                y: 5
+                x: 6
+                y: 6
+                height: 15
+                verticalAlignment: Text.AlignVCenter
                 text: annotationBox.annotation
                 color: row.textColor
                 font.family: Theme.fontMono
                 font.pixelSize: 12
+                font.letterSpacing: 2.2
             }
         }
 
-        // The dashed separator: 85 % wide, 2 px, 13 px under the option.
-        Row {
+        // The dashed separator: a 2 px dashed border-top 85 % wide, 13 px under the option, drawn as Chrome
+        // draws it: 6 px dashes, the gaps (about 4 px) stretched so that it starts and ends with a dash.
+        Item {
+            id: separator
             visible: !row.inner && !!row.option.hasSeparator
             x: 16
             y: row.height + 11
-            spacing: 4
+            readonly property real length: row.width * 0.85
+            readonly property int dashes: Math.max(2, Math.floor((length + 4) / 10))
+            readonly property real gap: (length - 6 * dashes) / (dashes - 1)
             Repeater {
-                model: Math.floor(row.width * 0.85 / 8)
-                Rectangle { width: 4; height: 2; color: Qt.rgba(245 / 255, 196 / 255, 68 / 255, 0.5) }
+                model: separator.visible ? separator.dashes : 0
+                Rectangle {
+                    required property int index
+                    x: index * (6 + separator.gap)
+                    width: 6
+                    height: 2
+                    color: Qt.rgba(245 / 255, 196 / 255, 68 / 255, 0.5)
+                }
             }
         }
     }

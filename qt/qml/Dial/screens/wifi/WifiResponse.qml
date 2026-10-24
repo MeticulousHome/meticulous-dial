@@ -1,7 +1,7 @@
 // The result screen of the Wi-Fi flows (wifiResult.css: div.main-container.response): a 340 px column,
 // padding 42 / 48 / 34 px, centered both ways, with the upper-case title (ABC Diatype Mono 34 px, line
 // height 1), an optional yellow status (24 px, 1.08), the message (16 px, 1.18) and the yellow "OK" entry
-// (120 x 34 px, 22 px from the message). Every text is #dddddd but the status (#f7df39).
+// (34 px tall, 22 px from the message). Every text is #dddddd but the status (#f7df39).
 import QtQuick
 import Dial
 
@@ -58,9 +58,9 @@ Item {
         Item { width: 1; height: response.hasMessage ? 12 : 0 }
         Text {
             id: messageText
-            visible: response.hasMessage
+            // An empty message div is 0 px tall (the Column skips the invisible Text).
+            visible: response.hasMessage && response.message.length > 0
             width: parent.width
-            height: text.length ? implicitHeight : 0
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
             text: response.message
@@ -71,15 +71,18 @@ Item {
             lineHeight: 16 * 1.18
         }
         Item { width: 1; height: 22 }
-        // .settings-item.active-setting.connect-item with .settings-entry.connect-button: "OK".
+        // .settings-item.active-setting.connect-item with .settings-entry.connect-button: "OK". The 120 px
+        // box keeps .settings-item's 18 px left padding (quick-settings.css wins over wifiResult.css), so
+        // it is 138 px wide with the text centered in its right 120 px.
         Rectangle {
             anchors.horizontalCenter: parent.horizontalCenter
-            width: 120
+            width: 18 + 120
             height: 34
             radius: 4
             color: Theme.brandYellow
             Text {
                 anchors.centerIn: parent
+                anchors.horizontalCenterOffset: 9
                 text: "Ok"
                 color: "#0f0f0f"
                 font.family: Theme.fontMono

@@ -93,13 +93,13 @@ Item {
             y: parent.tops[0]
             cssWeight: 700
             font.pixelSize: 24
-            font.letterSpacing: 2
+            letterSpacingPx: 2
             text: "NO FREE POUR HISTORY"
         }
         FpText {
             y: parent.tops[1]
             font.pixelSize: 14
-            font.letterSpacing: 1.5
+            letterSpacingPx: 1.5
             color: "#8d9694"
             text: "PRESS DIAL TO RETURN"
         }
@@ -114,14 +114,14 @@ Item {
             y: 35
             cssWeight: 650
             font.pixelSize: 22
-            font.letterSpacing: 2
+            letterSpacingPx: 2
             text: history.session ? String(history.session.recipe.profileName).toUpperCase() : ""
         }
         FpText {
             y: 67
             mono: true
             font.pixelSize: 12
-            font.letterSpacing: 1.5
+            letterSpacingPx: 1.5
             color: "#8d9694"
             text: {
                 const s = history.session
@@ -215,7 +215,7 @@ Item {
                 height: 11 * Css.DIATYPE_NORMAL + 5 + 20
                 FpText {
                     font.pixelSize: 11
-                    font.letterSpacing: 1.5
+                    letterSpacingPx: 1.5
                     color: "#8d9694"
                     text: ["POUR", "TIME", "WATER", "FLOW"][parent.index]
                 }
@@ -241,7 +241,7 @@ Item {
             y: 358
             cssWeight: 650
             font.pixelSize: 15
-            font.letterSpacing: 2
+            letterSpacingPx: 2
             text: "TURN DIAL · 5 SEC"
         }
         // .free-pour-history-legend: centered, 24 px between the two, a 16 x 3 swatch 7 px before each label
@@ -266,7 +266,7 @@ Item {
                     FpText {
                         width: implicitWidth
                         font.pixelSize: 11
-                        font.letterSpacing: 1.5
+                        letterSpacingPx: 1.5
                         color: "#8d9694"
                         text: parent.modelData[0]
                     }
@@ -275,8 +275,10 @@ Item {
         }
     }
 
+    // The handler can run before the maxWeight binding has seen the new samples: compute it here.
     onPlottedSamplesChanged: {
-        weightLine.setFlat(flat(sample => sample.w, maxWeight))
+        const maximum = plottedSamples.reduce((m, sample) => Math.max(m, sample.w), 1)
+        weightLine.setFlat(flat(sample => sample.w, maximum))
         flowLine.setFlat(flat(sample => sample.f, 10))
     }
 }

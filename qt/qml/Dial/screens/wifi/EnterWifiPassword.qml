@@ -25,7 +25,7 @@ Item {
 
     WifiMutation {
         id: connectMutation
-        Component.onCompleted: fn = credentials => WifiStore.connect(credentials)
+        fn: credentials => WifiStore.connect(credentials)
     }
 
     readonly property var connectionError: connectMutation.error
@@ -46,21 +46,19 @@ Item {
         }
     }
 
-    // A known network connects at once, once per selection.
+    // A known network connects at once, once per selection (effects: they run after the bindings settle).
     function submitKnownConnection() {
         if (!useKnownCredentials || !selectedWifi || knownConnectionSubmitted) return
         knownConnectionSubmitted = true
         connectMutation.mutate({ type: "PSK", ssid: selectedWifi })
     }
-    onSelectedWifiChanged: {
+    function selectionChanged() {
         knownConnectionSubmitted = false
         submitKnownConnection()
     }
-    onUseKnownCredentialsChanged: {
-        knownConnectionSubmitted = false
-        submitKnownConnection()
-    }
-    Component.onCompleted: submitKnownConnection()
+    onSelectedWifiChanged: Qt.callLater(selectionChanged)
+    onUseKnownCredentialsChanged: Qt.callLater(selectionChanged)
+    Component.onCompleted: Qt.callLater(submitKnownConnection)
 
     function updateSetting(password) {
         knownPassword = password

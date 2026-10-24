@@ -42,7 +42,7 @@ Item {
     implicitHeight: fontSize
     clip: true
 
-    readonly property color digitColor: forced ? forcedColor : color
+    property color digitColor: forced ? forcedColor : color
     Behavior on digitColor { ColorAnimation { duration: 160; easing.type: Easing.Bezier; easing.bezierCurve: [0.4, 0, 0.6, 1, 1, 1] } }
 
     Repeater {

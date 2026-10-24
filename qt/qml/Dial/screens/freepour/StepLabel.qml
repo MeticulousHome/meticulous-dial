@@ -5,6 +5,6 @@ FpText {
     y: 31
     mono: true
     font.pixelSize: 13
-    font.letterSpacing: 3
+    letterSpacingPx: 3
     color: "#8d9694"
 }

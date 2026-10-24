@@ -67,6 +67,7 @@ private:
     void refreshStatus();
     void runCommand(std::function<void()> task);
     void stop();
+    static void stopAtExit();
 
     std::unique_ptr<community::UploadService> m_service;
     QString m_unavailableError;

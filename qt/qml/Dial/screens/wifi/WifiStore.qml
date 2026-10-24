@@ -20,20 +20,17 @@ QtObject {
     readonly property string modeClient: "CLIENT"  // APMode.CLIENT
 
     property WifiQuery networkConfig: WifiQuery {
+        fetchFn: () => store.getWifiStatus()
         staleTime: 2000
         refetchInterval: 5000
         idleInterval: 60000
     }
 
     property WifiQuery wifiList: WifiQuery {
+        fetchFn: () => store.listAvailableWiFi()
         staleTime: 5000
         refetchInterval: 5000
         refetchOnMountAlways: true
-    }
-
-    Component.onCompleted: {
-        networkConfig.fetchFn = () => store.getWifiStatus()
-        wifiList.fetchFn = () => store.listAvailableWiFi()
     }
 
     function _fail(message, code) {

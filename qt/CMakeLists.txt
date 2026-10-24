@@ -49,6 +49,12 @@ target_include_directories(meticulous-dial-qt PRIVATE ${QRCODEGEN_INCLUDE})
 # The QML tree (with its assets symlinks resolved) is assembled by scripts/package-deb.sh.
 install(TARGETS meticulous-dial-qt RUNTIME DESTINATION bin)
 
+# Enables the QML debugger/profiler (-qmljsdebugger=port:<n>) for qmlprofiler; never in the package.
+option(DIAL_QML_DEBUG "Build with the QML debugging services" OFF)
+if(DIAL_QML_DEBUG)
+    target_compile_definitions(meticulous-dial-qt PRIVATE QT_QML_DEBUG)
+endif()
+
 option(DIAL_BUILD_TESTS "Build the C++ unit tests" OFF)
 if(DIAL_BUILD_TESTS)
     enable_testing()

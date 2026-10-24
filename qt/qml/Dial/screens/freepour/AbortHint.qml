@@ -6,7 +6,7 @@ FpText {
     mono: true
     cssWeight: 600
     font.pixelSize: 13
-    font.letterSpacing: 0.9
+    letterSpacingPx: 0.9
     font.capitalization: Font.AllUppercase
     color: "#8d9694"
     text: "Double-press the dial to abort"

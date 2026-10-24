@@ -1,7 +1,8 @@
 // A saved network's menu (src/components/Wifi/DeleteWifiMenu.tsx), in the bubble: "connect" closes the
 // bubble and connects with the saved credentials (EnterWifiPassword with useKnownCredentials), "delete"
 // forgets it (POST /wifi/delete; the loading screen meanwhile, then back to the known networks) and "back"
-// returns to them. A failed delete shows "An error occured. Please try again" with the reason and "OK".
+// returns to them. A delete is retried 3 times (1, 2, 4 s); then "An error occured. Please try again" with
+// the reason and "OK" (back to the known networks).
 import QtQuick
 import Dial
 
@@ -19,9 +20,11 @@ Item {
         { key: "back", label: "back" }
     ]
 
+    // useDeleteKnownWiFi sets no retry: the QueryClient's 3 retries apply (the others set retry: false).
     WifiMutation {
         id: deleteMutation
-        Component.onCompleted: fn = ssid => WifiStore.deleteKnown(ssid)
+        retries: 3
+        fn: ssid => WifiStore.deleteKnown(ssid)
         // The React component dispatches this while rendering the success.
         onIsSuccessChanged: if (isSuccess) Nav.setBubbleDisplay({ visible: true, component: "KnownWifi" })
     }
@@ -60,7 +63,7 @@ Item {
     WifiResponse {
         visible: !deleteMutation.isPending && deleteMutation.isError
         title: "An error occured. Please try again"
-        message: (deleteMutation.error && deleteMutation.error.message) || ""
+        message: (deleteMutation.failureReason && deleteMutation.failureReason.message) || ""
     }
 
     // .loading-center is position: fixed: in the bubble it covers the whole display.

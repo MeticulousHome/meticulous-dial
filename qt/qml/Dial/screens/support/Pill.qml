@@ -15,6 +15,7 @@ Rectangle {
     property real minContentWidth: 140
     property real maxWidth: 0
     property string fontFamily: Theme.fontRegular
+    property real lineHeightFactor: 1.2
 
     readonly property real _natural: Math.max(minContentWidth, label.implicitWidth) + 2 * padH + 4
     implicitWidth: maxWidth > 0 ? Math.min(maxWidth, _natural) : _natural
@@ -35,6 +36,6 @@ Rectangle {
         color: pill.active ? "#171717" : Qt.rgba(231 / 255, 231 / 255, 231 / 255, 0.7)
         font.family: pill.fontFamily
         font.pixelSize: pill.fontSize
-        cssLineHeight: pill.fontSize * 1.2
+        cssLineHeight: pill.fontSize * pill.lineHeightFactor
     }
 }

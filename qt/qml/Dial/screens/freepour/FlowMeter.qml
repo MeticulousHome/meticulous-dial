@@ -3,6 +3,7 @@
 import QtQuick
 import Dial
 import "Format.js" as Format
+import "Css.js" as Css
 
 Item {
     id: meter
@@ -14,8 +15,8 @@ Item {
     readonly property bool hasTarget: target !== undefined && target !== null
     readonly property real displayedTarget: hasTarget ? Format.clamp(target, 0, 10) : 0
 
-    // title 15 px x 1.2509 + 10 + 14 segments + 7 + 12 axis
-    readonly property real titleHeight: 15 * 1.2509375
+    // title line + 10 + 14 segments + 7 + 12 axis
+    readonly property real titleHeight: 15 * Css.DIATYPE_NORMAL
     readonly property real segmentsY: titleHeight + 10
     readonly property real segmentWidth: (298 - 9 * 5) / 10
 
@@ -28,7 +29,7 @@ Item {
             width: implicitWidth
             cssWeight: 650
             font.pixelSize: 15
-            font.letterSpacing: 2.2
+            letterSpacingPx: 2.2
             color: "#8d9694"
             text: "FLOW · "
         }
@@ -36,7 +37,7 @@ Item {
             width: implicitWidth
             cssWeight: 650
             font.pixelSize: 15
-            font.letterSpacing: 2.2
+            letterSpacingPx: 2.2
             text: meter.flowLabel + " g/s"
         }
     }

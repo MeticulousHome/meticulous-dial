@@ -50,7 +50,7 @@ Item {
 
     WifiMutation {
         id: repairMutation
-        Component.onCompleted: fn = () => WifiStore.repair()
+        fn: () => WifiStore.repair()
     }
 
     property int observer: 0

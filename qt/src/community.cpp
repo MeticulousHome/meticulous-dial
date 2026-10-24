@@ -71,6 +71,10 @@ private:
 };
 
 namespace {
+// The live instance, stopped from the QCoreApplication destructor (before Qt tears itself down) when
+// the application ends without aboutToQuit, e.g. when main.qml fails to load.
+Community *s_running = nullptr;
+
 QVariant nullable(const std::optional<qint64> &value)
 {
     return value ? QVariant::fromValue(*value) : QVariant::fromValue(nullptr);
@@ -146,11 +150,25 @@ Community::Community(const QUrl &defaultMachineBase, QObject *parent) : QObject(
     }
     if (QCoreApplication::instance())
         connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, this, &Community::stop);
+    static bool postRoutineAdded = false;
+    if (!postRoutineAdded) {
+        qAddPostRoutine(&Community::stopAtExit);
+        postRoutineAdded = true;
+    }
+    s_running = this;
 }
 
 Community::~Community()
 {
     stop();
+    if (s_running == this)
+        s_running = nullptr;
+}
+
+void Community::stopAtExit()
+{
+    if (s_running)
+        s_running->stop();
 }
 
 void Community::stop()

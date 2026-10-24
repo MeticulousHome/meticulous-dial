@@ -46,6 +46,8 @@ INITIAL = {
     "delays": {"list": 1.5, "connect": 1.0, "delete": 0.5, "repair": 2.0, "config": 1.0},
     "repair_fails": False,
     "mode_change_fails": False,
+    # GET /wifi/config answers 500 (the Wi-Fi menu's "Could not load WiFi").
+    "config_fails": False,
 }
 state = copy.deepcopy(INITIAL)
 
@@ -92,6 +94,8 @@ async def handle_wifi(method, path, body):
     """(status, object) of a faked call, or None to pass it on."""
     delays = state["delays"]
     if path == "/api/v1/wifi/config" and method == "GET":
+        if state["config_fails"]:
+            return 500, {"status": "error", "error": "NetworkManager is not answering."}
         return 200, wifi_config()
     if path == "/api/v1/wifi/config" and method == "POST":
         await asyncio.sleep(delays["config"])
@@ -191,7 +195,7 @@ async def client(reader, writer, upstream):
         if answer is not None:
             status, obj = answer
             payload = json.dumps(obj).encode()
-            reason = {200: b"OK", 400: b"Bad Request"}.get(status, b"Status")
+            reason = {200: b"OK", 400: b"Bad Request", 500: b"Internal Server Error"}.get(status, b"Status")
             writer.write(b"HTTP/1.1 %d %s\r\n" % (status, reason) + CORS + b"Content-Type: application/json\r\n"
                          + b"Content-Length: %d\r\nConnection: close\r\n\r\n" % len(payload) + payload)
             await writer.drain()

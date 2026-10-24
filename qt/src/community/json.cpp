@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 #include <limits>
 #include <locale.h>
 #include <numeric>
@@ -12,9 +13,9 @@
 namespace community {
 
 JsonValue::JsonValue(const JsonValue &other)
-    : m_type(other.m_type), m_bool(other.m_bool), m_u(other.m_u), m_i(other.m_i), m_d(other.m_d),
-      m_string(other.m_string)
+    : m_type(other.m_type), m_bool(other.m_bool), m_string(other.m_string)
 {
+    std::memcpy(&m_u, &other.m_u, sizeof(m_u));   // whichever member of the union is in use
     if (other.m_container)
         m_container = std::make_unique<Container>(*other.m_container);
 }

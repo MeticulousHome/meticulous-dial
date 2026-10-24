@@ -10,6 +10,10 @@
 
 const POUR_OVER_PROFILE_SCHEMA_VERSION = 1
 
+// The name of the TypeScript type, which tests/pourOverProfileContract.test.ts imports as a value
+// (qt/tests/js runs that test against this file).
+const PortablePourOverProfile = null
+
 function issue(path, message, code) {
     return { path: path, message: message, code: code }
 }

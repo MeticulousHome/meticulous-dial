@@ -50,8 +50,9 @@ Item {
     function factoryReset() {
         resetState = "pending"
         new Promise((resolve, reject) => {
-            if (typeof Community !== "undefined" && Community) {
-                const error = Community.factoryResetLocal()
+            const uploader = SettingsStore.community
+            if (uploader) {
+                const error = uploader.factoryResetLocal()
                 if (error) { reject(new Error(error)); return }
             }
             resolve()
@@ -75,7 +76,14 @@ Item {
         }
     }
 
-    LoadingScreen { visible: screen.loading }
+    // .loading-center is position: fixed: the whole display, also in the bubble.
+    Item {
+        visible: screen.loading
+        x: screen.inBubble ? -60 : 0
+        width: 480
+        height: 480
+        LoadingScreen {}
+    }
 
     // ---- the warning and the two entries
     Item {

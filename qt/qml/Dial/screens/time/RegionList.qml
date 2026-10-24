@@ -74,6 +74,7 @@ Item {
                         lineHeightMode: Text.FixedHeight
                     }
                     Text {
+                        id: detail
                         visible: entry.active && text.length > 0
                         height: list.entryHeight
                         text: String(entry.item && entry.item.detail ? entry.item.detail : "")
@@ -83,7 +84,8 @@ Item {
                         font.letterSpacing: -0.4
                         font.capitalization: Font.Capitalize
                         // align-items: baseline with the 40 px label.
-                        topPadding: label.baselineOffset - baselineOffset + topPadding
+                        topPadding: label.baselineOffset - detailMetrics.ascent
+                        FontMetrics { id: detailMetrics; font: detail.font }
                     }
                 }
             }

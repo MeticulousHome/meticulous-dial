@@ -90,9 +90,11 @@ private:
 
     Type m_type = Type::Null;
     bool m_bool = false;
-    quint64 m_u = 0;
-    qint64 m_i = 0;
-    double m_d = 0;
+    union {   // by m_type: PosInt, NegInt, Float
+        quint64 m_u = 0;
+        qint64 m_i;
+        double m_d;
+    };
     QString m_string;
     std::unique_ptr<Container> m_container;
 

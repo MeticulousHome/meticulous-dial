@@ -4,9 +4,17 @@ pragma Singleton
 // backend answers 204, refetched on every mount, no retry).
 import QtQuick
 import Dial
+import Dial.Native as DialNative
 
 QtObject {
     id: store
+
+    // ---- the Community uploader (Dial.Native's Community; qualified, because inside this directory
+    // "Community" is the Community screen). The end-to-end tests put a stand-in with the same API in
+    // communityOverride before opening the screens, so that they never ask the real service for a code.
+    property var communityOverride: null
+    readonly property var community: communityOverride ? communityOverride
+                                     : typeof DialNative.Community !== "undefined" ? DialNative.Community : null
 
     // ---- useRootPassword
     property string rootPassword: ""

@@ -16,13 +16,13 @@
 //   ignoreGestures         shouldIgnoreGesture; its default is React's: Nav.bubbleInterceptsGesture. Set it
 //                          to replace that (e.g. `!Nav.bubbleInterceptsGesture` for a keyboard in the bubble)
 //   prefix, suffix         fixed text shown before / after the input (not part of the value), 40 % and light
-//   longPressEnabled       (added) true when the screen handles longPressed (React passes onLongPress):
-//                          then a long encoder press first takes back the character its press typed
+//   longPressEnabled       (added) set it with onLongPressed (React passes onLongPress): a long encoder press
+//                          then first takes back the character its press typed (React does only then)
 //   text                   the text typed (read; setting it replaces the text)
 //   submitted(text)        "ok" with a non-blank text (trimmed); at 64 characters "ok" submits as it is
 //   cancelled()            "cancel" (abort)
 //   edited(text)           every change typed (onChange)
-//   longPressed()          a long encoder press, when longPressEnabled
+//   longPressed()          a long encoder press
 // Test probes: dialFocusedLabel (the selected key), dialProbe_keyboardText, dialProbe_keyboardKey,
 // dialProbe_keyboardType, dialProbe_capsLock ("inactive" | "active" | "locked").
 import QtQuick
@@ -309,9 +309,10 @@ Item {
             if (keyboard.mainLetter === "capslock")
                 keyboard.capsActive ? keyboard.setCaps(false, false) : keyboard.setCaps(true, false)
         }
+        // A screen without a long press (React passes no onLongPress) just does not handle longPressed; the
+        // take-back of the character, which a screen without one must not do, needs longPressEnabled.
         onLongEncoder: {
-            if (!keyboard.longPressEnabled) return
-            if (keyboard.lastPressInserted) {
+            if (keyboard.longPressEnabled && keyboard.lastPressInserted) {
                 const value = keyboard.caption.slice(0, -1)
                 keyboard.setCaption(value)
                 keyboard.edited(value.join(""))
@@ -611,7 +612,7 @@ Item {
                     height: 6 * 3.9
                     sourceSize: Qt.size(24, 24)
                     opacity: 0.4
-                    source: Theme.asset("icons/profile-globe-alt.svg")
+                    source: slot.key === "keyboardType" ? Theme.asset("icons/profile-globe-alt.svg") : ""
                 }
             }
         }

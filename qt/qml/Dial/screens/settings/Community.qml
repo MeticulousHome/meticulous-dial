@@ -18,8 +18,10 @@ Item {
     anchors.fill: parent
     property bool inBubble: false
 
-    readonly property bool communityAvailable: typeof Community !== "undefined" && !!Community
-    readonly property var status: communityAvailable ? Community.status : null
+    // The uploader (SettingsStore.community: Dial.Native's Community, or the tests' stand-in).
+    readonly property var uploader: SettingsStore.community
+    readonly property bool communityAvailable: !!uploader
+    readonly property var status: communityAvailable ? uploader.status : null
     readonly property bool statusPending: communityAvailable && !status
     readonly property bool connected: !!status && status.connected === true
     // Without the uploader the React hook's query fails: shown here as the unavailable state.
@@ -55,7 +57,7 @@ Item {
 
     // ---- the uploader's answers
     Connections {
-        target: screen.communityAvailable ? Community : null
+        target: screen.uploader
         ignoreUnknownSignals: true
         function onEnrollmentResult(result) {
             if (!screen.enrollmentPending) return
@@ -93,7 +95,7 @@ Item {
         pairingUrl = ""
         pairingExpiresAt = 0
         enrollmentPending = true
-        Community.beginEnrollment(Device.info && Device.info.serial ? String(Device.info.serial) : "")
+        uploader.beginEnrollment(Device.info && Device.info.serial ? String(Device.info.serial) : "")
     }
     // The first enrollment starts once the status and the device info are known.
     function maybeStartEnrollment() {
@@ -102,12 +104,13 @@ Item {
             return
         startEnrollment()
     }
-    Component.onCompleted: maybeStartEnrollment()
-    onStatusChanged: maybeStartEnrollment()
-    onEnrollmentAttemptedChanged: maybeStartEnrollment()
+    // As the React effect, after the bindings that depend on the change have settled.
+    Component.onCompleted: Qt.callLater(maybeStartEnrollment)
+    onStatusChanged: Qt.callLater(maybeStartEnrollment)
+    onEnrollmentAttemptedChanged: Qt.callLater(maybeStartEnrollment)
     Connections {
         target: Device
-        function onInfoChanged() { screen.maybeStartEnrollment() }
+        function onInfoChanged() { Qt.callLater(screen.maybeStartEnrollment) }
     }
 
     onConnectedChanged: {
@@ -157,7 +160,7 @@ Item {
                 }
                 screen.operationError = ""
                 screen.operationPending = "disconnect"
-                Community.disconnect()
+                screen.uploader.disconnect()
                 return
             }
             const action = screen.actions[screen.activeAction]
@@ -169,7 +172,7 @@ Item {
             } else if (action === "Pause uploads" || action === "Resume uploads") {
                 screen.operationError = ""
                 screen.operationPending = "paused"
-                Community.setUploadPaused(action === "Pause uploads")
+                screen.uploader.setUploadPaused(action === "Pause uploads")
             } else if (action === "Disconnect") {
                 screen.mode = "disconnect"
                 screen.activeAction = 0

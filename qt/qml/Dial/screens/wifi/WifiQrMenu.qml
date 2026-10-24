@@ -40,7 +40,8 @@ Item {
     // The column fills the box width (its QR block's max-content is wider than the box).
     readonly property real columnWidth: boxWidth
     readonly property real qrBlockContent: columnWidth - 100
-    readonly property real columnHeight: 280 + 5 + caption.height + entry.height + 80
+    readonly property real captionHeight: caption.lineCount * 26
+    readonly property real columnHeight: 280 + 5 + captionHeight + entry.height + 80
     readonly property real columnY: boxY + (boxHeight - columnHeight) / 2
 
     Image {
@@ -54,10 +55,11 @@ Item {
         smooth: true
         fillMode: Image.Stretch
     }
+    // The 26 px line boxes put the half-leading above the glyphs (3 px lower than Qt's fixed-height lines).
     Text {
         id: caption
         x: screen.boxX + 20
-        y: qr.y + 280 + 5
+        y: qr.y + 280 + 5 + 3
         width: screen.qrBlockContent - 20
         wrapMode: Text.WordWrap
         text: "Scan with meticulous App to connect to the machine"
@@ -71,7 +73,7 @@ Item {
     Rectangle {
         id: entry
         x: screen.boxX + (screen.columnWidth - width) / 2
-        y: caption.y + caption.height
+        y: qr.y + 280 + 5 + screen.captionHeight
         width: screen.columnWidth * 0.9 + 18
         height: 26 + 12
         radius: 4

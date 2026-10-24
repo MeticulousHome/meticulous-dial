@@ -43,10 +43,10 @@ Item {
 
     // A .clock line: its CSS box starts at `top`; the text's baseline is the rounded ascent below.
     component ClockLine: Text {
-        property real top: 0
+        property real lineTop: 0
         property LineMetrics metrics
         x: (480 - implicitWidth) / 2
-        y: top + metrics.roundedAscent - metrics.ascent
+        y: lineTop + metrics.roundedAscent - metrics.ascent
         font.family: digital.fontFamily
         color: "#dddddd"
     }
@@ -86,20 +86,20 @@ Item {
         anchors.fill: parent
         ClockLine {
             metrics: big
-            top: 110
+            lineTop: 110
             font.pixelSize: 110
             text: digital.time ? ClockTime.pad2(digital.time.hours) : ""
         }
         ClockLine {
             metrics: big
-            top: 110 + big.lineBox - 20
+            lineTop: 110 + big.lineBox - 20
             font.pixelSize: 110
             text: digital.time ? ClockTime.pad2(digital.time.minutes) : ""
         }
         ClockLine {
             visible: !!(digital.time && digital.time.midday)
             metrics: small
-            top: 110 + 2 * (big.lineBox - 20)
+            lineTop: 110 + 2 * (big.lineBox - 20)
             font.pixelSize: 55
             font.weight: Font.Medium
             color: "#606060"
@@ -107,27 +107,31 @@ Item {
         }
     }
 
-    // MetCatClock: "HH:MM" (84 px, light) and the cat (480 x 480 at y 60): frames 0-120 once, then 120-313
-    // in a loop.
+    // MetCatClock: "HH:MM" (84 px, light) and the cat, frames 0-120 once, then 120-313 in a loop. React
+    // draws the 1000 x 1000 animation at 480 x 480 from y 60; the cat stays inside comp x 394-631,
+    // y 390-638, so idle-metcat.json is MetCat.json in a 275 x 280 window from (375, 375): the same
+    // picture, drawn at 132 x 134 from (180, 240) (a thirteenth of the pixels to render and upload).
     Item {
         visible: digital.hasTime && digital.useMetCat
         anchors.fill: parent
         ClockLine {
             metrics: mini
-            top: 110
+            lineTop: 110
             font.pixelSize: 84
             font.weight: Font.Light
             text: digital.time ? ClockTime.pad2(digital.time.hours) + ":" + ClockTime.pad2(digital.time.minutes) : ""
         }
         Loader {
-            active: digital.useMetCat
-            y: 60
-            width: 480
-            height: 480
+            // MetCatClock mounts with the first time sample
+            active: digital.useMetCat && digital.hasTime
+            x: 375 * 0.48
+            y: 60 + 375 * 0.48
+            width: 275 * 0.48
+            height: 280 * 0.48
             sourceComponent: LottieItem {
                 id: cat
-                width: 480
-                height: 480
+                width: 275 * 0.48
+                height: 280 * 0.48
                 source: Theme.asset("lottie/idle-metcat.json")
                 startFrame: 0
                 endFrame: 120
@@ -148,8 +152,15 @@ Item {
         onRenderTime: ms => digital.milliseconds = ms
     }
 
-    Component.onCompleted: Api.setBrightness({ brightness: 0 }).catch(e => console.error("Error setting brightness", e && e.message))
-    Component.onDestruction: Api.setBrightness({ brightness: 1 }).catch(e => console.error("Error setting brightness", e && e.message))
+    // setBrightness of the mount / unmount effect (the IdleScreen logs it for the tests)
+    signal brightnessRequested(real brightness)
+    function setBrightness(brightness) {
+        brightnessRequested(brightness)
+        Api.setBrightness({ brightness: brightness }).catch(e => console.error("Error setting brightness", e && e.message))
+    }
+    // Deferred like the IdleScreen's own mount effect, which runs after it (React runs the child's first).
+    Component.onCompleted: Qt.callLater(() => { if (digital) digital.setBrightness(0) })
+    Component.onDestruction: setBrightness(1)
 
     readonly property string dialProbe_digitalTime: time ? (useMetCat ? ClockTime.pad2(time.hours) + ":" + ClockTime.pad2(time.minutes)
                                                                        : ClockTime.pad2(time.hours) + " " + ClockTime.pad2(time.minutes) + (time.midday ? " " + time.midday : "")) : ""

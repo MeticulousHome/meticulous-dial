@@ -4,7 +4,6 @@
 // menus this one never scrolls a long label in the bar.
 import QtQuick
 import Dial
-import Dial.Native
 
 Item {
     id: screen
@@ -13,7 +12,10 @@ Item {
 
     readonly property var settings: BackendSettings.data
     // useCommunityUploadStatus: the Community uploader's status, when it exists.
-    readonly property var communityStatus: typeof Community !== "undefined" && Community ? Community.status : null
+    readonly property var uploader: SettingsStore.community
+    // For the end-to-end tests, which put their stand-in uploader in it.
+    readonly property QtObject settingsStore: SettingsStore
+    readonly property var communityStatus: uploader ? uploader.status : null
 
     readonly property var initialSettings: [
         { key: "device_info", label: "Device Info" },
