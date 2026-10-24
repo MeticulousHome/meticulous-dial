@@ -2,7 +2,7 @@
 # Profiles the Qt Dial on the machine with qmlprofiler while the frame meter plays a scenario, and lists
 # the QML/JS work that took the longest. Runs ON the machine; needs qt6-qmltooling-plugins (bookworm) and
 # the build with -DDIAL_QML_DEBUG=ON copied to $DIAL/bin/meticulous-dial-qt-qmldebug (never shipped).
-#   bash qmlprofile.sh SCENARIO [REPS]
+#   bash qmlprofile.sh SCENARIO [REPS]      (SCENARIO fakeshot: fake_shot.py, the brewing screens)
 # The Dial quits at the end (the trace is written when the app ends cleanly): restart dial-qt-dev after.
 set -euo pipefail
 DIAL=/meticulous-user/dial-qt
@@ -20,7 +20,13 @@ rm -f /tmp/dial.qtd
 /usr/lib/qt6/bin/qmlprofiler --attach 127.0.0.1 --port 3768 -o /tmp/dial.qtd >/tmp/qmlprofiler.log 2>&1 &
 profiler=$!
 sleep 3
-python3 $DIAL/flipsrun.py "$scenario" --reps "$reps" > /tmp/qmlprofile-run.jsonl
+if [ "$scenario" = fakeshot ]; then
+    python3 $DIAL/fake_shot.py > /tmp/qmlprofile-shot.json
+    echo "{\"fps_motion\": 0, \"hitches_ge3\": 0, \"hitches\": []}" > /tmp/qmlprofile-run.jsonl
+    cat /tmp/qmlprofile-shot.json
+else
+    python3 $DIAL/flipsrun.py "$scenario" --reps "$reps" > /tmp/qmlprofile-run.jsonl
+fi
 # A clean quit flushes the trace to qmlprofiler.
 python3 - <<'EOF'
 import sys
