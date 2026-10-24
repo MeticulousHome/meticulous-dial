@@ -67,9 +67,11 @@ Item {
         onFinished: { home.ghost = null; home.gapIndex = -1 }
     }
 
-    // Test probes (tests/e2e): the cards in order, the focused one, and whether it is selected (zoomed).
+    // Test probes (tests/e2e): the cards in order, the focused one (name and position; profiles may share a
+    // name), and whether it is selected (zoomed).
     readonly property var dialProbe_cards: cards.map(c => c.name)
     readonly property string dialProbe_activeCard: cards[activeOption] ? cards[activeOption].name : ""
+    readonly property int dialProbe_activeIndex: activeOption
     readonly property bool dialProbe_cardSelected: homeHoverState
 
     // The title pill names the selected card (homeCardSelected).

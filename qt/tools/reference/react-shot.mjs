@@ -9,7 +9,10 @@ import fs from 'node:fs';
 
 const [url, outDir, steps = 'wait:6000,shot:home'] = process.argv.slice(2);
 fs.mkdirSync(outDir, { recursive: true });
-const browser = await chromium.launch();
+// Only this machine resolves: the React build reaches no real service (tickets, Sentry, Community).
+const browser = await chromium.launch({
+  args: ['--host-resolver-rules=MAP * ~NOTFOUND , EXCLUDE localhost , EXCLUDE 127.0.0.1']
+});
 const page = await browser.newPage({ viewport: { width: 480, height: 480 } });
 page.on('pageerror', (e) => console.error('pageerror', e.message));
 await page.goto(url);

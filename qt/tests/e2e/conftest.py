@@ -7,6 +7,7 @@ docs/qt-migration/TESTING.md.
 
 import os
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -29,13 +30,26 @@ def backend():
     return Backend()
 
 
+def dismiss_dispatched_report_notices(s: Screen):
+    """Acknowledge the Dial's own "report from the app was sent" notices (one "Ok" each). A report the app
+    dispatched is uploaded by every Dial on the backend whenever its services allow it, so the notice can
+    show up in any test and would keep the next ones off the home."""
+    for _ in range(5):
+        if s.route() != "notifications" or not str(s.probe("notificationId") or "").startswith("dispatched-report-"):
+            return
+        s.controls.push()
+        time.sleep(1)
+
+
 @pytest.fixture
 def screen(client, request):
     s = Screen(client, request.node.name)
+    dismiss_dispatched_report_notices(s)
     yield s
     if request.node.rep_call.failed if hasattr(request.node, "rep_call") else False:
         s.snapshot("failed")
     # Leave the Dial on the home with the bubble closed for the next test.
+    dismiss_dispatched_report_notices(s)
     state = client.state()
     if state["bubbleVisible"]:
         s.controls.context()

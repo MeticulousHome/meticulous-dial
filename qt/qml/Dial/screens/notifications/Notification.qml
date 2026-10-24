@@ -30,6 +30,7 @@ Item {
     // For the end-to-end tests.
     readonly property string dialFocusedLabel: responses.length === 1 ? (responses[0] || "OK")
                                              : responses.length ? String(responses[selectedOption] || "") : ""
+    readonly property string dialProbe_notificationId: notificationId
     readonly property bool dialProbe_notificationScrollable: scrollable
     readonly property bool dialProbe_notificationCanSelect: canSelectOption
 

@@ -29,6 +29,14 @@ nothing. Tests that exercise those flows give the Dial local stand-ins (the supp
 override, the settings tests' Community stand-in). The Dial logs "external services are off" when it starts
 this way.
 
+The network enforces it too, for the Dial and for the emulated backend (which has real Sentry DSNs, the
+production shared-shots bucket and a time zone lookup built in): `run-dev.sh` and `dev-backend.sh` start
+their containers with those services' names resolving to 127.0.0.1 (`qt/scripts/real-services.sh`), and the
+backend's shot sharing points at a dead address. The fika-sil journeys run with no network at all
+(`qt/tests/integration`, `docker run --network none`), and the React reference screenshots resolve only
+localhost. A run on a machine (`deploy-dev.sh`, the frame meter) starts the Dial guarded as well; that
+machine's own backend keeps reporting as any machine does.
+
 ## Running the end-to-end tests
 
 ```bash

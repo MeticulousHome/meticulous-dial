@@ -11,12 +11,23 @@ def default_profile(backend):
     return dict(defaults["default"][0])
 
 
-def save_profile(backend, profile):
+@pytest.fixture
+def saved(backend):
+    """The profiles a test saves, deleted after it so they do not pile up on the backend's home."""
+    ids = []
+    yield ids
+    for id_ in ids:
+        backend.request("DELETE", f"/api/v1/profile/delete/{id_}")
+
+
+def save_profile(backend, profile, saved=None):
     status, body = backend.post("/api/v1/profile/save", profile)
     assert status == 200, body
+    if saved is not None:
+        saved.append(profile["id"])
 
 
-def test_the_home_offers_every_profile_then_free_pour_and_new(screen, backend):
+def test_the_home_offers_every_profile_then_free_pour_and_new(screen, backend, saved):
     """Protects: finding every saved profile on the home with the knob.
 
     Limit: the carousel order of homeSelection.ts: espresso profiles, then pour-over profiles, then
@@ -24,7 +35,7 @@ def test_the_home_offers_every_profile_then_free_pour_and_new(screen, backend):
     """
     names = {f"Home {n} {uuid.uuid4().hex[:4]}" for n in range(2)}
     for name in names:
-        save_profile(backend, {**default_profile(backend), "id": str(uuid.uuid4()), "name": name})
+        save_profile(backend, {**default_profile(backend), "id": str(uuid.uuid4()), "name": name}, saved)
     _, saved = backend.get("/api/v1/profile/list")
     espresso = [p["name"] for p in saved]
 
@@ -40,11 +51,11 @@ def test_the_home_offers_every_profile_then_free_pour_and_new(screen, backend):
     assert screen.active_card() == target
 
 
-def test_the_title_pill_names_the_selected_card(screen, backend):
+def test_the_title_pill_names_the_selected_card(screen, backend, saved):
     """Protects: seeing which card a push selected: the pill reads "Catalog" while browsing and the
     selected card's name once a push zooms it (ProfileTitle)."""
     profile = {**default_profile(backend), "id": str(uuid.uuid4()), "name": f"Pill {uuid.uuid4().hex[:4]}"}
-    save_profile(backend, profile)
+    save_profile(backend, profile, saved)
     screen.wait_for_home()
     screen.wait_for_cards({profile["name"]})
     screen.go_to_card("new")

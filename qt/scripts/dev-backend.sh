@@ -35,8 +35,10 @@ exit 0
 STUB
         chmod +x "$state/host-bin/$c"
     done
-    docker run -d --name "$name" --restart unless-stopped --network host \
-        -v "$backend:/app" -v "$state:/state" -w /app \
+    # Its built-in real services (Sentry, shot sharing, the time zone lookup) resolve to a dead address.
+    . "$(dirname "$0")/real-services.sh"
+    docker run -d --name "$name" --restart unless-stopped --network host "${no_real_services[@]}" \
+        -v "$backend:/app" -v "$state:/state" -w /app -e SHOT_DATA_SHARING_SUPABASE_URL=http://127.0.0.1:9 \
         -e BACKEND=emulation -e CONFIG_PATH=/state/config -e LOG_PATH=/state/logs -e PROFILE_PATH=/state/profiles \
         -e HISTORY_PATH=/state/history -e DEBUG_HISTORY_PATH=/state/history/debug \
         -e MOTOR_ENERGY_PATH=/state/history/energy -e UPDATE_PATH=/tmp/firmware -e PORT="$port" \

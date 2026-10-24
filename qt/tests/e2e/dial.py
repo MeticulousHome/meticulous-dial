@@ -223,15 +223,19 @@ class Screen:
             time.sleep(0.1)
         raise AssertionError(f"cards {names} not on the home: {self.cards()}")
 
-    def go_to_card(self, name, limit=60):
-        """Turn the knob towards `name`; on the home, left is the next card."""
-        for _ in range(limit):
+    def active_index(self):
+        return self.probe("activeIndex")
+
+    def go_to_card(self, name, limit=None):
+        """Turn the knob towards `name` (its first card when profiles share the name); on the home, left is
+        the next card."""
+        for _ in range(limit or len(self.cards()) + 10):
             cards, current = self.cards(), self.active_card()
             if current == name:
                 return
             if name not in cards:
                 raise AssertionError(f"no card {name!r} in {cards}")
-            self.controls.turn(-1 if cards.index(name) > cards.index(current) else 1)
+            self.controls.turn(-1 if cards.index(name) > self.active_index() else 1)
         if self.active_card() == name:
             return
         raise AssertionError(f"could not reach {name!r}; on {self.active_card()!r}")
