@@ -23,6 +23,7 @@ import { ShotGraph } from '../ShotGraph/ShotGraphScreen';
 import { useProfileContext } from '../../context/ProfileContext';
 import { useBrewDoubleClickHandler } from '../../hooks/useBrewDoubleClickHandler';
 import { useManualBrew } from '../../hooks/useManualBrew';
+import { isReading } from '../../utils/sensorReading';
 
 const WeightContainer = styled.div`
   display: flex;
@@ -77,12 +78,12 @@ export const BrewCompleteScreen = () => {
     useManualBrew();
   const { isIdle: shouldGoToIdle } = useIdleTimer();
 
-  const weight = !isNaN(lastBrewWeight)
+  const scaleConnected = isReading(lastBrewWeight);
+  const weight = scaleConnected
     ? Math.abs(lastBrewWeight) < 1000
       ? lastBrewWeight.toFixed(1)
       : lastBrewWeight.toFixed(0)
     : lastBrewWeight;
-  const scaleConnected = !isNaN(lastBrewWeight);
   const isPurging = statsName === 'purge';
   const [showPlot, setShowPlot] = useState<boolean>(false);
   const isIdle = statsName === 'idle' || statsName === 'END_STAGE';
