@@ -517,10 +517,10 @@ std::optional<QStringList> UploadService::fetchHistoryPaths(HttpClient &http, Hi
     const QString invalid =
         espresso ? QStringLiteral("machine_history_invalid") : QStringLiteral("machine_pour_over_history_invalid");
     HttpRequest request;
-    request.url = machineHistoryListUrl(m_machineBase,
-                                        espresso ? QStringLiteral("/api/v1/history/upload-index")
-                                                 : QStringLiteral("/api/v1/history/pour-over"),
-                                        !espresso, after);
+    request.url = m_machineBase;
+    request.target = machineHistoryListTarget(espresso ? QStringLiteral("/api/v1/history/upload-index")
+                                                       : QStringLiteral("/api/v1/history/pour-over"),
+                                              !espresso, after);
     request.maxBodyBytes = kMaxControlResponseBytes;
     const HttpResponse response = http.send(request);
     if (!response.received || !response.isSuccess()) {
@@ -552,13 +552,14 @@ bool UploadService::queueHistoryPath(HttpClient &http, HistoryKind kind, const Q
 {
     if (!ensureQueueCapacity(0, failure))
         return false;
-    const auto url = machineHistoryFileUrl(m_machineBase, kind, historyPath);
-    if (!url) {
+    const auto target = machineHistoryFileTarget(kind, historyPath);
+    if (!target) {
         *failure = permanent(QStringLiteral("history_path_invalid"));
         return false;
     }
     HttpRequest request;
-    request.url = *url;
+    request.url = m_machineBase;
+    request.target = *target;
     request.maxBodyBytes = kMaxShotBodyBytes;
     const HttpResponse response = http.send(request);
     if (!response.received || !response.isSuccess()) {

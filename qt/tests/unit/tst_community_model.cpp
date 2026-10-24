@@ -676,24 +676,26 @@ private slots:
         const QUrl community(str("https://community.meticuloushome.com/ignored?x=1"));
         QCOMPARE(urlWithPath(community, QString::fromLatin1(kShotPath)).toString(QUrl::FullyEncoded),
                  str("https://community.meticuloushome.com/api/machine-uploads/v1/shots"));
-        const QUrl machine(str("http://localhost:8080"));
-        QCOMPARE(machineHistoryFileUrl(machine, HistoryKind::Espresso, str("2026-08-15/shot 1.json.zst"))
-                     ->toString(QUrl::FullyEncoded),
-                 str("http://localhost:8080/api/v1/history/files/2026-08-15/shot%201.json.zst"));
-        QCOMPARE(machineHistoryFileUrl(machine, HistoryKind::PourOver, str("/2026-08-15/a#b?c%.json"))
-                     ->toString(QUrl::FullyEncoded),
-                 str("http://localhost:8080/api/v1/history/pour-over/files/2026-08-15/a%23b%3Fc%25.json"));
-        QVERIFY(!machineHistoryFileUrl(machine, HistoryKind::Espresso, str("../x")));
-        const QUrl list = machineHistoryListUrl(machine, str("/api/v1/history/upload-index"), false,
-                                                str("2026-08-15/a b:c.json"));
-        QCOMPARE(list.toString(QUrl::FullyEncoded),
-                 str("http://localhost:8080/api/v1/history/upload-index?max_results=200&after=2026-08-15%2Fa+b%3Ac.json"));
+        QCOMPARE(machineHistoryFileTarget(HistoryKind::Espresso, str("2026-08-15/shot 1.json.zst")),
+                 std::optional<QByteArray>("/api/v1/history/files/2026-08-15/shot%201.json.zst"));
+        QCOMPARE(machineHistoryFileTarget(HistoryKind::PourOver, str("/2026-08-15/a#b?c%.json")),
+                 std::optional<QByteArray>("/api/v1/history/pour-over/files/2026-08-15/a%23b%3Fc%25.json"));
+        // The url crate keeps | ^ [ ] ~ and the sub-delims in a path segment (QUrl would encode | and ^).
+        QCOMPARE(machineHistoryFileTarget(HistoryKind::Espresso, str("d/[x]|^~'!$&()*+,;=@:é`{}\"<>")),
+                 std::optional<QByteArray>("/api/v1/history/files/d/[x]|^~'!$&()*+,;=@:%C3%A9%60%7B%7D%22%3C%3E"));
+        QVERIFY(!machineHistoryFileTarget(HistoryKind::Espresso, str("../x")));
+        const QByteArray list = machineHistoryListTarget(str("/api/v1/history/upload-index"), false,
+                                                         str("2026-08-15/a b:c.json"));
+        QCOMPARE(list, QByteArray("/api/v1/history/upload-index?max_results=200&after=2026-08-15%2Fa+b%3Ac.json"));
         // Form decoding (what the backend does) gives the cursor back.
-        const QString after = QUrlQuery(list).queryItemValue(str("after"), QUrl::FullyEncoded);
+        const QString after = QUrlQuery(QString::fromLatin1(list.mid(list.indexOf('?') + 1)))
+                                  .queryItemValue(str("after"), QUrl::FullyEncoded);
         QCOMPARE(QUrl::fromPercentEncoding(after.toLatin1().replace('+', ' ')), str("2026-08-15/a b:c.json"));
-        QCOMPARE(machineHistoryListUrl(machine, str("/api/v1/history/pour-over"), true, std::nullopt)
-                     .toString(QUrl::FullyEncoded),
-                 str("http://localhost:8080/api/v1/history/pour-over?sort=asc&max_results=200"));
+        // form_urlencoded::byte_serialize: only alphanumerics and *-._ stay (QUrl would decode %7E).
+        QCOMPARE(machineHistoryListTarget(str("/api/v1/history/upload-index"), false, str("a~b|c")),
+                 QByteArray("/api/v1/history/upload-index?max_results=200&after=a%7Eb%7Cc"));
+        QCOMPARE(machineHistoryListTarget(str("/api/v1/history/pour-over"), true, std::nullopt),
+                 QByteArray("/api/v1/history/pour-over?sort=asc&max_results=200"));
     }
 
     void buildsTheEnrollmentQrLink()

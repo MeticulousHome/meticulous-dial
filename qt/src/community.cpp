@@ -54,7 +54,7 @@ protected:
                 reported = status;
                 m_statusChanged();
             }
-            // Replies and their internals are deleted later; this thread has no event loop of its own.
+            // Objects Qt deletes later (socket internals) go now; this thread has no event loop of its own.
             QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
             QMutexLocker locker(&m_waitMutex);
             if (!m_stop->load())

@@ -44,6 +44,15 @@ HttpResponse reply(int status, const QByteArray &body = QByteArray(),
     return response;
 }
 
+// The URL a request goes to: the base with the exact target when the uploader gives one.
+QUrl requestUrl(const HttpRequest &request)
+{
+    if (request.target.isEmpty())
+        return request.url;
+    const QUrl origin = request.url.adjusted(QUrl::RemovePath | QUrl::RemoveQuery | QUrl::RemoveFragment);
+    return QUrl::fromEncoded(origin.toEncoded() + request.target);
+}
+
 QHash<QByteArray, QByteArray> headerMap(const HttpRequest &request)
 {
     QHash<QByteArray, QByteArray> map;
@@ -110,7 +119,7 @@ public:
     {
         QStringList out;
         for (const HttpRequest &r : requests)
-            out.append(QString::fromLatin1(r.method) + QLatin1Char(' ') + r.url.toString(QUrl::FullyEncoded));
+            out.append(QString::fromLatin1(r.method) + QLatin1Char(' ') + requestUrl(r).toString(QUrl::FullyEncoded));
         return out;
     }
 
@@ -121,8 +130,8 @@ public:
             if (auto hooked = hook(request))
                 return *hooked;
         }
-        const QString host = request.url.host();
-        const QString path = request.url.path();
+        const QString host = requestUrl(request).host();
+        const QString path = requestUrl(request).path();
         if (host == QLatin1String("machine.example"))
             return machine(request, path);
         if (host == QLatin1String("community.example"))
@@ -1012,8 +1021,25 @@ private slots:
         MockRequest seen = server.requests().last();
         QCOMPARE(seen.target, QByteArray("/a?b=1"));
         QCOMPARE(seen.headers.value("user-agent"), QByteArray("meticulous-dial-community-upload-v1"));
-        QCOMPARE(seen.headers.value("accept-encoding"), QByteArray("identity"));
+        // What reqwest sends and nothing else: no Connection, Accept-Language, Accept-Encoding,
+        // Cache-Control or Pragma (QNetworkAccessManager added them).
+        const auto names = [](const MockRequest &request) {
+            QStringList list;
+            for (auto it = request.headers.cbegin(); it != request.headers.cend(); ++it)
+                list.append(QString::fromLatin1(it.key()));
+            list.sort();
+            return list;
+        };
+        QCOMPARE(names(seen), QStringList({str("accept"), str("host"), str("user-agent")}));
+        QCOMPARE(seen.headers.value("accept"), QByteArray("*/*"));
+        QCOMPARE(seen.headers.value("host"), "127.0.0.1:" + QByteArray::number(server.serverPort()));
         QVERIFY(!seen.headers.contains("cookie"));
+
+        // The target goes out as given (the url crate keeps | and ^, and form-encodes ~ as %7E).
+        HttpRequest exact = get;
+        exact.target = "/a|b^c[d]?after=x%7Ey";
+        QVERIFY(http.send(exact).received);
+        QCOMPARE(server.requests().last().target, QByteArray("/a|b^c[d]?after=x%7Ey"));
 
         HttpRequest post;
         post.method = "POST";
@@ -1028,6 +1054,9 @@ private slots:
         QVERIFY(!seen.headers.contains("cookie"));   // no cookie store
         QCOMPARE(seen.headers.value("x-meticulous-nonce"), QByteArray("n"));
         QCOMPARE(seen.headers.value("content-type"), QByteArray("application/json"));
+        QCOMPARE(seen.headers.value("content-length"), QByteArray("7"));
+        QCOMPARE(names(seen), QStringList({str("accept"), str("content-length"), str("content-type"), str("host"),
+                                           str("user-agent"), str("x-meticulous-nonce")}));
 
         HttpRequest del = post;
         del.method = "DELETE";
@@ -1115,6 +1144,174 @@ private slots:
         QVERIFY(!http.send(get).received);
         QVERIFY(timer.elapsed() < 3000);
         QVERIFY(!http.send(get).received);   // stopped: no new requests
+    }
+
+    void httpClientNeverResendsARequest()
+    {
+        // The server reads the request and closes the connection without an answer. hyper reports an
+        // error and the uploader signs a new request after its backoff; QNetworkAccessManager sent the
+        // same bytes again, nonce and signature included (found by qt/tests/community-contract).
+        QTcpServer server;
+        QVERIFY(server.listen(QHostAddress::LocalHost, 0));
+        int requests = 0;
+        QObject::connect(&server, &QTcpServer::newConnection, &server, [&] {
+            while (QTcpSocket *socket = server.nextPendingConnection()) {
+                QObject::connect(socket, &QTcpSocket::readyRead, socket, [&requests, socket] {
+                    const QByteArray seen = socket->property("seen").toByteArray() + socket->readAll();
+                    socket->setProperty("seen", seen);
+                    if (seen.contains("\r\n\r\n") && !socket->property("counted").toBool()) {
+                        socket->setProperty("counted", true);
+                        ++requests;
+                        socket->disconnectFromHost();
+                    }
+                });
+                QObject::connect(socket, &QTcpSocket::disconnected, socket, &QObject::deleteLater);
+            }
+        });
+        QtHttpClient http;
+        for (const QByteArray &method : {QByteArray("GET"), QByteArray("POST"), QByteArray("DELETE")}) {
+            requests = 0;
+            HttpRequest request;
+            request.method = method;
+            request.url = QUrl(QStringLiteral("http://127.0.0.1:%1/x").arg(server.serverPort()));
+            request.hasBody = method != "GET";
+            request.body = request.hasBody ? QByteArray("{}") : QByteArray();
+            QVERIFY(!http.send(request).received);
+            QTest::qWait(300);
+            QCOMPARE(requests, 1);
+        }
+    }
+
+    void httpClientFollowsRedirectsLikeReqwest()
+    {
+        MockHttpServer other;
+        other.handler = [](const MockRequest &) { return MockReply{200, {}, "other"}; };
+        MockHttpServer server;
+        const QByteArray otherSeen = other.base() + "/seen";
+        server.handler = [&](const MockRequest &request) {
+            MockReply r;
+            const QByteArray path = request.target;
+            if (path == "/post301" || path == "/del302" || path == "/loop")
+                r.status = path == "/post301" ? 301 : 302;
+            else if (path == "/see303")
+                r.status = 303;
+            else if (path == "/post307" || path == "/cross")
+                r.status = 307;
+            if (r.status != 200)
+                r.headers = {{"Location", path == "/loop" ? QByteArray("/loop") : path == "/cross" ? otherSeen : QByteArray("seen?q=1")}};
+            r.body = "body";
+            return r;
+        };
+        QtHttpClient http;
+        HttpRequest request;
+        request.method = "POST";
+        request.headers = {{"Content-Type", "application/json"}, {"Authorization", "Bearer t"}};
+        request.body = "{\"a\":1}";
+        request.hasBody = true;
+        request.maxBodyBytes = 100;
+        const auto follow = [&](const QByteArray &method, const QByteArray &path) {
+            server.clearRequests();
+            other.clearRequests();
+            HttpRequest r = request;
+            r.method = method;
+            r.url = QUrl(QString::fromLatin1(server.base() + path));
+            return http.send(r);
+        };
+        const QByteArray referer = server.base();
+
+        // 301/302 turn a POST into a GET without the body and its headers; the Referer is the previous URL.
+        HttpResponse response = follow("POST", "/post301");
+        QVERIFY(response.received);
+        QCOMPARE(response.status, 200);
+        MockRequest seen = server.requests().last();
+        QCOMPARE(seen.method, QByteArray("GET"));
+        QCOMPARE(seen.target, QByteArray("/seen?q=1"));
+        QVERIFY(seen.body.isEmpty());
+        QVERIFY(!seen.headers.contains("content-type") && !seen.headers.contains("content-length"));
+        QCOMPARE(seen.headers.value("authorization"), QByteArray("Bearer t"));   // same host and port
+        QCOMPARE(seen.headers.value("referer"), referer + "/post301");
+        // ... but not another method (tower-http changes only POST).
+        follow("DELETE", "/del302");
+        seen = server.requests().last();
+        QCOMPARE(seen.method, QByteArray("DELETE"));
+        QCOMPARE(seen.body, QByteArray("{\"a\":1}"));
+        // 303 makes a GET of anything.
+        follow("POST", "/see303");
+        seen = server.requests().last();
+        QCOMPARE(seen.method, QByteArray("GET"));
+        QVERIFY(seen.body.isEmpty());
+        // 307/308 keep the method and the body.
+        follow("POST", "/post307");
+        seen = server.requests().last();
+        QCOMPARE(seen.method, QByteArray("POST"));
+        QCOMPARE(seen.body, QByteArray("{\"a\":1}"));
+        QCOMPARE(seen.headers.value("content-type"), QByteArray("application/json"));
+        // To another port: no Authorization.
+        response = follow("POST", "/cross");
+        QCOMPARE(response.body, QByteArray("other"));
+        seen = other.requests().last();
+        QCOMPARE(seen.body, QByteArray("{\"a\":1}"));
+        QVERIFY(!seen.headers.contains("authorization"));
+        QCOMPARE(seen.headers.value("referer"), referer + "/cross");
+        // At most 10 redirects, then a send() error.
+        QVERIFY(!follow("GET", "/loop").received);
+        QCOMPARE(server.requests().size(), 11);
+    }
+
+    void httpResponseReaderReadsLikeHyper()
+    {
+        const auto read = [](const QByteArray &bytes, qint64 max = 1000, bool end = false, bool byteByByte = false) {
+            HttpResponseReader reader(false, max);
+            if (byteByByte) {
+                for (const char c : bytes)
+                    reader.feed(QByteArray(1, c));
+            } else {
+                reader.feed(bytes);
+            }
+            if (end)
+                reader.endOfStream();
+            return std::make_pair(reader.done(), reader.result());
+        };
+        // An interim 100 first, LF-only lines, chunks with an extension and a trailer, repeated headers
+        // (the first value, as reqwest's headers().get()).
+        const QByteArray chunked = "HTTP/1.1 100 Continue\r\n\r\nHTTP/1.1 200 OK\nTransfer-Encoding: chunked\nX-A: 1\n"
+                                   "X-A: 2\n\n4;ext=1\r\nabcd\r\n2\r\nef\r\n0\r\nTrailer: x\r\n\r\n";
+        for (const bool byteByByte : {false, true}) {
+            const auto [done, response] = read(chunked, 1000, false, byteByByte);
+            QVERIFY(done);
+            QCOMPARE(response.status, 200);
+            QCOMPARE(response.body, QByteArray("abcdef"));
+            QCOMPARE(response.header("x-a"), std::optional<QByteArray>("1"));
+            QVERIFY(!response.contentLength);
+        }
+        // Content-Length: invalid or contradictory is hyper's parse error; equal values are one length.
+        QVERIFY(!read("HTTP/1.1 200 OK\r\nContent-Length: 1x\r\n\r\n").second.received);
+        QVERIFY(!read("HTTP/1.1 200 OK\r\nContent-Length: 2\r\nContent-Length: 3\r\n\r\nab").second.received);
+        const auto same = read("HTTP/1.1 200 OK\r\nContent-Length: 2, 2\r\n\r\nab");
+        QVERIFY(same.first);
+        QCOMPARE(same.second.body, QByteArray("ab"));
+        QCOMPARE(same.second.contentLength, std::optional<qint64>(2));
+        // No body for a 204.
+        const auto empty = read("HTTP/1.1 204 No Content\r\nContent-Length: 4\r\n\r\n");
+        QVERIFY(empty.first);
+        QCOMPARE(empty.second.status, 204);
+        // Up to the end of the connection without a length; a length cut short fails the body.
+        const auto close = read("HTTP/1.1 200 OK\r\n\r\nxyz", 1000, true);
+        QVERIFY(close.first);
+        QCOMPARE(close.second.body, QByteArray("xyz"));
+        const auto cutShort = read("HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nab", 1000, true);
+        QVERIFY(!cutShort.first);
+        QVERIFY(cutShort.second.received && cutShort.second.bodyFailed);
+        // Half a head, a folded line or a line without a colon: no response.
+        QVERIFY(!read("HTTP/1.1 200 OK\r\nX", 1000, true).second.received);
+        QVERIFY(!read("HTTP/1.1 200 OK\r\nX-A: 1\r\n continued\r\n\r\n").second.received);
+        QVERIFY(!read("HTTP/1.1 200 OK\r\nnocolon\r\n\r\n").second.received);
+        QVERIFY(!read("SPDY/3 200 OK\r\n\r\n").second.received);
+        // A chunked body past the bound is cut at bound + 1.
+        const auto cut = read("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n10\r\n0123456789abcdef\r\n0\r\n\r\n", 4);
+        QVERIFY(cut.first);
+        QVERIFY(cut.second.bodyCut);
+        QCOMPARE(cut.second.body, QByteArray("01234"));
     }
 
     // --- the QML singleton ------------------------------------------------------------------

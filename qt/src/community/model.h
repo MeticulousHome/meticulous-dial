@@ -211,11 +211,14 @@ bool enrollmentHeaders(const QString &installationId, const QString &privateSeed
 
 // community_url / machine_url: the base with this path and no query.
 QUrl urlWithPath(const QUrl &base, const QString &path);
-// The machine's history file: /api/v1/history[/pour-over]/files/<segments>, each segment percent-encoded
-// as the url crate's path_segments_mut().push does. nullopt = permanent history_path_invalid.
-std::optional<QUrl> machineHistoryFileUrl(const QUrl &base, HistoryKind kind, const QString &historyPath);
-// path?max_results=200[&sort=asc][&after=...] with application/x-www-form-urlencoded values.
-QUrl machineHistoryListUrl(const QUrl &base, const QString &path, bool sortAsc, const std::optional<QString> &after);
+// The request targets of the machine's history (sent as these bytes: HttpRequest::target; a QUrl would
+// re-encode | and ^ and decode %7E, where the url crate keeps them):
+// the history file, /api/v1/history[/pour-over]/files/<segments>, each segment percent-encoded as the url
+// crate's path_segments_mut().push does. nullopt = permanent history_path_invalid.
+std::optional<QByteArray> machineHistoryFileTarget(HistoryKind kind, const QString &historyPath);
+// path?max_results=200[&sort=asc][&after=...] with application/x-www-form-urlencoded values, as
+// query_pairs_mut().append_pair does.
+QByteArray machineHistoryListTarget(const QString &path, bool sortAsc, const std::optional<QString> &after);
 // The enrollment QR link: <community base>/my-setup/machine/connect?enrollment=<base64url(json)>.
 QByteArray enrollmentPayload(const QString &installationId, const EnrollmentState &enrollment, const QString &publicKey);
 QString enrollmentQrUrl(const QUrl &communityBase, const QByteArray &payload);

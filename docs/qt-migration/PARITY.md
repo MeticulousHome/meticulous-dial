@@ -34,7 +34,7 @@ antialiasing differs). On the machine (10.10.0.130, eglfs) see "Performance" at 
 | Tauri: ready / home_ready markers | lib.rs | src/native.cpp | done | /run/meticulous-dial-ready, -home-ready |
 | Tauri: get_os_local_time | local_time.rs | Native.localTime() | done | |
 | Tauri: plugin-log (console → journal) | App.tsx forwardConsole | src/main.cpp message handler | done | syslog priorities |
-| Tauri: community_* (Community uploader) | community_upload.rs, diagnostics.rs | src/community/ (C++) | done | same files and protocol as the Tauri Dial (interop tested both ways); not run against the real server |
+| Tauri: community_* (Community uploader) | community_upload.rs, diagnostics.rs | src/community/ (C++) | done | same files and protocol as the Tauri Dial (interop tested both ways); request-for-request contract test against the Tauri `community_upload.rs` (16 scenarios: enrollment, uploads, pause, disconnect, errors, retries, redirects; headers, bodies, signatures) on local fakes, see parity/community-contract.md; not run against the real server (HTTPS untested) |
 | Community history scan after a shot | App.tsx | main.qml → Community.scanHistory() | done | |
 | Free Pour pending sessions sync at start | App.tsx | main.qml → FreePourStorage.syncAtStartup() | replaced | no local queue any more: it only sends and removes what older Qt builds kept |
 | Mobile app's dispatched reports, headless | SocketProviderValue | main.qml → DispatchedReports.start() | done | |
@@ -116,7 +116,8 @@ the most used bubble menu is created ahead of time.
   local fake Sentry); no debug symbols uploaded, so crash stacks have no function names until the binary is
   uploaded with `sentry-cli` (needs a token); no JS stack traces or unhandled promise rejections (Qt 6.4).
 - **Not checked against real services**: the Community uploader (interop with the Tauri files tested both
-  ways, protocol ported, never run against the real server: tests are kept off it on purpose); the bug report's
+  ways, every request byte-compared with the Tauri uploader's on local fakes, never run against the real
+  server, so HTTPS is untested: tests are kept off it on purpose); the bug report's
   real ticket service (ported; off the machine it ends in BR-03/BR-05 by design of the guard).
 - **Partial screens**: OSStatus (nothing in React opens it), countrySettings / timeZoneSettings (checked
   against the CSS only, the reference backend has no zone data).

@@ -815,7 +815,7 @@ static QByteArray formEncode(const QString &value)
     return out;
 }
 
-std::optional<QUrl> machineHistoryFileUrl(const QUrl &base, HistoryKind kind, const QString &historyPath)
+std::optional<QByteArray> machineHistoryFileTarget(HistoryKind kind, const QString &historyPath)
 {
     const auto normalized = normalizeHistoryPath(historyPath);
     if (!normalized)
@@ -826,24 +826,21 @@ std::optional<QUrl> machineHistoryFileUrl(const QUrl &base, HistoryKind kind, co
         path.append('/');
         path.append(encodePathSegment(segment));
     }
-    QUrl url = base;
-    url.setPath(QString::fromLatin1(path), QUrl::TolerantMode);
-    return url;
+    return path;
 }
 
-QUrl machineHistoryListUrl(const QUrl &base, const QString &path, bool sortAsc, const std::optional<QString> &after)
+QByteArray machineHistoryListTarget(const QString &path, bool sortAsc, const std::optional<QString> &after)
 {
-    QUrl url = urlWithPath(base, path);
-    QByteArray query;
+    QByteArray target = path.toUtf8();   // a constant: /api/v1/history/upload-index or /pour-over
+    target.append('?');
     if (sortAsc)
-        query.append("sort=asc&");
-    query.append("max_results=200");
+        target.append("sort=asc&");
+    target.append("max_results=200");
     if (after) {
-        query.append("&after=");
-        query.append(formEncode(*after));
+        target.append("&after=");
+        target.append(formEncode(*after));
     }
-    url.setQuery(QString::fromLatin1(query), QUrl::TolerantMode);
-    return url;
+    return target;
 }
 
 QByteArray enrollmentPayload(const QString &installationId, const EnrollmentState &enrollment, const QString &publicKey)

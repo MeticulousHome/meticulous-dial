@@ -51,7 +51,7 @@ still brew normally." and `status.state` is `unavailable` with the init error in
 | Disconnect: token + signed `DELETE /installations/current`; a retired authorization counts as done; failure → "Could not disconnect from Community. Check the internet connection and try again." and a 5 s retry record | `disconnect`, `revoke_current` | `service.cpp` | done | |
 | Local factory reset: fresh identity, queue bodies deleted, volatile state cleared | `factory_reset_local` | `service.cpp` | done | |
 | Diagnostics: allowlisted categories (else `other_error`), one log line per (category, HTTP status) per 5 min, request id kept, `upload_resumed` after a durable completion, `diagnostics.json` snapshot (0600) at most every 30 s, write failure/recovery logs | `diagnostics.rs` | `diagnostics.cpp` | done | same JSON (sorted keys) |
-| HTTP client: connect 5 s, total 15 s, User-Agent `meticulous-dial-community-upload-v1`, HTTP/1.1, no cookies, no compression, control responses ≤ 256 KiB | reqwest `Client::builder` | `http.cpp` | done | see "Differences" |
+| HTTP client: connect 5 s, total 15 s, User-Agent `meticulous-dial-community-upload-v1`, HTTP/1.1, no cookies, no compression, control responses ≤ 256 KiB; the request bytes reqwest sends (headers, exact targets, no resend of a written request, reqwest's redirects) | reqwest `Client::builder` (0.12, hyper 1, tower-http 0.6) | `http.cpp` (HTTP/1.1 over `QTcpSocket`/`QSslSocket`) | done | compared request by request with the Rust: [community-contract.md](community-contract.md); see "Differences" |
 | Log lines `[CommunityUpload] queued / upload_succeeded / upload_deferred / upload_rejected_permanently / history_rejected / failure {...}` | `log::*` | `service.cpp`, `diagnostics.cpp` | done | through Qt's message handler (journal priorities) |
 | `config.rs` (`config.yml` profile order) | `config.rs` | — | not applicable | not used by the uploader; only `CONFIG_PATH` is shared |
 
@@ -68,12 +68,14 @@ still brew normally." and `status.state` is `unavailable` with the init error in
 - Commands run one at a time, in order, on one command thread (Tauri ran them on its command threads).
   `factoryResetLocal()` and `scanHistory()` return their result synchronously (the API asks for a string).
 - A failed atomic write removes its temporary file (Rust leaves it; startup cleaned only the queue dir).
-- TLS: Qt Network with OpenSSL and the system CA store (`/etc/ssl/certs`), where reqwest used rustls with
-  bundled webpki roots. The machine needs `ca-certificates` (below).
-- Connect timeout: 5 s from the start until the request goes out or TLS is up (Qt has no separate TCP
-  connect timeout). Redirects: Qt's no-less-safe policy, at most 10 (reqwest follows any, at most 10).
-  `HTTP(S)_PROXY` variables are not honored (reqwest honors them; the machine sets none). Repeated response
-  headers are joined by Qt (Rust reads the first); only matters for a doubled Retry-After.
+- TLS: `QSslSocket` (Qt's OpenSSL backend) with the system CA store (`/etc/ssl/certs`), TLS 1.2+, ALPN
+  `http/1.1`, where reqwest used rustls with bundled webpki roots. The machine needs `ca-certificates` (below).
+- HTTP is written over `QTcpSocket`/`QSslSocket` rather than QNetworkAccessManager, which resent a request
+  (same nonce and signature) when the server closed the connection before answering, added Connection,
+  Accept-Language, Accept-Encoding (and Cache-Control/Pragma on GETs) and re-encoded URLs; see
+  [community-contract.md](community-contract.md). What remains different: one connection per request
+  (reqwest keeps idle ones for reuse), and `HTTP(S)_PROXY` variables are not honored (reqwest honors them;
+  the machine sets none).
 - At shutdown the request in flight is aborted and not recorded as a failure (the Tauri process just died).
 - OpenSSL unable to make a key (not seen in practice) gives the storage-unavailable error instead of a panic.
 - JSON: an own parser with serde_json's semantics (number kinds `4` / `4.0` / `-3`, strict grammar, UTF-8
@@ -104,14 +106,20 @@ Build: `libssl-dev` and `libssl-dev:arm64`, added as a new last layer of `qt/doc
   0600 and 30 s limit, log suppression), the cross-language vector (public key, body hash, canonical
   string, signature, idempotency key, OpenSSL verify), the JSON parser against serde_json's rules,
   state.json byte compatibility, URLs, the QR payload.
-- `qt/tests/unit/tst_community_service.cpp` (28 passed, 1 skipped: the interop case without its helper): the state machine against a fake machine
+- `qt/tests/unit/tst_community_service.cpp` (31 passed, 1 skipped: the interop case without its helper): the state machine against a fake machine
   and a fake Community server that verifies every signature (enroll → 202 → exchange → baseline → queue →
   upload; token refresh; 503/401/409/retired/Pour Over 422; exchange refusal; expiry; pause; disconnect
   ok / offline / retired; factory reset; skipped and pending records; queue and page bounds; worker backoff;
   vanished bodies; init errors; taking over a Tauri state), the port of `diagnostics.rs`'
   `queue_persist_failures_preserve_diagnostics_until_upload_completes`, the HTTP client against a local
-  server (headers, no cookies, body bounds, timeouts, refused connection, stop), and the QML singleton end
-  to end with its threads (enroll, worker exchange, pause, disconnect, diagnostics.json, unavailable).
+  server (reqwest's exact header set, exact targets, no cookies, body bounds, timeouts, refused connection,
+  stop, no resend after a connection closed unanswered, reqwest's redirect rules) and its response reader
+  (interim responses, chunked, LF lines, Content-Length rules), and the QML singleton end to end with its
+  threads (enroll, worker exchange, pause, disconnect, diagnostics.json, unavailable).
+- The contract test against the real Rust code, `bash qt/tests/community-contract/run.sh`: both uploaders
+  against the same local fake Community server and machine, 16 scenarios, compared request by request
+  (headers, bodies, signatures, retries and their timing, command answers, state.json). Passes; see
+  [community-contract.md](community-contract.md).
 - Interop with the real Rust code, `bash qt/tests/unit/community-interop/run.sh` (cargo builds
   `community_upload.rs` itself, offline): the Tauri uploader reads a Qt-written state and queue, uploads both
   shots with signatures and idempotency keys the server accepts, and the Qt Dial reads the result; a

@@ -1,0 +1,22 @@
+[package]
+name = "community-contract"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+# The Tauri side of the Community contract test (../run.sh): a driver around the Tauri Dial's own
+# src-tauri/src/community_upload.rs (compiled in place through #[path], not a copy, no test seams).
+# Dependencies and features as the Tauri Dial resolves them (src-tauri/Cargo.lock, the arm64 build's
+# fingerprints): Cargo.lock pins serde_json 1.0.151 and hyper-util 0.1.20 as src-tauri does; uuid is 1.29.0
+# (src-tauri: 1.25.0, not in the offline cache; only Uuid::new_v4/to_string are used).
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+log = "0.4.28"
+base64 = "0.22"
+ed25519-dalek = { version = "2.1", features = ["rand_core"] }
+rand_core = { version = "0.6", features = ["getrandom"] }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+sha2 = "0.10"
+url = "2"
+uuid = { version = "1", features = ["v4", "serde"] }
