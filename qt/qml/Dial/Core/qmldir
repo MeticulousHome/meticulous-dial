@@ -1,0 +1,17 @@
+module Dial.Core
+singleton Theme 1.0 Theme.qml
+singleton Nav 1.0 Nav.qml
+singleton Input 1.0 Input.qml
+singleton Api 1.0 Api.qml
+singleton Stats 1.0 Stats.qml
+singleton Notifications 1.0 Notifications.qml
+singleton UiState 1.0 UiState.qml
+singleton Idle 1.0 Idle.qml
+singleton BackendSettings 1.0 BackendSettings.qml
+singleton Device 1.0 Device.qml
+singleton Profiles 1.0 Profiles.qml
+singleton Routes 1.0 Routes.qml
+singleton Backend 1.0 Backend.qml
+Motion 1.0 Motion.js
+Constants 1.0 Constants.js
+singleton ManualMode 1.0 ManualMode.qml

@@ -1,6 +1,6 @@
 // The Meticulous Dial in Qt Quick: the C++ host. It parses the launch options, exposes the native
 // helpers (Native), the Socket.IO client (Socket) and the plot item (PlotLine) to QML as the
-// `Dial.Native` module, and loads qml/Dial/Main.qml.
+// `Dial.Native` module, and loads qml/main.qml.
 //
 // On the machine it runs straight on DRM/KMS (eglfs_kms, no Weston); see packaging/meticulous-dial-qt.sh.
 
@@ -16,6 +16,7 @@
 
 #include <cstdio>
 
+#include "lottieitem.h"
 #include "native.h"
 #include "plotline.h"
 #include "socketio.h"
@@ -52,7 +53,7 @@ static QString findQmlDir(const QString &requested)
                << appDir + QStringLiteral("/../qml")      // build tree next to the sources
                << appDir + QStringLiteral("/../../qml");
     for (const QString &dir : candidates) {
-        if (QFileInfo::exists(dir + QStringLiteral("/Dial/Main.qml")))
+        if (QFileInfo::exists(dir + QStringLiteral("/main.qml")))
             return QDir(dir).canonicalPath();
     }
     return QString();
@@ -88,7 +89,7 @@ int main(int argc, char *argv[])
     QCommandLineOption rotationOption(QStringLiteral("rotation"),
                                       QStringLiteral("Rotation of the picture in degrees (the panel is mounted turned)."),
                                       QStringLiteral("degrees"), qEnvironmentVariable("DIAL_ROTATION", QStringLiteral("-90")));
-    QCommandLineOption qmlOption(QStringLiteral("qml-dir"), QStringLiteral("Directory with Dial/Main.qml."),
+    QCommandLineOption qmlOption(QStringLiteral("qml-dir"), QStringLiteral("Directory with main.qml and the Dial module."),
                                  QStringLiteral("dir"));
     QCommandLineOption testPortOption(QStringLiteral("test-port"),
                                       QStringLiteral("Listen for test commands on ws://127.0.0.1:<port>."),
@@ -116,10 +117,11 @@ int main(int argc, char *argv[])
     qmlRegisterSingletonInstance("Dial.Native", 1, 0, "Native", native);
     qmlRegisterSingletonInstance("Dial.Native", 1, 0, "Socket", socket);
     qmlRegisterType<PlotLine>("Dial.Native", 1, 0, "PlotLine");
+    qmlRegisterType<LottieItem>("Dial.Native", 1, 0, "LottieItem");
 
     const QString qmlDir = findQmlDir(parser.value(qmlOption));
     if (qmlDir.isEmpty()) {
-        qCritical("Dial/Main.qml not found; pass --qml-dir");
+        qCritical("main.qml not found; pass --qml-dir");
         return 2;
     }
     qInfo("meticulous-dial-qt %s, QML from %s, backend %s, platform %s", DIAL_QT_VERSION, qPrintable(qmlDir),
@@ -129,7 +131,7 @@ int main(int argc, char *argv[])
     engine.addImportPath(qmlDir);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app,
                      [] { QCoreApplication::exit(1); }, Qt::QueuedConnection);
-    engine.load(QUrl::fromLocalFile(qmlDir + QStringLiteral("/Dial/Main.qml")));
+    engine.load(QUrl::fromLocalFile(qmlDir + QStringLiteral("/main.qml")));
     if (engine.rootObjects().isEmpty())
         return 1;
 

@@ -1,0 +1,13 @@
+module Dial
+import Dial.Core
+GestureHandler 1.0 components/GestureHandler.qml
+OptionsMenu 1.0 components/OptionsMenu.qml
+NavTitle 1.0 components/NavTitle.qml
+RouteHost 1.0 components/RouteHost.qml
+Router 1.0 components/Router.qml
+Bubble 1.0 components/Bubble.qml
+BottomStatus 1.0 components/BottomStatus.qml
+LoadingScreen 1.0 components/LoadingScreen.qml
+Arc 1.0 components/Arc.qml
+TestServer 1.0 components/TestServer.qml
+PendingScreen 1.0 components/PendingScreen.qml

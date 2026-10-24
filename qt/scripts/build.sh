@@ -5,6 +5,7 @@
 # The image is built on first use. Output: qt/build/<arch>/meticulous-dial-qt.
 set -euo pipefail
 here="$(cd "$(dirname "$0")/.." && pwd)"
+repo="$(cd "$here/.." && pwd)"
 image=qt-dial-bookworm
 archs=("${@:-amd64 arm64}")
 read -r -a archs <<< "${archs[*]}"
@@ -15,11 +16,11 @@ fi
 
 for arch in "${archs[@]}"; do
     toolchain=()
-    [ "$arch" = arm64 ] && toolchain=(-DCMAKE_TOOLCHAIN_FILE=/src/cmake/aarch64-linux-gnu.cmake)
-    docker run --rm -u "$(id -u):$(id -g)" -v "$here:/src" -w /src "$image" bash -c "
+    [ "$arch" = arm64 ] && toolchain=(-DCMAKE_TOOLCHAIN_FILE=/repo/qt/cmake/aarch64-linux-gnu.cmake)
+    docker run --rm -u "$(id -u):$(id -g)" -v "$repo:/repo" -w /repo/qt "$image" bash -c "
         set -e
-        cmake -S /src -B /src/build/$arch -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr ${toolchain[*]} >/dev/null
-        cmake --build /src/build/$arch
+        cmake -S /repo/qt -B /repo/qt/build/$arch -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr ${toolchain[*]} >/dev/null
+        cmake --build /repo/qt/build/$arch
     "
     file "$here/build/$arch/meticulous-dial-qt"
 done
