@@ -40,12 +40,12 @@ QtObject {
     function ticketServiceUrl() {
         const o = _overrides()
         if (o && o.ticketServiceUrl) return String(o.ticketServiceUrl)
-        return Native.env("DIAL_TICKET_SERVICE_URL", ticketServiceUrlDefault)
+        return Native.env("DIAL_TICKET_SERVICE_URL", Native.externalServices ? ticketServiceUrlDefault : "")
     }
     function sentryDsn() {
         const o = _overrides()
         if (o && o.sentryDsn !== undefined && o.sentryDsn !== null) return String(o.sentryDsn)
-        return Native.env("DIAL_SENTRY_DSN", onMachine ? sentryDsnDefault : "")
+        return Native.env("DIAL_SENTRY_DSN", onMachine && Native.externalServices ? sentryDsnDefault : "")
     }
     function origin(url) {
         const m = /^(https?:\/\/[^\/?#]+)/.exec(url)
@@ -53,7 +53,8 @@ QtObject {
     }
     // REPORT_PROBE_URLS: exactly the two origins the report flow reaches (the real ones: the backend
     // refuses to probe private addresses, and a test's stand-ins are reached from the dial anyway).
-    function probeUrls() { return [origin(sentryDsnDefault), origin(ticketServiceUrlDefault)] }
+    // With external services off (tests) the backend is not asked to probe them either.
+    function probeUrls() { return Native.externalServices ? [origin(sentryDsnDefault), origin(ticketServiceUrlDefault)] : [] }
 
     // ---- timers
 

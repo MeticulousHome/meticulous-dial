@@ -19,6 +19,7 @@
 #include "community.h"
 #include "lottieitem.h"
 #include "native.h"
+#include "netguard.h"
 #include "plotline.h"
 #include "qrcodeitem.h"
 #include "socketio.h"
@@ -118,6 +119,15 @@ int main(int argc, char *argv[])
 
     qmlRegisterSingletonInstance("Dial.Native", 1, 0, "Native", native);
     qmlRegisterSingletonInstance("Dial.Native", 1, 0, "Socket", socket);
+    // Tests never reach real services: unless DIAL_EXTERNAL_SERVICES=1 (the machine's launcher sets it), the
+    // Community uploader talks to a dead local port and the QML only to the backend (netguard.h).
+    const bool external = netguard::externalServicesAllowed();
+    if (!external) {
+        if (!netguard::isLocalUrl(qEnvironmentVariable("COMMUNITY_API_BASE")))
+            qputenv("COMMUNITY_API_BASE", "http://127.0.0.1:9");
+        qInfo("external services are off: only %s and this machine are reached (DIAL_EXTERNAL_SERVICES=1 enables them)",
+              qPrintable(options.apiUrl.host()));
+    }
     // The Community uploader (community_upload.rs); its worker thread starts here.
     auto *community = new Community(options.apiUrl, &app);
     qmlRegisterSingletonInstance("Dial.Native", 1, 0, "Community", community);
@@ -134,6 +144,8 @@ int main(int argc, char *argv[])
           qPrintable(options.apiUrl.toString()), qPrintable(QGuiApplication::platformName()));
 
     QQmlApplicationEngine engine;
+    if (!external)
+        engine.setNetworkAccessManagerFactory(new LocalOnlyNetworkAccessManagerFactory(netguard::localHosts(options.apiUrl.host())));
     engine.addImportPath(qmlDir);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app,
                      [] { QCoreApplication::exit(1); }, Qt::QueuedConnection);

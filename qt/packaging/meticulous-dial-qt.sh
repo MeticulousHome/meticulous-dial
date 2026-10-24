@@ -11,6 +11,8 @@ export QT_QPA_EGLFS_HIDECURSOR=1
 export QT_QPA_FONTDIR="${QT_QPA_FONTDIR:-/usr/share/fonts}"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/0}"
 mkdir -p "$XDG_RUNTIME_DIR" 2>/dev/null
+# The real support ticket service, Sentry and Community: on for the machine; tests set it to 0.
+export DIAL_EXTERNAL_SERVICES="${DIAL_EXTERNAL_SERVICES:-1}"
 # The Qt Quick disk cache of the compiled QML lives with the user data.
 export XDG_CACHE_HOME="${XDG_CACHE_HOME:-/meticulous-user/.cache}"
 export XDG_DATA_HOME="${XDG_DATA_HOME:-/meticulous-user/.local/share}"

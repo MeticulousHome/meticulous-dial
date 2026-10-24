@@ -24,7 +24,7 @@ start|restart)
     # COMMUNITY_API_BASE says otherwise: a development enrollment never reaches the production server.
     display=$(( port % 1000 + 100 ))
     docker run -d --name "$name" --network host -u "$(id -u):$(id -g)" -e HOME=/tmp \
-        -e DISPLAY_NUM="$display" -e CONFIG_PATH=/tmp/dial-config \
+        -e DISPLAY_NUM="$display" -e CONFIG_PATH=/tmp/dial-config -e DIAL_EXTERNAL_SERVICES=0 \
         -e COMMUNITY_API_BASE="${COMMUNITY_API_BASE:-http://127.0.0.1:9}" -e MACHINE_API_BASE="$api" \
         -v "$repo:/repo" -w /repo/qt qt-dial-bookworm bash -c '
             Xvfb ":$DISPLAY_NUM" -screen 0 480x480x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &

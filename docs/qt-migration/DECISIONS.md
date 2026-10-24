@@ -87,6 +87,8 @@ nlohmann::ordered_json, which keeps the order.
 
 - Sentry: there is no Sentry SDK for Qt in Debian bookworm. Errors go to the journal (`journalctl -u
   meticulous-dial`). The slowdown monitor (useDialSlowdownMonitor, which only reported to Sentry) is not
-  ported; the frame meter is the tool for slowdowns.
+  ported; the frame meter is the tool for slowdowns. One exception, because it is how a bug report reaches
+  support: the report's Sentry feedback is sent as the React Dial's SDK sends it (a plain HTTP POST of the
+  feedback envelope), on the machine only; off the machine reports end in BR-05 as in React's browser build.
 - The Tauri window management (fullscreen, show after ready): eglfs is fullscreen by construction; the ready
   markers in /run are kept.

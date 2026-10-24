@@ -32,6 +32,7 @@ add_executable(meticulous-dial-qt
     src/main.cpp
     src/socketio.cpp src/socketio.h
     src/native.cpp src/native.h
+    src/netguard.cpp src/netguard.h
     src/plotline.cpp src/plotline.h
     src/lottieitem.cpp src/lottieitem.h
     src/qrcodeitem.cpp src/qrcodeitem.h

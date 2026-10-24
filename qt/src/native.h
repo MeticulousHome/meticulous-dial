@@ -18,6 +18,8 @@ class Native : public QObject
     Q_PROPERTY(QString startScreen READ startScreen CONSTANT)
     Q_PROPERTY(QString version READ version CONSTANT)
     Q_PROPERTY(bool showCircle READ showCircle CONSTANT)
+    // DIAL_EXTERNAL_SERVICES=1: real external services (support tickets, Sentry, Community) may be reached.
+    Q_PROPERTY(bool externalServices READ externalServices CONSTANT)
     Q_PROPERTY(QString platformName READ platformName CONSTANT)
 
 public:
@@ -38,6 +40,7 @@ public:
     QString startScreen() const { return m_options.startScreen; }
     QString version() const;
     bool showCircle() const { return m_options.showCircle; }
+    bool externalServices() const { return qEnvironmentVariable("DIAL_EXTERNAL_SERVICES") == QLatin1String("1"); }
     QString platformName() const;
 
     // get_os_local_time: {year, month, day, hour, minute, second, millisecond} in the OS time zone,

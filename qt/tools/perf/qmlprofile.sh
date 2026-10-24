@@ -11,7 +11,7 @@ reps="${2:-2}"
 systemctl stop dial-qt-dev.service 2>/dev/null || true
 systemctl reset-failed dial-qt-dev.service 2>/dev/null || true
 systemd-run --unit=dial-qt-dev --description="Qt Dial (QML profiling)" \
-    -E DIAL_QT_PREFIX=$DIAL -E DIAL_TEST_PORT=9310 \
+    -E DIAL_QT_PREFIX=$DIAL -E DIAL_TEST_PORT=9310 -E DIAL_EXTERNAL_SERVICES=0 \
     bash -c "source <(sed -n '/^export/p' $DIAL/bin/meticulous-dial-qt-launch | sed 's#\$prefix#$DIAL#g'); \
              exec $DIAL/bin/meticulous-dial-qt-qmldebug -qmljsdebugger=port:3768 --qml-dir $DIAL/share/meticulous-dial-qt/qml" \
     </dev/null >/dev/null 2>&1

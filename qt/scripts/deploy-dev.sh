@@ -40,7 +40,7 @@ systemctl stop meticulous-dial.service weston.service qtproto.service 2>/dev/nul
 systemctl stop dial-qt-dev.service 2>/dev/null || true
 systemctl reset-failed dial-qt-dev.service 2>/dev/null || true
 systemd-run --unit=dial-qt-dev --description="Qt Dial (development)" -p Restart=on-failure \
-    -E DIAL_QT_PREFIX=/meticulous-user/dial-qt -E DIAL_TEST_PORT=9310 \
+    -E DIAL_QT_PREFIX=/meticulous-user/dial-qt -E DIAL_TEST_PORT=9310 -E DIAL_EXTERNAL_SERVICES=0 \
     /meticulous-user/dial-qt/bin/meticulous-dial-qt-launch </dev/null >/dev/null 2>&1
 sleep 3
 systemctl is-active dial-qt-dev.service
