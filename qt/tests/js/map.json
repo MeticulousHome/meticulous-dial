@@ -36,5 +36,9 @@
   },
   "tests/sw120-heating-long-press.test.mjs": {
     "../src/components/Heating/startBrewGestures": "screens/brew/BrewLogic.js"
+  },
+  "tests/slowdownDetector.test.mts": {
+    "../src/performance/slowdownDetector": "Core/SlowdownDetector.js",
+    "../src/performance/slowdownMonitorConfig": "Core/SlowdownDetector.js"
   }
 }

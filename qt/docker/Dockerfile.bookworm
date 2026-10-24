@@ -28,3 +28,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # OpenSSL's libcrypto (Ed25519) for the Community uploader (src/community).
 RUN apt-get update && apt-get install -y --no-install-recommends libssl-dev libssl-dev:arm64 \
     && rm -rf /var/lib/apt/lists/*
+# sentry-native (qt/src/sentry, built from source with the project): libcurl for its HTTP transport.
+RUN apt-get update && apt-get install -y --no-install-recommends libcurl4-openssl-dev libcurl4-openssl-dev:arm64 \
+    && rm -rf /var/lib/apt/lists/*

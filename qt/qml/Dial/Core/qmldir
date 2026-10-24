@@ -15,3 +15,5 @@ singleton Backend 1.0 Backend.qml
 Motion 1.0 Motion.js
 Constants 1.0 Constants.js
 singleton ManualMode 1.0 ManualMode.qml
+singleton SlowdownMonitor 1.0 SlowdownMonitor.qml
+SlowdownDetector 1.0 SlowdownDetector.js

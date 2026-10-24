@@ -44,7 +44,7 @@ Needs root SSH by key. Once per machine, the runtime packages from bookworm (nev
 ```bash
 ssh root@<machine> apt-get install -y -t bookworm --no-install-recommends \
   libqt6core6 libqt6gui6 libqt6network6 libqt6qml6 libqt6quick6 libqt6websockets6 libqt6svg6 \
-  qt6-qpa-plugins librlottie0-1 libqrcodegencpp1 libssl3 ca-certificates qml6-module-qtquick \
+  qt6-qpa-plugins librlottie0-1 libqrcodegencpp1 libssl3 libcurl4 ca-certificates qml6-module-qtquick \
   qml6-module-qtquick-window qml6-module-qtquick-shapes qml6-module-qtqml-workerscript qml6-module-qtwebsockets
 ```
 

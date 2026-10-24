@@ -25,7 +25,9 @@ cp -rL "$here/qml" "$stage/usr/share/meticulous-dial-qt/qml"
 rm -rf "$stage/usr/share/meticulous-dial-qt/qml/Dial/assets/src/fonts/custom/css"
 find "$stage/usr/share/meticulous-dial-qt/qml" -name "*.qmlc" -delete
 
-# Dependencies: the binary's libraries and the QML modules the QML imports.
+# Dependencies: the binary's libraries and the QML modules the QML imports. sentry-native (src/sentry) is linked
+# statically with its breakpad crash handler (in process: no handler binary to ship); its HTTP transport needs
+# libcurl4. Its database lives in $XDG_CACHE_HOME/meticulous-dial-qt/sentry (the launcher: /meticulous-user/.cache).
 qml_deps=$(python3 - "$here/qml" <<'EOF'
 import os, re, sys
 modules = {
@@ -54,7 +56,7 @@ Architecture: arm64
 Maintainer: Meticulous <software@meticuloushome.com>
 Section: misc
 Priority: optional
-Depends: libc6, libstdc++6, libqt6core6 (>= 6.4), libqt6gui6, libqt6network6, libqt6qml6, libqt6quick6, libqt6websockets6, libqt6svg6, qt6-qpa-plugins, librlottie0-1, libqrcodegencpp1, libssl3, ca-certificates, $qml_deps
+Depends: libc6, libstdc++6, libqt6core6 (>= 6.4), libqt6gui6, libqt6network6, libqt6qml6, libqt6quick6, libqt6websockets6, libqt6svg6, qt6-qpa-plugins, librlottie0-1, libqrcodegencpp1, libssl3, libcurl4, ca-certificates, $qml_deps
 Description: Meticulous Dial (Qt Quick)
  The on-machine Dial rewritten in Qt Quick, running straight on DRM/KMS (eglfs) without Weston.
  dial-switch qt|web chooses between it and the WebKit Dial.

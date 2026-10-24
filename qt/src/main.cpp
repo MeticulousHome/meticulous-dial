@@ -26,7 +26,10 @@
 #include "netguard.h"
 #include "plotline.h"
 #include "qrcodeitem.h"
+#include "sentry/sentryreporter.h"
 #include "socketio.h"
+
+#include "dial_build_info.h"
 
 static void journalMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &message)
 {
@@ -105,6 +108,10 @@ int main(int argc, char *argv[])
 {
     if (qEnvironmentVariableIsSet("INVOCATION_ID") || qEnvironmentVariableIsSet("JOURNAL_STREAM"))
         qInstallMessageHandler(journalMessageHandler);
+    // Crash and error reports (src/sentry): only with DIAL_EXTERNAL_SERVICES=1, set by the machine's launcher.
+    // Started before anything else so that a crash during start-up is caught; its message handler chains to
+    // the one above, so the journal output stays the same. Flushed and shut down when main() returns.
+    dialsentry::Session sentry(DIAL_QT_VERSION, DIAL_QT_BUILD_ID);
 
     // 480x480 pixels are 480x480 pixels: no scaling from the panel's reported size.
     qputenv("QT_ENABLE_HIGHDPI_SCALING", "0");
@@ -159,6 +166,7 @@ int main(int argc, char *argv[])
 
     qmlRegisterSingletonInstance("Dial.Native", 1, 0, "Native", native);
     qmlRegisterSingletonInstance("Dial.Native", 1, 0, "Socket", socket);
+    qmlRegisterSingletonInstance("Dial.Native", 1, 0, "Sentry", new SentryBridge(&app));
     // Tests never reach real services: unless DIAL_EXTERNAL_SERVICES=1 (the machine's launcher sets it), the
     // Community uploader talks to a dead local port and the QML only to the backend (netguard.h).
     const bool external = netguard::externalServicesAllowed();

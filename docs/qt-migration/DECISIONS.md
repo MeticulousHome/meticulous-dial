@@ -95,10 +95,13 @@ nlohmann::ordered_json, which keeps the order.
 
 ## What is not carried over
 
-- Sentry: there is no Sentry SDK for Qt in Debian bookworm. Errors go to the journal (`journalctl -u
-  meticulous-dial`). The slowdown monitor (useDialSlowdownMonitor, which only reported to Sentry) is not
-  ported; the frame meter is the tool for slowdowns. One exception, because it is how a bug report reaches
-  support: the report's Sentry feedback is sent as the React Dial's SDK sends it (a plain HTTP POST of the
-  feedback envelope), on the machine only; off the machine reports end in BR-05 as in React's browser build.
+- Sentry, in part. The Qt Dial reports through sentry-native 0.17.2 (MIT, not in bookworm: built from the pinned
+  release with the project, linked statically; crash backend breakpad, in process, so there is no handler binary
+  to ship), on the machine only (`DIAL_EXTERNAL_SERVICES=1`), to the React Dial's project as release
+  `meticulous-dial-qt@<version>` with the tag `dial-runtime: qt` (parity/sentry.md). Not carried over: JS stack
+  traces (a QML exception carries only the file and line the engine prints) and unhandled promise rejections
+  (Qt 6.4 does not report them); the slowdown report has no process ranking and sees stalls only while the Dial
+  animates. Added on purpose: crash minidumps, console.error / qCritical as events and warnings as breadcrumbs
+  (React sends none), cleaned and rate-limited. The bug report's feedback is still the plain envelope POST.
 - The Tauri window management (fullscreen, show after ready): eglfs is fullscreen by construction; the ready
   markers in /run are kept.

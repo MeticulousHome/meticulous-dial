@@ -100,6 +100,8 @@ Window {
         FreePour.FreePourStorage.syncAtStartup()
         // SocketProviderValue: reports dispatched from the app are collected and uploaded, headless.
         Support.DispatchedReports.start()
+        // DialSlowdownMonitor: only where Sentry is on (the machine).
+        SlowdownMonitor.start()
     }
 
     // App.tsx sets full brightness once at start. The Qt Dial can start before the backend answers (it no

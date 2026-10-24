@@ -48,7 +48,11 @@ for (const [test, imports] of Object.entries(MAP)) {
     fs.writeFileSync(shim, `import { loadQmlJs } from './load-qml-js.mjs';\nconst m = loadQmlJs(${JSON.stringify(qml(lib))});\n` +
       `const clone = (v) => { if (v === null || typeof v !== 'object') return v; if (Array.isArray(v)) return Array.from(v, clone);` +
       ` const o = {}; for (const k of Object.keys(v)) o[k] = clone(v[k]); return o; };\n` +
-      `const wrap = (v) => (typeof v === 'function' ? (...a) => clone(v(...a)) : clone(v));\n` +
+      // Constructors too (`new SlowdownEpisodeDetector()`): the instance's methods clone their results.
+      `const wrapObject = (o) => new Proxy(o, { get: (t, k) => { const x = t[k];` +
+      ` return typeof x === 'function' ? (...a) => clone(x.apply(t, a)) : x; } });\n` +
+      `const wrap = (v) => (typeof v === 'function' ? new Proxy(v, { apply: (t, self, a) => clone(t.apply(self, a)),` +
+      ` construct: (t, a) => wrapObject(Reflect.construct(t, a)) }) : clone(v));\n` +
       [...names].map((x) => `export const ${x} = wrap(m.${x});`).join('\n') + '\nexport default m;\n');
     const quoted = new RegExp(`(['"])${specifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\.tsx?|\\.mts|\\.js)?\\1`, 'g');
     src = src.replace(quoted, JSON.stringify(shim));

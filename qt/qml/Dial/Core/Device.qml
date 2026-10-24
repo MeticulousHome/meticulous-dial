@@ -25,6 +25,8 @@ QtObject {
         return Api.getDeviceInfo().then(data => {
             if (data && data.error) throw new Error(data.error)
             info = data
+            // SentryRuntimeMetadata (App.tsx): the serial, build-version and build-channel tags.
+            Sentry.setDeviceInfo(data)
             return data
         }).catch(error => {
             console.error("Error fetching device Info:", error && error.message ? error.message : error)

@@ -39,8 +39,8 @@ antialiasing differs). On the machine (10.10.0.130, eglfs) see "Performance" at 
 | Free Pour pending sessions sync at start | App.tsx | main.qml → FreePourStorage.syncAtStartup() | replaced | no local queue any more: it only sends and removes what older Qt builds kept |
 | Mobile app's dispatched reports, headless | SocketProviderValue | main.qml → DispatchedReports.start() | done | |
 | Tauri: get_profiles (offline prefetch) | profiles.rs | — | missing | disabled in React too (FIXME in useProfiles) |
-| Tauri: dial_performance_*, resource snapshot, slowdown monitor | lib.rs, useDialSlowdownMonitor | Native.resourceSnapshot() | partial | the detector only reported to Sentry: not ported |
-| Sentry | App.tsx | — | partial | no Sentry SDK for Qt in bookworm; errors go to the journal; a bug report still reaches support as its Sentry feedback (plain HTTP POST, on the machine only) |
+| Tauri: dial_performance_*, resource snapshot, slowdown monitor | lib.rs, useDialSlowdownMonitor | Native.resourceSnapshot(), Core/SlowdownMonitor.qml, SlowdownDetector.js, src/sentry/framemonitor.* | partial | detector and report as React (tests/slowdownDetector.test.mts passes on the port); frames timed only while the Dial draws (a stall on a still screen is not seen); no process ranking in the context; see parity/sentry.md |
+| Sentry | App.tsx, sentryConfig.ts, sentryPrivacy.ts | src/sentry/ (sentry-native 0.17.2, breakpad), Core/Device.qml (tags) | done | on only with `DIAL_EXTERNAL_SERVICES=1` (tests: a `DIAL_SENTRY_DSN` on 127.0.0.1); React's DSN (project 8), release `meticulous-dial-qt@<version>` + dist + tag `dial-runtime: qt`, tags dial-version / serial / build-version / build-channel; crashes as minidumps sent on the next start; qCritical / console.error and QML exceptions as events, warnings as breadcrumbs (React sends none), cleaned of personal data and rate-limited across restarts; offline cache with retries; the bug report's feedback unchanged; see parity/sentry.md |
 | Boot animation (Lottie) and post-ready screen | ReadyAnimation.tsx | screens/brew/ReadyAnimation.qml | done | rlottie |
 | Brightness 100 % at start | App.tsx | main.qml | done | again when the backend comes online |
 | Service stop / restart | Tauri exits 0 on SIGTERM | src/main.cpp | done | a stop exits 0, so systemd does not hand it to crash-reporter (eglfs's VT handler exited 1) |
@@ -112,8 +112,9 @@ the most used bubble menu is created ahead of time.
 
 ## What is missing or different (honest list)
 
-- **Sentry**: no Sentry SDK for Qt in bookworm. Errors go to the journal; the slowdown detector (it only
-  reported to Sentry) is not ported. The bug report's Sentry feedback is sent by hand, as before.
+- **Sentry**: through sentry-native (built with the project). Not tested on the machine yet (only against a
+  local fake Sentry); no debug symbols uploaded, so crash stacks have no function names until the binary is
+  uploaded with `sentry-cli` (needs a token); no JS stack traces or unhandled promise rejections (Qt 6.4).
 - **Not checked against real services**: the Community uploader (interop with the Tauri files tested both
   ways, protocol ported, never run against the real server: tests are kept off it on purpose); the bug report's
   real ticket service (ported; off the machine it ends in BR-03/BR-05 by design of the guard).
