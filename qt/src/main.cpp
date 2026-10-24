@@ -19,6 +19,7 @@
 #include "lottieitem.h"
 #include "native.h"
 #include "plotline.h"
+#include "qrcodeitem.h"
 #include "socketio.h"
 
 static void journalMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &message)
@@ -118,6 +119,7 @@ int main(int argc, char *argv[])
     qmlRegisterSingletonInstance("Dial.Native", 1, 0, "Socket", socket);
     qmlRegisterType<PlotLine>("Dial.Native", 1, 0, "PlotLine");
     qmlRegisterType<LottieItem>("Dial.Native", 1, 0, "LottieItem");
+    qmlRegisterType<QrCodeItem>("Dial.Native", 1, 0, "QrCode");
 
     const QString qmlDir = findQmlDir(parser.value(qmlOption));
     if (qmlDir.isEmpty()) {

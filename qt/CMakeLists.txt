@@ -11,6 +11,8 @@ set(CMAKE_AUTOMOC ON)
 find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui Qml Quick WebSockets Network Concurrent)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(RLOTTIE REQUIRED IMPORTED_TARGET rlottie)
+find_library(QRCODEGEN_LIB qrcodegencpp REQUIRED)
+find_path(QRCODEGEN_INCLUDE qrcodegen.hpp PATH_SUFFIXES qrcodegencpp qrcodegen REQUIRED)
 
 add_executable(meticulous-dial-qt
     src/main.cpp
@@ -18,6 +20,7 @@ add_executable(meticulous-dial-qt
     src/native.cpp src/native.h
     src/plotline.cpp src/plotline.h
     src/lottieitem.cpp src/lottieitem.h
+    src/qrcodeitem.cpp src/qrcodeitem.h
 )
 
 target_compile_definitions(meticulous-dial-qt PRIVATE
@@ -25,7 +28,8 @@ target_compile_definitions(meticulous-dial-qt PRIVATE
     DIAL_QML_INSTALL_DIR="${CMAKE_INSTALL_PREFIX}/share/meticulous-dial-qt/qml")
 
 target_link_libraries(meticulous-dial-qt PRIVATE
-    Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::WebSockets Qt6::Network Qt6::Concurrent PkgConfig::RLOTTIE)
+    Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::WebSockets Qt6::Network Qt6::Concurrent PkgConfig::RLOTTIE ${QRCODEGEN_LIB})
+target_include_directories(meticulous-dial-qt PRIVATE ${QRCODEGEN_INCLUDE})
 
 # The QML tree (with its assets symlinks resolved) is assembled by scripts/package-deb.sh.
 install(TARGETS meticulous-dial-qt RUNTIME DESTINATION bin)

@@ -11,3 +11,4 @@ LoadingScreen 1.0 components/LoadingScreen.qml
 Arc 1.0 components/Arc.qml
 TestServer 1.0 components/TestServer.qml
 PendingScreen 1.0 components/PendingScreen.qml
+CircleKeyboard 1.0 components/CircleKeyboard.qml

@@ -19,7 +19,7 @@ RUN dpkg --add-architecture arm64 && apt-get update && apt-get install -y --no-i
       libqt6opengl6-dev:arm64 libgl-dev:arm64 libegl-dev:arm64 libvulkan-dev:arm64 libxkbcommon-dev:arm64 \
     && rm -rf /var/lib/apt/lists/*
 # rlottie renders the Lottie animations (LottieItem).
-RUN apt-get update && apt-get install -y --no-install-recommends librlottie-dev librlottie-dev:arm64 nlohmann-json3-dev \
+RUN apt-get update && apt-get install -y --no-install-recommends librlottie-dev librlottie-dev:arm64 nlohmann-json3-dev libqrcodegencpp-dev libqrcodegencpp-dev:arm64 \
     && rm -rf /var/lib/apt/lists/*
 # Mesa's software GL (llvmpipe) for running the app under Xvfb in tests: shaders included.
 RUN apt-get update && apt-get install -y --no-install-recommends \
