@@ -42,6 +42,9 @@ SCENARIOS = {
     # Select a card, hold 0.6 s (the ring fills and winds back, "Hold to start"), unselect; three times.
     # Never longer: a full hold starts a shot.
     "zoom": (cycles([(0, DOWN), (100, UP), (1000, DOWN), (1600, UP), (3000, CW)], 3, 4000), 13),
+    # Route transitions without touching the machine: home -> idle screen -> home, three times (the home is
+    # created again each time, as React mounts it).
+    "routes": (cycles([(0, "SCREEN:idle"), (1500, "SCREEN:profileHome")], 3, 3000), 10),
     # Nothing moves: should be ~0 frames.
     "static": ([], 6),
     # Quick settings -> "config" (a bubble component switch) -> close. The entry is found by its label
@@ -167,6 +170,8 @@ def run(scenario, port, hz, rep):
             time.sleep(delay)
         if kind.startswith("SELECT:"):
             select(ws, kind.split(":", 1)[1])
+        elif kind.startswith("SCREEN:"):
+            ws.call({"cmd": "screen", "name": kind.split(":", 1)[1]})
         else:
             ws.call({"cmd": "button", "type": kind, "t": 300})
     t.join()
