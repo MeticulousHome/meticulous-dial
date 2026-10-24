@@ -38,6 +38,35 @@ Item {
         return list
     }
 
+    // A removed card (TransitionGroup "slide" exit, transitions.less): it rises 100 px and fades (300 ms
+    // ease-out) while its 257 px collapse, so the cards after it slide into place in 500 ms ease-out.
+    property var _lastCards: []
+    property int gapIndex: -1
+    property real gapOffset: 0
+    property var ghost: null
+    property int ghostIndex: -1
+    function cardKey(c) { return c.kind + ":" + (c.profile && c.profile.id ? c.profile.id : c.name) }
+    onCardsChanged: {
+        const previous = _lastCards
+        _lastCards = cards
+        const keys = cards.map(cardKey), before = previous.map(cardKey)
+        if (!before.length || keys.length !== before.length - 1) return
+        let removed = 0
+        while (removed < keys.length && keys[removed] === before[removed]) removed++
+        if (keys.slice(removed).join("|") !== before.slice(removed + 1).join("|")) return
+        ghost = previous[removed]
+        ghostIndex = removed
+        gapIndex = removed
+        slideExit.restart()
+    }
+    ParallelAnimation {
+        id: slideExit
+        NumberAnimation { target: home; property: "gapOffset"; from: home.cardPitch; to: 0; duration: 500; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE_OUT }
+        NumberAnimation { target: ghostItem; property: "ty"; from: 0; to: -100; duration: 500; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE_OUT }
+        NumberAnimation { target: ghostItem; property: "opacity"; from: ghostItem.startOpacity; to: 0; duration: 300; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE_OUT }
+        onFinished: { home.ghost = null; home.gapIndex = -1 }
+    }
+
     // Test probes (tests/e2e): the cards in order, the focused one, and whether it is selected (zoomed).
     readonly property var dialProbe_cards: cards.map(c => c.name)
     readonly property string dialProbe_activeCard: cards[activeOption] ? cards[activeOption].name : ""
@@ -66,6 +95,7 @@ Item {
         Nav.closeBubble()
     }
     Component.onCompleted: {
+        _lastCards = cards
         if (Idle.isIdle) goIdle()
         syncHover()
     }
@@ -269,7 +299,7 @@ Item {
                 readonly property bool zoomed: home.homeHoverState
                 property real bounceX: 0
 
-                x: index * home.cardPitch
+                x: index * home.cardPitch + (home.gapIndex >= 0 && index >= home.gapIndex ? home.gapOffset : 0)
                 y: 240 - home.cardSize / 2
                 width: home.cardSize
                 height: home.cardSize
@@ -394,6 +424,49 @@ Item {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    // The removed card on its way out (a still copy: accent, image, title).
+    Item {
+        id: ghostItem
+        property real ty: 0
+        readonly property real startOpacity: home.ghostIndex === home.activeOption ? 1 : 0.3
+        visible: home.ghost !== null && !home.loading
+        x: list.x + home.ghostIndex * home.cardPitch
+        y: 240 - home.cardSize / 2 + ty
+        width: home.cardSize
+        height: home.cardSize
+        Text {
+            readonly property string full: home.ghost ? (home.ghost.name || "") : ""
+            readonly property int size: full.length > 40 ? 17 : full.length > 30 ? 20 : 30
+            x: (parent.width - width) / 2
+            y: -68
+            width: parent.width * 1.5
+            height: 60
+            text: full.length > 70 ? full.substring(0, 70) + "..." : full
+            color: Theme.cream
+            font.family: Theme.fontRegular
+            font.pixelSize: size
+            font.letterSpacing: -0.025 * size
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            wrapMode: Text.Wrap
+        }
+        Rectangle {
+            anchors.fill: parent
+            radius: 3.018
+            color: home.ghost && home.ghost.profile && home.ghost.profile.display && home.ghost.profile.display.accentColor
+                   ? home.ghost.profile.display.accentColor : "#e0dcd0"
+            Image {
+                anchors.centerIn: parent
+                width: 164
+                height: 164
+                sourceSize: Qt.size(164, 164)
+                fillMode: Image.PreserveAspectCrop
+                source: home.ghost && home.ghost.kind === "espresso" && home.ghost.profile.display
+                        ? Api.profileImageUrl(home.ghost.profile.display.image) : ""
             }
         }
     }
