@@ -26,8 +26,12 @@ MultiEffect. The Dial is GPLv3, so the LGPL/GPL Qt modules are fine.
   bytecode cache under `/meticulous-user/.cache`. A QML fix is a file copy (`deploy-dev.sh --qml-only`), and
   the module layout needs no qmldir generation. qmlcachegen/AOT can come later if startup time asks for it.
 - **Straight on DRM/KMS (eglfs_kms), no Weston.** One GPU pass per frame. The panel is mounted turned:
-  the root item rotates -90° (Weston's `transform=rotate-90` today). The app must be DRM master, so it
-  conflicts with weston.service and meticulous-dial.service; `dial-switch qt|web` chooses.
+  the root item rotates -90° (Weston's `transform=rotate-90` today). The app must be DRM master, so it never
+  runs with Weston. It runs under the WebKit Dial's unit name, `meticulous-dial.service` (a full unit in
+  `/etc/systemd/system` that takes precedence over the WebKit one in `/lib`; a drop-in cannot remove its
+  `Requires=weston.service`): the image's nightly `meticulous-restart` restarts `meticulous-dial` (it also ran
+  at boot and, with a separately named unit, brought Weston and the WebKit Dial back), and the watcher,
+  crash-reporter and the smoke report all refer to that name. `dial-switch qt|web` chooses.
 - **The backend as today.** REST and Socket.IO on `http://localhost:8080`; the knob and buttons arrive as
   the backend's socket.io `button` events, mapped to the same gestures (`Input.qml` = `SocketProviderValue`).
 - **Same state shape as the React store.** `Dial.Core` singletons mirror the Redux slices and contexts:
@@ -82,7 +86,7 @@ nlohmann::ordered_json, which keeps the order.
 ## What is not carried over
 
 - Sentry: there is no Sentry SDK for Qt in Debian bookworm. Errors go to the journal (`journalctl -u
-  meticulous-dial-qt`). The slowdown monitor (useDialSlowdownMonitor, which only reported to Sentry) is not
+  meticulous-dial`). The slowdown monitor (useDialSlowdownMonitor, which only reported to Sentry) is not
   ported; the frame meter is the tool for slowdowns.
 - The Tauri window management (fullscreen, show after ready): eglfs is fullscreen by construction; the ready
   markers in /run are kept.

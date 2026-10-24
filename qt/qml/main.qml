@@ -102,6 +102,15 @@ Window {
         Support.DispatchedReports.start()
     }
 
+    // App.tsx sets full brightness once at start. The Qt Dial can start before the backend answers (it no
+    // longer waits for Weston), so it is set again when the backend comes online.
+    Connections {
+        target: Device
+        function onCameOnline() {
+            Api.setBrightness({ brightness: 1 }).catch(e => console.error("Error setting brightness", e.message))
+        }
+    }
+
     // The context button toggles the quick settings (App.tsx and Bubble.tsx's handlers: App's is off during
     // a shot or while the bubble intercepts gestures; the bubble's is always on, unless pinned).
     GestureHandler {

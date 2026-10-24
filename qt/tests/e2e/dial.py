@@ -232,6 +232,8 @@ class Screen:
             if name not in cards:
                 raise AssertionError(f"no card {name!r} in {cards}")
             self.controls.turn(-1 if cards.index(name) > cards.index(current) else 1)
+        if self.active_card() == name:
+            return
         raise AssertionError(f"could not reach {name!r}; on {self.active_card()!r}")
 
 

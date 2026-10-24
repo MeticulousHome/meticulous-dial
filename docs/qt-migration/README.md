@@ -75,9 +75,12 @@ scp qt/build/meticulous-dial-qt_*_arm64.deb root@<machine>:/tmp/
 ssh root@<machine> apt-get install -y -t bookworm /tmp/meticulous-dial-qt_*_arm64.deb
 ```
 
-Installing switches the display to the Qt Dial at once and at boot (`meticulous-dial-qt.service` enabled;
-`weston.service` and `meticulous-dial.service` disabled). Set `DIAL_QT_NO_SWITCH=1` to install without
-switching. The WebKit Dial stays installed:
+Installing switches the display to the Qt Dial at once and at boot: `dial-switch qt` puts a
+`meticulous-dial.service` for the Qt Dial in `/etc/systemd/system` (it takes precedence over the WebKit Dial's
+unit in `/lib`) and disables `weston.service`. Keeping the unit name keeps the image's machinery working with
+it: the nightly `meticulous-restart` (it restarts `meticulous-dial`), the watcher's checks and log collection,
+`crash-reporter`, the smoke report. Set `DIAL_QT_NO_SWITCH=1` to install without switching. The WebKit Dial
+stays installed:
 
 ```bash
 ssh root@<machine> dial-switch web       # back to Weston + the WebKit Dial, now and at boot
@@ -86,7 +89,7 @@ ssh root@<machine> dial-switch status
 ssh root@<machine> apt-get remove meticulous-dial-qt   # also switches back to the WebKit Dial
 ```
 
-Logs: `journalctl -u meticulous-dial-qt` (or `-u dial-qt-dev` for a development run).
+Logs: `journalctl -u meticulous-dial` (the Qt Dial once switched; `-u dial-qt-dev` for a development run).
 
 ## Layout
 
