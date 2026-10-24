@@ -1,0 +1,23 @@
+# meticulous-dial.service for the Qt Dial: dial-switch qt installs it as /etc/systemd/system/meticulous-dial.service,
+# which takes precedence over the WebKit Dial's /lib/systemd/system/meticulous-dial.service (a drop-in cannot
+# drop its Requires=weston.service); dial-switch web removes it. Keeping the unit's name keeps what the image
+# builds on it working: the nightly meticulous-restart, the watcher's service check and log collection,
+# crash-reporter, the smoke report.
+[Unit]
+Description=Meticulous Dial (Qt Quick, straight on DRM/KMS)
+After=network.target meticulous-backend.service systemd-user-sessions.service plymouth-quit-wait.service
+# It must be the DRM master: never together with Weston.
+Conflicts=weston.service
+OnFailure=crash-reporter@.service
+
+[Service]
+ExecStart=/usr/bin/meticulous-dial-qt-launch
+Restart=always
+RestartSec=1
+User=root
+MemoryMax=1000M
+Slice=meticulous.slice
+Environment="XDG_RUNTIME_DIR=/run/user/0"
+
+[Install]
+WantedBy=multi-user.target

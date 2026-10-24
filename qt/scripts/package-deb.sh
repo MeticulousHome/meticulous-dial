@@ -2,9 +2,9 @@
 # Builds the machine's package, build/meticulous-dial-qt_<version>_arm64.deb:
 #   qt/scripts/package-deb.sh            # builds arm64 first
 # Installs /usr/bin/meticulous-dial-qt (+ -launch, dial-switch) and /usr/share/meticulous-dial-qt (QML, assets,
-# kms.json, the meticulous-dial.service drop-in). Installing it switches the display to the Qt Dial
-# (dial-switch qt: meticulous-dial.service runs it, Weston off) unless DIAL_QT_NO_SWITCH=1; removing it
-# switches back (dial-switch web).
+# kms.json, the Qt meticulous-dial.service). Installing it switches the display to the Qt Dial (dial-switch qt:
+# that unit in /etc/systemd/system, Weston off) unless DIAL_QT_NO_SWITCH=1; removing it switches back
+# (dial-switch web).
 set -euo pipefail
 here="$(cd "$(dirname "$0")/.." && pwd)"
 repo="$(cd "$here/.." && pwd)"
@@ -18,7 +18,7 @@ mkdir -p "$stage/DEBIAN" "$stage/usr/bin" "$stage/usr/share/meticulous-dial-qt"
 install -m 755 "$here/build/arm64/meticulous-dial-qt" "$stage/usr/bin/"
 install -m 755 "$here/packaging/meticulous-dial-qt.sh" "$stage/usr/bin/meticulous-dial-qt-launch"
 install -m 755 "$here/packaging/dial-switch" "$stage/usr/bin/dial-switch"
-install -m 644 "$here/packaging/meticulous-dial-qt.conf" "$stage/usr/share/meticulous-dial-qt/"
+install -m 644 "$here/packaging/meticulous-dial.service" "$stage/usr/share/meticulous-dial-qt/"
 install -m 644 "$here/packaging/kms.json" "$stage/usr/share/meticulous-dial-qt/"
 cp -rL "$here/qml" "$stage/usr/share/meticulous-dial-qt/qml"
 # Only what the QML uses from the React tree's assets: the fonts' web CSS is not needed.
@@ -66,9 +66,9 @@ if [ "$1" = configure ]; then
     systemctl daemon-reload || true
     if [ -z "${DIAL_QT_NO_SWITCH:-}" ]; then
         /usr/bin/dial-switch qt || true
-    elif [ -f /etc/systemd/system/meticulous-dial.service.d/qt.conf ]; then
-        # Already switched: refresh the drop-in and restart on the new version.
-        cp /usr/share/meticulous-dial-qt/meticulous-dial-qt.conf /etc/systemd/system/meticulous-dial.service.d/qt.conf
+    elif [ -f /etc/systemd/system/meticulous-dial.service ]; then
+        # Already switched: refresh the unit and restart on the new version.
+        cp /usr/share/meticulous-dial-qt/meticulous-dial.service /etc/systemd/system/meticulous-dial.service
         systemctl daemon-reload || true
         systemctl try-restart meticulous-dial.service || true
     fi
