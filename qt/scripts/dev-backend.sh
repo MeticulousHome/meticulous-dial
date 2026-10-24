@@ -3,7 +3,7 @@
 # running the Qt Dial and its tests off the machine:
 #   qt/scripts/dev-backend.sh start [BACKEND_DIR]   # default ~/backend-beta; listens on 127.0.0.1:$PORT
 #   qt/scripts/dev-backend.sh stop | logs | status
-# PORT (default 18080), STATE (default ~/.cache/qt-dial-backend: config, profiles, history; wiped by
+# DIAL_BACKEND_NAME (container, default qt-dial-backend), PORT (default 18080), STATE (default ~/.cache/qt-dial-backend: config, profiles, history; wiped by
 # `reset`), IMAGE (an image with the backend's dependencies in /opt/venv, e.g. meticulous-backend-e2e-baseline).
 set -euo pipefail
 cmd="${1:-start}"
@@ -11,7 +11,7 @@ backend="$(realpath "${2:-$HOME/backend-beta}")"
 port="${PORT:-18080}"
 state="${STATE:-$HOME/.cache/qt-dial-backend}"
 image="${IMAGE:-meticulous-backend-e2e-baseline:latest}"
-name=qt-dial-backend
+name="${DIAL_BACKEND_NAME:-qt-dial-backend}"
 
 case "$cmd" in
 start)
@@ -35,7 +35,7 @@ exit 0
 STUB
         chmod +x "$state/host-bin/$c"
     done
-    docker run -d --name "$name" --network host \
+    docker run -d --name "$name" --restart unless-stopped --network host \
         -v "$backend:/app" -v "$state:/state" -w /app \
         -e BACKEND=emulation -e CONFIG_PATH=/state/config -e LOG_PATH=/state/logs -e PROFILE_PATH=/state/profiles \
         -e HISTORY_PATH=/state/history -e DEBUG_HISTORY_PATH=/state/history/debug \

@@ -75,8 +75,6 @@ Item {
         return s === "failed" ? Theme.error : Theme.warning
     }
 
-    readonly property string dialFocusedLabel: menu.activeOption ? menu.activeOption.label : ""
-
     function rebuild() {
         const backAvailable = !!(Routes.route(currentScreen) && Routes.route(currentScreen).parent)
         switch (currentScreen) {

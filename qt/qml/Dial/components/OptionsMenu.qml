@@ -29,6 +29,8 @@ Item {
 
     readonly property int count: options ? options.length : 0
     readonly property var activeOption: count ? options[Math.min(Math.max(activeIndex, 0), count - 1)] : null
+    // What the end-to-end tests read as the focused entry (TestServer "focused").
+    readonly property string dialFocusedLabel: activeOption ? (activeOption.label || "") : ""
 
     width: parent ? parent.width : 420
     height: 480

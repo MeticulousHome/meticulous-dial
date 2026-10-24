@@ -4,7 +4,8 @@
 #   qt/scripts/run-dev.sh start [--screen=<route>]   # then qt/tests/e2e/dialctl.py state | grab x.png | ...
 #   qt/scripts/run-dev.sh ctl <dialctl args>      # e.g. ctl gesture right 3, ctl grab /repo/qt/build/x.png
 #   qt/scripts/run-dev.sh stop | logs | restart
-# API (default http://127.0.0.1:18080), TEST_PORT (default 9310).
+# API (default http://127.0.0.1:18080), TEST_PORT (default 9310), DIAL_RUN_NAME (container, default qt-dial-run):
+# give each parallel instance its own DIAL_RUN_NAME and TEST_PORT.
 set -euo pipefail
 here="$(cd "$(dirname "$0")/.." && pwd)"
 repo="$(cd "$here/.." && pwd)"
@@ -12,19 +13,19 @@ cmd="${1:-start}"
 shift || true
 api="${API:-http://127.0.0.1:18080}"
 port="${TEST_PORT:-9310}"
-name=qt-dial-run
+name="${DIAL_RUN_NAME:-qt-dial-run}"
 
 case "$cmd" in
 start|restart)
     docker rm -f "$name" >/dev/null 2>&1 || true
+    # Extra arguments go to the Dial (e.g. --screen=settings).
     docker run -d --name "$name" --network host -u "$(id -u):$(id -g)" -e HOME=/tmp \
-        -v "$repo:/repo" -w /repo/qt qt-dial-bookworm bash -c "
+        -v "$repo:/repo" -w /repo/qt qt-dial-bookworm bash -c '
             Xvfb :99 -screen 0 480x480x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &
             sleep 1
             export DISPLAY=:99 QT_QPA_PLATFORM=xcb LIBGL_ALWAYS_SOFTWARE=1 QSG_RENDER_LOOP=basic
-            exec /repo/qt/build/amd64/meticulous-dial-qt --qml-dir /repo/qt/qml --api $api --test-port $port \
-                 --storage /tmp/dial-storage.json $*
-        " >/dev/null
+            exec /repo/qt/build/amd64/meticulous-dial-qt --qml-dir /repo/qt/qml --storage /tmp/dial-storage.json "$@"
+        ' _ --api "$api" --test-port "$port" "$@" >/dev/null
     for _ in $(seq 40); do
         docker exec "$name" python3 /repo/qt/tests/e2e/dialctl.py --port "$port" state >/dev/null 2>&1 && { echo "dial up, test port $port"; exit 0; }
         sleep 0.5

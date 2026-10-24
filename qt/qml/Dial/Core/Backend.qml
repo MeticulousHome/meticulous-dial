@@ -3,6 +3,7 @@ pragma Singleton
 // the stores, and the machine's state into screens (heating, brewComplete, manual-purge, barometer).
 import QtQuick
 import Dial.Native
+import "Constants.js" as Constants
 
 QtObject {
     id: backend

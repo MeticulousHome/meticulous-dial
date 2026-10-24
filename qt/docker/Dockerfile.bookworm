@@ -23,5 +23,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends librlottie-dev 
     && rm -rf /var/lib/apt/lists/*
 # Mesa's software GL (llvmpipe) for running the app under Xvfb in tests: shaders included.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      libgl1-mesa-dri libglx-mesa0 libegl-mesa0 mesa-utils x11-utils curl python3-pil \
+      libgl1-mesa-dri libglx-mesa0 libegl-mesa0 mesa-utils x11-utils curl python3-pil python3-pytest \
     && rm -rf /var/lib/apt/lists/*

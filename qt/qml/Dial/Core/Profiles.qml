@@ -213,8 +213,12 @@ QtObject {
     function setLocalProfileIndex(index) { localProfileIndex = index }
 
     // The backend's "profile" event (ProfileUpdate: { change: update | delete | create | load, profile_id }).
+    // The list is fetched again at once and once more 400 ms later: the backend can emit the event a few
+    // milliseconds before its list endpoint has the change (a fetch right on the event saw the old list).
+    property Timer _eventRefetch: Timer { interval: 400; repeat: false; onTriggered: ctx.refetch() }
     function onProfileEvent(event) {
         refetch()
+        _eventRefetch.restart()
         _hasJustHandledProfileEvent = event.change !== "load"
         if (!mergedProfiles || mergedProfiles.length === 0) {
             console.error("No profiles available")
