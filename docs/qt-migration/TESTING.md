@@ -61,4 +61,27 @@ and the gaps it found: `parity/integration.md`.
 
 ## Results
 
-Filled in at the end of the migration run (see the section below and PARITY.md).
+2026-10-24, branch `qt-migration` at `af29c3ae` and after, every run guarded and with the real services
+blocked on the network:
+
+| Suite | Result |
+|---|---|
+| End-to-end, all of `qt/tests/e2e` (177 tests, one emulated backend, ~18 min) | **161 passed, 13 skipped, 3 xfailed, 1 error**; the error was the settings restore asking for `timezone_sync: automatic`, which needs the blocked time zone lookup: fixed, then `test_settings.py` 34 of 34. No request blocked by the Dial's guard during the run |
+| Integration journeys (meticulous-integration, real backend + fika-sil, run `final1`) | **28 passed, 2 xfailed, 1 failed**: the xfails are the suite's known gaps, same check and value as on React; `test_dial_support` fails by design of the guard (no ticket service, no preflight probes). React in the same setup: 29 passed, 2 xfailed. `profileHover` as `null`: 0 (156 before the fix); FpText binding loops: 0; one `POST /history` per brew complete |
+| React unit tests on the QML ports (`qt/scripts/js-tests.sh`) | 11 of 14 files, all passing (the other 3 are listed in PARITY.md) |
+| Frame rate on 10.10.0.130 | PARITY.md, "Performance" |
+
+What the skips and xfails are:
+
+- Skipped (13): the Wi-Fi list journeys need a Wi-Fi fake (6; the emulated backend stubs NetworkManager);
+  changing the Wi-Fi mode for good (`DIAL_WIFI_MODE_CHANGES=1`); the shot-data-sharing prompt needs a backend
+  whose sharing was never answered; "help us improve" (2) and dispatched reports (2) change state every Dial on
+  the backend sees (`DIAL_PRIVATE_BACKEND=1`); one tare case where the emulated backend leaves guided pour-over
+  by itself.
+- Xfailed (3): scale calibration needs a loaded scale; the home focusing a just-made profile (the React bug,
+  as in meticulous-integration); cancelling a report while collecting when the emulated backend collects
+  faster than Cancel can be pressed.
+
+Things learned for steady runs: a report the mobile app dispatched is uploaded by every Dial on the backend
+and announced with a notification of the Dial's own (the fixture acknowledges it); tests delete the profiles
+they save (a long carousel slows every test); `go_to_card` moves by position, since profiles can share a name.

@@ -21,7 +21,7 @@ antialiasing differs). On the machine (10.10.0.130, eglfs) see "Performance" at 
 | Menus with the yellow bar (mixins.ts) | styles/utils/mixins.ts | components/OptionsMenu.qml | done | hold-to-confirm, marquee, OS status line, version box, annotations, Chromium dashes |
 | Context button toggles quick settings | App.tsx, Bubble.tsx | main.qml | done | |
 | Bottom status (temp, weight, preheat funnel, offline, motor hot) | BottomStatus/* | components/BottomStatus.qml | done | |
-| Socket.IO events → stores, status → screens | SocketProviderValue.tsx | Core/Backend.qml, src/socketio.cpp | done | status, sensors, button, notification, heater_status, water_status, profile, profileHover, OSUpdate, upload_report, settings |
+| Socket.IO events → stores, status → screens | SocketProviderValue.tsx | Core/Backend.qml, src/socketio.cpp | done | status, sensors, button, notification, heater_status, water_status, profile, profileHover, OSUpdate, upload_report, settings; the Dial's own `profileHover` reaches the backend with its payload (it went out as `null` until `af29c3ae`, found by the integration journeys) |
 | Knob / buttons → gestures | eventGestureMap | Core/Input.qml, components/GestureHandler.qml | done | the development keyboard keys too |
 | Stores (screens, stats, notifications, wifi, settings, images slices) | store/features/* | Core/Nav, Stats, Notifications, UiState | done | |
 | Profile context and queries | ProfileContext.tsx, useProfiles.tsx | Core/Profiles.qml, Core/HomeSelection.js | done | the React unit test of homeSelection passes against HomeSelection.js |
@@ -42,7 +42,9 @@ antialiasing differs). On the machine (10.10.0.130, eglfs) see "Performance" at 
 | Tauri: dial_performance_*, resource snapshot, slowdown monitor | lib.rs, useDialSlowdownMonitor | Native.resourceSnapshot() | partial | the detector only reported to Sentry: not ported |
 | Sentry | App.tsx | — | partial | no Sentry SDK for Qt in bookworm; errors go to the journal; a bug report still reaches support as its Sentry feedback (plain HTTP POST, on the machine only) |
 | Boot animation (Lottie) and post-ready screen | ReadyAnimation.tsx | screens/brew/ReadyAnimation.qml | done | rlottie |
-| Brightness 100 % at start | App.tsx | main.qml | done | |
+| Brightness 100 % at start | App.tsx | main.qml | done | again when the backend comes online |
+| Service stop / restart | Tauri exits 0 on SIGTERM | src/main.cpp | done | a stop exits 0, so systemd does not hand it to crash-reporter (eglfs's VT handler exited 1) |
+| No real services off the machine | — | src/netguard.*, `DIAL_EXTERNAL_SERVICES` | done | only the machine's launcher enables tickets, Sentry feedback and Community; tests and development runs reach only the backend |
 
 ## Screens (routes)
 
@@ -84,20 +86,46 @@ antialiasing differs). On the machine (10.10.0.130, eglfs) see "Performance" at 
   manualTarget, trailGeometry, reportHandoff, pourOverProfileContract, freePourSetup, manualSetup). Not mapped:
   analogClockTime (3 of its cases fake the browser's Date; the others run in test_idle.py), postReadyScreen
   (a one-line rule inside ReadyAnimation.qml), slowdownDetector (not ported).
-- End-to-end (`qt/scripts/e2e.sh`): per-group suites in `qt/tests/e2e/`; results in TESTING.md.
-- Integration journeys with the real backend and fika-sil: `qt/tests/integration/` (see parity/integration.md).
+- End-to-end (`qt/scripts/e2e.sh`, 177 tests in `qt/tests/e2e/`): 161 passed, 13 skipped, 3 xfailed and one
+  teardown error since fixed (TESTING.md has the list and why).
+- Integration journeys with the real backend and fika-sil (`qt/tests/integration/`, meticulous-integration's
+  31 Dial journeys unchanged): 28 passed, 2 xfailed as on React, 1 failing by design of the no-real-services
+  guard (parity/integration.md).
 
 ## Performance on the machine (10.10.0.130, eglfs, frames that reach the panel)
 
-| Scenario | fps while moving | frames on consecutive vblanks |
-|---|---|---|
-| Home carousel, one detent at a time / fast spin | 63.5 | 99-100 % |
-| Quick settings open, scroll, close | 63-65 (counter double-counts a few) | 97-100 % |
-| Bubble component switch (quick settings → config) | 63.4 | 98 % |
-| Route transitions | 63.9 | 99 % |
-| Heating (bubbles) / extraction (live meter and graph) / brew complete | 62-63.5 / 62.5 / 63.5 | 99-100 % / 98-99 % / 100 % |
-| Nothing moving | 0 frames, ~2 % CPU | |
+Final package (`0.1.0+1770.gaf29c3ae`), 2026-10-24, `qt/tools/perf/flipsrun.py` and `fake_shot.py`:
+
+| Scenario | fps while moving | frames on consecutive vblanks | worst frame |
+|---|---|---|---|
+| Home carousel, one detent at a time / fast spin | 63.7 / 63.7 | 100 % / 99.3 % | 18.6 / 21.3 ms |
+| Quick settings open, scroll, close | 65.1 (the counter double-counts a few) | 97.7 % | 18.5 ms |
+| Bubble component switch (quick settings → config) | 64.9 | 96.4 % (the rest double-counted, none late) | 21.6 ms |
+| Route transitions | 62.8 | 98 % (2 frames on the second vblank) | 35.8 ms |
+| Heating (bubbles) / extraction (live meter and graph) / brew complete, made-up shot | 61.8 / 62.6 / 63.5 | 98.8 % / 98.9 % / 100 % | 87 / 89 / 17.5 ms (the screen being created at the route change) |
+| Nothing moving | 0 frames, 2.2 % CPU | | |
 
 Memory ~145 MB RSS (WebKit Dial: 330-540 MB), stable over a 20-minute loop. Start: first frame 1.1 s after the
 service starts. Remaining cost: creating a screen takes 100-250 ms on the A53 before its transition starts
-(latency, not a dropped frame); the most used bubble menu is created ahead of time.
+(latency, not a dropped frame mid-animation; it shows as the one or two late frames at heating → extraction);
+the most used bubble menu is created ahead of time.
+
+## What is missing or different (honest list)
+
+- **Sentry**: no Sentry SDK for Qt in bookworm. Errors go to the journal; the slowdown detector (it only
+  reported to Sentry) is not ported. The bug report's Sentry feedback is sent by hand, as before.
+- **Not checked against real services**: the Community uploader (interop with the Tauri files tested both
+  ways, protocol ported, never run against the real server: tests are kept off it on purpose); the bug report's
+  real ticket service (ported; off the machine it ends in BR-03/BR-05 by design of the guard).
+- **Partial screens**: OSStatus (nothing in React opens it), countrySettings / timeZoneSettings (checked
+  against the CSS only, the reference backend has no zone data).
+- **Free Pour local history** keeps 16 brews (React 128).
+- **Tauri `get_profiles` offline prefetch**: not ported (disabled in React too).
+- **Tests not run here**: the Wi-Fi list journeys need a Wi-Fi fake (6 skipped: the emulated backend stubs
+  NetworkManager); changing the Wi-Fi mode, the shot-data-sharing prompt, dispatched reports and "help us
+  improve" need a backend of their own (`DIAL_PRIVATE_BACKEND=1`); scale calibration needs a loaded scale
+  (xfail); meticulous-integration's mobile journeys still open the React Dial; nothing is wired into CI.
+- **Requests from the integration overlay** (test port only): a pill probe, and the text list covering the
+  whole canvas.
+- **Machine use**: validated on one office machine (10.10.0.130) with the frame meter, a 20-minute soak, a
+  reboot, the nightly restart and switching both ways; not in daily use yet.
