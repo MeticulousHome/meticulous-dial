@@ -71,15 +71,20 @@ instead of the React suite's videos).
 
 ## Results
 
-2026-10-24, branch `qt-migration` at `af29c3ae` and after, every run guarded and with the real services
-blocked on the network:
+2026-10-24 evening, branch `qt-migration` at `0ee84dcf` (Sentry, the Community HTTP client, the backend-only
+Pour Over history and the image-picker and shot-graph fixes included), every run guarded and with the real
+services blocked on the network:
 
-| Suite | Result |
-|---|---|
-| End-to-end, all of `qt/tests/e2e` (177 tests, one emulated backend, ~18 min) | **161 passed, 13 skipped, 3 xfailed, 1 error**; the error was the settings restore asking for `timezone_sync: automatic`, which needs the blocked time zone lookup: fixed, then `test_settings.py` 34 of 34. No request blocked by the Dial's guard during the run |
-| Integration journeys (meticulous-integration, real backend + fika-sil, run `final1`) | **28 passed, 2 xfailed, 1 failed**: the xfails are the suite's known gaps, same check and value as on React; `test_dial_support` fails by design of the guard (no ticket service, no preflight probes). React in the same setup: 29 passed, 2 xfailed. `profileHover` as `null`: 0 (156 before the fix); FpText binding loops: 0; one `POST /history` per brew complete |
-| React unit tests on the QML ports (`qt/scripts/js-tests.sh`) | 11 of 14 files, all passing (the other 3 are listed in PARITY.md) |
-| Frame rate on 10.10.0.130 | PARITY.md, "Performance" |
+| Suite | Result | HTML report |
+|---|---|---|
+| End-to-end, all of `qt/tests/e2e` (183 tests, one emulated backend, ~20 min) | **167 passed, 13 skipped, 3 xfailed, 0 failed**; no request blocked by the Dial's guard, Sentry never on | `qt/build/e2e-report/report.html` |
+| Integration journeys (meticulous-integration, real backend + fika-sil, run `final3`) | **28 passed, 2 xfailed, 1 failed**: the xfails are the suite's known gaps, same check and value as on React; `test_dial_support` fails by design of the guard (no ticket service, no preflight probes). React in the same setup: 29 passed, 2 xfailed. `profileHover` as `null`: 0 | `qt/build/integration-artifacts/final3/report.html` (meticulous-integration's `ci/report.py`; screenshots instead of videos) |
+| Community contract (`qt/tests/community-contract/run.sh`) | 16 of 16 scenarios match the Tauri uploader | `qt/build/contract-report/report.md` |
+| C++ unit tests (`ctest`) | 4 of 4 (Community model and service, Sentry rules and reporter) | |
+| QML smoke | 68 routes, 0 problems | |
+| React unit tests on the QML ports (`qt/scripts/js-tests.sh`) | 12 of the mapped files, all passing (slowdownDetector added) | |
+| CI on the fork (`.github/workflows/qt-dial.yml`) | green on every push since `6bf0cb70` | GitHub Actions |
+| Frame rate on 10.10.0.130 | PARITY.md, "Performance" | |
 
 What the skips and xfails are:
 
