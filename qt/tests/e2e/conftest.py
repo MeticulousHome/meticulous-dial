@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from dial import Backend, Screen  # noqa: E402
 from dialctl import DialClient  # noqa: E402
+import html_report  # noqa: E402
 
 
 @pytest.fixture(scope="session")
@@ -63,3 +64,10 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     rep = outcome.get_result()
     setattr(item, "rep_" + rep.when, rep)
+    html_report.record(item, rep)
+
+
+def pytest_sessionfinish(session, exitstatus):
+    path = html_report.write(int(exitstatus))
+    if path:
+        print(f"HTML report: {path}")

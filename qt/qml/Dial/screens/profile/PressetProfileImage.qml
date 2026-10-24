@@ -16,6 +16,11 @@ Item {
     property int previousIndex: 0
     readonly property string dialProbe_activeImage: images[activeIndex] || ""
     readonly property int dialProbe_activeIndex: activeIndex
+    // Whether the focused image is on screen (loaded), not just listed.
+    readonly property bool dialProbe_activeImageShown: {
+        const s = slides.count > activeIndex ? slides.itemAt(activeIndex) : null
+        return !!s && s.imageLoaded
+    }
 
     readonly property real slideWidth: (width - 20) / 2
     readonly property real slidePitch: slideWidth + 20
@@ -30,6 +35,10 @@ Item {
         })
         Nav.setScreen("pressetSettings")
     }
+
+    // useProfileDefaultImages: the query is stale, so opening the picker asks for the list again (what was
+    // there shows meanwhile).
+    Component.onCompleted: Profiles.refetchDefaultImages()
 
     function slideTo(index) {
         if (index === activeIndex) return
@@ -70,10 +79,12 @@ Item {
             Behavior on x { NumberAnimation { duration: 300; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE } }
 
             Repeater {
+                id: slides
                 model: screen.images.length
                 delegate: Item {
                     id: slide
                     required property int index
+                    readonly property bool imageLoaded: image.status === Image.Ready
                     readonly property bool near: Math.abs(index - screen.activeIndex) <= 2
                     x: index * screen.slidePitch
                     width: screen.slideWidth
@@ -90,6 +101,7 @@ Item {
                         height: 164 + 16
                         color: "#e0dcd0"
                         Image {
+                            id: image
                             x: 8
                             y: 8
                             width: 164

@@ -72,6 +72,11 @@ Item {
     readonly property var dialProbe_cards: cards.map(c => c.name)
     readonly property string dialProbe_activeCard: cards[activeOption] ? cards[activeOption].name : ""
     readonly property int dialProbe_activeIndex: activeOption
+    // The focused card's picture: its URL and whether it has loaded.
+    readonly property var dialProbe_activeCardImage: {
+        const c = cardRepeater.count > activeOption ? cardRepeater.itemAt(activeOption) : null
+        return c ? { source: c.imageSource, loaded: c.imageLoaded } : null
+    }
     readonly property bool dialProbe_cardSelected: homeHoverState
 
     // The title pill names the selected card (homeCardSelected).
@@ -292,11 +297,14 @@ Item {
         Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE } }
 
         Repeater {
+            id: cardRepeater
             model: home.cards.length
             delegate: Item {
                 id: card
                 required property int index
                 readonly property var entry: home.cards[index] || ({ kind: "new", name: "" })
+                readonly property string imageSource: String(cardImage.source)
+                readonly property bool imageLoaded: cardImage.status === Image.Ready
                 readonly property int distance: index - home.activeOption
                 readonly property bool zoomed: home.homeHoverState
                 property real bounceX: 0

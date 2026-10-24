@@ -25,7 +25,7 @@ QtObject {
     property Connections _socket: Connections {
         target: Socket
         function onConnectedToServer() {
-            Profiles.refetchPourOver()
+            Profiles.refetchAll()
             backend.connectedToServer()
         }
         function onEvent(name, data) {

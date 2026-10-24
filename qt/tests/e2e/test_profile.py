@@ -521,6 +521,50 @@ def test_an_image_picked_is_saved_with_the_profile(screen, backend, cleanup):
     assert created[0]["display"]["image"].endswith(images[1])
 
 
+def wait_until(predicate, timeout_s, what):
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        if predicate():
+            return
+        time.sleep(0.1)
+    raise AssertionError(f"timed out waiting for {what}")
+
+
+def test_the_image_picker_shows_the_images_when_the_list_was_missing(screen, backend, cleanup):
+    """Protects: choosing a profile's image after the Dial started before the backend (the nightly restart):
+    the picker showed nothing, a black screen, because the image list it had asked for at start had failed.
+    The picker, opened, asks for the list again; the image chosen is saved and the home shows it.
+    Limit: useProfileDefaultImages (a stale query refetched on mount and on reconnect); the image list of
+    GET /api/v1/profile/image; the card's ProfileImage.
+    """
+    _, images = backend.get("/api/v1/profile/image")
+    profile = a_profile(backend)
+    current = (profile.get("display") or {}).get("image") or ""
+    target = next(i for i, image in enumerate(images) if i > 0 and not current.endswith(image))
+    # As after a failed start: the Dial has no image list.
+    screen.c.call({"cmd": "eval", "js": "Profiles.defaultImages = []"})
+
+    open_profile(screen, profile)
+    screen.focus("Select Image")
+    screen.controls.push()
+    screen.wait_for_route("pressetProfileImage")
+    screen.wait_for_text(f"1 / {len(images)}", timeout_s=10)
+    wait_until(lambda: screen.probe("activeImageShown"), 10, "the first image on screen")
+    screen.controls.left(target)
+    wait_until(lambda: screen.probe("activeImage") == images[target] and screen.probe("activeImageShown"), 10,
+               f"image {target + 1} on screen")
+    screen.controls.push()
+    screen.wait_for_route("pressetSettings")
+    screen.select("Save")
+    screen.wait_for_home()
+
+    wait_until(lambda: (profiles_by_id(backend)[profile["id"]].get("display") or {}).get("image", "").endswith(images[target]),
+               5, "the backend to keep the image")
+    screen.go_to_card(profile["name"])
+    wait_until(lambda: (screen.probe("activeCardImage") or {}).get("source", "").endswith(images[target])
+               and screen.probe("activeCardImage").get("loaded"), 10, "the card to show the image")
+
+
 def test_brew_without_saving_starts_the_profile_as_edited(screen, backend):
     """PressetSettings "brew without saving": loads the edited profile and starts it (heating, or the purge
     when the piston is up), without saving it."""

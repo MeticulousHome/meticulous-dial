@@ -98,6 +98,15 @@ QtObject {
             return data
         }).catch(error => console.error("GetDefaultProfiles error:", error && error.message ? error.message : error))
     }
+    // react-query's refetchOnReconnect "always": every profile query again once the backend answers. The
+    // queries at start give up after ~15 s, and the nightly restart starts the Dial before the backend.
+    function refetchAll() {
+        refetch()
+        refetchLast()
+        refetchDefaults()
+        refetchDefaultImages()
+        refetchPourOver()
+    }
     function refetchDefaultImages() {
         _retry(() => Api.getProfileDefaultImages()).then(data => {
             if (data && data.error) throw new Error(data.error)
