@@ -1,0 +1,6 @@
+{
+  "tests/profileHomeSelection.test.ts": {
+    "../src/components/ProfileHomeScreen/homeSelection": "Core/HomeSelection.js",
+    "../src/features/freePour/profileEvents": "screens/freepour/ProfileEvents.js"
+  }
+}

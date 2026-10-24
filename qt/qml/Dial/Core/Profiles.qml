@@ -5,6 +5,7 @@ pragma Singleton
 // order on the same changes.
 import QtQuick
 import Dial.Native
+import "HomeSelection.js" as HomeSelection
 
 QtObject {
     id: ctx
@@ -249,58 +250,37 @@ QtObject {
 
     // reconcilePourOverCatalogSelection (homeSelection.ts), run by the home on catalog changes.
     function _reconcilePourOver() {
-        if (homeMode !== "pour_over_profile" || !pourOverLoaded) return
-        const ids = pourOverProfiles.map(p => p.id)
-        if (selectedPourOverProfileId && ids.indexOf(selectedPourOverProfileId) >= 0) return
-        if (ids.length > 0) {
-            selectedPourOverProfileId = ids[0]
-            return
-        }
-        homeMode = "free_pour"
-        selectedPourOverProfileId = null
+        const selection = HomeSelection.reconcilePourOverCatalogSelection({
+            mode: homeMode, selectedProfileId: selectedPourOverProfileId,
+            installedProfileIds: pourOverProfiles.map(p => p.id), catalogResolved: pourOverLoaded
+        })
+        if (selection.selectedProfileId !== selectedPourOverProfileId) selectedPourOverProfileId = selection.selectedProfileId
+        if (selection.mode !== homeMode) homeMode = selection.mode
     }
     onHomeModeChanged: _reconcilePourOver()
     onSelectedPourOverProfileIdChanged: _reconcilePourOver()
 
-    // ---- the home carousel's layout (homeSelection.ts)
+    // ---- the home carousel's layout (homeSelection.ts, in HomeSelection.js)
     readonly property int profileCount: mergedProfiles.length
     readonly property int pourOverProfileCount: pourOverProfiles.length
-    readonly property int freePourOptionIndex: profileCount + pourOverProfileCount
-    readonly property int newOptionIndex: freePourOptionIndex + 1
+    readonly property var homeLayout: ({ profileCount: profileCount, pourOverProfileCount: pourOverProfileCount })
+    readonly property int freePourOptionIndex: HomeSelection.getFreePourOptionIndex(homeLayout)
+    readonly property int newOptionIndex: HomeSelection.getNewOptionIndex(homeLayout)
     readonly property int selectedPourOverProfileIndex: Math.max(pourOverProfiles.findIndex(p => p.id === selectedPourOverProfileId), 0)
     readonly property int activeOption: activeHomeOption(homeMode, localProfileIndex, selectedPourOverProfileIndex)
 
     function pourOverProfileOptionIndex(pourOverProfileIndex) {
-        if (pourOverProfileCount <= 0) return profileCount
-        return profileCount + Math.min(Math.max(pourOverProfileIndex, 0), pourOverProfileCount - 1)
+        return HomeSelection.getPourOverProfileOptionIndex(pourOverProfileIndex, homeLayout)
     }
     function activeHomeOption(mode, profileIndex, pourOverProfileIndex) {
-        if (mode === "pour_over_profile" && pourOverProfileCount > 0) return pourOverProfileOptionIndex(pourOverProfileIndex || 0)
-        if (mode === "free_pour") return freePourOptionIndex
-        if (mode === "new") return newOptionIndex
-        if (profileCount === 0) {
-            if (pourOverProfileCount > 0) return pourOverProfileOptionIndex(0)
-            return freePourOptionIndex
-        }
-        return Math.min(Math.max(profileIndex || 0, 0), profileCount - 1)
+        return HomeSelection.getActiveHomeOption({ mode: mode, profileIndex: profileIndex, pourOverProfileIndex: pourOverProfileIndex,
+                                                   profileCount: profileCount, pourOverProfileCount: pourOverProfileCount })
     }
     // getHomeSelection(option) -> { mode, profileIndex, pourOverProfileIndex }
-    function homeSelection(option) {
-        const bounded = Math.min(Math.max(option, 0), newOptionIndex)
-        if (bounded < profileCount) return { mode: "espresso", profileIndex: bounded, pourOverProfileIndex: null }
-        const pourOverIndex = bounded - profileCount
-        if (pourOverIndex >= 0 && pourOverIndex < pourOverProfileCount)
-            return { mode: "pour_over_profile", profileIndex: null, pourOverProfileIndex: pourOverIndex }
-        if (bounded === freePourOptionIndex) return { mode: "free_pour", profileIndex: null, pourOverProfileIndex: null }
-        if (bounded === newOptionIndex) return { mode: "new", profileIndex: null, pourOverProfileIndex: null }
-        return { mode: "free_pour", profileIndex: null, pourOverProfileIndex: null }
-    }
+    function homeSelection(option) { return HomeSelection.getHomeSelection(option, homeLayout) }
     // createDialProfileHover: the event the Dial sends when an espresso card is focused or scrolled to.
     function dialProfileHover(option, type) {
-        const selection = homeSelection(option)
-        if (selection.mode !== "espresso" || selection.profileIndex === null) return null
-        const p = mergedProfiles[selection.profileIndex]
-        return p && p.id ? { id: p.id, from: "dial", type: type } : null
+        return HomeSelection.createDialProfileHover(option, mergedProfiles, pourOverProfileCount, type)
     }
 
     // ---- profile editing helpers (src/utils/profiles.ts)
