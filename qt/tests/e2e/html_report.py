@@ -1,9 +1,10 @@
 """The end-to-end run as one HTML page, written when pytest finishes (conftest.py calls it):
 qt/build/e2e-report/report.html (DIAL_E2E_REPORT=<dir> elsewhere, DIAL_E2E_REPORT=0 for none).
 
-For each test: what it protects (its docstring), the outcome, the time, why it failed and the screenshots the
-fixtures took (qt/build/e2e-artifacts, copied next to the page so the folder opens on its own). Grouped by
-file, in run order. Nothing but the standard library.
+For each test: what it protects (its docstring), the outcome, the time, why it failed, its video (video.py,
+recorded from the Xvfb screen while the test ran) and the screenshots the fixtures took (qt/build/e2e-artifacts,
+both linked next to the page so the folder opens on its own). Grouped by file, in run order. Nothing but the
+standard library.
 """
 
 import html
@@ -11,6 +12,7 @@ import os
 import shutil
 import time
 from pathlib import Path
+from urllib.parse import quote
 
 from dial import ARTIFACTS
 
@@ -34,7 +36,7 @@ def record(item, rep):
     entry = _results.setdefault(item.nodeid, {
         "file": item.nodeid.split("::")[0], "name": item.name, "outcome": "passed", "duration": 0.0,
         "doc": (getattr(item, "function", None).__doc__ or "").strip() if getattr(item, "function", None) else "",
-        "details": "", "reason": "",
+        "details": "", "reason": "", "video": None,
     })
     entry["duration"] += rep.duration
     xfail = hasattr(rep, "wasxfail")
@@ -55,6 +57,37 @@ def record(item, rep):
         entry["details"] += (f"--- {rep.when}\n" if rep.when != "call" else "") + rep.longreprtext + "\n"
 
 
+def attach_video(item, path):
+    """The test's video (conftest.py's screen fixture), shown with its result."""
+    if path is None:
+        return
+    entry = _results.get(item.nodeid)
+    if entry is None:
+        entry = _results.setdefault(item.nodeid, {
+            "file": item.nodeid.split("::")[0], "name": item.name, "outcome": "passed", "duration": 0.0,
+            "doc": (item.function.__doc__ or "").strip() if getattr(item, "function", None) else "",
+            "details": "", "reason": "", "video": None})
+    entry["video"] = Path(path)
+
+
+def _link(source: Path, target: Path):
+    """`source` at `target`: a hard link (same disk, no copy) or a copy."""
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.unlink(missing_ok=True)
+    try:
+        os.link(source, target)
+    except OSError:
+        shutil.copy2(source, target)
+
+
+def _video(entry, out: Path) -> str | None:
+    source = entry.get("video")
+    if not source or not Path(source).exists():
+        return None
+    _link(Path(source), out / "videos" / Path(source).name)
+    return "videos/" + quote(Path(source).name)
+
+
 def _shots(name: str, out: Path) -> list[str]:
     found = []
     if not ARTIFACTS.is_dir():
@@ -62,10 +95,8 @@ def _shots(name: str, out: Path) -> list[str]:
     for path in sorted(ARTIFACTS.glob(f"{name}-*.png")):
         if path.stat().st_mtime < _started:
             continue
-        target = out / "screens" / path.name
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(path, target)
-        found.append(f"screens/{path.name}")
+        _link(path, out / "screens" / path.name)
+        found.append("screens/" + quote(path.name))
     return found
 
 
@@ -75,6 +106,7 @@ def write(exitstatus: int):
         return None
     out.mkdir(parents=True, exist_ok=True)
     shutil.rmtree(out / "screens", ignore_errors=True)
+    shutil.rmtree(out / "videos", ignore_errors=True)
     totals = {k: 0 for k in _ORDER}
     for entry in _results.values():
         totals[entry["outcome"]] += 1
@@ -84,6 +116,7 @@ def write(exitstatus: int):
 
     def row(entry):
         shots = _shots(entry["name"], out)
+        clip = _video(entry, out)
         parts = [f'<details class="test {entry["outcome"]}"{" open" if entry["outcome"] in ("failed", "error") else ""}>',
                  f'<summary><span class="badge">{_LABEL[entry["outcome"]]}</span>'
                  f'<span class="name">{html.escape(entry["name"])}</span>'
@@ -94,8 +127,11 @@ def write(exitstatus: int):
             parts.append(f'<p class="reason">{html.escape(str(entry["reason"]))}</p>')
         if entry["details"]:
             parts.append(f'<pre>{html.escape(entry["details"][-6000:])}</pre>')
-        if shots:
-            parts.append('<div class="shots">' + "".join(
+        if clip or shots:
+            media = []
+            if clip:
+                media.append(f'<video controls muted playsinline preload="metadata" src="{html.escape(clip)}"></video>')
+            parts.append('<div class="shots">' + "".join(media) + "".join(
                 f'<a href="{html.escape(s)}"><img src="{html.escape(s)}" alt="{html.escape(s)}" loading="lazy"></a>'
                 for s in shots) + "</div>")
         parts.append("</details>")
@@ -133,7 +169,8 @@ details.skipped .badge {{ color:var(--skip); }} details.xfailed .badge, details.
 .time {{ color:var(--muted); font-size:13px; }}
 .doc, .reason {{ white-space:pre-wrap; margin:8px 0; }} .reason {{ color:var(--muted); }}
 pre {{ background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px; overflow:auto; font-size:12px; max-height:360px; }}
-.shots {{ display:flex; gap:8px; flex-wrap:wrap; }} .shots img {{ width:180px; height:180px; border-radius:50%; background:#000; }}
+.shots {{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }} .shots img {{ width:180px; height:180px; border-radius:50%; background:#000; }}
+.shots video {{ width:min(360px, 100%); aspect-ratio:1; border-radius:50%; background:#000; }}
 </style></head><body><main>
 <h1>Qt Dial end-to-end</h1>
 <p class="meta">{stamp} · {took / 60:.1f} min · pytest exit status {exitstatus} · the Qt Dial against meticulous-backend in

@@ -12,12 +12,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       libffi-dev gir1.2-glib-2.0 dbus zstd \
     && rm -rf /var/lib/apt/lists/*
 # The Qt Dial: Qt 6.4.2 Quick, WebSockets, Shapes, Lottie, SVG, the xcb platform, rlottie, qrcodegen,
-# and Xvfb with Mesa's llvmpipe (shaders work).
+# Xvfb with Mesa's llvmpipe (shaders work), and ffmpeg to record each journey from that screen.
 RUN apt-get update && apt-get install -y --no-install-recommends \
       qml6-module-qtquick qml6-module-qtquick-window qml6-module-qtquick-shapes qml6-module-qtquick-layouts \
       qml6-module-qtqml qml6-module-qtqml-models qml6-module-qtqml-workerscript qml6-module-qtwebsockets \
       qml6-module-qt-labs-lottieqt qml6-module-qt-labs-settings libqt6svg6 qt6-qpa-plugins \
       librlottie0-1 libqrcodegencpp1 \
-      xvfb xauth libgl1-mesa-dri libglx-mesa0 libegl-mesa0 fonts-dejavu-core \
+      xvfb xauth libgl1-mesa-dri libglx-mesa0 libegl-mesa0 fonts-dejavu-core ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh >/dev/null

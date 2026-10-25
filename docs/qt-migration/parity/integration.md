@@ -114,13 +114,14 @@ occasions than React's query cache (same data on screen in every journey).
   `refused` mean what they mean for Chromium. Under the guard the Dial does not even try.
 - JavaScript exceptions in the Dial's log are listed (`pages/<test>.json`) but fail a test only with
   `QT_DIAL_FAIL_ON_QML_ERRORS=1`; there were none.
-- No video. Screenshots at each failed wait and at the end of a failed test, composited over black.
+- Video by ffmpeg from the Xvfb screen (60 fps H.264 MP4, upright) instead of Playwright's WebM, from the
+  Dial's start to the end of the journey; screenshots at each failed wait and at the end of a failed test,
+  composited over black.
 
 ## Not done
 
 - The mobile suite (`tests/test_mobile_*.py`) still opens the React Dial as the machine's display; its
   `machine_display` could take `QtDialApp` the same way.
-- No `report.html` (ci/report.py needs the videos): `results.md`, `traces/` and `compare.py` instead.
 - Not wired into meticulous-integration's CI (it would need the Qt binary as an artifact and the Qt runtime
   on the runner; the Dockerfile lists the packages).
 - `test_dial_support.py` cannot pass under the guard (it asserts the preflight probes and the real ticket

@@ -1,8 +1,9 @@
 """Fixtures of the Qt Dial's end-to-end tests.
 
 They drive a running Dial (qt/scripts/run-dev.sh start, or the machine through a tunnel) through its test
-port, against a backend (qt/scripts/dev-backend.sh start: meticulous-backend in emulation mode). See
-docs/qt-migration/TESTING.md.
+port, against a backend (qt/scripts/dev-backend.sh start: meticulous-backend in emulation mode). Every test
+that drives the Dial is recorded from the container's Xvfb screen (video.py; DIAL_VIDEO=0 turns it off, as
+for a run against a machine). See docs/qt-migration/TESTING.md.
 """
 
 import os
@@ -15,8 +16,10 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from dial import Backend, Screen  # noqa: E402
+from dial import ARTIFACTS  # noqa: E402
 from dialctl import DialClient  # noqa: E402
 import html_report  # noqa: E402
+import video  # noqa: E402
 
 
 @pytest.fixture(scope="session")
@@ -42,21 +45,35 @@ def dismiss_dispatched_report_notices(s: Screen):
         time.sleep(1)
 
 
+def start_video(name: str):
+    """The test's video from the Xvfb display the Dial draws on (run-dev.sh's DISPLAY_NUM), or None."""
+    display = os.environ.get("DISPLAY_NUM")
+    if not display or not video.enabled():
+        return None
+    recorder = video.Recorder(f":{display}", ARTIFACTS / "videos" / f"{name}.mp4")
+    return recorder if recorder.start() else None
+
+
 @pytest.fixture
 def screen(client, request):
     s = Screen(client, request.node.name)
-    dismiss_dispatched_report_notices(s)
-    yield s
-    if request.node.rep_call.failed if hasattr(request.node, "rep_call") else False:
-        s.snapshot("failed")
-    # Leave the Dial on the home with the bubble closed for the next test.
-    dismiss_dispatched_report_notices(s)
-    state = client.state()
-    if state["bubbleVisible"]:
-        s.controls.context()
-    if client.state()["screen"] not in ("profileHome", "ready"):
-        client.call({"cmd": "screen", "name": "profileHome"})
-        s.wait_for_transition()
+    recorder = start_video(request.node.name)
+    try:
+        dismiss_dispatched_report_notices(s)
+        yield s
+        if request.node.rep_call.failed if hasattr(request.node, "rep_call") else False:
+            s.snapshot("failed")
+        # Leave the Dial on the home with the bubble closed for the next test.
+        dismiss_dispatched_report_notices(s)
+        state = client.state()
+        if state["bubbleVisible"]:
+            s.controls.context()
+        if client.state()["screen"] not in ("profileHome", "ready"):
+            client.call({"cmd": "screen", "name": "profileHome"})
+            s.wait_for_transition()
+    finally:
+        if recorder is not None:
+            html_report.attach_video(request.node, recorder.stop())
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)

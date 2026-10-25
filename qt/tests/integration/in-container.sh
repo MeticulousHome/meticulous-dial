@@ -75,5 +75,7 @@ status=0
 "$python" -m pytest -v -p no:cacheprovider -p trace_plugin -o console_output_style=classic \
     --junitxml="$ARTIFACTS_DIR/junit.xml" ${JOURNEYS:-tests/test_dial_*.py} "$@" || status=$?
 "$python" /repo/qt/tests/integration/summarize.py "$ARTIFACTS_DIR" || true
+# The suite's own report page (each journey's video, timeline and screenshots): $ARTIFACTS_DIR/report.html.
+"$python" /integration/ci/report.py --artifacts "$ARTIFACTS_DIR" || true
 chown -R "${HOST_UID:-0}:${HOST_GID:-0}" "$ARTIFACTS_DIR" || true
 exit $status

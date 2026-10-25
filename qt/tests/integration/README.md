@@ -53,8 +53,10 @@ Artifacts: `qt/build/integration-artifacts/<RUN_ID>/` (default `<mode>-<timestam
 `screens/<test>-NN-<what>.png` (a screenshot at each failed wait and at the end of a failed test),
 `pages/<test>.dial.log` (the Dial's own log, every start) and `pages/<test>.json` (its JavaScript
 exceptions, its requests to the backend), `reports/<test>.json` (the journey's timeline: what the
-test did, each machine status, each screen), `backend.log`, `fika-sil.stderr.log`, `journeys.json`,
-`observations.json`. There is no video.
+test did, each machine status, each screen), `videos/<test>.mp4` (the journey's video: ffmpeg grabs the
+session's Xvfb screen from `open()` to `close()`, `qt/tests/e2e/video.py`), `backend.log`,
+`fika-sil.stderr.log`, `journeys.json`, `observations.json`, and `report.html` (meticulous-integration's
+`ci/report.py`, run at the end of every run; by hand: `python3 ~/work/meticulous-integration/ci/report.py --artifacts <dir>`).
 
 ## How
 
@@ -69,7 +71,8 @@ test did, each machine status, each screen), `backend.log`, `fika-sil.stderr.log
 
 What a journey reads from the React page itself is mapped in `dial_app.QtPage.evaluate`: Brew
 complete's graph (`PlotLine` items with points and the route's texts) and the circular keyboard's
-selected key (`dialProbe_keyboardKey`). Differences from the React fixture: no video; `routes()` has no
+selected key (`dialProbe_keyboardKey`). Differences from the React fixture: the video is ffmpeg's, not
+Playwright's (60 fps H.264 MP4 instead of WebM); `routes()` has no
 "+bubble" entries; `focused()` is the label as written (trimmed), not as CSS renders it (journeys compare
 without case); the carousel lists every card (the React page draws only those around the focused
 one); `watch.requests` leaves out Socket.IO; JavaScript exceptions in the Dial's log are reported but do

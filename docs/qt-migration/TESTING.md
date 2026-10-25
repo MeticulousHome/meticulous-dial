@@ -52,9 +52,9 @@ qt/scripts/e2e.sh                                     # all; or e2e.sh tests/e2e
 ```
 
 Every run writes an HTML report, `qt/build/e2e-report/report.html` (`qt/tests/e2e/html_report.py`): per
-test what it protects (its docstring), the outcome, the time, the failure and its screenshots, copied next to
-the page (`DIAL_E2E_REPORT=<dir>` writes it elsewhere, `DIAL_E2E_REPORT=0` not at all). Failures save a
-screenshot in `qt/build/e2e-artifacts/`. Several Dials can run side by side
+test what it protects (its docstring), the outcome, the time, the failure, its video and its screenshots,
+linked next to the page (`DIAL_E2E_REPORT=<dir>` writes it elsewhere, `DIAL_E2E_REPORT=0` not at all).
+Failures save a screenshot in `qt/build/e2e-artifacts/`. Several Dials can run side by side
 (`DIAL_RUN_NAME=<container> TEST_PORT=<port> run-dev.sh start`, then `DIAL_RUN_NAME=... DIAL_TEST_PORT=...
 e2e.sh`), and several backends (`DIAL_BACKEND_NAME=... PORT=... STATE=... dev-backend.sh start`).
 
@@ -64,10 +64,31 @@ The same tests can drive the Dial on a machine through a tunnel (`ssh -N -L 9311
 Against the real firmware: `qt/tests/integration/` runs meticulous-integration's 31 Dial journeys unchanged
 on the Qt Dial, with the real backend and the real firmware on fika-sil (`bash qt/tests/integration/run.sh`,
 about 13 min, no network in the container; `MODE=react` runs the same journeys on the React Dial). Results
-and the gaps it found: `parity/integration.md`. Its HTML report is meticulous-integration's own generator run
-on the run's artifacts, `python3 ~/work/meticulous-integration/ci/report.py --artifacts
-qt/build/integration-artifacts/<run>` → `qt/build/integration-artifacts/<run>/report.html` (screenshots
-instead of the React suite's videos).
+and the gaps it found: `parity/integration.md`. Its HTML report is meticulous-integration's own generator
+(`ci/report.py`), which every run calls at its end → `qt/build/integration-artifacts/<run>/report.html`, with each
+journey's video, its timeline (which follows the video as it plays, as in the React suite's report) and its
+screenshots.
+
+## Videos
+
+Every end-to-end test that drives the Dial, and every journey, is recorded as the React suite's Playwright
+records its page (`qt/tests/e2e/video.py`, used by both suites):
+
+- ffmpeg grabs the Xvfb screen the Dial draws on (`x11grab`, inside the same container: the e2e Dial's
+  container from `run-dev.sh`, display `:<DISPLAY_NUM>`; the journeys' `--network none` container, `:99`),
+  from the start of the test (the e2e `screen` fixture; the overlay's `QtDialApp.open()`) to its end (after
+  the fixture's teardown; before the overlay stops the Dial), so a failure's last frames are in the video.
+- 480 x 480 at 60 frames a second (`DIAL_VIDEO_FPS`; the Dial animates at about 60 under Xvfb, 59 measured),
+  H.264 in MP4 (`libx264`, `veryfast`, `-tune animation`, CRF 28, `+faststart`): about 45 KB a second.
+  The Dial draws itself turned -90 degrees, as the machine's panel is mounted; the video turns it upright.
+  Frames are timed by their number, because x11grab stamps them with the wall clock, which steps back now and
+  then under WSL2.
+- Where: `qt/build/e2e-artifacts/videos/<test>.mp4`, linked into `qt/build/e2e-report/videos/`;
+  `qt/build/integration-artifacts/<run>/videos/<test>.mp4`, which the journey's `reports/<test>.json` names
+  (`video`, `video_span_s`) for `ci/report.py`.
+- Local only: ffmpeg reads the X server and writes a file. `DIAL_VIDEO=0` turns recording off (e.g. for e2e
+  runs against a machine through a tunnel, where the container's screen is not the machine's). The images
+  carry ffmpeg (`qt/docker/Dockerfile.bookworm`, `qt/tests/integration/Dockerfile`).
 
 ## Results
 
@@ -77,8 +98,8 @@ services blocked on the network:
 
 | Suite | Result | HTML report |
 |---|---|---|
-| End-to-end, all of `qt/tests/e2e` (183 tests, one emulated backend, ~20 min) | **167 passed, 13 skipped, 3 xfailed, 0 failed**; no request blocked by the Dial's guard, Sentry never on | `qt/build/e2e-report/report.html` |
-| Integration journeys (meticulous-integration, real backend + fika-sil, run `final3`) | **28 passed, 2 xfailed, 1 failed**: the xfails are the suite's known gaps, same check and value as on React; `test_dial_support` fails by design of the guard (no ticket service, no preflight probes). React in the same setup: 29 passed, 2 xfailed. `profileHover` as `null`: 0 | `qt/build/integration-artifacts/final3/report.html` (meticulous-integration's `ci/report.py`; screenshots instead of videos) |
+| End-to-end, all of `qt/tests/e2e` (183 tests, one emulated backend, ~20 min) | **167 passed, 13 skipped, 3 xfailed, 0 failed** (with and without videos); no request blocked by the Dial's guard, Sentry never on | `qt/build/e2e-report/report.html`, a video for each of the 173 tests that drive the Dial (18 MB) |
+| Integration journeys (meticulous-integration, real backend + fika-sil, runs `final3` and `final-video`) | **28 passed, 2 xfailed, 1 failed**: the xfails are the suite's known gaps, same check and value as on React; `test_dial_support` fails by design of the guard (no ticket service, no preflight probes). React in the same setup: 29 passed, 2 xfailed. `profileHover` as `null`: 0 | `qt/build/integration-artifacts/final-video/report.html` (meticulous-integration's `ci/report.py`): the 31 journeys' videos (11 MB) with their timelines and screenshots |
 | Community contract (`qt/tests/community-contract/run.sh`) | 16 of 16 scenarios match the Tauri uploader | `qt/build/contract-report/report.md` |
 | C++ unit tests (`ctest`) | 4 of 4 (Community model and service, Sentry rules and reporter) | |
 | QML smoke | 68 routes, 0 problems | |

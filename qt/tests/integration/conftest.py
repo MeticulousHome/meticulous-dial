@@ -37,6 +37,7 @@ from integration_conftest import ARTIFACTS, _record_actions, _write_journey_repo
 
 from dial_app import Controls, PageWatch, Screen, Timeline  # noqa: E402
 from qt_dial_net import DialNetwork, SuiteCA  # noqa: E402
+import video  # noqa: E402  (qt/tests/e2e/video.py, on the path through dial_app)
 
 QT_DIAL_BINARY = os.environ.get("QT_DIAL_BINARY", "/repo/qt/build/amd64/meticulous-dial-qt")
 QT_DIAL_QML = os.environ.get("QT_DIAL_QML", "/repo/qt/qml")
@@ -123,6 +124,7 @@ class QtDialApp:
         self._storage = host.workdir / f"{name}.storage.json"
         self._log_path = ARTIFACTS / "pages" / f"{name}.dial.log"
         self.starts = 0
+        self._recorder = None
 
     def open(self, first_boot: bool = False, home: bool = True):
         _, settings = self._backend.get("/api/v1/settings/")
@@ -136,7 +138,14 @@ class QtDialApp:
         self._log_path.unlink(missing_ok=True)
         self.network = DialNetwork(self._backend.url, self._host.ca, self._external_answers, self.refused, self.answered)
         self.watch = PageWatch(self.network, self._log_path)
+        # The journey's video (qt/tests/e2e/video.py): the session's Xvfb screen from here to close(), as
+        # Playwright records the React page. The timeline is timed from its first frame.
         self.timeline.video_start = time.time()
+        if video.enabled():
+            recorder = video.Recorder(self._host.DISPLAY, ARTIFACTS / "videos" / f"{self._name}.mp4")
+            if recorder.start():
+                self._recorder = recorder
+                self.timeline.video_start = recorder.started_at
         self._start()
         self.screen = Screen(self, self.controls, ARTIFACTS / "screens", self._name, self.timeline)
         self.page = self.screen.page
@@ -222,12 +231,14 @@ class QtDialApp:
         if failed and self.client is not None and self.proc.poll() is None:
             self.screen.snapshot("failed")
         self._timeline_screens()
+        # The video ends with the journey, before the Dial's window goes away.
+        clip = self._recorder.stop() if self._recorder is not None else None
+        self.timeline.video_end = time.time()
         self._stop()
         self.watch.write(ARTIFACTS / "pages" / f"{self._name}.json")
         self._timeline_statuses()
-        self.timeline.video_end = time.time()
         self.network.close()
-        return None
+        return str(clip.relative_to(ARTIFACTS)) if clip is not None else None
 
     def _timeline_statuses(self):
         last = None
@@ -239,7 +250,7 @@ class QtDialApp:
 
 @pytest.fixture(scope="session")
 def dial_server(tmp_path_factory, backend):
-    for directory in ("screens", "pages", "reports"):
+    for directory in ("screens", "pages", "reports", "videos"):
         (ARTIFACTS / directory).mkdir(parents=True, exist_ok=True)
     host = QtDialHost(tmp_path_factory.mktemp("qt-dial"))
     yield host
