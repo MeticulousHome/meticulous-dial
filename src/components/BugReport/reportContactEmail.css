@@ -1,0 +1,151 @@
+/* Full screen contact email steps (domain list and declined notice). Sized
+   for the round 480px display: everything stays inside the centre so the
+   corners never clip it. The keyboard steps draw CircleKeyboard instead. */
+.report-contact-screen {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 48px 56px 52px;
+  color: #e7e7e7;
+  text-align: center;
+}
+
+.report-contact-eyebrow {
+  color: #808080;
+  font-family: 'ABC Diatype Mono';
+  font-size: 14px;
+  font-weight: 300;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Shown large so the user can check what they typed before picking a domain. */
+.report-contact-address {
+  font-family: 'ABC Diatype Mono';
+  font-size: 28px;
+  font-weight: 700;
+  max-width: 372px;
+  overflow-wrap: anywhere;
+}
+
+.report-contact-copy {
+  max-width: 340px;
+  margin: 0;
+  font-family: 'ABC Diatype';
+  font-size: 21px;
+  line-height: 1.3;
+}
+
+/* Six domains fit as two columns of three; the encoder walks them in order. */
+.report-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 10px;
+  width: 100%;
+  max-width: 372px;
+  margin-top: 4px;
+}
+
+.report-contact-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.report-contact-option {
+  box-sizing: border-box;
+  min-width: 140px;
+  border: 2px solid #e7e7e766;
+  border-radius: 999px;
+  padding: 8px 16px;
+  color: #e7e7e7b3;
+  font-family: 'ABC Diatype';
+  font-size: 20px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.report-contact-option.active {
+  border-color: #f5c444;
+  background: #f5c444;
+  color: #171717;
+}
+
+.report-contact-hints {
+  align-items: center;
+  column-gap: 10px;
+  display: grid;
+  font-size: 14px;
+  grid-template-columns: 1fr auto 1fr;
+  letter-spacing: 0.08em;
+  margin-top: 6px;
+  row-gap: 6px;
+  text-transform: uppercase;
+}
+
+.report-contact-hint-input {
+  color: #e7e7e7;
+  text-align: right;
+}
+
+.report-contact-hint-dot {
+  background: #808080;
+  border-radius: 50%;
+  height: 4px;
+  width: 4px;
+}
+
+.report-contact-hint-action {
+  color: #808080;
+  text-align: left;
+}
+
+/* Below the domain grid: back to the email keyboard. */
+.report-contact-backspace {
+  min-width: 0;
+  padding: 6px 24px;
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+/* Confirm step: the part the knob is on lights up. The parts are blocks so
+   a long address breaks at the "@" rather than inside a word; only a part
+   wider than the screen breaks within itself. */
+.report-contact-confirm {
+  font-size: 24px;
+}
+
+.report-contact-part {
+  display: inline-block;
+  max-width: 100%;
+  border-bottom: 2px solid transparent;
+  padding-bottom: 2px;
+  overflow-wrap: anywhere;
+}
+
+.report-contact-part.active {
+  border-bottom-color: #f5c444;
+  color: #f5c444;
+}
+
+.report-contact-at {
+  color: #808080;
+}
+
+.report-contact-legend {
+  max-width: 330px;
+  margin: 0;
+  color: #b3b3b3;
+  font-family: 'ABC Diatype';
+  font-size: 17px;
+  line-height: 1.3;
+}

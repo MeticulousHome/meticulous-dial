@@ -18,7 +18,6 @@ import Styled, {
   MARQUEE_MIN_TEXT_LENGTH
 } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
-import type { DialSettings } from '../../types';
 import { retractionMmToVolumeMl } from '../../utils/retraction';
 import { useDeviceInfo } from '../../hooks/useDeviceOSStatus';
 
@@ -46,7 +45,7 @@ const initialSettings: SettingsItem[] = [
     key: 'tare_behavior',
     label: 'Auto Tare',
     getLabel: (settings: Settings) =>
-      (settings as DialSettings).tare_behavior === 'before_retraction'
+      settings.tare_behavior === 'before_retraction'
         ? 'Before retraction'
         : 'After retraction',
     visible: true

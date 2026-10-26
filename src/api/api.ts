@@ -4,9 +4,9 @@ import Api, {
   BrightnessRequest,
   ManufacturingSettings,
   ManufacturingMenuItems,
-  UnlockMachineResponse
+  UnlockMachineResponse,
+  DeviceInfo
 } from '@meticulous-home/espresso-api';
-import { DialDeviceInfo } from '../types';
 import { invoke } from '@tauri-apps/api/core';
 
 export const API_URL =
@@ -57,14 +57,14 @@ export const getOSStatus = async () => {
   }
 };
 
-export async function getDeviceInfo(): Promise<DialDeviceInfo> {
+export async function getDeviceInfo(): Promise<DeviceInfo> {
   try {
     const response = await api.getDeviceInfo();
     const data = response.data;
     if (data && 'error' in data) {
       throw new Error((data as APIError).error);
     }
-    return data as DialDeviceInfo;
+    return data as DeviceInfo;
   } catch (error) {
     if (error.response) {
       console.error('Error fetching device Info: ', error.response.data);

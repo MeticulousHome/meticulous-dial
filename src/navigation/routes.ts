@@ -15,6 +15,7 @@ import { RootState } from '../components/store/store';
 import { Notification } from '../components/Notification/Notification';
 import { ConnectWifiViaApp } from '../components/Wifi/ConnetWifiViaApp';
 import { BugReport } from '../components/BugReport/BugReport';
+import { ReportContactEmail } from '../components/BugReport/ReportContactEmail';
 import { OSStatus } from '../components/OSStatus/OSStatus';
 import { QuickSettings } from '../../src/components/QuickSettings/QuickSettings';
 import { SnakeGame } from '../../src/components/Snake/Snake';
@@ -55,6 +56,8 @@ import {
   getProfilesTitle
 } from '../components/ProfileHomeScreen/ProfileTitle';
 import { FactoryReset } from '../components/Settings/Advanced/FactoryReset';
+import { HelpUsImprove } from '../components/ShotDataSharing/HelpUsImprove';
+import { ShotDataSharingPrompt } from '../components/ShotDataSharing/ShotDataSharingPrompt';
 import { Manufacturing } from '../components/Settings/Advanced/Manufacturing';
 import { RetractionSettingGauge } from '../components/Settings/Advanced/RetractionVolume';
 import { TareBehaviorSetting } from '../components/Settings/TareBehavior';
@@ -462,6 +465,22 @@ export const routes: Record<ScreenType, Route> = {
   },
   factoryReset: {
     component: FactoryReset,
+    bottomStatusHidden: true
+  },
+  helpUsImprove: {
+    component: HelpUsImprove,
+    bottomStatusHidden: true
+  },
+  reportContactEmail: {
+    component: ReportContactEmail,
+    bottomStatusHidden: true,
+    // Only ever reached from the bug report bubble, which it reopens itself.
+    ignoreAsPrevious: true
+  },
+  shotDataSharingPrompt: {
+    component: ShotDataSharingPrompt,
+    // Deliberately a valid "previous" screen: after a notification or the
+    // idle screen the dial returns here while the prompt is unanswered.
     bottomStatusHidden: true
   },
   displayAlignment: {
