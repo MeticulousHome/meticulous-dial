@@ -6,9 +6,19 @@
 # (DIAL_EXTERNAL_SERVICES unset) and the smoke has no network.
 name: Qt Dial
 
+# Pull requests into the release branches and pushes to them, when the Qt Dial or the React code its tests
+# run on changes.
 on:
+  pull_request:
+    branches: [stable, beta, nightly]
+    paths:
+      - 'qt/**'
+      - 'src/**'
+      - 'tests/**'
+      - 'src-tauri/test-vectors/**'
+      - '.github/workflows/qt-dial.yml'
   push:
-    branches: [qt-migration]
+    branches: [stable, beta, nightly]
     paths:
       - 'qt/**'
       - 'src/**'
@@ -31,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # the package version counts the commits
+          fetch-depth: 0 # the package version counts the commits
 
       - uses: docker/setup-buildx-action@v3
 
