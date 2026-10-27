@@ -1,0 +1,36 @@
+# Build and test image for the Qt Dial: Debian bookworm with Qt 6.4.2, the same Qt the machine
+# image installs. Native amd64 Qt runs the app and its tests offscreen; the arm64 Qt libraries plus
+# the cross toolchain build the binary the machine runs (Qt host tools are the amd64 ones).
+FROM debian:bookworm
+ENV DEBIAN_FRONTEND=noninteractive
+RUN dpkg --add-architecture arm64 && apt-get update && apt-get install -y --no-install-recommends \
+      build-essential cmake ninja-build pkg-config git ca-certificates python3 python3-websockets \
+      xvfb xauth fakeroot dpkg-dev file \
+      crossbuild-essential-arm64 \
+      qt6-base-dev qt6-base-dev-tools qt6-declarative-dev qt6-declarative-dev-tools qt6-websockets-dev \
+      qt6-svg-dev qt6-shader-baker qt6-tools-dev-tools libqt6opengl6-dev \
+      qml6-module-qtquick qml6-module-qtquick-window qml6-module-qtquick-shapes qml6-module-qtquick-layouts \
+      qml6-module-qtqml-workerscript qml6-module-qtwebsockets qml6-module-qt-labs-lottieqt \
+      qml6-module-qt5compat-graphicaleffects qml6-module-qttest qml6-module-qtquick-particles \
+      qml6-module-qtqml-models qml6-module-qt-labs-settings qt6-qpa-plugins libqt6svg6 \
+      fonts-dejavu-core \
+    && apt-get install -y --no-install-recommends \
+      qt6-base-dev:arm64 qt6-declarative-dev:arm64 qt6-websockets-dev:arm64 qt6-svg-dev:arm64 \
+      libqt6opengl6-dev:arm64 libgl-dev:arm64 libegl-dev:arm64 libvulkan-dev:arm64 libxkbcommon-dev:arm64 \
+    && rm -rf /var/lib/apt/lists/*
+# rlottie renders the Lottie animations (LottieItem).
+RUN apt-get update && apt-get install -y --no-install-recommends librlottie-dev librlottie-dev:arm64 nlohmann-json3-dev libqrcodegencpp-dev libqrcodegencpp-dev:arm64 \
+    && rm -rf /var/lib/apt/lists/*
+# Mesa's software GL (llvmpipe) for running the app under Xvfb in tests: shaders included.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      libgl1-mesa-dri libglx-mesa0 libegl-mesa0 mesa-utils x11-utils curl python3-pil python3-pytest \
+    && rm -rf /var/lib/apt/lists/*
+# OpenSSL's libcrypto (Ed25519) for the Community uploader (src/community).
+RUN apt-get update && apt-get install -y --no-install-recommends libssl-dev libssl-dev:arm64 \
+    && rm -rf /var/lib/apt/lists/*
+# sentry-native (qt/src/sentry, built from source with the project): libcurl for its HTTP transport.
+RUN apt-get update && apt-get install -y --no-install-recommends libcurl4-openssl-dev libcurl4-openssl-dev:arm64 \
+    && rm -rf /var/lib/apt/lists/*
+# ffmpeg records each end-to-end test from the Xvfb screen (qt/tests/e2e/video.py).
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/*

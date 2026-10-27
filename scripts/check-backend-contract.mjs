@@ -5,14 +5,16 @@
 //
 //   node scripts/check-backend-contract.mjs --backend <meticulous-backend checkout>
 //
-// Checked, from the Dial's sources (src/ and src-tauri/src/):
-//   HTTP     every route the Dial calls, through @meticulous-home/espresso-api
-//            (the package methods it calls, resolved in the package's dist) or
-//            with raw fetch / reqwest, exists with that method;
-//   events   every Socket.IO event the Dial listens to is one the backend
-//            emits, every event it emits is one the backend listens to;
-//   payload  every status / status.sensors / sensors key the Dial reads exists;
-//   settings every setting key the Dial writes exists in the backend's defaults.
+// Checked, from the Dial's sources (qt/qml: QML and JavaScript, qt/src: C++):
+//   HTTP     every backend route the Dial calls (a "/api/v1/..." literal, or
+//            Core/Api.qml's `v + "/..."`) exists with that method;
+//   events   every Socket.IO event the Dial handles (the onEvent switch of the
+//            Connections on Socket) is one the backend emits, every event it
+//            emits (Socket/Backend.emitEvent) is one the backend listens to;
+//   payload  every status / status.sensors / sensors key the Dial reads
+//            (Core/Stats.qml and Stats.status/sensors/sensorData) exists;
+//   settings every setting key the Dial writes (BackendSettings.update,
+//            Api.updateSetting) exists in the backend's defaults.
 // CI checks the backend branch this Dial branch pairs with: the same-name
 // branch when the change spans both repositories, otherwise the target branch.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -22,9 +24,7 @@ const root = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
 const backendIndex = args.indexOf('--backend');
 if (backendIndex < 0 || !args[backendIndex + 1]) {
-  console.error(
-    'usage: check-backend-contract.mjs --backend <meticulous-backend checkout>'
-  );
+  console.error('usage: check-backend-contract.mjs --backend <meticulous-backend checkout>');
   process.exit(2);
 }
 const contracts = join(args[backendIndex + 1], 'tests', 'contracts');
@@ -38,21 +38,10 @@ const settingsDefaults = load('settings_defaults.json').user;
 // the check fails until it is removed here, so the list only shrinks.
 const KNOWN_GAPS = {
   'listens to water_status':
-    'the backend stopped emitting water_status (497b9f7, now sensors.w_stat); the listener in SocketProviderValue.tsx never fires'
+    'the backend stopped emitting water_status (497b9f7, now sensors.w_stat); Core/Backend.qml still handles it, as the React Dial did'
 };
 // Socket.IO's own client events, not part of any server's contract.
-const SOCKET_IO_CLIENT_EVENTS = new Set([
-  'connect',
-  'disconnect',
-  'connect_error'
-]);
-// Fields the Dial adds to its copy of the status (stats-slice.ts), not the backend's.
-const DIAL_STATS_FIELDS = new Set([
-  'sensorData',
-  'waterStatus',
-  'waitingForActionAlreadySent',
-  'preheatTimeLeft'
-]);
+const SOCKET_IO_CLIENT_EVENTS = new Set(['connect', 'disconnect', 'connect_error']);
 
 function files(dir, pattern) {
   return readdirSync(dir).flatMap((name) => {
@@ -62,112 +51,89 @@ function files(dir, pattern) {
   });
 }
 
-function lineOf(source, index) {
-  return source.slice(0, index).split('\n').length;
-}
+const sources = [
+  ...files(join(root, 'qt', 'qml'), /\.(qml|js)$/),
+  ...files(join(root, 'qt', 'src'), /\.(cpp|h)$/)
+].map((path) => ({ path: relative(root, path), text: readFileSync(path, 'utf8') }));
 
-const sources = files(join(root, 'src'), /\.(ts|tsx)$/).map((path) => ({
-  path: relative(root, path),
-  text: readFileSync(path, 'utf8')
-}));
-const rustSources = files(join(root, 'src-tauri', 'src'), /\.rs$/).map(
-  (path) => ({
-    path: relative(root, path),
-    text: readFileSync(path, 'utf8')
-  })
-);
+const isComment = (line) => /^\s*(\/\/|\/\*|\*)/.test(line);
+
+// Every line of every source that is not a comment, with its place.
+function* codeLines() {
+  for (const { path, text } of sources) {
+    const lines = text.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      if (!isComment(lines[i])) yield { line: lines[i], where: `${path}:${i + 1}` };
+    }
+  }
+}
 
 // ---- HTTP ------------------------------------------------------------------
 
-const VERB = /axiosInstance\.(get|post|put|patch|delete)\(/g;
-const API_LITERAL = /[`'"](\/api\/(?:\$\{this\.version\}|v1)\/[^`'"]*)[`'"]/g;
+// The method is the last verb before the path on its line: Api.qml's get( /
+// post( / put( / del( helpers, or a "GET" / "POST" ... argument; else GET.
+function methodBefore(text) {
+  const verbs = [...text.matchAll(/\b(get|post|put|patch|del)\s*\(|["'](GET|POST|PUT|PATCH|DELETE)["']/g)];
+  if (!verbs.length) return 'get';
+  const [, helper, literal] = verbs[verbs.length - 1];
+  const verb = (helper ?? literal).toLowerCase();
+  return verb === 'del' ? 'delete' : verb;
+}
 
-// method name -> [{method, path}] from the package's compiled client.
-function packageRoutes() {
-  const dist = readFileSync(
-    join(
-      root,
-      'node_modules',
-      '@meticulous-home',
-      'espresso-api',
-      'dist',
-      'index.js'
-    ),
-    'utf8'
-  );
-  const header = /^ {4}(?:async |static )*(\w+)\([^)]*\)\s*\{/gm;
-  const heads = [...dist.matchAll(header)];
-  const table = new Map();
-  heads.forEach((head, i) => {
-    const body = dist.slice(
-      head.index,
-      i + 1 < heads.length ? heads[i + 1].index : undefined
-    );
-    const verbs = [...body.matchAll(VERB)].map(([, verb]) => verb);
-    const paths = [...body.matchAll(API_LITERAL)].map(([, path]) => path);
-    if (!paths.length) return; // not a backend call (an external service, a helper)
-    const methods = verbs.length ? verbs : ['get']; // a URL builder is fetched with GET
-    table.set(
-      head[1],
-      paths.flatMap((path) => methods.map((method) => ({ method, path })))
-    );
-  });
-  return table;
+// A literal followed by `+ something` that is not a query string ends in an
+// id or a name: "/profile/get/" + id is /profile/get/0.
+function withDynamicTail(path, after) {
+  const dynamic = /^\s*\+\s*(?!["'`]\?|query\()/.test(after);
+  return dynamic && path.endsWith('/') ? `${path}0` : path;
 }
 
 function normalise(path) {
-  return path
-    .replace(/\$\{this\.version\}/g, 'v1')
-    .replace(/\$\{[^}]*\}|\{[^}]*\}/g, '0')
-    .replace(/\?.*$/, '');
+  return path.replace(/\?.*$/, '');
 }
 
 function served(method, path) {
   const concrete = normalise(path);
   return routes.some(
-    (route) =>
-      route.methods.includes(method) &&
-      new RegExp(`^${route.path}$`).test(concrete)
+    (route) => route.methods.includes(method) && new RegExp(`^${route.path}$`).test(concrete)
   );
 }
 
+const API_QML = 'qt/qml/Dial/Core/Api.qml';
+
+// Core/Api.qml ports the whole espresso-api client; only the methods the Dial
+// calls (Api.name( anywhere else) count, as the React Dial's check did.
+function apiMethodsCalled() {
+  const called = new Set();
+  for (const { path, text } of sources) {
+    if (path === API_QML) continue;
+    for (const [, name] of text.matchAll(/\b[Aa]pi\.(\w+)\(/g)) called.add(name);
+  }
+  return called;
+}
+
 function dialCalls() {
-  const table = packageRoutes();
   const calls = [];
-  for (const { path: file, text } of sources) {
-    for (const match of text.matchAll(/\bapi\.(\w+)\(/g)) {
-      const resolved = table.get(match[1]);
-      if (!resolved) continue; // not a backend call
-      for (const { method, path } of resolved) {
+  const patterns = [
+    // Api.qml: v + "/profile/list" (v is "/api/v1")
+    { re: /\bv\s*\+\s*"(\/[^"]*)"/g, prefix: '/api/v1' },
+    // anywhere: "/api/v1/..." (QML, JavaScript, QStringLiteral / QByteArray)
+    { re: /["'`](\/api\/v1\/[^"'`]*)["'`]/g, prefix: '' }
+  ];
+  const called = apiMethodsCalled();
+  let apiMethod = null;
+  for (const { line, where } of codeLines()) {
+    const inApi = where.startsWith(`${API_QML}:`);
+    if (inApi) apiMethod = line.match(/\bfunction\s+(\w+)\(/)?.[1] ?? apiMethod;
+    if (inApi && !called.has(apiMethod)) continue;
+    for (const { re, prefix } of patterns) {
+      for (const match of line.matchAll(re)) {
+        const end = match.index + match[0].length;
         calls.push({
-          method,
-          path,
-          where: `${file}:${lineOf(text, match.index)} api.${match[1]}`
+          method: methodBefore(line.slice(0, match.index)),
+          path: withDynamicTail(prefix + match[1], line.slice(end)),
+          where: inApi ? `${where} Api.${apiMethod}` : where
         });
       }
-    }
-    // Raw calls: a literal backend path, its method from a `method:` next to it.
-    for (const match of text.matchAll(
-      /[`'"](?:\$\{API_URL\})?(\/api\/v1\/[^`'"]*)[`'"]/g
-    )) {
-      const after = text.slice(match.index, match.index + 300);
-      const method = (
-        after.match(/method:\s*['"](\w+)['"]/)?.[1] ?? 'get'
-      ).toLowerCase();
-      calls.push({
-        method,
-        path: match[1],
-        where: `${file}:${lineOf(text, match.index)}`
-      });
-    }
-  }
-  for (const { path: file, text } of rustSources) {
-    for (const match of text.matchAll(/"(\/api\/v1\/[^"]*)"/g)) {
-      calls.push({
-        method: 'get',
-        path: match[1],
-        where: `${file}:${lineOf(text, match.index)}`
-      });
     }
   }
   return calls;
@@ -175,18 +141,34 @@ function dialCalls() {
 
 // ---- Socket.IO, payloads, settings -----------------------------------------
 
+// The block that follows `from` in text, from its first "{" to the matching "}".
+function blockAfter(text, from) {
+  const open = text.indexOf('{', from);
+  let depth = 0;
+  for (let i = open; i < text.length; i++) {
+    if (text[i] === '{') depth++;
+    else if (text[i] === '}' && --depth === 0) return text.slice(open, i + 1);
+  }
+  return '';
+}
+
 function socketUse() {
   const listens = [];
   const emits = [];
-  for (const { path: file, text } of sources) {
-    for (const match of text.matchAll(
-      /\bsocket\??\.(on|emit)\(\s*['"`]([\w-]+)['"`]/g
-    )) {
-      const use = {
-        event: match[2],
-        where: `${file}:${lineOf(text, match.index)}`
-      };
-      (match[1] === 'on' ? listens : emits).push(use);
+  for (const { path, text } of sources) {
+    if (/target:\s*Socket\b/.test(text)) {
+      const handler = text.indexOf('function onEvent(');
+      if (handler >= 0) {
+        const block = blockAfter(text, text.indexOf('switch', handler));
+        for (const match of block.matchAll(/case\s+["']([\w-]+)["']\s*:/g)) {
+          listens.push({ event: match[1], where: `${path} onEvent` });
+        }
+      }
+    }
+  }
+  for (const { line, where } of codeLines()) {
+    for (const match of line.matchAll(/\b(?:Socket|Backend)\.emitEvent\(\s*["']([\w-]+)["']/g)) {
+      emits.push({ event: match[1], where });
     }
   }
   return { listens, emits };
@@ -194,18 +176,16 @@ function socketUse() {
 
 function payloadReads() {
   const reads = [];
-  for (const { path: file, text } of sources) {
-    for (const match of text.matchAll(/\bstats\??\.(\w+)(?:\??\.(\w+))?/g)) {
-      const [, field, sub] = match;
-      const where = `${file}:${lineOf(text, match.index)}`;
-      if (DIAL_STATS_FIELDS.has(field)) {
-        if (field === 'sensorData' && sub)
-          reads.push({ payload: 'sensors', key: sub, where });
-        continue;
-      }
-      reads.push({ payload: 'status', key: field, where });
-      if (field === 'sensors' && sub)
-        reads.push({ payload: 'status.sensors', key: sub, where });
+  const read = (payload, key, where) => reads.push({ payload, key, where });
+  for (const { line, where } of codeLines()) {
+    for (const [, key] of line.matchAll(/\bStats\.status\.(\w+)/g)) read('status', key, where);
+    for (const [, key] of line.matchAll(/\bStats\.sensors\.(\w+)/g)) read('status.sensors', key, where);
+    for (const [, key] of line.matchAll(/\bStats\.sensorData\.(\w+)/g)) read('sensors', key, where);
+    // Core/Stats.qml keeps the last status as `status` and its sensors as `sensors`.
+    if (where.startsWith('qt/qml/Dial/Core/Stats.qml:')) {
+      for (const [, key] of line.matchAll(/(?<![.\w])status\.(\w+)/g)) read('status', key, where);
+      for (const [, key] of line.matchAll(/(?<![.\w])sensors\.(\w+)/g)) read('status.sensors', key, where);
+      for (const [, key] of line.matchAll(/(?<![.\w])sensorData\.(\w+)/g)) read('sensors', key, where);
     }
   }
   return reads;
@@ -214,19 +194,14 @@ function payloadReads() {
 function settingWrites() {
   const writes = [];
   const dynamic = [];
-  // useUpdateSettings() is held as `updateSettings`; api.updateSetting is the
-  // package's POST /settings. Other mutations (Wi-Fi, manufacturing) are routes.
-  const call =
-    /\b(?:api\.updateSetting|updateSettings\.mutateAsync|updateSettings\.mutate)\(\s*\{([^}]*)\}/g;
-  for (const { path: file, text } of sources) {
-    for (const match of text.matchAll(call)) {
-      const where = `${file}:${lineOf(text, match.index)}`;
-      for (const [, key] of match[1].matchAll(
-        /(?:^|,)\s*['"]?(\w+)['"]?\s*:/g
-      )) {
-        writes.push({ key, where });
+  for (const { line, where } of codeLines()) {
+    for (const match of line.matchAll(/\b(?:BackendSettings\.update|Api\.updateSetting)\(\s*(\{[^}]*\}|[^)]*)\)/g)) {
+      const argument = match[1].trim();
+      if (!argument.startsWith('{') || /\[[^\]]+\]\s*:/.test(argument)) {
+        dynamic.push(where);
+        continue;
       }
-      if (/\[[^\]]+\]\s*:/.test(match[1])) dynamic.push(where);
+      for (const [, key] of argument.matchAll(/(?:^|[{,])\s*["']?(\w+)["']?\s*:/g)) writes.push({ key, where });
     }
   }
   return { writes, dynamic };
@@ -252,22 +227,13 @@ for (const call of calls) {
 }
 const sockets = socketUse();
 for (const use of sockets.listens) {
-  if (
-    !events.emits.includes(use.event) &&
-    !SOCKET_IO_CLIENT_EVENTS.has(use.event)
-  ) {
-    problem(
-      `listens to ${use.event}`,
-      `listens to "${use.event}", which the backend never emits (${use.where})`
-    );
+  if (!events.emits.includes(use.event) && !SOCKET_IO_CLIENT_EVENTS.has(use.event)) {
+    problem(`listens to ${use.event}`, `listens to "${use.event}", which the backend never emits (${use.where})`);
   }
 }
 for (const use of sockets.emits) {
   if (!events.listens.includes(use.event)) {
-    problem(
-      `emits ${use.event}`,
-      `emits "${use.event}", which the backend does not listen to (${use.where})`
-    );
+    problem(`emits ${use.event}`, `emits "${use.event}", which the backend does not listen to (${use.where})`);
   }
 }
 const reads = payloadReads();
@@ -282,25 +248,17 @@ for (const read of reads) {
 const settings = settingWrites();
 for (const write of settings.writes) {
   if (!(write.key in settingsDefaults)) {
-    problem(
-      `writes ${write.key}`,
-      `writes setting "${write.key}", which the backend does not have (${write.where})`
-    );
+    problem(`writes ${write.key}`, `writes setting "${write.key}", which the backend does not have (${write.where})`);
   }
 }
 for (const gap of Object.keys(KNOWN_GAPS)) {
-  if (!gapsSeen.has(gap)) {
-    problems.push(
-      `known gap "${gap}" is gone: remove it from KNOWN_GAPS in this script`
-    );
-  }
+  if (!gapsSeen.has(gap)) problems.push(`known gap "${gap}" is gone: remove it from KNOWN_GAPS in this script`);
 }
 
-const minimumCalls = 40; // a broken extractor finds nothing and would pass silently
-if (calls.length < minimumCalls) {
-  problems.push(
-    `only ${calls.length} HTTP calls recognised (expected at least ${minimumCalls}): the extractor is broken`
-  );
+// A broken extractor finds nothing and would pass silently.
+const minimum = { 'HTTP calls': [calls.length, 40], 'events listened': [sockets.listens.length, 8], 'status keys read': [reads.length, 10] };
+for (const [what, [found, expected]] of Object.entries(minimum)) {
+  if (found < expected) problems.push(`only ${found} ${what} recognised (expected at least ${expected}): the extractor is broken`);
 }
 
 console.log(
@@ -308,12 +266,9 @@ console.log(
     `status keys read: ${reads.length}, settings written: ${settings.writes.length} ` +
     `(+${settings.dynamic.length} with a computed key, not checked)`
 );
-for (const gap of gapsSeen)
-  console.log(`known gap: ${gap}: ${KNOWN_GAPS[gap]}`);
+for (const gap of gapsSeen) console.log(`known gap: ${gap}: ${KNOWN_GAPS[gap]}`);
 if (problems.length) {
-  console.error(
-    `\nThe Dial uses ${problems.length} thing(s) the backend's contract does not have:`
-  );
+  console.error(`\nThe Dial uses ${problems.length} thing(s) the backend's contract does not have:`);
   for (const text of problems) console.error(`  ${text}`);
   process.exit(1);
 }

@@ -1,0 +1,21 @@
+# The Dial, straight on DRM/KMS (no Weston). The unit keeps the name the image has always used, so what is
+# built on it keeps working: the nightly meticulous-restart, the watcher's service check and log collection,
+# crash-reporter, the smoke report.
+[Unit]
+Description=Meticulous Dial
+After=network.target meticulous-backend.service systemd-user-sessions.service plymouth-quit-wait.service
+# It must be the DRM master: never together with Weston.
+Conflicts=weston.service
+OnFailure=crash-reporter@.service
+
+[Service]
+ExecStart=/usr/bin/meticulous-dial-qt-launch
+Restart=always
+RestartSec=1
+User=root
+MemoryMax=1000M
+Slice=meticulous.slice
+Environment="XDG_RUNTIME_DIR=/run/user/0"
+
+[Install]
+WantedBy=multi-user.target

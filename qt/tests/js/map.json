@@ -1,0 +1,44 @@
+{
+  "qt/tests/js/profileHomeSelection.test.ts": {
+    "../src/components/ProfileHomeScreen/homeSelection": "Core/HomeSelection.js",
+    "../src/features/freePour/profileEvents": "screens/freepour/ProfileEvents.js"
+  },
+  "qt/tests/js/digitalClockTime.test.mts": {
+    "../src/components/IdleScreen/digitalClockTime": "screens/idle/clockTime.js"
+  },
+  "qt/tests/js/brewDoubleClick.test.mts": {
+    "../src/hooks/brewDoubleClick": "screens/brew/BrewLogic.js",
+    "../src/constants/setting": "Core/Constants.js"
+  },
+  "qt/tests/js/meterGeometry.test.mts": {
+    "../src/components/Barometer/meterGeometry": "screens/brew/BarometerLogic.js"
+  },
+  "qt/tests/js/manualTarget.test.mts": {
+    "../src/components/Barometer/manualTarget": "screens/brew/BarometerLogic.js"
+  },
+  "qt/tests/js/trailGeometry.test.mts": {
+    "../src/components/Barometer/meterGeometry": "screens/brew/BarometerLogic.js",
+    "../src/components/Barometer/trailGeometry": "screens/brew/BarometerLogic.js"
+  },
+  "qt/tests/js/reportHandoff.test.mts": {
+    "../src/components/BugReport/reportHandoff": "screens/support/ReportLib.js"
+  },
+  "qt/tests/js/pourOverProfileContract.test.ts": {
+    "../src/features/freePour/profileContract": "screens/freepour/ProfileContract.js"
+  },
+  "qt/tests/js/freePourSetup.test.mts": {
+    "../src/features/freePour/setupFlow": "screens/freepour/SetupFlow.js",
+    "../src/features/freePour/format": "screens/freepour/Format.js"
+  },
+  "qt/tests/js/manualSetup.test.mts": {
+    "../src/components/ManualModeSetup/manualSetup": "screens/manual/ManualSetup.js",
+    "../src/constants/manualMode": "screens/manual/ManualSetup.js"
+  },
+  "qt/tests/js/sw120-heating-long-press.test.mjs": {
+    "../src/components/Heating/startBrewGestures": "screens/brew/BrewLogic.js"
+  },
+  "qt/tests/js/slowdownDetector.test.mts": {
+    "../src/performance/slowdownDetector": "Core/SlowdownDetector.js",
+    "../src/performance/slowdownMonitorConfig": "Core/SlowdownDetector.js"
+  }
+}
