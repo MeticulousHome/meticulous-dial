@@ -13,8 +13,9 @@
 # (its fika-sil.version), SIL_SPEED (5, as CI), RUN_ID (artifacts go to
 # qt/build/integration-artifacts/<RUN_ID>), QT_INTEG_NAME (the container, default qt-dial-integ-run),
 # QT_DIAL_QML (the QML the Dial loads, a container path; default /repo/qt/qml; plant.sh makes a copy with
-# planted bugs to check that the journeys catch them), DIAL_DIR (MODE=react: a meticulous-dial checkout,
-# default ~/integration-dial, whose src/ is this repository's).
+# planted bugs to check that the journeys catch them), DIAL_DIR (MODE=react: a meticulous-dial checkout that
+# still has the React Dial, default ~/integration-dial). meticulous-integration's CI passes COVERAGE_CONTRACT
+# (the journey catalog, mounted read-only), RUN_URL and PYTEST_ADDOPTS through to the suite.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 repo="$(cd "$here/../../.." && pwd)"
@@ -65,7 +66,11 @@ common=(
     -e ARTIFACTS_DIR="/repo/qt/build/integration-artifacts/$run_id" -e JOURNEYS="${JOURNEYS:-}"
     -e QT_DIAL_FAIL_ON_QML_ERRORS="${QT_DIAL_FAIL_ON_QML_ERRORS:-0}" -e QT_DIAL_QML="${QT_DIAL_QML:-/repo/qt/qml}"
     -e DIAL_EXTERNAL_SERVICES=0 -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -w /repo
+    -e RUN_URL="${RUN_URL:-}" -e PYTEST_ADDOPTS="${PYTEST_ADDOPTS:-}"
 )
+if [ -n "${COVERAGE_CONTRACT:-}" ]; then
+    common+=(-v "$(realpath "$COVERAGE_CONTRACT"):/coverage.json:ro" -e COVERAGE_CONTRACT=/coverage.json)
+fi
 # The script runs from a copy, so editing it does not disturb a run in progress.
 launch='cp /repo/qt/tests/integration/in-container.sh /tmp/in-container.sh && exec bash /tmp/in-container.sh "$@"'
 docker run --rm --name "$name-setup" "${common[@]}" -e PHASE=setup "$image" bash -c "$launch" _
