@@ -1,104 +1,67 @@
 name: Continuous integration
 
-# The Dial's own gates, in parallel. Every job must pass for a pull request to
-# merge (see AGENTS.md for what each one protects and how to run it locally).
-# The journeys against the real backend and firmware run in the private
+# The Dial's own gates (see AGENTS.md for what each one protects and how to run
+# it locally): the Qt Dial built for amd64 and the machine (arm64) in the
+# bookworm image, everything that runs without a machine (the QML smoke, the
+# C++ unit tests, the JavaScript unit tests, the package as an artifact), and
+# the backend contract. Nothing here reaches a real service: the Dial runs
+# guarded (DIAL_EXTERNAL_SERVICES unset) and the smoke has no network. The
+# journeys against the real backend and firmware run in the private
 # meticulous-integration repository and come back as the `integration/e2e`
 # commit status (integration-dispatch.yml).
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
-  static:
-    name: static
+  build-and-test:
+    name: build-and-test
     runs-on: ubuntu-24.04
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
         with:
-          node-version-file: '.node-version'
-          cache: npm
-      - run: npm ci
-      - name: Format
-        run: npm run format:check
-      - name: Types
-        run: npm run types
-      - name: Lint (warnings may only go down)
-        run: npm run lint -- --max-warnings 2
+          fetch-depth: 0 # the package version counts the commits
 
-  unit:
-    name: unit
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.node-version'
-          cache: npm
-      - run: npm ci
-      - name: Every test file is run by CI
-        run: node scripts/check-ci-runs-every-test.mjs
-      - name: Unit tests
-        run: npm run test:all
+      - uses: docker/setup-buildx-action@v3
 
-  component:
-    name: component
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Build image (Debian bookworm, Qt 6.4.2, arm64 cross toolchain)
+        uses: docker/build-push-action@v6
         with:
-          node-version-file: '.node-version'
-          cache: npm
-      - run: npm ci
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-      - name: Scale overlay (real components, simulated machine)
-        run: npm run test:scale-overlay
-      - name: Keep the evidence of a failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: scale-overlay-regression
-          path: test-results/scale-overlay
-          if-no-files-found: ignore
+          context: qt/docker
+          file: qt/docker/Dockerfile.bookworm
+          tags: qt-dial-bookworm
+          load: true
+          cache-from: type=gha,scope=qt-dial-bookworm
+          cache-to: type=gha,mode=max,scope=qt-dial-bookworm
 
-  build:
-    name: build
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.node-version'
-          cache: npm
-      - run: npm ci
-      - name: Production build (what the image ships)
-        run: npm run build
+      - name: Build amd64 and arm64
+        run: bash qt/scripts/build.sh
 
-  rust:
-    name: rust
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.node-version'
-          cache: npm
-      - name: Tauri system dependencies
+      - name: QML smoke (syntax of every file, every route opened)
+        run: bash qt/scripts/qml-smoke.sh
+
+      - name: C++ unit tests
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev
-      - run: npm ci
-      - name: Build the frontend (tauri::generate_context embeds it)
-        run: npm run build
-      - uses: Swatinem/rust-cache@v2
+          docker run --rm -u "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD:/repo" -w /repo/qt qt-dial-bookworm bash -c '
+            set -e
+            cmake -S . -B build/tests -G Ninja -DCMAKE_BUILD_TYPE=Release -DDIAL_BUILD_TESTS=ON >/dev/null
+            cmake --build build/tests
+            cd build/tests && ctest --output-on-failure'
+
+      - name: JavaScript unit tests
+        run: bash qt/scripts/js-tests.sh
+
+      - name: Package (arm64 .deb)
+        run: bash qt/scripts/package-deb.sh
+
+      - uses: actions/upload-artifact@v4
         with:
-          workspaces: src-tauri
-      - name: Format
-        run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
-      - name: Rust unit tests
-        run: cargo test --manifest-path src-tauri/Cargo.toml
+          name: meticulous-dial-arm64-deb
+          path: qt/build/meticulous-dial_*_arm64.deb
+          retention-days: 14
 
   backend-contract:
     name: backend-contract
@@ -108,8 +71,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.node-version'
-          cache: npm
-      - run: npm ci
       - name: Pick the backend branch this Dial branch pairs with
         id: backend
         env:
