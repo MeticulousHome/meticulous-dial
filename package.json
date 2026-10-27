@@ -45,7 +45,7 @@
     "name": "salatielosorno",
     "email": "salatiel.linares@gmail.com"
   },
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
