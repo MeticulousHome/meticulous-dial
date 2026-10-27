@@ -78,6 +78,15 @@ Item {
         return c ? { source: c.imageSource, loaded: c.imageLoaded } : null
     }
     readonly property bool dialProbe_cardSelected: homeHoverState
+    // How many cards are drawn on screen right now (also while the list slides).
+    function dialProbe_cardsDrawn() {
+        let drawn = 0
+        for (let i = 0; i < cardRepeater.count; i++) {
+            const c = cardRepeater.itemAt(i)
+            if (c && c.visible && c.opacity > 0.01 && c.screenX + c.width > 0 && c.screenX < width) drawn++
+        }
+        return drawn
+    }
 
     // The title pill names the selected card (homeCardSelected).
     onHomeHoverStateChanged: Profiles.homeCardSelected = homeHoverState
@@ -313,8 +322,11 @@ Item {
                 y: 240 - home.cardSize / 2
                 width: home.cardSize
                 height: home.cardSize
-                // Beyond the neighbours the cards are off-screen.
-                visible: Math.abs(distance) <= 2
+                // Only the cards on screen are drawn, by where the list is now and not by the active option:
+                // on a fast spin the list slides several cards behind the knob, and the cards it is passing
+                // must stay drawn (130 px for the title, the zoom and the bounce beyond the card).
+                readonly property real screenX: list.x + x
+                visible: screenX + width + 130 > 0 && screenX - 130 < home.width
 
                 opacity: zoomed && distance !== 0 ? 0 : (distance === 0 ? 1 : 0.3)
                 Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE } }

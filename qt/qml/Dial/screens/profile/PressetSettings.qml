@@ -179,7 +179,9 @@ Item {
                 y: box.y
                 width: viewport.width
                 height: box.h
-                visible: Math.abs(index - Profiles.settingsIndex) <= 6
+                // Only the entries on screen are drawn, by where the viewport is now: on a fast turn it
+                // slides several entries behind the knob.
+                visible: viewport.y + y + height > 0 && viewport.y + y < screen.height
 
                 // MarqueeAnimation: translateX 0 → calc(120px - 100%) → 0, 8 s ease-in-out, forever.
                 property real marqueeX: 0

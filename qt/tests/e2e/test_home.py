@@ -1,6 +1,7 @@
 """The home and the quick settings (ported from meticulous-integration tests/test_dial_02_home.py and
 tests/test_dial_input.py)."""
 
+import time
 import uuid
 
 import pytest
@@ -69,6 +70,35 @@ def test_the_title_pill_names_the_selected_card(screen, backend, saved):
     assert not screen.card_selected()
     screen.controls.push()
     assert screen.card_selected()
+
+
+def test_a_fast_spin_keeps_the_cards_it_passes_on_screen(screen, backend, saved):
+    """Protects: seeing the profiles go by while spinning the knob fast, instead of a black screen until the
+    carousel catches up (the list slides several cards behind the knob).
+
+    Limit: the knob is turned 10 detents 15 ms apart through the test port; the cards drawn on screen are
+    counted between detents and until the carousel settles.
+    """
+    names = {f"Spin {n} {uuid.uuid4().hex[:4]}" for n in range(10)}
+    for name in names:
+        save_profile(backend, {**default_profile(backend), "id": str(uuid.uuid4()), "name": name}, saved)
+    screen.wait_for_home()
+    cards = screen.wait_for_cards(names)
+    screen.go_to_card(cards[0])
+    time.sleep(0.5)
+
+    start, drawn = screen.active_index(), []
+    t0 = time.monotonic()
+    for n in range(10):
+        screen.c.call({"cmd": "button", "type": "ENCODER_COUNTERCLOCKWISE"})
+        while time.monotonic() < t0 + (n + 1) * 0.015:
+            drawn.append(screen.probe("cardsDrawn"))
+    settle = time.monotonic() + 0.5
+    while time.monotonic() < settle:
+        drawn.append(screen.probe("cardsDrawn"))
+
+    assert screen.active_index() == start + 10
+    assert min(drawn) >= 1, f"{drawn.count(0)} of {len(drawn)} samples with no card on screen"
 
 
 def test_the_context_button_opens_and_closes_the_quick_settings(screen):

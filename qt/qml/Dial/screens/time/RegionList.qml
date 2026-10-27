@@ -42,8 +42,9 @@ Item {
                 y: index * (list.entryHeight + list.gap)
                 width: viewport.width
                 height: list.entryHeight
-                // Only the entries near the middle can be seen.
-                visible: Math.abs(index - list.activeIndex) <= 6
+                // Only the entries on screen are drawn, by where the viewport is now: on a fast turn it
+                // slides several entries behind the knob.
+                visible: viewport.y + y + height > 0 && viewport.y + y < list.height
 
                 Row {
                     id: row

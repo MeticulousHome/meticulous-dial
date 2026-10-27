@@ -6,7 +6,7 @@
 //   {cmd: "state"}                      {screen, prev, bubble, bubbleComponent, transitioning, history}
 //   {cmd: "texts"}                      every visible text of the route and the bubble over it
 //   {cmd: "focused"}                    the focused menu entry (the topmost menu: bubble, then route)
-//   {cmd: "probe", name}                a screen's own test property (dialProbe_<name>)
+//   {cmd: "probe", name}                a screen's own test property or function (dialProbe_<name>)
 //   {cmd: "grab", path}                 the picture, saved as PNG
 //   {cmd: "screen", name}               Nav.setScreen(name)
 //   {cmd: "eval", js}                   any expression (debugging)
@@ -68,6 +68,8 @@ WebSocketServer {
         if (!item) return undefined
         if (item.hasOwnProperty("phase") && item.phase === "leave") return undefined
         const key = "dialProbe_" + name
+        // A probe can be a function, for a value read only when asked (not a binding kept up every frame).
+        if (typeof item[key] === "function") return item[key]()
         if (item.hasOwnProperty(key)) return item[key]
         const kids = item.children
         for (let i = 0; i < kids.length; i++) {
