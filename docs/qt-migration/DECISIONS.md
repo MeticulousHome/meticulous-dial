@@ -27,13 +27,12 @@ MultiEffect. The Dial is GPLv3, so the LGPL/GPL Qt modules are fine.
   the module layout needs no qmldir generation. qmlcachegen/AOT can come later if startup time asks for it.
 - **Straight on DRM/KMS (eglfs_kms), no Weston.** One GPU pass per frame. The panel is mounted turned:
   the root item rotates -90° (Weston's `transform=rotate-90` today). The app must be DRM master, so it never
-  runs with Weston. It runs under the WebKit Dial's unit name, `meticulous-dial.service` (a full unit in
-  `/etc/systemd/system` that takes precedence over the WebKit one in `/lib`; a drop-in cannot remove its
-  `Requires=weston.service`): the image's nightly `meticulous-restart` restarts `meticulous-dial` (it also ran
-  at boot and, with a separately named unit, brought Weston and the WebKit Dial back), and the watcher,
-  crash-reporter and the smoke report all refer to that name. `dial-switch qt|web` chooses.
+  runs with Weston. It runs as `meticulous-dial.service`, the name the image always gave the Dial: the image's
+  nightly `meticulous-restart` restarts `meticulous-dial`, and the watcher, crash-reporter and the smoke
+  report all refer to that name. (While both Dials existed, `dial-switch qt|web` chose between them on test
+  machines; the React Dial and `dial-switch` were removed when the Qt Dial landed.)
 - **A stop is a clean exit.** eglfs's VT handler answers SIGTERM with `_exit(1)`, which systemd counted as a
-  failure: every stop (upgrade, `dial-switch`, the nightly restart) ran `crash-reporter@meticulous-dial`,
+  failure: every stop (an upgrade, the nightly restart) ran `crash-reporter@meticulous-dial`,
   which reports a crash to Sentry and restarts the Dial. `main.cpp` takes SIGTERM/SIGINT itself and quits
   the event loop (exit 0, the tty restored on the way out; a stuck loop ends by SIGALRM after 10 s).
 - **The backend is the only Pour Over history.** (Alu, 2026-10-24.) As with profiles and shots, Free Pour

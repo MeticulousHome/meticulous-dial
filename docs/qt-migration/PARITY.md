@@ -81,7 +81,7 @@ antialiasing differs). On the machine (10.10.0.130, eglfs) see "Performance" at 
 
 ## Tests
 
-- React unit tests run against the Qt ports (`qt/scripts/js-tests.sh`): 11 of the 14 `tests/*.test.*` files
+- The React Dial's unit tests run against the Qt ports (`qt/scripts/js-tests.sh`, now in `qt/tests/js`): 11 of its 14 test files
   pass unchanged (homeSelection, digitalClockTime, brewDoubleClick, sw120 heating long press, meterGeometry,
   manualTarget, trailGeometry, reportHandoff, pourOverProfileContract, freePourSetup, manualSetup). Not mapped:
   analogClockTime (3 of its cases fake the browser's Date; the others run in test_idle.py), postReadyScreen

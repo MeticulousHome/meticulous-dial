@@ -8,10 +8,10 @@
 | Frame rate on the machine (`qt/tools/perf/flipsrun.py`) | 63.5 fps with every frame on time | on the machine, see README | see "Results" |
 | C++ unit tests (`qt/tests/unit/`, Qt Test) | pure C++ parts: Community queue and crypto; Sentry's rules (when it is on, classification, sanitizer, rate limits, frame windows) and the reporter end to end against a local fake Sentry (events, breadcrumbs, caps, crashes sent on the next start, offline cache) | `cmake -DDIAL_BUILD_TESTS=ON`, `ctest` in the container (also in CI) | all passing |
 | Sentry on the real Dial (`qt/tests/sentry/dial-smoke.sh`) | the Dial with a local fake Sentry and a fake `/api/v1/machine`: tags, nothing secret sent, the slowdown event after a stall, SIGTERM exits 0, nothing sent with Sentry off | `qt/tests/sentry/dial-smoke.sh [amd64 build dir]` | passing |
-| React suites (`tests/*.test.mts`, `npm test`, Playwright scale overlay) | the React Dial, still the specification | `npm ci && npm run test:all` | unchanged |
+| JavaScript unit tests (`qt/tests/js/*.test.*`) | the pure logic of the QML JavaScript libraries, with the unit tests the React Dial had for the modules they port | `bash qt/scripts/js-tests.sh` (also in CI) | 12 files, all passing |
 | Community contract (`qt/tests/community-contract/`) | the Qt uploader against the Tauri Dial's community_upload.rs, request by request (headers, bodies, signatures, retries, answers, state.json), against local fakes in `--network none` containers | `bash qt/tests/community-contract/run.sh` (WSL, ~4 min) | 16/16 pass; see parity/community-contract.md |
 | QML smoke (`qt/scripts/qml-smoke.sh`, `qt/tests/smoke/visit_routes.py`) | every QML/JS file parses on Qt 6.4 (qmllint, syntax errors only) and every route of Routes.qml builds without a QML error or script exception, with no backend and no network | `qt/scripts/qml-smoke.sh` after `build.sh amd64` | 68 routes, 0 problems |
-| CI (`.github/workflows/qt-dial.yml`, the fork) | on every push to `qt-migration` that touches the Dial: the image, amd64 + arm64 builds, the QML smoke, the C++ unit tests, the React unit tests on the QML ports, the .deb as an artifact | GitHub Actions, or the same scripts locally | the e2e and integration suites need the private backend and fika-sil: local only |
+| CI (`.github/workflows/continuous-integration.yml`, every pull request) | the image, amd64 + arm64 builds, the QML smoke, the C++ unit tests, the JavaScript unit tests, the .deb as an artifact, and the backend contract | GitHub Actions, or the same scripts locally | the e2e suite runs locally; the journeys run in meticulous-integration (`integration/e2e`) |
 
 The React e2e journeys live in meticulous-integration (Playwright in Chromium on the web build, the real
 backend and the firmware simulator fika-sil). Playwright cannot drive Qt Quick, so the Qt Dial opens a test
@@ -19,7 +19,7 @@ port (`--test-port`): a WebSocket on 127.0.0.1 that answers with the route, the 
 focused menu entry and screen probes, takes gestures and backend `button` events, and saves screenshots
 (`qml/Dial/components/TestServer.qml`). `qt/tests/e2e/dial.py` wraps it with the names of meticulous-integration's
 `tests/dial_app.py` (`Screen.route()`, `wait_for_route()`, `focused()`, `select()`, `Controls.push()`, ...),
-so its journeys port almost line by line. The pure-logic unit tests of `tests/*.test.mts` (geometry,
+so its journeys port almost line by line. The pure-logic unit tests the React Dial had (now `qt/tests/js`: geometry,
 detectors, selection rules, profile contracts) are ported as checks of the JS libraries that replace those
 modules, inside the e2e files of each group.
 
@@ -103,8 +103,8 @@ services blocked on the network:
 | Community contract (`qt/tests/community-contract/run.sh`) | 16 of 16 scenarios match the Tauri uploader | `qt/build/contract-report/report.md` |
 | C++ unit tests (`ctest`) | 4 of 4 (Community model and service, Sentry rules and reporter) | |
 | QML smoke | 68 routes, 0 problems | |
-| React unit tests on the QML ports (`qt/scripts/js-tests.sh`) | 12 of the mapped files, all passing (slowdownDetector added) | |
-| CI on the fork (`.github/workflows/qt-dial.yml`) | green on every push since `6bf0cb70` | GitHub Actions |
+| JavaScript unit tests (`qt/scripts/js-tests.sh`) | 12 files, all passing | |
+| CI (`.github/workflows/continuous-integration.yml`; `qt-dial.yml` on the fork before) | green | GitHub Actions |
 | Frame rate on 10.10.0.130 | PARITY.md, "Performance" | |
 
 What the skips and xfails are:

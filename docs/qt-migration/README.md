@@ -1,8 +1,9 @@
 # The Qt Dial: build, run, deploy
 
-The Meticulous Dial rewritten in Qt Quick (Qt 6.4, Debian bookworm), in `qt/`. The React app in `src/`
-stays as the specification and keeps building. Why and how: [DECISIONS.md](DECISIONS.md). What is
-ported: [PARITY.md](PARITY.md). Tests: [TESTING.md](TESTING.md). Porting rules: [CONVENTIONS.md](CONVENTIONS.md).
+The Meticulous Dial in Qt Quick (Qt 6.4, Debian bookworm), in `qt/`. It replaced the React/Tauri Dial,
+which was removed from the repository when it landed; the React code is in the history before that merge.
+Why and how: [DECISIONS.md](DECISIONS.md). What was ported: [PARITY.md](PARITY.md). Tests:
+[TESTING.md](TESTING.md). Porting rules: [CONVENTIONS.md](CONVENTIONS.md).
 
 ## Build
 
@@ -30,8 +31,7 @@ qt/scripts/run-dev.sh ctl grab /repo/qt/build/x.png    # button CONTEXT, push, s
 `dev-backend.sh` needs a meticulous-backend checkout (default `~/backend-beta`) and an image with its Python
 dependencies in `/opt/venv` (default `meticulous-backend-e2e-baseline`; `IMAGE=` to change). With a display,
 the Dial also runs as a normal window (`qt/build/amd64/meticulous-dial-qt --qml-dir qt/qml --api <url>
---rotation 0`); the arrow keys turn, space pushes, Enter is the context button (as the React Dial's
-development keys).
+--rotation 0`); the arrow keys turn, space pushes, Enter is the context button.
 
 Launch options: `--api <url>` (DIAL_API_URL), `--rotation <deg>` (DIAL_ROTATION, default -90),
 `--test-port <port>` (DIAL_TEST_PORT; off by default), `--screen <route>` (start on a route),
@@ -39,7 +39,8 @@ Launch options: `--api <url>` (DIAL_API_URL), `--rotation <deg>` (DIAL_ROTATION,
 
 ## Try it on a machine (development)
 
-Needs root SSH by key. Once per machine, the runtime packages from bookworm (never `-t trixie`):
+Needs root SSH by key. On a machine whose image does not have the Dial package yet, once, the runtime
+packages from bookworm (never `-t trixie`):
 
 ```bash
 ssh root@<machine> apt-get install -y -t bookworm --no-install-recommends \
@@ -53,10 +54,10 @@ Then:
 ```bash
 qt/scripts/deploy-dev.sh <machine>             # binary + QML to /meticulous-user/dial-qt, runs as dial-qt-dev
 qt/scripts/deploy-dev.sh <machine> --qml-only  # after a QML-only change
-qt/scripts/dev-off.sh <machine>                # stop it, start Weston and the WebKit Dial again
+qt/scripts/dev-off.sh <machine>                # stop it, start the installed Dial again
 ```
 
-The development run is a transient unit: nothing changes at boot, a reboot brings the stock Dial back.
+The development run is a transient unit: nothing changes at boot, a reboot brings the installed Dial back.
 Its test port is the machine's 127.0.0.1:9310 (`ssh -N -L 9311:127.0.0.1:9310 root@<machine>`, then
 `qt/scripts/device-shot.sh <name>` for a screenshot).
 
@@ -69,27 +70,21 @@ them for a long run; `qmlprofile.sh` (with a `-DDIAL_QML_DEBUG=ON` build and boo
 
 ## Install it on a machine (package)
 
-```bash
-qt/scripts/package-deb.sh                      # qt/build/meticulous-dial-qt_<version>_arm64.deb
-scp qt/build/meticulous-dial-qt_*_arm64.deb root@<machine>:/tmp/
-ssh root@<machine> apt-get install -y -t bookworm /tmp/meticulous-dial-qt_*_arm64.deb
-```
-
-Installing switches the display to the Qt Dial at once and at boot: `dial-switch qt` puts a
-`meticulous-dial.service` for the Qt Dial in `/etc/systemd/system` (it takes precedence over the WebKit Dial's
-unit in `/lib`) and disables `weston.service`. Keeping the unit name keeps the image's machinery working with
-it: the nightly `meticulous-restart` (it restarts `meticulous-dial`), the watcher's checks and log collection,
-`crash-reporter`, the smoke report. Set `DIAL_QT_NO_SWITCH=1` to install without switching. The WebKit Dial
-stays installed:
+meticulous-machine builds this package and installs it in the image. To put a build on a machine by hand:
 
 ```bash
-ssh root@<machine> dial-switch web       # back to Weston + the WebKit Dial, now and at boot
-ssh root@<machine> dial-switch qt        # and to the Qt Dial again
-ssh root@<machine> dial-switch status
-ssh root@<machine> apt-get remove meticulous-dial-qt   # also switches back to the WebKit Dial
+qt/scripts/package-deb.sh                      # qt/build/meticulous-dial_<version>_arm64.deb
+scp qt/build/meticulous-dial_*_arm64.deb root@<machine>:/tmp/
+ssh root@<machine> apt-get install -y -t bookworm /tmp/meticulous-dial_*_arm64.deb
 ```
 
-Logs: `journalctl -u meticulous-dial` (the Qt Dial once switched; `-u dial-qt-dev` for a development run).
+The package installs `meticulous-dial.service` (enabled) and starts the new version. The unit keeps the name the
+image always used, so its machinery keeps working: the nightly `meticulous-restart` (it restarts
+`meticulous-dial`), the watcher's checks and log collection, `crash-reporter`, the smoke report. On a machine
+whose image still runs Weston, installing it also disables and stops `weston.service`: the Dial must be the
+display's DRM master. The version is `package.json`'s (the release) plus the commit count and hash.
+
+Logs: `journalctl -u meticulous-dial` (`-u dial-qt-dev` for a development run).
 
 ## Layout
 
@@ -98,10 +93,13 @@ qt/src/            C++: main.cpp, socketio.*, native.*, plotline.*, lottieitem.*
 qt/qml/main.qml    the window: router, bottom status, bubble, scale overlay, App.tsx logic, test port
 qt/qml/Dial/Core/  singletons: Nav, Routes, Api, Backend, Stats, Profiles, BackendSettings, Device, ...
 qt/qml/Dial/components/  OptionsMenu, Arc, NavTitle, Router, RouteHost, Bubble, BottomStatus, CircleKeyboard, ...
-qt/qml/Dial/screens/<group>/  one file per route of src/navigation/routes.ts
-qt/qml/Dial/assets/      public/ and src/ link to the React assets (fonts, images); icons/, lottie/
-qt/packaging/      launcher, systemd unit, dial-switch, kms.json
+qt/qml/Dial/screens/<group>/  one file per route (Core/Routes.qml)
+qt/qml/Dial/assets/      fonts/, public/ (images), icons/, lottie/
+qt/packaging/      launcher, systemd unit, kms.json
 qt/scripts/        build, run, deploy, package, test scripts
 qt/tests/e2e/      end-to-end tests (pytest) through the test port
+qt/tests/integration/  the meticulous-integration journeys against the Qt Dial (its CI runs them from here)
+qt/tests/js/       the JavaScript unit tests (written for the React modules the QML ports)
+qt/tests/unit/     C++ unit tests; qt/tests/test-vectors/ the Community cross-language vector
 qt/tools/perf/     on-machine frame meter
 ```

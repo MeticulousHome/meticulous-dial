@@ -13,7 +13,7 @@ qt/qml/Dial/qmldir      module "Dial": shared components (and it imports Dial.Co
 qt/qml/Dial/Core/       module "Dial.Core": the singletons (stores, API, navigation), Motion.js, Constants.js
 qt/qml/Dial/components/ shared components (OptionsMenu, Arc, NavTitle, GestureHandler, ...)
 qt/qml/Dial/screens/<group>/   one file per route (Routes.qml maps route -> file), plus the group's own parts
-qt/qml/Dial/assets/     public -> ../../../../public, src -> ../../../../src/assets (fonts), icons/, lottie/
+qt/qml/Dial/assets/     fonts/, public/ (images), icons/, lottie/
 qt/tests/e2e/           end-to-end tests (pytest) through the Dial's test port
 ```
 
@@ -113,7 +113,7 @@ dropped frames, in every animation.
 - End-to-end tests: `qt/tests/e2e/test_<group>.py` with the `screen` and `backend` fixtures (`qt/tests/e2e/dial.py`
   has the controls and the waits, named as in meticulous-integration's `tests/dial_app.py`). Port the relevant
   journeys of meticulous-integration (`~/work/meticulous-integration/tests/test_dial_*.py`) and the cases of
-  `tests/*.test.mts`. Run: `DIAL_RUN_NAME=... DIAL_TEST_PORT=<93xx> qt/scripts/e2e.sh tests/e2e/test_<group>.py`.
+  the JavaScript unit tests (`qt/tests/js`). Run: `DIAL_RUN_NAME=... DIAL_TEST_PORT=<93xx> qt/scripts/e2e.sh tests/e2e/test_<group>.py`.
 - Do not deploy to a machine and do not run git commands that change the repository (commit, add, stash,
   checkout, reset): the coordinator commits and validates on the machine.
 
