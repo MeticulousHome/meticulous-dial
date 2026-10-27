@@ -1,8 +1,9 @@
 #!/bin/bash
 # Inside the qt-dial-integ containers (run.sh starts them), in two phases:
 #   PHASE=setup  with network: the backend's virtualenv with the machine group (as meticulous-integration's
-#                ci/build.sh) in the qt-dial-integ-opt volume, plus websockets and Pillow; for MODE=react
-#                also Node (in the volume) and Playwright's Chromium (in the cache volume).
+#                ci/build.sh) in the qt-dial-integ-opt volume, plus what the overlay imports (websockets,
+#                Pillow, cryptography, aiohttp: the Rust backend's virtualenv has only its harness's packages);
+#                for MODE=react also Node (in the volume) and Playwright's Chromium (in the cache volume).
 #   PHASE=test   with no network at all (docker --network none): the journeys with the Qt overlay first,
 #                pytest. Nothing in the stack (the Dial, the backend, fika-sil, Chromium) can reach a real
 #                service, whatever it is configured with.
@@ -20,7 +21,7 @@ git config --global --add safe.directory '*'
 
 if [ "${PHASE:-test}" = setup ]; then
     (cd "$BACKEND_DIR" && uv sync -q --frozen --group dev --group machine)
-    uv pip install -q --python "$python" websockets pillow
+    uv pip install -q --python "$python" websockets pillow cryptography aiohttp
     echo "backend environment ready"
     if [ "$mode" = react ]; then
         : "${DIAL_DIR:?MODE=react needs DIAL_DIR}"
