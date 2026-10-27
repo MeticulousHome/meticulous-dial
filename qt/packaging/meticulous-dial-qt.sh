@@ -1,7 +1,7 @@
 #!/bin/sh
-# Starts the Qt Dial straight on DRM/KMS (eglfs_kms, no Weston): it must be the DRM master, so Weston and
-# the WebKit Dial must not run. Installed as /usr/bin/meticulous-dial-qt-launch; meticulous-dial-qt.service
-# runs it. Environment overrides: DIAL_QT_PREFIX (default /usr), DIAL_API_URL, DIAL_ROTATION, DIAL_TEST_PORT.
+# Starts the Dial straight on DRM/KMS (eglfs_kms, no Weston): it must be the DRM master, so nothing else may
+# hold the display. Installed as /usr/bin/meticulous-dial-qt-launch; meticulous-dial.service runs it.
+# Environment overrides: DIAL_QT_PREFIX (default /usr), DIAL_API_URL, DIAL_ROTATION, DIAL_TEST_PORT.
 prefix="${DIAL_QT_PREFIX:-/usr}"
 export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-eglfs}"
 export QT_QPA_EGLFS_INTEGRATION="${QT_QPA_EGLFS_INTEGRATION:-eglfs_kms}"

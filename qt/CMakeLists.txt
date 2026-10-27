@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.21)
+# The Dial's version is the release's: package.json, which semantic-release sets ("1.106.0", or
+# "1.106.0-beta.3" on beta; project() takes only the numbers).
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../package.json" DIAL_PACKAGE_JSON)
+string(JSON DIAL_VERSION GET "${DIAL_PACKAGE_JSON}" version)
+string(REGEX MATCH "^[0-9]+\\.[0-9]+\\.[0-9]+" DIAL_VERSION_NUMBER "${DIAL_VERSION}")
 # C for sentry-native (and the assembly of breakpad and libunwind, enabled by their own CMake files).
-project(meticulous-dial-qt VERSION 0.1.0 LANGUAGES C CXX)
+project(meticulous-dial-qt VERSION ${DIAL_VERSION_NUMBER} LANGUAGES C CXX)
 
 # The Dial in Qt Quick. The QML lives in qml/ and is installed as files (not compiled into the binary):
 # a QML change is a copy, and Qt keeps its own bytecode cache. See docs/qt-migration/DECISIONS.md.
@@ -93,7 +98,7 @@ add_executable(meticulous-dial-qt
 )
 
 target_compile_definitions(meticulous-dial-qt PRIVATE
-    DIAL_QT_VERSION="${PROJECT_VERSION}"
+    DIAL_QT_VERSION="${DIAL_VERSION}"
     DIAL_QML_INSTALL_DIR="${CMAKE_INSTALL_PREFIX}/share/meticulous-dial-qt/qml")
 
 target_link_libraries(meticulous-dial-qt PRIVATE

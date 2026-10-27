@@ -2,8 +2,8 @@
 # Development deploy of the Qt Dial to a test machine, without packaging:
 #   qt/scripts/deploy-dev.sh [HOST] [--qml-only] [--no-start]
 # copies build/arm64/meticulous-dial-qt and the QML tree to /meticulous-user/dial-qt (a prefix: bin/, share/)
-# and runs it as the transient unit dial-qt-dev (Weston and the WebKit Dial stopped; nothing is enabled at
-# boot, so a reboot brings the stock UI back). qt/scripts/dev-off.sh HOST stops it and restarts the stock UI.
+# and runs it as the transient unit dial-qt-dev (the installed Dial stopped; nothing is enabled at boot, so a
+# reboot brings the installed Dial back). qt/scripts/dev-off.sh HOST stops it and restarts the installed Dial.
 # The test port listens on the machine's 127.0.0.1:9310 (ssh -L 9310:127.0.0.1:9310 root@HOST).
 set -euo pipefail
 here="$(cd "$(dirname "$0")/.." && pwd)"
@@ -24,7 +24,6 @@ trap 'rm -rf "$stage"' EXIT
 mkdir -p "$stage/bin" "$stage/share/meticulous-dial-qt"
 cp -rL "$here/qml" "$stage/share/meticulous-dial-qt/qml"
 # Only the assets the QML uses: fonts, public images, our own icons and animations.
-rm -rf "$stage/share/meticulous-dial-qt/qml/Dial/assets/src/fonts/custom/css"
 cp "$here/packaging/kms.json" "$stage/share/meticulous-dial-qt/"
 cp "$here/packaging/meticulous-dial-qt.sh" "$stage/bin/meticulous-dial-qt-launch"
 [ "$qml_only" = 1 ] || cp "$here/build/arm64/meticulous-dial-qt" "$stage/bin/"
