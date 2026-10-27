@@ -1,13 +1,13 @@
 #!/bin/bash
-# Community uploader contract test: the Tauri Dial's src-tauri/src/community_upload.rs (the specification)
-# and the Qt Dial's port (qt/src/community*) against the same local fake Community server and fake machine
-# backend, through the same scenarios, compared request by request. See
-# docs/qt-migration/parity/community-contract.md.
+# Community uploader contract test: the Tauri Dial's community_upload.rs (the specification, kept as is in
+# reference/ when the Tauri Dial was removed) and the Qt Dial's port (qt/src/community*) against the same local
+# fake Community server and fake machine backend, through the same scenarios, compared request by request.
+# See docs/qt-migration/parity/community-contract.md.
 #
 #   bash qt/tests/community-contract/run.sh [--only SCENARIO]...      (from WSL, in the checkout)
 #
-# 1. The Rust driver builds on the host with cargo --offline (the crates of src-tauri from the local cargo
-#    cache, as qt/tests/unit/community-interop does) into qt/build/contract-rust.
+# 1. The Rust driver builds on the host with cargo --offline (the crates the Tauri Dial used, from the local
+#    cargo cache, as qt/tests/unit/community-interop does) into qt/build/contract-rust.
 # 2. The C++ driver builds against Qt 6.4 in the qt-dial-bookworm image into qt/build/contract-cpp.
 # 3. contract.py runs both drivers, one scenario at a time, with its fake servers on 127.0.0.1, in a
 #    qt-dial-bookworm container started with --network none: nothing can reach a real service.

@@ -75,7 +75,7 @@ class SentryBridge : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool enabled READ enabled CONSTANT)
-    // useDialSlowdownMonitor's switches (src-tauri lib.rs): DIAL_PERFORMANCE_DISABLE, DIAL_PERFORMANCE_DEBUG.
+    // useDialSlowdownMonitor's switches (the Tauri Dial's lib.rs): DIAL_PERFORMANCE_DISABLE, DIAL_PERFORMANCE_DEBUG.
     Q_PROPERTY(bool performanceMonitorEnabled READ performanceMonitorEnabled CONSTANT)
     Q_PROPERTY(bool performanceDebug READ performanceDebug CONSTANT)
 

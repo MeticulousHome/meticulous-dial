@@ -1,6 +1,6 @@
-// Runs the React Dial's own unit tests (tests/*.test.*) against the Qt Dial's JavaScript ports: each test's
-// imports of a React module are pointed at the QML JS library that replaces it (MAP below), so the very
-// assertions the React code passes now check the port. Node 22 (strip-types):
+// Runs the unit tests the React Dial had (qt/tests/js/*.test.*) against the Qt Dial's JavaScript: each test
+// still imports the React module it was written for, and that import is pointed at the QML JS library that
+// replaced it (map.json), so the same assertions check the QML code. Node 22 (strip-types):
 //   node --experimental-strip-types qt/tests/js/run.mjs           (qt/scripts/js-tests.sh runs it in Docker)
 //
 // A QML JS library is plain JavaScript with `.pragma library` / `.import` lines; it is loaded into a vm

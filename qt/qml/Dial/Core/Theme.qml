@@ -7,14 +7,14 @@ QtObject {
 
     // ABC Diatype: regular and light (300) share the family; thin (200) and the mono cuts are the trial
     // files, with their own family names.
-    readonly property FontLoader _regular: FontLoader { source: "../assets/src/fonts/abc-diatype-regular.otf" }
-    readonly property FontLoader _light: FontLoader { source: "../assets/src/fonts/abc-diatype-light.otf" }
-    readonly property FontLoader _thin: FontLoader { source: "../assets/src/fonts/abc-diatype-thin.otf" }
-    readonly property FontLoader _mono: FontLoader { source: "../assets/src/fonts/abc-diatype-mono-regular-trial.otf" }
-    readonly property FontLoader _monoLight: FontLoader { source: "../assets/src/fonts/abc-diatype-mono-light-trial.otf" }
-    readonly property FontLoader _monoThin: FontLoader { source: "../assets/src/fonts/abc-diatype-mono-thin-trial.otf" }
-    readonly property FontLoader _icons: FontLoader { source: "../assets/src/fonts/custom/font/fontello.ttf" }
-    readonly property FontLoader _lato: FontLoader { source: "../assets/src/fonts/Lato-Regular.ttf" }
+    readonly property FontLoader _regular: FontLoader { source: "../assets/fonts/abc-diatype-regular.otf" }
+    readonly property FontLoader _light: FontLoader { source: "../assets/fonts/abc-diatype-light.otf" }
+    readonly property FontLoader _thin: FontLoader { source: "../assets/fonts/abc-diatype-thin.otf" }
+    readonly property FontLoader _mono: FontLoader { source: "../assets/fonts/abc-diatype-mono-regular-trial.otf" }
+    readonly property FontLoader _monoLight: FontLoader { source: "../assets/fonts/abc-diatype-mono-light-trial.otf" }
+    readonly property FontLoader _monoThin: FontLoader { source: "../assets/fonts/abc-diatype-mono-thin-trial.otf" }
+    readonly property FontLoader _icons: FontLoader { source: "../assets/fonts/custom/font/fontello.ttf" }
+    readonly property FontLoader _lato: FontLoader { source: "../assets/fonts/Lato-Regular.ttf" }
 
     // 'ABC Diatype' (font-weight normal / 300 → Font.Light)
     readonly property string fontRegular: "ABC Diatype"

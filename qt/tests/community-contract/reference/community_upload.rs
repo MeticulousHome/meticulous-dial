@@ -2001,7 +2001,7 @@ fn enrollment_exchange_expired(issued_at: i64, now: i64) -> bool {
 mod tests {
     use super::*;
 
-    const VECTOR: &str = include_str!("../test-vectors/machine-upload-v1.json");
+    const VECTOR: &str = include_str!("../../test-vectors/machine-upload-v1.json");
 
     #[derive(Deserialize)]
     #[serde(rename_all = "camelCase")]

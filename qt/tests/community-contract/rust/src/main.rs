@@ -1,13 +1,13 @@
 // The Tauri side of the Community contract test (see ../../run.sh and ../../contract.py).
 //
-// Runs the Tauri Dial's own src-tauri/src/community_upload.rs as the Dial does (lib.rs: setup()
+// Runs the Tauri Dial's own community_upload.rs (../../reference) as the Dial does (lib.rs: setup()
 // initializes the CommunityUploadRuntime and starts its worker; the six community_* commands call it) on
 // $CONFIG_PATH/community-upload with COMMUNITY_API_BASE and MACHINE_API_BASE. Reads one command per line
 // on stdin and answers each with one "@@ <json>" line on stdout ({"ok": value} or {"error": message}, the
 // Tauri command result). The uploader's log lines go to stderr as "LOG <level> <message>".
 //
 //   status | enroll <json string or null> | pause <true|false> | disconnect | reset | scan | quit
-#[path = "../../../../../src-tauri/src"]
+#[path = "../../reference"]
 mod tauri_src {
     #[allow(dead_code)]
     pub mod community_upload;

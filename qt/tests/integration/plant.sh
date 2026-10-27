@@ -14,9 +14,6 @@ out="$repo/qt/build/integration-plant"
 rm -rf "$out"
 mkdir -p "$out"
 cp -a "$repo/qt/qml" "$out/"
-# The assets' links are relative to qt/qml/Dial/assets: point them from the copy's place.
-ln -sfn ../../../../../../public "$out/qml/Dial/assets/public"
-ln -sfn ../../../../../../src/assets "$out/qml/Dial/assets/src"
 sed -i 's/readonly property bool scroll: (Profiles.localHoverState || Profiles.homeCardSelected) \&\& isHome/readonly property bool scroll: false/' \
     "$out/qml/Dial/components/NavTitle.qml"
 sed -i 's/label: key + ": " + describe(info\[key\])/label: key + ": " + describe(info[key]) + "!"/' \

@@ -1,6 +1,6 @@
 #pragma once
 
-// The data and the pure rules of the Community uploader, ported from src-tauri/src/community_upload.rs:
+// The data and the pure rules of the Community uploader, ported from the Tauri Dial's community_upload.rs:
 // the persistent state (state.json, byte-compatible with serde's output so the Tauri and the Qt Dial
 // can replace each other), the queue rules, the failure classification, the request canonical strings
 // and the history validation. No I/O here.

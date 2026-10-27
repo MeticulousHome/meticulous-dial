@@ -1,6 +1,6 @@
 #pragma once
 
-// CommunityUploadService of src-tauri/src/community_upload.rs: enrollment, the token, the durable shot
+// CommunityUploadService of the Tauri Dial's community_upload.rs: enrollment, the token, the durable shot
 // queue and its upload, the history scan of the machine, disconnect and the local factory reset.
 //
 // Thread-safe like the Rust Inner: one mutex guards the persistent and the volatile state; network and

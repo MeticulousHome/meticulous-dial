@@ -3,12 +3,12 @@
 #   cd qt/build/tests && ctest --output-on-failure
 
 # The Community uploader (src/community): the pure rules against the Rust tests and the cross-language
-# vector of src-tauri/test-vectors, then the service, the HTTP client and the QML object against fakes.
+# vector of qt/tests/test-vectors, then the service, the HTTP client and the QML object against fakes.
 foreach(test tst_community_model tst_community_service)
     add_executable(${test} ${test}.cpp mockhttpserver.h ${DIAL_COMMUNITY_SOURCES})
     target_include_directories(${test} PRIVATE ${PROJECT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR})
     target_compile_definitions(${test} PRIVATE
-        DIAL_TEST_VECTORS_DIR="${PROJECT_SOURCE_DIR}/../src-tauri/test-vectors")
+        DIAL_TEST_VECTORS_DIR="${PROJECT_SOURCE_DIR}/tests/test-vectors")
     target_link_libraries(${test} PRIVATE Qt6::Core Qt6::Network Qt6::Test PkgConfig::LIBCRYPTO)
     add_test(NAME ${test} COMMAND ${test})
     set_tests_properties(${test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)

@@ -4,7 +4,7 @@
 # idempotency keys), the Qt uploader finishes a Tauri-started enrollment, and each reads the other's
 # state.json byte for byte (tst_community_service interopWithTheTauriUploader).
 #   bash qt/tests/unit/community-interop/run.sh        (from WSL: cargo on the host, Qt in qt-dial-bookworm)
-# The helper builds offline from the local cargo cache (the crates of src-tauri). It is a host binary;
+# The helper builds offline from the local cargo cache (the crates the Tauri Dial used). It is a host binary;
 # it runs inside the container through the host's own dynamic loader and libraries.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"

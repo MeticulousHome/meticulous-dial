@@ -876,7 +876,7 @@ def write_report(out_dir, results, argv):
 
 
 def self_test():
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../src-tauri/test-vectors/machine-upload-v1.json")) as f:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../test-vectors/machine-upload-v1.json")) as f:
         vector = json.load(f)
     seed = b64url_decode(vector["privateSeed"])
     request = vector["request"]

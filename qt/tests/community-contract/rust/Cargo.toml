@@ -5,10 +5,10 @@ edition = "2024"
 publish = false
 
 # The Tauri side of the Community contract test (../run.sh): a driver around the Tauri Dial's own
-# src-tauri/src/community_upload.rs (compiled in place through #[path], not a copy, no test seams).
-# Dependencies and features as the Tauri Dial resolves them (src-tauri/Cargo.lock, the arm64 build's
-# fingerprints): Cargo.lock pins serde_json 1.0.151 and hyper-util 0.1.20 as src-tauri does; uuid is 1.29.0
-# (src-tauri: 1.25.0, not in the offline cache; only Uuid::new_v4/to_string are used).
+# reference/community_upload.rs (compiled in place through #[path], no test seams).
+# Dependencies and features as the Tauri Dial resolves them (its Cargo.lock, the arm64 build's
+# fingerprints): Cargo.lock pins serde_json 1.0.151 and hyper-util 0.1.20 as the Tauri Dial did; uuid is 1.29.0
+# (the Tauri Dial: 1.25.0, not in the offline cache; only Uuid::new_v4/to_string are used).
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

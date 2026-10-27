@@ -2,7 +2,7 @@
 // Drives the Tauri Dial's community_upload.rs on $CONFIG_PATH/community-upload (with COMMUNITY_API_BASE
 // and MACHINE_API_BASE, as the Dial reads them) and prints the status JSON on the last line (enroll
 // prints the enrollment JSON before it).
-#[path = "../../../../../src-tauri/src"]
+#[path = "../../../community-contract/reference"]
 mod tauri_src {
     #[allow(dead_code)]
     pub mod community_upload;

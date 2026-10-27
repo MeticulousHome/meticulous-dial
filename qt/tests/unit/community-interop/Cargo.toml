@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 publish = false
 
-# Runs the Tauri Dial's own src-tauri/src/community_upload.rs (not a copy) so the Qt port can be checked
+# Runs the Tauri Dial's own community_upload.rs (as kept in qt/tests/community-contract/reference) so the Qt port can be checked
 # against it: see run.sh and tst_community_service's interopWithTheTauriUploader.
 [dependencies]
 serde = { version = "1", features = ["derive"] }

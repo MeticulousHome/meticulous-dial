@@ -3,10 +3,10 @@
 A scenario is: the state.json (and queue bodies) the uploader starts from, the scripted answers of the
 fake Community server and of the fake machine backend (per endpoint, in order; the last one repeats),
 and the steps the orchestrator takes (the Dial's commands, waits). The expected streams in the comments
-come from reading src-tauri/src/community_upload.rs; the test itself only compares the two uploaders with
+come from reading community_upload.rs (reference/); the test itself only compares the two uploaders with
 each other (plus the timing windows in `gaps`, which both must meet).
 
-Every identity is the one of the cross-language vector (src-tauri/test-vectors/machine-upload-v1.json), so
+Every identity is the one of the cross-language vector (qt/tests/test-vectors/machine-upload-v1.json), so
 both uploaders sign with the same key and send the same installation id and idempotency keys.
 """
 import json

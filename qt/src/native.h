@@ -6,7 +6,7 @@
 #include <QUrl>
 #include <QVariant>
 
-// What the React Dial got from Tauri (src-tauri/src/lib.rs) and the browser: the OS local time, the
+// What the React Dial got from Tauri (its lib.rs) and the browser: the OS local time, the
 // "ready" markers, persistent storage (localStorage / IndexedDB), logging to the journal, files, and the
 // launch options. Exposed to QML as the `Native` singleton.
 class Native : public QObject

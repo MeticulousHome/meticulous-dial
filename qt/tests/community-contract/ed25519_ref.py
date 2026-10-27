@@ -2,7 +2,7 @@
 
 The qt-dial-bookworm image has no Python crypto package and the contract test runs with no network, so
 the fake Community server checks signatures with this. contract.py checks it against the cross-language
-vector of src-tauri/test-vectors/machine-upload-v1.json before it is used.
+vector of qt/tests/test-vectors/machine-upload-v1.json before it is used.
 """
 import hashlib
 

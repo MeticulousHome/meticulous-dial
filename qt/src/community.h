@@ -1,7 +1,7 @@
 #pragma once
 
-// The Community uploader of the Tauri Dial (src-tauri/src/community_upload.rs and the commands of
-// src-tauri/src/lib.rs that drive it), exposed to QML as the `Community` singleton of Dial.Native.
+// The Community uploader of the Tauri Dial (community_upload.rs and the commands of
+// its lib.rs that drive it), exposed to QML as the `Community` singleton of Dial.Native.
 //
 // The uploader keeps the same files as the Tauri Dial (<CONFIG_PATH>/community-upload: state.json,
 // queue/<uuid>.json, diagnostics.json) and speaks the same protocol, so either Dial can take over the

@@ -1,5 +1,5 @@
-// The pure parts of the Community uploader against the Rust tests of src-tauri/src/community_upload.rs
-// (and community_upload/diagnostics.rs) and the cross-language vector src-tauri/test-vectors/
+// The pure parts of the Community uploader against the Rust tests of community_upload.rs (qt/tests/community-contract/reference/)
+// (and community_upload/diagnostics.rs) and the cross-language vector qt/tests/test-vectors/
 // machine-upload-v1.json, plus the serde compatibility of state.json and the JSON parser.
 
 #include "community/crypto.h"
