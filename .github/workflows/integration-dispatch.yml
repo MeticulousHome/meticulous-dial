@@ -1,0 +1,43 @@
+name: Journeys against the backend and firmware
+
+# The Dial's journeys (a user at the machine: brew, edit profiles, settings, ...)
+# need the real backend and the real firmware, which is private. They run in the
+# private MeticulousHome/meticulous-integration repository, not here: this job
+# asks it to test this commit against the backend and firmware of the same
+# branch (the same-name branch when a change spans repositories, otherwise the
+# branch this PR targets: beta with beta, nightly with nightly, stable with
+# stable). The result comes back as the commit status "integration/e2e".
+# Forks never get the token, so their PRs are skipped with a notice.
+on:
+  pull_request:
+  push:
+    branches:
+      - beta
+      - nightly
+      - stable
+      - 'gates/main'
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask meticulous-integration to run the journeys on this commit
+        env:
+          TOKEN: ${{ secrets.INTEGRATION_DISPATCH_TOKEN }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PR: ${{ github.event.pull_request.number }}
+          BASE_REF: ${{ github.base_ref || github.ref_name }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::notice::INTEGRATION_DISPATCH_TOKEN is not available: journeys not requested"
+            exit 0
+          fi
+          payload=$(jq -nc --arg sha "$SHA" --arg pr "$PR" --arg base "$BASE_REF" --arg head "$HEAD_REF" \
+            '{event_type: "dial-pr", client_payload: {dial_sha: $sha, pr: $pr, base_ref: $base, head_ref: $head}}')
+          curl -fsS -X POST \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/MeticulousHome/meticulous-integration/dispatches \
+            -d "$payload"
+          echo "requested integration/e2e for $SHA (backend and firmware branch: $HEAD_REF if it exists, else $BASE_REF)"

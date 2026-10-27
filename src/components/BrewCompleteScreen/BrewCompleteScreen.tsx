@@ -94,9 +94,14 @@ export const BrewCompleteScreen = () => {
   // its own setup flow, so the shot that just finished is the last profile the
   // machine loaded, not whatever is selected on the home screen. Graphing the
   // selection would draw the wrong document, or none at all.
-  const graphProfile = wasManualBrew.current
-    ? manualActiveProfile
-    : activeProfile;
+  // wasManualBrew is latched by an effect, after the first render: read
+  // isManualProfile too, or that render graphs the home's selection, and with
+  // no saved profile there is none, which sent the Dial home while the machine
+  // still waited for "click to purge".
+  const graphProfile =
+    wasManualBrew.current || isManualProfile
+      ? manualActiveProfile
+      : activeProfile;
 
   if (!graphProfile) {
     console.error('History was opened without a profile selected');

@@ -6,6 +6,7 @@ on:
       - beta
       - alpha
       - nightly
+      - gates/main
 jobs:
   continuous-integration:
     uses: ./.github/workflows/continuous-integration.yml
