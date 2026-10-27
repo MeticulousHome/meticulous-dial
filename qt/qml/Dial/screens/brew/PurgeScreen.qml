@@ -1,7 +1,7 @@
 // The purge screen (src/components/PurgePiston): "manual-purge", shown while the machine purges or homes
-// the piston. Full-screen, the piston Lottie follows the piston's position (m_pos, 0..74 mm over its 60
-// frames, each new reading reached in 200 ms linear) over a blinking Lottie; the pressure and the flow on
-// either side. Back home once the machine is idle; a double click aborts.
+// the piston. Full-screen, the piston follows the piston's position (m_pos, 0..74 mm, the Lottie's 60
+// frames; SmoothPiston: from where it is, smoothly between the readings) over a blinking Lottie; the
+// pressure and the flow on either side. Back home once the machine is idle; a double click aborts.
 import QtQuick
 import Dial
 import Dial.Native
@@ -46,34 +46,9 @@ Item {
         function onNameChanged() { purge.idleEffect() }
     }
 
-    // ---- PurgePiston: the first reading places the piston (goToAndStop), every later one animates to it.
-    property bool initialized: false
-    property real pistonFrame: 0
-    function positionEffect() {
-        if (isNaN(position) || position < 0) return
-        const current = Math.min(position, maxPosition) / maxPosition * totalFrames
-        if (!initialized) {
-            initialized = true
-            pistonAnim.stop()
-            pistonFrame = current
-            return
-        }
-        pistonAnim.stop()
-        pistonAnim.from = pistonFrame
-        pistonAnim.to = Math.max(0, Math.min(current, totalFrames))
-        pistonAnim.start()
-    }
-    onPositionChanged: {
-        positionEffect()
-        nanCheck.restart()
-    }
-    NumberAnimation {
-        id: pistonAnim
-        target: purge
-        property: "pistonFrame"
-        duration: 200
-    }
-    onPistonFrameChanged: piston.gotoAndStop(pistonFrame)
+    // ---- PurgePiston: the piston's frame in the Lottie it was drawn from (0..60).
+    readonly property real pistonFrame: isNaN(piston.shown) ? NaN : piston.shown / maxPosition * totalFrames
+    onPositionChanged: nanCheck.restart()
     // Without a position for 2 s, leave.
     Timer {
         id: nanCheck
@@ -87,7 +62,6 @@ Item {
         idleEffect()
         // At home the blink sits 206.5 px higher.
         if (Stats.name === "home") blinkRaised = true
-        positionEffect()
     }
     property bool blinkRaised: false
 
@@ -103,16 +77,22 @@ Item {
         loops: -1
         onLoadedChanged: if (loaded) play()
     }
-    LottieItem {
+    // lottie/brew-piston.json baked: the disc's back, the rod (static) and the disc's front, which slide
+    // 206 px from frame 0 to 60.
+    SmoothPiston {
         id: piston
         x: 160
         y: 116
         width: 160
         height: 300
-        source: Theme.asset("lottie/brew-piston.json")
-        loops: 1
-        // LottieItem rewinds to the segment start right after loadedChanged: place it a moment later.
-        onLoadedChanged: if (loaded) Qt.callLater(() => piston.gotoAndStop(purge.pistonFrame))
+        position: purge.position
+        maxPosition: purge.maxPosition
+        travel: 206
+        layers: [
+            { source: Theme.asset("images/brew-piston-back.png"), moves: true },
+            { source: Theme.asset("images/brew-piston-rod.png"), moves: false },
+            { source: Theme.asset("images/brew-piston-front.png"), moves: true }
+        ]
     }
 
     // .values: the two readings, Mono 40 px over an 18 px grey unit, in 64 px columns 50 px in from the
