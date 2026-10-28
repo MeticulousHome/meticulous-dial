@@ -28,7 +28,11 @@ Item {
                     : Motion.keyframes([[0, 0.02], [0.24, 0.9], [1, 1]], fade)
     visible: opacity > 0
     NumberAnimation on fade { id: fadeAnim; from: 0; to: 1; duration: 1000; running: false }
-    onHiddenChanged: fadeAnim.restart()
+    // Only a change after it is created fades: `hidden` going from its default to the boot screen's true
+    // played the fade-out, which starts at 0.8, and flashed "Waiting for the backend to come online".
+    property bool _created: false
+    Component.onCompleted: _created = true
+    onHiddenChanged: if (_created) fadeAnim.restart()
 
     // .bottom-status { bottom: 53px }: a column centered on the screen, its bottom edge 53 px up.
     Column {

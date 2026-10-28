@@ -35,8 +35,11 @@ Window {
             enabled: window.scaleVisibility !== "full"
         }
 
+        // Hidden before the router shows its first route (the boot screen, which hides it too). Read from
+        // router.current itself: through currentRoute it read the old route for a moment when the route
+        // changed, and the false in between restarted the fade-out over the boot screen.
         BottomStatus {
-            hidden: !!router.currentRoute.bottomStatusHidden
+            hidden: router.current ? !!router.current.route.bottomStatusHidden : true
         }
 
         Bubble {

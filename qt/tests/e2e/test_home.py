@@ -28,6 +28,30 @@ def save_profile(backend, profile, saved=None):
         saved.append(profile["id"])
 
 
+def test_the_boot_screen_waits_until_the_dial_is_online(screen):
+    """Protects: after a power cycle the Dial starts before the backend; the boot screen's loading dot is
+    the wait, so it stays until the Dial is online (socket, settings and profiles), even with the profiles
+    in, and the home never opens on "Waiting for the backend to come online".
+
+    Limit: the boot is replayed by showing the ready screen again with Device.isOnline put back to false.
+    """
+    def ev(code):
+        return screen.c.call({"cmd": "eval", "js": code})["value"]
+
+    ev("Device.isOnline = false; 'ok'")
+    try:
+        screen.c.call({"cmd": "screen", "name": "ready"})
+        screen.wait_for_route("ready")
+        assert ev("Profiles.profilesLoaded") == "true"
+        time.sleep(1.5)
+        assert screen.route() == "ready"
+        assert screen.probe("phase") == "loading"
+    finally:
+        ev("Device._updateOnline(); 'ok'")
+    assert ev("Device.isOnline") == "true"
+    screen.wait_for_any_route(["profileHome", "shotDataSharingPrompt"], timeout_s=30)
+
+
 def test_the_home_offers_every_profile_then_free_pour_and_new(screen, backend, saved):
     """Protects: finding every saved profile on the home with the knob.
 
