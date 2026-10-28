@@ -14,7 +14,7 @@ import pytest
 # The settings these tests may change; `restore` puts them back.
 TOUCHED = ["enable_sounds", "auto_start_shot", "auto_purge_after_shot", "partial_retraction", "tare_behavior",
            "reverse_scrolling", "ssh_enabled", "update_channel", "idle_screen", "clock_format_24_hour",
-           "timezone_sync", "time_zone"]
+           "timezone_sync", "time_zone", "standby_timeout"]
 
 PISTON_AREA_MM2 = math.pi * 26.5 * 26.5
 
@@ -64,6 +64,11 @@ def wait_for_setting(backend, key, value, timeout_s=5):
             return
         time.sleep(0.1)
     raise AssertionError(f"{key} is {settings(backend).get(key)!r}, not {value!r}")
+
+
+def power_save_label(s):
+    minutes = s.get("standby_timeout", 15)
+    return "Off" if minutes == 0 else f"{minutes} min"
 
 
 def open_quick_settings(screen):
@@ -130,6 +135,7 @@ def test_config_lists_its_entries_with_their_values(screen, backend):
     open_config(screen)
     assert walk(screen) == ["Device Info", "Community: Not connected", "time & date",
                             "sounds: " + ("ENABLED" if s["enable_sounds"] else "DISABLED"),
+                            "Power save: " + power_save_label(s),
                             "calibrate scale", "Scroll Directions", "Advanced Settings", "Back"]
     screen.select("Back")
     screen.wait_for_bubble("quick-settings")
@@ -145,6 +151,59 @@ def test_sounds_are_toggled_from_config(screen, backend, restore):
     wait_for_focused(screen, "sounds: " + ("ENABLED" if not before else "DISABLED"))
     screen.controls.push()
     wait_for_setting(backend, "enable_sounds", before)
+
+
+def test_power_save_time_is_set_on_its_gauge(screen, backend, restore):
+    """Protects: the power save screen (PowerSave.qml): it opens from config at the stored time, the knob
+    moves it 1 min a step, a click stores standby_timeout and reopens config with the new value."""
+    post_settings(backend, {"standby_timeout": 10})
+    screen.wait_for_home()
+    time.sleep(2.2)   # the settings poll: the gauge starts from the settings the Dial has
+    open_config(screen)
+    screen.select("Power save:")
+    screen.wait_for_bubble_closed()
+    screen.wait_for_route("power_save", timeout_s=5)
+    assert screen.probe("powerSaveTimeout") == 10
+    assert screen.has_text("Power save may override the preheat")
+
+    screen.controls.right(3)
+    screen.controls.left(1)
+    assert screen.probe("powerSaveTimeout") == 12
+
+    screen.controls.push()
+    screen.wait_for_bubble("settings")
+    wait_for_setting(backend, "standby_timeout", 12)
+    screen.focus("Power save:")
+    wait_for_focused(screen, "Power save: 12 min")
+
+
+def test_power_save_is_turned_off_with_a_long_press(screen, backend, restore):
+    """Protects: Off on the power save screen: a long press shows Off and a click stores 0 (the backend's
+    "off"); the next detent brings back the time it had, not the minimum. ErP caps the gauge at 20."""
+    post_settings(backend, {"standby_timeout": 8})
+    screen.wait_for_home()
+    time.sleep(2.2)   # the settings poll
+    screen.c.call({"cmd": "screen", "name": "power_save"})
+    screen.wait_for_route("power_save", timeout_s=5)
+    deadline = time.monotonic() + 5
+    while screen.probe("powerSaveTimeout") != 8 and time.monotonic() < deadline:
+        time.sleep(0.1)
+
+    screen.controls.long_push()
+    assert screen.probe("powerSaveTimeout") == 0
+    assert screen.has_text("Off")
+    assert not screen.has_text("Power save may override the preheat")
+    screen.controls.right()
+    assert screen.probe("powerSaveTimeout") == 8
+    screen.controls.right(30)
+    assert screen.probe("powerSaveTimeout") == 20
+
+    screen.controls.long_push()
+    screen.controls.push()
+    screen.wait_for_bubble("settings")
+    wait_for_setting(backend, "standby_timeout", 0)
+    screen.focus("Power save:")
+    wait_for_focused(screen, "Power save: Off")
 
 
 def test_calibrate_scale_closes_the_menu_and_opens_the_calibration(screen):

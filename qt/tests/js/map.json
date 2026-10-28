@@ -40,5 +40,8 @@
   "qt/tests/js/slowdownDetector.test.mts": {
     "../src/performance/slowdownDetector": "Core/SlowdownDetector.js",
     "../src/performance/slowdownMonitorConfig": "Core/SlowdownDetector.js"
+  },
+  "qt/tests/js/powerSave.test.mts": {
+    "../src/components/PowerSave/powerSave": "screens/settings/PowerSave.js"
   }
 }

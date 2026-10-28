@@ -1,9 +1,11 @@
 // "config" of the quick settings (src/components/Settings/Settings.tsx), in the bubble: Device Info,
-// Community (with its connection state), time & date, sounds (toggled here), calibrate scale, Scroll
+// Community (with its connection state), time & date, sounds (toggled here), Power save (its own full-screen
+// route, PowerSave.qml), calibrate scale, Scroll
 // Directions, Advanced Settings, Back. Labels without values until the settings arrive. Unlike the other
 // menus this one never scrolls a long label in the bar.
 import QtQuick
 import Dial
+import "PowerSave.js" as PowerSave
 
 Item {
     id: screen
@@ -22,6 +24,7 @@ Item {
         { key: "community", label: "Community" },
         { key: "time_date", label: "time & date" },
         { key: "enable_sounds", label: "sounds" },
+        { key: "power_save", label: "Power save" },
         { key: "calibrate", label: "calibrate scale" },
         { key: "scroll_directions", label: "Scroll Directions" },
         { key: "advanced", label: "Advanced Settings" },
@@ -37,6 +40,8 @@ Item {
                 label = "Community: " + (state === "connected" ? "Connected" : state === "upload_paused" ? "Upload paused" : "Not connected")
             else if (item.key === "enable_sounds")
                 label = item.label + ": " + (settings.enable_sounds ? "ENABLED" : "DISABLED")
+            else if (item.key === "power_save")
+                label = item.label + ": " + PowerSave.label(PowerSave.timeoutOf(settings))
             return { key: item.key, label: label }
         })
     }
@@ -64,6 +69,12 @@ Item {
                 break
             case "community":
                 Nav.openBubble("community")
+                break
+            case "power_save":
+                // Like Manual mode: the hidden bubble keeps the gestures, so the release of this press
+                // cannot click through and save on the power save screen.
+                Nav.setBubbleDisplay({ visible: false, component: "", interceptsGesture: true })
+                Nav.setScreen("power_save")
                 break
             case "calibrate":
                 Nav.closeBubble()

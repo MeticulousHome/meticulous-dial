@@ -29,7 +29,7 @@ QtObject {
     readonly property var order: [
         "deviceInfoQR", "masterCalibrationLock", "timeZoneConfig", "timeDate", "timeConfig", "dateConfig",
         "OSStatus", "ready", "settings", "community", "profileHome", "barometer", "pressetSettings", "pressure",
-        "piston_position", "retraction_volume", "tare_behavior", "motor_power", "time", "weight", "flow",
+        "piston_position", "retraction_volume", "power_save", "tare_behavior", "motor_power", "time", "weight", "flow",
         "temperature", "output", "manual-purge", "heating", "calibrateScale", "dose", "name",
         "selectLetterCountry", "countrySettings", "timeZoneSettings", "notifications", "wifiSettings",
         "wifiModeSettings", "wifiQrMenu", "wifiDetails", "KnownWifi", "deleteKnowWifiMenu", "connectWifiMenu",
@@ -59,6 +59,7 @@ QtObject {
         pressure: { url: s("profile/SettingNumerical.qml"), title: activeProfilesTitle, bottomTitle: "pressure", props: { type: "pressure" }, bottomStatusHidden: true, parent: "pressetSettings" },
         piston_position: { url: s("profile/SettingNumerical.qml"), title: activeProfilesTitle, bottomTitle: "piston position", props: { type: "piston_position" }, bottomStatusHidden: true, parent: "pressetSettings" },
         retraction_volume: { url: s("settings/RetractionVolume.qml"), title: "retraction", bottomTitle: "distance", props: { type: "retraction_volume" }, bottomStatusHidden: true, parent: "brewSettings" },
+        power_save: { url: s("settings/PowerSave.qml"), title: "power save", props: { type: "power_save" }, bottomStatusHidden: true, parent: "settings" },
         tare_behavior: { url: s("settings/TareBehavior.qml"), title: "auto tare", bottomStatusHidden: true, parent: "brewSettings" },
         motor_power: { url: s("profile/SettingNumerical.qml"), title: activeProfilesTitle, bottomTitle: "motor power", props: { type: "motor_power" }, bottomStatusHidden: true, parent: "pressetSettings" },
         time: { url: s("profile/SettingNumerical.qml"), title: activeProfilesTitle, bottomTitle: "time", props: { type: "time" }, bottomStatusHidden: true, parent: "pressetSettings" },
