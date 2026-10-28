@@ -437,6 +437,31 @@ def test_the_piston_moves_on_between_readings(screen, machine):
     screen.wait_for_route("profileHome")
 
 
+@pytest.mark.parametrize("entry", ["raise", "purge"])
+def test_the_push_that_picks_raise_or_purge_never_reaches_the_home(screen, machine, entry):
+    """Protects: raise and purge act on the push's press and close the quick settings; that press never
+    reaches the home under them (React handlers hear only the gestures after they come on): the card is not
+    selected and the "Hold to start" ring does not fill, however long the push is held."""
+    selected = screen.probe("cardSelected")
+    screen.controls.context()
+    screen.focus(entry)
+    screen.controls._button("ENCODER_PRESSED")
+    try:
+        screen.wait_for_bubble_closed()
+        time.sleep(0.5)
+        assert screen.route() == "profileHome"
+        assert screen.probe("pressingDown") is False
+        assert screen.probe("cardSelected") == selected
+    finally:
+        screen.controls._button("ENCODER_RELEASED")
+        screen.controls._button("ENCODER_PUSH")
+    # The emulated machine raised or purged meanwhile: let it finish before the next test.
+    machine.resume()
+    time.sleep(0.5)
+    wait_for(lambda: machine_status(screen) == "idle", 40, f"the machine idle after the {entry}")
+    screen.wait_for_home()
+
+
 # ---- brew complete
 
 

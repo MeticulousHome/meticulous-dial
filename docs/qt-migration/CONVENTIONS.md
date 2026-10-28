@@ -33,7 +33,8 @@ line).
   inverted: `enabled: !(<React ignore condition>)`. React's `right` / `left` are `onTurnRight` / `onTurnLeft`;
   the others keep their names (`onPressDown`, `onPressUp`, `onClick`, `onDoubleClick`, `onContext`,
   `onLongEncoder`, `onSingleTare`, `onDoubleTare`, `onLongTare`, `onTareDown`, `onTareUp`). A leaving route is
-  disabled, so it hears nothing (React's VisibilityContext).
+  disabled, so it hears nothing (React's VisibilityContext). A handler that comes on during a gesture (the
+  bubble closed by that press, a screen it opened) hears the next gesture, not that one, as in React.
   Typical: a route screen `enabled: !Nav.bubbleInterceptsGesture`; a bubble menu `enabled: Nav.bubbleInterceptsGesture`.
 - Menus: use `OptionsMenu` (the mixins.ts menu with the yellow bar): `options` = `[{ key, label, hasSeparator,
   longpress, caseSensitive, annotation, color }]`, move `activeIndex` (or `next()` / `previous()`), handle
