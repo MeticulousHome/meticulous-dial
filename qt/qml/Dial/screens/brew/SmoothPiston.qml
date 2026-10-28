@@ -8,8 +8,10 @@
 // restarted by the next one, moved the piston in jerks. Instead it is shown `delay` ms behind the readings,
 // interpolated between the two around that time, so it moves at the piston's own pace. A change after more
 // than `maxGap` ms on the same reading starts from a stop one `step` before it. The first reading places
-// the piston at once; until then nothing is drawn.
+// the piston at once; until then nothing is drawn. The times are monotonic: the wall clock can step back
+// (time sync, setting the time) and the piston would jump back to an old reading.
 import QtQuick
+import Dial.Native
 
 Item {
     id: figure
@@ -31,7 +33,7 @@ Item {
     function add(value) {
         if (isNaN(value) || value < 0) return
         const v = Math.min(value, maxPosition)
-        const now = Date.now()
+        const now = Native.monotonicMs()
         if (samples.length === 0) {
             samples = [{ t: now - step, v: v }]
             shown = v
@@ -53,7 +55,7 @@ Item {
         id: follow
         onTriggered: {
             const s = figure.samples
-            const t = Date.now() - figure.delay
+            const t = Native.monotonicMs() - figure.delay
             const last = s[s.length - 1]
             if (t >= last.t) {
                 figure.shown = last.v

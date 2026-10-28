@@ -429,7 +429,8 @@ def test_the_piston_moves_on_between_readings(screen, machine):
             next_reading += 0.13
         seen.append(screen.probe("pistonFrame"))
     wait_for(lambda: abs(screen.probe("pistonFrame") - position / 74 * 60) < 0.01, 2, "the last reading")
-    assert all(b <= a + 1e-6 for a, b in zip(seen, seen[1:])), "the piston went back up"
+    back = [(i, a, b) for i, (a, b) in enumerate(zip(seen, seen[1:])) if b > a + 1e-6]
+    assert not back, f"the piston went back up (probe, frame, next frame): {back[:5]}"
     distinct = len({round(v, 4) for v in seen})
     assert distinct > 2 * readings, f"{distinct} positions shown for {readings} readings"
     machine.idle()
