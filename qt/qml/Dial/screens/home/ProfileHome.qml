@@ -78,6 +78,8 @@ Item {
         return c ? { source: c.imageSource, loaded: c.imageLoaded } : null
     }
     readonly property bool dialProbe_cardSelected: homeHoverState
+    // Whether a push is held on the card: the 300 ms before the "Hold to start" ring, or the ring filling.
+    readonly property bool dialProbe_pressingDown: isPressingDown || pressThrough.running
     // How many cards are drawn on screen right now (also while the list slides).
     function dialProbe_cardsDrawn() {
         let drawn = 0

@@ -10,6 +10,8 @@ QtObject {
     // gesture: right | left | click | doubleClick | longEncoder | singleTare | doubleTare | longTare |
     //          tareDown | tareUp | context | pressDown | pressUp
     signal gesture(string type, int timeSinceLastEvent)
+    // Counts the gestures: a GestureHandler that comes on during one does not hear it.
+    property int serial: 0
 
     readonly property var eventGestureMap: ({
         ENCODER_CLOCKWISE: "right",
@@ -34,10 +36,12 @@ QtObject {
         const g = eventGestureMap[data.type]
         if (!g) return
         if (resetsIdle.indexOf(g) >= 0) Idle.resetTimer()
+        serial++
         gesture(g, data.time_since_last_event === undefined ? 1000 : data.time_since_last_event)
     }
 
     function emitGesture(type, timeSinceLastEvent) {
+        serial++
         gesture(type, timeSinceLastEvent === undefined ? 1000 : timeSinceLastEvent)
     }
 }

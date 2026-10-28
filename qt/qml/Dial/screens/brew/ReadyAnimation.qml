@@ -1,7 +1,12 @@
 // The boot screen (src/components/ReadyAnimation): the loading Lottie loops (frames 380-530, from 383)
-// until the backend answers with the profiles (useFetchData), then ReadyAnimation1 and ReadyAnimation2 play
-// once and the Dial goes home, or to the shot data sharing prompt while that setting was never answered
-// (resolvePostReadyScreen). Reports home_ready on the way.
+// until the Dial is online, then ReadyAnimation1 and ReadyAnimation2 play once and the Dial goes home, or to
+// the shot data sharing prompt while that setting was never answered (resolvePostReadyScreen). Reports
+// home_ready on the way.
+//
+// React waited for the profiles only (useFetchData). After a power cycle the Qt Dial starts before the
+// backend, and its socket can connect seconds after the profiles come in (reconnecting every 5 s at most):
+// the home then said "Waiting for the backend to come online". The loading Lottie is the wait, so it stays
+// until Device.isOnline (the socket, the settings and the profiles).
 import QtQuick
 import Dial
 import Dial.Native
@@ -10,6 +15,7 @@ Item {
     id: ready
     anchors.fill: parent
     property string phase: "loading"    // loading | ready1 | ready2 | done
+    readonly property string dialProbe_phase: phase
 
     function resolvePostReadyScreen(settings) {
         return settings && settings.shot_data_sharing === null ? "shotDataSharingPrompt" : "profileHome"
@@ -28,15 +34,15 @@ Item {
         Notifications.load()
     }
 
-    // useFetchData: ready once the profiles are in (the store retries on its own).
+    // Ready once online (the stores retry on their own).
     Connections {
-        target: Profiles
-        function onProfilesLoadedChanged() { if (Profiles.profilesLoaded) ready.finishLoading() }
+        target: Device
+        function onIsOnlineChanged() { if (Device.isOnline) ready.finishLoading() }
     }
     Component.onCompleted: {
         Notifications.load()
         loading.gotoAndPlay(383)
-        if (Profiles.profilesLoaded) Qt.callLater(finishLoading)
+        if (Device.isOnline) Qt.callLater(finishLoading)
     }
 
     LottieItem {

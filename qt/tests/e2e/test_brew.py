@@ -397,6 +397,71 @@ def test_the_purge_screen_follows_the_piston(screen, machine):
     assert screen.probe("blinkRaised")
 
 
+def test_a_raise_shows_the_piston_where_it_is_from_the_start(screen, machine):
+    """Protects: the raise and purge piston starts at the piston's position (at the bottom, 76.5 mm on an
+    idle machine), never at the top it slid down from."""
+    machine.sensors(m_pos=76.5)
+    machine.status(name="home", state="home", sensors={"p": 0, "f": 0, "t": 30})
+    screen.wait_for_route("manual-purge")
+    frames = []
+    for _ in range(10):
+        frames.append(screen.probe("pistonFrame"))
+        time.sleep(0.05)
+    assert frames == [60] * 10, frames
+    machine.idle()
+    screen.wait_for_route("profileHome")
+
+
+def test_the_piston_moves_on_between_readings(screen, machine):
+    """Protects: readings 0.8 mm apart every 130 ms (a raise on a machine) move the piston continuously,
+    never back, and it ends on the last reading."""
+    machine.sensors(m_pos=74)
+    machine.status(name="home", state="home", sensors={"p": 0, "f": 0, "t": 30})
+    screen.wait_for_route("manual-purge")
+    seen, position, readings = [], 74.0, 0
+    next_reading = time.monotonic()
+    end = next_reading + 2.6
+    while time.monotonic() < end:
+        if time.monotonic() >= next_reading and position > 60:
+            position = round(position - 0.8, 2)
+            machine.sensors(m_pos=position)
+            readings += 1
+            next_reading += 0.13
+        seen.append(screen.probe("pistonFrame"))
+    wait_for(lambda: abs(screen.probe("pistonFrame") - position / 74 * 60) < 0.01, 2, "the last reading")
+    back = [(i, a, b) for i, (a, b) in enumerate(zip(seen, seen[1:])) if b > a + 1e-6]
+    assert not back, f"the piston went back up (probe, frame, next frame): {back[:5]}"
+    distinct = len({round(v, 4) for v in seen})
+    assert distinct > 2 * readings, f"{distinct} positions shown for {readings} readings"
+    machine.idle()
+    screen.wait_for_route("profileHome")
+
+
+@pytest.mark.parametrize("entry", ["raise", "purge"])
+def test_the_push_that_picks_raise_or_purge_never_reaches_the_home(screen, machine, entry):
+    """Protects: raise and purge act on the push's press and close the quick settings; that press never
+    reaches the home under them (React handlers hear only the gestures after they come on): the card is not
+    selected and the "Hold to start" ring does not fill, however long the push is held."""
+    selected = screen.probe("cardSelected")
+    screen.controls.context()
+    screen.focus(entry)
+    screen.controls._button("ENCODER_PRESSED")
+    try:
+        screen.wait_for_bubble_closed()
+        time.sleep(0.5)
+        assert screen.route() == "profileHome"
+        assert screen.probe("pressingDown") is False
+        assert screen.probe("cardSelected") == selected
+    finally:
+        screen.controls._button("ENCODER_RELEASED")
+        screen.controls._button("ENCODER_PUSH")
+    # The emulated machine raised or purged meanwhile: let it finish before the next test.
+    machine.resume()
+    time.sleep(0.5)
+    wait_for(lambda: machine_status(screen) == "idle", 40, f"the machine idle after the {entry}")
+    screen.wait_for_home()
+
+
 # ---- brew complete
 
 

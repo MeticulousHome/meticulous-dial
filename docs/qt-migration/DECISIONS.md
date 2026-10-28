@@ -57,6 +57,9 @@ MultiEffect. The Dial is GPLv3, so the LGPL/GPL Qt modules are fine.
 - **Gestures as signals.** `GestureHandler` = `useHandleGestures`; `enabled` is the inverse of the React
   "ignore" argument, and a leaving route is disabled (Item.enabled is inherited), like VisibilityContext.
   React's `right` / `left` are `turnRight` / `turnLeft` because Item already has `right` / `left`.
+  React subscribes a handler after the render a gesture caused; QML bindings update during the signal, so
+  `Input.serial` numbers the gestures and a handler skips the one during which it came on (without it, the
+  press that picks raise or purge in the quick settings also pressed the home's card under them).
 - **Fidelity rules.** Sizes as CSS computes them, the same fonts (ABC Diatype and Diatype Mono, fontello),
   colors, easing curves and durations (`Motion.js`: the spring, CSS `ease`, keyframes).
 
