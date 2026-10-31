@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import Lottie, { AnimationItem } from 'lottie-web';
 import MetCat from './MetCat.json';
-import { formatTime } from './DigitalClock';
+import { formatTime } from './digitalClockTime';
 
 export function MetCatClock({ time }: { time: ReturnType<typeof formatTime> }) {
   const animationDiv = useRef<HTMLDivElement | null>(null);

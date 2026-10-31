@@ -3,7 +3,7 @@ import { IPresetAction, IPresetBaseNumerical, IPresetSetting } from '../types';
 import { StaticAction } from '../constants/setting';
 import { v4 as uuidv4 } from 'uuid';
 
-export const NEW_PROFILE_NAME = 'New profile';
+export const NEW_PROFILE_NAME = 'Simple';
 
 export const newProfileFromTemplate = (template: Profile): Profile => ({
   ...template,

@@ -14,6 +14,12 @@ export const API_URL =
 
 export const api = new Api(undefined, API_URL);
 
+// The backend sends these fields; the published API type does not yet include them.
+export type MachineInfo = DeviceInfo & {
+  disturbance_resilience?: boolean | null;
+  disturbance_resilience_supported?: boolean;
+};
+
 export type UnlockMachineResult =
   | { ok: true; response: UnlockMachineResponse }
   | { ok: false; status: 400 | 403 | 429 | 404 | 0; error?: APIError };
@@ -57,14 +63,14 @@ export const getOSStatus = async () => {
   }
 };
 
-export async function getDeviceInfo(): Promise<DeviceInfo> {
+export async function getDeviceInfo(): Promise<MachineInfo> {
   try {
     const response = await api.getDeviceInfo();
     const data = response.data;
     if (data && 'error' in data) {
       throw new Error((data as APIError).error);
     }
-    return data as DeviceInfo;
+    return data as MachineInfo;
   } catch (error) {
     if (error.response) {
       console.error('Error fetching device Info: ', error.response.data);

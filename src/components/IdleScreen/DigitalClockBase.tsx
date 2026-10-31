@@ -1,4 +1,4 @@
-import { formatTime } from './DigitalClock';
+import { formatTime } from './digitalClockTime';
 
 export const DigitalClockBase = ({
   time
@@ -9,7 +9,7 @@ export const DigitalClockBase = ({
     <div className="clock-wrapper">
       <div className="clock">{time.hours.toString().padStart(2, '0')}</div>
       <div className="clock">{time.minutes.toString().padStart(2, '0')}</div>
-      <div className="clock midday">{time.midday}</div>
+      {time.midday && <div className="clock midday">{time.midday}</div>}
     </div>
   );
 };

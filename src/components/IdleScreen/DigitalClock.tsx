@@ -2,32 +2,28 @@ import { useEffect, useState } from 'react';
 
 import { setBrightness } from '../../api/api';
 import { useNetworkConfig } from '../../hooks/useWifi';
+import { useSettings } from '../../hooks/useSettings';
 
 import { MetCatClock } from './MetCatClock';
 import { DigitalClockBase } from './DigitalClockBase';
+import {
+  formatTime,
+  startDigitalClock,
+  uses24HourClock
+} from './digitalClockTime';
 import './DigitalClock.css';
-
-export function formatTime() {
-  const time = new Date();
-  const localeString = time.toLocaleTimeString().toUpperCase();
-  // This would be the perfect usecase for a regex. But it is somehow significantly slower :C
-  const am = localeString.includes('AM') && 'AM';
-  const pm = localeString.includes('PM') && 'PM';
-  const midday = am || pm;
-  return {
-    hours: midday ? ((time.getHours() + 11) % 12) + 1 : time.getHours(),
-    minutes: time.getMinutes(),
-    seconds: time.getSeconds(),
-    midday: midday
-  };
-}
 
 export function DigitalClock({
   useMetCat
 }: {
   useMetCat: boolean;
 }): JSX.Element {
-  const [time, setTime] = useState(formatTime());
+  const [milliseconds, setMilliseconds] = useState<number | null>(null);
+  const { data: settings } = useSettings({ idle: true });
+  const time =
+    milliseconds === null
+      ? null
+      : formatTime(uses24HourClock(settings), milliseconds);
 
   const { data: networkConfig, refetch: refetchNetworkConfig } =
     useNetworkConfig({ idle: true });
@@ -35,11 +31,14 @@ export function DigitalClock({
   useEffect(() => {
     refetchNetworkConfig();
     setBrightness({ brightness: 0 });
-    const intervalId = setInterval(() => setTime(formatTime()), 250);
+    const stopClock = startDigitalClock({
+      renderTime: setMilliseconds,
+      onError: (error) => console.error('Failed to read OS local time', error)
+    });
 
     return () => {
       setBrightness({ brightness: 1 });
-      clearInterval(intervalId);
+      stopClock();
     };
   }, []);
 
@@ -56,7 +55,7 @@ export function DigitalClock({
         )}
         {isWifiConnected ? 'Ready' : 'Not connected'}
       </div>
-      {<ClockComponent time={time} />}
+      {time && <ClockComponent time={time} />}
     </div>
   );
 }
