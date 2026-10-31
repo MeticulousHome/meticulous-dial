@@ -1,9 +1,11 @@
 pragma Singleton
-// What the Dial knows about the machine beyond its live state: device info (useDeviceInfo, every 2 h),
+// What the Dial knows about the machine beyond its live state: device info (useDeviceInfo, every 2 h, and
+// every 5 s while the firmware has not reported yet: DeviceInfo.js),
 // the OS update status (useOSStatus, every 60 s and on the "OSUpdate" event) and whether the backend is
 // online (useIsOnline: the socket connected once, and settings and profiles answered).
 import QtQuick
 import Dial.Native
+import "DeviceInfo.js" as DeviceInfo
 
 QtObject {
     id: device
@@ -27,6 +29,8 @@ QtObject {
             info = data
             // SentryRuntimeMetadata (App.tsx): the serial, build-version and build-channel tags.
             Sentry.setDeviceInfo(data)
+            // Before the firmware's ESPInfo every capability reads false: ask again until it is in.
+            if (!DeviceInfo.firmwareReported(data)) _infoRetry.start()
             return data
         }).catch(error => {
             console.error("Error fetching device Info:", error && error.message ? error.message : error)

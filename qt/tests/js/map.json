@@ -43,5 +43,8 @@
   },
   "qt/tests/js/disturbanceResilience.test.mts": {
     "../../qml/Dial/screens/settings/DisturbanceResilience": "screens/settings/DisturbanceResilience.js"
+  },
+  "qt/tests/js/deviceInfo.test.mts": {
+    "../../qml/Dial/Core/DeviceInfo": "Core/DeviceInfo.js"
   }
 }
