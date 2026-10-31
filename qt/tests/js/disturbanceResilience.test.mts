@@ -1,8 +1,10 @@
-// The "Disturbance resilience" item of Advanced Settings (qt/qml/Dial/screens/settings/DisturbanceResilience.js).
+// Disturbance resilience in config and its screen (qt/qml/Dial/screens/settings/DisturbanceResilience.js).
 //
 // Regressions a user at the machine would see without it:
-//  - the item reads ENABLED on a machine whose backend has it off, or has not sent the setting yet
-//    (an older backend): the contract says off by default;
+//  - the item reads ENABLED, or the screen opens on "Enabled", on a machine whose backend has it off or has
+//    not sent the setting yet (an older backend): the contract says off by default;
+//  - the copy under the pills says the opposite of what the focused choice does (Disabled keeps the weight
+//    target, Enabled ignores scale disturbances), or a pill saves the other value;
 //  - the item disappears on a machine whose firmware supports it, or whose device info is not in yet,
 //    instead of only when the machine reports disturbance_resilience_supported: false;
 //  - a refused save logs nothing useful: the backend's 400 message ({ status: "error", error }) is lost.
@@ -15,15 +17,33 @@ import test from 'node:test';
 import {
   SETTING_KEY,
   LABEL,
+  TITLE,
+  CHOICES,
   errorMessage,
+  initialIndex,
   isAvailable,
   isEnabled,
-  valueText
+  menuLabel
 } from '../../qml/Dial/screens/settings/DisturbanceResilience.js';
 
 test('uses the backend setting key and the contract copy', () => {
   assert.equal(SETTING_KEY, 'disturbance_resilience');
-  assert.equal(LABEL, 'Disturbance resilience');
+  assert.equal(LABEL, 'disturbance resilience');
+  assert.equal(TITLE, 'Disturbance resilience');
+});
+
+test('offers Disabled then Enabled, each saving its value with its own copy', () => {
+  assert.deepEqual(CHOICES.map((c) => [c.label, c.value]), [['Disabled', false], ['Enabled', true]]);
+  assert.equal(CHOICES[0].copy,
+    'The machine will prioritize the weight target over scale disturbances on high flow profiles.');
+  assert.equal(CHOICES[1].copy,
+    'The machine will prioritize ignoring scale disturbances over the weight target on high flow profiles.');
+});
+
+test('opens on the stored choice, Disabled while unknown', () => {
+  assert.equal(initialIndex({ disturbance_resilience: true }), 1);
+  assert.equal(initialIndex({ disturbance_resilience: false }), 0);
+  assert.equal(initialIndex(null), 0);
 });
 
 test('shows the value the backend has, off when absent or unknown', () => {
@@ -33,8 +53,10 @@ test('shows the value the backend has, off when absent or unknown', () => {
   assert.equal(isEnabled(null), false);
   // Only a real boolean true counts: a stray string from a bad config is not "on".
   assert.equal(isEnabled({ disturbance_resilience: 'false' }), false);
-  assert.equal(valueText({ disturbance_resilience: true }), 'ENABLED');
-  assert.equal(valueText({}), 'DISABLED');
+  assert.equal(menuLabel({ disturbance_resilience: true }), 'disturbance resilience: ENABLED');
+  assert.equal(menuLabel({}), 'disturbance resilience: DISABLED');
+  // Before the settings load the item has no value, like the other config entries.
+  assert.equal(menuLabel(null), 'disturbance resilience');
 });
 
 test('is hidden only when the machine reports its firmware cannot store it', () => {

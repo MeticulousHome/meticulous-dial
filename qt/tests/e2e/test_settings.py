@@ -125,12 +125,16 @@ def wait_for_focused(screen, label, timeout_s=5):
 
 def test_config_lists_its_entries_with_their_values(screen, backend):
     """Protects: the config menu (Settings.tsx): its entries in order, sounds with its value, Community
-    with its connection state (not connected without the uploader)."""
+    with its connection state (not connected without the uploader), disturbance resilience with its value
+    unless the machine reports disturbance_resilience_supported: false."""
     s = settings(backend)
+    _, info = backend.get("/api/v1/machine")
     open_config(screen)
+    resilience = [] if info.get("disturbance_resilience_supported") is False else [
+        "disturbance resilience: " + ("ENABLED" if s.get("disturbance_resilience") is True else "DISABLED")]
     assert walk(screen) == ["Device Info", "Community: Not connected", "time & date",
                             "sounds: " + ("ENABLED" if s["enable_sounds"] else "DISABLED"),
-                            "calibrate scale", "Scroll Directions", "Advanced Settings", "Back"]
+                            "calibrate scale", "Scroll Directions", *resilience, "Advanced Settings", "Back"]
     screen.select("Back")
     screen.wait_for_bubble("quick-settings")
 
@@ -145,6 +149,43 @@ def test_sounds_are_toggled_from_config(screen, backend, restore):
     wait_for_focused(screen, "sounds: " + ("ENABLED" if not before else "DISABLED"))
     screen.controls.push()
     wait_for_setting(backend, "enable_sounds", before)
+
+
+def test_disturbance_resilience_screen_saves_the_focused_choice(screen, backend, restore):
+    """Protects: config > disturbance resilience opens its own screen on the stored choice, the copy follows
+    the focused pill, and a push saves that pill's value and returns to config, but only once the backend
+    saved it (the firmware stores it). Where the machine cannot store it (firmware without the feature) the
+    item is hidden. Expected values: DisturbanceResilience.js CHOICES and the backend's GET /settings."""
+    _, info = backend.get("/api/v1/machine")
+    open_config(screen)
+    if info.get("disturbance_resilience_supported") is False:
+        assert not any(f.startswith("disturbance resilience") for f in walk(screen))
+        return
+    before = settings(backend).get("disturbance_resilience") is True
+    screen.select("disturbance resilience:")
+    screen.wait_for_route("disturbanceResilience", timeout_s=5)
+    wait_for_focused(screen, "Enabled" if before else "Disabled")
+    copy = {"Disabled": "weight target over scale disturbances", "Enabled": "ignoring scale disturbances"}
+    assert any(copy["Enabled" if before else "Disabled"] in t for t in screen.texts())
+
+    if before:
+        screen.controls.left()
+    else:
+        screen.controls.right()
+    target = "Disabled" if before else "Enabled"
+    wait_for_focused(screen, target)
+    assert any(copy[target] in t for t in screen.texts())
+    screen.controls.push()
+    if info.get("disturbance_resilience_supported"):
+        wait_for_setting(backend, "disturbance_resilience", not before)
+        screen.wait_for_bubble("settings")
+    else:
+        # A backend without the field cannot save it on the machine: it refuses and the screen says so.
+        deadline = time.monotonic() + 7
+        while not screen.has_text("Could not save your choice. Please try again.") and time.monotonic() < deadline:
+            time.sleep(0.1)
+        assert screen.has_text("Could not save your choice. Please try again.")
+        assert (settings(backend).get("disturbance_resilience") is True) == before
 
 
 def test_calibrate_scale_closes_the_menu_and_opens_the_calibration(screen):
@@ -552,21 +593,16 @@ def test_community_unavailable_offers_only_back(screen, stand_in):
 # ---- Advanced Settings
 
 def test_advanced_settings_list_their_values(screen, backend):
-    """Protects: Advanced.tsx: SSH, disturbance resilience (off when the backend has no value; hidden when the
-    machine reports disturbance_resilience_supported: false), the display alignment, the update channel
-    (unless limited access), the idle screen's short name, the root password (case kept), factory reset, the
-    manufacturing options when the backend offers them, Back."""
+    """Protects: Advanced.tsx: SSH, the display alignment, the update channel (unless limited access), the
+    idle screen's short name, the root password (case kept), factory reset, the manufacturing options when
+    the backend offers them, Back."""
     s = settings(backend)
-    _, info = backend.get("/api/v1/machine")
     short = {"default": "Analog", "digital": "Digital", "metCat": "Cat", "dvd": "DVD"}
     _, pw = backend.get("/api/v1/machine/root-password")
     status, _ = backend.get("/api/v1/manufacturing")
     open_advanced(screen)
     time.sleep(0.5)
-    expected = ["SSH: " + ("ENABLED" if s["ssh_enabled"] else "DISABLED")]
-    if info.get("disturbance_resilience_supported") is not False:
-        expected.append("Disturbance resilience: " + ("ENABLED" if s.get("disturbance_resilience") is True else "DISABLED"))
-    expected.append("Display Alignment Screen")
+    expected = ["SSH: " + ("ENABLED" if s["ssh_enabled"] else "DISABLED"), "Display Alignment Screen"]
     if s.get("update_channel") != "factory":
         expected.append(f"Update channel: {s['update_channel']}")
     expected += [f"Select Idle Screen: {short.get(s['idle_screen'], 'undefined')}",
@@ -585,34 +621,6 @@ def test_ssh_is_toggled(screen, backend, restore):
     screen.controls.push()
     wait_for_setting(backend, "ssh_enabled", not before)
     wait_for_focused(screen, "SSH: " + ("ENABLED" if not before else "DISABLED"))
-
-
-def test_disturbance_resilience_shows_only_what_the_backend_saved(screen, backend, restore):
-    """Protects: a push on Disturbance resilience shows the other value only once the backend saved it (the
-    firmware stores it; the backend answers after the machine confirmed); when the backend refuses (firmware
-    without the feature, a failed or timed-out save on the machine) the item keeps the stored value and the
-    menu says "Could not save". Expected values: the backend's own GET /settings after the push, and
-    DisturbanceResilience.js SAVE_FAILED_TEXT."""
-    _, info = backend.get("/api/v1/machine")
-    if info.get("disturbance_resilience_supported") is False:
-        open_advanced(screen)
-        assert not any(f.startswith("Disturbance resilience") for f in walk(screen))
-        return
-    before = settings(backend).get("disturbance_resilience") is True
-    shown = lambda on: "Disturbance resilience: " + ("ENABLED" if on else "DISABLED")
-    open_advanced(screen)
-    screen.select("Disturbance resilience:")
-    if info.get("disturbance_resilience_supported"):
-        wait_for_setting(backend, "disturbance_resilience", not before)
-        wait_for_focused(screen, shown(not before))
-    else:
-        # Without the field the backend cannot save it on the machine: it refuses and nothing changes.
-        deadline = time.monotonic() + 7
-        while "could not save" not in [t.casefold() for t in screen.texts()] and time.monotonic() < deadline:
-            time.sleep(0.1)
-        assert "could not save" in [t.casefold() for t in screen.texts()]
-        assert (settings(backend).get("disturbance_resilience") is True) == before
-        wait_for_focused(screen, shown(before))
 
 
 def test_update_channel_is_chosen_and_marked_current(screen, backend, restore):
