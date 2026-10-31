@@ -437,6 +437,16 @@ impl CommunityUploadService {
             .state
             .lock()
             .map_err(|_| temporary("state_unavailable"))?;
+        // Freeze recovery only after this method's live baseline is durable.
+        // Otherwise a failed baseline can later skip brews beyond an already
+        // completed recovery snapshot. The other method remains independent.
+        let baselined = match kind {
+            HistoryKind::Espresso => state.persistent.history_baselined,
+            HistoryKind::PourOver => state.persistent.pour_over_history_baselined,
+        };
+        if !baselined {
+            return Ok(None);
+        }
         Ok(state
             .persistent
             .recovery

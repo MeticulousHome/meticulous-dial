@@ -1070,6 +1070,131 @@ fn automatic_recovery_restores_first_guided_brew_skipped_by_baseline_after_next_
     );
 }
 
+/// A failed initial live scan must not let recovery finish before a brew is
+/// saved and absorbed by the successful baseline retry. Community's imported
+/// receipts must account for every eligible fixture record through RECOVERY_PATH.
+/// The existing first-guided test never fails initial baselining; without the
+/// ordering guard these cases lose the brew for both empty and older snapshots.
+fn recovery_after_failed_initial_baseline(kind: HistoryKind) {
+    for older_record in [false, true] {
+        let (latest_route, index_route, old, new) = match kind {
+            HistoryKind::Espresso => (
+                "/api/v1/history/upload-index/last",
+                "/api/v1/history/upload-index",
+                "2026-09-24/0001.shot.json.zst",
+                "2026-09-24/0002.shot.json.zst",
+            ),
+            HistoryKind::PourOver => (
+                "/api/v1/history/pour-over/last",
+                "/api/v1/history/pour-over",
+                "2026-09-24/0001.pour-over.json",
+                "2026-09-24/0002.pour-over.json",
+            ),
+        };
+        let brewed = Arc::new(AtomicBool::new(false));
+        let machine_brewed = Arc::clone(&brewed);
+        let fail_first = AtomicBool::new(true);
+        let server = MachineServer::start(move |url| {
+            let brewed = machine_brewed.load(Ordering::Relaxed);
+            let latest = if brewed {
+                Some(new)
+            } else {
+                older_record.then_some(old)
+            };
+            match url.path() {
+                path if path == latest_route => {
+                    if fail_first.swap(false, Ordering::Relaxed) {
+                        Reply::bytes(503, "backend starting")
+                    } else {
+                        Reply::json(json!({"file": latest}))
+                    }
+                }
+                path if path == index_route => {
+                    let after = url
+                        .query_pairs()
+                        .find(|(key, _)| key == "after")
+                        .map(|(_, value)| value.into_owned());
+                    index(
+                        &[older_record.then_some(old), brewed.then_some(new)]
+                            .into_iter()
+                            .flatten()
+                            .filter(|path| after.as_deref().is_none_or(|cursor| *path > cursor))
+                            .map(str::to_string)
+                            .collect::<Vec<_>>(),
+                    )
+                }
+                "/api/v1/history/upload-index/last" | "/api/v1/history/pour-over/last" => {
+                    Reply::json(json!({"file": null}))
+                }
+                "/api/v1/history/upload-index" | "/api/v1/history/pour-over" => index(&[]),
+                path if path.starts_with("/api/v1/history/files/")
+                    || path.starts_with("/api/v1/history/pour-over/files/") =>
+                {
+                    let mut record = match kind {
+                        HistoryKind::Espresso => espresso(),
+                        HistoryKind::PourOver => pour_over(),
+                    };
+                    record["id"] = json!(path);
+                    Reply::json(record)
+                }
+                RECOVERY_PATH => {
+                    Reply::json(json!({"success":true,"imported":true,"deleted":false}))
+                }
+                _ => Reply::bytes(500, "unexpected route"),
+            }
+        });
+        let fixture = TestService::new(&server, false);
+        recovery_ready(&fixture);
+        fixture.service.worker_tick().unwrap_err();
+        let waiting = fixture.state().recovery.unwrap();
+        // Recovery of the healthy method must remain independent.
+        let (waiting_stream, healthy_stream) = match kind {
+            HistoryKind::Espresso => (&waiting.espresso, &waiting.pour_over),
+            HistoryKind::PourOver => (&waiting.pour_over, &waiting.espresso),
+        };
+        assert!(healthy_stream.exhausted);
+        fixture.reload();
+        brewed.store(true, Ordering::Relaxed);
+        fixture.service.request_history_scan().unwrap();
+        for _ in 0..8 {
+            recovery_ready(&fixture);
+            fixture.service.worker_tick().unwrap();
+        }
+        let progress = fixture.service.status().recovery.unwrap();
+        assert_eq!(
+            progress.added,
+            1 + u64::from(older_record),
+            "the brew made before the successful baseline retry must be recovered"
+        );
+        assert_eq!(progress.state, "completed");
+        assert!(
+            !waiting_stream.initialized,
+            "the failed method must wait to freeze its recovery snapshot"
+        );
+        assert!(
+            !server.requests().iter().any(|path| path == SHOT_PATH),
+            "recovered brews must not consume current Next Brew plans"
+        );
+        fixture.reload();
+        recovery_ready(&fixture);
+        fixture.service.worker_tick().unwrap();
+        assert_eq!(
+            fixture.service.status().recovery.unwrap().added,
+            progress.added
+        );
+    }
+}
+
+#[test]
+fn recovery_preserves_espresso_brew_after_failed_initial_baseline() {
+    recovery_after_failed_initial_baseline(HistoryKind::Espresso);
+}
+
+#[test]
+fn recovery_preserves_pour_over_brew_after_failed_initial_baseline() {
+    recovery_after_failed_initial_baseline(HistoryKind::PourOver);
+}
+
 #[test]
 fn automatic_recovery_requires_complete_connection_credentials() {
     for missing in ["authorization", "key", "version"] {

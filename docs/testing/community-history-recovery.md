@@ -58,6 +58,11 @@ recheck. Recovery remains pending while deferred records are unresolved. The
 list is bounded; when full, discovery waits rather than discarding unresolved
 file identities. The original machine file is not deleted.
 
+Each method establishes its durable live-history baseline before recovery captures
+its saved-history snapshot. If that initial read fails, only that method waits;
+the other method can recover normally. A brew saved before the baseline retry is
+covered by the later recovery snapshot, including after a Dial restart.
+
 Recovery reads the backend history index. A valid file left on disk without its
 database index row is outside the current recovery scope; directory salvage or
 index rebuilding is not implemented. The automated tests do not establish
@@ -100,6 +105,9 @@ a customer's machine history to manufacture test data.
 - Update a previously connected machine with no recovery job. Verify recovery
   starts without user action. Repeat with uploads paused: pause must stay in effect
   until the user resumes uploads, and no recovery network requests may occur.
+- Temporarily fail the first history baseline read for each method, save a brew
+  before the retry, then restore access. Verify it is recovered once without a
+  manual recheck; the other method must keep syncing during the failure.
 - Pause while work is pending, restart the Dial, and resume. Confirm progress
   continues without duplicates or a false completion message.
 - Make a new brew during recovery. Confirm ordinary upload still works and
