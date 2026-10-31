@@ -40,5 +40,8 @@
   "qt/tests/js/slowdownDetector.test.mts": {
     "../src/performance/slowdownDetector": "Core/SlowdownDetector.js",
     "../src/performance/slowdownMonitorConfig": "Core/SlowdownDetector.js"
+  },
+  "qt/tests/js/disturbanceResilience.test.mts": {
+    "../../qml/Dial/screens/settings/DisturbanceResilience": "screens/settings/DisturbanceResilience.js"
   }
 }
