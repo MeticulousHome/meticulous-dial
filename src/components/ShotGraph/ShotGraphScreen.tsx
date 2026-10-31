@@ -26,6 +26,7 @@ import {
   ExtendedProfile,
   useProfileContext
 } from '../../context/ProfileContext';
+import { readingOrZero } from '../../utils/sensorReading';
 
 const GRAPH_WIDTH = 270;
 const GRAPH_WRAPPER_HEIGHT = 220;
@@ -249,7 +250,7 @@ export const ShotGraph = ({
               <GraphValueSquare
                 style={{ backgroundColor: dataTypes[dataType].color }}
               />
-              {(selectedPoint?.shot[dataType] || 0.0).toFixed(
+              {readingOrZero(selectedPoint?.shot[dataType]).toFixed(
                 dataTypes[dataType].precision
               )}
             </GraphValueText>

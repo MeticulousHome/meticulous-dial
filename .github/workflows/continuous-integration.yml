@@ -55,12 +55,16 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Scale overlay (real components, simulated machine)
         run: npm run test:scale-overlay
+      - name: Shot graph (real components, backend-shaped shot)
+        run: npm run test:shot-graph
       - name: Keep the evidence of a failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: scale-overlay-regression
-          path: test-results/scale-overlay
+          name: component-regression
+          path: |
+            test-results/scale-overlay
+            test-results/shot-graph
           if-no-files-found: ignore
 
   build:

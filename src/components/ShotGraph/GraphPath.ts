@@ -1,5 +1,6 @@
 import { HistoryDataPoint } from '@meticulous-home/espresso-api';
 import { DataTypeKey, dataTypes } from '../../types/dataTypes';
+import { readingOrZero } from '../../utils/sensorReading';
 
 export const getYPosition = (
   value: number,
@@ -31,7 +32,7 @@ export const getGraphPath = (
   const endTime = last.time;
   const points: [number, number][] = dataPoints.map((data) => [
     (data.time - startTime) * (width / (endTime - startTime)),
-    getYPosition(data.shot[key], key, height)
+    getYPosition(readingOrZero(data.shot[key]), key, height)
   ]);
   const startIndex = Math.max(0, points.findIndex(([x]) => x >= 0) - 1);
   const activePoints = points.slice(startIndex);

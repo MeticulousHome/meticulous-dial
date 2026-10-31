@@ -2,6 +2,7 @@ import { HistoryDataPoint } from '@meticulous-home/espresso-api';
 import { useMemo } from 'react';
 import { colorBrandRed, colorGrayScale3 } from '../../constants/colors';
 import { GRAPH_AXIS_COLOR } from './ShotGraphScreen';
+import { readingOrZero } from '../../utils/sensorReading';
 
 export interface GraphDividersProps {
   width: number;
@@ -159,7 +160,12 @@ export const StartEndIndicator = ({
   const last = data[data.length - 1];
   return (
     <>
-      {valueText(width + 5, -5, (last?.shot.weight || 0.0).toFixed(1), 'g')}
+      {valueText(
+        width + 5,
+        -5,
+        readingOrZero(last?.shot.weight).toFixed(1),
+        'g'
+      )}
       {valueText(
         width + 5,
         height + 20,
