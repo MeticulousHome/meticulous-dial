@@ -22,8 +22,7 @@ import {
   errorMessage,
   initialIndex,
   isAvailable,
-  isEnabled,
-  menuLabel
+  isEnabled
 } from '../../qml/Dial/screens/settings/DisturbanceResilience.js';
 
 test('uses the backend setting key and the contract copy', () => {
@@ -35,9 +34,9 @@ test('uses the backend setting key and the contract copy', () => {
 test('offers Disabled then Enabled, each saving its value with its own copy', () => {
   assert.deepEqual(CHOICES.map((c) => [c.label, c.value]), [['Disabled', false], ['Enabled', true]]);
   assert.equal(CHOICES[0].copy,
-    'The machine will prioritize the weight target over scale disturbances on high flow profiles.');
+    'The machine will prioritize the weight target over scale disturbances.');
   assert.equal(CHOICES[1].copy,
-    'The machine will prioritize ignoring scale disturbances over the weight target on high flow profiles.');
+    'The machine will prioritize ignoring scale disturbances over the weight target.');
 });
 
 test('opens on the stored choice, Disabled while unknown', () => {
@@ -53,10 +52,6 @@ test('shows the value the backend has, off when absent or unknown', () => {
   assert.equal(isEnabled(null), false);
   // Only a real boolean true counts: a stray string from a bad config is not "on".
   assert.equal(isEnabled({ disturbance_resilience: 'false' }), false);
-  assert.equal(menuLabel({ disturbance_resilience: true }), 'disturbance resilience: ENABLED');
-  assert.equal(menuLabel({}), 'disturbance resilience: DISABLED');
-  // Before the settings load the item has no value, like the other config entries.
-  assert.equal(menuLabel(null), 'disturbance resilience');
 });
 
 test('is hidden only when the machine reports its firmware cannot store it', () => {

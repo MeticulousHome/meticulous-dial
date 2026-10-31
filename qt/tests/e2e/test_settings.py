@@ -125,13 +125,12 @@ def wait_for_focused(screen, label, timeout_s=5):
 
 def test_config_lists_its_entries_with_their_values(screen, backend):
     """Protects: the config menu (Settings.tsx): its entries in order, sounds with its value, Community
-    with its connection state (not connected without the uploader), disturbance resilience with its value
-    unless the machine reports disturbance_resilience_supported: false."""
+    with its connection state (not connected without the uploader), disturbance resilience (no value: config
+    cuts long labels) unless the machine reports disturbance_resilience_supported: false."""
     s = settings(backend)
     _, info = backend.get("/api/v1/machine")
     open_config(screen)
-    resilience = [] if info.get("disturbance_resilience_supported") is False else [
-        "disturbance resilience: " + ("ENABLED" if s.get("disturbance_resilience") is True else "DISABLED")]
+    resilience = [] if info.get("disturbance_resilience_supported") is False else ["disturbance resilience"]
     assert walk(screen) == ["Device Info", "Community: Not connected", "time & date",
                             "sounds: " + ("ENABLED" if s["enable_sounds"] else "DISABLED"),
                             "calibrate scale", "Scroll Directions", *resilience, "Advanced Settings", "Back"]
@@ -162,7 +161,7 @@ def test_disturbance_resilience_screen_saves_the_focused_choice(screen, backend,
         assert not any(f.startswith("disturbance resilience") for f in walk(screen))
         return
     before = settings(backend).get("disturbance_resilience") is True
-    screen.select("disturbance resilience:")
+    screen.select("disturbance resilience")
     screen.wait_for_route("disturbanceResilience", timeout_s=5)
     wait_for_focused(screen, "Enabled" if before else "Disabled")
     copy = {"Disabled": "weight target over scale disturbances", "Enabled": "ignoring scale disturbances"}

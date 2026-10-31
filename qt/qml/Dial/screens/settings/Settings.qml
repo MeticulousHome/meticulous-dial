@@ -44,8 +44,6 @@ Item {
                 label = "Community: " + (state === "connected" ? "Connected" : state === "upload_paused" ? "Upload paused" : "Not connected")
             else if (item.key === "enable_sounds")
                 label = item.label + ": " + (settings.enable_sounds ? "ENABLED" : "DISABLED")
-            else if (item.key === DisturbanceResilience.SETTING_KEY)
-                label = DisturbanceResilience.menuLabel(settings)
             return { key: item.key, label: label }
         })
     }
