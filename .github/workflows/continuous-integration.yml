@@ -62,6 +62,15 @@ jobs:
           name: scale-overlay-regression
           path: test-results/scale-overlay
           if-no-files-found: ignore
+      - name: Community saved-brew recovery (real components, simulated machine)
+        run: npm run test:community-upload
+      - name: Keep saved-brew recovery evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: community-upload-regression
+          path: test-results/community-upload
+          if-no-files-found: ignore
 
   build:
     name: build
