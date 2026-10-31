@@ -42,7 +42,8 @@ type ShotDataSharingViewProps = {
   title: string;
   copy: string;
   footnote?: string;
-  actions: ShotDataSharingAction[];
+  // Any row of pills; also used by the disturbance resilience screen.
+  actions: ReadonlyArray<{ key: string; label: string }>;
   activeIndex: number;
   busy?: boolean;
   error?: boolean;

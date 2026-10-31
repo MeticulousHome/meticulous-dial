@@ -1,16 +1,16 @@
-// Disturbance resilience in advanced settings.
+// Disturbance resilience: config menu item and its full screen.
 //
 // 1. Regression a user at the machine would see: when the machine refuses the
-//    save (old firmware, ESP NVS write failed, timeout), the Dial must keep the
-//    old value and surface the backend's reason. Before, every refused setting
-//    reached the Dial as "Network error while updating settings.", because the
+//    save (old firmware, ESP NVS write failed, timeout), the screen must stay
+//    and surface the backend's reason. Before, every refused setting reached
+//    the Dial as "Network error while updating settings.", because the
 //    espresso-api client resolves HTTP 400 and the error thrown from its body
-//    was re-caught as a network error. The label must also never show the new
-//    value before the backend confirmed it.
+//    was re-caught as a network error.
 // 2. Expected values: the backend contract for POST /api/v1/settings
 //    (HTTP 400 `{"status": "error", "error": "<message>"}`, messages quoted
-//    verbatim), the espresso-api client accepting 400 (validateStatus), and
-//    the setting's default (off when absent); labels from disturbanceResilience.ts.
+//    verbatim), the espresso-api client accepting 400 (validateStatus), the
+//    setting's default (off when absent), and the screen copy and menu label
+//    from the product spec, quoted verbatim.
 // 3. Restoring the old updateSettings catch block fails the first test; the
 //    suite had no test of settings saves before.
 import assert from 'node:assert/strict';
@@ -21,8 +21,10 @@ import {
   SETTINGS_UPDATE_NETWORK_ERROR
 } from '../src/api/settingsUpdate.ts';
 import {
-  DISTURBANCE_RESILIENCE_LABEL,
+  DISTURBANCE_RESILIENCE_OPTIONS,
+  disturbanceResilienceCopy,
   disturbanceResilienceLabel,
+  initialDisturbanceResilienceIndex,
   showDisturbanceResilience
 } from '../src/utils/disturbanceResilience.ts';
 
@@ -82,26 +84,50 @@ test('a confirmed save returns the settings the backend sent', async () => {
   );
 });
 
-test('the label shows only the confirmed value, off when absent', () => {
-  const off = `${DISTURBANCE_RESILIENCE_LABEL}: DISABLED`;
-  const on = `${DISTURBANCE_RESILIENCE_LABEL}: ENABLED`;
-  assert.equal(disturbanceResilienceLabel({ settings: {} }), off);
-  assert.equal(disturbanceResilienceLabel({ settings: undefined }), off);
+test('the menu label shows the stored value, off when absent', () => {
   assert.equal(
-    disturbanceResilienceLabel({
-      settings: { disturbance_resilience: true }
-    }),
-    on
-  );
-  // Switching on is in flight or was refused: still the old value.
-  assert.equal(
-    disturbanceResilienceLabel({ settings: {}, saving: true }),
-    `${off} (saving)`
+    disturbanceResilienceLabel({}),
+    'disturbance resilience: DISABLED'
   );
   assert.equal(
-    disturbanceResilienceLabel({ settings: {}, failed: true }),
-    `${off} (not saved)`
+    disturbanceResilienceLabel({ disturbance_resilience: false }),
+    'disturbance resilience: DISABLED'
   );
+  assert.equal(
+    disturbanceResilienceLabel({ disturbance_resilience: true }),
+    'disturbance resilience: ENABLED'
+  );
+  // Settings not loaded yet: no value, like the other config items.
+  assert.equal(disturbanceResilienceLabel(undefined), 'disturbance resilience');
+});
+
+test('the screen has a Disabled and an Enabled pill saving false and true', () => {
+  assert.deepEqual(
+    DISTURBANCE_RESILIENCE_OPTIONS.map(({ label, value }) => [label, value]),
+    [
+      ['Disabled', false],
+      ['Enabled', true]
+    ]
+  );
+});
+
+test('the screen opens focused on the stored value, Disabled when unknown', () => {
+  const label = (settings?: { disturbance_resilience?: boolean }) =>
+    DISTURBANCE_RESILIENCE_OPTIONS[initialDisturbanceResilienceIndex(settings)]
+      .label;
+  assert.equal(label({ disturbance_resilience: true }), 'Enabled');
+  assert.equal(label({ disturbance_resilience: false }), 'Disabled');
+  assert.equal(label({}), 'Disabled');
+  assert.equal(label(undefined), 'Disabled');
+});
+
+test('the copy follows the focused pill', () => {
+  const disabled =
+    'The machine will prioritize the weight target over scale disturbances on high flow profiles.';
+  const enabled =
+    'The machine will prioritize ignoring scale disturbances over the weight target on high flow profiles.';
+  assert.equal(disturbanceResilienceCopy(0), disabled);
+  assert.equal(disturbanceResilienceCopy(1), enabled);
 });
 
 test('the item is hidden only when the machine says it is unsupported', () => {

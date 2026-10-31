@@ -61,6 +61,7 @@ import { ShotDataSharingPrompt } from '../components/ShotDataSharing/ShotDataSha
 import { Manufacturing } from '../components/Settings/Advanced/Manufacturing';
 import { RetractionSettingGauge } from '../components/Settings/Advanced/RetractionVolume';
 import { TareBehaviorSetting } from '../components/Settings/TareBehavior';
+import { DisturbanceResilience } from '../components/Settings/DisturbanceResilience';
 import { useProfileContext } from '../context/ProfileContext';
 import { DisplayAlignment } from '../components/Settings/Advanced/DisplayAlignment';
 import {
@@ -469,6 +470,10 @@ export const routes: Record<ScreenType, Route> = {
   },
   helpUsImprove: {
     component: HelpUsImprove,
+    bottomStatusHidden: true
+  },
+  disturbanceResilience: {
+    component: DisturbanceResilience,
     bottomStatusHidden: true
   },
   reportContactEmail: {
