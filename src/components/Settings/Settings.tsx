@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import './settings.css'; //verify this :D
 import '../PressetSettings/pressetSettings.css';
@@ -16,6 +16,11 @@ import Styled, { VIEWPORT_HEIGHT } from '../../styles/utils/mixins';
 import { calculateOptionPosition } from '../../styles/utils/calculateOptionPosition';
 import type { Settings } from '@meticulous-home/espresso-api';
 import { useCommunityUploadStatus } from '../../hooks/useCommunityUpload';
+import { useDeviceInfo } from '../../hooks/useDeviceOSStatus';
+import {
+  DISTURBANCE_RESILIENCE_LABEL,
+  showDisturbanceResilience
+} from '../../utils/disturbanceResilience';
 
 const initialSettings: SettingsItem[] = [
   {
@@ -49,6 +54,10 @@ const initialSettings: SettingsItem[] = [
     label: 'Scroll Directions'
   },
   {
+    key: 'disturbance_resilience',
+    label: DISTURBANCE_RESILIENCE_LABEL
+  },
+  {
     key: 'advanced',
     label: 'Advanced Settings'
   },
@@ -66,14 +75,19 @@ export function Settings(): JSX.Element {
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
   const updateSettings = useUpdateSettings();
   const communityStatus = useCommunityUploadStatus();
+  const { data: deviceInfo } = useDeviceInfo();
+  const disturbanceResilienceVisible = showDisturbanceResilience(deviceInfo);
 
   const updatedSettings = useMemo(() => {
+    const baseSettings = disturbanceResilienceVisible
+      ? initialSettings
+      : initialSettings.filter((item) => item.key !== 'disturbance_resilience');
     if (!isSuccess) {
-      return initialSettings.map((item) => ({
+      return baseSettings.map((item) => ({
         ...item
       }));
     }
-    return initialSettings.map((item) => ({
+    return baseSettings.map((item) => ({
       ...item,
       label:
         item.key === 'community'
@@ -88,7 +102,17 @@ export function Settings(): JSX.Element {
             ? `${item.label}: ${item.getLabel(globalSettings)}`
             : item.label
     }));
-  }, [communityStatus.data?.state, globalSettings, isSuccess]);
+  }, [
+    communityStatus.data?.state,
+    disturbanceResilienceVisible,
+    globalSettings,
+    isSuccess
+  ]);
+
+  // The list shrinks if the machine info says the setting is unsupported.
+  useEffect(() => {
+    setActiveIndex((prev) => Math.min(prev, updatedSettings.length - 1));
+  }, [updatedSettings.length]);
 
   useHandleGestures(
     {
@@ -108,6 +132,19 @@ export function Settings(): JSX.Element {
               setBubbleDisplay({ visible: true, component: 'deviceInfo' })
             );
             break;
+          case 'disturbance_resilience': {
+            // Full screen route: keep gestures blocked until the bubble has
+            // closed so the release of this press cannot select a pill.
+            dispatch(
+              setBubbleDisplay({
+                visible: false,
+                component: undefined,
+                interceptsGesture: true
+              })
+            );
+            dispatch(setScreen('disturbanceResilience'));
+            break;
+          }
           case 'advanced': {
             dispatch(
               setBubbleDisplay({ visible: true, component: 'advancedSettings' })
