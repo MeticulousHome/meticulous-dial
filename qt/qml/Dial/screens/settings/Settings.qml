@@ -48,14 +48,9 @@ Item {
         })
     }
 
-    // The bubble keeps this menu instead of mounting it each time (Bubble.kept): start as a fresh mount.
-    function bubbleShown() {
-        // Whether the firmware can store disturbance resilience comes with the machine info.
-        Device.refreshInfo()
-        menu.animated = false
-        menu.activeIndex = 0
-        menu.animated = true
-    }
+    // Mounted each time config opens (not in Bubble.kept), so it asks then: whether the firmware can store
+    // disturbance resilience comes with the machine info (useDeviceInfo refetched on mount in React).
+    Component.onCompleted: Device.refreshInfo()
 
     GestureHandler {
         enabled: Nav.bubbleInterceptsGesture
