@@ -14,7 +14,7 @@ import pytest
 # The settings these tests may change; `restore` puts them back.
 TOUCHED = ["enable_sounds", "auto_start_shot", "auto_purge_after_shot", "partial_retraction", "tare_behavior",
            "reverse_scrolling", "ssh_enabled", "update_channel", "idle_screen", "clock_format_24_hour",
-           "timezone_sync", "time_zone"]
+           "timezone_sync", "time_zone", "disturbance_resilience"]
 
 PISTON_AREA_MM2 = math.pi * 26.5 * 26.5
 
@@ -125,12 +125,15 @@ def wait_for_focused(screen, label, timeout_s=5):
 
 def test_config_lists_its_entries_with_their_values(screen, backend):
     """Protects: the config menu (Settings.tsx): its entries in order, sounds with its value, Community
-    with its connection state (not connected without the uploader)."""
+    with its connection state (not connected without the uploader), disturbance resilience (no value: config
+    cuts long labels) unless the machine reports disturbance_resilience_supported: false."""
     s = settings(backend)
+    _, info = backend.get("/api/v1/machine")
     open_config(screen)
+    resilience = [] if info.get("disturbance_resilience_supported") is False else ["disturbance resilience"]
     assert walk(screen) == ["Device Info", "Community: Not connected", "time & date",
                             "sounds: " + ("ENABLED" if s["enable_sounds"] else "DISABLED"),
-                            "calibrate scale", "Scroll Directions", "Advanced Settings", "Back"]
+                            "calibrate scale", "Scroll Directions", *resilience, "Advanced Settings", "Back"]
     screen.select("Back")
     screen.wait_for_bubble("quick-settings")
 
@@ -145,6 +148,43 @@ def test_sounds_are_toggled_from_config(screen, backend, restore):
     wait_for_focused(screen, "sounds: " + ("ENABLED" if not before else "DISABLED"))
     screen.controls.push()
     wait_for_setting(backend, "enable_sounds", before)
+
+
+def test_disturbance_resilience_screen_saves_the_focused_choice(screen, backend, restore):
+    """Protects: config > disturbance resilience opens its own screen on the stored choice, the copy follows
+    the focused pill, and a push saves that pill's value and returns to config, but only once the backend
+    saved it (the firmware stores it). Where the machine cannot store it (firmware without the feature) the
+    item is hidden. Expected values: DisturbanceResilience.js CHOICES and the backend's GET /settings."""
+    _, info = backend.get("/api/v1/machine")
+    open_config(screen)
+    if info.get("disturbance_resilience_supported") is False:
+        assert not any(f.startswith("disturbance resilience") for f in walk(screen))
+        return
+    before = settings(backend).get("disturbance_resilience") is True
+    screen.select("disturbance resilience")
+    screen.wait_for_route("disturbanceResilience", timeout_s=5)
+    wait_for_focused(screen, "Enabled" if before else "Disabled")
+    copy = {"Disabled": "weight target over scale disturbances", "Enabled": "ignoring scale disturbances"}
+    assert any(copy["Enabled" if before else "Disabled"] in t for t in screen.texts())
+
+    if before:
+        screen.controls.left()
+    else:
+        screen.controls.right()
+    target = "Disabled" if before else "Enabled"
+    wait_for_focused(screen, target)
+    assert any(copy[target] in t for t in screen.texts())
+    screen.controls.push()
+    if info.get("disturbance_resilience_supported"):
+        wait_for_setting(backend, "disturbance_resilience", not before)
+        screen.wait_for_bubble("settings")
+    else:
+        # A backend without the field cannot save it on the machine: it refuses and the screen says so.
+        deadline = time.monotonic() + 7
+        while not screen.has_text("Could not save your choice. Please try again.") and time.monotonic() < deadline:
+            time.sleep(0.1)
+        assert screen.has_text("Could not save your choice. Please try again.")
+        assert (settings(backend).get("disturbance_resilience") is True) == before
 
 
 def test_calibrate_scale_closes_the_menu_and_opens_the_calibration(screen):

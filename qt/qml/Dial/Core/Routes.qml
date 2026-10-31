@@ -38,7 +38,7 @@ QtObject {
         "deviceInfo", "updateChannel", "idleScreenSettings", "manualSetup", "shot_history", "freePour",
         "guidedPourOver", "freePourHistory", "idle", "brewSettings", "experimentalSettings", "scrollDirections",
         "brewComplete", "factoryReset", "helpUsImprove", "reportContactEmail", "shotDataSharingPrompt",
-        "displayAlignment", "unlock"
+        "displayAlignment", "unlock", "disturbanceResilience"
     ]
 
     readonly property var table: ({
@@ -109,6 +109,7 @@ QtObject {
         brewComplete: { url: s("brew/BrewCompleteScreen.qml"), title: "Brew complete", bottomStatusHidden: true },
         factoryReset: { url: s("settings/FactoryReset.qml"), bottomStatusHidden: true },
         helpUsImprove: { url: s("support/HelpUsImprove.qml"), bottomStatusHidden: true },
+        disturbanceResilience: { url: s("settings/DisturbanceResilienceScreen.qml"), bottomStatusHidden: true },
         // Only ever reached from the bug report bubble, which it reopens itself.
         reportContactEmail: { url: s("support/ReportContactEmail.qml"), bottomStatusHidden: true, ignoreAsPrevious: true },
         // Deliberately a valid "previous" screen: after a notification or the idle screen the dial returns

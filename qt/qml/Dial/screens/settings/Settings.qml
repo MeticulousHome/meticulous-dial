@@ -1,9 +1,11 @@
 // "config" of the quick settings (src/components/Settings/Settings.tsx), in the bubble: Device Info,
 // Community (with its connection state), time & date, sounds (toggled here), calibrate scale, Scroll
-// Directions, Advanced Settings, Back. Labels without values until the settings arrive. Unlike the other
+// Directions, disturbance resilience (its own screen; hidden when the firmware cannot store it), Advanced
+// Settings, Back. Labels without values until the settings arrive. Unlike the other
 // menus this one never scrolls a long label in the bar.
 import QtQuick
 import Dial
+import "DisturbanceResilience.js" as DisturbanceResilience
 
 Item {
     id: screen
@@ -24,14 +26,19 @@ Item {
         { key: "enable_sounds", label: "sounds" },
         { key: "calibrate", label: "calibrate scale" },
         { key: "scroll_directions", label: "Scroll Directions" },
+        { key: DisturbanceResilience.SETTING_KEY, label: DisturbanceResilience.LABEL },
         { key: "advanced", label: "Advanced Settings" },
         { key: "back", label: "Back" }
     ]
 
+    readonly property bool disturbanceResilienceAvailable: DisturbanceResilience.isAvailable(Device.info)
+    readonly property var visibleSettings: initialSettings.filter(item =>
+        disturbanceResilienceAvailable || item.key !== DisturbanceResilience.SETTING_KEY)
+
     readonly property var options: {
-        if (!settings) return initialSettings
+        if (!settings) return visibleSettings
         const state = communityStatus ? communityStatus.state : undefined
-        return initialSettings.map(item => {
+        return visibleSettings.map(item => {
             let label = item.label
             if (item.key === "community")
                 label = "Community: " + (state === "connected" ? "Connected" : state === "upload_paused" ? "Upload paused" : "Not connected")
@@ -43,6 +50,8 @@ Item {
 
     // The bubble keeps this menu instead of mounting it each time (Bubble.kept): start as a fresh mount.
     function bubbleShown() {
+        // Whether the firmware can store disturbance resilience comes with the machine info.
+        Device.refreshInfo()
         menu.animated = false
         menu.activeIndex = 0
         menu.animated = true
@@ -77,6 +86,12 @@ Item {
                 break
             case "scroll_directions":
                 Nav.openBubble("scrollDirections")
+                break
+            case DisturbanceResilience.SETTING_KEY:
+                // Like Help us improve: the hidden bubble keeps the gestures, so the release of this press
+                // cannot click through and save on the screen.
+                Nav.setBubbleDisplay({ visible: false, component: "", interceptsGesture: true })
+                Nav.setScreen("disturbanceResilience")
                 break
             case "back":
                 Nav.openBubble("quick-settings")
