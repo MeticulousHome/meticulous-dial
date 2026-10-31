@@ -1,6 +1,8 @@
 // "Disturbance resilience": the backend setting `disturbance_resilience`
-// (default off), saved on the machine's ESP32. Listed in the config menu and
-// changed on its own full screen with a Disabled and an Enabled pill.
+// (default off), saved on the machine's ESP32. Listed in the config menu
+// without its value (that menu cuts long labels, which left
+// "disturbance resilience:"), and changed on its own full screen with a
+// Disabled and an Enabled pill.
 
 export const DISTURBANCE_RESILIENCE_LABEL = 'disturbance resilience';
 export const DISTURBANCE_RESILIENCE_TITLE = 'Disturbance resilience';
@@ -23,9 +25,7 @@ export const DISTURBANCE_RESILIENCE_OPTIONS: DisturbanceResilienceOption[] = [
     key: 'disabled',
     label: 'Disabled',
     value: false,
-    copy:
-      'The machine will prioritize the weight target over scale ' +
-      'disturbances on high flow profiles.'
+    copy: 'The machine will prioritize the weight target over scale disturbances.'
   },
   {
     key: 'enabled',
@@ -33,7 +33,7 @@ export const DISTURBANCE_RESILIENCE_OPTIONS: DisturbanceResilienceOption[] = [
     value: true,
     copy:
       'The machine will prioritize ignoring scale disturbances over the ' +
-      'weight target on high flow profiles.'
+      'weight target.'
   }
 ];
 
@@ -45,18 +45,6 @@ export const isDisturbanceResilienceOn = (
 export const showDisturbanceResilience = (
   machine?: { disturbance_resilience_supported?: boolean } | null
 ): boolean => machine?.disturbance_resilience_supported !== false;
-
-/**
- * Config menu label. Without settings (not loaded yet) it has no value, like
- * the other items in that menu.
- */
-export function disturbanceResilienceLabel(
-  settings?: DisturbanceResilienceSettings
-): string {
-  if (!settings) return DISTURBANCE_RESILIENCE_LABEL;
-  const value = isDisturbanceResilienceOn(settings) ? 'ENABLED' : 'DISABLED';
-  return `${DISTURBANCE_RESILIENCE_LABEL}: ${value}`;
-}
 
 /** The pill focused when the screen opens: the stored value, else Disabled. */
 export const initialDisturbanceResilienceIndex = (

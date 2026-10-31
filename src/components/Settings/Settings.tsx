@@ -19,7 +19,6 @@ import { useCommunityUploadStatus } from '../../hooks/useCommunityUpload';
 import { useDeviceInfo } from '../../hooks/useDeviceOSStatus';
 import {
   DISTURBANCE_RESILIENCE_LABEL,
-  disturbanceResilienceLabel,
   showDisturbanceResilience
 } from '../../utils/disturbanceResilience';
 
@@ -91,19 +90,17 @@ export function Settings(): JSX.Element {
     return baseSettings.map((item) => ({
       ...item,
       label:
-        item.key === 'disturbance_resilience'
-          ? disturbanceResilienceLabel(globalSettings)
-          : item.key === 'community'
-            ? `Community: ${
-                communityStatus.data?.state === 'connected'
-                  ? 'Connected'
-                  : communityStatus.data?.state === 'upload_paused'
-                    ? 'Upload paused'
-                    : 'Not connected'
-              }`
-            : item.getLabel
-              ? `${item.label}: ${item.getLabel(globalSettings)}`
-              : item.label
+        item.key === 'community'
+          ? `Community: ${
+              communityStatus.data?.state === 'connected'
+                ? 'Connected'
+                : communityStatus.data?.state === 'upload_paused'
+                  ? 'Upload paused'
+                  : 'Not connected'
+            }`
+          : item.getLabel
+            ? `${item.label}: ${item.getLabel(globalSettings)}`
+            : item.label
     }));
   }, [
     communityStatus.data?.state,

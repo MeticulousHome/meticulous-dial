@@ -23,7 +23,7 @@ import {
 import {
   DISTURBANCE_RESILIENCE_OPTIONS,
   disturbanceResilienceCopy,
-  disturbanceResilienceLabel,
+  DISTURBANCE_RESILIENCE_LABEL,
   initialDisturbanceResilienceIndex,
   showDisturbanceResilience
 } from '../src/utils/disturbanceResilience.ts';
@@ -84,21 +84,8 @@ test('a confirmed save returns the settings the backend sent', async () => {
   );
 });
 
-test('the menu label shows the stored value, off when absent', () => {
-  assert.equal(
-    disturbanceResilienceLabel({}),
-    'disturbance resilience: DISABLED'
-  );
-  assert.equal(
-    disturbanceResilienceLabel({ disturbance_resilience: false }),
-    'disturbance resilience: DISABLED'
-  );
-  assert.equal(
-    disturbanceResilienceLabel({ disturbance_resilience: true }),
-    'disturbance resilience: ENABLED'
-  );
-  // Settings not loaded yet: no value, like the other config items.
-  assert.equal(disturbanceResilienceLabel(undefined), 'disturbance resilience');
+test('the config item is the plain label, with no value to cut after a colon', () => {
+  assert.equal(DISTURBANCE_RESILIENCE_LABEL, 'disturbance resilience');
 });
 
 test('the screen has a Disabled and an Enabled pill saving false and true', () => {
@@ -123,9 +110,9 @@ test('the screen opens focused on the stored value, Disabled when unknown', () =
 
 test('the copy follows the focused pill', () => {
   const disabled =
-    'The machine will prioritize the weight target over scale disturbances on high flow profiles.';
+    'The machine will prioritize the weight target over scale disturbances.';
   const enabled =
-    'The machine will prioritize ignoring scale disturbances over the weight target on high flow profiles.';
+    'The machine will prioritize ignoring scale disturbances over the weight target.';
   assert.equal(disturbanceResilienceCopy(0), disabled);
   assert.equal(disturbanceResilienceCopy(1), enabled);
 });
