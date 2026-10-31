@@ -24,7 +24,11 @@ export const DeviceInfoScreen = () => {
     const { repository_info, ...basicData } = deviceInfo;
 
     const basicInfo = Object.entries(basicData)
-      .filter(([key]) => key !== 'tare_behavior_supported')
+      .filter(
+        ([key]) =>
+          key !== 'tare_behavior_supported' &&
+          key !== 'disturbance_resilience_supported'
+      )
       .map(([key, value]) => ({
         key,
         label: `${key}: ${typeof value === 'boolean' ? `${value ? 'ENABLED' : 'DISABLED'}` : (value ?? 'UNSET')}`

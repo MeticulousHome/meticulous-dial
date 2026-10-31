@@ -3,9 +3,13 @@ import {
   Settings as APISettings
 } from '@meticulous-home/espresso-api';
 import { api } from './api';
+import { applySettingsUpdate } from './settingsUpdate';
 
-// The backend supports this field; the published API type does not yet include it.
-export type Settings = APISettings & { clock_format_24_hour?: boolean };
+// The backend supports these fields; the published API type does not yet include them.
+export type Settings = APISettings & {
+  clock_format_24_hour?: boolean;
+  disturbance_resilience?: boolean;
+};
 
 export async function getSettings(): Promise<Settings> {
   try {
@@ -31,24 +35,10 @@ export async function getSettings(): Promise<Settings> {
 export async function updateSettings(
   update: Partial<Settings>
 ): Promise<Settings> {
-  try {
-    const response = await api.updateSetting(update);
-    const data = response.data;
-    if (data && 'error' in data) {
-      throw new Error((data as APIError).error);
-    }
-    return data as Settings;
-  } catch (error) {
-    if (error.response) {
-      console.error('Error updating settings: ', error.response.data);
-      throw new Error(
-        error.response.data?.message || 'Error updating settings.'
-      );
-    } else {
-      console.error('Network error while updating settings:', error.message);
-      throw new Error('Network error while updating settings.');
-    }
-  }
+  return applySettingsUpdate<Settings, Partial<Settings>>(
+    (body) => api.updateSetting(body),
+    update
+  );
 }
 
 export async function setTime(dateTime: Date): Promise<Settings> {

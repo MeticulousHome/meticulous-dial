@@ -21,6 +21,12 @@ import Styled, {
 import { calculateOptionPosition } from '../../../styles/utils/calculateOptionPosition';
 import { IdleScreens } from '../../../components/Settings/Advanced/IdleScreenSetting';
 import { isLimitedAccess, type Settings } from '@meticulous-home/espresso-api';
+import {
+  DISTURBANCE_RESILIENCE_LABEL,
+  disturbanceResilienceLabel,
+  isDisturbanceResilienceOn,
+  showDisturbanceResilience
+} from '../../../utils/disturbanceResilience';
 
 const initialSettings: SettingsItem[] = [
   {
@@ -28,6 +34,11 @@ const initialSettings: SettingsItem[] = [
     label: 'SSH',
     getLabel: (settings: Settings) =>
       settings.ssh_enabled ? 'ENABLED' : 'DISABLED'
+  },
+  {
+    key: 'disturbance_resilience',
+    label: DISTURBANCE_RESILIENCE_LABEL,
+    visible: true
   },
   {
     key: 'displayAlignment',
@@ -67,17 +78,26 @@ export const AdvancedSettings = () => {
   const updateSettings = useUpdateSettings();
   const [activeIndex, setActiveIndex] = useState(0);
   const bubbleDisplay = useAppSelector((state) => state.screen.bubbleDisplay);
-  const { refetch: fetchDeviceStatus } = useDeviceInfo();
+  const { data: deviceInfo, refetch: fetchDeviceStatus } = useDeviceInfo();
+  const [disturbanceResilienceSave, setDisturbanceResilienceSave] = useState<
+    'idle' | 'saving' | 'failed'
+  >('idle');
   const { data: rootPW } = useRootPassword();
 
   const { data: manufacturingSettings, isSuccess: isManufacturingSuccess } =
     useManufacturingSchema();
   const limitedAccess = isLimitedAccess(globalSettings);
 
+  const disturbanceResilienceVisible = showDisturbanceResilience(deviceInfo);
+
   const updatedSettings = useMemo(() => {
-    const baseSettings = limitedAccess
-      ? initialSettings.filter((item) => item.key !== 'set_update_channel')
-      : initialSettings;
+    const baseSettings = initialSettings.filter(
+      (item) =>
+        !(limitedAccess && item.key === 'set_update_channel') &&
+        !(
+          !disturbanceResilienceVisible && item.key === 'disturbance_resilience'
+        )
+    );
 
     if (!isSettingsSuccess) {
       return baseSettings.map((item) => ({
@@ -89,9 +109,15 @@ export const AdvancedSettings = () => {
       label:
         item.key === 'root_password'
           ? `${item.label}: ${rootPW || '*****'}`
-          : item.getLabel
-            ? `${item.label}: ${item.getLabel(globalSettings)}`
-            : item.label
+          : item.key === 'disturbance_resilience'
+            ? disturbanceResilienceLabel({
+                settings: globalSettings,
+                saving: disturbanceResilienceSave === 'saving',
+                failed: disturbanceResilienceSave === 'failed'
+              })
+            : item.getLabel
+              ? `${item.label}: ${item.getLabel(globalSettings)}`
+              : item.label
     }));
 
     const manufacturingOption =
@@ -123,6 +149,8 @@ export const AdvancedSettings = () => {
       }
     ];
   }, [
+    disturbanceResilienceSave,
+    disturbanceResilienceVisible,
     globalSettings,
     isManufacturingSuccess,
     isSettingsSuccess,
@@ -130,6 +158,18 @@ export const AdvancedSettings = () => {
     manufacturingSettings,
     rootPW
   ]);
+
+  // mutateAsync settles even if another setting is saved meanwhile, whereas
+  // per-call mutate() callbacks are dropped for all but the latest call.
+  const saveDisturbanceResilience = async (next: boolean) => {
+    setDisturbanceResilienceSave('saving');
+    try {
+      await updateSettings.mutateAsync({ disturbance_resilience: next });
+      setDisturbanceResilienceSave('idle');
+    } catch {
+      setDisturbanceResilienceSave('failed');
+    }
+  };
 
   useEffect(() => {
     setActiveIndex((prev) => Math.min(prev, updatedSettings.length - 1));
@@ -159,6 +199,14 @@ export const AdvancedSettings = () => {
               ssh_enabled: !globalSettings.ssh_enabled
             });
             break;
+          case 'disturbance_resilience': {
+            // One save at a time: the next value is computed from what the
+            // backend confirmed, and the label changes only on its answer.
+            if (disturbanceResilienceSave === 'saving') break;
+            const next = !isDisturbanceResilienceOn(globalSettings);
+            void saveDisturbanceResilience(next);
+            break;
+          }
           case 'set_update_channel':
             dispatch(
               setBubbleDisplay({ visible: true, component: 'updateChannel' })
