@@ -4,10 +4,13 @@
 # Makes the heating screen's bubbles (src/components/Heating/WaterBubbles.json) playable by LottieItem
 # (rlottie) and ready for the temperature gradient without a blend effect:
 #
-# 1. Each bubble's scale cycles with the expression loopOut() from a negative start time (st). rlottie runs
-#    no expressions, so every layer would hold its last key: the cycle is baked into keys in composition
-#    time (the qt-proto tools/lottie_qt.py idea). Before the first key a layer holds its first value, as
-#    loopOut() does (only after the last key does it cycle).
+# 1. Each bubble's scale runs the expression loopOut(). rlottie runs no expressions, so the cycle is baked
+#    into keys (the qt-proto tools/lottie_qt.py idea). Key times are composition frames, as lottie-web reads
+#    them: a shape layer's start time (st, negative here) does not move its keys. Read as layer time, the
+#    keys moved by each layer's st and the 60-314 loop no longer closed: every 8.8 s the bubbles jumped to
+#    other sizes. The last keys sit at the end of the file (374.7-375), so loopOut() does not cycle within
+#    the frames the Dial plays; it is baked anyway, from the last key on, as loopOut() does. Before the
+#    first key a layer holds its first value.
 # 2. The React screen multiplies a gradient over white bubbles on black (mix-blend-mode: multiply), which
 #    is the gradient wherever a bubble is. So the file is turned inside out: one shape layer, a black
 #    rectangle with a hole per bubble (even-odd fill; the bubbles never overlap, 12 px apart at their
@@ -22,14 +25,14 @@ import math
 import sys
 
 
-def bake(prop, st, op):
+def bake(prop, op):
     keys = prop["k"]
     t0, t1 = keys[0]["t"], keys[-1]["t"]
     period = t1 - t0
     out = []
     n = 0
     while True:
-        base = st + n * period
+        base = n * period
         if base + t0 > op + period:
             break
         # The last key of a cycle is the first key of the next one.
@@ -45,14 +48,13 @@ def bake(prop, st, op):
     return out
 
 
-def value_at_key_times(original_keys, st, t):
+def value_at_key_times(original_keys, t):
     """The original property at composition time t, with loopOut('cycle') semantics, at key times only."""
-    local = t - st
     t0, t1 = original_keys[0]["t"], original_keys[-1]["t"]
-    if local > t1:
-        local = t0 + (local - t0) % (t1 - t0)
+    if t > t1:
+        t = t0 + (t - t0) % (t1 - t0)
     for k in original_keys:
-        if abs(k["t"] - local) < 1e-6:
+        if abs(k["t"] - t) < 1e-6:
             return k["s"]
     return None
 
@@ -74,11 +76,11 @@ def main():
         assert ks["a"]["k"][:2] == transform["p"]["k"] and ellipse["p"]["k"] == [0, 0]
         assert ks["r"]["k"] == 0 and ks["o"]["k"] == 100 and layer["ip"] <= 0 and layer["op"] >= op
         diameter = ellipse["s"]["k"][0] * transform["s"]["k"][0] / 100
-        keys = bake(ks["s"], layer.get("st", 0), op)
+        keys = bake(ks["s"], op)
         # Every baked key holds the value the original has at that time (z is unused: ddd 0).
         for k in keys:
             if 0 <= k["t"] <= op:
-                expected = value_at_key_times(ks["s"]["k"], layer.get("st", 0), k["t"])
+                expected = value_at_key_times(ks["s"]["k"], k["t"])
                 if expected is not None and expected[:2] != k["s"][:2]:
                     raise SystemExit(f"layer {layer.get('ind')}: {k['s']} at {k['t']}, expected {expected}")
         size = []
