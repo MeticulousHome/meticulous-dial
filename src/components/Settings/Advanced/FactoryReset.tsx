@@ -14,6 +14,10 @@ export type StaticSettingsItem = SettingsItem & {
   useableWidthPercentage?: number;
 };
 
+// Factory image only: line workers reset machines all day, so the warning page
+// (which opens on Back) is the confirmation and no serial is typed.
+const REQUIRE_SERIAL_CONFIRMATION = false;
+
 export const FactoryReset = () => {
   const dispatch = useAppDispatch();
   const factoryReset = useFactoryReset();
@@ -52,6 +56,10 @@ export const FactoryReset = () => {
         const activeItem = settings[activeIndex].key;
         switch (activeItem) {
           case 'factory_reset':
+            if (!REQUIRE_SERIAL_CONFIRMATION) {
+              factoryReset.mutate();
+              break;
+            }
             setSerialInput('');
             setSerialRejected(false);
             setIsSerialPromptOpen(true);
