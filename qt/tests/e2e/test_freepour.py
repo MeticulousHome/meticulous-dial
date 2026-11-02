@@ -300,7 +300,14 @@ def test_a_free_pour_is_guided_by_the_scale_and_saved_to_the_pour_over_history(s
     screen.wait_for_text(f"{COFFEE_G:.0f}g")
     screen.wait_for_text(f"{WATER_G:.0f}g water")
     assert screen.probe("historyState") == "chart"
+    assert screen.probe("historySummarySelected") is True
+    summary = screen.probe("historySummaryValues")
+    assert int(summary[0]) >= 1, summary
+    assert summary[2:] == [f"{COFFEE_G:.0f}g", f"{WATER_G:.0f}g"], summary
+    screen.wait_for_text("Total time")
+    screen.wait_for_text("Turn dial to explore")
     screen.controls.right(2)
+    assert screen.probe("historySummarySelected") is False
     assert screen.probe("historySelectedMs") == 10000
     screen.controls.push()
     screen.wait_for_home()
@@ -542,7 +549,9 @@ def test_a_long_history_title_fits_the_measured_circular_safe_chord(screen):
         "startedAt": (now - timedelta(seconds=90)).isoformat().replace("+00:00", "Z"),
         "completedAt": now.isoformat().replace("+00:00", "Z"),
     })
-    session["recipe"].update({"profileName": profile_name})
+    session["recipe"].update({"profileName": profile_name, "targetWaterG": 360})
+    session["measurements"].update({"durationMs": 195_000, "waterPouredG": 355})
+    session["samples"][-1].update({"t": 195_000, "w": 355})
     screen.c.call({"cmd": "screen", "name": "freePourHistory"})
     screen.wait_for_route("freePourHistory")
     # Inject the completed brew directly: this is a layout test, and tying it to a particular backend's
@@ -556,6 +565,8 @@ def test_a_long_history_title_fits_the_measured_circular_safe_chord(screen):
     assert geometry["paintedWidth"] <= geometry["width"] + 0.5, geometry
     assert abs(geometry["x"] + geometry["width"] / 2 - 240) <= 0.5, geometry
     assert 14 <= geometry["pixelSize"] <= 22, geometry
+    assert screen.probe("historySummarySelected") is True
+    assert screen.probe("historySummaryValues") == ["1", "3:15", "360g", "355g"]
     screen.snapshot("circular-safe-title")
     screen.controls.double_push()
     screen.wait_for_home()
