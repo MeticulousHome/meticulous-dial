@@ -162,6 +162,22 @@ def test_heating_shows_the_temperature_its_target_and_the_time_left(screen, mach
     assert screen.probe("temperatureTarget") == 90
 
 
+def test_heating_bubbles_take_their_colours_from_the_four_bar_sensors(screen, machine):
+    """Protects: the bubbles showing where the heat is, hot at the top and cooler below (BubbleAnimation).
+
+    Limit: t_bar_up colours the top and t_bar_down the bottom, #F44D19 at the target (90) and #280B54 30 °C
+    below it; a sensor reading 0 follows the temperature the screen shows.
+    """
+    machine.status(name="heating", sensors={"t": 70})
+    screen.wait_for_route("heating")
+    machine.sensors(t_bar_up=90, t_bar_mu=83, t_bar_md=75, t_bar_down=60)
+    wait_for(lambda: screen.probe("bubbleColors") == ["#F44D19", "#D24743", "#922667", "#280B54"], 3, "the four colours")
+    wait_for(lambda: [c.upper() for c in screen.probe("bubbleStops")] == ["#F44D19", "#D24743", "#922667", "#280B54"], 3, "the colours drawn")
+    machine.sensors(t_bar_up=60, t_bar_mu=0, t_bar_md=0, t_bar_down=90)
+    # t = 70 is a third into the scale (the palette's 0.42 stop): the two sensors reading 0 take that colour.
+    wait_for(lambda: screen.probe("bubbleColors") == ["#280B54", "#65156E", "#65156E", "#F44D19"], 3, "the fallback")
+
+
 def test_heating_without_water_asks_for_it(screen, machine):
     """Protects: the "pour water" step of a shot (Pour water and click to continue)."""
     machine.status(name="heating", sensors={"t": 70})
@@ -170,7 +186,7 @@ def test_heating_without_water_asks_for_it(screen, machine):
     screen.wait_for_text("No water")
     screen.wait_for_text("Waiting...")
     screen.wait_for_text("Tap to retry")
-    assert screen.probe("bubbleGradient") == 0
+    assert screen.probe("bubbleColors") == ["#808080"] * 4
     # The bubbles finish their loop, then drain (frames 314-375).
     wait_for(lambda: screen.probe("bubbleSegment") == [314, 375], 15, "the bubbles draining")
     # Water again: the temperature comes back (the footer fades out and in, 600 ms), the bubbles restart.

@@ -19,7 +19,7 @@ ReadyAnimation.qml (boot) was done before and is untouched.
 |---|---|---|---|---|
 | Heating layout: ModularScreen halves (bubbles right-aligned at 58,104; options + temperatures centered in the right half), footer 250 px down | HeatingScreen.tsx, ModularScreen/modular.less | brew/HeatingScreen.qml | done | to the pixel against Chromium |
 | Water bubbles Lottie: 0-60 once, 60-314 looped (loopComplete re-segments), water gone: finish the loop then 314-375 once, water back: 0-314 at once; 29 fps (setSubframe false) | LottieBubbleAnimation.tsx, WaterBubbles.json | brew/BubbleAnimation.qml, lottie/brew-water-bubbles.json | done | segment queue reproduced on LottieItem (loops 1, onFinished); `loopOut()` baked (tools/bake_water_bubbles.py); starts only on changes after mount, like React |
-| Temperature gradient multiplied over the bubbles: 12 stops (grey, purple .. orange, rounded % stops), 1200 % tall, window at 20..90 °C, 0.5 s ease, grey without water | LottieBubbleAnimation.tsx GradientContainer | BubbleAnimation.qml | done | no blend effect: the baked file is black with bubble-shaped holes over the gradient (= white bubbles × gradient), see "Differences" |
+| Gradient multiplied over the bubbles: purple .. orange palette (rounded % stops), four stops from t_bar_up (top) to t_bar_down (bottom) on a scale of target - 30 °C .. target (90 without one), 0.5 s ease, grey without water | LottieBubbleAnimation.tsx GradientContainer | BubbleAnimation.qml, BrewLogic.js bubbleColors | done, differs from React | no blend effect: the baked file is black with bubble-shaped holes over the gradient (= white bubbles × gradient); React colours the box from one temperature, see "Differences" |
 | Rolling temperature (AnimatedCounter: digit columns, spring 328 / 22 / 0.84, retarget halves velocity, columns kept by position) | Temperatures.tsx, react-animated-counter 1.9 | brew/RollingNumber.qml, Temperature.qml | done | FrameAnimation steps the same integration; the colour pulse is the same colour here, not drawn |
 | Target (cached setpoint, last profile's temperature fallback), "Target" label, fade 300 ms out when heating ends | HeatingScreen.tsx | HeatingScreen.qml | done | |
 | Estimated time: "a few seconds" (≤ 2 °C), "less than 30 seconds" (≤ 5), m:ss in 15 s steps, "stabilizing..." without setpoint, "Waiting... / Tap to retry" without water | HeatingScreen.tsx preheatTimeLeft | BrewLogic.js preheatTimeLeft | done | |
@@ -67,6 +67,10 @@ meterGeometry, manualTarget and trailGeometry against BrewLogic.js / BarometerLo
   inverted track matte would do the same, but rlottie's mattes top out at alpha 251 and leak 1.6 % of the
   gradient into the black. Same pixels, except the React gradient box is 1 px narrower and shorter than the
   bubbles (169 x 269), which only matters if a bubble touches the right edge.
+- The bubbles' colour: React slides a 12x tall gradient by the one temperature (20..90 °C); here the box is
+  four stops, one per bar sensor (t_bar_up, t_bar_mu, t_bar_md, t_bar_down, evenly spaced top to bottom) on a
+  scale that ends in orange at the profile's temperature (90 °C without one) and starts 30 °C below. A reading
+  that is missing, <= 0 or > 500 uses the temperature the screen shows, and a stop with neither is grey. Readings are rounded to the degree.
 - Inactive heating option rows: Chromium draws a faint 1 px yellow line at their left edge (the gradient's
   hard stop on the edge); not reproduced.
 - The purge Lotties are cropped to their drawn area; the mini piston's file is fixed for rlottie (integer

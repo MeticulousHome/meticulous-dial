@@ -84,21 +84,49 @@ function sensorErrorLabel(temperature) {
     return "Unknown sensor error"
 }
 
-// ---- src/components/Heating/LottieBubbleAnimation.tsx: where the temperature sits on the gradient, as
-// the background-position-y percentage (0 = grey, without water).
+// ---- src/components/Heating/LottieBubbleAnimation.tsx: the palette (the CSS gradient's stops, rounded %).
 const GRADIENT_COLORS = ["grey", "#280B54", "#280B54", "#480B6A", "#65156E", "#82206C", "#9F2A63", "#BB3755",
                          "#D44842", "#E8602D", "#F44D19", "#F44D19"]
-const GRADIENT_TEMP_RANGE_START = 2
-const TEMP_RANGE_START = 20
-const TEMP_RANGE_END = 90
-function bubbleGradientOffset(temperature, waterStatus) {
-    if (!waterStatus) return 0
-    const ratio = (Math.min(TEMP_RANGE_END, Math.max(TEMP_RANGE_START, temperature)) - TEMP_RANGE_START) / (TEMP_RANGE_END - TEMP_RANGE_START)
-    return (GRADIENT_TEMP_RANGE_START + (GRADIENT_COLORS.length - GRADIENT_TEMP_RANGE_START) * ratio) / GRADIENT_COLORS.length * 100
-}
 // The stops as the CSS writes them: color i at round((i + 1) / 12 * 100) %.
 function gradientStops() {
     return GRADIENT_COLORS.map((color, i) => ({ color: color, position: Math.round((i + 1) / GRADIENT_COLORS.length * 100) / 100 }))
+}
+
+// The bubbles' four colours, top to bottom (t_bar_up, t_bar_mu, t_bar_md, t_bar_down). The scale runs 30 °C up
+// to the target (90 without one): its bottom is the palette's first purple, the target the last orange.
+const BAR_SENSORS = ["t_bar_up", "t_bar_mu", "t_bar_md", "t_bar_down"]
+const PALETTE_START = 0.17
+const PALETTE_END = 0.92
+const SCALE_SPAN = 30
+const DEFAULT_TARGET = 90
+const SENSOR_ERROR = 500
+const PALETTE_STOPS = gradientStops().slice(1)
+function paletteColor(position) {
+    const stops = PALETTE_STOPS
+    let i = 0
+    while (i < stops.length - 2 && stops[i + 1].position < position) i++
+    const from = stops[i], to = stops[i + 1]
+    const k = (position - from.position) / (to.position - from.position)
+    let hex = "#"
+    for (let c = 1; c < 7; c += 2) {
+        const a = parseInt(from.color.substr(c, 2), 16), b = parseInt(to.color.substr(c, 2), 16)
+        hex += ("0" + Math.round(a + (b - a) * k).toString(16)).slice(-2)
+    }
+    return hex.toUpperCase()
+}
+const NO_INFORMATION = "#808080"
+function validReading(v) { return typeof v === "number" && v > 0 && v <= SENSOR_ERROR }
+function bubbleColors(sensors, temperature, target, waterStatus) {
+    if (!waterStatus) return BAR_SENSORS.map(() => NO_INFORMATION)
+    const top = target > 0 ? target : DEFAULT_TARGET
+    return BAR_SENSORS.map((name) => {
+        const reading = sensors ? sensors[name] : undefined
+        const raw = validReading(reading) ? reading : temperature
+        if (!validReading(raw)) return NO_INFORMATION
+        const t = Math.round(raw)
+        const ratio = Math.min(1, Math.max(0, (t - (top - SCALE_SPAN)) / SCALE_SPAN))
+        return paletteColor(PALETTE_START + (PALETTE_END - PALETTE_START) * ratio)
+    })
 }
 
 // ---- src/components/BrewCompleteScreen/BrewCompleteScreen.tsx: the weight readout.
