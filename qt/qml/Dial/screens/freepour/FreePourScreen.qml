@@ -932,16 +932,14 @@ Item {
             readonly property real shownWeight: remove ? screen.preGrindDoseG : screen.weight
             readonly property real difference: screen.weight - screen.targetDoseG
             readonly property var tops: Css.flexColumnTops(480, [[-52, 18 * Css.DIATYPE_NORMAL], [13, 96], [8, 14 * Css.DIATYPE_NORMAL], [18, readiness.height]])
-            readonly property string waiting: cup ? (screen.weight < Setup.SETUP_LOAD_CHANGE_G
-                                                        ? "PLACE EMPTY DOSING CUP · WAIT FOR STABLE WEIGHT"
-                                                        : "WAIT FOR A STABLE WEIGHT")
+            readonly property string waiting: cup ? "WAIT FOR STABLE WEIGHT"
                                             : beans ? (Math.abs(difference) <= Setup.PRE_GRIND_DOSE_TOLERANCE_G
-                                                        ? "WAIT FOR A STABLE WEIGHT"
+                                                        ? "WAIT FOR STABLE WEIGHT"
                                                         : difference < 0
-                                                            ? "ADD BEANS TO TARGET " + Format.roundTo(screen.targetDoseG) + "g"
-                                                            : "REMOVE BEANS TO TARGET " + Format.roundTo(screen.targetDoseG) + "g")
-                                            : remove ? "REMOVE DOSING CUP + GRIND · EMPTY SCALE TARES AUTOMATICALLY · THEN PLACE BREW CONTAINER"
-                                            : "PLACE EMPTY BREWING CONTAINER · WAIT FOR STABLE WEIGHT"
+                                                            ? "ADD TO " + Format.roundTo(screen.targetDoseG) + "g"
+                                                            : "REMOVE TO " + Format.roundTo(screen.targetDoseG) + "g")
+                                            : remove ? ""
+                                            : "WAIT FOR STABLE WEIGHT"
 
             StepLabel { text: "1 OF 8" }
             FpText {
@@ -950,8 +948,9 @@ Item {
                 font.pixelSize: 18
                 letterSpacingPx: 2.5
                 color: screen.muted
-                text: preGrind.cup ? "PREPARE COFFEE DOSE"
-                      : preGrind.beans ? "WEIGH COFFEE BEANS" : "GRIND + PLACE CONTAINER"
+                text: preGrind.cup ? "WEIGH EMPTY DOSING CUP"
+                      : preGrind.beans ? "ADD COFFEE BEANS"
+                      : preGrind.remove ? "REMOVE CUP + GRIND COFFEE" : "PLACE BREWING CONTAINER"
             }
             FpText {
                 y: preGrind.tops[1]
@@ -967,59 +966,29 @@ Item {
                 font.pixelSize: 14
                 letterSpacingPx: 2.4
                 color: screen.muted
-                text: preGrind.cup ? "TARGET " + Format.roundTo(screen.targetDoseG) + "g · EMPTY DOSING CUP"
-                      : preGrind.beans ? "TARGET " + Format.roundTo(screen.targetDoseG) + "g"
-                      : preGrind.remove ? "DOSE RECORDED" : "EMPTY BREWING CONTAINER"
+                text: preGrind.beans ? "TARGET " + Format.roundTo(screen.targetDoseG) + "g" : ""
             }
             Readiness {
                 id: readiness
                 y: preGrind.tops[3]
+                visible: !preGrind.remove
                 ready: preGrind.ready
                 status: screen.setupStatus
                 waitingMessage: preGrind.waiting
-                readyMessage: preGrind.cup ? "WEIGHT STABLE · PRESS DIAL TO TARE"
-                            : preGrind.beans ? "TARGET REACHED · PRESS DIAL TO RECORD"
-                            : "WEIGHT STABLE · PRESS DIAL TO RECORD"
+                readyMessage: "PRESS DIAL"
             }
             Item {
                 width: 480
-                height: 2 * 15 * 1.4
+                height: 15 * 1.4
                 y: 480 - 84 - height
                 visible: preGrind.cup && screen.setupStatus === "idle"
+                         && Math.abs(screen.weight) <= Setup.SETUP_ZERO_WEIGHT_TOLERANCE_G
                 FpText {
-                    lineHeightPx: 15 * 1.4
-                    font.pixelSize: 15
-                    letterSpacingPx: 1.3
-                    text: "PRESS DIAL TO TARE"
-                }
-                FpText {
-                    y: 15 * 1.4
-                    visible: Math.abs(screen.weight) <= Setup.SETUP_ZERO_WEIGHT_TOLERANCE_G
                     lineHeightPx: 15 * 1.4
                     cssWeight: 700
                     font.pixelSize: 15
                     letterSpacingPx: 1.3
                     text: "HOLD DIAL TO SKIP"
-                }
-            }
-            Item {
-                width: 480
-                height: 2 * 15 * 1.4
-                y: 480 - 84 - height
-                visible: preGrind.server && screen.setupStatus === "idle"
-                FpText {
-                    lineHeightPx: 15 * 1.4
-                    font.pixelSize: 15
-                    letterSpacingPx: 1.3
-                    text: "PRESS DIAL TO RECORD"
-                }
-                FpText {
-                    y: 15 * 1.4
-                    lineHeightPx: 15 * 1.4
-                    cssWeight: 700
-                    font.pixelSize: 15
-                    letterSpacingPx: 1.3
-                    text: "CONTAINER WEIGHT + TARE"
                 }
             }
             AbortHint {}
@@ -1038,7 +1007,7 @@ Item {
                 font.pixelSize: 18
                 letterSpacingPx: 3
                 color: screen.muted
-                text: "WATER TEMPERATURE"
+                text: "SET WATER TEMPERATURE"
             }
             Item {
                 y: parent.tops[1]
@@ -1077,14 +1046,14 @@ Item {
                 font.pixelSize: 13
                 letterSpacingPx: 2
                 color: screen.muted
-                text: "ROTATE DIAL TO ADJUST"
+                text: "TURN DIAL"
             }
             FpText {
                 y: 480 - 84 - lineHeightPx
                 cssWeight: 650
                 font.pixelSize: 16
                 letterSpacingPx: 1.5
-                text: "PRESS DIAL TO CONTINUE"
+                text: "PRESS DIAL"
             }
             AbortHint {}
         }
@@ -1097,12 +1066,8 @@ Item {
             id: setup
             readonly property string kind: screen.stage
             readonly property bool ready: kind === "server" ? screen.serverReady : kind === "brewer" ? screen.brewerReady : screen.coffeeReady
-            readonly property var tops: Css.flexColumnTops(480, [[-42, 18 * Css.DIATYPE_NORMAL], [17, 104], [18, readiness.height]])
-            readonly property var actionLines: screen.setupStatus === "saving" ? [["SAVING WEIGHT", true]]
-                                             : screen.setupStatus === "taring" ? [["TARING…", true]]
-                                             : screen.setupStatus === "tare-timeout" ? [["PRESS DIAL TO RETRY", true]]
-                                             : [["PRESS DIAL TO RECORD", false],
-                                                [(kind === "server" ? "SERVER" : kind === "brewer" ? "BREWER" : "COFFEE") + " WEIGHT + TARE", true]]
+            readonly property var tops: Css.flexColumnTops(480, [[-51, 18 * Css.DIATYPE_NORMAL], [15, 104], [8, 14 * Css.DIATYPE_NORMAL], [16, readiness.height]])
+            readonly property real coffeeDifference: screen.weight - (screen.profile ? screen.profile.doseG : 0)
 
             StepLabel { text: setup.kind === "server" ? "2 OF 8" : setup.kind === "brewer" ? "3 OF 8" : "4 OF 8" }
             FpText {
@@ -1111,7 +1076,8 @@ Item {
                 font.pixelSize: 18
                 letterSpacingPx: 3
                 color: screen.muted
-                text: setup.kind === "server" ? "WEIGH EMPTY SERVER" : setup.kind === "brewer" ? "ADD BREWER" : "ADD COFFEE"
+                text: setup.kind === "server" ? "PLACE BREWING CONTAINER"
+                      : setup.kind === "brewer" ? "PLACE BREWER" : "ADD GROUND COFFEE"
             }
             FpText {
                 y: setup.tops[1]
@@ -1122,38 +1088,25 @@ Item {
                 letterSpacingPx: -8
                 text: Math.round(setup.kind === "brewer" ? Setup.normalizeBrewerWeight(screen.weight) : screen.weight) + "g"
             }
+            FpText {
+                y: setup.tops[2]
+                font.pixelSize: 14
+                letterSpacingPx: 2.4
+                color: screen.muted
+                text: setup.kind === "coffee" ? (screen.profile ? "TARGET " + Math.round(screen.profile.doseG) + "g" : "5–40g") : ""
+            }
             Readiness {
                 id: readiness
-                y: setup.tops[2]
+                y: setup.tops[3]
                 ready: setup.ready
                 status: screen.setupStatus
-                waitingMessage: setup.kind === "server" ? "WAIT FOR A STABLE WEIGHT"
-                              : setup.kind === "brewer" ? (screen.weight < Setup.SETUP_LOAD_CHANGE_G ? "ADD BREWER OR LEAVE AT 0g · WAIT FOR STABLE WEIGHT"
-                                                                                                    : "WAIT FOR A STABLE WEIGHT")
-                              : screen.weight < 5 ? "ADD 5–40g COFFEE · WAIT FOR STABLE WEIGHT"
-                              : screen.weight > 40 ? "DOSE MUST BE 5–40g" : "WAIT FOR A STABLE WEIGHT"
-                readyMessage: setup.kind === "brewer" && Setup.isZeroBrewerWeight(screen.weight) ? "0g BREWER · PRESS DIAL TO RECORD"
-                            : setup.kind === "coffee" && screen.profile ? "WEIGHT STABLE · TARGET " + Math.round(screen.profile.doseG) + "g · PRESS TO RECORD"
-                            : "WEIGHT STABLE · PRESS DIAL TO RECORD"
-            }
-            // .free-pour-dose-action: 84 px from the bottom, 16 px lines of 1.42.
-            Item {
-                width: 480
-                height: setup.actionLines.length * 16 * 1.42
-                y: 480 - 84 - height
-                opacity: setup.kind !== "server" && screen.setupStatus === "idle" && !setup.ready ? 0.38 : 1
-                Repeater {
-                    model: setup.actionLines.length
-                    FpText {
-                        required property int index
-                        y: index * 16 * 1.42
-                        lineHeightPx: 16 * 1.42
-                        cssWeight: setup.actionLines[index][1] ? 700 : 400
-                        font.pixelSize: 16
-                        letterSpacingPx: 1.4
-                        text: setup.actionLines[index][0]
-                    }
-                }
+                waitingMessage: setup.kind !== "coffee" ? "WAIT FOR STABLE WEIGHT"
+                              : screen.profile && Math.abs(setup.coffeeDifference) > Setup.PRE_GRIND_DOSE_TOLERANCE_G
+                                  ? (setup.coffeeDifference < 0 ? "ADD TO " : "REMOVE TO ") + Math.round(screen.profile.doseG) + "g"
+                              : !screen.profile && screen.weight < 5 ? "ADD AT LEAST 5g"
+                              : !screen.profile && screen.weight > 40 ? "REMOVE TO 40g"
+                              : "WAIT FOR STABLE WEIGHT"
+                readyMessage: "PRESS DIAL"
             }
             AbortHint {}
         }

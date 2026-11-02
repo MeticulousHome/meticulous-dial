@@ -93,46 +93,46 @@ def record_setup(screen, scale, step, added, expect_text=None):
     screen.wait_for_text(step)
     scale.place(scale.mass + added)
     screen.wait_for_text(expect_text or f"{added:.0f}g")
-    screen.wait_for_text("Weight stable" if "brewer" not in step.lower() or added else "0g brewer")
+    screen.wait_for_text("Press dial")
     screen.controls.push()
     wait_probe(screen, "freePourSetupStatus", "taring")
     scale.tare()
 
 
 def setup_free_pour(screen, scale):
-    screen.wait_for_text("Water temperature")
+    screen.wait_for_text("Set water temperature")
     screen.controls.push()
-    for step, added in (("Weigh empty server", SERVER_G), ("Add brewer", BREWER_G), ("Add coffee", COFFEE_G)):
+    for step, added in (("Place brewing container", SERVER_G), ("Place brewer", BREWER_G), ("Add ground coffee", COFFEE_G)):
         record_setup(screen, scale, step, added)
     screen.wait_for_text("Start pouring")
 
 
 def complete_pregrind_dose(screen, scale, target_g):
     """Tare a dosing cup, weigh the profile target, remove it, then capture the empty brewing container."""
-    screen.wait_for_text("Prepare coffee dose")
-    screen.wait_for_text(f"Target {target_g:.0f}g")
+    screen.wait_for_text("Weigh empty dosing cup")
     scale.place(20)
-    screen.wait_for_text("Weight stable")
+    screen.wait_for_text("Press dial")
     screen.controls.push()
     wait_probe(screen, "freePourSetupStatus", "taring")
     scale.tare()
 
-    screen.wait_for_text("Weigh coffee beans")
+    screen.wait_for_text("Add coffee beans")
     scale.place(scale.mass + target_g)
-    screen.wait_for_text("Target reached")
+    screen.wait_for_text(f"Target {target_g:.0f}g")
+    screen.wait_for_text("Press dial")
     screen.controls.push()
-    screen.wait_for_text("Grind + place container")
+    screen.wait_for_text("Remove cup + grind coffee")
     assert screen.probe("freePourPreGrindDoseG") == target_g
     scale.place(0)
     wait_probe(screen, "freePourSetupStatus", "taring")
     scale.tare()
-    screen.wait_for_text("Empty brewing container")
+    screen.wait_for_text("Place brewing container")
     scale.place(SERVER_G)
-    screen.wait_for_text("Weight stable")
+    screen.wait_for_text("Press dial")
     screen.controls.push()
     wait_probe(screen, "freePourSetupStatus", "taring")
     scale.tare()
-    screen.wait_for_text("Water temperature")
+    screen.wait_for_text("Set water temperature")
 
 
 def open_free_pour(screen):
@@ -142,10 +142,9 @@ def open_free_pour(screen):
     screen.wait_for_route("freePour")
     scale = Scale(screen)
     scale.send()
-    screen.wait_for_text("Prepare coffee dose")
-    screen.wait_for_text("Target 15g")
+    screen.wait_for_text("Weigh empty dosing cup")
     screen.controls.long_push()
-    screen.wait_for_text("Water temperature")
+    screen.wait_for_text("Set water temperature")
     return scale
 
 
@@ -334,7 +333,7 @@ def test_a_free_pour_is_guided_by_the_scale_and_saved_to_the_pour_over_history(s
 def test_the_temperature_step_turns_between_70_and_100(screen):
     """Protects: setting the water temperature with the knob (92 °C by default, 70-100 °C)."""
     open_free_pour(screen)
-    screen.wait_for_text("Water temperature")
+    screen.wait_for_text("Set water temperature")
     screen.wait_for_text("92")
     screen.controls.right(3)
     screen.wait_for_text("95")
@@ -349,32 +348,31 @@ def test_a_tare_the_scale_does_not_confirm_can_be_retried(screen):
     """Protects: the setup waiting for the scale to read zero after its tare; 5 s without it says so and a
     push asks for the tare again."""
     scale = open_free_pour(screen)
-    screen.wait_for_text("Water temperature")
+    screen.wait_for_text("Set water temperature")
     screen.controls.push()
-    screen.wait_for_text("Weigh empty server")
+    screen.wait_for_text("Place brewing container")
     scale.place(SERVER_G)
-    screen.wait_for_text("Weight stable")
+    screen.wait_for_text("Press dial")
     screen.controls.push()
     wait_probe(screen, "freePourSetupStatus", "taring")
-    screen.wait_for_text("Waiting for zero")
-    screen.wait_for_text("Tare not confirmed", timeout_s=8)
+    screen.wait_for_text("Keep scale still")
     screen.wait_for_text("Press dial to retry")
     screen.controls.push()
     wait_probe(screen, "freePourSetupStatus", "taring")
     scale.tare()
-    screen.wait_for_text("Add brewer")
-    screen.wait_for_text("0g brewer")
+    screen.wait_for_text("Place brewer")
+    screen.wait_for_text("Press dial")
 
 
 def test_reviewing_a_recorded_weight_restarts_the_setup_from_the_server(screen):
     """Protects: correcting a setup weight: turning the knob reviews the recorded weights, and re-entering
     one restarts from the empty server so every tare stays right."""
     scale = open_free_pour(screen)
-    screen.wait_for_text("Water temperature")
+    screen.wait_for_text("Set water temperature")
     screen.controls.push()
-    record_setup(screen, scale, "Weigh empty server", SERVER_G)
-    record_setup(screen, scale, "Add brewer", BREWER_G)
-    screen.wait_for_text("Add coffee")
+    record_setup(screen, scale, "Place brewing container", SERVER_G)
+    record_setup(screen, scale, "Place brewer", BREWER_G)
+    screen.wait_for_text("Add ground coffee")
     screen.controls.left()
     wait_probe(screen, "freePourStage", "setup-review")
     screen.wait_for_text("Brewer weight")
@@ -389,7 +387,7 @@ def test_reviewing_a_recorded_weight_restarts_the_setup_from_the_server(screen):
     screen.wait_for_text("Server weight")
     screen.controls.push()
     wait_probe(screen, "freePourStage", "server")
-    screen.wait_for_text("Weigh empty server")
+    screen.wait_for_text("Place brewing container")
 
 
 def test_lifting_the_server_too_asks_for_it_back_and_a_push_skips_the_measure(screen, backend):
@@ -411,10 +409,10 @@ def test_lifting_the_server_too_asks_for_it_back_and_a_push_skips_the_measure(sc
 def test_a_double_press_aborts_the_free_pour(screen):
     """Protects: leaving Free Pour at any step with a double press."""
     scale = open_free_pour(screen)
-    screen.wait_for_text("Water temperature")
+    screen.wait_for_text("Set water temperature")
     screen.controls.push()
     scale.place(SERVER_G)
-    screen.wait_for_text("Weigh empty server")
+    screen.wait_for_text("Place brewing container")
     screen.controls.double_push()
     screen.wait_for_home()
 
@@ -602,8 +600,8 @@ def test_a_guided_pour_over_follows_the_installed_profile(screen, backend):
         complete_pregrind_dose(screen, scale, 15)
         screen.wait_for_text("93")
         screen.controls.push()
-        record_setup(screen, scale, "Add brewer", BREWER_G)
-        screen.wait_for_text("Add coffee")
+        record_setup(screen, scale, "Place brewer", BREWER_G)
+        screen.wait_for_text("Add ground coffee")
         scale.place(scale.mass + COFFEE_G)
         screen.wait_for_text("Target 15g")
         screen.controls.push()
