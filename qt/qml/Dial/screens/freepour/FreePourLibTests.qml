@@ -28,6 +28,19 @@ QtObject {
         equal(Format.formatBrewTime(195000), "3:15", "formatBrewTime")
         equal(Format.formatClockTime(42000), "42s", "formatClockTime under a minute")
         equal(Format.formatClockTime(65000), "1:05", "formatClockTime")
+        equal(Setup.canTareDosingCup({ weight: 20, stable: true, status: "idle" }), true, "stable dosing cup")
+        equal(Setup.canTareDosingCup({ weight: 0, stable: true, status: "idle" }), false, "dosing cup missing")
+        equal(Setup.canTareDosingCup({ weight: 20, stable: false, status: "idle" }), false, "dosing cup unstable")
+        equal(Setup.isTargetBeanDose(15, 15), true, "bean target exact")
+        equal(Setup.isTargetBeanDose(14.5, 15), true, "bean target lower tolerance")
+        equal(Setup.isTargetBeanDose(15.5, 15), true, "bean target upper tolerance")
+        equal(Setup.isTargetBeanDose(14.49, 15), false, "bean target outside tolerance")
+        equal(Setup.canRecordBeanDose({ weight: 18, targetDose: 18, stable: true, status: "idle" }), true,
+              "profile bean target")
+        equal(Setup.canRecordBeanDose({ weight: 15, targetDose: 18, stable: true, status: "idle" }), false,
+              "wrong profile bean target")
+        equal(Setup.dosingCupWasRemoved(-20), true, "dosing cup removed")
+        equal(Setup.dosingCupWasRemoved(-1), false, "dosing cup still present")
         equal(Setup.canRecordSetupWeight({ stage: "server", weight: 312, stable: false, status: "idle" }), false,
               "an unstable scale must not arm a delayed capture")
         equal(Setup.canRecordSetupWeight({ stage: "server", weight: 312, stable: true, status: "idle" }), true, "server capture")

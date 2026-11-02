@@ -107,6 +107,28 @@ def setup_free_pour(screen, scale):
     screen.wait_for_text("Start pouring")
 
 
+def complete_pregrind_dose(screen, scale, target_g):
+    """Tare an empty 20 g dosing cup, weigh the profile target, then remove the cup for grinding."""
+    screen.wait_for_text("Prepare coffee dose")
+    screen.wait_for_text(f"Target {target_g:.0f}g")
+    scale.place(20)
+    screen.wait_for_text("Weight stable")
+    screen.controls.push()
+    wait_probe(screen, "freePourSetupStatus", "taring")
+    scale.tare()
+
+    screen.wait_for_text("Weigh coffee beans")
+    scale.place(scale.mass + target_g)
+    screen.wait_for_text("Target reached")
+    screen.controls.push()
+    screen.wait_for_text("Remove cup + grind")
+    assert screen.probe("freePourPreGrindDoseG") == target_g
+    scale.place(0)
+    wait_probe(screen, "freePourSetupStatus", "taring")
+    scale.tare()
+    screen.wait_for_text("Water temperature")
+
+
 def open_free_pour(screen):
     screen.wait_for_home()
     screen.go_to_card("Free Pour")
@@ -114,6 +136,10 @@ def open_free_pour(screen):
     screen.wait_for_route("freePour")
     scale = Scale(screen)
     scale.send()
+    screen.wait_for_text("Prepare coffee dose")
+    screen.wait_for_text("Target 15g")
+    screen.controls.long_push()
+    screen.wait_for_text("Water temperature")
     return scale
 
 
@@ -217,6 +243,26 @@ def test_the_manual_setup_rules_pass_their_cases_in_the_dials_engine(screen):
 
 
 # ---- Free Pour
+
+def test_the_pregrind_bean_dose_uses_the_profile_target_but_is_not_saved(screen):
+    """Protects: the new first step shows the selected profile's bean dose, guides a dosing-cup tare and
+    removal, then reaches temperature without adding that temporary weight to the brew record.
+
+    The expected 18 g comes from FreePourScreen.profile.doseG. Existing setup tests began at temperature,
+    so they could not catch a hard-coded target, a broken cup-removal tare, or accidental persistence.
+    """
+    screen.c.call({"cmd": "screen", "name": "freePour"})
+    screen.wait_for_route("freePour")
+    scale = Scale(screen)
+    scale.send()
+    assert ev(screen, "(function(){ router.current.item.profile = ({ doseG: 18, temperatureC: 93,"
+                      " pourTargets: [] }); return 'set' })()") == "set"
+    assert screen.probe("freePourTargetDoseG") == 18
+    complete_pregrind_dose(screen, scale, 18)
+    assert screen.probe("freePourResult") is None
+    screen.controls.double_push()
+    screen.wait_for_home()
+
 
 def test_a_free_pour_is_guided_by_the_scale_and_saved_to_the_pour_over_history(screen, backend):
     """Protects: a hand-poured brew guided by the machine's scale, from setup to history (the integration
@@ -525,7 +571,8 @@ def test_a_guided_pour_over_follows_the_installed_profile(screen, backend):
         wait_probe(screen, "guidedProfileId", POUR_OVER_ID)
         scale = Scale(screen)
         scale.send()
-        screen.wait_for_text("Water temperature")
+        assert screen.probe("freePourTargetDoseG") == 15
+        complete_pregrind_dose(screen, scale, 15)
         screen.wait_for_text("93")
         screen.controls.push()
         record_setup(screen, scale, "Weigh empty server", SERVER_G)

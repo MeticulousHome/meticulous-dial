@@ -1,6 +1,7 @@
 // Free Pour (src/features/freePour/FreePourScreen.tsx, free-pour.css): a hand-poured brew guided by the
-// machine's scale, in eight steps: water temperature, then the empty server, the brewer and the coffee, each
-// recorded once the scale is stable and then tared through the backend ('action' 'tare'); then the brew:
+// machine's scale, in nine steps: an optional pre-grind bean dose, water temperature, then the empty server,
+// the brewer and the ground coffee, each recorded once the scale is stable and then tared through the backend
+// ('action' 'tare'); then the brew:
 // pours detected from the weight (PourDetector), a timer, the pour rail (or the profile's target rail and
 // stop weight in a guided pour-over), the live flow; lifting the brewer ends it and the beverage left on the
 // server is measured; the brew is saved (FreePourStorage) and summarized. A push records a weight, finishes
@@ -42,7 +43,7 @@ Item {
     readonly property real gravimetricFlow: testScale ? (Number(testScale.g) || 0) : (Stats.sensors.g || 0)
 
     // ---- state (useState)
-    property string stage: "temperature"
+    property string stage: "bean-cup"
     property real doseG: 15
     property real temperatureC: Defaults.DEFAULT_FREE_POUR_TEMPERATURE_C
     property real elapsedMs: 0
@@ -50,6 +51,7 @@ Item {
     property var pours: []
     property var activePourView: null           // { number, startTimeMs } | null
     property var result: null                   // FreePourSession | null
+    property real preGrindDoseG: 0              // preparation only; never written into the brew session
     property string setupStatus: "idle"         // idle | saving | taring | tare-timeout
     property int setupReviewCursor: 0
     property bool stable: false                 // useStableWeight
@@ -58,6 +60,10 @@ Item {
     readonly property bool serverReady: stable
     readonly property bool brewerReady: stable && Setup.isValidSetupWeight("brewer", weight)
     readonly property bool coffeeReady: stable && weight >= 5 && weight <= 40
+    readonly property real targetDoseG: profile ? profile.doseG : 15
+    readonly property bool dosingCupReady: Setup.canTareDosingCup({ weight: weight, stable: stable, status: setupStatus })
+    readonly property bool beanDoseReady: Setup.canRecordBeanDose({ weight: weight, targetDose: targetDoseG,
+                                                                    stable: stable, status: setupStatus })
 
     // ---- refs (useRef): plain JS, no notifications
     property var r: null
@@ -69,18 +75,23 @@ Item {
     readonly property var dialProbe_freePourResult: result
     readonly property int dialProbe_freePourPours: pours.length
     readonly property int dialProbe_freePourExitTimeoutMs: postBrewExitTimeoutMs
+    readonly property real dialProbe_freePourTargetDoseG: targetDoseG
+    readonly property real dialProbe_freePourPreGrindDoseG: preGrindDoseG
 
+    function isPreGrindStage(s) { return s === "bean-cup" || s === "bean-dose" || s === "bean-remove" }
     function isSetupStage(s) { return s === "server" || s === "brewer" || s === "coffee" }
+    function isTareStage(s) { return isSetupStage(s) || s === "bean-cup" || s === "bean-remove" }
     function stepForStage(s) {
-        if (s === "temperature") return 1
-        if (s === "server") return 2
-        if (s === "brewer") return 3
-        if (s === "coffee") return 4
-        if (s === "setup-review") return 4
-        if (s === "ready" || s === "pouring") return 5
-        if (s === "waiting") return 6
-        if (s === "finish-requested" || s === "measuring") return 7
-        return 8
+        if (isPreGrindStage(s)) return 1
+        if (s === "temperature") return 2
+        if (s === "server") return 3
+        if (s === "brewer") return 4
+        if (s === "coffee") return 5
+        if (s === "setup-review") return 5
+        if (s === "ready" || s === "pouring") return 6
+        if (s === "waiting") return 7
+        if (s === "finish-requested" || s === "measuring") return 8
+        return 9
     }
     function now() { return Native.monotonicMs() }
 
@@ -128,7 +139,7 @@ Item {
             doseG = profile.doseG
             temperatureC = profile.temperatureC
         }
-        Log.logFreePour("screen_entered", { runId: runId, stage: "temperature", mode: profile ? "profile" : "free_pour",
+        Log.logFreePour("screen_entered", { runId: runId, stage: "bean-cup", mode: profile ? "profile" : "free_pour",
                                             profile_id: profile ? profile.id : null })
         runEffects()
     }
@@ -583,21 +594,32 @@ Item {
             }
         }
 
+        if (depsChanged("dosingCupRemoved", [s.setupStatus, s.stable, s.stage, s.weight])
+                && s.setupStatus === "idle" && s.stable && s.stage === "bean-remove"
+                && Setup.dosingCupWasRemoved(s.weight)) {
+            setupStatus = "taring"
+            Backend.action("tare")
+            Log.logFreePour("pre_grind_cup_removed", { runId: runId, weight_g: Format.roundTo(s.weight) })
+            Log.logFreePour("tare_requested", { runId: runId, stage: s.stage })
+        }
+
         if (depsChanged("saving", [s.setupStatus, s.stable, s.stage, s.weight])
                 && s.setupStatus === "saving" && s.stable && isSetupStage(s.stage))
             savingEffect(s)
 
         if (depsChanged("taring", [s.setupStatus, s.stable, s.stage, s.weight])
-                && s.setupStatus === "taring" && s.stable && isSetupStage(s.stage)
+                && s.setupStatus === "taring" && s.stable && isTareStage(s.stage)
                 && Math.abs(s.weight) <= Setup.SETUP_ZERO_WEIGHT_TOLERANCE_G) {
             Log.logFreePour("tare_confirmed", { runId: runId, stage: s.stage, weight_g: Format.roundTo(s.weight) })
             setupStatus = "idle"
-            updateStage(Setup.nextStageAfterTare(s.stage))
+            updateStage(s.stage === "bean-cup" ? "bean-dose"
+                      : s.stage === "bean-remove" ? "temperature"
+                      : Setup.nextStageAfterTare(s.stage))
         }
 
         if (depsChanged("tareTimeout", [s.setupStatus, s.stage])) {
             tareTimeout.stop()
-            if (s.setupStatus === "taring" && isSetupStage(s.stage)) {
+            if (s.setupStatus === "taring" && isTareStage(s.stage)) {
                 tareTimeout.taringStage = s.stage
                 tareTimeout.start()
             }
@@ -672,6 +694,13 @@ Item {
             Nav.setBubbleDisplay({ visible: false, component: "" })
             Nav.setScreen("profileHome")
         }
+        onLongEncoder: {
+            if (screen.stage === "bean-cup" && screen.setupStatus === "idle"
+                    && Math.abs(screen.weight) <= Setup.SETUP_ZERO_WEIGHT_TOLERANCE_G) {
+                Log.logFreePour("pre_grind_dose_skipped", { runId: screen.runId })
+                screen.updateStage("temperature")
+            }
+        }
         onContext: Log.logFreePour("context_opened", { runId: screen.runId, stage: screen.stage })
         onTurnLeft: {
             if (screen.stage === "result" && postBrewExitTimeout.running) postBrewExitTimeout.restart()
@@ -690,6 +719,48 @@ Item {
         Log.logFreePour("click_received", { runId: runId, stage: currentStage, setup_status: currentSetupStatus,
                                            stable: stable, weight_g: Format.roundTo(currentWeight) })
 
+        if (currentStage === "bean-cup") {
+            if (currentSetupStatus === "tare-timeout") {
+                setupStatus = "taring"
+                Backend.action("tare")
+                Log.logFreePour("tare_retried", { runId: runId, stage: currentStage })
+                return
+            }
+            if (!Setup.canTareDosingCup({ weight: currentWeight, stable: stable, status: currentSetupStatus })) {
+                Log.logFreePour("click_rejected", { runId: runId, stage: currentStage,
+                                                    reason: stable ? "dosing_cup_missing" : "weight_unstable",
+                                                    weight_g: Format.roundTo(currentWeight) })
+                return
+            }
+            setupStatus = "taring"
+            Backend.action("tare")
+            Log.logFreePour("tare_requested", { runId: runId, stage: currentStage })
+            return
+        }
+        if (currentStage === "bean-dose") {
+            if (!Setup.canRecordBeanDose({ weight: currentWeight, targetDose: targetDoseG,
+                                          stable: stable, status: currentSetupStatus })) {
+                Log.logFreePour("click_rejected", { runId: runId, stage: currentStage,
+                                                    reason: stable ? "target_not_reached" : "weight_unstable",
+                                                    weight_g: Format.roundTo(currentWeight), target_g: targetDoseG })
+                return
+            }
+            preGrindDoseG = currentWeight
+            Log.logFreePour("pre_grind_dose_recorded", { runId: runId, weight_g: Format.roundTo(currentWeight),
+                                                         target_g: targetDoseG })
+            updateStage("bean-remove")
+            return
+        }
+        if (currentStage === "bean-remove") {
+            if (currentSetupStatus === "tare-timeout") {
+                setupStatus = "taring"
+                Backend.action("tare")
+                Log.logFreePour("tare_retried", { runId: runId, stage: currentStage })
+                return
+            }
+            Log.logFreePour("click_ignored", { runId: runId, stage: currentStage, reason: "remove_dosing_cup" })
+            return
+        }
         if (isSetupStage(currentStage)) {
             if (currentSetupStatus === "tare-timeout") {
                 setupStatus = "taring"
@@ -788,6 +859,11 @@ Item {
     // ---- the views (one per stage, as the React component returns)
     Loader {
         anchors.fill: parent
+        active: screen.isPreGrindStage(screen.stage)
+        sourceComponent: preGrindView
+    }
+    Loader {
+        anchors.fill: parent
         active: screen.stage === "temperature"
         sourceComponent: temperatureView
     }
@@ -817,12 +893,95 @@ Item {
         sourceComponent: resultView
     }
 
+    // One optional preparation step with three states: tare an empty dosing cup, weigh the profile's bean
+    // dose, then remove the cup for grinding. The captured weight is deliberately not part of brew history.
+    Component {
+        id: preGrindView
+        Item {
+            id: preGrind
+            readonly property bool cup: screen.stage === "bean-cup"
+            readonly property bool beans: screen.stage === "bean-dose"
+            readonly property bool remove: screen.stage === "bean-remove"
+            readonly property bool ready: cup ? screen.dosingCupReady : beans ? screen.beanDoseReady : false
+            readonly property real shownWeight: remove ? screen.preGrindDoseG : screen.weight
+            readonly property real difference: screen.weight - screen.targetDoseG
+            readonly property var tops: Css.flexColumnTops(480, [[-52, 18 * Css.DIATYPE_NORMAL], [13, 96], [8, 14 * Css.DIATYPE_NORMAL], [18, readiness.height]])
+            readonly property string waiting: cup ? (screen.weight < Setup.SETUP_LOAD_CHANGE_G
+                                                        ? "PLACE EMPTY DOSING CUP · WAIT FOR STABLE WEIGHT"
+                                                        : "WAIT FOR A STABLE WEIGHT")
+                                            : beans ? (Math.abs(difference) <= Setup.PRE_GRIND_DOSE_TOLERANCE_G
+                                                        ? "WAIT FOR A STABLE WEIGHT"
+                                                        : difference < 0
+                                                            ? "ADD BEANS TO TARGET " + Format.roundTo(screen.targetDoseG) + "g"
+                                                            : "REMOVE BEANS TO TARGET " + Format.roundTo(screen.targetDoseG) + "g")
+                                            : "REMOVE DOSING CUP + GRIND · AUTO-TARING WHEN REMOVED"
+
+            StepLabel { text: "1 OF 9" }
+            FpText {
+                y: preGrind.tops[0]
+                cssWeight: 600
+                font.pixelSize: 18
+                letterSpacingPx: 2.5
+                color: screen.muted
+                text: preGrind.cup ? "PREPARE COFFEE DOSE" : preGrind.beans ? "WEIGH COFFEE BEANS" : "REMOVE CUP + GRIND"
+            }
+            FpText {
+                y: preGrind.tops[1]
+                mono: true
+                cssWeight: 300
+                font.pixelSize: 96
+                lineHeightPx: 96
+                letterSpacingPx: -7
+                text: Math.round(preGrind.shownWeight) + "g"
+            }
+            FpText {
+                y: preGrind.tops[2]
+                font.pixelSize: 14
+                letterSpacingPx: 2.4
+                color: screen.muted
+                text: preGrind.cup ? "TARGET " + Format.roundTo(screen.targetDoseG) + "g · EMPTY DOSING CUP"
+                                      : preGrind.beans ? "TARGET " + Format.roundTo(screen.targetDoseG) + "g" : "DOSE RECORDED"
+            }
+            Readiness {
+                id: readiness
+                y: preGrind.tops[3]
+                ready: preGrind.ready
+                status: screen.setupStatus
+                waitingMessage: preGrind.waiting
+                readyMessage: preGrind.cup ? "WEIGHT STABLE · PRESS DIAL TO TARE"
+                                           : "TARGET REACHED · PRESS DIAL TO RECORD"
+            }
+            Item {
+                width: 480
+                height: 2 * 15 * 1.4
+                y: 480 - 84 - height
+                visible: preGrind.cup && screen.setupStatus === "idle"
+                FpText {
+                    lineHeightPx: 15 * 1.4
+                    font.pixelSize: 15
+                    letterSpacingPx: 1.3
+                    text: "PRESS DIAL TO TARE"
+                }
+                FpText {
+                    y: 15 * 1.4
+                    visible: Math.abs(screen.weight) <= Setup.SETUP_ZERO_WEIGHT_TOLERANCE_G
+                    lineHeightPx: 15 * 1.4
+                    cssWeight: 700
+                    font.pixelSize: 15
+                    letterSpacingPx: 1.3
+                    text: "HOLD DIAL TO SKIP"
+                }
+            }
+            AbortHint {}
+        }
+    }
+
     // .free-pour-temperature-screen: kicker (-54), value (+25, 104 px), "rotate" (+25), centered.
     Component {
         id: temperatureView
         Item {
             readonly property var tops: Css.flexColumnTops(480, [[-54, 18 * Css.DIATYPE_NORMAL], [25, 104], [25, 13]])
-            StepLabel { text: "1 OF 8" }
+            StepLabel { text: "2 OF 9" }
             FpText {
                 y: parent.tops[0]
                 cssWeight: 600
@@ -895,7 +1054,7 @@ Item {
                                              : [["PRESS DIAL TO RECORD", false],
                                                 [(kind === "server" ? "SERVER" : kind === "brewer" ? "BREWER" : "COFFEE") + " WEIGHT + TARE", true]]
 
-            StepLabel { text: setup.kind === "server" ? "2 OF 8" : setup.kind === "brewer" ? "3 OF 8" : "4 OF 8" }
+            StepLabel { text: setup.kind === "server" ? "3 OF 9" : setup.kind === "brewer" ? "4 OF 9" : "5 OF 9" }
             FpText {
                 y: setup.tops[0]
                 cssWeight: 600
@@ -1037,7 +1196,7 @@ Item {
         id: liveView
         Item {
             id: live
-            StepLabel { text: screen.step + " OF 8" }
+            StepLabel { text: screen.step + " OF 9" }
             FpText {
                 y: 53
                 cssWeight: 600
@@ -1185,7 +1344,7 @@ Item {
             readonly property real subLineHeight: 16 * 1.5
             readonly property var tops: Css.flexColumnTops(480, [[-20, mainLines.length * mainLineHeight], [22, subLines.length * subLineHeight]])
 
-            StepLabel { text: "7 OF 8" }
+            StepLabel { text: "8 OF 9" }
             Repeater {
                 model: message.mainLines.length
                 FpText {
@@ -1242,7 +1401,7 @@ Item {
             readonly property real statsHeight: 11 * Css.DIATYPE_NORMAL + 4 + 25
             readonly property var tops: Css.flexColumnTops(480, [[-61, 18 * Css.DIATYPE_NORMAL], [10, 94], [0, 14 * Css.DIATYPE_NORMAL], [28, statsHeight]])
 
-            StepLabel { text: "8 OF 8" }
+            StepLabel { text: "9 OF 9" }
             FpText {
                 y: resultItem.tops[0]
                 cssWeight: 600
