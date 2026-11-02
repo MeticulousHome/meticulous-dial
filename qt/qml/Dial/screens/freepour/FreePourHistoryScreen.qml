@@ -25,7 +25,6 @@ Item {
 
     property var session: undefined             // undefined while loading, then a FreePourSession or null
     property real selectedTimeMs: 0
-    property bool summarySelected: true
     property bool _alive: true
 
     readonly property real durationMs: session ? session.measurements.durationMs : 0
@@ -37,7 +36,8 @@ Item {
     }
     readonly property real maxWeight: plottedSamples.reduce((maximum, sample) => Math.max(maximum, sample.w), 1)
     readonly property bool hasChart: !!session && plottedSamples.length > 0 && session.samples.length > 0
-    readonly property var selected: hasChart && !summarySelected ? closestSample(session.samples, selectedTimeMs) : null
+    readonly property bool atOverallSummary: selectedTimeMs <= 0
+    readonly property var selected: hasChart && !atOverallSummary ? closestSample(session.samples, selectedTimeMs) : null
     readonly property real cursorX: chartLeft + (selectedTimeMs / Math.max(1, durationMs)) * chartWidth
     readonly property int selectedPour: {
         if (!selected) return 1
@@ -49,8 +49,8 @@ Item {
 
     readonly property string dialProbe_historyState: session === undefined ? "loading" : hasChart ? "chart" : "empty"
     readonly property real dialProbe_historySelectedMs: selectedTimeMs
-    readonly property bool dialProbe_historySummarySelected: summarySelected
-    readonly property var dialProbe_historySummaryValues: summarySelected
+    readonly property bool dialProbe_historySummarySelected: atOverallSummary
+    readonly property var dialProbe_historySummaryValues: atOverallSummary
         ? [overallValue(0), overallValue(1), overallValue(2), overallValue(3)] : null
     readonly property int dialProbe_historyExitTimeoutMs: exitTimeoutMs
     readonly property var dialProbe_historyTitleGeometry: ({
@@ -118,25 +118,11 @@ Item {
         enabled: !Nav.bubbleInterceptsGesture
         onTurnLeft: {
             history.markActivity()
-            if (history.summarySelected) {
-                history.summarySelected = false
-                history.selectedTimeMs = Math.max(0, history.durationMs - history.scrollStepMs)
-            } else if (history.selectedTimeMs <= 0) {
-                history.summarySelected = true
-            } else {
-                history.selectedTimeMs = Math.max(0, history.selectedTimeMs - history.scrollStepMs)
-            }
+            history.selectedTimeMs = Math.max(0, history.selectedTimeMs - history.scrollStepMs)
         }
         onTurnRight: {
             history.markActivity()
-            if (history.summarySelected) {
-                history.summarySelected = false
-                history.selectedTimeMs = Math.min(history.durationMs, history.scrollStepMs)
-            } else if (history.selectedTimeMs >= history.durationMs) {
-                history.summarySelected = true
-            } else {
-                history.selectedTimeMs = Math.min(history.durationMs, history.selectedTimeMs + history.scrollStepMs)
-            }
+            history.selectedTimeMs = Math.min(history.durationMs, history.selectedTimeMs + history.scrollStepMs)
         }
         onClick: {
             history.goHome("click")
@@ -271,7 +257,7 @@ Item {
             lineWidth: 2.5
         }
         Rectangle {
-            visible: !history.summarySelected
+            visible: !history.atOverallSummary
             x: history.cursorX - 1
             y: history.chartTop - 5
             width: 2
@@ -292,8 +278,8 @@ Item {
                     font.pixelSize: 11
                     letterSpacingPx: 1.5
                     color: "#8d9694"
-                    text: history.summarySelected ? history.overallLabel(parent.index)
-                                                  : ["POUR", "TIME", "WATER", "FLOW"][parent.index]
+                    text: history.atOverallSummary ? history.overallLabel(parent.index)
+                                                   : ["POUR", "TIME", "WATER", "FLOW"][parent.index]
                 }
                 FpText {
                     y: 11 * Css.DIATYPE_NORMAL + 5
@@ -301,7 +287,7 @@ Item {
                     font.pixelSize: 20
                     lineHeightPx: 20
                     text: {
-                        if (history.summarySelected) return history.overallValue(parent.index)
+                        if (history.atOverallSummary) return history.overallValue(parent.index)
                         const s = history.selected
                         if (!s) return ""
                         switch (parent.index) {
@@ -319,7 +305,7 @@ Item {
             cssWeight: 650
             font.pixelSize: 15
             letterSpacingPx: 2
-            text: history.summarySelected ? "TURN DIAL TO EXPLORE" : "TURN DIAL · 5 SEC"
+            text: history.atOverallSummary ? "TURN DIAL TO EXPLORE" : "TURN DIAL · 5 SEC"
         }
         // .free-pour-history-legend: centered, 24 px between the two, a 16 x 3 swatch 7 px before each label
         Row {

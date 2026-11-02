@@ -309,6 +309,10 @@ def test_a_free_pour_is_guided_by_the_scale_and_saved_to_the_pour_over_history(s
     screen.controls.right(2)
     assert screen.probe("historySummarySelected") is False
     assert screen.probe("historySelectedMs") == 10000
+    screen.controls.left(2)
+    assert screen.probe("historySelectedMs") == 0
+    assert screen.probe("historySummarySelected") is True
+    assert screen.probe("historySummaryValues") == summary
     screen.controls.push()
     screen.wait_for_home()
 
@@ -567,6 +571,12 @@ def test_a_long_history_title_fits_the_measured_circular_safe_chord(screen):
     assert 14 <= geometry["pixelSize"] <= 22, geometry
     assert screen.probe("historySummarySelected") is True
     assert screen.probe("historySummaryValues") == ["1", "3:15", "360g", "355g"]
+    screen.controls.right(2)
+    assert screen.probe("historySelectedMs") == 10_000
+    assert screen.probe("historySummarySelected") is False
+    screen.controls.left(2)
+    assert screen.probe("historySelectedMs") == 0
+    assert screen.probe("historySummarySelected") is True
     screen.snapshot("circular-safe-title")
     screen.controls.double_push()
     screen.wait_for_home()
