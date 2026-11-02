@@ -93,11 +93,14 @@ function gradientStops() {
 }
 
 // The bubbles' four colours, top to bottom (t_bar_up, t_bar_mu, t_bar_md, t_bar_down). The scale runs 30 °C up
-// to the target (90 without one): its bottom is the palette's first purple, the target the last orange.
+// to the target (90 without one): its bottom is the palette's first purple, the target the last orange. The
+// hottest sensor keeps its real colour and each colder one is shown SPREAD times its distance below it.
 const BAR_SENSORS = ["t_bar_up", "t_bar_mu", "t_bar_md", "t_bar_down"]
 const PALETTE_START = 0.17
 const PALETTE_END = 0.92
 const SCALE_SPAN = 30
+// The sensors are only a few degrees apart during a heat-up; anchoring on the hottest keeps orange meaning "at target".
+const SPREAD = 4
 const DEFAULT_TARGET = 90
 const SENSOR_ERROR = 500
 const PALETTE_STOPS = gradientStops().slice(1)
@@ -119,12 +122,16 @@ function validReading(v) { return typeof v === "number" && v > 0 && v <= SENSOR_
 function bubbleColors(sensors, temperature, target, waterStatus) {
     if (!waterStatus) return BAR_SENSORS.map(() => NO_INFORMATION)
     const top = target > 0 ? target : DEFAULT_TARGET
-    return BAR_SENSORS.map((name) => {
+    const readings = BAR_SENSORS.map((name) => {
         const reading = sensors ? sensors[name] : undefined
         const raw = validReading(reading) ? reading : temperature
-        if (!validReading(raw)) return NO_INFORMATION
-        const t = Math.round(raw)
-        const ratio = Math.min(1, Math.max(0, (t - (top - SCALE_SPAN)) / SCALE_SPAN))
+        return validReading(raw) ? raw : null
+    })
+    const hottest = Math.max(...readings.filter((r) => r !== null))
+    return readings.map((reading) => {
+        if (reading === null) return NO_INFORMATION
+        const shown = Math.round(hottest + SPREAD * (reading - hottest))
+        const ratio = Math.min(1, Math.max(0, (shown - (top - SCALE_SPAN)) / SCALE_SPAN))
         return paletteColor(PALETTE_START + (PALETTE_END - PALETTE_START) * ratio)
     })
 }

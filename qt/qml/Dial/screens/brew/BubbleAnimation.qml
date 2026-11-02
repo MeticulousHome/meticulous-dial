@@ -1,8 +1,10 @@
 // The water bubbles, 170 x 270 in a black box with a 1 px padding, coloured by the four bar sensors: a vertical
 // gradient from t_bar_up at the top to t_bar_down at the bottom, each stop easing to its colour in 0.5 s,
 // seen through the holes of the bubbles. The palette is LottieBubbleAnimation.tsx's (purple to orange), on a
-// scale that ends in orange at the target; React colours the whole box from one temperature (src/components/
-// Heating/LottieBubbleAnimation.tsx), so this departs from it on purpose. Without water all four go grey.
+// scale that ends in orange at the target, the hottest sensor at its real colour and each colder one pushed
+// colder by four times its distance from it (BrewLogic.js SPREAD); React colours the whole box from one
+// temperature (src/components/Heating/LottieBubbleAnimation.tsx), so this departs from it on purpose. Without
+// water all four go grey.
 //
 // The multiply is baked into the file (screens/brew/tools/bake_water_bubbles.py): it draws black with
 // bubble-shaped holes over the gradient, which is what white bubbles multiplied by it look like.
