@@ -450,6 +450,65 @@ def test_the_history_shows_the_backends_newest_brew(screen, backend):
     screen.wait_for_home()
 
 
+def test_completed_pour_over_screens_return_home_after_two_idle_minutes(screen):
+    """Protects: an unattended completed brew no longer strands the Dial on its summary or history chart.
+
+    The production expectation is HistoryLayout.POST_BREW_EXIT_TIMEOUT_MS (120 seconds); the writable screen
+    interval is shortened here so the journey is fast. The existing suite only left these screens by pushing,
+    so it would not catch a missing timeout. Turning the history chart proves active inspection restarts it.
+    """
+    screen.c.call({"cmd": "screen", "name": "freePour"})
+    screen.wait_for_route("freePour")
+    assert screen.probe("freePourExitTimeoutMs") == 120_000
+    assert ev(screen, "(function(){ router.current.item.postBrewExitTimeoutMs = 100;"
+                      " router.current.item.updateStage('result'); return 'set' })()") == "set"
+    screen.wait_for_home(timeout_s=3)
+
+    screen.c.call({"cmd": "screen", "name": "freePourHistory"})
+    screen.wait_for_route("freePourHistory")
+    assert screen.probe("historyExitTimeoutMs") == 120_000
+    assert ev(screen, "(function(){ router.current.item.exitTimeoutMs = 700; return 'set' })()") == "set"
+    time.sleep(0.3)
+    screen.controls.right()
+    assert screen.route() == "freePourHistory"
+    screen.wait_for_home(timeout_s=3)
+
+
+def test_a_long_history_title_fits_the_measured_circular_safe_chord(screen):
+    """Protects: a long guided-pour title remains fully visible and horizontally centered on the round Dial.
+
+    The expected bounds come from HistoryLayout.safeCircleChordWidth for the 480 px display and its 8 px
+    inset. Earlier tests asserted title text only, so they stayed green when the painted title crossed the
+    circular edge as in the machine photo.
+    """
+    profile_name = "FILTER FOR HIGH-DENSITY"
+    session = a_session()
+    now = datetime.now(timezone.utc)
+    session.update({
+        "mode": "profile",
+        "name": profile_name,
+        "startedAt": (now - timedelta(seconds=90)).isoformat().replace("+00:00", "Z"),
+        "completedAt": now.isoformat().replace("+00:00", "Z"),
+    })
+    session["recipe"].update({"profileName": profile_name})
+    screen.c.call({"cmd": "screen", "name": "freePourHistory"})
+    screen.wait_for_route("freePourHistory")
+    # Inject the completed brew directly: this is a layout test, and tying it to a particular backend's
+    # history endpoint would make a geometry regression look like a storage failure.
+    encoded_session = json.dumps(session)
+    assert ev(screen, "(function(){ const item = router.current.item; item._alive = false;"
+                      " item.session = %s; return 'set' })()" % encoded_session) == "set"
+    screen.wait_for_text(profile_name)
+    geometry = screen.probe("historyTitleGeometry")
+    assert geometry["truncated"] is False, geometry
+    assert geometry["paintedWidth"] <= geometry["width"] + 0.5, geometry
+    assert abs(geometry["x"] + geometry["width"] / 2 - 240) <= 0.5, geometry
+    assert 14 <= geometry["pixelSize"] <= 22, geometry
+    screen.snapshot("circular-safe-title")
+    screen.controls.double_push()
+    screen.wait_for_home()
+
+
 # ---- the guided pour-over
 
 def test_a_guided_pour_over_follows_the_installed_profile(screen, backend):

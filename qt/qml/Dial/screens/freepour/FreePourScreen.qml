@@ -13,6 +13,7 @@ import Dial
 import Dial.Native
 import "Css.js" as Css
 import "Format.js" as Format
+import "HistoryLayout.js" as HistoryLayout
 import "PourDetector.js" as Detector
 import "BrewWeightFilter.js" as Filter
 import "SetupFlow.js" as Setup
@@ -34,6 +35,7 @@ Item {
     readonly property int maxBrewDurationMs: 10 * 60 * 1000
     readonly property int maxPours: 5
     readonly property int tareConfirmTimeoutMs: 5000
+    property int postBrewExitTimeoutMs: HistoryLayout.POST_BREW_EXIT_TIMEOUT_MS
 
     // state.stats.sensors.w || 0 and .g || 0
     readonly property real weight: testScale ? (Number(testScale.w) || 0) : (Stats.sensors.w || 0)
@@ -66,6 +68,7 @@ Item {
     readonly property bool dialProbe_freePourStable: stable
     readonly property var dialProbe_freePourResult: result
     readonly property int dialProbe_freePourPours: pours.length
+    readonly property int dialProbe_freePourExitTimeoutMs: postBrewExitTimeoutMs
 
     function isSetupStage(s) { return s === "server" || s === "brewer" || s === "coffee" }
     function stepForStage(s) {
@@ -648,6 +651,18 @@ Item {
         }
     }
 
+    Timer {
+        id: postBrewExitTimeout
+        interval: screen.postBrewExitTimeoutMs
+        running: screen.stage === "result" && !Nav.bubbleInterceptsGesture
+        repeat: false
+        onTriggered: {
+            Log.logFreePour("exited", { runId: screen.runId, source: "timeout", stage: "result" })
+            Nav.closeBubble()
+            Nav.setScreen("profileHome")
+        }
+    }
+
     // ---- gestures
     GestureHandler {
         enabled: !Nav.bubbleInterceptsGesture
@@ -658,8 +673,14 @@ Item {
             Nav.setScreen("profileHome")
         }
         onContext: Log.logFreePour("context_opened", { runId: screen.runId, stage: screen.stage })
-        onTurnLeft: screen.handleTurn("left")
-        onTurnRight: screen.handleTurn("right")
+        onTurnLeft: {
+            if (screen.stage === "result" && postBrewExitTimeout.running) postBrewExitTimeout.restart()
+            screen.handleTurn("left")
+        }
+        onTurnRight: {
+            if (screen.stage === "result" && postBrewExitTimeout.running) postBrewExitTimeout.restart()
+            screen.handleTurn("right")
+        }
     }
 
     function handleClick() {
