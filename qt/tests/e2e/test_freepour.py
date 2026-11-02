@@ -108,7 +108,7 @@ def setup_free_pour(screen, scale):
 
 
 def complete_pregrind_dose(screen, scale, target_g):
-    """Tare an empty 20 g dosing cup, weigh the profile target, then remove the cup for grinding."""
+    """Tare a dosing cup, weigh the profile target, remove it, then capture the empty brewing container."""
     screen.wait_for_text("Prepare coffee dose")
     screen.wait_for_text(f"Target {target_g:.0f}g")
     scale.place(20)
@@ -121,9 +121,15 @@ def complete_pregrind_dose(screen, scale, target_g):
     scale.place(scale.mass + target_g)
     screen.wait_for_text("Target reached")
     screen.controls.push()
-    screen.wait_for_text("Remove cup + grind")
+    screen.wait_for_text("Grind + place container")
     assert screen.probe("freePourPreGrindDoseG") == target_g
     scale.place(0)
+    wait_probe(screen, "freePourSetupStatus", "taring")
+    scale.tare()
+    screen.wait_for_text("Empty brewing container")
+    scale.place(SERVER_G)
+    screen.wait_for_text("Weight stable")
+    screen.controls.push()
     wait_probe(screen, "freePourSetupStatus", "taring")
     scale.tare()
     screen.wait_for_text("Water temperature")
@@ -245,8 +251,8 @@ def test_the_manual_setup_rules_pass_their_cases_in_the_dials_engine(screen):
 # ---- Free Pour
 
 def test_the_pregrind_bean_dose_uses_the_profile_target_but_is_not_saved(screen):
-    """Protects: the new first step shows the selected profile's bean dose, guides a dosing-cup tare and
-    removal, then reaches temperature without adding that temporary weight to the brew record.
+    """Protects: the combined first step shows the selected profile's bean dose, guides the dosing-cup
+    tare/removal and empty brewing-container capture, then reaches temperature without saving the bean weight.
 
     The expected 18 g comes from FreePourScreen.profile.doseG. Existing setup tests began at temperature,
     so they could not catch a hard-coded target, a broken cup-removal tare, or accidental persistence.
@@ -575,7 +581,6 @@ def test_a_guided_pour_over_follows_the_installed_profile(screen, backend):
         complete_pregrind_dose(screen, scale, 15)
         screen.wait_for_text("93")
         screen.controls.push()
-        record_setup(screen, scale, "Weigh empty server", SERVER_G)
         record_setup(screen, scale, "Add brewer", BREWER_G)
         screen.wait_for_text("Add coffee")
         scale.place(scale.mass + COFFEE_G)
