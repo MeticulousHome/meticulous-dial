@@ -44,6 +44,7 @@ const CATEGORIES: &[&str] = &[
     "idempotency_payload_mismatch",
     "community_pour_over_not_ready",
     "pour_over_replay_scheduled",
+    "espresso_replay_scheduled",
     "pour_over_samples_invalid",
     "pour_over_duration_invalid",
     "pour_over_mode_invalid",

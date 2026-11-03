@@ -43,6 +43,10 @@ const HISTORY_POLL_SECONDS: i64 = 60;
 const SERVER_UPGRADE_RETRY_SECONDS: i64 = 15 * 60;
 const ENROLLMENT_TTL_SECONDS: i64 = 10 * 60;
 const ENROLLMENT_EXCHANGE_GRACE_SECONDS: i64 = 5 * 60;
+// Bump to replay, once per installation, the espresso history that Community
+// rejected before a server-side validation fix shipped. See
+// recovery::schedule_rejected_espresso_replay.
+const REJECTED_ESPRESSO_REPLAY_VERSION: u32 = 1;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -161,6 +165,8 @@ struct PersistentState {
     last_success_at: Option<i64>,
     last_error: Option<String>,
     last_retry_at: Option<i64>,
+    #[serde(default)]
+    rejected_espresso_replay_version: u32,
 }
 
 #[derive(Default)]
@@ -1863,6 +1869,8 @@ fn fresh_state() -> Result<PersistentState, String> {
         last_success_at: None,
         last_error: None,
         last_retry_at: None,
+        // A new installation has no rejected history to replay.
+        rejected_espresso_replay_version: REJECTED_ESPRESSO_REPLAY_VERSION,
     })
 }
 
@@ -1882,7 +1890,8 @@ fn load_or_create_state(path: &Path) -> Result<PersistentState, Box<dyn std::err
         let now = unix_seconds();
         let reactivated = reactivate_deployment_blocked_pour_overs(&mut state, now) > 0;
         let replay_scheduled = schedule_fractional_sample_rejection_replay(&mut state, now);
-        if reactivated || replay_scheduled {
+        let espresso_replay_changed = recovery::schedule_rejected_espresso_replay(&mut state, now);
+        if reactivated || replay_scheduled || espresso_replay_changed {
             persist_state(path, &state)?;
         }
         return Ok(state);
@@ -2858,6 +2867,129 @@ mod tests {
         assert!(!schedule_fractional_sample_rejection_replay(
             &mut state, 1_235
         ));
+    }
+
+    fn paired_state_with_recovery(failed: u64, last_issue: Option<&str>) -> PersistentState {
+        let mut state = fresh_state().expect("fresh state");
+        let authorization_id = Uuid::new_v4();
+        state.authorization_id = Some(authorization_id);
+        state.key_id = Some(Uuid::new_v4());
+        state.key_version = Some(1);
+        state.rejected_espresso_replay_version = 0;
+        let finished = |cursor: &str| RecoveryStream {
+            initialized: true,
+            through: Some(cursor.to_string()),
+            cursor: Some(cursor.to_string()),
+            exhausted: true,
+            ..RecoveryStream::default()
+        };
+        state.recovery = Some(HistoryRecovery {
+            id: Uuid::new_v4(),
+            authorization_id,
+            interrupted: false,
+            espresso: finished("2026-11-03/latest.shot.json.zst"),
+            pour_over: finished("2026-11-02/latest.pour-over.json.zst"),
+            added: 10,
+            already_present: 2,
+            preserved_deleted: 0,
+            failed,
+            last_issue: last_issue.map(str::to_string),
+        });
+        state
+    }
+
+    // A brew Community once rejected with invalid_shot (a sample reading
+    // stored as "NaN" or null) was dropped from the queue and the cursor moved
+    // past it; without this replay it never reaches Community after the
+    // server accepts those readings.
+    #[test]
+    fn replays_espresso_history_once_after_a_shot_validation_rejection() {
+        let mut state = paired_state_with_recovery(2, Some("invalid_shot"));
+        let previous = state.recovery.as_ref().unwrap().id;
+
+        assert!(recovery::schedule_rejected_espresso_replay(
+            &mut state, 1_234
+        ));
+        let job = state.recovery.as_ref().expect("replay job");
+        assert_ne!(job.id, previous);
+        assert!(!job.espresso.initialized);
+        assert_eq!(job.espresso.cursor, None);
+        // Pour Over history is not replayed.
+        assert!(job.pour_over.exhausted);
+        assert_eq!(job.failed, 0);
+        assert_eq!(
+            state.last_error.as_deref(),
+            Some("espresso_replay_scheduled")
+        );
+        assert_eq!(state.last_retry_at, Some(1_234));
+        assert_eq!(
+            state.rejected_espresso_replay_version,
+            REJECTED_ESPRESSO_REPLAY_VERSION
+        );
+
+        // Bounded: a brew rejected again during the replay does not restart it.
+        let replay = job.id;
+        state.recovery.as_mut().unwrap().espresso.exhausted = true;
+        state.recovery.as_mut().unwrap().failed = 1;
+        state.recovery.as_mut().unwrap().last_issue = Some("invalid_shot".to_string());
+        assert!(!recovery::schedule_rejected_espresso_replay(
+            &mut state, 1_235
+        ));
+        assert_eq!(state.recovery.as_ref().unwrap().id, replay);
+    }
+
+    #[test]
+    fn rescans_espresso_in_a_running_recovery_without_dropping_its_uploads() {
+        let mut state = paired_state_with_recovery(1, Some("invalid_json"));
+        let job_id = state.recovery.as_ref().unwrap().id;
+        state.recovery.as_mut().unwrap().espresso.exhausted = false;
+        state.queue.push(QueuedShot {
+            id: Uuid::new_v4(),
+            source_shot_id: "pending-recovery".to_string(),
+            history_path: "2026-11-01/pending.shot.json.zst".to_string(),
+            history_kind: HistoryKind::Espresso,
+            recovery_job_id: Some(job_id),
+            recovery_only: true,
+            body_file: "pending.json".to_string(),
+            attempt_count: 0,
+            next_attempt_at: 0,
+            last_error: None,
+        });
+
+        assert!(recovery::schedule_rejected_espresso_replay(
+            &mut state, 1_234
+        ));
+        let job = state.recovery.as_ref().unwrap();
+        assert_eq!(job.id, job_id);
+        assert!(!job.espresso.initialized);
+        assert_eq!(job.espresso.cursor, None);
+        assert_eq!(state.queue.len(), 1);
+    }
+
+    #[test]
+    fn rejected_espresso_replay_is_a_no_op_without_a_rejection() {
+        let mut state = paired_state_with_recovery(0, None);
+        let previous = state.recovery.as_ref().unwrap().id;
+
+        assert!(recovery::schedule_rejected_espresso_replay(
+            &mut state, 1_234
+        ));
+        assert_eq!(state.recovery.as_ref().unwrap().id, previous);
+        assert!(state.recovery.as_ref().unwrap().espresso.exhausted);
+        assert_eq!(state.last_error, None);
+        assert!(!recovery::schedule_rejected_espresso_replay(
+            &mut state, 1_235
+        ));
+    }
+
+    #[test]
+    fn fresh_installations_never_replay_rejected_espresso() {
+        let mut state = fresh_state().expect("fresh state");
+        state.last_error = Some("invalid_shot".to_string());
+        assert!(!recovery::schedule_rejected_espresso_replay(
+            &mut state, 1_234
+        ));
+        assert_eq!(state.last_error.as_deref(), Some("invalid_shot"));
     }
 
     #[test]

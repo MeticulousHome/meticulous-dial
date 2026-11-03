@@ -169,6 +169,76 @@ pub(super) fn interrupt(state: &mut PersistentState) {
     }
 }
 
+fn rejected_by_shot_validation(category: Option<&str>) -> bool {
+    matches!(category, Some("invalid_shot" | "invalid_json"))
+}
+
+/// Replays saved espresso history once after Community stopped rejecting
+/// valid brews (for example a sample reading stored as the backend's
+/// unavailable sentinel, `"NaN"` or `null`).
+///
+/// A brew Community rejects with a 4xx is dropped from the durable queue and
+/// its history cursor moves past it, so nothing is left to reactivate. The
+/// only way to send it again is to scan the history once more. This runs the
+/// history recovery again, through the recovery endpoint, which keeps the
+/// server's ownership cutoff, reports brews it already has as present, and
+/// sends no new-brew notifications.
+///
+/// It is bounded: it runs at most once per `REJECTED_ESPRESSO_REPLAY_VERSION`
+/// (the version is persisted together with the replay); it only runs when
+/// this machine recorded a failed recovery upload or a shot validation
+/// rejection; a brew rejected again is dropped again as before.
+///
+/// Returns true when the state changed and must be persisted.
+pub(super) fn schedule_rejected_espresso_replay(state: &mut PersistentState, now: i64) -> bool {
+    if state.rejected_espresso_replay_version >= REJECTED_ESPRESSO_REPLAY_VERSION {
+        return false;
+    }
+    state.rejected_espresso_replay_version = REJECTED_ESPRESSO_REPLAY_VERSION;
+
+    let rejected = rejected_by_shot_validation(state.last_error.as_deref())
+        || state.recovery.as_ref().is_some_and(|job| {
+            job.failed > 0 || rejected_by_shot_validation(job.last_issue.as_deref())
+        });
+    let Some(authorization_id) = state
+        .authorization_id
+        .filter(|_| state.key_id.is_some() && state.key_version.is_some())
+    else {
+        return true;
+    };
+    // Without a live job for this authorization the automatic recovery
+    // starts a fresh one, which already scans the whole history.
+    let Some(job) = state
+        .recovery
+        .as_ref()
+        .filter(|job| !job.interrupted && job.authorization_id == authorization_id)
+    else {
+        return true;
+    };
+    if !rejected {
+        return true;
+    }
+
+    if job.completed(state) {
+        // Start a new job so its counts describe this run only. Pour Over
+        // history is not affected; keep its finished stream.
+        let mut replay = HistoryRecovery::new(authorization_id);
+        replay.pour_over = job.pour_over.clone();
+        state.recovery = Some(replay);
+    } else {
+        // A running job keeps its pending uploads; scan espresso again from
+        // the start once its current snapshot is rebuilt.
+        let job = state.recovery.as_mut().expect("checked above");
+        *job.stream_mut(HistoryKind::Espresso) = RecoveryStream::default();
+    }
+    state.last_error = Some("espresso_replay_scheduled".to_string());
+    state.last_retry_at = Some(now);
+    log::warn!(
+        "[CommunityUpload] replaying espresso history once after Community accepted unavailable sample readings"
+    );
+    true
+}
+
 pub(super) fn next_due_item(state: &mut RuntimeState, now: i64) -> Option<QueuedShot> {
     let live = state
         .persistent
