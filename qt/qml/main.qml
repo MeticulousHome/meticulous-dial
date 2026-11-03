@@ -118,14 +118,17 @@ Window {
 
     // The context button toggles the quick settings (App.tsx and Bubble.tsx's handlers: App's is off during
     // a shot or while the bubble intercepts gestures; the bubble's is always on, unless pinned).
+    // While the scale is full the press is the scale's, which closes it: opening the quick settings here
+    // would set bubbleInterceptsGesture and switch off Scale.qml's handler before it hears this press,
+    // leaving the full scale up with the router, the bubble and the scale all deaf.
     GestureHandler {
         id: contextHandler
         onContext: {
+            if (window.scaleVisibility === "full") return
             if (Nav.bubbleVisible) {
-                if (window.scaleVisibility === "full" || Nav.bubblePinned) return
+                if (Nav.bubblePinned) return
                 Nav.setBubbleDisplay({ visible: false, component: Nav.bubbleComponent })
             } else {
-                if ((Stats.extracting || Nav.bubbleInterceptsGesture) && window.scaleVisibility === "full") return
                 Nav.setBubbleDisplay({ visible: true, component: "quick-settings" })
             }
         }
