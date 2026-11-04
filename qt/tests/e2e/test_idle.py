@@ -721,6 +721,36 @@ def test_a_tare_hold_can_be_cancelled_and_a_double_tare_still_closes_fullscreen(
     assert underlying(c) == ["pressDown", "pressUp", "click"]
 
 
+def test_context_closes_the_full_scale_and_the_next_context_opens_the_quick_settings(under_snake):
+    """Protects: one Context press on the full-screen scale closes it, the next one opens the quick
+    settings and the tare button tares again (Emmanuel's report on nightly 2026M1514, Dial 1.105.1: the
+    scale stayed up and the Dial ignored every button until `systemctl restart meticulous-dial`).
+
+    Expected values: Scale.qml closes on `onContext`; main.qml's contextHandler opens "quick-settings" when
+    the bubble is hidden; a single tare on a scale closed less than a minute ago (closed_hot) only opens the
+    small scale, and the next one tares.
+
+    Catches: main.qml's contextHandler opening the quick settings while the scale is full. That set
+    Nav.bubbleInterceptsGesture, which switched off Scale.qml's GestureHandler before it heard the press,
+    so the scale stayed full, the bubble opened under it and nothing reached the Dial any more."""
+    c = under_snake.c
+    open_full_scale(c)
+    clear(c)
+    emit(c, "context")
+    visibility(c, "closed")
+    assert not under_snake.state()["bubbleVisible"]
+    assert ev_json(c, "Nav.bubbleInterceptsGesture") is False
+    emit(c, "context")
+    under_snake.wait_for_bubble("quick-settings")
+    emit(c, "context")
+    under_snake.wait_for_bubble_closed()
+    emit(c, "singleTare")
+    visibility(c, "small")
+    assert actions(c) == []  # closed_hot: the first tare only opens the scale
+    emit(c, "singleTare")
+    assert actions(c) == [["action", "tare"]]
+
+
 @pytest.mark.parametrize("name", ["calibrateScale", "freePour", "guidedPourOver", "freePourHistory"])
 def test_screens_without_the_overlay_keep_the_tare(screen, name):
     """scale.spec.ts '<screen> retains tare without opening scale overlay'."""
