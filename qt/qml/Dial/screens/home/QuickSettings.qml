@@ -1,6 +1,6 @@
 // The context menu (src/components/QuickSettings/QuickSettings.tsx) in the bubble: what fits the screen
 // under it (profile, Free Pour, pour-over, brewing, Free Pour in progress), Back when the route has a
-// parent, then sleep / raise / purge / Brew Settings / wifi / config / Report an issue / Experimental /
+// parent, then sleep / suspend / raise / purge / Brew Settings / wifi / config / Report an issue / Experimental /
 // Help us improve / exit. The OS update status shows on top, the image version at the end. Long-press
 // options (delete, abort) fill while held. Twenty turns past "exit" open Snake.
 import QtQuick
@@ -38,6 +38,7 @@ Item {
     readonly property var prevScreenSetting: ({ key: "prevScreen", label: "Back", hasSeparator: true })
     readonly property var defaultSettings: [
         { key: "sleep", label: "sleep" },
+        { key: "suspend", label: "suspend" },
         { key: "raise", label: "raise" },
         { key: "purge", label: "purge" },
         { key: "brew_config", label: "Brew Settings", hasSeparator: true },
@@ -191,6 +192,18 @@ Item {
             const previousOption = menu.activeIndex
             menu.next()
             if (quick.settings[previousOption] && quick.settings[previousOption].key === "exit") quick.counterESGG++
+        }
+        // On the click, not the press like the other options: the ESP32 wakes on a button's level, so it
+        // must not go to sleep under a held button.
+        onClick: {
+            const option = quick.settings[menu.activeIndex]
+            if (!option || option.key !== "suspend") return
+            quick.close()
+            Idle.forceIdle()
+            // The backend refuses while the machine is busy: it then simply stays on the idle screen.
+            Api.requestStandby().catch(error => {
+                console.warn("Could not suspend:", error && error.message ? error.message : error)
+            })
         }
         onPressUp: {
             if (menu.holdAnimation === "finished") {

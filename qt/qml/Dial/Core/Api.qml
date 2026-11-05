@@ -109,6 +109,7 @@ QtObject {
     function getOSStatus() { return get(v + "/machine/OS_update_status") }
     function getRootPassword() { return get(v + "/machine/root-password") }
     // setTime(Date): the backend takes the date as an ISO string.
+    function requestStandby() { return post(v + "/machine/standby") }
     function setTime(date) { return post(v + "/machine/time", { date: date.toISOString() }) }
     function factoryReset() { return get(v + "/machine/factory_reset?confirm=true") }
     function getTimezoneRegion(regionType, filter) { return get(v + "/timezones/" + regionType + query({ filter: filter })) }
