@@ -1,8 +1,11 @@
 """The home and the quick settings (ported from meticulous-integration tests/test_dial_02_home.py and
 tests/test_dial_input.py)."""
 
+import http.server
+import threading
 import time
 import uuid
+from pathlib import Path
 
 import pytest
 
@@ -123,6 +126,107 @@ def test_a_fast_spin_keeps_the_cards_it_passes_on_screen(screen, backend, saved)
 
     assert screen.active_index() == start + 10
     assert min(drawn) >= 1, f"{drawn.count(0)} of {len(drawn)} samples with no card on screen"
+
+
+class PictureHost:
+    """A profile picture on the internet: a local HTTP server that answers with the picture, or, while
+    `failure` is set, "drop"s every connection without an answer (the Wi-Fi is not up yet) or keeps it open
+    without one ("hang"). Counts the requests."""
+
+    def __init__(self):
+        picture = (Path(__file__).resolve().parents[2] / "qml/Dial/assets/icons/idle-no-wifi.png").read_bytes()
+        host = self
+        self.failure = "drop"
+        self.requests = 0
+        self.closed = threading.Event()
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                host.requests += 1
+                self.close_connection = True
+                failure = host.failure
+                if failure == "hang":
+                    host.closed.wait(60)
+                if failure:
+                    return
+                self.send_response(200)
+                self.send_header("Content-Type", "image/png")
+                self.send_header("Content-Length", str(len(picture)))
+                self.end_headers()
+                self.wfile.write(picture)
+
+            def log_message(self, *args):
+                pass
+
+        self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        threading.Thread(target=self.server.serve_forever, daemon=True).start()
+        self.url = f"http://127.0.0.1:{self.server.server_address[1]}/picture.png"
+
+    def close(self):
+        self.closed.set()
+        self.server.shutdown()
+        self.server.server_close()
+
+
+@pytest.fixture
+def picture_host():
+    host = PictureHost()
+    yield host
+    host.close()
+
+
+def wait_until(predicate, timeout_s, what):
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        if predicate():
+            return
+        time.sleep(0.1)
+    raise AssertionError(f"timed out waiting for {what}")
+
+
+def show_remote_picture_after_a_failed_load(screen, backend, saved, picture_host, timeout_s):
+    """Saves a profile whose picture is on `picture_host`, lets the host fail the card's first load, makes it
+    answer from then on and waits for the card to show the picture without leaving the home."""
+    name = f"Remote picture {uuid.uuid4().hex[:4]}"
+    profile = default_profile(backend)
+    profile.update(id=str(uuid.uuid4()), name=name, display={**(profile.get("display") or {}), "image": picture_host.url})
+    save_profile(backend, profile, saved)
+    screen.wait_for_home()
+    screen.wait_for_cards({name})
+    wait_until(lambda: picture_host.requests >= 1, 10, "the card to load the picture")
+    picture_host.failure = None
+
+    screen.go_to_card(name)
+    wait_until(lambda: (screen.probe("activeCardImage") or {}).get("loaded"), timeout_s,
+               "the card to show the picture once the host answers")
+    assert screen.route() == "profileHome"
+    assert picture_host.requests >= 2
+
+
+def test_a_remote_picture_that_failed_shows_once_the_network_is_up(screen, backend, saved, picture_host):
+    """Protects: seeing a profile picture hosted on the internet after a boot where the home opened before
+    the Wi-Fi connected: its first load fails ("Host not found") and the card loads it again once the
+    network is up, without leaving the home; a picture that loaded is not loaded again (no flicker).
+
+    Limit: the internet is a local HTTP server that drops the first request and answers from then on; the
+    card's retries are 2, 4, 8... s after each failure, so the second load is the one 2 s after the first.
+    """
+    show_remote_picture_after_a_failed_load(screen, backend, saved, picture_host, timeout_s=15)
+    loads = picture_host.requests
+    time.sleep(6)
+    assert picture_host.requests == loads, "the picture was loaded again after it showed"
+    assert screen.probe("activeCardImage")["loaded"]
+
+
+def test_a_remote_picture_whose_load_hangs_shows_once_the_network_is_up(screen, backend, saved, picture_host):
+    """Protects: the same, when the first load never gets an answer: with the host's name unresolved, Qt 6.4
+    can leave one of several requests to an HTTPS host waiting forever, and its card would wait with it.
+
+    Limit: the server keeps the first request open without answering; a load with no progress for 15 s
+    counts as failed.
+    """
+    picture_host.failure = "hang"
+    show_remote_picture_after_a_failed_load(screen, backend, saved, picture_host, timeout_s=25)
 
 
 def test_the_context_button_opens_and_closes_the_quick_settings(screen):
