@@ -149,7 +149,7 @@ def test_quick_settings_list_on_the_home_of_a_profile(screen):
             break
         seen.append(f)
     assert seen[:3] == ["Edit profile", "Last shot", "Delete profile"], seen
-    assert seen[3:] == ["sleep", "suspend", "raise", "purge", "Brew Settings", "wifi", "config", "Report an issue",
+    assert seen[3:] == ["sleep", "suspend", "power off", "raise", "purge", "Brew Settings", "wifi", "config", "Report an issue",
                         "Experimental", "Help us improve", "exit"], seen
 
 

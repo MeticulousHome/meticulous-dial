@@ -1,6 +1,6 @@
 // The context menu (src/components/QuickSettings/QuickSettings.tsx) in the bubble: what fits the screen
 // under it (profile, Free Pour, pour-over, brewing, Free Pour in progress), Back when the route has a
-// parent, then sleep / suspend / raise / purge / Brew Settings / wifi / config / Report an issue / Experimental /
+// parent, then sleep / suspend / power off / raise / purge / Brew Settings / wifi / config / Report an issue / Experimental /
 // Help us improve / exit. The OS update status shows on top, the image version at the end. Long-press
 // options (delete, abort) fill while held. Twenty turns past "exit" open Snake.
 import QtQuick
@@ -39,6 +39,7 @@ Item {
     readonly property var defaultSettings: [
         { key: "sleep", label: "sleep" },
         { key: "suspend", label: "suspend" },
+        { key: "power_off", label: "power off", longpress: true },
         { key: "raise", label: "raise" },
         { key: "purge", label: "purge" },
         { key: "brew_config", label: "Brew Settings", hasSeparator: true },
@@ -164,6 +165,13 @@ Item {
             close()
             break
         }
+        case "power_off":
+            // Held, not pushed: only a power cycle starts the machine again. The backend refuses while it is busy.
+            Api.powerOff().catch(error => {
+                console.warn("Could not power off:", error && error.message ? error.message : error)
+            })
+            close()
+            break
         case "abort_brew":
             Backend.action("abort")
             close()
