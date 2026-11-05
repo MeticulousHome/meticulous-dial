@@ -1,10 +1,9 @@
 // The analog sleep clock (src/components/IdleScreen/AnalogClock.tsx): 60 indicators, the hour, minute and
-// smooth second hands on the OS local time, the Meticulous logo and the Wi-Fi indicator. The hands move on
-// every frame by rotation only; they stay hidden until the first time sample.
+// smooth second hands on the OS local time and the Meticulous logo. The hands move on every frame by
+// rotation only; they stay hidden until the first time sample.
 //
 // As in React, the clock container has no height of its own (height: 100% of an auto-height parent), so
-// its icon column is 56 px tall: the logo lands at y 103 and the Wi-Fi indicator, pushed up 103 px from
-// the column's bottom, at y -74, off the screen.
+// its icon column is 56 px tall: the logo lands at y 103.
 import QtQuick
 import Dial
 
@@ -23,8 +22,6 @@ Item {
 
     property bool timeShown: false
 
-    NetworkStatus { id: network }
-
     // The indicators: 1.5 px, every fifth 31.5 px #898989, else 15.5 px #494949 (one picture).
     Image {
         width: 480
@@ -42,16 +39,6 @@ Item {
         height: 25
         sourceSize: Qt.size(33, 25)
         source: Theme.publicImage("logo-white.svg")
-    }
-
-    // WifiIndicator (30 x 23 in a 27.57 px box), bottom of the 56 px column moved up 103 px: off screen.
-    Image {
-        x: 240 - 27.57 / 2
-        y: analog.flowHeight - 27 - 103
-        width: 30
-        height: 23
-        sourceSize: Qt.size(30, 23)
-        source: Theme.asset(network.connected ? "icons/idle-wifi-on.svg" : "icons/idle-wifi-off.svg")
     }
 
     // RotationContainer: 10 px wide, the full height, turned around the clock's center.
@@ -112,5 +99,4 @@ Item {
     }
 
     property alias dialProbe_secondRotation: secondHand.rotation
-    readonly property bool dialProbe_wifiConnected: network.connected
 }
