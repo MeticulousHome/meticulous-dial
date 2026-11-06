@@ -171,11 +171,11 @@ def test_heating_without_water_asks_for_it(screen, machine):
     screen.wait_for_text("Waiting...")
     screen.wait_for_text("Tap to retry")
     assert screen.probe("bubbleGradient") == 0
-    # The bubbles finish their loop, then drain (frames 314-375).
-    wait_for(lambda: screen.probe("bubbleSegment") == [314, 375], 15, "the bubbles draining")
+    # The bubbles finish their loop, then drain (frames 312-375).
+    wait_for(lambda: screen.probe("bubbleSegment") == [312, 375], 15, "the bubbles draining")
     # Water again: the temperature comes back (the footer fades out and in, 600 ms), the bubbles restart.
     machine.water(True)
-    wait_for(lambda: screen.probe("bubbleSegment") == [0, 314], 2, "the bubbles back")
+    wait_for(lambda: screen.probe("bubbleSegment") == [0, 312], 2, "the bubbles back")
     wait_for(lambda: not screen.has_text("No water"), 3, "the temperature back")
     screen.wait_for_text("Estimated time")
 

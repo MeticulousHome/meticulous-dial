@@ -6,9 +6,10 @@
 // The multiply is baked into the file (screens/brew/tools/bake_water_bubbles.py): it draws black with
 // bubble-shaped holes over the gradient, which is what white bubbles multiplied by it look like.
 //
-// Playback as lottie-web plays it: frames 0-60 once, then 60-314 in a loop (the loopComplete handler resets
-// the segment to 60-314). Water gone: the loop stops at its end and 314-375 plays once (the bubbles drain).
-// Water back: 0-314 at once, then 60-314 in a loop. setSubframe(false): the file's 29 frames a second.
+// Playback as lottie-web plays it (frames 0-62 once, then a loop; water gone: the loop stops at its end and
+// the drain plays once; water back: 0-312 at once, then the loop), except the loop: lottie-web's 60-314 froze
+// every bubble at once at the wrap, so the file closes its loop at 62-312 (bake_water_bubbles.py).
+// setSubframe(false): the file's 29 frames a second.
 import QtQuick
 import Dial
 import Dial.Native
@@ -90,12 +91,12 @@ Item {
         lottie.endFrame = segment[1]
         lottie.gotoAndPlay(segment[0])
     }
-    // loadAnimation: initialSegment [0, 60], loop, autoplay; playSegments([60, 314]) queued.
+    // loadAnimation: initialSegment [0, 62], loop, autoplay; the loop queued.
     function start() {
         started = true
         loop = true
-        queue = [[60, 314]]
-        playSegment([0, 60])
+        queue = [[62, 312]]
+        playSegment([0, 62])
     }
     function segmentEnded() {
         if (queue.length) {
@@ -103,7 +104,7 @@ Item {
             queue = queue.slice(1)
             playSegment(next)
         } else if (loop) {
-            playSegment([60, 314])
+            playSegment([62, 312])
         }
     }
     onWaterStatusChanged: {
@@ -111,10 +112,10 @@ Item {
         if (waterStatus) {
             queue = []
             loop = true
-            playSegment([0, 314])
+            playSegment([0, 312])
         } else {
             loop = false
-            queue = queue.concat([[314, 375]])
+            queue = queue.concat([[312, 375]])
         }
     }
     Component.onCompleted: if (lottie.loaded) start()
