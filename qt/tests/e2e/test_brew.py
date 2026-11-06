@@ -162,6 +162,26 @@ def test_heating_shows_the_temperature_its_target_and_the_time_left(screen, mach
     assert screen.probe("temperatureTarget") == 90
 
 
+def test_heating_bubbles_take_their_colours_from_the_four_bar_sensors(screen, machine):
+    """Protects: the bubbles showing where the heat is, hot at the top and cooler below (BubbleAnimation).
+
+    Limit: the hottest sensor keeps its colour (#F44D19 at the target, 90, #280B54 30 °C below it) and each
+    colder one is shown four times its distance below it; a sensor reading 0 follows the temperature the
+    screen shows.
+    """
+    machine.status(name="heating", sensors={"t": 70})
+    screen.wait_for_route("heating")
+    machine.sensors(t_bar_up=88, t_bar_mu=86, t_bar_md=84, t_bar_down=82)
+    # shown 88, 80, 72, 64
+    four = ["#ED5824", "#BB3755", "#771C6D", "#300B5A"]
+    wait_for(lambda: screen.probe("bubbleColors") == four, 3, "the four colours")
+    wait_for(lambda: [c.upper() for c in screen.probe("bubbleStops")] == four, 3, "the colours drawn")
+    machine.status(name="heating", sensors={"t": 86})
+    machine.sensors(t_bar_up=88, t_bar_mu=0, t_bar_md=0, t_bar_down=82)
+    # readings 88, 86, 86, 82: shown 88, 80, 80, 64
+    wait_for(lambda: screen.probe("bubbleColors") == ["#ED5824", "#BB3755", "#BB3755", "#300B5A"], 3, "the fallback")
+
+
 def test_heating_without_water_asks_for_it(screen, machine):
     """Protects: the "pour water" step of a shot (Pour water and click to continue)."""
     machine.status(name="heating", sensors={"t": 70})
@@ -170,7 +190,7 @@ def test_heating_without_water_asks_for_it(screen, machine):
     screen.wait_for_text("No water")
     screen.wait_for_text("Waiting...")
     screen.wait_for_text("Tap to retry")
-    assert screen.probe("bubbleGradient") == 0
+    assert screen.probe("bubbleColors") == ["#808080"] * 4
     # The bubbles finish their loop, then drain (frames 314-375).
     wait_for(lambda: screen.probe("bubbleSegment") == [314, 375], 15, "the bubbles draining")
     # Water again: the temperature comes back (the footer fades out and in, 600 ms), the bubbles restart.

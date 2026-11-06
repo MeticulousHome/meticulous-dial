@@ -1,5 +1,5 @@
 // The heating screen (src/components/Heating/HeatingScreen.tsx) in its ModularScreen: left, the water
-// bubbles coloured by the temperature; right, AUTO BREW / PUSH TO BREW / BREW NOW, the temperature rolling
+// bubbles coloured by the four bar sensors; right, AUTO BREW / PUSH TO BREW / BREW NOW, the temperature rolling
 // and the target; below, the estimated time. "click to start" (heating finished): the options leave
 // (unless AUTO BREW, which then starts the shot), both halves slide 95 px right in 0.6 s, the target fades
 // and the footer reads "Push to brew"; a click or a long press starts the shot (push to brew, brew now).
@@ -111,6 +111,11 @@ Item {
         x: 230 - width + screen.shift
         y: screen.headerTop + 10 + 115 - height / 2
         temperature: screen.temperature
+        sensors: ({
+            t_bar_up: Stats.sensorData.t_bar_up, t_bar_mu: Stats.sensorData.t_bar_mu,
+            t_bar_md: Stats.sensorData.t_bar_md, t_bar_down: Stats.sensorData.t_bar_down
+        })
+        temperatureTarget: screen.temperatureTarget
         waterStatus: screen.waterStatus
     }
 
