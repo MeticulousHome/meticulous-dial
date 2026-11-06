@@ -54,6 +54,7 @@ antialiasing differs). On the machine (10.10.0.130, eglfs) see "Performance" at 
 | profileHome | ProfileHomeScreen | screens/home/ProfileHome.qml | done | carousel, zoom, hold ring, slide-exit on delete |
 | quick-settings | QuickSettings | screens/home/QuickSettings.qml | done | every context (profile, Free Pour, pour-over, brewing, Free Pour in progress, manual brew save), snake easter egg |
 | heating | Heating/** | screens/brew/HeatingScreen.qml | done | water bubbles (baked Lottie), temperatures, options, long press (sw120 test passes) |
+| no water | none (React showed it on the heating screen) | screens/brew/NoWaterScreen.qml | new | full screen for the "Pour water and click to continue" stage: drops (lottie/brew-no-water.json), pulsing ring, alert sound from the backend |
 | barometer | Barometer/** | screens/brew/Barometer.qml | done | meter, target tick and trail of manual brews (meterGeometry, trailGeometry, manualTarget tests pass) |
 | manual-purge | PurgePiston/**, MiniPurgePiston | screens/brew/PurgeScreen.qml | done | |
 | brewComplete | BrewCompleteScreen | screens/brew/BrewCompleteScreen.qml | done | remove cup animation, double push (brewDoubleClick test passes) |

@@ -96,7 +96,7 @@ QtObject {
         }
         if (name === "Pour water and click to continue") {
             Stats.setWaterStatus(false)
-            Nav.setScreen("heating")
+            Nav.setScreen("noWater")
             return
         }
         if (name === "click to start") {
