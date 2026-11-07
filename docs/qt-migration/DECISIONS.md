@@ -41,7 +41,8 @@ MultiEffect. The Dial is GPLv3, so the LGPL/GPL Qt modules are fine.
   without answer or a 5xx is retried after 2, 4 and 8 s when saving, 1 and 2 s when reading; 4xx never.
 - **No real services off the machine.** Only the machine's launcher sets `DIAL_EXTERNAL_SERVICES=1`; anything
   else (development, tests, profiling) reaches only the backend and the machine it runs on (`src/netguard.*`).
-- **The backend as today.** REST and Socket.IO on `http://localhost:8080`; the knob and buttons arrive as
+- **The backend as today.** REST and Socket.IO on `http://127.0.0.1:8080`, the only address it listens on
+  (`localhost` also names `::1`; `src/main.cpp` says why that matters); the knob and buttons arrive as
   the backend's socket.io `button` events, mapped to the same gestures (`Input.qml` = `SocketProviderValue`).
 - **Same state shape as the React store.** `Dial.Core` singletons mirror the Redux slices and contexts:
   `Nav` (screens slice), `Stats`, `Notifications`, `UiState` (settings / wifi / images slices), `Profiles`
