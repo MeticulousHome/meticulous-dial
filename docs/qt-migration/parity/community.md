@@ -32,7 +32,7 @@ still brew normally." and `status.state` is `unavailable` with the init error in
 |---|---|---|---|---|
 | Runtime init, unavailable fallback, `initialization_failed` log | `CommunityUploadRuntime::initialize`, `CommunityUploadService::new` | `community.cpp`, `service.cpp` (`create`) | done | dirs, state, orphans, then the base URL checks, in the Rust order and with its error strings |
 | Paths: `$CONFIG_PATH/community-upload/{state.json, queue/<uuid>.json, diagnostics.json}`, default `/meticulous-user/config` | `new`, `config.rs` | `Community::storageRoot` | done | see "Differences" for the dev fallback |
-| `COMMUNITY_API_BASE` (default `https://community.meticuloushome.com`), `MACHINE_API_BASE` (default `http://localhost:8080`) | `new` | `community.cpp` | done | `MACHINE_API_BASE` unset: the Dial's `--api` URL (the same on the machine) |
+| `COMMUNITY_API_BASE` (default `https://community.meticuloushome.com`), `MACHINE_API_BASE` (default `http://localhost:8080`) | `new` | `community.cpp` | done | `MACHINE_API_BASE` unset: the Dial's `--api` URL (`http://127.0.0.1:8080` on the machine; see "Differences") |
 | Private dirs 0700, files 0600, atomic write (exclusive temp, fsync, rename, fsync dir) | `create_private_dir`, `write_private_file_atomic` | `storage.cpp` | done | |
 | state.json format | `PersistentState`, `QueuedShot`, `EnrollmentState` (serde camelCase) | `model.cpp` (`serializeState`, `parseState`) | done | byte-identical to `serde_json::to_vec` (struct order, compact, `null`s, i64::MAX kept); serde's rules on read (missing `Option` = null, `#[serde(default)]` for `historyKind` / `pourOverHistory*`, strict number kinds, duplicate fields rejected, UUID forms) |
 | `validate_state` (seed decodes to 32 bytes, public key matches) | `validate_state` | `model.cpp` | done | |
@@ -60,8 +60,9 @@ still brew normally." and `status.state` is `unavailable` with the init error in
 - Storage root on a development machine: with no `CONFIG_PATH` and no `/meticulous-user`, the uploader uses
   `<temp>/meticulous-dial-config/community-upload` (what the Rust debug build does) instead of failing; on
   the machine it is `/meticulous-user/config/community-upload`, as the release Tauri Dial.
-- `MACHINE_API_BASE` falls back to the Dial's `--api` URL (`http://localhost:8080` on the machine, like Rust's
-  default), so a dev Dial reads the history of its own backend.
+- `MACHINE_API_BASE` falls back to the Dial's `--api` URL, so a dev Dial reads the history of its own backend.
+  On the machine that is `http://127.0.0.1:8080` rather than Rust's default `http://localhost:8080`: the
+  backend listens on 127.0.0.1 only, and Qt can keep a `localhost` connection on `::1` (`src/main.cpp`).
 - `status` is a copy published after every state change: the GUI thread never waits for a state.json fsync.
   `scanHistory()` sets a flag the worker applies at its next tick (Rust zeroes the timer under the state
   lock); a request made during a scan is no longer lost.

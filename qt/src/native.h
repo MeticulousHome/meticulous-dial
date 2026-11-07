@@ -24,7 +24,7 @@ class Native : public QObject
 
 public:
     struct Options {
-        QUrl apiUrl{QStringLiteral("http://localhost:8080")};
+        QUrl apiUrl{QStringLiteral("http://127.0.0.1:8080")};
         int rotation = -90;
         int testPort = 0;
         QString startScreen;

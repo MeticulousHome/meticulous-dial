@@ -134,8 +134,12 @@ int main(int argc, char *argv[])
     parser.setApplicationDescription(QStringLiteral("The Meticulous Dial (Qt Quick)"));
     parser.addHelpOption();
     parser.addVersionOption();
+    // 127.0.0.1, not localhost: the backend listens on 127.0.0.1 only, and localhost also names ::1. When the
+    // first requests go out while Wi-Fi has its link-local IPv6 address but no IPv4 lease yet, getaddrinfo
+    // (AI_ADDRCONFIG) answers ::1 alone and Qt keeps the backend's HTTP connection on IPv6: every request is
+    // refused, and the polling keeps that connection cached, until the Dial restarts.
     QCommandLineOption apiOption(QStringLiteral("api"), QStringLiteral("Backend URL."), QStringLiteral("url"),
-                                 qEnvironmentVariable("DIAL_API_URL", QStringLiteral("http://localhost:8080")));
+                                 qEnvironmentVariable("DIAL_API_URL", QStringLiteral("http://127.0.0.1:8080")));
     QCommandLineOption rotationOption(QStringLiteral("rotation"),
                                       QStringLiteral("Rotation of the picture in degrees (the panel is mounted turned)."),
                                       QStringLiteral("degrees"), qEnvironmentVariable("DIAL_ROTATION", QStringLiteral("-90")));

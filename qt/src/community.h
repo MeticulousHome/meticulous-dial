@@ -42,7 +42,7 @@ class Community : public QObject
 
 public:
     // defaultMachineBase: the backend the uploader reads the history from when MACHINE_API_BASE is not
-    // set (the Dial's --api URL; http://localhost:8080 on the machine).
+    // set (the Dial's --api URL; http://127.0.0.1:8080 on the machine).
     explicit Community(const QUrl &defaultMachineBase, QObject *parent = nullptr);
     ~Community() override;
 
