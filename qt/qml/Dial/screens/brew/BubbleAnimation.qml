@@ -1,7 +1,10 @@
-// LottieBubbleAnimation (src/components/Heating/LottieBubbleAnimation.tsx): the water bubbles, 170 x 270 in
-// a black box with a 1 px padding, coloured by the temperature: a 12-stop gradient (grey, then deep purple
-// to orange) 12 times the box's height, whose visible window slides with the temperature (20..90 °C) in
-// 0.5 s, multiplied over the white bubbles. Without water the window goes back to grey.
+// The water bubbles, 170 x 270 in a black box with a 1 px padding, coloured by the four bar sensors: a vertical
+// gradient from t_bar_up at the top to t_bar_down at the bottom, each stop easing to its colour in 0.5 s,
+// seen through the holes of the bubbles. The palette is LottieBubbleAnimation.tsx's (purple to orange), on a
+// scale that ends in orange at the target, the hottest sensor at its real colour and each colder one pushed
+// colder by four times its distance from it (BrewLogic.js SPREAD); React colours the whole box from one
+// temperature (src/components/Heating/LottieBubbleAnimation.tsx), so this departs from it on purpose. Without
+// water all four go grey.
 //
 // The multiply is baked into the file (screens/brew/tools/bake_water_bubbles.py): it draws black with
 // bubble-shaped holes over the gradient, which is what white bubbles multiplied by it look like.
@@ -17,6 +20,8 @@ import "BrewLogic.js" as Logic
 Item {
     id: bubbles
     property real temperature: 0
+    property var sensors: ({})
+    property real temperatureTarget: 0
     property bool waterStatus: true
     readonly property int bubblesWidth: 170
     readonly property int bubblesHeight: 270
@@ -24,47 +29,42 @@ Item {
     width: bubblesWidth + 2
     height: bubblesHeight + 2
 
-    // Test probes: the segment playing and the gradient's position (percent).
+    // Test probes: the segment playing and the four colours the gradient is heading for and the four it draws now, top to bottom.
     readonly property var dialProbe_bubbleSegment: [lottie.startFrame, lottie.endFrame]
-    readonly property real dialProbe_bubbleGradient: gradientOffset
+    readonly property var dialProbe_bubbleColors: colors
+    function dialProbe_bubbleStops() {
+        const out = []
+        for (let i = 0; i < stops.stops.length; i++) out.push(String(stops.stops[i].color))
+        return out
+    }
 
-    readonly property real gradientOffset: Logic.bubbleGradientOffset(temperature, waterStatus)
+    readonly property var colors: Logic.bubbleColors(sensors, temperature, temperatureTarget, waterStatus)
+    property color shownUp: colors[0]
+    property color shownMu: colors[1]
+    property color shownMd: colors[2]
+    property color shownDown: colors[3]
+    Behavior on shownUp { ColorAnimation { duration: 500; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE } }
+    Behavior on shownMu { ColorAnimation { duration: 500; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE } }
+    Behavior on shownMd { ColorAnimation { duration: 500; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE } }
+    Behavior on shownDown { ColorAnimation { duration: 500; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE } }
 
     Rectangle {
         anchors.fill: parent
         color: "black"
     }
 
-    // GradientContainer: 169 x 269 at (1, 1), background-size 100% 1200%.
-    Item {
+    // GradientContainer: 169 x 269 at (1, 1), four stops evenly spaced from the top bar sensor to the bottom.
+    Rectangle {
         x: 1
         y: 1
         width: bubbles.bubblesWidth - 1
         height: bubbles.bubblesHeight - 1
-        clip: true
-        Rectangle {
-            id: strip
-            width: parent.width
-            height: parent.height * 12
-            // background-position-y: p % = (box - image) * p
-            y: (parent.height - height) * bubbles.gradientOffset / 100
-            Behavior on y {
-                NumberAnimation { duration: 500; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE }
-            }
-            gradient: Gradient {
-                GradientStop { position: 0.08; color: "grey" }
-                GradientStop { position: 0.17; color: "#280B54" }
-                GradientStop { position: 0.25; color: "#280B54" }
-                GradientStop { position: 0.33; color: "#480B6A" }
-                GradientStop { position: 0.42; color: "#65156E" }
-                GradientStop { position: 0.50; color: "#82206C" }
-                GradientStop { position: 0.58; color: "#9F2A63" }
-                GradientStop { position: 0.67; color: "#BB3755" }
-                GradientStop { position: 0.75; color: "#D44842" }
-                GradientStop { position: 0.83; color: "#E8602D" }
-                GradientStop { position: 0.92; color: "#F44D19" }
-                GradientStop { position: 1.00; color: "#F44D19" }
-            }
+        gradient: Gradient {
+            id: stops
+            GradientStop { position: 0; color: bubbles.shownUp }
+            GradientStop { position: 1 / 3; color: bubbles.shownMu }
+            GradientStop { position: 2 / 3; color: bubbles.shownMd }
+            GradientStop { position: 1; color: bubbles.shownDown }
         }
     }
 
