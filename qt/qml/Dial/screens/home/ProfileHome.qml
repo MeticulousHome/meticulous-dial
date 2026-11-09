@@ -401,7 +401,7 @@ Item {
                          : card.entry.kind === "pour_over" ? ((card.entry.profile.display && card.entry.profile.display.accentColor) || "#1f3340")
                          : card.entry.kind === "free_pour" ? "#23383f" : "transparent"
 
-                    Image {
+                    RetryingImage {
                         id: cardImage
                         visible: card.entry.kind === "espresso" || card.entry.kind === "free_pour" || (card.entry.kind === "pour_over" && status !== Image.Error && Math.abs(card.distance) < 2)
                         anchors.centerIn: parent
@@ -410,7 +410,7 @@ Item {
                         sourceSize: Qt.size(164, 164)
                         asynchronous: true
                         fillMode: Image.PreserveAspectCrop
-                        source: card.entry.kind === "espresso"
+                        picture: card.entry.kind === "espresso"
                                 ? Api.profileImageUrl(card.entry.profile.display ? card.entry.profile.display.image : "")
                                 : card.entry.kind === "free_pour" ? Theme.publicImage("images/free-pour.png")
                                 : card.entry.kind === "pour_over" && Math.abs(card.distance) < 2 ? Profiles.pourOverImageUrl(card.entry.profile.id) : ""
