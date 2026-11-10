@@ -112,7 +112,7 @@ def expected_menu(config):
         "See network details", f"Wifi mode: {mode}", "Known Wifis", "Connect to a new network"]
     if label not in ("CONNECTED", "HOTSPOT ACTIVE"):
         items.append("Repair WiFi")
-    return items + ["Back"]
+    return items + ["Turn off WiFi & Bluetooth", "Back"]
 
 
 # ---- driving the Dial

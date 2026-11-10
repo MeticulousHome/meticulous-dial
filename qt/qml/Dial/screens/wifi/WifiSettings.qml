@@ -1,7 +1,8 @@
 // The Wi-Fi menu (src/components/Wifi/WifiSettings.tsx), opened in the bubble by the quick settings' "wifi":
 // "Status: <health>" ("Checking..." while the network config is missing or a refetch of data older than 2 s
 // is in flight), "Show connection code" (only while connected), "See network details", "Wifi mode: ...",
-// "Known Wifis", "Connect to a new network", "Repair WiFi" (unless CONNECTED / HOTSPOT ACTIVE) and "Back".
+// "Known Wifis", "Connect to a new network", "Repair WiFi" (unless CONNECTED / HOTSPOT ACTIVE), the radios'
+// switch and "Back". With the radios off only their switch and "Back" are left: nothing else works then.
 // Repair shows the loading screen with its three messages (7 s each); a failed repair or a network config
 // that cannot be loaded shows the error with "OK", which returns to the quick settings.
 import QtQuick
@@ -27,20 +28,31 @@ Item {
     readonly property bool hasStaleNetworkConfig: !networkConfig || (query.isFetching && Date.now() - query.dataUpdatedAt > 2000)
     readonly property string wifiHealthStatusLabel: WifiHealth.getWifiHealthStatusLabel(wifiHealth, isWifiConnected)
     readonly property string healthLabel: hasStaleNetworkConfig ? "Checking..." : wifiHealthStatusLabel
+    // Wi-Fi and Bluetooth together (radios_enabled); unknown to a backend without the setting.
+    readonly property bool hasRadiosSetting: BackendSettings.value("radios_enabled", null) !== null
+    readonly property bool radiosOn: BackendSettings.value("radios_enabled", true) !== false
 
     readonly property var loadingMessages: repairMutation.isPending ? ["Checking WiFi", "Trying recovery", "Verifying connection"] : []
 
     readonly property var wifiSettingItems: [
-        { key: "status", label: "Status: " + healthLabel, visible: true },
-        { key: "qr_code", label: "Show connection code", visible: !!isWifiConnected },
-        { key: "details", label: "See network details", visible: true },
-        { key: "network_mode", label: "Wifi mode: " + (isApMode ? "Create standalone wifi" : "Machine joins existing wifi"), visible: true },
-        { key: "known_wifis", label: "Known Wifis", visible: true },
-        { key: "connect_new_network", label: "Connect to a new network", visible: true },
-        { key: "repair", label: "Repair WiFi", visible: ["CONNECTED", "HOTSPOT ACTIVE"].indexOf(wifiHealthStatusLabel) < 0 },
+        { key: "status", label: "Status: " + healthLabel, visible: radiosOn },
+        { key: "qr_code", label: "Show connection code", visible: radiosOn && !!isWifiConnected },
+        { key: "details", label: "See network details", visible: radiosOn },
+        { key: "network_mode", label: "Wifi mode: " + (isApMode ? "Create standalone wifi" : "Machine joins existing wifi"), visible: radiosOn },
+        { key: "known_wifis", label: "Known Wifis", visible: radiosOn },
+        { key: "connect_new_network", label: "Connect to a new network", visible: radiosOn },
+        { key: "repair", label: "Repair WiFi", visible: radiosOn && ["CONNECTED", "HOTSPOT ACTIVE"].indexOf(wifiHealthStatusLabel) < 0 },
+        { key: "radios", label: radiosOn ? "Turn off WiFi & Bluetooth" : "Turn on WiFi & Bluetooth", visible: hasRadiosSetting },
         { key: "back", label: "Back", visible: true }
     ]
     readonly property var visibleItems: wifiSettingItems.filter(item => item.visible)
+    // The list shrinks or grows under the cursor once the switch is answered: keep the cursor on the switch.
+    property bool followRadios: false
+    onVisibleItemsChanged: {
+        if (!followRadios) return
+        followRadios = false
+        activeIndex = Math.max(visibleItems.findIndex(item => item.key === "radios"), 0)
+    }
 
     readonly property bool showError: repairMutation.isError || query.error !== null
     readonly property string errorTitle: repairMutation.isError ? "Network issue" : "Could not load WiFi"
@@ -90,6 +102,10 @@ Item {
             case "details": screen.openBubble("wifiDetails"); break
             case "known_wifis": screen.openBubble("KnownWifi"); break
             case "back": screen.openBubble("quick-settings"); break
+            case "radios":
+                screen.followRadios = true
+                BackendSettings.update({ radios_enabled: !screen.radiosOn }).catch(() => { screen.followRadios = false })
+                break
             case "connect_new_network": screen.openBubble("selectWifi"); break
             case "repair":
                 repairMutation.mutate(undefined, () => screen.query.refetch())
