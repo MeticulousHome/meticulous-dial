@@ -261,7 +261,8 @@ var CUSTOM_DOMAIN_INDEX = DOMAIN_OPTIONS.indexOf(CUSTOM_DOMAIN_LABEL)
 var BACKSPACE_INDEX = DOMAIN_OPTIONS.indexOf(BACKSPACE_LABEL)
 // Encoder order on the confirm step, wrapping around at both ends.
 var CONFIRM_FOCUS = ["ok", "local", "domain"]
-var DECLINED_ACTIONS = [{ key: "ok", label: "Ok" }, { key: "enterEmail", label: "Enter email" }]
+// A report needs a contact email: backing out of the contact screen offers to type one or drop the report.
+var DECLINED_ACTIONS = [{ key: "enterEmail", label: "Enter email" }, { key: "cancel", label: "Cancel report" }]
 
 function stripSpaces(value) { return value.replace(/\s+/g, "") }
 

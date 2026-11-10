@@ -31,7 +31,7 @@ Pill, CssText; singletons ReportFlow, ReportApi, DispatchedReports; ReportLib.js
 | Sentry feedback with the archive | reportSubmission.ts sendSentryFeedback | ReportApi.sendSentryFeedback | done | see "Differences on purpose": a raw envelope POST (no SDK) |
 | Busy: bubble pinned, idle timer kept alive every 30 s | BugReport.tsx | BugReport.qml | done | |
 | Exit / Back to the quick settings | exitToQuickSettings | BugReport.qml | done | |
-| Contact email screen: keyboard steps, domain grid with Custom and ⌫, confirm with the lit part, declined (Ok / Enter email), edit mode from Your contact info | ReportContactEmail.tsx, reportContactEmail.css | support/ReportContactEmail.qml | done | CircleKeyboard (profile group) with `longPressEnabled`; `reset()` when React would hand an equal new seed |
+| Contact email screen: keyboard steps, domain grid with Custom and ⌫, confirm with the lit part, declined (Enter email / Cancel report), edit mode from Your contact info | ReportContactEmail.tsx, reportContactEmail.css | support/ReportContactEmail.qml | done | CircleKeyboard (profile group), no long press (abort backs out); `reset()` when React would hand an equal new seed; the email is required here (React let the report go out without one): see "Differences on purpose" |
 | Dispatched reports from the mobile app: queue one at a time, busy retries (30 s, 20x), 15 min cap, 3 attempts per session, replay of pending on connect, outcome notification | dispatchedReports.ts, SocketProviderValue.tsx | support/DispatchedReports.qml | partial | works once started; it is started only when the bug report opens (core request 1) |
 | Notification screen: newest notification, image, one or several responses (neighbours behind, 300 ms ease, React's element reuse), scroll 50 px with scrollbar and fade, options disabled until the end | Notification.tsx, notification.css | notifications/Notification.qml | done | acknowledged over REST like React (404 counts as done); buttons in "Arial" like the browser's button default |
 | Shot data sharing boot prompt (tri-state, Thanks 4 s, error line, Saving...) | ShotDataSharingPrompt.tsx, ShotDataSharingView.tsx, ShotDataSharing.css | support/ShotDataSharingPrompt.qml, ShotDataSharingView.qml, Pill.qml | done | resolvePostReadyScreen is ReadyAnimation's (brew group) |
@@ -64,6 +64,14 @@ Pill, CssText; singletons ReportFlow, ReportApi, DispatchedReports; ReportLib.js
   it and shows an empty button).
 - Notification button glow (`box-shadow 0 0 10px`) is five translucent rounded rectangles (no effects).
 - QR code: the core's QrCode item picks a different mask than react-qr-code; same content, both scan.
+- The contact email is required: React's declined screen ("No contact email", Ok / Enter email) let the
+  report go out without one. Here it says "Email required" and offers Enter email / Cancel report; Cancel
+  report stops the collection and deletes its draft (`ReportFlow.discardCollection`), and the bubble drops
+  a handed-over run that comes back without an address.
+- Contact email gestures: the keyboard has no long press (React's took back the last character and
+  skipped); its abort key backs out. The domain, confirm and declined steps act on the click, and only on
+  a click whose press went down on that step (React acted on the press down, so a long press there
+  selected the lit entry, and the click of the keyboard's abort press ran on into the declined screen).
 
 ## Not done
 
