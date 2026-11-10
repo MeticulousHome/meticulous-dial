@@ -149,16 +149,18 @@ def test_quick_settings_list_on_the_home_of_a_profile(screen):
             break
         seen.append(f)
     assert seen[:3] == ["Edit profile", "Last shot", "Delete profile"], seen
-    assert seen[3:] == ["sleep", "suspend", "power off", "raise", "purge", "Brew Settings", "wifi", "config", "Report an issue",
+    assert seen[3:] == ["sleep", "networked standby", "standby", "power off", "raise", "purge", "Brew Settings", "wifi", "config", "Report an issue",
                         "Experimental", "Help us improve", "exit"], seen
 
 
-def test_suspend_goes_to_the_idle_screen_when_the_backend_refuses(screen):
-    """Protects: a machine that cannot suspend (the emulated one always refuses) still reacting to the push."""
+@pytest.mark.parametrize("option", ["networked standby", "standby"])
+def test_standby_goes_to_the_idle_screen_when_the_backend_refuses(screen, option):
+    """Protects: a machine that cannot go to standby (the emulated one always refuses) still reacting to the
+    push."""
     screen.wait_for_home()
     screen.controls.context()
     screen.wait_for_bubble("quick-settings")
-    screen.select("suspend")
+    screen.select(option)
     screen.wait_for_route("idle", 10)
 
 

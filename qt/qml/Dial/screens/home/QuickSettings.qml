@@ -1,6 +1,6 @@
 // The context menu (src/components/QuickSettings/QuickSettings.tsx) in the bubble: what fits the screen
 // under it (profile, Free Pour, pour-over, brewing, Free Pour in progress), Back when the route has a
-// parent, then sleep / suspend / power off / raise / purge / Brew Settings / wifi / config / Report an issue / Experimental /
+// parent, then sleep / networked standby / standby / power off / raise / purge / Brew Settings / wifi / config / Report an issue / Experimental /
 // Help us improve / exit. The OS update status shows on top, the image version at the end. Long-press
 // options (delete, abort) fill while held. Twenty turns past "exit" open Snake.
 import QtQuick
@@ -38,7 +38,8 @@ Item {
     readonly property var prevScreenSetting: ({ key: "prevScreen", label: "Back", hasSeparator: true })
     readonly property var defaultSettings: [
         { key: "sleep", label: "sleep" },
-        { key: "suspend", label: "suspend" },
+        { key: "networked_standby", label: "networked standby" },
+        { key: "standby", label: "standby" },
         { key: "power_off", label: "power off", longpress: true },
         { key: "raise", label: "raise" },
         { key: "purge", label: "purge" },
@@ -205,12 +206,13 @@ Item {
         // must not go to sleep under a held button.
         onClick: {
             const option = quick.settings[menu.activeIndex]
-            if (!option || option.key !== "suspend") return
+            if (!option || (option.key !== "networked_standby" && option.key !== "standby")) return
             quick.close()
             Idle.forceIdle()
-            // The backend refuses while the machine is busy: it then simply stays on the idle screen.
-            Api.requestStandby().catch(error => {
-                console.warn("Could not suspend:", error && error.message ? error.message : error)
+            // Plain standby also takes Wi-Fi down: only the machine itself wakes it. The backend refuses while
+            // the machine is busy: it then simply stays on the idle screen.
+            Api.requestStandby(option.key === "networked_standby").catch(error => {
+                console.warn("Could not go to standby:", error && error.message ? error.message : error)
             })
         }
         onPressUp: {
