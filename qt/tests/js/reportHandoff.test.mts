@@ -17,8 +17,8 @@ import {
  * animation, if that bubble keeps acting on the run.
  *
  * Expected value: one report, sent once, by the bubble that came back (the
- * one that has the user's answer). The journey "a report without an email
- * creates the report and sends only its id" asserts the same at the backend.
+ * one that has the user's answer). The journey "the email typed on the contact
+ * screen goes with the report and is saved" asserts the same at the backend.
  */
 
 const DRAFT = { draft: { localID: 'draft-1', machineID: 'machine-1' } };

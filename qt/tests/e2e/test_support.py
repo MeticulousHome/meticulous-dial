@@ -311,32 +311,24 @@ def test_help_us_improve_stops_sharing(screen, backend):
 
 # ---- reporting an issue (test_dial_support.py)
 
-def test_a_report_without_an_email_creates_the_report_and_sends_only_its_id(screen, backend, services, contact_mail):
+def test_a_report_creates_the_report_and_sends_only_its_id_to_the_ticket_service(screen, backend, services, contact_mail):
     """Protects: filing a bug report at the machine, and what leaves it.
 
-    Limit: Report creates the report on the backend (/reports/create) and sends it once, the email can be
-    skipped (long press, then Ok), the ticket service receives only the report's event id (the serial
-    and the report's local id), and the ticket is written to the backend's draft. Without Sentry (as the
-    browser build of the React Dial) the Dial says the report did not go out and lets the user leave.
-    Breaks when: the report is not created or is sent twice, skipping the email blocks the report,
-    anything personal goes to the ticket service, the ticket is not stored, or a failed submission
-    leaves the user with no way out.
+    Limit: Report creates the report on the backend (/reports/create) and sends it once, the ticket
+    service receives only the report's event id (the serial and the report's local id), never the saved
+    contact email, and the ticket is written to the backend's draft. Without Sentry (as the browser build
+    of the React Dial) the Dial says the report did not go out and lets the user leave.
+    Breaks when: the report is not created or is sent twice, anything personal goes to the ticket service,
+    the ticket is not stored, or a failed submission leaves the user with no way out.
     """
-    set_setting(backend, report_contact_mail=None)
+    set_setting(backend, report_contact_mail="ticket@example.com")
     before = reports(backend)
     open_bug_report(screen)
-    wait_for_settings_on_dial(screen, "report_contact_mail", None)
+    wait_for_settings_on_dial(screen, "report_contact_mail", "ticket@example.com")
     assert_reports_go_to(screen, services)
     screen.select("Report an issue")
     wait_for_report(screen, "reportSetup")
     screen.select("Report")
-
-    screen.wait_for_route("reportContactEmail")
-    screen.wait_for_text("email to reach you back")
-    time.sleep(1)  # the keyboard settles before it takes gestures, as a person reads it
-    screen.controls.long_push()  # skip the email
-    screen.wait_for_text("No contact email")
-    screen.controls.push()  # Ok, send without one
 
     screen.wait_for_text("Something went wrong", timeout_s=120)
     screen.wait_for_text("We could not send your report")
@@ -355,6 +347,62 @@ def test_a_report_without_an_email_creates_the_report_and_sends_only_its_id(scre
     screen.controls.context()
     screen.wait_for_bubble_closed()
     screen.wait_for_home()
+
+
+def test_a_report_cannot_be_sent_without_an_email(screen, backend, services, contact_mail):
+    """Protects: a report always carries a contact email, so support can reach back to the user.
+
+    Limit: without a saved address the contact email screen cannot be skipped. The keyboard's abort key,
+    and a long press on the domain step, say the email is required and offer "Enter email" (focused first,
+    back to the keyboard) and "Cancel report" (ReportLib.DECLINED_ACTIONS). The list steps act on the
+    click: the click of the abort press does not pick "Enter email", and a long press on the domain step
+    does not pick the lit domain. Cancelling drops the report: no ticket, no Sentry feedback, the draft
+    the collection created is deleted (ReportFlow.discardCollection), and the bubble is back on its first
+    screen.
+    Breaks when: abort or a long press lets the report go out without an email, the abort press runs on
+    into the screen it opens, a long press selects instead of backing out, or a cancelled report still
+    reaches the ticket service or stays behind as a draft.
+    """
+    set_setting(backend, report_contact_mail=None)
+    point_dial_at(screen, services, sentry=True)
+    before = reports(backend)
+    open_bug_report(screen)
+    wait_for_settings_on_dial(screen, "report_contact_mail", None)
+    assert_reports_go_to(screen, services)
+    screen.select("Report an issue")
+    wait_for_report(screen, "reportSetup")
+    screen.select("Report")
+
+    screen.wait_for_route("reportContactEmail")
+    screen.wait_for_text("email to reach you back")
+    time.sleep(1)  # the keyboard settles before it takes gestures, as a person reads it
+    screen.focus("cancel")
+    screen.controls.push()  # abort
+    screen.wait_for_text("Email required")
+    time.sleep(0.5)
+    assert screen.probe("contactStep") == "declined"  # the abort's own click picked nothing
+    assert screen.focused() == "Enter email"
+    screen.controls.push()  # back to the keyboard
+    screen.wait_for_text("email to reach you back")
+
+    js(screen, "router.current.item.localPartTyped('e2e@'), 1")  # what the keyboard reports as typed
+    screen.wait_for_text("Your email domain")
+    screen.controls.long_push()  # backs out, without picking the lit domain
+    screen.wait_for_text("Email required")
+    assert screen.probe("contactDraft") == "e2e@"
+    screen.focus("Cancel report")
+    screen.controls.push()
+
+    screen.wait_for_bubble("bug-report")
+    wait_for_report(screen, "message", timeout_s=10)
+    assert screen.probe("reportStatus") == "idle"
+    wait_for(lambda: not {k for k in reports(backend) if k not in before}, 30, "the cancelled draft to be deleted")
+    time.sleep(3)
+    assert services.ticket_requests() == []
+    assert services.feedbacks() == []
+    assert settings(backend)["report_contact_mail"] is None
+    screen.controls.context()
+    screen.wait_for_bubble_closed()
 
 
 def test_a_report_with_a_saved_email_reaches_sentry_with_the_archive(screen, backend, services, contact_mail):

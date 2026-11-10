@@ -113,6 +113,15 @@ QtObject {
         run.controller.abort()
     }
 
+    // Drops a run whose report will never go out (no contact email was given): stops the collection, or
+    // deletes the draft it already created. A run cancelled before its draft came back deletes it itself.
+    function discardCollection(run) {
+        cancelCollection(run)
+        run.outcome.then(outcome => {
+            if (outcome && outcome.draft) _deleteCancelledDraft(outcome.draft.localID)
+        }).catch(() => {})
+    }
+
     // ---- BugReport.tsx: submitReport
 
     function finishedAnimationEnded(owner) {

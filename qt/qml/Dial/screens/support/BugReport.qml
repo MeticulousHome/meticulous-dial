@@ -11,7 +11,8 @@
 //                    shows its message and code with "Exit"
 //   submitted        the ticket number, "Exit"
 // "Report" without a saved address closes the bubble for the contact email screen while the machine
-// collects; the run and the answer come back through ReportLib's hand-off. The collection and the
+// collects; the run and the address come back through ReportLib's hand-off. The address is required: a
+// run that comes back without one is dropped. The collection and the
 // submission live in ReportFlow, so they outlive the bubble. While busy the bubble is pinned and the dial
 // does not go idle.
 import QtQuick
@@ -40,8 +41,8 @@ Item {
     property var activeCreateRun: ({ current: null })
     property var draftInfo: null
     property var ticket: null
-    // The email the current report goes out with: the saved setting, or what the user answered on the
-    // contact email screen; null once declined.
+    // The email the current report goes out with: the saved setting, or what the user typed on the contact
+    // email screen (required: a report is never sent without one).
     property var contactEmail: null
     property bool alive: true
     readonly property string owner: "bug-report-" + Math.random().toString(36).slice(2)
@@ -259,12 +260,18 @@ Item {
             reportScreen = "yourContactInfo"
             activeIndex = 0
         }
-        // Back from the contact email screen: resume the run left behind with the address given, if any.
+        // Back from the contact email screen: resume the run left behind with the address given. A report
+        // never goes out without one, so a run that comes back without an address is dropped.
         const run = ReportLib.reportHandoff.takeRun()
         const decision = ReportLib.reportHandoff.takeContactDecision()
         if (run) {
-            contactEmail = decision && decision.email !== undefined ? decision.email : null
-            attachCollection(run)
+            const email = decision && decision.email ? decision.email : null
+            if (email) {
+                contactEmail = email
+                attachCollection(run)
+            } else {
+                ReportFlow.discardCollection(run)
+            }
         }
         // A submission still running from an earlier bubble: show its outcome.
         const pending = ReportFlow.inFlight

@@ -1,10 +1,13 @@
 // The contact email, full screen (src/components/BugReport/ReportContactEmail.tsx, reportContactEmail.css),
 // reached two ways:
 //  - from the bug report bubble when a report is filed without a saved `report_contact_mail`: the machine
-//    collects meanwhile and the answer goes back through ReportLib.reportHandoff. A long press backs out to
-//    a screen that says we cannot reach back, with "Ok" or "Enter email" to return;
+//    collects meanwhile and the answer goes back through ReportLib.reportHandoff. The email is required:
+//    the keyboard's abort key, or a long press on the domain and confirm steps, backs out to a screen that
+//    says so, with "Enter email" to return and "Cancel report" to drop the report (the collection is
+//    stopped and its draft deleted);
 //  - from the bubble's "Your contact info", to change the saved address (ReportLib.contactEmailEdit):
-//    starts on the confirm step with the address split up, and a long press drops the edit.
+//    starts on the confirm step with the address split up; abort or a long press drops the edit.
+// The keyboard has no long press (its abort key backs out); the list steps act on the click.
 // Steps: a keyboard for the part before the "@" (typing "@" or pressing ok moves on), the common domains
 // with "Custom" (keyboard with the "@" prefix) and a backspace to the first keyboard, then a confirm step
 // that shows the whole address and lets the knob pick a part to edit again.
@@ -35,7 +38,7 @@ Item {
                                     : step === "confirm" ? ReportLib.CONFIRM_FOCUS.length
                                     : step === "declined" ? ReportLib.DECLINED_ACTIONS.length : 0
     readonly property string confirmFocus: ReportLib.CONFIRM_FOCUS[activeIndex] || "ok"
-    readonly property var longPressHint: ({ input: "Long press", action: edit ? "Cancel" : "Skip" })
+    readonly property var longPressHint: ({ input: "Long press", action: "Cancel" })
 
     // For the end-to-end tests.
     readonly property string dialProbe_contactStep: step
@@ -86,13 +89,21 @@ Item {
         }
         // Saved for next time regardless of how this report ends. A failed save only costs asking again on
         // the next report.
-        if (email) BackendSettings.update({ report_contact_mail: email }).catch(() => {})
+        BackendSettings.update({ report_contact_mail: email }).catch(() => {})
         ReportLib.reportHandoff.setContactDecision(email)
         returnToBubble()
     }
 
-    // Long press, or the keyboard's cancel key. Reporting: offer to go on without an address. Editing:
-    // drop the change.
+    // "Cancel report" on the declined screen: a report never goes out without an address, so the run left
+    // collecting underneath is dropped and the bubble comes back on its first screen.
+    function cancelReport() {
+        const run = ReportLib.reportHandoff.takeRun()
+        if (run) ReportFlow.discardCollection(run)
+        returnToBubble()
+    }
+
+    // The keyboard's abort key, or a long press on the domain and confirm steps. Reporting: say the address is required and offer to type
+    // it or cancel the report. Editing: drop the change.
     function bail() {
         if (edit) {
             ReportLib.contactEmailEdit.markReturn()
@@ -187,6 +198,15 @@ Item {
         if (kb && same) kb.reset(seed)
     }
 
+    // The list steps (domain, confirm, declined) act on the click, not on the press down: a long press is a
+    // press down, then a long press, with no click, so it backs out without selecting what is lit. A click
+    // counts only when its press went down on the step shown: the keyboard acts on the press down, and the
+    // click of that same press (ok, abort) must not pick an entry of the step it opened. The same holds for
+    // the press on the bubble that opened this screen.
+    property int stepShownAt: Input.serial
+    property int pressedAt: -1
+    onStepChanged: stepShownAt = Input.serial
+
     // The keyboard steps own the encoder; this drives the lists and the confirm step, where the focus
     // wraps around.
     GestureHandler {
@@ -201,11 +221,13 @@ Item {
             screen.activeIndex = screen.step === "confirm" ? (screen.activeIndex + 1) % screen.listLength
                                                            : Math.min(screen.activeIndex + 1, screen.listLength - 1)
         }
-        onPressDown: {
+        onPressDown: screen.pressedAt = Input.serial
+        onClick: {
+            if (screen.pressedAt <= screen.stepShownAt) return
             if (screen.step === "domain") screen.chooseDomainOption(screen.activeIndex)
             else if (screen.step === "confirm") screen.confirmPressed()
             else if (screen.step === "declined") {
-                if (ReportLib.DECLINED_ACTIONS[screen.activeIndex].key === "ok") screen.finish(null)
+                if (ReportLib.DECLINED_ACTIONS[screen.activeIndex].key === "cancel") screen.cancelReport()
                 else screen.returnFromDeclined()
             }
         }
@@ -226,11 +248,9 @@ Item {
             defaultValue: screen.keyboardSeed
             suffix: "@"
             capitalizeFirstLetter: false
-            longPressEnabled: true
             onEdited: (text) => screen.localPartTyped(text)
             onSubmitted: (text) => screen.submitLocalPart(text)
             onCancelled: screen.bail()
-            onLongPressed: screen.bail()
         }
     }
     Component {
@@ -240,11 +260,9 @@ Item {
             defaultValue: screen.keyboardSeed
             prefix: "@"
             capitalizeFirstLetter: false
-            longPressEnabled: true
             onEdited: (text) => { screen.domain = text }
             onSubmitted: (text) => screen.submitCustomDomain(text)
             onCancelled: screen.bail()
-            onLongPressed: screen.bail()
         }
     }
 
@@ -277,7 +295,7 @@ Item {
         Eyebrow {
             text: screen.step === "domain" ? "Your email domain"
                 : screen.step === "confirm" ? (screen.edit ? "Your contact email" : "Confirm your email")
-                : "No contact email"
+                : "Email required"
         }
 
         // ---- domain
@@ -419,12 +437,12 @@ Item {
             width: Math.min(340, implicitWidth)
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
-            text: "Without an email address we will not be able to reach back to you about this report."
+            text: "We need an email address to reach back to you about this report."
             font.pixelSize: 21
             cssLineHeight: 21 * 1.3
         }
 
-        // ---- the actions (confirm: Ok; declined: Ok / Enter email)
+        // ---- the actions (confirm: Ok; declined: Enter email / Cancel report)
         Item {
             visible: screen.step === "confirm" || screen.step === "declined"
             width: 368
