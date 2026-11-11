@@ -3,7 +3,7 @@
 // and the target; below, the estimated time. "click to start" (heating finished): the options leave
 // (unless AUTO BREW, which then starts the shot), both halves slide 95 px right in 0.6 s, the target fades
 // and the footer reads "Push to brew"; a click or a long press starts the shot (push to brew, brew now).
-// Without water: "No water", the bubbles drain and go grey, "Waiting... / Tap to retry".
+// Without water the machine's stage has its own route (NoWaterScreen.qml).
 //
 // ModularScreen (modular.less): the area under the 115 px header; the left and right halves are 250 px
 // tall with a 10 px padding, their content centered; the footer starts 250 px down.
@@ -27,7 +27,6 @@ Item {
     readonly property int headerTop: 115
 
     // ---- state (HeatingScreen's selectors and useState)
-    readonly property bool waterStatus: Stats.waterStatus
     readonly property int temperature: Math.round(Stats.sensors.t) || 0
     readonly property var temperatureTargetStatus: Stats.setpoints.temperature
     property real temperatureTarget: temperatureTargetStatus || 0
@@ -111,7 +110,6 @@ Item {
         x: 230 - width + screen.shift
         y: screen.headerTop + 10 + 115 - height / 2
         temperature: screen.temperature
-        waterStatus: screen.waterStatus
     }
 
     // ---- right
@@ -172,26 +170,14 @@ Item {
         width: 195
         height: Math.max(leftBox.height, target.mounted ? (target.hasValues ? 51 : 11) : 0)
 
-        // SwitchTransition keyed on the water status: fade out 300 ms, then the new one in.
-        property string key: String(screen.waterStatus)
-        property string shownKey: key
-        onKeyChanged: leftSwitch.restart()
-        SequentialAnimation {
-            id: leftSwitch
-            NumberAnimation { target: leftBox; property: "opacity"; to: 0; duration: 300; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE }
-            ScriptAction { script: tempRow.shownKey = tempRow.key }
-            NumberAnimation { target: leftBox; property: "opacity"; to: 1; duration: 300; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE }
-        }
-
         Item {
             id: leftBox
-            readonly property bool showTemperature: tempRow.shownKey === "true" || screen.heatingFinished
             readonly property bool sensorError: screen.temperature > 500
-            width: showTemperature && !sensorError ? bigTemp.width : statusLabel.width
-            height: showTemperature && !sensorError ? bigTemp.height : statusLabel.height
+            width: sensorError ? statusLabel.width : bigTemp.width
+            height: sensorError ? statusLabel.height : bigTemp.height
             Temperature {
                 id: bigTemp
-                visible: leftBox.showTemperature && !leftBox.sensorError
+                visible: !leftBox.sensorError
                 value: screen.temperature
                 animated: true
             }
@@ -205,7 +191,7 @@ Item {
                     id: statusText
                     y: 4
                     width: parent.width
-                    text: leftBox.showTemperature ? Logic.sensorErrorLabel(screen.temperature) : "No water"
+                    text: Logic.sensorErrorLabel(screen.temperature)
                     color: "white"
                     wrapMode: Text.WordWrap
                     lineHeightMode: Text.FixedHeight
@@ -259,8 +245,8 @@ Item {
     }
 
     // ---- footer: ModularFooter (top 250, padding 10, centered column, gap 13), keyed on
-    // heatingFinished-waterStatus with the same 300 ms fade out / in.
-    readonly property var estimate: Logic.preheatTimeLeft(waterStatus, temperatureTargetStatus, temperatureTarget, temperature)
+    // heatingFinished with a 300 ms fade out / in.
+    readonly property var estimate: Logic.preheatTimeLeft(temperatureTargetStatus, temperatureTarget, temperature)
     Item {
         id: footer
         x: 20
@@ -268,8 +254,8 @@ Item {
         width: 440
         height: 480 - y
 
-        property string key: screen.heatingFinished + "-" + screen.waterStatus
-        property string shownKey: key
+        property bool key: screen.heatingFinished
+        property bool shownKey: key
         onKeyChanged: footerSwitch.restart()
         SequentialAnimation {
             id: footerSwitch
@@ -281,8 +267,7 @@ Item {
         Item {
             id: footerContent
             anchors.fill: parent
-            readonly property bool finished: footer.shownKey.indexOf("true-") === 0
-            readonly property bool water: footer.shownKey.slice(-4) === "true"
+            readonly property bool finished: footer.shownKey
 
             Text {
                 visible: !footerContent.finished
@@ -292,7 +277,7 @@ Item {
                 height: 15
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
-                text: footerContent.water ? "Estimated time" : "Waiting..."
+                text: "Estimated time"
                 color: "#99e7e7e7"
                 font.family: Theme.fontRegular
                 font.weight: Font.Light

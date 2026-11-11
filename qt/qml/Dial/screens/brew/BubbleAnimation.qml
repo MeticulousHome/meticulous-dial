@@ -1,15 +1,15 @@
 // LottieBubbleAnimation (src/components/Heating/LottieBubbleAnimation.tsx): the water bubbles, 170 x 270 in
 // a black box with a 1 px padding, coloured by the temperature: a 12-stop gradient (grey, then deep purple
 // to orange) 12 times the box's height, whose visible window slides with the temperature (20..90 °C) in
-// 0.5 s, multiplied over the white bubbles. Without water the window goes back to grey.
+// 0.5 s, multiplied over the white bubbles.
 //
 // The multiply is baked into the file (screens/brew/tools/bake_water_bubbles.py): it draws black with
 // bubble-shaped holes over the gradient, which is what white bubbles multiplied by it look like.
 //
-// Playback as lottie-web plays it (frames 0-62 once, then a loop; water gone: the loop stops at its end and
-// the drain plays once; water back: 0-312 at once, then the loop), except the loop: lottie-web's 60-314 froze
+// Playback as lottie-web plays it (frames 0-62 once, then a loop), except the loop: lottie-web's 60-314 froze
 // every bubble at once at the wrap, so the file closes its loop at 62-312 (bake_water_bubbles.py).
-// setSubframe(false): the file's 29 frames a second.
+// setSubframe(false): the file's 29 frames a second. The file's frames 312-375 (the bubbles drain) are not
+// played: without water the machine's stage has its own route (NoWaterScreen.qml).
 import QtQuick
 import Dial
 import Dial.Native
@@ -18,7 +18,6 @@ import "BrewLogic.js" as Logic
 Item {
     id: bubbles
     property real temperature: 0
-    property bool waterStatus: true
     readonly property int bubblesWidth: 170
     readonly property int bubblesHeight: 270
 
@@ -29,7 +28,7 @@ Item {
     readonly property var dialProbe_bubbleSegment: [lottie.startFrame, lottie.endFrame]
     readonly property real dialProbe_bubbleGradient: gradientOffset
 
-    readonly property real gradientOffset: Logic.bubbleGradientOffset(temperature, waterStatus)
+    readonly property real gradientOffset: Logic.bubbleGradientOffset(temperature)
 
     Rectangle {
         anchors.fill: parent
@@ -84,7 +83,6 @@ Item {
 
     property bool started: false
     property var queue: []
-    property bool loop: true
 
     function playSegment(segment) {
         lottie.startFrame = segment[0]
@@ -94,7 +92,6 @@ Item {
     // loadAnimation: initialSegment [0, 62], loop, autoplay; the loop queued.
     function start() {
         started = true
-        loop = true
         queue = [[62, 312]]
         playSegment([0, 62])
     }
@@ -103,19 +100,8 @@ Item {
             const next = queue[0]
             queue = queue.slice(1)
             playSegment(next)
-        } else if (loop) {
-            playSegment([62, 312])
-        }
-    }
-    onWaterStatusChanged: {
-        if (!started) return
-        if (waterStatus) {
-            queue = []
-            loop = true
-            playSegment([0, 312])
         } else {
-            loop = false
-            queue = queue.concat([[312, 375]])
+            playSegment([62, 312])
         }
     }
     Component.onCompleted: if (lottie.loaded) start()

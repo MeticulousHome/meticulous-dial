@@ -58,7 +58,7 @@ Item {
         { key: "exit", label: "exit" }
     ]
 
-    readonly property var hiddenOsStatusScreens: ["heating", "brewComplete", "barometer"]
+    readonly property var hiddenOsStatusScreens: ["heating", "noWater", "brewComplete", "barometer"]
     readonly property bool osStatusVisible: Device.osStatus.status !== "IDLE" && hiddenOsStatusScreens.indexOf(currentScreen) < 0
     readonly property string osStatusInfo: {
         if (Device.osStatusError) return ""
@@ -79,6 +79,7 @@ Item {
         const backAvailable = !!(Routes.route(currentScreen) && Routes.route(currentScreen).parent)
         switch (currentScreen) {
         case "heating":
+        case "noWater":
         case "brewComplete": {
             const base = statsName === "idle" ? defaultSettings : inBrewSettings
             const graphShowing = currentScreen === "brewComplete" && (statsName === "purge" || statsName === "idle" || statsName === "END_STAGE")
