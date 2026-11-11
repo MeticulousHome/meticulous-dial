@@ -162,11 +162,82 @@ def test_heating_shows_the_temperature_its_target_and_the_time_left(screen, mach
     assert screen.probe("temperatureTarget") == 90
 
 
-def test_heating_without_water_asks_for_it(screen, machine):
-    """Protects: the "pour water" step of a shot (Pour water and click to continue)."""
+NO_WATER = "Pour water and click to continue"
+
+
+def test_no_water_fills_the_screen_and_sounds_the_alert_once(screen, machine):
+    """Protects: seeing from across the room that the shot waits for water. Without it the machine stops
+    heating with a small label and no sound, and the shot never starts.
+
+    The stage name is the firmware's (Backend.onStatus, Constants.MACHINE_OWNED_STAGES); the route has no
+    title, unlike "heating", because Routes.table leaves it out. "notification" is the sound
+    NoWaterScreen.playAlertSound asks for. Removing the stage's Nav.setScreen or the screen's playAlertSound
+    call fails this test."""
     machine.status(name="heating", sensors={"t": 70})
     screen.wait_for_route("heating")
-    machine.status(name="Pour water and click to continue", sensors={"t": 70})
+    machine.status(name=NO_WATER, sensors={"t": 70})
+    screen.wait_for_route("noWater")
+    screen.wait_for_text("No water")
+    screen.wait_for_text("Pour water")
+    screen.wait_for_text("Push to retry")
+    assert screen.probe("dropsPlaying") is True
+    assert screen.probe("alertSounds") == ["notification"]
+    # The same stage again: every status event repeats it, the sound must not.
+    machine.stats(name=NO_WATER, sensors={"t": 71})
+    time.sleep(0.5)
+    assert screen.probe("alertSounds") == ["notification"]
+    # A push is the firmware's (the machine's own button): a "continue" could start the shot once heating
+    # is back (HeatingScreen's BREW NOW).
+    screen.controls.push()
+    assert sent(screen) == []
+    # The retry worked: heating goes on where it was.
+    machine.status(name="heating", sensors={"t": 71})
+    screen.wait_for_route("heating")
+    screen.wait_for_text("Estimated time")
+
+
+def test_no_water_again_after_a_retry_sounds_again(screen, machine):
+    """Protects: a retry with the chamber still empty is a new alert, not a silent screen. The stage's
+    screen plays it, and every entry to the stage makes a new one (Router.qml)."""
+    machine.status(name=NO_WATER, sensors={"t": 70})
+    screen.wait_for_route("noWater")
+    assert screen.probe("alertSounds") == ["notification"]
+    machine.status(name="heating", sensors={"t": 70})
+    screen.wait_for_route("heating")
+    machine.status(name=NO_WATER, sensors={"t": 70})
+    screen.wait_for_route("noWater")
+    assert screen.probe("alertSounds") == ["notification"]
+
+
+def test_a_double_push_without_water_aborts_and_goes_home(screen, machine):
+    """Protects: leaving the stage without pouring water (brewDoubleClick.ts: only abort before the shot),
+    and that the screen follows the machine home: no other screen does it at idle (HIDDEN_STAGES)."""
+    machine.status(name=NO_WATER, sensors={"t": 70})
+    screen.wait_for_route("noWater")
+    screen.controls.double_push()
+    assert sent(screen) == ["abort"]
+    machine.idle()
+    screen.wait_for_route("profileHome")
+
+
+def test_the_quick_settings_offer_abort_brew_without_water(screen, machine):
+    """Protects: Abort Brew from the context button during the stage: QuickSettings picks its menu by the
+    route, and a route it does not name gets the home menu, with no way to abort."""
+    machine.status(name=NO_WATER, sensors={"t": 70})
+    screen.wait_for_route("noWater")
+    screen.controls.context()
+    screen.wait_for_bubble("quick-settings")
+    screen.wait_for_text("Abort Brew")
+    screen.controls.context()
+    screen.wait_for_bubble_closed()
+
+
+def test_a_water_status_event_alone_shows_it_on_the_heating_screen(screen, machine):
+    """Protects: a backend that still emits water_status (KNOWN_GAPS in check-backend-contract.mjs): the
+    heating screen stays, with the small label and the bubbles that drain."""
+    machine.status(name="heating", sensors={"t": 70})
+    screen.wait_for_route("heating")
+    machine.water(False)
     screen.wait_for_text("No water")
     screen.wait_for_text("Waiting...")
     screen.wait_for_text("Tap to retry")

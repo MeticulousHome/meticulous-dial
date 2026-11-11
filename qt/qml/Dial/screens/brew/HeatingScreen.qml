@@ -3,7 +3,8 @@
 // and the target; below, the estimated time. "click to start" (heating finished): the options leave
 // (unless AUTO BREW, which then starts the shot), both halves slide 95 px right in 0.6 s, the target fades
 // and the footer reads "Push to brew"; a click or a long press starts the shot (push to brew, brew now).
-// Without water: "No water", the bubbles drain and go grey, "Waiting... / Tap to retry".
+// Without water: "No water", the bubbles drain and go grey, "Waiting... / Tap to retry". The machine's no
+// water stage has its own route (NoWaterScreen.qml): this is only what a water_status event alone shows.
 //
 // ModularScreen (modular.less): the area under the 115 px header; the left and right halves are 250 px
 // tall with a 10 px padding, their content centered; the footer starts 250 px down.
