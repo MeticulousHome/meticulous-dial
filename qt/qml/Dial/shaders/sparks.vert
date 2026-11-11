@@ -10,7 +10,8 @@
 // style 0, sparks: they whirl clockwise, slow down, drift off the ring and fall a little. The tail is where
 // the head was a moment ago, so it follows the curve. White hot, then orange, then a dull red.
 // style 1, sparkles: two slots of the mesh cross into a four-point star that stays near the ring, grows,
-// turns a little and shrinks again. Its colour is its place on the ring, and the rainbow turns with time.
+// turns a little and shrinks again. Its colour is its place on the ring, as on the rainbow ring under it
+// (Arc's `rainbow`, shaders/arc.vert), give or take a little.
 // Baked with: qsb --glsl "100 es,120,150" -o sparks.vert.qsb sparks.vert
 #version 440
 layout(location = 0) in vec4 qt_Vertex;
@@ -107,7 +108,7 @@ void main() {
         width = max(reach * 0.24, 1.2);
         middle = 0.5;
         headFade = 0.0;
-        float hue = fract(angle / TAU + time * 0.12 + 0.08 * rand(seed + 5.0));
+        float hue = fract(angle / TAU + 0.1 * (rand(seed + 5.0) - 0.5) + 1.0);
         float twinkle = 0.75 + 0.25 * sin(time * 31.0 + seed);
         glow = 1.5 * mix(rainbow(hue), vec3(1.0), 0.22) * swell * twinkle;
     } else {

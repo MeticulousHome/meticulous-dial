@@ -274,7 +274,8 @@ def test_the_sparks_of_the_hold_ring_stop_when_the_ring_winds_back(screen, backe
     the Dial draw every frame, so a still home would keep the GPU and the CPU busy with nothing on screen.
 
     Expected: docs/qt-migration/DECISIONS.md, "Nothing animates while hidden", through the home's
-    dialProbe_sparksRunning; the ring is the thin one of the sparks (ProfileHome's Arc: 3 px). Bug it
+    dialProbe_sparksRunning; the ring is the thin one of the sparks (ProfileHome's Arc: 3 px, in their
+    orange, not the rainbow of the sparkles). Bug it
     catches: SparkRing's clock running while the ring is hidden (nothing else in the suite looks at it, the
     ring still fills and starts the profile).
     """
@@ -286,6 +287,7 @@ def test_the_sparks_of_the_hold_ring_stop_when_the_ring_winds_back(screen, backe
     time.sleep(0.7)
     assert screen.probe("sparksRunning") is True
     assert screen.probe("ringWidth") == 3
+    assert screen.probe("ringRainbow") is False
     screen.controls._button("ENCODER_RELEASED")
     wait_for_no_sparks(screen)
 
@@ -304,6 +306,7 @@ def test_the_plain_ring_has_no_sparks(screen, backend, saved):
     try:
         assert screen.probe("ringSweep") > 0
         assert screen.probe("ringWidth") == 5
+        assert screen.probe("ringRainbow") is False
         assert screen.probe("sparksRunning") is False
     finally:
         screen.controls._button("ENCODER_RELEASED")
@@ -361,6 +364,7 @@ def test_a_hold_starts_its_sparks_after_the_time_the_last_ones_stopped_at(screen
         try:
             (_, _), (start, stop) = json.loads(ev(screen, SPARK_BURNS))
             assert stop == STILL_BURNING
+            assert screen.probe("ringRainbow") is True
             assert lowest <= start <= highest, (stopped, start)
             assert float(ev(screen, f"{sparks}.clockFrom")) == start
         finally:

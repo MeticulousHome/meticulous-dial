@@ -86,6 +86,7 @@ Item {
     readonly property real dialProbe_ringOpacity: ring.opacity
     readonly property real dialProbe_ringSweep: ring.sweep
     readonly property real dialProbe_ringWidth: ring.lineWidth
+    readonly property bool dialProbe_ringRainbow: ring.rainbow
     // How many cards are drawn on screen right now (also while the list slides).
     function dialProbe_cardsDrawn() {
         let drawn = 0
@@ -585,9 +586,11 @@ Item {
             anchors.centerIn: parent
             radius: 235
             // The React Dial's ring, or a thin one under what flies off it: the orange of the sparks, or
-            // white under the rainbow's sparkles. A full ring swells for a moment: the start.
+            // the rainbow of the sparkles, each in the colour of its place. A full ring swells for a moment:
+            // the start.
             lineWidth: (overlay.sparks ? 3 : 5) + ringPulse.swell
             color: HoldAnimation.style === "sparks" ? "#ffb45e" : "white"
+            rainbow: HoldAnimation.style === "rainbow"
             sweep: 1 - overlay.dashOffset
             visible: sweep > 0.0005
             // opacityUpCircle / opacityDownCircle (1.5 s, linear), each from the opacity the ring has when the

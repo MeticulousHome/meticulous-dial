@@ -10,6 +10,8 @@ Item {
     property real radius: 100          // to the middle of the stroke
     property real lineWidth: 3
     property color color: "white"
+    // The colours of the rainbow once around the circle (red at 6 o'clock), tinted by `color`.
+    property bool rainbow: false
     property real sweep: 1             // 0..1 of the circle
     property real startAngle: 0        // degrees clockwise from 6 o'clock
 
@@ -30,6 +32,7 @@ Item {
         property real radius: arc.radius
         property real lineWidth: arc.lineWidth
         property real side: width
+        property real rainbow: arc.rainbow ? 1 : 0
         vertexShader: "../shaders/arc.vert.qsb"
         fragmentShader: "../shaders/arc.frag.qsb"
     }

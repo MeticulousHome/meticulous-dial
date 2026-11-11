@@ -4,6 +4,7 @@
 #version 440
 layout(location = 0) in float vRadius;
 layout(location = 1) in float vAngle;
+layout(location = 2) in vec4 vColor;
 layout(location = 0) out vec4 fragColor;
 layout(std140, binding = 0) uniform buf {
     mat4 qt_Matrix;
@@ -13,10 +14,11 @@ layout(std140, binding = 0) uniform buf {
     float radius;
     float lineWidth;
     float side;
+    float rainbow;
 };
 
 void main() {
     float cover = clamp(lineWidth * 0.5 + 0.5 - abs(vRadius - radius), 0.0, 1.0);
     cover *= clamp((sweep * 6.2831853 - vAngle) * radius + 0.5, 0.0, 1.0);
-    fragColor = color * (cover * qt_Opacity);
+    fragColor = vColor * (cover * qt_Opacity);
 }
