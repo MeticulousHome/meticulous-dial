@@ -3,7 +3,8 @@
 // centered (150 ms "ease"), the others at 30 % (300 ms), a 300 ms bounce on the neighbours of each step.
 // A push selects (zooms) the card; holding it 300 ms more fills the "Hold to start" ring (1 s ease-out)
 // and starts the profile (or opens Free Pour / the guided pour-over). Letting go winds the ring back and
-// flashes "Hold to start".
+// flashes "Hold to start". The ring is the plain one of the React Dial, or a thin one with sparks or rainbow
+// sparkles flying off it: the user's choice (Core/HoldAnimation.qml, Advanced Settings).
 import QtQuick
 import Dial
 import Dial.Native
@@ -80,6 +81,11 @@ Item {
     readonly property bool dialProbe_cardSelected: homeHoverState
     // Whether a push is held on the card: the 300 ms before the "Hold to start" ring, or the ring filling.
     readonly property bool dialProbe_pressingDown: isPressingDown || pressThrough.running
+    // Whether the sparks of the ring are animating: only while the ring shows, or the still home keeps drawing.
+    readonly property bool dialProbe_sparksRunning: HoldAnimation.animating
+    readonly property real dialProbe_ringOpacity: ring.opacity
+    readonly property real dialProbe_ringSweep: ring.sweep
+    readonly property real dialProbe_ringWidth: ring.lineWidth
     // How many cards are drawn on screen right now (also while the list slides).
     function dialProbe_cardsDrawn() {
         let drawn = 0
@@ -207,7 +213,10 @@ Item {
         isPressingDown = false
         pressThrough.stop()
     }
+    // From the full ring until the screen of the started profile comes, or until the start failed.
+    property bool starting: false
     function animationFinished() {
+        starting = true
         const selection = Profiles.homeSelection(activeOption)
         if (activeOption === Profiles.freePourOptionIndex) {
             resetPress()
@@ -222,7 +231,7 @@ Item {
             return
         }
         const profile = Profiles.mergedProfiles[activeOption]
-        if (!profile) { resetPress(); return }
+        if (!profile) { starting = false; resetPress(); return }
         const clean = Object.assign({}, profile)
         delete clean.isLast
         delete clean.temporary
@@ -236,6 +245,7 @@ Item {
         }).catch(error => {
             console.error(error && error.message ? error.message : error)
             Profiles.profileStarting = false
+            home.starting = false
             home.resetPress()
         })
     }
@@ -543,8 +553,27 @@ Item {
                 setOffset(1)
             }
         }
-        onShouldAnimateChanged: sync()
-        onIsDrawnChanged: sync()
+        onShouldAnimateChanged: {
+            ringPulse.turn(shouldAnimate)
+            sync()
+        }
+        onIsDrawnChanged: {
+            if (isDrawn && sparks) ignite.restart()
+            sync()
+        }
+
+        // The sparks or sparkles of the ring are drawn over the screens (main.qml): the home says when they
+        // are born. On after the fill, also if the push ends, until the next screen takes over from the
+        // home: no new ones then, and the ones in the air die out over that screen. Off when the start
+        // failed: no screen comes to end them.
+        readonly property bool sparks: HoldAnimation.hasSparks
+        readonly property bool burning: sparks && !home.transitioning && (shouldAnimate || (isDrawn && home.starting))
+        onBurningChanged: {
+            HoldAnimation.sweep = ring.sweep
+            HoldAnimation.fillSeconds = dash.duration / 1000
+            HoldAnimation.burning = burning
+        }
+        Component.onDestruction: HoldAnimation.burning = false
         // Reset the circle if we zoom out
         Connections {
             target: home
@@ -555,23 +584,44 @@ Item {
             id: ring
             anchors.centerIn: parent
             radius: 235
-            lineWidth: 5
-            color: "white"
+            // The React Dial's ring, or a thin one under what flies off it: the orange of the sparks, or
+            // white under the rainbow's sparkles. A full ring swells for a moment: the start.
+            lineWidth: (overlay.sparks ? 3 : 5) + ringPulse.swell
+            color: HoldAnimation.style === "sparks" ? "#ffb45e" : "white"
             sweep: 1 - overlay.dashOffset
             visible: sweep > 0.0005
-            // opacityUpCircle / opacityDownCircle, 1.5 s, linear, forever
-            opacity: overlay.shouldAnimate ? Motion.keyframes([[0, 0.1], [0.2, 0.5], [0.4, 1], [1, 1]], ringPulse.t)
-                                           : Motion.keyframes([[0, 1], [0.4, 0.4], [0.8, 0.3], [1, 0.2]], ringPulse.t)
-            QtObject { id: ringPulse; property real t: 0 }
+            // opacityUpCircle / opacityDownCircle (1.5 s, linear), each from the opacity the ring has when the
+            // push starts or ends: the CSS starts them at 0.1 and at 1 whatever the ring shows, so a push that
+            // ends early or starts again flashes there.
+            opacity: overlay.isDrawn ? 1
+                   : ringPulse.rising ? Math.max(ringPulse.base, Motion.keyframes([[0, 0.1], [0.2, 0.5], [0.4, 1], [1, 1]], ringPulse.t))
+                   : ringPulse.base * Motion.keyframes([[0, 1], [0.4, 0.4], [0.8, 0.3], [1, 0.2]], ringPulse.t)
+            QtObject {
+                id: ringPulse
+                property real t: 0
+                property real base: 0
+                property bool rising: true
+                property real swell: 0
+                function turn(up) {
+                    base = ring.visible ? ring.opacity : 0
+                    rising = up
+                    t = 0
+                    pulse.restart()
+                }
+            }
             NumberAnimation {
+                id: pulse
                 target: ringPulse
                 property: "t"
                 from: 0; to: 1
                 duration: 1500
-                loops: Animation.Infinite
-                running: ring.visible
             }
-            onVisibleChanged: ringPulse.t = 0
+            SequentialAnimation {
+                id: ignite
+                NumberAnimation { target: ringPulse; property: "swell"; to: 4; duration: 80; easing.type: Easing.OutQuad }
+                NumberAnimation { target: ringPulse; property: "swell"; to: 0; duration: 280; easing.type: Easing.InOutQuad }
+            }
+            onVisibleChanged: if (!visible) pulse.stop()
         }
 
         // CircleText: black over the whole screen, "Hold to start", flashed (opacityUpText 1 s) after a let-go.
@@ -583,7 +633,16 @@ Item {
             readonly property bool flashing: home.homeHoverState && overlay.wasLetGo && !overlay.shouldAnimate
             opacity: flashText.running ? Motion.keyframes([[0, 0], [0.2, 0.7], [0.8, 0.7], [1, 0]], t) : 0
             visible: opacity > 0
-            onFlashingChanged: if (flashing) flashText.restart()
+            // A let-go while the text of the one before still shows goes on from the opacity it has: the CSS
+            // starts the flash again from nothing, which blinks.
+            onFlashingChanged: {
+                if (!flashing) return
+                const from = !flashText.running ? 0 : t <= 0.2 ? t : t <= 0.8 ? 0.2 : 1 - t
+                flashText.stop()
+                flashText.from = from
+                flashText.duration = 1000 * (1 - from)
+                flashText.start()
+            }
             NumberAnimation {
                 id: flashText
                 target: holdText

@@ -553,8 +553,9 @@ def test_community_unavailable_offers_only_back(screen, stand_in):
 
 def test_advanced_settings_list_their_values(screen, backend):
     """Protects: Advanced.tsx: SSH, the display alignment, the update channel (unless limited access), the
-    idle screen's short name, the root password (case kept), factory reset, the manufacturing options when
-    the backend offers them, Back."""
+    idle screen's short name, the animation of the home's "Hold to start" ring (the Dial's own setting:
+    HoldAnimations.js), the root password (case kept), factory reset, the manufacturing options when the
+    backend offers them, Back."""
     s = settings(backend)
     short = {"default": "Analog", "digital": "Digital", "metCat": "Cat", "dvd": "DVD"}
     _, pw = backend.get("/api/v1/machine/root-password")
@@ -564,7 +565,8 @@ def test_advanced_settings_list_their_values(screen, backend):
     expected = ["SSH: " + ("ENABLED" if s["ssh_enabled"] else "DISABLED"), "Display Alignment Screen"]
     if s.get("update_channel") != "factory":
         expected.append(f"Update channel: {s['update_channel']}")
-    expected += [f"Select Idle Screen: {short.get(s['idle_screen'], 'undefined')}",
+    animation = screen.c.call({"cmd": "eval", "js": "HoldAnimation.shortLabel"})["value"]
+    expected += [f"Select Idle Screen: {short.get(s['idle_screen'], 'undefined')}", f"Start Animation: {animation}",
                  f"ROOT PASSWORD: {pw['root_password']}", "Factory reset"]
     if status == 200:
         expected.append("Manufacturing Options")
@@ -619,6 +621,42 @@ def test_idle_screen_is_chosen_and_shown(screen, backend, restore):
     if screen.state()["bubbleVisible"]:
         screen.controls.context()
         screen.wait_for_bubble_closed()
+
+
+def test_the_start_animation_is_chosen_and_kept(screen):
+    """Protects: choosing what the home's "Hold to start" ring looks like. Without it the choice is lost at
+    the next start of the Dial, or the home goes on with the animation of before.
+
+    Expected: HoldAnimations.js (the three animations, the plain ring first) and Core/HoldAnimation.qml: a
+    push stores the focused one under "home.holdAnimation" in the Dial's storage and the home reads it.
+    Bug it catches: a menu that marks the choice but does not store it (nothing else reads the storage).
+    """
+    def ev(code):
+        return screen.c.call({"cmd": "eval", "js": code})["value"]
+
+    assert ev("HoldAnimation.style") == "default"
+    open_advanced(screen)
+    try:
+        screen.select("Start Animation:")
+        screen.wait_for_bubble("holdAnimationSettings")
+        assert walk(screen) == ["Ring", "Sparks", "Rainbow Sparkles", "Back"]
+        screen.select("Sparks")
+        deadline = time.monotonic() + 3
+        while ev("HoldAnimation.style") != "sparks" and time.monotonic() < deadline:
+            time.sleep(0.1)
+        assert ev("HoldAnimation.style") == "sparks"
+        assert ev("HoldAnimation.hasSparks") == "true"
+        assert ev("Native.storageGet('home.holdAnimation', '')") == "sparks"
+        assert "current" in [t.casefold() for t in screen.texts()]
+        screen.select("Back")
+        screen.wait_for_bubble("advancedSettings")
+        screen.wait_for_focus("SSH:")
+        assert "Start Animation: Sparks" in walk(screen)
+    finally:
+        ev("HoldAnimation.setStyle('default'); 'ok'")
+        if screen.state()["bubbleVisible"]:
+            screen.controls.context()
+            screen.wait_for_bubble_closed()
 
 
 def test_display_alignment_screen_returns_to_advanced(screen):

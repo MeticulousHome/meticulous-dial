@@ -68,6 +68,16 @@ MultiEffect. The Dial is GPLv3, so the LGPL/GPL Qt modules are fine.
 
 - Circles and arcs: one `ShaderEffect` whose mesh is bent into the ring band (`Arc.qml`): Qt5Compat masks
   re-render offscreen on every change, and a shader over a whole square costs more fill rate than the GPU has.
+- Particles: moved in the vertex shader on one `GridMesh` (`SparkRing.qml`, `shaders/sparks.vert`): no script
+  per frame, one draw call and few pixels, where `QtQuick.Particles` runs on the CPU. Their clock is a
+  `UniformAnimator`, on the render thread: a `NumberAnimation` stops dead while the QML thread builds a screen.
+  That clock is not the wall clock (it falls behind when frames drop), so the moments the sparks start and stop
+  are read from it: an Animator writes its value back when it stops, and a second one runs in step with the
+  clock to be stopped and read. A started clock also reaches the shader some frames after the other values of
+  a burn, so each burn starts after the time the clock stopped at and the shader draws nothing outside the
+  clock's own span. The sparks are drawn over the screens (`main.qml`), not in the home: its route
+  is gone 90 ms after a profile starts (the fade-out keyframes), and the sparks in the air die out over the
+  screen that comes in.
 - Lines and plots: `PlotLine` (vertex-colored triangles with a 1 px feather). Canvas is QPainter on the CPU
   (~10 ms a frame here); Shapes is not antialiased on this GPU in 6.4.
 - Static icons: SVG files rasterized once by Image. Lottie: rlottie on a worker thread into a texture, with

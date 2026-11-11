@@ -2,6 +2,7 @@
 tests/test_dial_input.py)."""
 
 import http.server
+import json
 import threading
 import time
 import uuid
@@ -227,6 +228,170 @@ def test_a_remote_picture_whose_load_hangs_shows_once_the_network_is_up(screen, 
     """
     picture_host.failure = "hang"
     show_remote_picture_after_a_failed_load(screen, backend, saved, picture_host, timeout_s=25)
+
+
+# ---- the "Hold to start" ring and its animations (Core/HoldAnimation.qml, components/SparkRing.qml)
+
+def ev(screen, code):
+    return screen.c.call({"cmd": "eval", "js": code})["value"]
+
+
+# The sparks are drawn over the screens (main.qml), not in the home: their two burns as [start, stop].
+SPARK_BURNS = ("(function(){ const k = root.children; for (let i = 0; i < k.length; i++)"
+               " if (k[i].hasOwnProperty('dialProbe_sparkBurns')) return JSON.stringify(k[i].dialProbe_sparkBurns);"
+               " return 'null' })()")
+STILL_BURNING = 1e6  # SparkRing.stillBurning
+
+
+@pytest.fixture
+def hold_animation(screen):
+    """Picks the animation for a test, as the setting does, and puts the plain ring back after it."""
+    def choose(style):
+        ev(screen, f"HoldAnimation.setStyle('{style}'); 'ok'")
+    yield choose
+    ev(screen, "HoldAnimation.setStyle('default'); 'ok'")
+
+
+def a_card_to_hold(screen, backend, saved):
+    profile = default_profile(backend)
+    profile["id"] = str(uuid.uuid4())
+    profile["name"] = "Sparks"
+    save_profile(backend, profile, saved)
+    screen.wait_for_home()
+    screen.wait_for_cards(["Sparks"])
+    screen.go_to_card("Sparks")
+
+
+def wait_for_no_sparks(screen):
+    deadline = time.monotonic() + 3
+    while screen.probe("sparksRunning") and time.monotonic() < deadline:
+        time.sleep(0.05)
+    assert screen.probe("sparksRunning") is False
+
+
+def test_the_sparks_of_the_hold_ring_stop_when_the_ring_winds_back(screen, backend, saved, hold_animation):
+    """Protects: the sparks burn only while the "Hold to start" ring shows. An animation left running makes
+    the Dial draw every frame, so a still home would keep the GPU and the CPU busy with nothing on screen.
+
+    Expected: docs/qt-migration/DECISIONS.md, "Nothing animates while hidden", through the home's
+    dialProbe_sparksRunning; the ring is the thin one of the sparks (ProfileHome's Arc: 3 px). Bug it
+    catches: SparkRing's clock running while the ring is hidden (nothing else in the suite looks at it, the
+    ring still fills and starts the profile).
+    """
+    hold_animation("sparks")
+    a_card_to_hold(screen, backend, saved)
+    assert screen.probe("sparksRunning") is False
+
+    screen.controls._button("ENCODER_PRESSED")
+    time.sleep(0.7)
+    assert screen.probe("sparksRunning") is True
+    assert screen.probe("ringWidth") == 3
+    screen.controls._button("ENCODER_RELEASED")
+    wait_for_no_sparks(screen)
+
+
+def test_the_plain_ring_has_no_sparks(screen, backend, saved):
+    """Protects: a user who did not pick an animation (or picked "Ring") sees the ring the Dial always had.
+    Without it sparks nobody asked for fly at every start.
+
+    Expected: HoldAnimations.js: "default" is the plain ring; ProfileHome's Arc: the React ring is 5 px.
+    Bug it catches: the home telling the sparks to burn whatever the setting says.
+    """
+    assert ev(screen, "HoldAnimation.style") == "default"
+    a_card_to_hold(screen, backend, saved)
+    screen.controls._button("ENCODER_PRESSED")
+    time.sleep(0.7)
+    try:
+        assert screen.probe("ringSweep") > 0
+        assert screen.probe("ringWidth") == 5
+        assert screen.probe("sparksRunning") is False
+    finally:
+        screen.controls._button("ENCODER_RELEASED")
+
+
+def test_a_second_push_keeps_the_sparks_of_the_first(screen, backend, saved, hold_animation):
+    """Protects: letting go and pushing again at once (a slip of the finger). Without it every spark in the
+    air vanishes in one frame when the second push starts, and when it ends.
+
+    Expected: SparkRing keeps two burns, [start, stop] in its clock's seconds: the first push's burn ends
+    before the second one starts, and the second is open (SparkRing.stillBurning) until it ends too.
+    Bug it catches: a clock started again for each push (one burn only), or times that are not the clock's.
+    """
+    hold_animation("sparks")
+    a_card_to_hold(screen, backend, saved)
+    screen.controls._button("ENCODER_PRESSED")
+    time.sleep(0.8)
+    screen.controls._button("ENCODER_RELEASED")
+    time.sleep(0.25)
+    screen.controls._button("ENCODER_PRESSED")
+    time.sleep(0.2)
+    try:
+        (first_start, first_stop), (second_start, second_stop) = json.loads(ev(screen, SPARK_BURNS))
+        assert first_start < first_stop <= second_start
+        assert second_stop == STILL_BURNING
+    finally:
+        screen.controls._button("ENCODER_RELEASED")
+    (first_start, first_stop), (second_start, second_stop) = json.loads(ev(screen, SPARK_BURNS))
+    assert first_start < first_stop <= second_start < second_stop < STILL_BURNING
+    wait_for_no_sparks(screen)
+
+
+def test_a_hold_starts_its_sparks_after_the_time_the_last_ones_stopped_at(screen, backend, saved, hold_animation):
+    """Protects: the start of a hold. Without it, about every second hold starts with sparkles on all of
+    the ring, which vanish some frames later and start again from the bottom.
+
+    Expected: SparkRing.qml: its shader keeps the time the clock stopped at until the render thread starts
+    the clock again, so a burn starts after that time (by 1 to 20 s), or below 20 s once the clock is past
+    300 s, where the shader draws nothing either (SparkRing.clockSeconds). Bug it catches: a start picked
+    without looking at the clock (anywhere in 0..99 s), which is before the stopped time half of the time.
+    """
+    sparks = ("(function(){ const k = root.children; for (let i = 0; i < k.length; i++)"
+              " if (k[i].hasOwnProperty('dialProbe_sparkBurns')) return k[i]; return null })()")
+    clock = f"(function(){{ const k = {sparks}.children; for (let i = 0; i < k.length; i++)" \
+            " if (k[i].hasOwnProperty('time')) return k[i]; return null })()"
+    hold_animation("rainbow")
+    a_card_to_hold(screen, backend, saved)
+    for stopped, lowest, highest in [(250.4, 251, 270), (340.2, 0, 19)]:
+        wait_for_no_sparks(screen)
+        # As after many holds: the clock stopped here.
+        ev(screen, f"{clock}.time = {stopped}; {clock}.now = {stopped}; 'ok'")
+        assert float(ev(screen, f"{sparks}.dialProbe_sparkClockStopped")) == stopped
+        screen.controls._button("ENCODER_PRESSED")
+        time.sleep(0.6)
+        try:
+            (_, _), (start, stop) = json.loads(ev(screen, SPARK_BURNS))
+            assert stop == STILL_BURNING
+            assert lowest <= start <= highest, (stopped, start)
+            assert float(ev(screen, f"{sparks}.clockFrom")) == start
+        finally:
+            screen.controls._button("ENCODER_RELEASED")
+    wait_for_no_sparks(screen)
+
+
+def test_letting_go_dims_the_ring_from_where_it_was(screen, backend, saved):
+    """Protects: a push that ends before the ring is full. Without it the ring jumps to another brightness
+    when the push ends, and flashes bright again while it winds back.
+
+    Expected: ProfileHome's ring: after the let-go its opacity is the one it had, times the
+    opacityDownCircle keyframes (1 -> 0.4 -> 0.3 -> 0.2), so it only goes down. Bug it catches: the
+    keyframes read at the time of the pulse that was running (0.38 right after a let-go at full opacity,
+    and back to 1 when the 1.5 s pulse starts over).
+    """
+    a_card_to_hold(screen, backend, saved)
+    screen.controls._button("ENCODER_PRESSED")
+    time.sleep(0.9)
+    before = screen.probe("ringOpacity")
+    filled = screen.probe("ringSweep")
+    screen.controls._button("ENCODER_RELEASED")
+    assert 0 < filled < 1 and before > 0.5, (filled, before)
+    samples = []
+    deadline = time.monotonic() + 1.2
+    while time.monotonic() < deadline and screen.probe("ringSweep") > 0.001:
+        samples.append(screen.probe("ringOpacity"))
+        time.sleep(0.04)
+    assert len(samples) >= 3
+    assert samples[0] >= 0.7 * before, (before, samples)
+    assert all(later <= earlier + 0.02 for earlier, later in zip(samples, samples[1:])), samples
 
 
 def test_the_context_button_opens_and_closes_the_quick_settings(screen):

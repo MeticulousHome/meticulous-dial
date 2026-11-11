@@ -1,7 +1,8 @@
 // Advanced Settings (src/components/Settings/Advanced/Advanced.tsx), in the bubble: SSH (toggled here),
 // the display alignment screen, the update channel (hidden on a limited-access machine), the idle screen,
-// the root password (case kept), factory reset, the manufacturing options when the backend offers them
-// (GET /manufacturing answers 200, not 204), Back.
+// the animation of the home's "Hold to start" ring (the Dial's own, not in the React Dial), the root password
+// (case kept), factory reset, the manufacturing options when the backend offers them (GET /manufacturing
+// answers 200, not 204), Back.
 import QtQuick
 import Dial
 import "IdleScreens.js" as IdleScreens
@@ -19,6 +20,7 @@ Item {
         { key: "displayAlignment", label: "Display Alignment Screen" },
         { key: "set_update_channel", label: "Update channel" },
         { key: "idle_screen", label: "Select Idle Screen" },
+        { key: "hold_animation", label: "Start Animation" },
         { key: "root_password", label: "ROOT PASSWORD", caseSensitive: true },
         { key: "factory_reset", label: "Factory reset", caseSensitive: false }
     ]
@@ -28,6 +30,7 @@ Item {
         case "ssh_enabled": return s.ssh_enabled ? "ENABLED" : "DISABLED"
         case "set_update_channel": return String(s.update_channel)
         case "idle_screen": return String(IdleScreens.shortLabel(s.idle_screen))
+        case "hold_animation": return HoldAnimation.shortLabel
         }
         return null
     }
@@ -73,6 +76,9 @@ Item {
                 break
             case "idle_screen":
                 Nav.openBubble("idleScreenSettings")
+                break
+            case "hold_animation":
+                Nav.openBubble("holdAnimationSettings")
                 break
             case "factory_reset":
                 Nav.openBubble("factoryReset")
