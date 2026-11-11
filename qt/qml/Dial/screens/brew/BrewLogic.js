@@ -61,8 +61,7 @@ function formatTime(seconds) {
 // ---- src/components/Heating/HeatingScreen.tsx
 
 // preheatTimeLeft(): { text, big } — big: the 40 px ModularFooterTime, else the 20 px ModularFooterText.
-function preheatTimeLeft(waterStatus, temperatureTargetStatus, temperatureTarget, temperature) {
-    if (!waterStatus) return { text: "Tap to retry", big: false }
+function preheatTimeLeft(temperatureTargetStatus, temperatureTarget, temperature) {
     if (!temperatureTargetStatus) return { text: "stabilizing...", big: false }
     const diff = temperatureTarget - Math.max(20, temperature)
     if (diff <= 2) return { text: "a few seconds", big: false }
@@ -85,14 +84,13 @@ function sensorErrorLabel(temperature) {
 }
 
 // ---- src/components/Heating/LottieBubbleAnimation.tsx: where the temperature sits on the gradient, as
-// the background-position-y percentage (0 = grey, without water).
+// the background-position-y percentage.
 const GRADIENT_COLORS = ["grey", "#280B54", "#280B54", "#480B6A", "#65156E", "#82206C", "#9F2A63", "#BB3755",
                          "#D44842", "#E8602D", "#F44D19", "#F44D19"]
 const GRADIENT_TEMP_RANGE_START = 2
 const TEMP_RANGE_START = 20
 const TEMP_RANGE_END = 90
-function bubbleGradientOffset(temperature, waterStatus) {
-    if (!waterStatus) return 0
+function bubbleGradientOffset(temperature) {
     const ratio = (Math.min(TEMP_RANGE_END, Math.max(TEMP_RANGE_START, temperature)) - TEMP_RANGE_START) / (TEMP_RANGE_END - TEMP_RANGE_START)
     return (GRADIENT_TEMP_RANGE_START + (GRADIENT_COLORS.length - GRADIENT_TEMP_RANGE_START) * ratio) / GRADIENT_COLORS.length * 100
 }

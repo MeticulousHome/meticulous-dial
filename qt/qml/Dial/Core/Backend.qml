@@ -35,10 +35,6 @@ QtObject {
             case "button": Input.handleButton(data); break
             case "notification": backend.onNotification(data); break
             case "heater_status": Stats.updatePreheatTimeLeft(data); break
-            case "water_status":
-                Idle.resetTimer()
-                Stats.setWaterStatus(data)
-                break
             case "profile": backend.onProfile(data); break
             case "profileHover":
                 Idle.resetTimer()
@@ -90,17 +86,14 @@ QtObject {
         Profiles.profileStarting = false
 
         if (name === "heating") {
-            Stats.setWaterStatus(true)
             Nav.setScreen("heating")
             return
         }
         if (name === "Pour water and click to continue") {
-            Stats.setWaterStatus(false)
             Nav.setScreen("noWater")
             return
         }
         if (name === "click to start") {
-            Stats.setWaterStatus(true)
             Nav.setScreen("heating")
             return
         }
