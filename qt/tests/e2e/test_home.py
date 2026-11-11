@@ -287,7 +287,7 @@ def test_the_sparks_of_the_hold_ring_stop_when_the_ring_winds_back(screen, backe
     time.sleep(0.7)
     assert screen.probe("sparksRunning") is True
     assert screen.probe("ringWidth") == 3
-    assert screen.probe("ringRainbow") is False
+    assert screen.probe("ringScheme") == "solid"
     screen.controls._button("ENCODER_RELEASED")
     wait_for_no_sparks(screen)
 
@@ -306,7 +306,7 @@ def test_the_plain_ring_has_no_sparks(screen, backend, saved):
     try:
         assert screen.probe("ringSweep") > 0
         assert screen.probe("ringWidth") == 5
-        assert screen.probe("ringRainbow") is False
+        assert screen.probe("ringScheme") == "solid"
         assert screen.probe("sparksRunning") is False
     finally:
         screen.controls._button("ENCODER_RELEASED")
@@ -364,12 +364,93 @@ def test_a_hold_starts_its_sparks_after_the_time_the_last_ones_stopped_at(screen
         try:
             (_, _), (start, stop) = json.loads(ev(screen, SPARK_BURNS))
             assert stop == STILL_BURNING
-            assert screen.probe("ringRainbow") is True
+            assert screen.probe("ringScheme") == "rainbow"
             assert lowest <= start <= highest, (stopped, start)
             assert float(ev(screen, f"{sparks}.clockFrom")) == start
         finally:
             screen.controls._button("ENCODER_RELEASED")
     wait_for_no_sparks(screen)
+
+
+@pytest.mark.parametrize(("style", "particles", "scheme"), [
+    ("heat", False, "heat"),
+    ("steam", True, "solid"),
+    ("pressure", False, "solid"),
+    ("espresso", True, "crema"),
+])
+def test_each_start_animation_draws_its_own_ring(screen, backend, saved, hold_animation, style, particles, scheme):
+    """Protects: holding a card with Heat, Steam, Pressure or Espresso Pour chosen. Without it a choice shows
+    another animation's ring, or nothing flies off a ring that should have steam or drops.
+
+    Expected: HoldAnimations.js (each animation's particles and ring scheme), through the home's
+    dialProbe_sparksRunning and dialProbe_ringScheme. Bug it catches: a ring or a SparkRing style read from
+    the wrong field, or a style the home does not pass on.
+    """
+    hold_animation(style)
+    a_card_to_hold(screen, backend, saved)
+    screen.controls._button("ENCODER_PRESSED")
+    time.sleep(0.7)
+    try:
+        assert screen.probe("ringScheme") == scheme
+        assert screen.probe("sparksRunning") is particles
+        assert screen.probe("wavesRunning") is (style == "pressure")
+    finally:
+        screen.controls._button("ENCODER_RELEASED")
+    wait_for_no_sparks(screen)
+
+
+def test_the_drips_let_go_when_the_profile_starts(screen, backend, saved, hold_animation):
+    """Protects: the pour of Espresso Pour: when the ring is full and the profile starts, every drip that
+    hangs from the ring breaks and falls. Without it they go on hanging over the screen that comes in.
+
+    Expected: SparkRing.qml: release() puts the clock's time in letGo, inside the burn that is on, and the
+    next hold puts it back to SparkRing.stillBurning (no drip let go). The start is HoldAnimation.fire(),
+    what the home calls for a full ring: holding the card until it starts would brew a shot.
+    Bug it catches: the start not reaching the sparks (nothing else in the suite sees it), or a let-go kept
+    for the next hold, whose drips would then never hang.
+    """
+    let_go = ("(function(){ const k = root.children; for (let i = 0; i < k.length; i++)"
+              " if (k[i].hasOwnProperty('dialProbe_sparkLetGo')) return k[i].dialProbe_sparkLetGo; return -1 })()")
+    hold_animation("espresso")
+    a_card_to_hold(screen, backend, saved)
+    screen.controls._button("ENCODER_PRESSED")
+    time.sleep(0.7)
+    try:
+        assert float(ev(screen, let_go)) == STILL_BURNING
+        ev(screen, "HoldAnimation.fire(); 'ok'")
+        (_, _), (start, stop) = json.loads(ev(screen, SPARK_BURNS))
+        assert stop == STILL_BURNING
+        assert start < float(ev(screen, let_go)) < STILL_BURNING
+    finally:
+        screen.controls._button("ENCODER_RELEASED")
+    wait_for_no_sparks(screen)
+    screen.controls._button("ENCODER_PRESSED")
+    time.sleep(0.7)
+    try:
+        assert float(ev(screen, let_go)) == STILL_BURNING
+    finally:
+        screen.controls._button("ENCODER_RELEASED")
+    wait_for_no_sparks(screen)
+
+
+def test_the_pressure_waves_stop_when_the_ring_winds_back(screen, backend, saved, hold_animation):
+    """Protects: the pressure waves move only while the ring shows. Their clock is a FrameAnimation: left
+    running it makes the Dial draw every frame on a still home.
+
+    Expected: docs/qt-migration/DECISIONS.md, "Nothing animates while hidden", through dialProbe_wavesRunning.
+    Bug it catches: the waves' clock bound to the choice and not to the ring being on screen.
+    """
+    hold_animation("pressure")
+    a_card_to_hold(screen, backend, saved)
+    assert screen.probe("wavesRunning") is False
+    screen.controls._button("ENCODER_PRESSED")
+    time.sleep(0.7)
+    assert screen.probe("wavesRunning") is True
+    screen.controls._button("ENCODER_RELEASED")
+    deadline = time.monotonic() + 3
+    while screen.probe("wavesRunning") and time.monotonic() < deadline:
+        time.sleep(0.05)
+    assert screen.probe("wavesRunning") is False
 
 
 def test_letting_go_dims_the_ring_from_where_it_was(screen, backend, saved):

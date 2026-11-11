@@ -639,7 +639,8 @@ def test_the_start_animation_is_chosen_and_kept(screen):
     try:
         screen.select("Start Animation:")
         screen.wait_for_bubble("holdAnimationSettings")
-        assert walk(screen) == ["Ring", "Sparks", "Rainbow Sparkles", "Back"]
+        assert walk(screen) == ["Ring", "Sparks", "Rainbow Sparkles", "Heat", "Steam", "Pressure", "Espresso Pour",
+                                "Back"]
         screen.select("Sparks")
         deadline = time.monotonic() + 3
         while ev("HoldAnimation.style") != "sparks" and time.monotonic() < deadline:

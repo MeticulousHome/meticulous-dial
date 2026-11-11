@@ -1,8 +1,9 @@
 // Sparks that whirl off a ring as it fills: clockwise from 6 o'clock, like Arc, from `sweep` when `burning`
 // goes true to the whole circle in fillSeconds. Each spark is a small kite on one GridMesh and
 // shaders/sparks.vert moves them all, so this costs no script per frame and few pixels. QtQuick.Particles
-// runs on the CPU and needs a module the Dial doesn't ship today. style "rainbow" draws sparkles instead:
-// four-point stars in the colours of the rainbow, from the same mesh and the same clock.
+// runs on the CPU and needs a module the Dial doesn't ship today. The same mesh and clock draw the other
+// styles: "sparkles" (four-point stars in the colours of the rainbow), "steam" (large soft puffs that rise)
+// and "drops" (thick drips of coffee that stretch from the ring, break and fall).
 // The clock is an Animator: it runs on the render thread and keeps moving while the QML thread is busy, which
 // a NumberAnimation doesn't (building a screen takes it for 50-100 ms and more).
 // When burning stops no new sparks are born and the ones in the air fly on until they die. When it starts
@@ -20,10 +21,12 @@ Item {
     property real sweep: 0              // 0..1 of the circle, read when burning starts
     property real fillSeconds: 1
     property bool burning: false
-    property string style: "sparks"     // sparks | rainbow
+    property string style: "sparks"     // sparks | sparkles | steam | drops
+    // A puff of steam and a drip of coffee are slow: they last longer than a spark.
+    readonly property real lifeScale: style === "steam" ? 2.6 : style === "drops" ? 2 : 1
 
     readonly property int count: 300
-    readonly property int longestLifeMs: 850    // the 0.85 of shaders/sparks.vert
+    readonly property int longestLifeMs: Math.round(850 * lifeScale)    // the 0.85 of shaders/sparks.vert
     // Whether anything is drawn and animated: from the first spark to the death of the last one.
     readonly property bool animating: flying
     property bool flying: false
@@ -41,6 +44,14 @@ Item {
     // onBurningChanged), so clockSeconds is also the longest that sparks can go on.
     property real clockFrom: 0
     readonly property real clockSeconds: 120    // the 120.0 of shaders/sparks.vert
+    // When the drips were told to let go (release()), in the clock's seconds; stillBurning until then.
+    property real letGo: stillBurning
+    readonly property real dialProbe_sparkLetGo: letGo
+    // The profile starts: every drip that hangs from the ring breaks now (shaders/sparks.vert). The other
+    // styles have nothing that hangs.
+    function release() {
+        if (flying && burning) letGo = clockNow()
+    }
     // Test probes: [start, stop] of the two burns, and the time the clock stopped at.
     readonly property var dialProbe_sparkBurns: [[w0Start, w0Stop], [w1Start, w1Stop]]
     readonly property real dialProbe_sparkClockStopped: Math.max(effect.time, effect.now)
@@ -87,6 +98,7 @@ Item {
             }
             w1Stop = stillBurning
             w1FillFrom = sweep
+            letGo = stillBurning
         } else {
             w1Stop = clockNow()
             died.restart()
@@ -123,7 +135,9 @@ Item {
         property real radius: ring.radius
         property real side: width
         property real count: ring.count
-        property real style: ring.style === "rainbow" ? 1 : 0
+        property real style: ({ sparks: 0, sparkles: 1, steam: 2, drops: 3 })[ring.style] || 0
+        property real lifeScale: ring.lifeScale
+        property real letGo: ring.letGo
         vertexShader: "../shaders/sparks.vert.qsb"
         fragmentShader: "../shaders/sparks.frag.qsb"
     }

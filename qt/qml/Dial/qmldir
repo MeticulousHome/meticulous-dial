@@ -10,6 +10,7 @@ BottomStatus 1.0 components/BottomStatus.qml
 LoadingScreen 1.0 components/LoadingScreen.qml
 Arc 1.0 components/Arc.qml
 SparkRing 1.0 components/SparkRing.qml
+HoldStartWave 1.0 components/HoldStartWave.qml
 TestServer 1.0 components/TestServer.qml
 PendingScreen 1.0 components/PendingScreen.qml
 CircleKeyboard 1.0 components/CircleKeyboard.qml

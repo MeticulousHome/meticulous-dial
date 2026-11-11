@@ -86,7 +86,9 @@ Item {
     readonly property real dialProbe_ringOpacity: ring.opacity
     readonly property real dialProbe_ringSweep: ring.sweep
     readonly property real dialProbe_ringWidth: ring.lineWidth
-    readonly property bool dialProbe_ringRainbow: ring.rainbow
+    readonly property string dialProbe_ringScheme: ring.scheme
+    // Whether the pressure waves are animating: only while the ring shows.
+    readonly property bool dialProbe_wavesRunning: waveClock.running
     // How many cards are drawn on screen right now (also while the list slides).
     function dialProbe_cardsDrawn() {
         let drawn = 0
@@ -559,7 +561,11 @@ Item {
             sync()
         }
         onIsDrawnChanged: {
-            if (isDrawn && sparks) ignite.restart()
+            if (isDrawn && HoldAnimation.style !== "default") {
+                ignite.restart()
+                if (HoldAnimation.waves) kickRun.restart()
+                HoldAnimation.fire()
+            }
             sync()
         }
 
@@ -581,16 +587,62 @@ Item {
             function onHomeHoverStateChanged() { overlay.wasLetGo = false }
         }
 
+        // Pressure: rings that move in from the ring while it fills, faster as it fills, under it. A full
+        // ring sends a last quick one. It is the home's, so it leaves with the home: nothing of it is over
+        // the screen of the started profile.
+        Item {
+            id: waves
+            anchors.fill: parent
+            visible: HoldAnimation.waves && ring.visible
+            property real phase: 0
+            FrameAnimation {
+                id: waveClock
+                running: waves.visible
+                onTriggered: waves.phase = (waves.phase + frameTime * (0.55 + 1.6 * ring.sweep)) % 1
+            }
+            Repeater {
+                model: 3
+                delegate: Arc {
+                    required property int index
+                    readonly property real p: (waves.phase + index / 3) % 1
+                    anchors.centerIn: parent
+                    radius: ring.radius - 4 - 80 * p
+                    lineWidth: 0.5 + 2.5 * (1 - p)
+                    color: "white"
+                    sweep: ring.sweep
+                    opacity: ring.opacity * 0.6 * (1 - p) * Math.min(1, p * 6)
+                }
+            }
+            Arc {
+                id: kick
+                property real t: 0
+                anchors.centerIn: parent
+                visible: kickRun.running
+                radius: ring.radius - 4 - 36 * t
+                lineWidth: 0.5 + 4 * (1 - t)
+                color: "white"
+                opacity: 0.9 * (1 - t)
+            }
+            NumberAnimation {
+                id: kickRun
+                target: kick
+                property: "t"
+                from: 0; to: 1
+                duration: 240
+                easing.type: Easing.OutCubic
+            }
+        }
+
         Arc {
             id: ring
             anchors.centerIn: parent
             radius: 235
-            // The React Dial's ring, or a thin one under what flies off it: the orange of the sparks, or
-            // the rainbow of the sparkles, each in the colour of its place. A full ring swells for a moment:
-            // the start.
-            lineWidth: (overlay.sparks ? 3 : 5) + ringPulse.swell
-            color: HoldAnimation.style === "sparks" ? "#ffb45e" : "white"
-            rainbow: HoldAnimation.style === "rainbow"
+            // The React Dial's ring, or the one of the chosen animation (Core/HoldAnimations.js): thinner
+            // under what flies off it, in its colours. A full ring swells for a moment: the start.
+            lineWidth: HoldAnimation.ringWidth + ringPulse.swell
+            color: HoldAnimation.ringColor
+            scheme: HoldAnimation.ringScheme
+            glow: HoldAnimation.ringGlow
             sweep: 1 - overlay.dashOffset
             visible: sweep > 0.0005
             // opacityUpCircle / opacityDownCircle (1.5 s, linear), each from the opacity the ring has when the
