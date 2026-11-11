@@ -1,6 +1,6 @@
 pragma Singleton
 // The machine's live state: the stats slice (src/components/store/features/stats/stats-slice.ts), fed by the
-// socket.io "status", "sensors", "water_status" and "heater_status" events (Backend.qml).
+// socket.io "status", "sensors" and "heater_status" events (Backend.qml).
 import QtQuick
 
 QtObject {
@@ -33,7 +33,6 @@ QtObject {
         m_cur: 0, bh_pwr: 0, bh_cur: 0, w_stat: false, motor_temp: 0, weight_pred: 0
     })
 
-    property bool waterStatus: true
     property bool waitingForActionAlreadySent: false
     property real preheatTimeLeft: 0
 
@@ -42,7 +41,6 @@ QtObject {
 
     function setStats(data) { if (data) status = data }
     function setSensors(data) { if (data) sensorData = data }
-    function setWaterStatus(value) { waterStatus = !!value }
     function setWaitingForAction(value) { waitingForActionAlreadySent = !!value }
     function updatePreheatTimeLeft(value) { preheatTimeLeft = Number(value) || 0 }
 }

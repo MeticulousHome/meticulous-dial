@@ -83,7 +83,7 @@ class Machine:
         js(self.screen, "Backend._socket.enabled = false")
 
     def resume(self):
-        js(self.screen, "Stats.setWaterStatus(true); Stats.setWaitingForAction(false); Backend._socket.enabled = true")
+        js(self.screen, "Stats.setWaitingForAction(false); Backend._socket.enabled = true")
 
     def status(self, **changes):
         s = json.loads(json.dumps(DEFAULT_STATUS))
@@ -98,9 +98,6 @@ class Machine:
     def stats(self, **changes):
         """The same status name again (Backend.onStatus only refreshes the stats then)."""
         return self.status(**changes)
-
-    def water(self, present):
-        js(self.screen, f"Stats.setWaterStatus({'true' if present else 'false'})")
 
     def sensors(self, **values):
         base = {k: 0 for k in ("t_ext_1", "t_ext_2", "t_bar_up", "t_bar_mu", "t_bar_md", "t_bar_down", "t_tube",
@@ -141,7 +138,9 @@ def test_heating_shows_the_temperature_its_target_and_the_time_left(screen, mach
 
     Limit: the temperature rounded, the target from the setpoint, the estimate in 15 s steps from the
     distance to the target ("a few seconds" within 2 °C, "less than 30 seconds" within 5, "stabilizing..."
-    without a setpoint).
+    without a setpoint). The bubbles play their first 62 frames once, then 62-312 in a loop
+    (BubbleAnimation.qml), coloured by the temperature: 20..90 °C over the last 10 of the gradient's 12
+    stops (BrewLogic.js bubbleGradientOffset).
     """
     machine.status(name="heating", sensors={"t": 61.4})
     screen.wait_for_route("heating")
@@ -151,6 +150,8 @@ def test_heating_shows_the_temperature_its_target_and_the_time_left(screen, mach
     assert screen.has_text("Target")
     assert screen.probe("estimate") == "1:45"
     screen.wait_for_text("1:45")
+    assert screen.probe("bubbleSegment") in ([0, 62], [62, 312])
+    assert screen.probe("bubbleGradient") == pytest.approx((2 + 10 * (61 - 20) / (90 - 20)) / 12 * 100)
 
     machine.stats(name="heating", sensors={"t": 86.4})
     wait_for(lambda: screen.probe("estimate") == "less than 30 seconds", 3, "less than 30 seconds")
@@ -230,25 +231,6 @@ def test_the_quick_settings_offer_abort_brew_without_water(screen, machine):
     screen.wait_for_text("Abort Brew")
     screen.controls.context()
     screen.wait_for_bubble_closed()
-
-
-def test_a_water_status_event_alone_shows_it_on_the_heating_screen(screen, machine):
-    """Protects: a backend that still emits water_status (KNOWN_GAPS in check-backend-contract.mjs): the
-    heating screen stays, with the small label and the bubbles that drain."""
-    machine.status(name="heating", sensors={"t": 70})
-    screen.wait_for_route("heating")
-    machine.water(False)
-    screen.wait_for_text("No water")
-    screen.wait_for_text("Waiting...")
-    screen.wait_for_text("Tap to retry")
-    assert screen.probe("bubbleGradient") == 0
-    # The bubbles finish their loop, then drain (frames 312-375).
-    wait_for(lambda: screen.probe("bubbleSegment") == [312, 375], 15, "the bubbles draining")
-    # Water again: the temperature comes back (the footer fades out and in, 600 ms), the bubbles restart.
-    machine.water(True)
-    wait_for(lambda: screen.probe("bubbleSegment") == [0, 312], 2, "the bubbles back")
-    wait_for(lambda: not screen.has_text("No water"), 3, "the temperature back")
-    screen.wait_for_text("Estimated time")
 
 
 @pytest.mark.parametrize(("temperature", "label"), [

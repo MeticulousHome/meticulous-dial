@@ -21,7 +21,7 @@ antialiasing differs). On the machine (10.10.0.130, eglfs) see "Performance" at 
 | Menus with the yellow bar (mixins.ts) | styles/utils/mixins.ts | components/OptionsMenu.qml | done | hold-to-confirm, marquee, OS status line, version box, annotations, Chromium dashes |
 | Context button toggles quick settings | App.tsx, Bubble.tsx | main.qml | done | |
 | Bottom status (temp, weight, preheat funnel, offline, motor hot) | BottomStatus/* | components/BottomStatus.qml | done | |
-| Socket.IO events → stores, status → screens | SocketProviderValue.tsx | Core/Backend.qml, src/socketio.cpp | done | status, sensors, button, notification, heater_status, water_status, profile, profileHover, OSUpdate, upload_report, settings; the Dial's own `profileHover` reaches the backend with its payload (it went out as `null` until `af29c3ae`, found by the integration journeys) |
+| Socket.IO events → stores, status → screens | SocketProviderValue.tsx | Core/Backend.qml, src/socketio.cpp | done | status, sensors, button, notification, heater_status, profile, profileHover, OSUpdate, upload_report, settings; the Dial's own `profileHover` reaches the backend with its payload (it went out as `null` until `af29c3ae`, found by the integration journeys) |
 | Knob / buttons → gestures | eventGestureMap | Core/Input.qml, components/GestureHandler.qml | done | the development keyboard keys too |
 | Stores (screens, stats, notifications, wifi, settings, images slices) | store/features/* | Core/Nav, Stats, Notifications, UiState | done | |
 | Profile context and queries | ProfileContext.tsx, useProfiles.tsx | Core/Profiles.qml, Core/HomeSelection.js | done | the React unit test of homeSelection passes against HomeSelection.js |
@@ -53,8 +53,8 @@ antialiasing differs). On the machine (10.10.0.130, eglfs) see "Performance" at 
 | ready | ReadyAnimation | screens/brew/ReadyAnimation.qml | done | |
 | profileHome | ProfileHomeScreen | screens/home/ProfileHome.qml | done | carousel, zoom, hold ring, slide-exit on delete |
 | quick-settings | QuickSettings | screens/home/QuickSettings.qml | done | every context (profile, Free Pour, pour-over, brewing, Free Pour in progress, manual brew save), snake easter egg |
-| heating | Heating/** | screens/brew/HeatingScreen.qml | done | water bubbles (baked Lottie), temperatures, options, long press (sw120 test passes) |
-| no water | none (React showed it on the heating screen) | screens/brew/NoWaterScreen.qml | new | full screen for the "Pour water and click to continue" stage: a drop of dots that drains (lottie/brew-no-water.json), pulsing ring, alert sound from the backend |
+| heating | Heating/** | screens/brew/HeatingScreen.qml | done | water bubbles (baked Lottie), temperatures, options, long press (sw120 test passes); its "No water" state is gone: see the next row |
+| no water | none (React showed it on the heating screen, also for the `water_status` event that the backend stopped in 497b9f7) | screens/brew/NoWaterScreen.qml | new | full screen for the "Pour water and click to continue" stage: a drop of dots that drains (lottie/brew-no-water.json), pulsing ring, alert sound from the backend |
 | barometer | Barometer/** | screens/brew/Barometer.qml | done | meter, target tick and trail of manual brews (meterGeometry, trailGeometry, manualTarget tests pass) |
 | manual-purge | PurgePiston/**, MiniPurgePiston | screens/brew/PurgeScreen.qml | done | |
 | brewComplete | BrewCompleteScreen | screens/brew/BrewCompleteScreen.qml | done | remove cup animation, double push (brewDoubleClick test passes) |
