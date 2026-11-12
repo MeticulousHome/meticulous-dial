@@ -33,7 +33,7 @@ Pill, CssText; singletons ReportFlow, ReportApi, DispatchedReports; ReportLib.js
 | Exit / Back to the quick settings | exitToQuickSettings | BugReport.qml | done | |
 | Contact email screen: keyboard steps, domain grid with Custom and ⌫, confirm with the lit part, declined (Enter email / Cancel report), edit mode from Your contact info | ReportContactEmail.tsx, reportContactEmail.css | support/ReportContactEmail.qml | done | CircleKeyboard (profile group), no long press (abort backs out); `reset()` when React would hand an equal new seed; the email is required here (React let the report go out without one): see "Differences on purpose" |
 | Dispatched reports from the mobile app: queue one at a time, busy retries (30 s, 20x), 15 min cap, 3 attempts per session, replay of pending on connect, outcome notification | dispatchedReports.ts, SocketProviderValue.tsx | support/DispatchedReports.qml | partial | works once started; it is started only when the bug report opens (core request 1) |
-| Notification screen: newest notification, image, one or several responses (neighbours behind, 300 ms ease, React's element reuse), scroll 50 px with scrollbar and fade, options disabled until the end | Notification.tsx, notification.css | notifications/Notification.qml | done | acknowledged over REST like React (404 counts as done); buttons in "Arial" like the browser's button default |
+| Notification screen: newest notification, image, one or several responses (neighbours behind, 300 ms ease, React's element reuse), scroll 50 px with scrollbar and fade, options disabled until the end | Notification.tsx, notification.css | notifications/Notification.qml | done | acknowledged over REST like React (404 counts as done); buttons in "Arial" like the browser's button default; message and buttons as plain text, as React escaped them (names chosen by other devices must not become markup) |
 | Shot data sharing boot prompt (tri-state, Thanks 4 s, error line, Saving...) | ShotDataSharingPrompt.tsx, ShotDataSharingView.tsx, ShotDataSharing.css | support/ShotDataSharingPrompt.qml, ShotDataSharingView.qml, Pill.qml | done | resolvePostReadyScreen is ReadyAnimation's (brew group) |
 | Help us improve (opt in / stop sharing, thanks / stopped 4 s, back to the menu) | HelpUsImprove.tsx | support/HelpUsImprove.qml | done | |
 | Unlock screen (complete-looking codes tried as typed, 403 remembered, ok forces, 200 → refetch settings and profiles → home) | UnlockScreen.tsx, api.ts unlockMachine | misc/UnlockScreen.qml | done | statuses 200 / 400 / 403 / 429 / 404 / 0 as api.ts maps them |
@@ -60,8 +60,12 @@ Pill, CssText; singletons ReportFlow, ReportApi, DispatchedReports; ReportLib.js
   even when the test overrides where the Dial sends.
 - The bug report's gesture handler listens only while in the bubble or while no bubble intercepts the
   knob (React's has no condition, so a bug-report route under an open quick settings would hear both).
-- Notification: a selection past the last response of a newly shown notification is clamped (React keeps
-  it and shows an empty button).
+- Notification: a different notification taking the screen (a new one on top, or an older one back after
+  the shown one is answered) starts on its first response, and presses are ignored for 600 ms after it does
+  (`NotificationLogic.js`). React kept the selection, so a press meant for one prompt could answer the next
+  with whatever it had selected, such as "Allow" on a device's access request. An update of the shown
+  notification keeps its selection, clamped to its responses (React kept it past them and showed an empty
+  button).
 - Notification button glow (`box-shadow 0 0 10px`) is five translucent rounded rectangles (no effects).
 - QR code: the core's QrCode item picks a different mask than react-qr-code; same content, both scan.
 - The contact email is required: React's declined screen ("No contact email", Ok / Enter email) let the

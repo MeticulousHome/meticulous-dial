@@ -5,10 +5,12 @@
 // selection. A message too long for the box scrolls 50 px per detent first (the options stay disabled
 // until its end is shown), with a scrollbar and the bottom fading out. A press acknowledges the selected
 // response (Api.acknowledgeNotification; a 404 counts as done) and removes the notification; main.qml
-// leaves this screen when none are left.
+// leaves this screen when none are left. When a different notification takes the screen it starts on its
+// first response and presses are ignored for a moment (NotificationLogic.js says why).
 import QtQuick
 import Dial
 import "../support"
+import "NotificationLogic.js" as Logic
 
 Item {
     id: screen
@@ -26,6 +28,9 @@ Item {
     property bool canSelectOption: false
     property bool scrollable: false
     property real scrollTop: 0
+    // The id of the notification the selection belongs to, and whether a press may answer it yet.
+    property string shownId: ""
+    property bool pressArmed: false
 
     // For the end-to-end tests.
     readonly property string dialFocusedLabel: responses.length === 1 ? (responses[0] || "OK")
@@ -33,22 +38,48 @@ Item {
     readonly property string dialProbe_notificationId: notificationId
     readonly property bool dialProbe_notificationScrollable: scrollable
     readonly property bool dialProbe_notificationCanSelect: canSelectOption
+    readonly property bool dialProbe_notificationArmed: pressArmed
+
+    // A different notification took the screen (a new one on top, or an older one back after the shown one
+    // was answered): input meant for the previous one must not answer it. An update in place keeps its id
+    // and so its selection.
+    function follow() {
+        const id = notificationId
+        if (!Logic.takesScreen(shownId, id)) return
+        selectedOption = Logic.selectionAfter(shownId, id, selectedOption, responses.length)
+        shownId = id
+        scrollTop = 0
+        // Until measure() has seen the new message, a turn must not pick one of its options.
+        canSelectOption = false
+        pressArmed = false
+        pressGuard.restart()
+    }
+    onNotificationIdChanged: follow()
+    Timer {
+        id: pressGuard
+        interval: Logic.PRESS_GUARD_MS
+        onTriggered: screen.pressArmed = true
+    }
 
     // useEffect([notifications]): whether the message overflows its box decides scrolling and whether the
-    // options can be picked at once. (The selection is kept, as in React, but not past the last option.)
+    // options can be picked at once. (An update of the shown notification keeps the selection, as in React,
+    // but not past its last option; follow() has already reset it for a different one.)
     function measure() {
         const contentHeight = content.height
         const overflowing = (scrollable ? 60 : 20) + contentHeight > 308
         scrollable = overflowing
         canSelectOption = !overflowing
         scrollTop = 0
-        if (selectedOption > Math.max(0, responses.length - 1)) selectedOption = Math.max(0, responses.length - 1)
+        selectedOption = Logic.selectionAfter(shownId, notificationId, selectedOption, responses.length)
     }
     Connections {
         target: Notifications
         function onItemsChanged() { Qt.callLater(screen.measure) }
     }
-    Component.onCompleted: Qt.callLater(measure)
+    Component.onCompleted: {
+        follow()
+        Qt.callLater(measure)
+    }
 
     readonly property real scrollHeight: 20 + content.height + 40
     readonly property real maxScroll: Math.max(0, scrollHeight - 308)
@@ -75,11 +106,10 @@ Item {
             else screen.scrollMessage(false)
         }
         onPressDown: {
-            const n = screen.notification
-            if (!n) return
-            const id = n.id
-            const response = n.responses ? n.responses[screen.selectedOption] : undefined
-            Api.acknowledgeNotification({ id: id, response: response }).then(() => {
+            const ack = Logic.pressAcknowledgement(screen.notification, screen.selectedOption, screen.pressArmed)
+            if (!ack) return
+            const id = ack.id
+            Api.acknowledgeNotification(ack).then(() => {
                 Notifications.removeOne(id)
             }).catch(error => {
                 if (error && error.status === 404) {
@@ -120,6 +150,9 @@ Item {
             y: screen.scrollable ? 20 - screen.scrollTop : 10 + Math.max(0, (288 - height) / 2)
             CssText {
                 width: parent.width
+                // Plain text, as React rendered it: messages can carry names other devices chose (an
+                // access request, a Bluetooth phone), which must not turn into markup or fetch images.
+                textFormat: Text.PlainText
                 text: screen.message
                 color: "white"
                 horizontalAlignment: Text.AlignHCenter
@@ -224,6 +257,7 @@ Item {
             verticalAlignment: Text.AlignVCenter
             horizontalAlignment: Text.AlignHCenter
             elide: Text.ElideRight
+            textFormat: Text.PlainText
             text: button.text
             color: "black"
             font.family: "Arial"

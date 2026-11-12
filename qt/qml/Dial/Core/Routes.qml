@@ -38,7 +38,7 @@ QtObject {
         "deviceInfo", "updateChannel", "idleScreenSettings", "manualSetup", "shot_history", "freePour",
         "guidedPourOver", "freePourHistory", "idle", "brewSettings", "experimentalSettings", "scrollDirections",
         "brewComplete", "factoryReset", "helpUsImprove", "reportContactEmail", "shotDataSharingPrompt",
-        "displayAlignment", "unlock"
+        "displayAlignment", "unlock", "deviceAccess", "pairDevice", "signOutDevices"
     ]
 
     readonly property var table: ({
@@ -115,7 +115,11 @@ QtObject {
         // here while the prompt is unanswered.
         shotDataSharingPrompt: { url: s("support/ShotDataSharingPrompt.qml"), bottomStatusHidden: true },
         displayAlignment: { url: s("settings/DisplayAlignment.qml"), bottomStatusHidden: true },
-        unlock: { url: s("misc/UnlockScreen.qml"), bottomStatusHidden: true, ignoreAsPrevious: true }
+        unlock: { url: s("misc/UnlockScreen.qml"), bottomStatusHidden: true, ignoreAsPrevious: true },
+        // Device authorization: config > Devices, its pairing code and its sign-out confirmation.
+        deviceAccess: { url: s("settings/DeviceAccess.qml"), bottomStatusHidden: true },
+        pairDevice: { url: s("settings/PairDevice.qml"), bottomStatusHidden: true },
+        signOutDevices: { url: s("settings/SignOutDevices.qml"), bottomStatusHidden: true }
     })
 
     function route(name) { return table[name] || null }

@@ -41,6 +41,10 @@ def dismiss_dispatched_report_notices(s: Screen):
     for _ in range(5):
         if s.route() != "notifications" or not str(s.probe("notificationId") or "").startswith("dispatched-report-"):
             return
+        # A push in the first 600 ms after a notification takes the screen is ignored (NotificationLogic.js).
+        deadline = time.monotonic() + 2
+        while s.probe("notificationArmed") is not True and time.monotonic() < deadline:
+            time.sleep(0.1)
         s.controls.push()
         time.sleep(1)
 
