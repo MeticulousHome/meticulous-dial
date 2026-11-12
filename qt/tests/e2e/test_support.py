@@ -636,6 +636,7 @@ def test_a_report_dispatched_from_the_app_is_uploaded_and_announced(screen, back
     message = f"The report with ticket number {ticket} from the mobile app was sent together with the machine's diagnostics."
     screen.wait_for_text(message)
     assert screen.focused() == "Ok"
+    wait_until_armed(screen)
     report = reports(backend)[local_id]
     assert report["status"] == "submitted"
     event = json.loads(services.feedbacks()[-1][1][0][1])
@@ -655,6 +656,7 @@ def test_a_dispatched_report_that_cannot_reach_sentry_says_so(screen, backend, s
     screen.wait_for_route("notifications", timeout_s=120)
     screen.wait_for_text(f"The report with ticket number {ticket} from the mobile app could not be sent. "
                          "We could not send your report. Error code BR-05.")
+    wait_until_armed(screen)
     screen.controls.push()
     screen.wait_for_home()
 
@@ -666,13 +668,26 @@ def notify(screen, **notification):
     js(screen, f"Backend.onNotification({json.dumps(json.dumps(notification))}), 1")
 
 
+def wait_until_armed(screen):
+    """Presses answer the shown notification only NotificationLogic.PRESS_GUARD_MS (600 ms) after it took
+    the screen; a push before that is ignored."""
+    wait_for(lambda: screen.probe("notificationArmed") is True, 5, "the notification to take presses")
+
+
+def wait_for_notification(screen, nid):
+    """The notification screen showing `nid`, ready for a press."""
+    screen.wait_for_route("notifications")
+    wait_for(lambda: screen.probe("notificationId") == nid, 10, f"notification {nid}")
+    wait_until_armed(screen)
+
+
 def test_a_notification_takes_the_screen_and_a_response_dismisses_it(screen):
     """Protects: notifications: the newest one fills the screen with its responses; the knob picks one, a
     press acknowledges it and the Dial goes back (Notification.tsx, useNotificationHandler)."""
     screen.wait_for_home()
     nid = f"e2e-{uuid.uuid4().hex[:6]}"
     notify(screen, id=nid, message="The water tank is empty.\nRefill it to continue.", responses=["Yes", "No", "Update"])
-    screen.wait_for_route("notifications")
+    wait_for_notification(screen, nid)
     screen.wait_for_text("The water tank is empty.")
     assert screen.focused() == "Yes"
     screen.controls.right()
@@ -693,8 +708,9 @@ def test_a_long_notification_scrolls_before_its_options(screen):
     once its end is shown; turning back up deselects."""
     screen.wait_for_home()
     long_text = "\n".join(f"Line {n} of a long notification that wraps." for n in range(14))
-    notify(screen, id=f"e2e-{uuid.uuid4().hex[:6]}", message=long_text, responses=["Ok", "Later"])
-    screen.wait_for_route("notifications")
+    nid = f"e2e-{uuid.uuid4().hex[:6]}"
+    notify(screen, id=nid, message=long_text, responses=["Ok", "Later"])
+    wait_for_notification(screen, nid)
     assert screen.probe("notificationScrollable") is True
     assert screen.probe("notificationCanSelect") is False
     for _ in range(40):
@@ -715,12 +731,50 @@ def test_a_long_notification_scrolls_before_its_options(screen):
 
 def test_a_single_response_notification_shows_one_button(screen):
     screen.wait_for_home()
-    notify(screen, id=f"e2e-{uuid.uuid4().hex[:6]}", message="Descaling finished.", responses=["Ok"])
-    screen.wait_for_route("notifications")
+    nid = f"e2e-{uuid.uuid4().hex[:6]}"
+    notify(screen, id=nid, message="Descaling finished.", responses=["Ok"])
+    wait_for_notification(screen, nid)
     screen.wait_for_text("Descaling finished.")
     assert screen.focused() == "Ok"
     screen.controls.push()
     screen.wait_for_route("profileHome")
+
+
+def test_a_notification_that_takes_the_screen_starts_on_its_first_response(screen):
+    """Protects: input meant for one notification never answers the next. The user turns to the second
+    answer of one prompt and a device's access request arrives on top: it opens on "Deny" (the contract
+    sends ["Deny", "Allow"] so a stray press denies), not on "Allow", and a press in its first
+    NotificationLogic.PRESS_GUARD_MS (600 ms) is ignored. An update of the shown notification (same id,
+    Notifications.addOne) keeps the selection; an older one that comes back starts on its first response.
+    The suite missed it: no test stacked two notifications, and the selection used to carry over."""
+    screen.wait_for_home()
+    first = f"e2e-{uuid.uuid4().hex[:6]}"
+    notify(screen, id=first, message="Connect to this network?", responses=["Yes", "No"])
+    wait_for_notification(screen, first)
+    screen.controls.right()
+    assert screen.focused() == "No"
+    notify(screen, id=first, message="Connect to this network now?", responses=["Yes", "No"])
+    screen.wait_for_text("Connect to this network now?")
+    assert screen.focused() == "No"
+    assert screen.probe("notificationArmed") is True
+
+    request = f"e2e-{uuid.uuid4().hex[:6]}"
+    notify(screen, id=request, message="\u201cPhone\u201d is asking to use this machine", responses=["Deny", "Allow"])
+    # Pressed at once, as a push meant for the previous prompt would land: ignored.
+    screen.controls.push()
+    assert screen.probe("notificationId") == request
+    assert screen.focused() == "Deny"
+    wait_until_armed(screen)
+    assert js(screen, "Notifications.count") == "2"
+    assert screen.probe("notificationId") == request
+
+    screen.controls.push()  # Deny (unknown to the backend, 404: dismissed all the same)
+    wait_for(lambda: screen.probe("notificationId") == first, 10, "the first notification back")
+    assert screen.focused() == "Yes"
+    wait_until_armed(screen)
+    screen.controls.push()
+    screen.wait_for_route("profileHome")
+    assert js(screen, "Notifications.count") == "0"
 
 
 # ---- unlock screens

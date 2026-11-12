@@ -44,5 +44,11 @@
   "qt/tests/js/deviceInfo.test.mts": {
     "../../qml/Dial/Core/DeviceInfo": "Core/DeviceInfo.js"
   },
+  "qt/tests/js/pairing.test.mts": {
+    "../../qml/Dial/screens/settings/Pairing": "screens/settings/Pairing.js"
+  },
+  "qt/tests/js/notificationSelection.test.mts": {
+    "../../qml/Dial/screens/notifications/NotificationLogic": "screens/notifications/NotificationLogic.js"
+  },
   "qt/tests/js/bubbleLoop.test.mjs": {}
 }

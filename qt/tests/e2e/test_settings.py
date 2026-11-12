@@ -7,6 +7,7 @@ when other groups share the default one (DIAL_API).
 """
 
 import math
+import re
 import time
 
 import pytest
@@ -14,7 +15,7 @@ import pytest
 # The settings these tests may change; `restore` puts them back.
 TOUCHED = ["enable_sounds", "auto_start_shot", "auto_purge_after_shot", "partial_retraction", "tare_behavior",
            "reverse_scrolling", "ssh_enabled", "update_channel", "idle_screen", "clock_format_24_hour",
-           "timezone_sync", "time_zone"]
+           "timezone_sync", "time_zone", "require_authorization"]
 
 PISTON_AREA_MM2 = math.pi * 26.5 * 26.5
 
@@ -128,7 +129,7 @@ def test_config_lists_its_entries_with_their_values(screen, backend):
     with its connection state (not connected without the uploader)."""
     s = settings(backend)
     open_config(screen)
-    assert walk(screen) == ["Device Info", "Community: Not connected", "time & date",
+    assert walk(screen) == ["Device Info", "Community: Not connected", "Devices", "time & date",
                             "sounds: " + ("ENABLED" if s["enable_sounds"] else "DISABLED"),
                             "calibrate scale", "Scroll Directions", "Advanced Settings", "Back"]
     screen.select("Back")
@@ -547,6 +548,93 @@ def test_community_unavailable_offers_only_back(screen, stand_in):
     wait_for_focused(screen, "Back")
     screen.controls.push()
     screen.wait_for_bubble("settings")
+
+
+# ---- Devices (device authorization)
+
+def open_devices(screen):
+    open_config(screen)
+    screen.select("Devices")
+    screen.wait_for_bubble("deviceAccess")
+    screen.wait_for_focus("Pair a device")
+
+
+def test_devices_lists_its_entries(screen, backend):
+    """Protects: config > Devices: pairing, the require-authorization switch with its value (only when the
+    backend has the setting: a backend from before device authorization has none), signing every device
+    out, Back to config."""
+    s = settings(backend)
+    open_devices(screen)
+    expected = ["Pair a device"]
+    if "require_authorization" in s:
+        expected.append("Require authorization: " + ("ON" if s["require_authorization"] else "OFF"))
+    expected += ["Sign out all devices", "Back"]
+    assert walk(screen) == expected
+    screen.select("Back")
+    screen.wait_for_bubble("settings")
+
+
+def test_require_authorization_is_toggled(screen, backend, restore):
+    """Protects: turning device authorization on and off at the machine (require_authorization), the only
+    place it can be changed."""
+    before = settings(backend).get("require_authorization")
+    if before is None:
+        pytest.skip("this backend has no device authorization")
+    open_devices(screen)
+    screen.select("Require authorization:")
+    wait_for_setting(backend, "require_authorization", not before)
+    wait_for_focused(screen, "Require authorization: " + ("ON" if not before else "OFF"))
+    screen.controls.push()
+    wait_for_setting(backend, "require_authorization", before)
+
+
+def test_pair_a_device_shows_a_code_and_goes_back(screen, backend):
+    """Protects: "Pair a device" asks the backend for a one-time code and shows it as a QR code with the code
+    as ABCD-EFGH and its countdown (Pairing.js); a backend without pairing (404) says so instead of failing.
+    Back returns to Devices."""
+    open_devices(screen)
+    screen.select("Pair a device")
+    screen.wait_for_bubble("pairDevice")
+    deadline = time.monotonic() + 5
+    while screen.probe("pairingState") == "loading" and time.monotonic() < deadline:
+        time.sleep(0.05)
+    state = screen.probe("pairingState")
+    assert state in ("ready", "unsupported"), state
+    if state == "ready":
+        assert screen.probe("showsQr") is True
+        assert 0 < screen.probe("secondsLeft") <= 600
+        assert any(re.fullmatch(r"[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}", t) for t in screen.texts())
+        assert screen.has_text("Expires in ")
+    else:
+        assert screen.has_text("This machine's software does not support pairing yet")
+    wait_for_focused(screen, "Back")
+    screen.controls.push()
+    screen.wait_for_bubble("deviceAccess")
+
+
+def test_sign_out_all_devices_asks_first(screen, backend):
+    """Protects: signing every paired device out only after a confirmation that starts on Back, so a stray
+    push changes nothing; confirming returns to Devices (or says a backend without pairing cannot)."""
+    open_devices(screen)
+    screen.select("Sign out all devices")
+    screen.wait_for_bubble("signOutDevices")
+    assert screen.has_text("will have to pair again")
+    wait_for_focused(screen, "Back")
+    screen.controls.push()
+    screen.wait_for_bubble("deviceAccess")
+    screen.select("Sign out all devices")
+    screen.wait_for_bubble("signOutDevices")
+    screen.controls.left()
+    wait_for_focused(screen, "Sign out all devices")
+    screen.controls.push()
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline:
+        if screen.c.state()["bubbleComponent"] == "deviceAccess" or screen.probe("signOutState") == "unsupported":
+            break
+        time.sleep(0.05)
+    if screen.c.state()["bubbleComponent"] != "deviceAccess":
+        assert screen.probe("signOutState") == "unsupported"
+        assert screen.has_text("This machine's software does not support pairing yet")
 
 
 # ---- Advanced Settings
