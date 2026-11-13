@@ -1,0 +1,8 @@
+# MODE=react (the reference run): qt-dial-integ:24.04 plus the system libraries Playwright's Chromium needs,
+# installed at build time, because the test phase has no network. Node and the browser itself go to the
+# volumes in the setup phase (in-container.sh). Built by run.sh (image qt-dial-integ-react:24.04).
+FROM qt-dial-integ:24.04
+RUN mkdir -p /tmp/node && curl -fsSL https://nodejs.org/dist/v22.11.0/node-v22.11.0-linux-x64.tar.gz \
+      | tar -xz -C /tmp/node --strip-components=1 \
+    && PATH=/tmp/node/bin:$PATH npx -y playwright@1.55.0 install-deps chromium \
+    && rm -rf /tmp/node /root/.npm /var/lib/apt/lists/*

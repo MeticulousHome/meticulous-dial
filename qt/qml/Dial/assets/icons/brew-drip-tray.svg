@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="130" height="101" viewBox="0 0 130 101" fill="none">
+<defs><radialGradient id="cupGradient" cx="65" cy="-20" r="130" gradientUnits="userSpaceOnUse">
+<stop offset="10%" stop-color="black"/><stop offset="40%" stop-color="#152921"/><stop offset="60%" stop-color="#366a55"/>
+<stop offset="70%" stop-color="#45866b"/><stop offset="100%" stop-color="#7BEEBF"/></radialGradient></defs>
+<path d="M0.332031 99.726L129.784 99.726M0.332031 87.4186L129.784 87.4186M0.332031 75.1112L129.784 75.1112M0.332031 62.8037L129.784 62.8037M0.332031 50.4963L129.784 50.4963M0.332031 38.1889L129.784 38.1889M0.332031 25.8815L129.784 25.8817M0.332031 13.5741L129.784 13.5742M0.332031 1.2666L129.784 1.26662" stroke="url(#cupGradient)" stroke-width="1.5"/>
+</svg>
