@@ -37,8 +37,6 @@ const settingsDefaults = load('settings_defaults.json').user;
 // Explicit compatibility exceptions. Each must still be true: when the backend
 // publishes it, the check fails until the exception is removed here.
 const KNOWN_GAPS = {
-  'get /api/v1/history/upload-index/last':
-    'optional capability probe pending meticulous-backend#426; both callers fall back on 404/405 to published history endpoints (covered by native legacy-backend tests)',
   'listens to water_status':
     'the backend stopped emitting water_status (497b9f7, now sensors.w_stat); Core/Backend.qml still handles it, as the React Dial did'
 };
