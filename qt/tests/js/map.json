@@ -30,6 +30,9 @@
     "../src/features/freePour/setupFlow": "screens/freepour/SetupFlow.js",
     "../src/features/freePour/format": "screens/freepour/Format.js"
   },
+  "qt/tests/js/freePourHistoryLayout.test.mts": {
+    "../src/features/freePour/historyLayout": "screens/freepour/HistoryLayout.js"
+  },
   "qt/tests/js/manualSetup.test.mts": {
     "../src/components/ManualModeSetup/manualSetup": "screens/manual/ManualSetup.js",
     "../src/constants/manualMode": "screens/manual/ManualSetup.js"
