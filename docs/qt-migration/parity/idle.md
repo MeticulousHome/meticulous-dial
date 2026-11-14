@@ -7,7 +7,7 @@ and the Lottie): every screen matches to a pixel or two, the weight text and the
 pixel. The CSS layout quirks of the React screens (below) were measured there, not guessed.
 
 Files: `qt/qml/Dial/screens/idle/` (IdleScreen, AnalogClock, DigitalClock, DVDIdleScreen, BaristaClock,
-LocalClock, NetworkStatus, DimScreen, CurrentTime, clockTime.js), `qt/qml/Dial/screens/scale/` (Scale,
+LocalClock, DimScreen, CurrentTime, clockTime.js), `qt/qml/Dial/screens/scale/` (Scale,
 CalibrateScale), `qt/qml/Dial/screens/misc/Snake.qml`, assets `icons/idle-*`, `lottie/idle-metcat.json`,
 `qt/tests/e2e/test_idle.py`, the `tests/digitalClockTime.test.mts` entry of `qt/tests/js/map.json`.
 
@@ -21,12 +21,10 @@ CalibrateScale), `qt/qml/Dial/screens/misc/Snake.qml`, assets `icons/idle-*`, `l
 | Waking gestures: turns, press down, context, single tare, machine events | SocketProviderValue resetIdleTimer | Core Input / Backend (existing) | done | nothing in the screen itself, as React |
 | Forced sleep from the idle screen setting reopens its bubble on unmount; forceBubbleReopen reset | IdleScreen.tsx cleanup, IdleScreenSetting.tsx | IdleScreen.qml | done | values captured at mount (React's closure) |
 | Analog clock: 60 indicators, hour 9 x 82.42, minute 6 x 125.5, second 4 x 50.83 (#F5C444, sweeping), logo, hidden until the first sample | AnalogClock.tsx | idle/AnalogClock.qml | done | hands are Rectangles turned by rotation from a FrameAnimation (a few assignments a frame); indicators one SVG |
-| Analog Wi-Fi indicator | WifiIndicator.tsx, AnalogClock.tsx | AnalogClock.qml, icons/idle-wifi-on/off.svg | done | drawn at y -74, off the screen, where React puts it (a React quirk kept, see below) |
 | OS local time: read now and 1 s after each read, midpoint of the read, kept on errors (reported once), advanced with the monotonic clock | analogClockTime.ts, utils/localTime.ts | idle/clockTime.js, LocalClock.qml | done | Native.localTime() replaces get_os_local_time; no Date in the clocks |
-| Digital clock: Wi-Fi status row (icon #606060 by invert+brightness, "Ready"/"Not connected"), hours over minutes 110 px #ddd, AM/PM 55 px in 12-hour, 250 ms refresh | DigitalClock.tsx, DigitalClockBase.tsx, DigitalClock.css, digitalClockTime.ts | idle/DigitalClock.qml, icons/idle-wifi.png, idle-no-wifi.png | done | 'Rubik' is not shipped: the system sans-serif draws it in both (fontconfig); line boxes from its pixel-rounded ascent / descent as Chromium; brightness 0 on mount, 1 on unmount |
+| Digital clock: hours over minutes 110 px #ddd, AM/PM 55 px in 12-hour, 250 ms refresh | DigitalClock.tsx, DigitalClockBase.tsx, DigitalClock.css, digitalClockTime.ts | idle/DigitalClock.qml | done | 'Rubik' is not shipped: the system sans-serif draws it in both (fontconfig); line boxes from its pixel-rounded ascent / descent as Chromium; brightness 0 on mount, 1 on unmount |
 | clock_format_24_hour (default 24-hour) | digitalClockTime.ts uses24HourClock, formatTime | clockTime.js | done | tests/digitalClockTime.test.mts passes against clockTime.js (qt/scripts/js-tests.sh) |
 | MetCat clock: "HH:MM" 84 px light, the cat: frames 0-120 once then 120-313 looped | MetCatClock.tsx, MetCat.json | DigitalClock.qml, lottie/idle-metcat.json | done | LottieItem; the file is MetCat.json inside a 275 x 280 window (see "Differences") |
-| Wi-Fi status for the clocks (refetch on mount, every 60 s) | useNetworkConfig({ idle: true }) | idle/NetworkStatus.qml | done | own fetch of /wifi/config (no shared cache with the Wi-Fi screens) |
 | DVD: two 60 px logos on colored squares bouncing in the #111 circle, React's reflection formula with its random ±5°, new palette color per bounce (shared prevColorChoiceIndex) | DVD.tsx | idle/DVDIdleScreen.qml | done | straight runs as x/y animations, the hit time solved per run (see "Differences") |
 | Barista clock: outer ring +6°/s from the wall clock, inner logo the other way | BaristaClock.tsx | idle/BaristaClock.qml, icons/idle-barista-*.svg | done | as in React only the red half shows (the white container has no height) |
 | useDimScreen for other screens | hooks/useDimScreen.ts | idle/DimScreen.qml | done | `import "../idle"` then `DimScreen {}`; not yet used by the profile / wifi / manual screens (their groups) |
@@ -56,13 +54,15 @@ CalibrateScale), `qt/qml/Dial/screens/misc/Snake.qml`, assets `icons/idle-*`, `l
   applied at the exact contact point; a direction that would leave again within a pixel bounces again (new
   color each time), as React does on the following frames. React's logo-overlap state (`collision`) changes
   nothing on screen and is not ported.
+- The sleep clocks have no Wi-Fi status: the digital and MetCat clocks' "Ready" / "Not connected" row and
+  the analog clock's off-screen indicator were removed on purpose. The clocks stay where they were.
 - Analog hands are not quantized to 0.1° (React does it only to cache transform strings).
 - Barista clock: the black drawings (invisible on black, as in React) are drawn anyway.
 
 ## React quirks kept (visible in React too)
 
-- Analog clock: its container has no height (`height: 100%` of an auto-height parent), so the Wi-Fi
-  indicator lands at y -74 (invisible) and the pixel shift turns around (240, 28).
+- Analog clock: its container has no height (`height: 100%` of an auto-height parent), so the pixel shift
+  turns around (240, 28).
 - Barista clock: white background never shows (zero-height container): only the red half of the logo turns.
 - Digital clock sets the brightness to 0 on mount and 1 on unmount (the idle screen then sets 0.33); a change
   of idle_screen while asleep goes through those calls.

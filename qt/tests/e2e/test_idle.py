@@ -244,7 +244,7 @@ def test_the_idle_screen_setting_picks_the_clock(screen, backend, setting, varia
 
 def test_the_digital_clock_shows_the_os_time_in_the_chosen_format(screen, backend, observer):
     """Protects: the digital sleep clock reading the OS local time in 24-hour (the backend's default) and
-    12-hour format, with the Wi-Fi status, and its brightness requests (0 on mount, then the idle
+    12-hour format, without a Wi-Fi status, and its brightness requests (0 on mount, then the idle
     screen's 0.33) (DigitalClock.tsx, digitalClockTime.ts)."""
     set_setting(backend, idle_screen="digital", clock_format_24_hour=True)
     screen.wait_for_home()
@@ -254,7 +254,7 @@ def test_the_digital_clock_shows_the_os_time_in_the_chosen_format(screen, backen
     t = ev_json(screen.c, "Native.localTime()")
     assert shown in (f"{t['hour']:02d} {t['minute']:02d}", f"{t['hour']:02d} {(t['minute'] - 1) % 60:02d}"), (shown, t)
     texts = screen.texts()
-    assert ("Ready" in texts) != ("Not connected" in texts), texts
+    assert "Ready" not in texts and "Not connected" not in texts, texts
     wait(lambda: brightness(screen.c) == [0, 0.33], "brightness 0 then 0.33")
 
     ev(screen.c, "Idle.resetTimer()")
