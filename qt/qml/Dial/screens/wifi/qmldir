@@ -1,0 +1,6 @@
+singleton WifiStore 1.0 WifiStore.qml
+WifiQuery 1.0 WifiQuery.qml
+WifiMutation 1.0 WifiMutation.qml
+WifiMenu 1.0 WifiMenu.qml
+WifiResponse 1.0 WifiResponse.qml
+WifiExplanation 1.0 WifiExplanation.qml
