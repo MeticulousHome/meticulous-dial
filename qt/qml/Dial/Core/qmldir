@@ -6,6 +6,7 @@ singleton Api 1.0 Api.qml
 singleton Stats 1.0 Stats.qml
 singleton Notifications 1.0 Notifications.qml
 singleton UiState 1.0 UiState.qml
+singleton HoldAnimation 1.0 HoldAnimation.qml
 singleton Idle 1.0 Idle.qml
 singleton BackendSettings 1.0 BackendSettings.qml
 singleton Device 1.0 Device.qml

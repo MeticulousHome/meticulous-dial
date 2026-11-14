@@ -42,6 +42,25 @@ Window {
             hidden: router.current ? !!router.current.route.bottomStatusHidden : true
         }
 
+        // The sparks of the home's "Hold to start" ring (Core/HoldAnimation.qml), over the screens: when a
+        // profile starts, the ones in the air die out over the screen that comes in.
+        SparkRing {
+            id: holdSparks
+            anchors.fill: parent
+            style: HoldAnimation.particles || "sparks"
+            sweep: HoldAnimation.sweep
+            fillSeconds: HoldAnimation.fillSeconds
+            burning: HoldAnimation.burning
+            onAnimatingChanged: HoldAnimation.animating = animating
+        }
+        Connections {
+            target: HoldAnimation
+            function onFired() { holdSparks.release() }
+        }
+        HoldStartWave {
+            anchors.fill: parent
+        }
+
         Bubble {
             id: bubble
             enabled: Nav.bubbleVisible && window.scaleVisibility !== "full"

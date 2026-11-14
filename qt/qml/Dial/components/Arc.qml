@@ -10,6 +10,12 @@ Item {
     property real radius: 100          // to the middle of the stroke
     property real lineWidth: 3
     property color color: "white"
+    // solid: `color`. rainbow: the colours of the rainbow once around the circle (red at 6 o'clock). heat:
+    // the heating bubbles' purple to a hot orange, brighter at the end of the sweep. crema: dark coffee to
+    // gold, with tiger stripes. The schemes are tinted by `color` (shaders/arc.vert).
+    property string scheme: "solid"
+    // A soft halo this many pixels each side of the stroke.
+    property real glow: 0
     property real sweep: 1             // 0..1 of the circle
     property real startAngle: 0        // degrees clockwise from 6 o'clock
 
@@ -18,7 +24,7 @@ Item {
 
     ShaderEffect {
         anchors.centerIn: parent
-        width: 2 * arc.radius + arc.lineWidth
+        width: 2 * arc.radius + arc.lineWidth + 2 * arc.glow
         height: width
         rotation: arc.startAngle
         visible: arc.sweep > 0 && arc.opacity > 0
@@ -30,6 +36,8 @@ Item {
         property real radius: arc.radius
         property real lineWidth: arc.lineWidth
         property real side: width
+        property real scheme: ({ solid: 0, rainbow: 1, heat: 2, crema: 3 })[arc.scheme] || 0
+        property real glow: arc.glow
         vertexShader: "../shaders/arc.vert.qsb"
         fragmentShader: "../shaders/arc.frag.qsb"
     }

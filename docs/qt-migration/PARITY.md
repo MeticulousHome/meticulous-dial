@@ -51,7 +51,8 @@ antialiasing differs). On the machine (10.10.0.130, eglfs) see "Performance" at 
 | Route(s) | React | Qt | Status | Notes |
 |---|---|---|---|---|
 | ready | ReadyAnimation | screens/brew/ReadyAnimation.qml | done | |
-| profileHome | ProfileHomeScreen | screens/home/ProfileHome.qml | done | carousel, zoom, hold ring, slide-exit on delete |
+| profileHome | ProfileHomeScreen | screens/home/ProfileHome.qml | done | carousel, zoom, hold ring, slide-exit on delete; the ring dims from the opacity it has when a push ends or starts again and "Hold to start" goes on from its own (the CSS starts both over, which flashes) |
+| "Hold to start" animations | none | Core/HoldAnimation.qml, components/SparkRing.qml, screens/settings/HoldAnimationSetting.qml | new | Advanced Settings, "Start Animation": the plain ring (default), sparks off a thin orange ring, rainbow sparkles off a rainbow ring, Heat (purple to orange with a glow: `Arc`'s heat scheme), Steam (large soft puffs that rise), Pressure (waves that move in, and a last quick one when the ring is full) or Espresso Pour (a crema ring and thick drips that stretch, break and fall); kept in the Dial's storage (`home.holdAnimation`), not on the backend |
 | quick-settings | QuickSettings | screens/home/QuickSettings.qml | done | every context (profile, Free Pour, pour-over, brewing, Free Pour in progress, manual brew save), snake easter egg |
 | heating | Heating/** | screens/brew/HeatingScreen.qml | done | water bubbles (baked Lottie), temperatures, options, long press (sw120 test passes) |
 | barometer | Barometer/** | screens/brew/Barometer.qml | done | meter, target tick and trail of manual brews (meterGeometry, trailGeometry, manualTarget tests pass) |
