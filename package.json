@@ -1,6 +1,6 @@
 {
   "name": "meticulous-dial",
-  "version": "1.105.1",
+  "version": "1.107.0",
   "description": "The Meticulous espresso machine Dial, in Qt Quick (qt/). This file only versions the releases and holds the commit and release tooling.",
   "private": true,
   "scripts": {
