@@ -1,0 +1,3 @@
+singleton SettingsStore 1.0 SettingsStore.qml
+DimScreen 1.0 DimScreen.qml
+SettingsGauge 1.0 SettingsGauge.qml
