@@ -36,10 +36,7 @@ const settingsDefaults = load('settings_defaults.json').user;
 
 // Explicit compatibility exceptions. Each must still be true: when the backend
 // publishes it, the check fails until the exception is removed here.
-const KNOWN_GAPS = {
-  'listens to water_status':
-    'the backend stopped emitting water_status (497b9f7, now sensors.w_stat); Core/Backend.qml still handles it, as the React Dial did'
-};
+const KNOWN_GAPS = {};
 // Socket.IO's own client events, not part of any server's contract.
 const SOCKET_IO_CLIENT_EVENTS = new Set(['connect', 'disconnect', 'connect_error']);
 

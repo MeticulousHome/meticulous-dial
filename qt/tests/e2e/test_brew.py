@@ -83,7 +83,7 @@ class Machine:
         js(self.screen, "Backend._socket.enabled = false")
 
     def resume(self):
-        js(self.screen, "Stats.setWaterStatus(true); Stats.setWaitingForAction(false); Backend._socket.enabled = true")
+        js(self.screen, "Stats.setWaitingForAction(false); Backend._socket.enabled = true")
 
     def status(self, **changes):
         s = json.loads(json.dumps(DEFAULT_STATUS))
@@ -98,9 +98,6 @@ class Machine:
     def stats(self, **changes):
         """The same status name again (Backend.onStatus only refreshes the stats then)."""
         return self.status(**changes)
-
-    def water(self, present):
-        js(self.screen, f"Stats.setWaterStatus({'true' if present else 'false'})")
 
     def sensors(self, **values):
         base = {k: 0 for k in ("t_ext_1", "t_ext_2", "t_bar_up", "t_bar_mu", "t_bar_md", "t_bar_down", "t_tube",
@@ -141,7 +138,9 @@ def test_heating_shows_the_temperature_its_target_and_the_time_left(screen, mach
 
     Limit: the temperature rounded, the target from the setpoint, the estimate in 15 s steps from the
     distance to the target ("a few seconds" within 2 °C, "less than 30 seconds" within 5, "stabilizing..."
-    without a setpoint).
+    without a setpoint). The bubbles play their first 62 frames once, then 62-312 in a loop
+    (BubbleAnimation.qml), coloured by the temperature: 20..90 °C over the last 10 of the gradient's 12
+    stops (BrewLogic.js bubbleGradientOffset).
     """
     machine.status(name="heating", sensors={"t": 61.4})
     screen.wait_for_route("heating")
@@ -151,6 +150,8 @@ def test_heating_shows_the_temperature_its_target_and_the_time_left(screen, mach
     assert screen.has_text("Target")
     assert screen.probe("estimate") == "1:45"
     screen.wait_for_text("1:45")
+    assert screen.probe("bubbleSegment") in ([0, 62], [62, 312])
+    assert screen.probe("bubbleGradient") == pytest.approx((2 + 10 * (61 - 20) / (90 - 20)) / 12 * 100)
 
     machine.stats(name="heating", sensors={"t": 86.4})
     wait_for(lambda: screen.probe("estimate") == "less than 30 seconds", 3, "less than 30 seconds")
@@ -162,22 +163,74 @@ def test_heating_shows_the_temperature_its_target_and_the_time_left(screen, mach
     assert screen.probe("temperatureTarget") == 90
 
 
-def test_heating_without_water_asks_for_it(screen, machine):
-    """Protects: the "pour water" step of a shot (Pour water and click to continue)."""
+NO_WATER = "Pour water and click to continue"
+
+
+def test_no_water_fills_the_screen_and_sounds_the_alert_once(screen, machine):
+    """Protects: seeing from across the room that the shot waits for water. Without it the machine stops
+    heating with a small label and no sound, and the shot never starts.
+
+    The stage name is the firmware's (Backend.onStatus, Constants.MACHINE_OWNED_STAGES); the route has no
+    title, unlike "heating", because Routes.table leaves it out. "notification" is the sound
+    NoWaterScreen.playAlertSound asks for. Removing the stage's Nav.setScreen or the screen's playAlertSound
+    call fails this test."""
     machine.status(name="heating", sensors={"t": 70})
     screen.wait_for_route("heating")
-    machine.status(name="Pour water and click to continue", sensors={"t": 70})
+    machine.status(name=NO_WATER, sensors={"t": 70})
+    screen.wait_for_route("noWater")
     screen.wait_for_text("No water")
-    screen.wait_for_text("Waiting...")
-    screen.wait_for_text("Tap to retry")
-    assert screen.probe("bubbleGradient") == 0
-    # The bubbles finish their loop, then drain (frames 312-375).
-    wait_for(lambda: screen.probe("bubbleSegment") == [312, 375], 15, "the bubbles draining")
-    # Water again: the temperature comes back (the footer fades out and in, 600 ms), the bubbles restart.
-    machine.water(True)
-    wait_for(lambda: screen.probe("bubbleSegment") == [0, 312], 2, "the bubbles back")
-    wait_for(lambda: not screen.has_text("No water"), 3, "the temperature back")
+    screen.wait_for_text("Pour water")
+    screen.wait_for_text("Push to retry")
+    assert screen.probe("dropsPlaying") is True
+    assert screen.probe("alertSounds") == ["notification"]
+    # The same stage again: every status event repeats it, the sound must not.
+    machine.stats(name=NO_WATER, sensors={"t": 71})
+    time.sleep(0.5)
+    assert screen.probe("alertSounds") == ["notification"]
+    # A push is the firmware's (the machine's own button): a "continue" could start the shot once heating
+    # is back (HeatingScreen's BREW NOW).
+    screen.controls.push()
+    assert sent(screen) == []
+    # The retry worked: heating goes on where it was.
+    machine.status(name="heating", sensors={"t": 71})
+    screen.wait_for_route("heating")
     screen.wait_for_text("Estimated time")
+
+
+def test_no_water_again_after_a_retry_sounds_again(screen, machine):
+    """Protects: a retry with the chamber still empty is a new alert, not a silent screen. The stage's
+    screen plays it, and every entry to the stage makes a new one (Router.qml)."""
+    machine.status(name=NO_WATER, sensors={"t": 70})
+    screen.wait_for_route("noWater")
+    assert screen.probe("alertSounds") == ["notification"]
+    machine.status(name="heating", sensors={"t": 70})
+    screen.wait_for_route("heating")
+    machine.status(name=NO_WATER, sensors={"t": 70})
+    screen.wait_for_route("noWater")
+    assert screen.probe("alertSounds") == ["notification"]
+
+
+def test_a_double_push_without_water_aborts_and_goes_home(screen, machine):
+    """Protects: leaving the stage without pouring water (brewDoubleClick.ts: only abort before the shot),
+    and that the screen follows the machine home: no other screen does it at idle (HIDDEN_STAGES)."""
+    machine.status(name=NO_WATER, sensors={"t": 70})
+    screen.wait_for_route("noWater")
+    screen.controls.double_push()
+    assert sent(screen) == ["abort"]
+    machine.idle()
+    screen.wait_for_route("profileHome")
+
+
+def test_the_quick_settings_offer_abort_brew_without_water(screen, machine):
+    """Protects: Abort Brew from the context button during the stage: QuickSettings picks its menu by the
+    route, and a route it does not name gets the home menu, with no way to abort."""
+    machine.status(name=NO_WATER, sensors={"t": 70})
+    screen.wait_for_route("noWater")
+    screen.controls.context()
+    screen.wait_for_bubble("quick-settings")
+    screen.wait_for_text("Abort Brew")
+    screen.controls.context()
+    screen.wait_for_bubble_closed()
 
 
 @pytest.mark.parametrize(("temperature", "label"), [
