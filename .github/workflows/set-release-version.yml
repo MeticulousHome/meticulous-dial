@@ -7,7 +7,7 @@ on:
 jobs:
   set-release-version:
     name: Set release version
-    runs-on: [Linux, x64, office, self-hosted]
+    runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     concurrency:
       group: set-release-version-${{ github.ref }}
