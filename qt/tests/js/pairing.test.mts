@@ -1,5 +1,5 @@
 // What "Pair a device" shows for each answer of POST /api/v1/auth/pairing?mode=new
-// (qt/qml/Dial/screens/settings/Pairing.js).
+// (qt/qml/Dial/screens/settings/Pairing.js), and what Community's QR code carries of it (Community.qml).
 //
 // Regression a user at the machine would see without it: a code drawn as one unreadable block instead of
 // ABCD-EFGH, a countdown that skips or reads 9:60, a screen stuck on "Creating a pairing code..." or a QR
@@ -9,12 +9,16 @@
 // characters of Crockford base32 (0-9 and A-Z without I, L, O, U), shown as ABCD-EFGH, valid `expires_in`
 // seconds (600); `pair_url` is what the QR carries; a backend without /api/v1/auth answers 404.
 // The suite missed it: there was no pairing screen, and the smoke test only opens it without a backend.
+// Community's QR code: a phone that enrolls the machine and then cannot use it (no code in the link), a code
+// sent to Community's server (in the query instead of the fragment), or no Community on a machine whose
+// backend cannot make a code. The fragment, `#pair=CODE&host=HOST`, is what the Community app reads
+// (meticulous-community src/lib/machine/pairing-link.ts); the e2e tests do not see what a QR code says.
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
-  actions, afterTick, countdownText, displayCode, fromAnswer, fromError, hintText, isCode, placeholderText,
-  secondsLeft, UNSUPPORTED_TEXT,
+  actions, afterTick, communityQrUrl, countdownText, displayCode, fromAnswer, fromError, hintText, hostOf, isCode,
+  placeholderText, secondsLeft, UNSUPPORTED_TEXT,
 } from '../../qml/Dial/screens/settings/Pairing.js';
 
 const answer = { code: 'K7Q2M9XZ', pair_url: 'http://192.168.1.20/#pair=K7Q2M9XZ', expires_in: 600 };
@@ -99,4 +103,37 @@ test('the hint under the code counts down while it is ready', () => {
   assert.equal(hintText('expired', 0), 'Choose New code to try again.');
   assert.equal(hintText('unsupported', 0), '');
   assert.equal(placeholderText('ready'), '');
+});
+
+const enrollmentUrl = 'https://community.meticuloushome.com/my-setup/machine/connect?enrollment=eyJjaGFsbGVuZ2UiOiJ-_w';
+
+test('the host of a pair URL is its address or name', () => {
+  assert.equal(hostOf('http://192.168.1.20/#pair=K7Q2M9XZ'), '192.168.1.20');
+  // Without a network address the backend falls back to the machine's name.
+  assert.equal(hostOf('http://meticulous-nice-espresso.local/#pair=K7Q2M9XZ'), 'meticulous-nice-espresso.local');
+  // Nothing that would change the fragment's meaning, and no guess from something else than a pair URL.
+  for (const bad of ['', null, undefined, 'K7Q2M9XZ', 'http:///#pair=K7Q2M9XZ', 'http://a&pair=0/#pair=K7Q2M9XZ',
+    'http://a#b/', 'http://user@10.0.0.2/', 'http://[fe80::1]/#pair=K7Q2M9XZ', 'x http://10.0.0.2/']) {
+    assert.equal(hostOf(bad), '', String(bad));
+  }
+});
+
+test("Community's QR code carries the pairing code and the machine's host in the fragment", () => {
+  assert.equal(communityQrUrl(enrollmentUrl, fromAnswer(answer)), enrollmentUrl + '#pair=K7Q2M9XZ&host=192.168.1.20');
+});
+
+test("Community's QR code carries the code alone when the pair URL has no usable host", () => {
+  const pairing = fromAnswer({ ...answer, pair_url: 'K7Q2M9XZ' });
+  assert.equal(communityQrUrl(enrollmentUrl, pairing), enrollmentUrl + '#pair=K7Q2M9XZ');
+});
+
+test("without a code Community's QR code is the enrollment alone", () => {
+  for (const pairing of [null, undefined, { state: 'idle' }, { state: 'loading' }, { state: 'skipped' },
+    fromError({ status: 404 }), fromError({ status: 0 }), fromAnswer({}), { state: 'ready' },
+    { state: 'ready', code: 'bad&code', pairUrl: answer.pair_url }]) {
+    assert.equal(communityQrUrl(enrollmentUrl, pairing), enrollmentUrl, JSON.stringify(pairing));
+  }
+  // A URL with a fragment of its own keeps it, and no URL stays none.
+  assert.equal(communityQrUrl(enrollmentUrl + '#x', fromAnswer(answer)), enrollmentUrl + '#x');
+  assert.equal(communityQrUrl('', fromAnswer(answer)), '');
 });

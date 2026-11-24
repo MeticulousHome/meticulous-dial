@@ -124,7 +124,7 @@ QtObject {
     // ---- device authorization: both are local only on the backend, which the Dial always is (it talks to
     // the backend on 127.0.0.1, without nginx's X-Real-IP). A backend without them answers 404.
     // A one-time code for a phone or a browser: { code, pair_url, expires_in }.
-    function createPairingCode() { return post(v + "/auth/pairing?mode=new") }
+    function createPairingCode(options) { return post(v + "/auth/pairing?mode=new", null, options) }
     // Every paired phone and browser has to pair again.
     function signOutAllDevices() { return post(v + "/auth/sign_out_all") }
 

@@ -4,6 +4,10 @@
 //   - not connected: a pairing QR code is requested once (with the machine's serial) and shown with its
 //     countdown; "Try again" after a failure or when it expired. Becoming connected while pairing shows
 //     "Connected to Community" (Done returns to the settings).
+//     The QR code also carries a one-time pairing code (POST /api/v1/auth/pairing?mode=new), so that the phone
+//     that scans it can use this machine from Community. It is asked for once the enrollment is there and the
+//     QR code waits for the answer; without a code (no answer, a backend without pairing, authorization turned
+//     off) the QR code only enrolls. The code is never logged.
 //   - connected: status, last upload, pending shots, retry state; Back, Pause / Resume uploads, Disconnect
 //     (with a confirmation: Cancel / Disconnect).
 //   - unavailable (and while the uploader does not exist in this build): "Community Unavailable".
@@ -12,6 +16,7 @@
 import QtQuick
 import Dial
 import Dial.Native
+import "Pairing.js" as Pairing
 
 Item {
     id: screen
@@ -31,6 +36,13 @@ Item {
     property int activeAction: 0
     property string pairingUrl: ""
     property double pairingExpiresAt: 0         // s since the epoch, 0 = none
+    // The pairing code in the QR code: Pairing.js's answer, { state: ready | failed | unsupported }, or
+    // idle (no enrollment out) | loading | skipped (the machine asks no device for a token).
+    property var pairing: ({ state: "idle" })
+    // A late answer to an earlier request (or to a screen already gone) is dropped.
+    property int pairingGeneration: 0
+    property bool alive: true
+    Component.onDestruction: alive = false
     property double now: Math.floor(Date.now() / 1000)
     property bool enrollmentAttempted: false
     property bool enrollmentInFlight: false
@@ -67,6 +79,8 @@ Item {
                 screen.enrollmentError = String(result && result.error ? result.error : "Could not create a secure code")
                 return
             }
+            // First, so that the QR code never shows without the code and then changes under the camera.
+            screen.requestPairingCode()
             screen.pairingUrl = String(result.qrUrl || "")
             screen.pairingExpiresAt = Number(result.expiresAt || 0)
             screen.now = Math.floor(Date.now() / 1000)
@@ -92,10 +106,31 @@ Item {
         enrollmentInFlight = true
         pairingWasActive = true
         enrollmentError = ""
-        pairingUrl = ""
-        pairingExpiresAt = 0
+        clearPairing()
         enrollmentPending = true
         uploader.beginEnrollment(Device.info && Device.info.serial ? String(Device.info.serial) : "")
+    }
+    function clearPairing() {
+        pairingUrl = ""
+        pairingExpiresAt = 0
+        pairing = { state: "idle" }
+        pairingGeneration++
+    }
+    // Not part of busy and without an error text: the enrollment does not need the code.
+    function requestPairingCode() {
+        const request = ++pairingGeneration
+        if (BackendSettings.data && BackendSettings.data.require_authorization === false) {
+            pairing = { state: "skipped" }
+            return
+        }
+        pairing = { state: "loading" }
+        Api.createPairingCode({ timeout: 4000 }).then(data => {
+            if (!screen.alive || request !== screen.pairingGeneration) return
+            screen.pairing = Pairing.fromAnswer(data)
+        }).catch(error => {
+            if (!screen.alive || request !== screen.pairingGeneration) return
+            screen.pairing = Pairing.fromError(error)
+        })
     }
     // The first enrollment starts once the status and the device info are known.
     function maybeStartEnrollment() {
@@ -117,8 +152,7 @@ Item {
         if (connected && pairingWasActive) {
             pairingWasActive = false
             mode = "connected-success"
-            pairingUrl = ""
-            pairingExpiresAt = 0
+            clearPairing()
             activeAction = 0
         }
     }
@@ -165,8 +199,7 @@ Item {
             }
             const action = screen.actions[screen.activeAction]
             if (action === "Try again") {
-                screen.pairingUrl = ""
-                screen.pairingExpiresAt = 0
+                screen.clearPairing()
                 screen.enrollmentError = ""
                 screen.enrollmentAttempted = false
             } else if (action === "Pause uploads" || action === "Resume uploads") {
@@ -207,15 +240,16 @@ Item {
     readonly property string placeholderText: pairingExpired ? "Secure code expired"
                                             : enrollmentError ? "Could not create a secure code" : "Creating secure code..."
     readonly property string connectHint: pairingExpired ? "Choose Try again to create a new secure code."
-                                        : pairingUrl ? "Sign in, review private backup, then connect. Code expires in "
-                                                       + Math.floor(secondsLeft / 60) + ":" + String(secondsLeft % 60).padStart(2, "0") + "."
+                                        : showQr ? "Sign in, review private backup, then connect. Code expires in "
+                                                   + Math.floor(secondsLeft / 60) + ":" + String(secondsLeft % 60).padStart(2, "0") + "."
                                         : "Keep this screen open while Community prepares the connection."
     readonly property string errorText: mode === "connected-success" ? ""
                                       : unavailable && !connected && mode === "overview" ? readableError(status ? status.lastError : null)
                                       : error ? error : ""
-    readonly property bool showQr: connecting && pairingUrl !== "" && !pairingExpired
+    readonly property bool showQr: connecting && pairingUrl !== "" && pairing.state !== "loading" && !pairingExpired
 
     readonly property string dialProbe_communityMode: mode === "overview" ? (connected ? "connected" : unavailable ? "unavailable" : "connect") : mode
+    readonly property string dialProbe_communityPairing: pairing.state
 
     Item {
         id: box
@@ -268,7 +302,7 @@ Item {
                     y: 10
                     width: 256
                     height: 256
-                    value: screen.pairingUrl
+                    value: screen.showQr ? Pairing.communityQrUrl(screen.pairingUrl, screen.pairing) : ""
                     level: "L"
                 }
             }

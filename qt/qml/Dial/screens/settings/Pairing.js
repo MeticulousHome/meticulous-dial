@@ -4,6 +4,7 @@
 // contract: a code is 8 Crockford base32 characters (no I, L, O or U), shown as ABCD-EFGH, valid for
 // `expires_in` seconds; `pair_url` is what the QR code carries. A backend without device authorization
 // answers 404.
+// Community.qml adds the code to its QR code too (communityQrUrl).
 //
 // States: "loading" (asking for a code), "ready" (QR code and countdown), "expired", "failed" (no answer
 // or an answer we cannot use) and "unsupported" (the backend has no pairing).
@@ -61,6 +62,23 @@ function fromAnswer(data) {
 // The screen's state from a rejected call (Api.qml's { status, data, message }; status 0 is no answer).
 function fromError(error) {
     return { state: error && error.status === 404 ? "unsupported" : "failed" }
+}
+
+// The machine's address in a pair URL ("http://192.168.1.20/#pair=..." -> "192.168.1.20"), "" when it has none
+// that can go into a URL fragment as it is.
+function hostOf(pairUrl) {
+    const match = /^http:\/\/([A-Za-z0-9.-]+)\//.exec(String(pairUrl || ""))
+    return match ? match[1] : ""
+}
+
+// Community's enrollment URL with the code that lets the same phone use the machine: "#pair=CODE&host=HOST".
+// In the fragment, so that opening the URL never sends the code to Community's server. Without a ready code
+// the URL stays as it is.
+function communityQrUrl(qrUrl, pairing) {
+    const ready = !!pairing && pairing.state === "ready" && isCode(pairing.code)
+    if (!ready || !qrUrl || qrUrl.indexOf("#") >= 0) return qrUrl
+    const host = hostOf(pairing.pairUrl)
+    return qrUrl + "#pair=" + pairing.code + (host ? "&host=" + host : "")
 }
 
 // A ready code turns expired when its countdown reaches zero.

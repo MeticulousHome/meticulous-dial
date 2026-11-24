@@ -468,9 +468,10 @@ def open_community(screen, js):
 
 def test_community_pairs_and_manages_uploads(screen, backend, stand_in):
     """Protects: Community.tsx with the uploader: a pairing code is requested once with the machine's
-    serial and shown with its countdown; becoming connected while pairing says so (Done returns to the
-    settings, whose label follows the state); connected, uploads pause and resume and Disconnect asks
-    first.
+    serial and shown with its countdown, once the backend answered for the device pairing code that goes
+    with it (a backend without pairing only leaves it out); becoming connected while pairing says so (Done
+    returns to the settings, whose label follows the state); connected, uploads pause and resume and
+    Disconnect asks first.
 
     Limit: the uploader is a stand-in with the C++ Community API (no request reaches the real service)."""
     _, info = backend.get("/api/v1/machine")
@@ -479,12 +480,16 @@ def test_community_pairs_and_manages_uploads(screen, backend, stand_in):
     screen.wait_for_text("Code expires in", timeout_s=5)
     assert fake_value(screen, "c.lastSerial") == str(info["serial"])
     assert fake_value(screen, "c.enrollments") == "1"
+    authorization_off = settings(backend).get("require_authorization") is False
+    pairing = screen.probe("communityPairing")
+    assert pairing in (("skipped",) if authorization_off else ("ready", "unsupported")), pairing
     wait_for_focused(screen, "Back")
 
     fake_community(screen, "c.set({ connected: true, state: 'connected' })")
     wait_for_probe(screen, "communityMode", "connected-success")
     assert screen.has_text("Connected to Community")
     wait_for_focused(screen, "Done")
+    assert screen.probe("communityPairing") == "idle"
     screen.controls.push()
     screen.wait_for_bubble("settings")
 
@@ -524,11 +529,14 @@ def test_community_offers_to_try_again(screen, stand_in):
     open_community(screen, f"c.failEnrollment = 'network_down'; c.expiresIn = 600; c.status = {NOT_CONNECTED}")
     screen.wait_for_text("Could not create a secure code", timeout_s=5)
     assert screen.has_text("network_down")
+    # A failed enrollment asks for no device pairing code.
+    assert screen.probe("communityPairing") == "idle"
     wait_for_focused(screen, "Try again")
-    fake_community(screen, "c.failEnrollment = ''; c.expiresIn = 2")
+    # Longer than the 4 s the QR code may wait for the device pairing code (Community.qml).
+    fake_community(screen, "c.failEnrollment = ''; c.expiresIn = 6")
     screen.controls.push()
     screen.wait_for_text("Code expires in", timeout_s=5)
-    screen.wait_for_text("Secure code expired", timeout_s=5)
+    screen.wait_for_text("Secure code expired", timeout_s=10)
     wait_for_focused(screen, "Try again")
     screen.controls.right()
     screen.select("Back")
@@ -543,6 +551,7 @@ def test_community_unavailable_offers_only_back(screen, stand_in):
                            " enrollmentExpiresAt: null })")
     wait_for_probe(screen, "communityMode", "unavailable")
     assert screen.has_text("Community Unavailable") and screen.has_text("storage unwritable")
+    assert screen.probe("communityPairing") == "idle"
     wait_for_focused(screen, "Back")
     screen.controls.right()
     wait_for_focused(screen, "Back")
