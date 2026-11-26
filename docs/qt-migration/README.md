@@ -35,7 +35,9 @@ the Dial also runs as a normal window (`qt/build/amd64/meticulous-dial-qt --qml-
 
 Launch options: `--api <url>` (DIAL_API_URL), `--rotation <deg>` (DIAL_ROTATION, default -90),
 `--test-port <port>` (DIAL_TEST_PORT; off by default), `--screen <route>` (start on a route),
-`--storage <file>` (DIAL_STORAGE), `--show-circle` (DIAL_SHOW_CIRCLE: the round outline).
+`--storage <file>` (DIAL_STORAGE), `--show-circle` (DIAL_SHOW_CIRCLE: the round outline). DIAL_BOOT_THEME_FILE:
+where the Dial keeps the theme for the boot splash (the launcher's default, `/var/lib/meticulous-dial/boot-theme`,
+is what psplash reads; unset, none is written).
 
 ## Try it on a machine (development)
 

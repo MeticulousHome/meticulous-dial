@@ -42,6 +42,17 @@ QtObject {
     }
     function follow(settings, info) { setMode(ThemeRule.resolve(settings, info, mode)) }
 
+    // The boot splash (psplash, which runs before the Dial and before /meticulous-user is mounted) reads the
+    // theme from this file on the root file system: kept equal to the one shown. The launcher names it
+    // (DIAL_BOOT_THEME_FILE); off the machine there is none.
+    readonly property string bootThemeFile: Native.env("DIAL_BOOT_THEME_FILE", "")
+    function _keepBootTheme() {
+        if (bootThemeFile && Native.readTextFile(bootThemeFile).trim() !== mode)
+            Native.writeTextFile(bootThemeFile, mode + "\n")
+    }
+    onModeChanged: _keepBootTheme()
+    Component.onCompleted: _keepBootTheme()
+
     // A color with another alpha, and the mix of two (k = 0: a, k = 1: b).
     function alpha(c, a) { return Qt.rgba(c.r, c.g, c.b, a) }
     function mix(a, b, k) { return Qt.rgba(a.r + (b.r - a.r) * k, a.g + (b.g - a.g) * k, a.b + (b.b - a.b) * k, 1) }

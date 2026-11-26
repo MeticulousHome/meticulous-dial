@@ -26,6 +26,7 @@ start|restart)
     . "$(dirname "$0")/real-services.sh"
     docker run -d --name "$name" --network host "${no_real_services[@]}" -u "$(id -u):$(id -g)" -e HOME=/tmp \
         -e DISPLAY_NUM="$display" -e CONFIG_PATH=/tmp/dial-config -e DIAL_EXTERNAL_SERVICES=0 \
+        -e DIAL_BOOT_THEME_FILE=/tmp/dial-boot-theme \
         -e COMMUNITY_API_BASE="${COMMUNITY_API_BASE:-http://127.0.0.1:9}" -e MACHINE_API_BASE="$api" \
         -v "$repo:/repo" -w /repo/qt qt-dial-bookworm bash -c '
             Xvfb ":$DISPLAY_NUM" -screen 0 480x480x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &

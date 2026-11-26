@@ -149,15 +149,18 @@ def test_sounds_are_toggled_from_config(screen, backend, restore):
 
 
 def shown_theme(screen):
-    """What the Dial shows and what it keeps for its next start: (mode, background, text, light icons, stored)."""
-    js = "[Theme.mode, String(Theme.background), String(Theme.text), String(Theme.asset('icons/plus.svg')), Native.storageGet('theme', 'dark')]"
-    mode, background, text, icon, stored = json.loads(screen.c.call({"cmd": "eval", "js": f"JSON.stringify({js})"})["value"])
-    return mode, background, text, "/light/" in icon, stored
+    """What the Dial shows, what it keeps for its next start and what the boot splash will show:
+    (mode, background, text, light icons, stored, boot theme file). run-dev.sh names the boot theme file."""
+    js = ("[Theme.mode, String(Theme.background), String(Theme.text), String(Theme.asset('icons/plus.svg')),"
+          " Native.storageGet('theme', 'dark'), Theme.bootThemeFile ? Native.readTextFile(Theme.bootThemeFile) : 'unset']")
+    mode, background, text, icon, stored, boot = json.loads(screen.c.call({"cmd": "eval", "js": f"JSON.stringify({js})"})["value"])
+    return mode, background, text, "/light/" in icon, stored, boot
 
 
-# Theme.qml's `background` and `text` per mode; LightAssets.js lists icons/plus.svg.
-DARK = ("dark", "#000000", "#ffffff", False, "dark")
-LIGHT = ("light", "#f3f0e9", "#1c1a17", True, "light")
+# Theme.qml's `background` and `text` per mode; LightAssets.js lists icons/plus.svg; psplash shows its light
+# theme only for a file that reads "light" (--theme-file).
+DARK = ("dark", "#000000", "#ffffff", False, "dark", "dark\n")
+LIGHT = ("light", "#f3f0e9", "#1c1a17", True, "light", "light\n")
 
 
 def wait_for_theme(screen, theme, timeout_s=5):
@@ -179,7 +182,7 @@ def one_machine_info(screen):
 def test_theme_is_chosen_from_config(screen, backend, restore, one_machine_info):
     """Protects: config > theme: a push repaints the whole Dial (colors and the pictures drawn for a black
     background), stores the choice in the `theme` setting, and keeps it for the next start, which shows it
-    before the backend answers. Unset is not offered.
+    before the backend answers, and for the boot splash. Unset is not offered.
 
     Breaks when a color stops following Theme.mode, when the push does not store the setting, or when the icon
     lookup ignores the mode (white icons on a light background). A backend without the setting (the previous
