@@ -31,7 +31,7 @@ Item {
         y: gauge.cy - height / 2
         radius: 237 * gauge.k
         lineWidth: 3 * gauge.k
-        color: "#676767"
+        color: Theme.track
         sweep: 1
     }
     Arc {
@@ -39,7 +39,7 @@ Item {
         y: gauge.cy - height / 2
         radius: 237 * gauge.k
         lineWidth: 3 * gauge.k
-        color: Theme.brandYellow
+        color: Theme.accentLine
         // getDashArray: a negative value fills from the end (minValue); 0 draws nothing.
         sweep: gauge.value >= 0 ? (gauge.maxValue === 0 ? 0 : Math.min(gauge.value, gauge.maxValue) / gauge.maxValue)
                                : Math.abs(Math.max(gauge.value, gauge.minValue | 0)) / Math.abs(gauge.minValue)
@@ -60,7 +60,7 @@ Item {
                 verticalAlignment: Text.AlignVCenter
                 text: gauge.parts.dim
                 opacity: 0.2
-                color: "white"
+                color: Theme.text
                 font.family: Theme.fontMono
                 font.pixelSize: 140
             }
@@ -68,7 +68,7 @@ Item {
                 height: 96
                 verticalAlignment: Text.AlignVCenter
                 text: gauge.parts.bright
-                color: "white"
+                color: Theme.text
                 font.family: Theme.fontMono
                 font.pixelSize: 140
             }
@@ -78,7 +78,7 @@ Item {
             height: 20
             verticalAlignment: Text.AlignVCenter
             text: gauge.unitNames[gauge.unit] || gauge.unit
-            color: "white"
+            color: Theme.text
             font.family: Theme.fontRegular
             font.pixelSize: 24
         }

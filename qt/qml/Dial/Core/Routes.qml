@@ -38,7 +38,7 @@ QtObject {
         "deviceInfo", "updateChannel", "idleScreenSettings", "manualSetup", "shot_history", "freePour",
         "guidedPourOver", "freePourHistory", "idle", "brewSettings", "experimentalSettings", "scrollDirections",
         "brewComplete", "factoryReset", "helpUsImprove", "reportContactEmail", "shotDataSharingPrompt",
-        "displayAlignment", "unlock"
+        "displayAlignment", "unlock", "themeSettings"
     ]
 
     readonly property var table: ({
@@ -97,6 +97,7 @@ QtObject {
         deviceInfo: { url: s("settings/DeviceInfoScreen.qml") },
         updateChannel: { url: s("settings/UpdateChannel.qml") },
         idleScreenSettings: { url: s("settings/IdleScreenSetting.qml") },
+        themeSettings: { url: s("settings/ThemeSetting.qml") },
         manualSetup: { url: s("manual/ManualModeSetup.qml"), title: "Manual mode", bottomStatusHidden: true },
         shot_history: { url: s("brew/ShotGraphScreen.qml"), title: activeProfilesTitle, parent: "profileHome", bottomStatusHidden: true },
         freePour: { url: s("freepour/FreePourScreen.qml"), bottomStatusHidden: true, parent: "profileHome" },

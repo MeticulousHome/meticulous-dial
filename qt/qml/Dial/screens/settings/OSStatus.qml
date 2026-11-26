@@ -41,7 +41,7 @@ Item {
         y: screen.slideY(0)
         width: screen.width - 29
         text: screen.statusInfo
-        color: "#dddddd"
+        color: Theme.textBody
         font.family: Theme.fontMono
         font.pixelSize: 22
     }
@@ -58,7 +58,7 @@ Item {
             height: parent.height
             verticalAlignment: Text.AlignVCenter
             text: "Back"
-            color: screen.items[screen.activeIndex] === "back" ? "#0f0f0f" : "#dddddd"
+            color: screen.items[screen.activeIndex] === "back" ? "#0f0f0f" : Theme.textBody
             font.family: Theme.fontMono
             font.pixelSize: 22
             font.letterSpacing: 1.3

@@ -15,8 +15,8 @@ Item {
     property bool inBubble: false
 
     readonly property real clockFontSize: 110
-    readonly property color activeColor: "#f5c444"
-    readonly property color inactiveColor: "#E6E6E6"
+    readonly property color activeColor: Theme.accentLarge
+    readonly property color inactiveColor: Theme.textField
 
     property date newTime: new Date()
     property string activeField: "hours"
@@ -60,7 +60,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             y: container.gap
             text: BackendSettings.data && BackendSettings.data.time_zone ? String(BackendSettings.data.time_zone) : ""
-            color: "white"
+            color: Theme.text
             font.family: Theme.fontRegular
             font.pixelSize: 16
         }
@@ -96,7 +96,7 @@ Item {
                 height: screen.clockFontSize
                 verticalAlignment: Text.AlignVCenter
                 text: ":"
-                color: "white"
+                color: Theme.text
                 font.family: Theme.fontMono
                 font.weight: Font.Light
                 font.pixelSize: screen.clockFontSize
@@ -150,7 +150,7 @@ Item {
                     height: 18
                     verticalAlignment: Text.AlignVCenter
                     text: modelData
-                    color: "white"
+                    color: Theme.text
                     font.family: Theme.fontRegular
                     font.pixelSize: 15
                     font.letterSpacing: 1.5

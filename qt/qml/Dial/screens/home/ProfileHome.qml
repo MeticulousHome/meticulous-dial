@@ -556,11 +556,13 @@ Item {
             anchors.centerIn: parent
             radius: 235
             lineWidth: 5
-            color: "white"
+            color: Theme.holdRing
             sweep: 1 - overlay.dashOffset
             visible: sweep > 0.0005
-            // opacityUpCircle / opacityDownCircle, 1.5 s, linear, forever
-            opacity: overlay.shouldAnimate ? Motion.keyframes([[0, 0.1], [0.2, 0.5], [0.4, 1], [1, 1]], ringPulse.t)
+            // opacityUpCircle / opacityDownCircle, 1.5 s, linear, forever. On the light background the same
+            // fade-in is too pale to see until most of the ring has grown: it is solid from 0.15 s.
+            readonly property var fadeUp: Theme.light ? [[0, 0.6], [0.1, 1], [1, 1]] : [[0, 0.1], [0.2, 0.5], [0.4, 1], [1, 1]]
+            opacity: overlay.shouldAnimate ? Motion.keyframes(fadeUp, ringPulse.t)
                                            : Motion.keyframes([[0, 1], [0.4, 0.4], [0.8, 0.3], [1, 0.2]], ringPulse.t)
             QtObject { id: ringPulse; property real t: 0 }
             NumberAnimation {
@@ -578,7 +580,7 @@ Item {
         Rectangle {
             id: holdText
             anchors.fill: parent
-            color: "black"
+            color: Theme.background
             property real t: 1
             readonly property bool flashing: home.homeHoverState && overlay.wasLetGo && !overlay.shouldAnimate
             opacity: flashText.running ? Motion.keyframes([[0, 0], [0.2, 0.7], [0.8, 0.7], [1, 0]], t) : 0
@@ -595,7 +597,7 @@ Item {
             Text {
                 anchors.centerIn: parent
                 text: "Hold to start"
-                color: "white"
+                color: Theme.text
                 font.family: Theme.fontRegular
                 font.pixelSize: 25
                 font.letterSpacing: -0.25

@@ -68,7 +68,7 @@ Item {
             text: view.footnote
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.Wrap
-            color: Qt.rgba(231 / 255, 231 / 255, 231 / 255, 0.7)
+            color: Theme.alpha(Theme.textSoft, 0.7)
             font.pixelSize: 18
             cssLineHeight: 23.4
         }
@@ -97,7 +97,7 @@ Item {
             text: view.errorText
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.Wrap
-            color: "#ff7b70"
+            color: Theme.errorSoft
             font.pixelSize: 18
             cssLineHeight: 23.4
         }

@@ -22,7 +22,7 @@ Text {
                                   : cssNormalHeight > 0 ? cssNormalHeight : _cssAscent + _cssDescent
     readonly property real _halfLeading: (cssLine - _cssAscent - _cssDescent) / 2
 
-    color: "#e7e7e7"
+    color: Theme.textSoft
     font.family: Theme.fontRegular
     font.pixelSize: 16
     lineHeightMode: Text.FixedHeight

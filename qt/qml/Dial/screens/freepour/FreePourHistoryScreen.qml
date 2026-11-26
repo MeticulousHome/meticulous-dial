@@ -100,7 +100,7 @@ Item {
             y: parent.tops[1]
             font.pixelSize: 14
             letterSpacingPx: 1.5
-            color: "#8d9694"
+            color: Theme.pourMuted
             text: "PRESS DIAL TO RETURN"
         }
     }
@@ -122,7 +122,7 @@ Item {
             mono: true
             font.pixelSize: 12
             letterSpacingPx: 1.5
-            color: "#8d9694"
+            color: Theme.pourMuted
             text: {
                 const s = history.session
                 if (!s) return ""
@@ -139,7 +139,7 @@ Item {
             y: history.chartTop + history.chartHeight - 1
             width: history.chartWidth
             height: 2
-            color: "#596460"
+            color: Theme.pourGridLine
         }
         Repeater {
             model: [0, 0.5, 1]
@@ -150,7 +150,7 @@ Item {
                 width: history.chartWidth
                 height: 1
                 points: [Qt.point(0, 0.5), Qt.point(1, 0.5)]
-                color: "#26312f"
+                color: Theme.pourGrid
                 lineWidth: 1
                 dash: 3
                 gap: 7
@@ -167,7 +167,7 @@ Item {
                 height: 8
                 radius: 4
                 antialiasing: true
-                color: "#e7e3da"
+                color: Theme.pourText
             }
         }
         PlotLine {
@@ -180,7 +180,7 @@ Item {
             xMax: Math.max(1, history.durationMs)
             yMin: 0
             yMax: history.maxWeight
-            color: "#e7e3da"
+            color: Theme.pourText
             lineWidth: 2.5
         }
         PlotLine {
@@ -193,7 +193,7 @@ Item {
             xMax: Math.max(1, history.durationMs)
             yMin: 0
             yMax: 10
-            color: "#78d6ff"
+            color: Theme.dataBlueLight
             lineWidth: 2.5
         }
         Rectangle {
@@ -201,7 +201,7 @@ Item {
             y: history.chartTop - 5
             width: 2
             height: history.chartHeight + 10
-            color: "#f5c444"
+            color: Theme.accentLine
         }
 
         // .free-pour-history-values: four 81.5 px columns from x 65, 8 px apart
@@ -216,7 +216,7 @@ Item {
                 FpText {
                     font.pixelSize: 11
                     letterSpacingPx: 1.5
-                    color: "#8d9694"
+                    color: Theme.pourMuted
                     text: ["POUR", "TIME", "WATER", "FLOW"][parent.index]
                 }
                 FpText {
@@ -250,7 +250,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 24
             Repeater {
-                model: [["WEIGHT", "#e7e3da"], ["FLOW", "#78d6ff"]]
+                model: [["WEIGHT", Theme.pourText], ["FLOW", Theme.dataBlueLight]]
                 Row {
                     required property var modelData
                     spacing: 7
@@ -267,7 +267,7 @@ Item {
                         width: implicitWidth
                         font.pixelSize: 11
                         letterSpacingPx: 1.5
-                        color: "#8d9694"
+                        color: Theme.pourMuted
                         text: parent.modelData[0]
                     }
                 }

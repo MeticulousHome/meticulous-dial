@@ -12,8 +12,8 @@ Item {
     property bool inBubble: false
 
     readonly property real clockFontSize: 60
-    readonly property color activeColor: "#f5c444"
-    readonly property color inactiveColor: "#E6E6E6"
+    readonly property color activeColor: Theme.accentLarge
+    readonly property color inactiveColor: Theme.textField
 
     property date newTime: new Date()
     property string activeField: "day"
@@ -70,7 +70,7 @@ Item {
                 height: screen.clockFontSize
                 verticalAlignment: Text.AlignVCenter
                 text: "."
-                color: "white"
+                color: Theme.text
                 font.family: Theme.fontMono
                 font.weight: Font.Light
                 font.pixelSize: screen.clockFontSize
@@ -110,7 +110,7 @@ Item {
                     height: 18
                     verticalAlignment: Text.AlignVCenter
                     text: modelData
-                    color: "white"
+                    color: Theme.text
                     font.family: Theme.fontRegular
                     font.pixelSize: 15
                     font.letterSpacing: 1.5

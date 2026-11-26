@@ -79,7 +79,7 @@ Item {
         y: 60
         radius: Math.min(30, height / 2)
         color: "transparent"
-        border.color: "#5d5d5d"
+        border.color: Theme.pillBorder
         border.width: 1
         Text {
             id: titleText
@@ -87,7 +87,7 @@ Item {
             // line-height 1.4: 22.4 px line box under the 1 px border
             y: 1 + (22.4 - calibrate.diatypeLine(16)) / 2 + calibrate.diatypeAscent(16) - title16.ascent
             text: "calibrate scale"
-            color: Qt.rgba(1, 1, 1, 0.8)
+            color: Theme.alpha(Theme.text, 0.8)
             font.family: Theme.fontRegular
             font.pixelSize: 16
             font.letterSpacing: 3.2
@@ -147,7 +147,7 @@ Item {
         property string text
         property bool show: false
         property bool bordered: false
-        property color color: "white"
+        property color color: Theme.text
         readonly property real border: bordered ? 1 : 0
         width: label.implicitWidth + 16 + 2 * border
         height: 25 + 8 + 2 * border
@@ -184,7 +184,7 @@ Item {
         text: "calibrate"
         show: calibrate.isTaring && !calibrate.isCalibrated
         bordered: true
-        color: calibrate.notAllowCalibrate ? Qt.rgba(1, 1, 1, 0.3) : "white"
+        color: calibrate.notAllowCalibrate ? Theme.alpha(Theme.text, 0.3) : Theme.text
     }
     LabelText {
         text: "done"

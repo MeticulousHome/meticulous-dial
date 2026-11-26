@@ -56,8 +56,8 @@ Item {
             readonly property bool holdingThis: active && list.holding
             readonly property real usable: (option.useableWidthPercentage || 90) / 100
             readonly property real contentWidth: list.boxWidth * usable
-            readonly property color textColor: !active ? "#dddddd"
-                                               : holdingThis ? Qt.tint("#0f0f0f", Qt.rgba(1, 1, 1, list.holdProgress)) : "#0f0f0f"
+            readonly property color textColor: !active ? Theme.textBody
+                                               : holdingThis ? Qt.tint("#0f0f0f", Theme.alpha(Theme.text, list.holdProgress)) : "#0f0f0f"
             width: contentWidth + 14 + list.boxWidth * (0.9 - usable)
             height: list.itemHeight
             x: list.boxWidth - width

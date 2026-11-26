@@ -124,7 +124,7 @@ Item {
         property bool glowing: false
         width: 27 * 23 / 25
         height: 23
-        property color tint: "#feffed"
+        property color tint: Theme.funnel
         Shape {
             width: 27
             height: 25
@@ -140,9 +140,9 @@ Item {
         SequentialAnimation {
             running: funnel.glowing && funnel.visible
             loops: Animation.Infinite
-            onRunningChanged: if (!running) funnel.tint = "#feffed"
-            ColorAnimation { target: funnel; property: "tint"; from: "#feffed"; to: "#981902"; duration: 1150; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE }
-            ColorAnimation { target: funnel; property: "tint"; from: "#981902"; to: "#feffed"; duration: 1150; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE }
+            onRunningChanged: if (!running) funnel.tint = Theme.funnel
+            ColorAnimation { target: funnel; property: "tint"; from: Theme.funnel; to: "#981902"; duration: 1150; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE }
+            ColorAnimation { target: funnel; property: "tint"; from: "#981902"; to: Theme.funnel; duration: 1150; easing.type: Easing.Bezier; easing.bezierCurve: Motion.EASE }
         }
     }
 }

@@ -95,7 +95,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: 240
-        color: Qt.rgba(0, 0, 0, 0.8)
+        color: Theme.alpha(Theme.background, 0.8)
         visible: screen.notification !== null
     }
 
@@ -121,7 +121,7 @@ Item {
             CssText {
                 width: parent.width
                 text: screen.message
-                color: "white"
+                color: Theme.text
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 font.pixelSize: 24
@@ -149,7 +149,7 @@ Item {
                     radius: 20
                     color: "transparent"
                     border.width: 10
-                    border.color: "black"
+                    border.color: Theme.background
                     visible: img.status === Image.Ready
                 }
             }
@@ -162,8 +162,8 @@ Item {
             width: messageBox.width
             height: messageBox.height * 0.2
             gradient: Gradient {
-                GradientStop { position: 0; color: Qt.rgba(0, 0, 0, 0) }
-                GradientStop { position: 1; color: Qt.rgba(0, 0, 0, 1) }
+                GradientStop { position: 0; color: Theme.alpha(Theme.background, 0) }
+                GradientStop { position: 1; color: Theme.background }
             }
         }
         // ::-webkit-scrollbar: 8 px, a faint track and the thumb.
@@ -173,13 +173,13 @@ Item {
             width: 8
             height: messageBox.height
             radius: 4
-            color: Qt.rgba(1, 1, 1, 0.1)
+            color: Theme.alpha(Theme.text, 0.1)
             Rectangle {
                 width: 8
                 radius: 4
                 height: Math.max(16, messageBox.height * messageBox.height / screen.scrollHeight)
                 y: screen.maxScroll > 0 ? (messageBox.height - height) * screen.scrollTop / screen.maxScroll : 0
-                color: Qt.rgba(1, 1, 1, 0.3)
+                color: Theme.alpha(Theme.text, 0.3)
             }
         }
     }

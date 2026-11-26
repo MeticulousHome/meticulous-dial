@@ -236,7 +236,7 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
                 text: screen.title
-                color: "#e7e7e7"
+                color: Theme.textSoft
                 font.family: Theme.fontRegular
                 font.pixelSize: 24
             }
@@ -247,7 +247,7 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
                 text: screen.copy
-                color: Qt.rgba(231 / 255, 231 / 255, 231 / 255, 0.7)
+                color: Theme.alpha(Theme.textSoft, 0.7)
                 font.family: Theme.fontRegular
                 font.pixelSize: 15
                 lineHeight: 18.75
@@ -262,7 +262,7 @@ Item {
                 width: 276
                 height: 280.8
                 radius: 8
-                color: "white"
+                color: Theme.white   // a QR code is black on white in both themes
                 QrCode {
                     x: 10
                     y: 10
@@ -281,7 +281,7 @@ Item {
                 radius: 8
                 color: "transparent"
                 border.width: 1
-                border.color: Qt.rgba(231 / 255, 231 / 255, 231 / 255, 0x55 / 255)
+                border.color: Theme.alpha(Theme.textSoft, 0x55 / 255)
                 Text {
                     x: 24
                     y: 24
@@ -291,7 +291,7 @@ Item {
                     verticalAlignment: Text.AlignVCenter
                     wrapMode: Text.WordWrap
                     text: screen.placeholderText
-                    color: Qt.rgba(231 / 255, 231 / 255, 231 / 255, 0xa6 / 255)
+                    color: Theme.alpha(Theme.textSoft, 0xa6 / 255)
                     font.family: Theme.fontRegular
                     font.pixelSize: 15
                     lineHeight: 18.75
@@ -305,7 +305,7 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
                 text: screen.connectHint
-                color: Qt.rgba(231 / 255, 231 / 255, 231 / 255, 0.7)
+                color: Theme.alpha(Theme.textSoft, 0.7)
                 font.family: Theme.fontRegular
                 font.pixelSize: 15
                 lineHeight: 18.75
@@ -324,13 +324,13 @@ Item {
                 readonly property real valueX: 300 - Math.max(statusValue.implicitWidth, lastValue.implicitWidth,
                                                               pendingValue.implicitWidth, retryValue.implicitWidth)
                 component GridLabel: Text {
-                    color: Qt.rgba(231 / 255, 231 / 255, 231 / 255, 0x99 / 255)
+                    color: Theme.alpha(Theme.textSoft, 0x99 / 255)
                     font.family: Theme.fontRegular
                     font.pixelSize: 15
                 }
                 component GridValue: Text {
                     x: grid.valueX
-                    color: "#e7e7e7"
+                    color: Theme.textSoft
                     font.family: Theme.fontRegular
                     font.pixelSize: 15
                 }
@@ -358,9 +358,9 @@ Item {
                         width: Math.max(118, pillText.implicitWidth) + 24 + 2
                         height: pillText.implicitHeight + 14 + 2
                         radius: height / 2
-                        color: active ? "#e7e7e7" : "transparent"
+                        color: active ? Theme.textSoft : "transparent"
                         border.width: 1
-                        border.color: active ? "#e7e7e7" : Qt.rgba(231 / 255, 231 / 255, 231 / 255, 0x55 / 255)
+                        border.color: active ? Theme.textSoft : Theme.alpha(Theme.textSoft, 0x55 / 255)
                         Text {
                             id: pillText
                             x: 13
@@ -368,7 +368,7 @@ Item {
                             width: parent.width - 26
                             horizontalAlignment: Text.AlignHCenter
                             text: parent.label
-                            color: parent.active ? "#171717" : Qt.rgba(231 / 255, 231 / 255, 231 / 255, 0xa6 / 255)
+                            color: parent.active ? Theme.onInk : Theme.alpha(Theme.textSoft, 0xa6 / 255)
                             font.family: Theme.fontRegular
                             font.pixelSize: 15
                         }
@@ -389,7 +389,7 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                     text: screen.errorText
-                    color: "#ff7b70"
+                    color: Theme.errorSoft
                     font.family: Theme.fontRegular
                     font.pixelSize: 14
                     lineHeight: 17.5

@@ -156,7 +156,7 @@ Item {
                     x: index * (6 + separator.gap)
                     width: 6
                     height: 2
-                    color: Qt.rgba(245 / 255, 196 / 255, 68 / 255, 0.5)
+                    color: Theme.alpha(Theme.accentLine, 0.5)
                 }
             }
         }

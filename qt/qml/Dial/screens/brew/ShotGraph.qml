@@ -23,7 +23,7 @@ Item {
     readonly property int wrapperHeight: 220
     readonly property real hPadding: (480 - graphWidth) / 2
     readonly property real vPadding: (wrapperHeight - graphHeight) / 2
-    readonly property color axisColor: "#00475B"
+    readonly property color axisColor: Theme.axis
     // dataTypes (src/types/dataTypes.ts), in the order the paths are drawn and the labels listed.
     readonly property var types: [
         { key: "flow", min: 0, max: 12, color: Theme.dataBlueLight, precision: 1 },
@@ -124,7 +124,7 @@ Item {
                 height: 16
                 verticalAlignment: Text.AlignVCenter
                 text: modelData
-                color: "white"
+                color: Theme.text
                 font.family: Theme.fontRegular
                 font.pixelSize: 16
             }
@@ -305,7 +305,7 @@ Item {
                         height: 15
                         verticalAlignment: Text.AlignVCenter
                         text: graph.types[label.index].key
-                        color: "#99e7e7e7"
+                        color: Theme.textDim
                         font.family: Theme.fontMono
                         font.pixelSize: 15
                         font.letterSpacing: 3
@@ -324,7 +324,7 @@ Item {
                             height: 16
                             verticalAlignment: Text.AlignVCenter
                             text: graph.labelValues[label.index]
-                            color: "white"
+                            color: Theme.text
                             font.family: Theme.fontMono
                             font.pixelSize: 16
                         }
@@ -355,7 +355,7 @@ Item {
             x: vt.anchorMiddle ? -vt.totalWidth / 2 : 0
             y: vt.baselineY - baselineOffset
             text: vt.value
-            color: "#E7E7E7"
+            color: Theme.textSoft
             font.family: Theme.fontMono
             font.pixelSize: 15
         }
@@ -364,7 +364,7 @@ Item {
             x: valueLabel.x + valueLabel.implicitWidth + vt.semicolon
             y: vt.baselineY - baselineOffset
             text: vt.unit
-            color: "#99E7E7E7"
+            color: Theme.textDim
             font.family: Theme.fontMono
             font.pixelSize: 15
         }

@@ -63,7 +63,7 @@ Item {
         width: screen.qrBlockContent - 20
         wrapMode: Text.WordWrap
         text: "Scan with meticulous App to connect to the machine"
-        color: "white"
+        color: Theme.text
         font.family: Theme.fontRegular
         font.pixelSize: 16
         lineHeightMode: Text.FixedHeight

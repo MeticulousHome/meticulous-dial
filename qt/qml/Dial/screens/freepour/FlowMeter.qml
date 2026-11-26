@@ -30,7 +30,7 @@ Item {
             cssWeight: 650
             font.pixelSize: 15
             letterSpacingPx: 2.2
-            color: "#8d9694"
+            color: Theme.pourMuted
             text: "FLOW · "
         }
         FpText {
@@ -52,7 +52,7 @@ Item {
             height: 14
             radius: 7
             antialiasing: true
-            color: "#25312f"
+            color: Theme.pourTrack
             Rectangle {
                 readonly property real fill: Format.clamp(meter.displayedFlow - parent.index, 0, 1) * parent.width
                 visible: fill > 0
@@ -73,7 +73,7 @@ Item {
         height: 28
         radius: 2
         antialiasing: true
-        color: "#e7e3da"
+        color: Theme.pourText
     }
 
     // .free-pour-flow-axis: justify-content: space-between.
@@ -89,7 +89,7 @@ Item {
                 width: implicitWidth
                 mono: true
                 font.pixelSize: 12
-                color: "#8d9694"
+                color: Theme.pourMuted
                 text: index === 10 ? "10+" : String(index)
             }
         }

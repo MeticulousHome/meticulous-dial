@@ -6,6 +6,7 @@ Every test puts back the settings it changes (the `restore` fixture). Run agains
 when other groups share the default one (DIAL_API).
 """
 
+import json
 import math
 import time
 
@@ -14,7 +15,7 @@ import pytest
 # The settings these tests may change; `restore` puts them back.
 TOUCHED = ["enable_sounds", "auto_start_shot", "auto_purge_after_shot", "partial_retraction", "tare_behavior",
            "reverse_scrolling", "ssh_enabled", "update_channel", "idle_screen", "clock_format_24_hour",
-           "timezone_sync", "time_zone"]
+           "timezone_sync", "time_zone", "theme"]
 
 PISTON_AREA_MM2 = math.pi * 26.5 * 26.5
 
@@ -130,7 +131,7 @@ def test_config_lists_its_entries_with_their_values(screen, backend):
     open_config(screen)
     assert walk(screen) == ["Device Info", "Community: Not connected", "time & date",
                             "sounds: " + ("ENABLED" if s["enable_sounds"] else "DISABLED"),
-                            "calibrate scale", "Scroll Directions", "Advanced Settings", "Back"]
+                            "theme", "calibrate scale", "Scroll Directions", "Advanced Settings", "Back"]
     screen.select("Back")
     screen.wait_for_bubble("quick-settings")
 
@@ -145,6 +146,85 @@ def test_sounds_are_toggled_from_config(screen, backend, restore):
     wait_for_focused(screen, "sounds: " + ("ENABLED" if not before else "DISABLED"))
     screen.controls.push()
     wait_for_setting(backend, "enable_sounds", before)
+
+
+def shown_theme(screen):
+    """What the Dial shows and what it keeps for its next start: (mode, background, text, light icons, stored)."""
+    js = "[Theme.mode, String(Theme.background), String(Theme.text), String(Theme.asset('icons/plus.svg')), Native.storageGet('theme', 'dark')]"
+    mode, background, text, icon, stored = json.loads(screen.c.call({"cmd": "eval", "js": f"JSON.stringify({js})"})["value"])
+    return mode, background, text, "/light/" in icon, stored
+
+
+# Theme.qml's `background` and `text` per mode; LightAssets.js lists icons/plus.svg.
+DARK = ("dark", "#000000", "#ffffff", False, "dark")
+LIGHT = ("light", "#f3f0e9", "#1c1a17", True, "light")
+
+
+def wait_for_theme(screen, theme, timeout_s=5):
+    deadline = time.monotonic() + timeout_s
+    while shown_theme(screen) != theme and time.monotonic() < deadline:
+        time.sleep(0.1)
+    assert shown_theme(screen) == theme
+
+
+@pytest.fixture
+def one_machine_info(screen):
+    """The emulated machine never reports its firmware, so the Dial asks for its info again every 5 s, and each
+    answer brings the theme up to date: without this, a theme that ignores the settings passes 5 s later."""
+    screen.c.call({"cmd": "eval", "js": "Device._infoRetry.interval = 100000000; 0"})
+    yield
+    screen.c.call({"cmd": "eval", "js": "Device._infoRetry.interval = 5000; Device.refreshInfo(); 0"})
+
+
+def test_theme_is_chosen_from_config(screen, backend, restore, one_machine_info):
+    """Protects: config > theme: a push repaints the whole Dial (colors and the pictures drawn for a black
+    background), stores the choice in the `theme` setting, and keeps it for the next start, which shows it
+    before the backend answers. Unset is not offered.
+
+    Breaks when a color stops following Theme.mode, when the push does not store the setting, or when the icon
+    lookup ignores the mode (white icons on a light background). A backend without the setting (the previous
+    version) leaves the choice to the Dial: the same push has to change it there too.
+    """
+    stored = "theme" in settings(backend)
+    if stored:
+        post_settings(backend, {"theme": "dark"})
+    else:
+        screen.c.call({"cmd": "eval", "js": "Theme.setMode('dark')"})
+    wait_for_theme(screen, DARK)
+
+    open_config(screen)
+    screen.select("theme")
+    screen.wait_for_bubble("themeSettings")
+    assert walk(screen) == ["Dark", "Light", "Back"]
+    for label, theme in (("Light", LIGHT), ("Dark", DARK)):
+        screen.select(label)
+        wait_for_theme(screen, theme)
+        if stored:
+            wait_for_setting(backend, "theme", theme[0])
+    screen.select("Back")
+    screen.wait_for_bubble("settings")
+
+
+def test_unset_theme_follows_the_color_of_the_machine(screen, backend, restore, one_machine_info):
+    """Protects: a machine whose theme was never chosen: light on a white machine, dark on any other, as soon as
+    the Dial knows the color; and a chosen theme wins over it. The rule itself is themeRule.test.mts; this is
+    main.qml feeding it the settings and the machine info when either changes, which no other test covers.
+
+    `color` is GET /api/v1/machine's; it is set on the Dial because the emulated machine's is fixed.
+    """
+    if "theme" not in settings(backend):
+        pytest.skip("this backend has no theme setting")
+
+    def machine(color):
+        screen.c.call({"cmd": "eval", "js": f"Device.info = Object.assign({{}}, Device.info, {{ color: '{color}' }})"})
+
+    post_settings(backend, {"theme": None})
+    machine("white")
+    wait_for_theme(screen, LIGHT)
+    machine("black")
+    wait_for_theme(screen, DARK)
+    post_settings(backend, {"theme": "light"})
+    wait_for_theme(screen, LIGHT)
 
 
 def test_calibrate_scale_closes_the_menu_and_opens_the_calibration(screen):

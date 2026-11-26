@@ -21,8 +21,8 @@ Item {
     // The most digits the value can have (the year: 4).
     property int maxDigits: 2
 
-    readonly property color activeColor: "#f5c444"
-    readonly property color inactiveColor: "#E6E6E6"
+    readonly property color activeColor: Theme.accentLarge
+    readonly property color inactiveColor: Theme.textField
     readonly property real fontSize: 38
     readonly property real letterSpacing: -0.02 * fontSize
     readonly property real digitWidth: zeroMetrics.advanceWidth("0") + letterSpacing
@@ -45,7 +45,7 @@ Item {
         id: labelText
         anchors.horizontalCenter: parent.horizontalCenter
         text: field.label
-        color: "#808080"
+        color: Theme.label
         font.family: Theme.fontMono
         font.pixelSize: 8
         font.letterSpacing: 1.12
@@ -65,7 +65,7 @@ Item {
             visible: field.readOnly
             x: 3
             text: field.textValue
-            color: "white"
+            color: Theme.text
             font.family: Theme.fontMono
             font.weight: Font.Light
             font.pixelSize: field.fontSize
@@ -78,7 +78,7 @@ Item {
             visible: !field.readOnly && field.showPad
             x: 3
             text: "0"
-            color: field.active ? field.activeColor : "white"
+            color: field.active ? field.activeColor : Theme.text
             font.family: Theme.fontMono
             font.weight: Font.Light
             font.pixelSize: field.fontSize

@@ -48,7 +48,7 @@ Item {
         y: gauge.ringCenterY - height / 2
         radius: gauge.ringRadius
         lineWidth: 3 * gauge.ringScale
-        color: "#676767"
+        color: Theme.track
         sweep: 1
     }
     Arc {
@@ -56,7 +56,7 @@ Item {
         y: gauge.ringCenterY - height / 2
         radius: gauge.ringRadius
         lineWidth: 3 * gauge.ringScale
-        color: Theme.brandYellow
+        color: Theme.accentLine
         sweep: gauge.arcFraction
         // A negative value fills the end of the circle (dasharray "0 space marc").
         startAngle: gauge.value >= 0 ? 0 : 360 * (1 - gauge.arcFraction)
@@ -78,9 +78,9 @@ Item {
             horizontalAlignment: Text.AlignRight
             verticalAlignment: Text.AlignVCenter
             textFormat: Text.StyledText
-            text: "<font color='#33ffffff'>" + gauge.padded.substring(0, gauge.padLength) + "</font>"
+            text: "<font color='" + Theme.padding + "'>" + gauge.padded.substring(0, gauge.padLength) + "</font>"
                   + gauge.padded.substring(gauge.padLength)
-            color: "white"
+            color: Theme.text
             font.family: Theme.fontMono
             font.pixelSize: 140
         }
@@ -88,7 +88,7 @@ Item {
             x: level.x + 282 + (gauge.flowScale ? 4 : 0)
             y: 0
             text: gauge.unitNames[gauge.unit] || ""
-            color: "white"
+            color: Theme.text
             font.family: Theme.fontRegular
             font.pixelSize: 24
             lineHeight: 20

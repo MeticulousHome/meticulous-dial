@@ -26,8 +26,8 @@ Item {
     property var profile: null
     property var testScale: null
 
-    readonly property color white: "#e7e3da"
-    readonly property color muted: "#8d9694"
+    readonly property color white: Theme.pourText
+    readonly property color muted: Theme.pourMuted
 
     readonly property int sampleIntervalMs: 200
     readonly property int preStartSampleCapacity: 20
@@ -970,7 +970,7 @@ Item {
                     cssWeight: 650
                     font.pixelSize: 11
                     letterSpacingPx: 1.2
-                    color: "#f5dc91"
+                    color: Theme.pourAmber
                     text: modelData
                 }
             }

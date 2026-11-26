@@ -110,8 +110,8 @@ Item {
                 verticalAlignment: Text.AlignVCenter
                 text: entry.option.label
                 color: entry.solid ? "black"
-                     : entry.filling ? Qt.rgba(1 - menu.holdProgress, 1 - menu.holdProgress, 1 - menu.holdProgress, 1)
-                     : "white"
+                     : entry.filling ? Theme.mix(Theme.text, Theme.black, menu.holdProgress)
+                     : Theme.text
                 font.family: Theme.fontRegular
                 font.weight: Font.Light
                 font.pixelSize: 20

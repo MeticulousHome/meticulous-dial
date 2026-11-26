@@ -200,7 +200,7 @@ Item {
                     rightPadding: 8
                     text: screen.capitalize(entry.label) + (entry.showValue ? ":" : "")
                     textFormat: Text.PlainText
-                    color: entry.isActive ? "white" : "#90e7e7e7"
+                    color: entry.isActive ? Theme.text : Theme.textIdle
                     font.family: Theme.fontRegular
                     font.pixelSize: 40
                     font.letterSpacing: -0.4
@@ -223,7 +223,7 @@ Item {
                     y: screen.entryBaseline(px, entry.height) - baselineOffset
                     text: entry.showValue ? screen.capitalize(entry.value || 0) : ""
                     textFormat: Text.PlainText
-                    color: Theme.brandYellow
+                    color: Theme.accentLarge
                     font.family: Theme.fontRegular
                     font.pixelSize: px
                     font.letterSpacing: -0.4
@@ -235,7 +235,7 @@ Item {
                     y: 5 + (20.4 - 17) / 2 + Math.round(0.773 * 17) - baselineOffset
                     text: entry.setting.unit || ""
                     textFormat: Text.PlainText
-                    color: Theme.brandYellow
+                    color: Theme.accent
                     font.family: Theme.fontMono
                     font.pixelSize: 17
                     font.letterSpacing: -0.5
@@ -248,11 +248,11 @@ Item {
     Rectangle {
         anchors.fill: parent
         gradient: Gradient {
-            GradientStop { position: 0.0; color: "black" }
-            GradientStop { position: 0.2; color: "black" }
-            GradientStop { position: 0.5; color: "#00000000" }
-            GradientStop { position: 0.8; color: "black" }
-            GradientStop { position: 1.0; color: "black" }
+            GradientStop { position: 0.0; color: Theme.background }
+            GradientStop { position: 0.2; color: Theme.background }
+            GradientStop { position: 0.5; color: Theme.alpha(Theme.background, 0) }
+            GradientStop { position: 0.8; color: Theme.background }
+            GradientStop { position: 1.0; color: Theme.background }
         }
     }
 }

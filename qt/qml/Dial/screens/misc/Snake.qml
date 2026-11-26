@@ -113,7 +113,7 @@ Item {
     Rectangle {
         width: game.gameSize
         height: game.gameSize
-        color: "#0A0A0A"
+        color: Theme.gameBoard
     }
 
     // Snake: the head yellow, the body around the hue circle from 190.
@@ -125,7 +125,7 @@ Item {
             y: segment ? segment.y * game.squareSize : 0
             width: game.squareSize
             height: game.squareSize
-            color: index === 0 ? "yellow"
+            color: index === 0 ? Theme.snakeHead
                  : Qt.hsla(((190 + (360 * (index - 1)) / Math.max(game.snake.length - 1, 5)) % 360) / 360, 0.9, 0.45, 1)
         }
     }

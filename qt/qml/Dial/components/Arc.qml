@@ -4,12 +4,13 @@
 // drawn: Qt5Compat masks render offscreen on every change, and a shader over the whole square costs more
 // per-pixel arithmetic than the i.MX8M Nano's GPU has (measured with the Qt prototype, 2026-10-23).
 import QtQuick
+import Dial
 
 Item {
     id: arc
     property real radius: 100          // to the middle of the stroke
     property real lineWidth: 3
-    property color color: "white"
+    property color color: Theme.text
     property real sweep: 1             // 0..1 of the circle
     property real startAngle: 0        // degrees clockwise from 6 o'clock
 

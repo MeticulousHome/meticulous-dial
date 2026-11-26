@@ -199,7 +199,7 @@ Item {
         tabular: false
         lineHeightPx: 96
         font.pixelSize: 140
-        color: "#f5c444"
+        color: Theme.accentLarge
         text: "Off"
     }
     // Legend: anchored by its bottom edge 74 px up; a second line stacks above the first, 7 px apart.
@@ -217,7 +217,7 @@ Item {
                 tabular: false
                 font.pixelSize: 15
                 letterSpacingPx: 1.125
-                color: "#808080"
+                color: Theme.label
                 text: parent.lines[index]
             }
         }

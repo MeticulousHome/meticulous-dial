@@ -20,7 +20,7 @@ Text {
     height: lineHeightPx
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
-    color: "#e7e3da"
+    color: Theme.pourText
     font.family: mono ? Theme.fontMono : Theme.fontRegular
     font.weight: Css.weight(cssWeight)
     font.letterSpacing: letterSpacingPx + (Css.isSyntheticBold(cssWeight) ? Css.SYNTHETIC_BOLD_OFFSET : 0)

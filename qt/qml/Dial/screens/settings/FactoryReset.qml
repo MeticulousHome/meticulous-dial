@@ -95,12 +95,12 @@ Item {
             height: 26
             verticalAlignment: Text.AlignVCenter
             textFormat: Text.StyledText
-            color: "white"
+            color: Theme.text
             font.family: Theme.fontRegular
             font.pixelSize: 20
         }
-        Line { x: 68; y: 30; text: "<b><font color='#f5c444'>WARNING</font></b>" }
-        Line { y: 66; text: "<b><font color='#f5c444'>This operation cannot be undone</font></b>" }
+        Line { x: 68; y: 30; text: "<b><font color='" + Theme.accent + "'>WARNING</font></b>" }
+        Line { y: 66; text: "<b><font color='" + Theme.accent + "'>This operation cannot be undone</font></b>" }
         Line { y: 92; text: "Before continuing make sure to do the" }
         Line { y: 118; text: "following:" }
         Line { y: 154; text: "• Back up your profiles" }
@@ -128,7 +128,7 @@ Item {
                     verticalAlignment: Text.AlignVCenter
                     clip: true
                     text: screen.settings[parent.index].label
-                    color: parent.active ? "#0f0f0f" : "#dddddd"
+                    color: parent.active ? "#0f0f0f" : Theme.textBody
                     font.family: Theme.fontMono
                     font.pixelSize: 22
                     font.letterSpacing: 1.3

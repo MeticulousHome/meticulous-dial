@@ -82,6 +82,14 @@ dropped frames, in every animation.
 - Fonts: `Theme.fontRegular` ('ABC Diatype'; weight 300 = `Font.Light`), `Theme.fontThin` (weight 200),
   `Theme.fontMono` ('ABC Diatype Mono'), `Theme.fontIcons` (fontello). `letter-spacing: 0.1em` at 22 px is
   `font.letterSpacing: 2.2`. `text-transform: uppercase` is `font.capitalization: Font.AllUppercase`.
+- Colors: a `Theme` token, not a literal. A token is named for its use and has a dark value (the React Dial's)
+  and a light one; `Theme.alpha(color, a)` and `Theme.mix(a, b, k)` derive the rest. Yellow under dark text is
+  `brandYellow` in both themes; yellow text is `accent` (`accentLarge` from 24 px), a yellow line `accentLine`.
+  Literals are only right for what does not follow the theme: text on yellow, QR codes, a profile's own colors,
+  and the sleep screens, which are dark in both themes.
+- Pictures drawn for a black background (icons, Lottie, PNG) come from `Theme.asset(path)`, which picks their
+  twin in `assets/light`. After adding or changing one, or a light color, run
+  `qt/tools/theme/bake_light_assets.py` (its header has the command).
 - Animations: same durations and curves. CSS `ease` = `Easing.Bezier` with `Motion.EASE`; keyframes with
   `Motion.keyframes`; the springs with `Motion.spring`. Prefer `Behavior`/`NumberAnimation` on numbers that
   drive `x`, `y`, `scale`, `opacity`, `rotation` (all cheap on the GPU).

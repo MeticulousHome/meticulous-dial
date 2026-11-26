@@ -393,7 +393,7 @@ Item {
 
     // .bug-report-eyebrow
     component Eyebrow: CssText {
-        color: "#808080"
+        color: Theme.label
         font.family: Theme.fontMono
         font.weight: Font.Light
         font.pixelSize: 14
@@ -403,7 +403,7 @@ Item {
     }
     component Separator: CssText {
         y: 12
-        color: "#5e5e5e"
+        color: Theme.textGray
         font.family: Theme.fontMono
         font.weight: Font.Light
         font.pixelSize: 38
@@ -431,7 +431,7 @@ Item {
                 text: report.reportStatus === "fetching" ? "Please wait while we compile the necessary information"
                     : report.reportStatus === "slowFetch" ? "This is taking longer than expected, please wait"
                     : report.reportStatus === "submitting" ? "Sending Your report, this may take a moment" : ""
-                color: "white"
+                color: Theme.text
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
                 font.pixelSize: 20
@@ -460,7 +460,7 @@ Item {
                     y: 6
                     width: parent.width
                     text: report.failure ? report.failure.message : ""
-                    color: "white"
+                    color: Theme.text
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                     font.pixelSize: 22
@@ -472,7 +472,7 @@ Item {
                 visible: !!(report.failure && report.failure.note)
                 width: parent.width
                 text: report.failure && report.failure.note ? report.failure.note : ""
-                color: "#b3b3b3"
+                color: Theme.textMid
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
                 font.pixelSize: 18
@@ -482,7 +482,7 @@ Item {
                 id: supportNote
                 width: parent.width
                 text: report.contactSupportNote
-                color: "#b3b3b3"
+                color: Theme.textMid
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
                 font.pixelSize: 18
@@ -496,7 +496,7 @@ Item {
                     y: 6
                     width: parent.width
                     text: "Error code " + (report.failure ? report.failure.code : "")
-                    color: Theme.brandYellow
+                    color: Theme.accent
                     horizontalAlignment: Text.AlignHCenter
                     font.family: Theme.fontMono
                     font.weight: Font.Light
@@ -569,7 +569,7 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: Math.min(340, implicitWidth)
                     text: "We will reach you back at " + (report.savedEmail || "")
-                    color: "#808080"
+                    color: Theme.label
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                     font.pixelSize: 16
@@ -636,7 +636,7 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: 320
                     text: "We reach you back about your reports at the address below. Press it to change it, or hold the option under it to forget it."
-                    color: "white"
+                    color: Theme.text
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                     font.pixelSize: 20
@@ -678,7 +678,7 @@ Item {
                 x: (parent.width - 288) / 2
                 width: 288
                 height: 288
-                color: "white"
+                color: Theme.white   // a QR code is black on white in both themes
                 QrCode {
                     x: 16
                     y: 16
@@ -693,7 +693,7 @@ Item {
                 x: 20
                 y: 293
                 text: "Scan to open Meticulous contact information"
-                color: "white"
+                color: Theme.text
                 font.pixelSize: 16
                 cssLineHeight: 26
             }

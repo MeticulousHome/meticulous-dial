@@ -394,7 +394,7 @@ Item {
         topPadding: keyboard.diatypeTopPadding(60)
         text: keyboard.mainLetter
         textFormat: Text.PlainText
-        color: "white"
+        color: Theme.text
         font.family: Theme.fontRegular
         font.pixelSize: 60
     }
@@ -418,7 +418,7 @@ Item {
             width: Math.ceil((keyboard.iconAdvance[keyboard.mainLetter] + 2 * keyboard.iconPad) * unit)
             height: Math.ceil((1000 + 2 * keyboard.iconPad) * unit)
             sourceSize: Qt.size(width, height)
-            opacity: keyboard.mainLetter === "capslock" && !keyboard.capsKeep ? 0.4 : 1
+            opacity: keyboard.mainLetter === "capslock" && !keyboard.capsKeep ? Theme.faint : 1
             source: !keyboard.mainIsIcon ? ""
                   : keyboard.mainLetter !== "capslock" ? Theme.asset("icons/profile-kb-main-" + keyboard.mainLetter + ".svg")
                   : Theme.asset("icons/profile-kb-main-capslock-" + (keyboard.capsKeep ? "locked" : keyboard.capsActive ? "active" : "inactive") + ".svg")
@@ -430,7 +430,7 @@ Item {
             x: mainIconBox.width * (mainIconBox.spec.center || 0.5) - width / 2
             y: mainIconBox.height + (mainIconBox.spec.bottom || 17) - Math.round(labelMetrics.descent / 1000 * 17) - baselineOffset
             text: keyboard.mainLetter === "capslock" ? (keyboard.capsActive ? "capslock" : "CAPSLOCK") : (mainIconBox.spec.label || "")
-            color: "white"
+            color: Theme.text
             font.family: keyboard.labelFont
             font.bold: true
             font.pixelSize: 17
@@ -457,7 +457,7 @@ Item {
             lineHeight: Math.round(labelMetrics.ascent / 1000 * 17) + Math.round(labelMetrics.descent / 1000 * 17)
             text: "Special\nCharacters"
             horizontalAlignment: Text.AlignHCenter
-            color: "white"
+            color: Theme.text
             font.family: keyboard.labelFont
             font.bold: true
             font.pixelSize: 17
@@ -475,7 +475,7 @@ Item {
     // everything but the cursor transparent in the second.
     function captionMarkup(cursorLayer) {
         const hidden = "<span style=\"color:transparent\">"
-        const affix = cursorLayer ? hidden : "<span style=\"font-weight:300; color:rgba(255,255,255,0.4)\">"
+        const affix = cursorLayer ? hidden : "<span style=\"font-weight:300; color:" + Theme.affix + "\">"
         const plain = cursorLayer ? hidden : "<span>"
         let html = ""
         if (caption.length > maxShownCharacters) html += plain + "... </span><br>"
@@ -484,7 +484,7 @@ Item {
         let run = ""
         for (const c of shown) run += c === " " ? hidden + "_</span>" : (cursorLayer ? hidden + escapeHtml(c) + "</span>" : escapeHtml(c))
         html += run
-        if (showCursor) html += (cursorLayer ? "<span style=\"color:white\">" : hidden) + "_</span>"
+        if (showCursor) html += (cursorLayer ? "<span style=\"color:" + Theme.text + "\">" : hidden) + "_</span>"
         if (suffix) html += affix + escapeHtml(suffix) + "</span>"
         return html
     }
@@ -507,8 +507,8 @@ Item {
         textFormat: Text.PlainText
         wrapMode: Text.Wrap
         horizontalAlignment: Text.AlignHCenter
-        color: "white"
-        opacity: 0.4
+        color: Theme.text
+        opacity: Theme.faint
         font.family: Theme.fontRegular
         font.weight: Font.Light
         font.pixelSize: 25
@@ -528,7 +528,7 @@ Item {
             textFormat: Text.RichText
             wrapMode: Text.Wrap
             horizontalAlignment: Text.AlignHCenter
-            color: "white"
+            color: Theme.text
             font.family: Theme.fontRegular
             font.bold: true
             font.pixelSize: keyboard.captionPixelSize
@@ -544,7 +544,7 @@ Item {
             textFormat: Text.RichText
             wrapMode: Text.Wrap
             horizontalAlignment: Text.AlignHCenter
-            color: "white"
+            color: Theme.text
             font.family: Theme.fontRegular
             font.bold: true
             font.pixelSize: keyboard.captionPixelSize
@@ -587,7 +587,7 @@ Item {
                     y: -keyboard.ringRadius - baselineOffset
                     text: slot.key
                     textFormat: Text.PlainText
-                    color: Qt.rgba(1, 1, 1, 0.4)
+                    color: Theme.alpha(Theme.text, Theme.faint)
                     font.family: Theme.fontRegular
                     font.pixelSize: 25
                 }
@@ -600,7 +600,7 @@ Item {
                     width: Math.ceil((advance + 2 * keyboard.iconPad) * unit)
                     height: Math.ceil((1000 + 2 * keyboard.iconPad) * unit)
                     sourceSize: Qt.size(width, height)
-                    opacity: slot.key === "capslock" && keyboard.capsKeep ? 1 : 0.4
+                    opacity: slot.key === "capslock" && keyboard.capsKeep ? 1 : Theme.faint
                     source: slot.isIcon ? keyboard.ringIconSource(slot.key) : ""
                 }
                 // GlobeAlt width 6 height 6 at (-3.5, -48.5) user units.
@@ -611,7 +611,7 @@ Item {
                     width: 6 * 3.9
                     height: 6 * 3.9
                     sourceSize: Qt.size(24, 24)
-                    opacity: 0.4
+                    opacity: Theme.faint
                     source: slot.key === "keyboardType" ? Theme.asset("icons/profile-globe-alt.svg") : ""
                 }
             }

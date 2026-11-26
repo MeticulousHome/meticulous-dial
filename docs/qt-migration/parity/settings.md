@@ -18,7 +18,7 @@ Community (connect, unavailable) and the region lists' title and first entry lin
 
 | Feature | React source | Qt file | Status | Notes |
 |---|---|---|---|---|
-| config menu: Device Info, Community: <state>, time & date, sounds (toggle), calibrate scale, Scroll Directions, Advanced Settings, Back; bare labels before the settings | Settings/Settings.tsx | settings/Settings.qml | done | no marquee in the bar (React gives the inner options no `$isMarquee`) |
+| config menu: Device Info, Community: <state>, time & date, sounds (toggle), theme, calibrate scale, Scroll Directions, Advanced Settings, Back; bare labels before the settings | Settings/Settings.tsx | settings/Settings.qml | done | no marquee in the bar (React gives the inner options no `$isMarquee`); theme is new in the Qt Dial: Dark, Light, Back (settings/ThemeSetting.qml, the `theme` setting; unset follows the machine's color, Core/ThemeRule.js) |
 | Brew Settings: Start / Purge toggles, Retraction distance (mL), Auto Tare (Unavailable when unsupported), Pre/Post-heat, Back; device info refetched every 10 s | Settings/BrewSettings.tsx | settings/BrewSettings.qml | done | non-boolean unknown keys log "not yet implemented" |
 | Experimental: Manual mode (bubble closed but still intercepting, then manualSetup), Back | Settings/Experimental.tsx | settings/ExperimentalSettings.qml | done | |
 | Scroll Directions: Profiles / Keyboard Reversed or Classic, toggled | Settings/ScrollDirection.tsx | settings/ScrollDirectionSettings.qml | done | |

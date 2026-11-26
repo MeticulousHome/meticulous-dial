@@ -206,7 +206,7 @@ Item {
                     y: 4
                     width: parent.width
                     text: leftBox.showTemperature ? Logic.sensorErrorLabel(screen.temperature) : "No water"
-                    color: "white"
+                    color: Theme.text
                     wrapMode: Text.WordWrap
                     lineHeightMode: Text.FixedHeight
                     lineHeight: 19.2
@@ -241,7 +241,7 @@ Item {
                 height: 15
                 verticalAlignment: Text.AlignVCenter
                 text: "Target"
-                color: "#99e7e7e7"
+                color: Theme.textDim
                 font.family: Theme.fontRegular
                 font.weight: Font.Light
                 font.pixelSize: 15
@@ -293,7 +293,7 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 text: footerContent.water ? "Estimated time" : "Waiting..."
-                color: "#99e7e7e7"
+                color: Theme.textDim
                 font.family: Theme.fontRegular
                 font.weight: Font.Light
                 font.pixelSize: 15
@@ -309,7 +309,7 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 text: screen.estimate.text
-                color: "white"
+                color: Theme.text
                 font.family: Theme.fontMono
                 font.weight: screen.estimate.big ? Font.Light : Font.Normal
                 font.pixelSize: screen.estimate.big ? 40 : 20
@@ -326,7 +326,7 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 text: "Push to brew"
-                color: "#e7e7e7"
+                color: Theme.textSoft
                 font.family: Theme.fontRegular
                 font.pixelSize: 20
                 font.letterSpacing: 4

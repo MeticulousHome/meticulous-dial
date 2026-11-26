@@ -13,8 +13,8 @@ Item {
     property int value: 0
     property real fontSize: 110
     property color color: "black"
-    property color incrementColor: "#32cd32"
-    property color decrementColor: "#fe6862"
+    property color incrementColor: Theme.increase
+    property color decrementColor: Theme.decrease
     property color forcedColor: "transparent"
     property bool forced: false
     property real minWidth: 0

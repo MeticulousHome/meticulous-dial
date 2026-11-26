@@ -36,7 +36,7 @@ Item {
     readonly property real ringValue: flowRing ? Stats.sensors.f : Stats.sensors.p
     readonly property string ringUnit: flowRing ? "ml/s" : "bar"
     readonly property bool showTarget: isManualBrew && activeControl !== ""
-    readonly property color targetColor: Constants.MANUAL_TARGET_COLORS[activeControl] || "white"
+    readonly property color targetColor: Theme.manualTarget(activeControl)
 
     // Test probes
     readonly property string dialProbe_ringValue: Logic.formatStatValue(ringValue, 1)
@@ -110,8 +110,8 @@ Item {
 
     // ---- .bar-needle__content: 290 px wide, 120 px down, centered
     readonly property int contentX: 95
-    readonly property color cream: "#e0dcd0"
-    readonly property color labelGray: "#808080"
+    readonly property color cream: Theme.cream
+    readonly property color labelGray: Theme.label
     function capitalizeFirst(s) { return s.length ? s.charAt(0).toUpperCase() + s.slice(1) : s }
 
     Text {
@@ -218,7 +218,7 @@ Item {
                 height: 11
                 verticalAlignment: Text.AlignVCenter
                 text: cell.cellData.unit
-                color: "#4d4d4d"
+                color: Theme.unit
                 font.family: Theme.fontRegular
                 font.pixelSize: 11
                 font.letterSpacing: 1.125
@@ -286,7 +286,7 @@ Item {
         y: Geo.ARC_RADIUS
         width: Geo.NEEDLE_LENGTH
         height: 4
-        color: Theme.brandYellow
+        color: Theme.accentLine
         antialiasing: true
         transformOrigin: Item.Left
         rotation: barometer.needleDeg

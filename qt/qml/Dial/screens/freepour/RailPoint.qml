@@ -2,6 +2,7 @@
 // on the rail plus `offset`. kind: default | past (filled grey) | active / due (white with a 7 px halo) |
 // cue (free-pour-cue-flash: white for 0.5 s, plain for 0.5 s, five times, then plain).
 import QtQuick
+import Dial
 
 Item {
     id: point
@@ -24,16 +25,16 @@ Item {
         height: 30
         radius: 15
         antialiasing: true
-        color: Qt.rgba(231 / 255, 227 / 255, 218 / 255, 0.12)
+        color: Theme.alpha(Theme.pourText, 0.12)
     }
     Rectangle {
         width: 16
         height: 16
         radius: 8
         antialiasing: true
-        color: point.bright ? "#e7e3da" : point.kind === "past" ? "#687370" : "#050908"
+        color: point.bright ? Theme.pourText : point.kind === "past" ? Theme.pourRing : Theme.pourHollow
         border.width: 3
-        border.color: point.bright ? "#e7e3da" : "#687370"
+        border.color: point.bright ? Theme.pourText : Theme.pourRing
     }
     FpText {
         visible: point.label.length > 0
@@ -42,7 +43,7 @@ Item {
         width: implicitWidth
         mono: true
         font.pixelSize: 12
-        color: "#8d9694"
+        color: Theme.pourMuted
         text: point.label
     }
 

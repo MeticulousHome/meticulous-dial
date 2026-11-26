@@ -30,7 +30,7 @@ Item {
     readonly property real floatHeight: boxHeight / 2
     implicitHeight: shaped.height
 
-    function styled(text) { return text.replace(/<b>/g, "<b><font color=\"#f5c444\">").replace(/<\/b>/g, "</font></b>") }
+    function styled(text) { return text.replace(/<b>/g, "<b><font color=\"" + Theme.accent + "\">").replace(/<\/b>/g, "</font></b>") }
 
     // Unshaped copies, only to size the box.
     Repeater {
@@ -62,7 +62,7 @@ Item {
                     id: text
                     y: box.paragraphs[para.index].marginTop || 0
                     width: box.width
-                    color: "white"
+                    color: Theme.text
                     text: box.styled(box.paragraphs[para.index].text)
                     textFormat: Text.StyledText
                     wrapMode: Text.WordWrap

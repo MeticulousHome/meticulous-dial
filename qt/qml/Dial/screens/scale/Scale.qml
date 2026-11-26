@@ -368,7 +368,7 @@ Item {
             width: 720 - 240 * e
             height: contentHeight + 240 * (1 - e)
             radius: 52 * (1 - e)
-            color: Qt.rgba(27 / 255 * (1 - e), 27 / 255 * (1 - e), 27 / 255 * (1 - e), 1)
+            color: Theme.mix(Theme.scaleCard, Theme.background, e)
             transform: [
                 Scale {
                     origin.x: card.width / 2
@@ -393,7 +393,7 @@ Item {
                     y: (parent.height - 110) / 2
                     Text {
                         text: scale.padded.slice(0, scale.padded.length - scale.formatted.length)
-                        color: "#e7e7e7"
+                        color: Theme.textSoft
                         opacity: 0.1
                         font.family: Theme.fontMono
                         font.pixelSize: 110
@@ -401,7 +401,7 @@ Item {
                     }
                     Text {
                         text: scale.formatted
-                        color: "#e7e7e7"
+                        color: Theme.textSoft
                         font.family: Theme.fontMono
                         font.pixelSize: 110
                         font.letterSpacing: -2.2
@@ -412,7 +412,7 @@ Item {
                     x: weightRow.x + weightRow.width
                     y: weightRow.y + 60
                     text: "g"
-                    color: "#e7e7e7"
+                    color: Theme.textSoft
                     font.family: Theme.fontMono
                     font.pixelSize: 50
                     font.letterSpacing: -1
@@ -421,7 +421,7 @@ Item {
                     visible: !scale.scaleConnected
                     anchors.centerIn: parent
                     text: "Scale not connected"
-                    color: "#f44336"
+                    color: Theme.error
                     font.family: Theme.fontMono
                     font.pixelSize: 30
                 }

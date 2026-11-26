@@ -33,7 +33,7 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
             text: response.title
-            color: "#dddddd"
+            color: Theme.textBody
             font.family: Theme.fontMono
             font.pixelSize: 34
             font.capitalization: Font.AllUppercase
@@ -48,7 +48,7 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
             text: response.status
-            color: "#f7df39"
+            color: Theme.accentSoft
             font.family: Theme.fontMono
             font.pixelSize: 24
             font.capitalization: Font.AllUppercase
@@ -64,7 +64,7 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
             text: response.message
-            color: "#dddddd"
+            color: Theme.textBody
             font.family: Theme.fontMono
             font.pixelSize: 16
             lineHeightMode: Text.FixedHeight

@@ -1,5 +1,5 @@
 // "config" of the quick settings (src/components/Settings/Settings.tsx), in the bubble: Device Info,
-// Community (with its connection state), time & date, sounds (toggled here), calibrate scale, Scroll
+// Community (with its connection state), time & date, sounds (toggled here), theme, calibrate scale, Scroll
 // Directions, Advanced Settings, Back. Labels without values until the settings arrive. Unlike the other
 // menus this one never scrolls a long label in the bar.
 import QtQuick
@@ -22,6 +22,7 @@ Item {
         { key: "community", label: "Community" },
         { key: "time_date", label: "time & date" },
         { key: "enable_sounds", label: "sounds" },
+        { key: "theme", label: "theme" },
         { key: "calibrate", label: "calibrate scale" },
         { key: "scroll_directions", label: "Scroll Directions" },
         { key: "advanced", label: "Advanced Settings" },
@@ -67,6 +68,9 @@ Item {
                 break
             case "time_date":
                 Nav.openBubble("timeDate")
+                break
+            case "theme":
+                Nav.openBubble("themeSettings")
                 break
             case "scroll_directions":
                 Nav.openBubble("scrollDirections")

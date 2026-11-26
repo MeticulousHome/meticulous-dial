@@ -43,7 +43,7 @@ Item {
         y: gauge.ringCy - height / 2
         radius: gauge.ringRadius
         lineWidth: gauge.ringWidth
-        color: "#676767"
+        color: Theme.track
         sweep: 1
     }
     Arc {
@@ -51,7 +51,7 @@ Item {
         y: gauge.ringCy - height / 2
         radius: gauge.ringRadius
         lineWidth: gauge.ringWidth
-        color: Theme.brandYellow
+        color: Theme.accentLine
         sweep: gauge.maxValue === 0 || gauge.value < 0 ? 0 : Math.min(gauge.value, gauge.maxValue) / gauge.maxValue
     }
 
@@ -70,7 +70,7 @@ Item {
             tabular: false
             lineHeightPx: 96
             font.pixelSize: 140
-            color: "white"
+            color: Theme.text
             opacity: 0.2
             text: gauge.padded.substring(0, gauge.padLength)
         }
@@ -80,7 +80,7 @@ Item {
             tabular: false
             lineHeightPx: 96
             font.pixelSize: 140
-            color: "white"
+            color: Theme.text
             text: gauge.padded.substring(gauge.padLength)
         }
     }
@@ -92,7 +92,7 @@ Item {
         lineHeightPx: 20
         horizontalAlignment: Text.AlignLeft
         font.pixelSize: 24
-        color: "white"
+        color: Theme.text
         text: gauge.unitNames[gauge.unit] || ""
     }
 }

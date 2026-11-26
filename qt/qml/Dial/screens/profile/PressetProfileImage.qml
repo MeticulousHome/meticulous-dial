@@ -99,7 +99,7 @@ Item {
                         y: (slide.height - (height + 2)) / 2
                         width: 164 + 16
                         height: 164 + 16
-                        color: "#e0dcd0"
+                        color: Theme.frame
                         Image {
                             id: image
                             x: 8
@@ -141,7 +141,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             y: 352 - 8 + Math.round(0.85 * 16) - baselineOffset
             text: (screen.activeIndex + 1) + " / " + screen.images.length
-            color: "white"
+            color: Theme.text
             textFormat: Text.PlainText
             font.family: Theme.fontRegular
             font.pixelSize: 16

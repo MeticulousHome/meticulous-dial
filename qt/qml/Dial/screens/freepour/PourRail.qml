@@ -2,6 +2,7 @@
 // left of the center, the pour in progress (or an open dot while waiting) at the center; after the fifth
 // pour the five are centered on the shorter "complete" line.
 import QtQuick
+import Dial
 import "Format.js" as Format
 
 Item {
@@ -24,7 +25,7 @@ Item {
         y: 7
         width: rail.maxedOut ? 480 - 256 : 480 - 42 - 232
         height: 2
-        color: "#34403e"
+        color: Theme.pourRail
     }
     Repeater {
         model: rail.completed.length

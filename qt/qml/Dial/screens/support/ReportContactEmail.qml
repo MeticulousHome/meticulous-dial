@@ -270,7 +270,7 @@ Item {
     component Eyebrow: CssText {
         width: 368
         horizontalAlignment: Text.AlignHCenter
-        color: "#808080"
+        color: Theme.label
         font.family: Theme.fontMono
         font.weight: Font.Light
         font.pixelSize: 14
@@ -392,7 +392,7 @@ Item {
                                     horizontalAlignment: Text.AlignHCenter
                                     wrapMode: Text.WrapAnywhere
                                     text: parent.isAt ? "@" : (parent.modelData === "local" ? screen.localPart : screen.domain)
-                                    color: parent.isAt ? "#808080" : parent.lit ? Theme.brandYellow : "#e7e7e7"
+                                    color: parent.isAt ? Theme.label : parent.lit ? Theme.accent : Theme.textSoft
                                     font.family: Theme.fontMono
                                     font.bold: true
                                     font.pixelSize: 24
@@ -402,7 +402,7 @@ Item {
                                     y: partText.height + 2
                                     width: parent.width
                                     height: 2
-                                    color: parent.lit ? Theme.brandYellow : "transparent"
+                                    color: parent.lit ? Theme.accentLine : "transparent"
                                 }
                             }
                         }
@@ -425,7 +425,7 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
             text: "Rotate the knob to select which part to edit, your email or its domain."
-            color: "#b3b3b3"
+            color: Theme.textMid
             font.pixelSize: 17
             cssLineHeight: 17 * 1.3
         }
@@ -476,8 +476,8 @@ Item {
                 id: contactHints
                 y: 6
                 anchors.horizontalCenter: parent.horizontalCenter
-                inputColor: "#e7e7e7"
-                dotColor: "#808080"
+                inputColor: Theme.textSoft
+                dotColor: Theme.label
                 dotSize: 4
                 rowGap: 6
                 hints: screen.step === "domain"

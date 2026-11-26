@@ -40,7 +40,7 @@ Item {
             text: title.text
             elide: Text.ElideNone
             clip: true
-            color: "white"
+            color: Theme.text
             font.family: Theme.fontMono
             font.weight: Font.Light
             font.pixelSize: 16
@@ -100,7 +100,7 @@ Item {
                     anchors.centerIn: parent
                     anchors.verticalCenterOffset: 2
                     text: "Catalog"
-                    color: "white"
+                    color: Theme.text
                     font.family: Theme.fontMono
                     font.weight: Font.Light
                     font.pixelSize: 16
@@ -120,7 +120,7 @@ Item {
                     anchors.centerIn: parent
                     anchors.verticalCenterOffset: 2
                     text: pill.name
-                    color: "white"
+                    color: Theme.text
                     font.family: Theme.fontMono
                     font.weight: Font.Light
                     font.pixelSize: 16
@@ -137,7 +137,7 @@ Item {
                         model: 2
                         Text {
                             text: pill.name
-                            color: "white"
+                            color: Theme.text
                             font.family: Theme.fontMono
                             font.weight: Font.Light
                             font.pixelSize: 16

@@ -26,8 +26,6 @@ const MANUAL_MODE_PROFILE_ID = "4d616e75-616c-4d6f-8465-000000000001"
 // A final_weight at or above this means "no weight stop" (the schema's maximum).
 const MANUAL_WEIGHT_DISABLED = 2000
 
-const MANUAL_TARGET_COLORS = { pressure: "#F5C444", flow: "#78D6FF" }
-
 const DEFAULT_SETTING = [
     { type: "action", key: "brew_once", label: "brew without saving" },
     { type: "action", key: "save", label: "save" },

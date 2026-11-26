@@ -23,7 +23,7 @@ Rectangle {
     radius: height / 2
     color: active ? Theme.brandYellow : "transparent"
     border.width: 2
-    border.color: active ? Theme.brandYellow : Qt.rgba(231 / 255, 231 / 255, 231 / 255, 0.4)
+    border.color: active ? Theme.brandYellow : Theme.alpha(Theme.textSoft, 0.4)
 
     CssText {
         id: label
@@ -33,7 +33,7 @@ Rectangle {
         text: pill.text
         horizontalAlignment: Text.AlignHCenter
         elide: Text.ElideRight
-        color: pill.active ? "#171717" : Qt.rgba(231 / 255, 231 / 255, 231 / 255, 0.7)
+        color: pill.active ? "#171717" : Theme.alpha(Theme.textSoft, 0.7)
         font.family: pill.fontFamily
         font.pixelSize: pill.fontSize
         cssLineHeight: pill.fontSize * pill.lineHeightFactor

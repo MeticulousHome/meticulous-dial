@@ -51,7 +51,7 @@ Item {
             visible: screen.isLoading
             anchors.centerIn: parent
             text: "Loading..."
-            color: "white"
+            color: Theme.text
             font.family: Theme.fontRegular
             font.pixelSize: 20
         }
@@ -69,7 +69,7 @@ Item {
                 y: 0
                 width: 288
                 height: 288
-                color: "white"
+                color: Theme.white   // a QR code is black on white in both themes
                 QrCode {
                     x: 16
                     y: 16
@@ -85,7 +85,7 @@ Item {
                 width: 300
                 wrapMode: Text.WordWrap
                 text: "Scan with a QR Code scanner to get the SN, Batch & Color info of the machine"
-                color: "white"
+                color: Theme.text
                 font.family: Theme.fontRegular
                 font.pixelSize: 16
                 lineHeight: 26

@@ -66,14 +66,14 @@ Item {
             id: dimText
             text: gauge.dimPart
             opacity: 0.2
-            color: "white"
+            color: Theme.text
             textFormat: Text.PlainText
             font.family: Theme.fontMono
             font.pixelSize: 140
         }
         Text {
             text: gauge.brightPart
-            color: "white"
+            color: Theme.text
             textFormat: Text.PlainText
             font.family: Theme.fontMono
             font.pixelSize: 140
@@ -83,7 +83,7 @@ Item {
         x: gauge.levelLeft + 282 + gauge.levelRight
         y: gauge.contentTop + (20 - 24) / 2 + Math.round(0.85 * 24) - baselineOffset
         text: gauge.unitNameMap[gauge.unit] || ""
-        color: "white"
+        color: Theme.text
         textFormat: Text.PlainText
         font.family: Theme.fontRegular
         font.pixelSize: 24
@@ -99,7 +99,7 @@ Item {
         y: gauge.ringY - height / 2
         radius: 237 * gauge.svgScale
         lineWidth: 3 * gauge.svgScale
-        color: "#676767"
+        color: Theme.track
         sweep: gauge.maxValue === 0 ? 0 : 1
     }
     Arc {
@@ -107,7 +107,7 @@ Item {
         y: gauge.ringY - height / 2
         radius: 237 * gauge.svgScale
         lineWidth: 3 * gauge.svgScale
-        color: Theme.brandYellow
+        color: Theme.accentLine
         startAngle: gauge.arc.start
         sweep: gauge.arc.sweep
     }

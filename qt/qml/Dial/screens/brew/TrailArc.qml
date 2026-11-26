@@ -4,12 +4,13 @@
 // tip to `color` at the head. A shader on a mesh bent into the shape (shaders/trail.vert), like Arc:
 // antialiased, and only the shape's pixels are drawn.
 import QtQuick
+import Dial
 import "BarometerLogic.js" as Geo
 
 Item {
     id: trail
     property real delta: 0               // headAngle - tipAngle, radians, signed
-    property color color: "white"
+    property color color: Theme.text
 
     width: Geo.ARC_SIZE
     height: Geo.ARC_SIZE

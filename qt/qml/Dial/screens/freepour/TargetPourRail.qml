@@ -2,6 +2,7 @@
 // the 224 px line, each with its target start time; past ones filled, the current one white while pouring
 // or flashing / white as its start approaches (cue: idle | countdown | due).
 import QtQuick
+import Dial
 import "Format.js" as Format
 
 Item {
@@ -18,7 +19,7 @@ Item {
     width: 480
     height: 48
 
-    Rectangle { x: 128; y: 7; width: 480 - 256; height: 2; color: "#34403e" }
+    Rectangle { x: 128; y: 7; width: 480 - 256; height: 2; color: Theme.pourRail }
     Repeater {
         model: rail.visibleTargets.length
         RailPoint {

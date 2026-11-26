@@ -22,6 +22,6 @@ Item {
         width: screen.width * 0.01
         height: screen.height
         x: (screen.width - width) / 2
-        color: "white"
+        color: Theme.text
     }
 }

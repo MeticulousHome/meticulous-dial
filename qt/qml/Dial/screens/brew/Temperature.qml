@@ -11,7 +11,7 @@ Item {
     property bool small: false
     property bool animated: false
 
-    readonly property color tempColor: "#e7e7e7"
+    readonly property color tempColor: Theme.textSoft
     readonly property real valueSize: small ? 25 : 60
 
     implicitWidth: valueBox.width + (small ? 4 : 5) + unit.implicitWidth
@@ -52,7 +52,7 @@ Item {
         height: temperature.small ? 19 : 30
         verticalAlignment: Text.AlignVCenter
         text: "°C"
-        color: "#99e7e7e7"
+        color: Theme.textDim
         font.family: temperature.small ? Theme.fontThin : Theme.fontRegular
         font.weight: temperature.small ? Font.Normal : Font.Normal
         font.pixelSize: temperature.small ? 19 : 25

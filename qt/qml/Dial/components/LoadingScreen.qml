@@ -15,8 +15,8 @@ Item {
         y: parent.height / 2 - 40
         width: 90
         height: 90
-        Arc { anchors.fill: parent; radius: 42.5; lineWidth: 5; color: "#f3f3f3"; sweep: 1 }
-        Arc { anchors.fill: parent; radius: 42.5; lineWidth: 5; color: Theme.brandYellow; sweep: 0.25; startAngle: 135 }
+        Arc { anchors.fill: parent; radius: 42.5; lineWidth: 5; color: Theme.spinner; sweep: 1 }
+        Arc { anchors.fill: parent; radius: 42.5; lineWidth: 5; color: Theme.accentLine; sweep: 0.25; startAngle: 135 }
         RotationAnimation on rotation { from: 0; to: 360; duration: 1000; loops: Animation.Infinite; running: loading.visible }
     }
     Text {
@@ -27,7 +27,7 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.WordWrap
         text: loading.message
-        color: "white"
+        color: Theme.text
         font.family: Theme.fontMono
         font.pixelSize: 14
         font.bold: true

@@ -111,7 +111,7 @@ Item {
                 height: 40
                 verticalAlignment: Text.AlignVCenter
                 text: Logic.formatStatValue(parent.index === 0 ? Stats.sensors.p : Stats.sensors.f, 1)
-                color: "white"
+                color: Theme.text
                 font.family: Theme.fontMono
                 font.pixelSize: 40
             }
@@ -122,7 +122,7 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 text: parent.index === 0 ? "bar" : "ml/s"
-                color: "gray"
+                color: Theme.label
                 font.family: Theme.fontMono
                 font.pixelSize: 18
             }

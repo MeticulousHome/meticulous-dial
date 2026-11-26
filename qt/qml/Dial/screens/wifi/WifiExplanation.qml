@@ -19,7 +19,7 @@ Item {
     property real textRight: 20        // the paragraph's padding-right
     property real lineHeight: 26
     property real belowText: 0         // the block's height under the paragraph
-    property color color: "#dddddd"
+    property color color: Theme.textBody
     property int pixelSize: 22
     property string family: Theme.fontMono
 

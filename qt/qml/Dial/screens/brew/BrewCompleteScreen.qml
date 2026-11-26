@@ -150,7 +150,7 @@ Item {
                 height: 60
                 verticalAlignment: Text.AlignVCenter
                 text: complete.weight
-                color: "white"
+                color: Theme.text
                 font.family: Theme.fontMono
                 font.pixelSize: 60
                 font.letterSpacing: -1.2
@@ -162,7 +162,7 @@ Item {
                 height: 30
                 verticalAlignment: Text.AlignVCenter
                 text: "g"
-                color: "#99e7e7e7"
+                color: Theme.textDim
                 font.family: Theme.fontRegular
                 font.pixelSize: 25
                 font.letterSpacing: -0.25
@@ -173,7 +173,7 @@ Item {
                 height: 15
                 verticalAlignment: Text.AlignVCenter
                 text: "Scale not connected"
-                color: "#f44336"
+                color: Theme.error
                 font.family: Theme.fontRegular
                 font.weight: Font.Light
                 font.pixelSize: 15
@@ -188,7 +188,7 @@ Item {
             height: 15
             verticalAlignment: Text.AlignVCenter
             text: complete.stateLabel
-            color: "#99e7e7e7"
+            color: Theme.textDim
             font.family: Theme.fontRegular
             font.weight: Font.Light
             font.pixelSize: 15
@@ -205,7 +205,7 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             text: "Brew time"
-            color: "#99e7e7e7"
+            color: Theme.textDim
             font.family: Theme.fontRegular
             font.weight: Font.Light
             font.pixelSize: 15
@@ -220,7 +220,7 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             text: Logic.formatTime(complete.brewTime / 1000)
-            color: "white"
+            color: Theme.text
             font.family: Theme.fontMono
             font.weight: Font.Light
             font.pixelSize: 40

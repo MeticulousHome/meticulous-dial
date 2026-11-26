@@ -7,8 +7,8 @@ import Dial
 Item {
     id: grid
     property var hints: []
-    property color inputColor: "#e0dcd0"
-    property color dotColor: "#5e5e5e"
+    property color inputColor: Theme.cream
+    property color dotColor: Theme.textGray
     property real dotSize: 3
     property real rowGap: 7
 
@@ -61,7 +61,7 @@ Item {
             x: grid.columnWidth + 20 + grid.dotSize
             y: index * (grid.rowHeight + grid.rowGap)
             text: grid.hints[index].action
-            color: "#808080"
+            color: Theme.label
             font.pixelSize: 14
             font.letterSpacing: 1.12
             font.capitalization: Font.AllUppercase

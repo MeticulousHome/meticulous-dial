@@ -15,7 +15,10 @@ Window {
     width: 480
     height: 480
     visible: true
-    color: "black"
+    // The sleep screens are dark in both themes: the light background darkens as they come in.
+    color: Theme.mix(Theme.background, Theme.black, sleep)
+    property real sleep: Nav.screen === "idle" ? 1 : 0
+    Behavior on sleep { NumberAnimation { duration: Motion.ROUTE_DURATION } }
     title: "Meticulous Dial"
 
     // The scale overlay (Scale.tsx): closed | small | full. While full, the router hears no gestures.
@@ -106,6 +109,9 @@ Window {
         // DialSlowdownMonitor: only where Sentry is on (the machine).
         SlowdownMonitor.start()
     }
+
+    Connections { target: BackendSettings; function onDataChanged() { Theme.follow(BackendSettings.data, Device.info) } }
+    Connections { target: Device; function onInfoChanged() { Theme.follow(BackendSettings.data, Device.info) } }
 
     // App.tsx sets full brightness once at start. The Qt Dial can start before the backend answers (it no
     // longer waits for Weston), so it is set again when the backend comes online.

@@ -66,7 +66,7 @@ Item {
                         rightPadding: 8
                         height: list.entryHeight
                         text: String(entry.item ? entry.item.label : "")
-                        color: entry.active ? Theme.brandYellow : Qt.rgba(0xe7 / 255, 0xe7 / 255, 0xe7 / 255, 0x90 / 255)
+                        color: entry.active ? Theme.accentLarge : Theme.textIdle
                         font.family: Theme.fontRegular
                         font.pixelSize: 40
                         font.letterSpacing: -0.4
@@ -79,7 +79,7 @@ Item {
                         visible: entry.active && text.length > 0
                         height: list.entryHeight
                         text: String(entry.item && entry.item.detail ? entry.item.detail : "")
-                        color: "#f3f4f6"
+                        color: Theme.textHigh
                         font.family: Theme.fontRegular
                         font.pixelSize: 24
                         font.letterSpacing: -0.4
@@ -97,9 +97,9 @@ Item {
     Rectangle {
         anchors.fill: parent
         gradient: Gradient {
-            GradientStop { position: 0.2; color: "black" }
-            GradientStop { position: 0.5; color: "transparent" }
-            GradientStop { position: 0.8; color: "black" }
+            GradientStop { position: 0.2; color: Theme.background }
+            GradientStop { position: 0.5; color: Theme.alpha(Theme.background, 0) }
+            GradientStop { position: 0.8; color: Theme.background }
         }
     }
 
@@ -108,7 +108,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         y: 60
         text: list.title
-        color: "#f3f4f6"
+        color: Theme.textHigh
         opacity: 0.8
         font.family: Theme.fontRegular
         font.pixelSize: 16

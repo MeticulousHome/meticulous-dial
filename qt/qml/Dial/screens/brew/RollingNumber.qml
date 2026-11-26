@@ -14,7 +14,7 @@ Item {
     property string fontFamily: Theme.fontMono
     property int fontWeight: Font.Light
     property real letterSpacing: -0.02 * fontSize
-    property color color: "#e7e7e7"
+    property color color: Theme.textSoft
 
     // formatForDisplay(Math.abs(value), false): the digits, units last.
     readonly property string digits: Math.max(Math.abs(value), 0).toFixed(0)

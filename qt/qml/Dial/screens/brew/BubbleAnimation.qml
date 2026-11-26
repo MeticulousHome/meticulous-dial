@@ -33,7 +33,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: "black"
+        color: Theme.background
     }
 
     // GradientContainer: 169 x 269 at (1, 1), background-size 100% 1200%.

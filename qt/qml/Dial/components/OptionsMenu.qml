@@ -104,7 +104,7 @@ Item {
                 text: row.option.label || ""
                 color: row.inner ? (row.option.activeColor || "black")
                        : (menu.holdAnimation === "running" && row.option.longpress
-                          ? Qt.tint(row.option.color || Theme.menuGray, Qt.rgba(1, 1, 1, menu.holdProgress))
+                          ? Qt.tint(row.option.color || Theme.menuGray, Theme.alpha(Theme.text, menu.holdProgress))
                           : (row.option.color || Theme.menuGray))
                 opacity: !row.inner && menu.holdAnimation === "running" && row.option.longpress ? menu.holdProgress : 1
                 font.family: Theme.fontMono
@@ -172,7 +172,7 @@ Item {
                     x: index * (6 + separator.gap)
                     width: 6
                     height: 2
-                    color: Qt.rgba(245 / 255, 196 / 255, 68 / 255, 0.5)
+                    color: Theme.alpha(Theme.accentLine, 0.5)
                 }
             }
         }
