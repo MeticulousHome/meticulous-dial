@@ -18,7 +18,7 @@ permissions:
 jobs:
   build-and-test:
     name: build-and-test
-    runs-on: ubuntu-24.04
+    runs-on: ${{ fromJSON(vars.OFFICE_RUNNERS == 'on' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && '["self-hosted","Linux","x64","office"]' || '"ubuntu-24.04"') }}
     timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
@@ -65,7 +65,7 @@ jobs:
 
   backend-contract:
     name: backend-contract
-    runs-on: ubuntu-24.04
+    runs-on: ${{ fromJSON(vars.OFFICE_RUNNERS == 'on' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && '["self-hosted","Linux","x64","office"]' || '"ubuntu-24.04"') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
