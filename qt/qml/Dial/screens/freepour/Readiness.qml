@@ -8,14 +8,13 @@ Item {
     property bool ready: false
     property string status: "idle"            // SetupStatus
     property string waitingMessage: ""
-    property string readyMessage: "WEIGHT STABLE · PRESS DIAL TO RECORD"
+    property string readyMessage: "PRESS DIAL"
 
     readonly property string kind: status === "tare-timeout" ? "error"
                                  : status === "saving" || status === "taring" ? "busy"
                                  : ready ? "ready" : "waiting"
-    readonly property string message: status === "saving" ? "KEEP SCALE STILL"
-                                    : status === "taring" ? "WAITING FOR ZERO"
-                                    : status === "tare-timeout" ? "TARE NOT CONFIRMED"
+    readonly property string message: status === "saving" || status === "taring" ? "KEEP SCALE STILL"
+                                    : status === "tare-timeout" ? "PRESS DIAL TO RETRY"
                                     : ready ? readyMessage : waitingMessage
     readonly property var lines: message.split(" · ")
     readonly property real lineHeight: 13 * 1.35

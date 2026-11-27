@@ -7,6 +7,7 @@ import Dial
 import Dial.Native
 import "Css.js" as Css
 import "Format.js" as Format
+import "HistoryLayout.js" as Layout
 import "Logging.js" as Log
 
 Item {
@@ -20,6 +21,7 @@ Item {
     readonly property int chartHeight: 142
     readonly property int scrollStepMs: 5000
     readonly property int maxChartSamples: 1200
+    property int exitTimeoutMs: Layout.POST_BREW_EXIT_TIMEOUT_MS
 
     property var session: undefined             // undefined while loading, then a FreePourSession or null
     property real selectedTimeMs: 0
@@ -34,7 +36,8 @@ Item {
     }
     readonly property real maxWeight: plottedSamples.reduce((maximum, sample) => Math.max(maximum, sample.w), 1)
     readonly property bool hasChart: !!session && plottedSamples.length > 0 && session.samples.length > 0
-    readonly property var selected: hasChart ? closestSample(session.samples, selectedTimeMs) : null
+    readonly property bool atOverallSummary: selectedTimeMs <= 0
+    readonly property var selected: hasChart && !atOverallSummary ? closestSample(session.samples, selectedTimeMs) : null
     readonly property real cursorX: chartLeft + (selectedTimeMs / Math.max(1, durationMs)) * chartWidth
     readonly property int selectedPour: {
         if (!selected) return 1
@@ -46,6 +49,18 @@ Item {
 
     readonly property string dialProbe_historyState: session === undefined ? "loading" : hasChart ? "chart" : "empty"
     readonly property real dialProbe_historySelectedMs: selectedTimeMs
+    readonly property bool dialProbe_historySummarySelected: atOverallSummary
+    readonly property var dialProbe_historySummaryValues: atOverallSummary
+        ? [overallValue(0), overallValue(1), overallValue(2), overallValue(3)] : null
+    readonly property int dialProbe_historyExitTimeoutMs: exitTimeoutMs
+    readonly property var dialProbe_historyTitleGeometry: ({
+        x: historyTitle.x,
+        y: historyTitle.y,
+        width: historyTitle.width,
+        paintedWidth: historyTitle.paintedWidth,
+        pixelSize: historyTitle.fontInfo.pixelSize,
+        truncated: historyTitle.truncated
+    })
 
     function closestSample(samples, timeMs) {
         return samples.reduce((closest, sample) => Math.abs(sample.t - timeMs) < Math.abs(closest.t - timeMs) ? sample : closest)
@@ -54,6 +69,31 @@ Item {
         const out = []
         for (const sample of plottedSamples) out.push(sample.t, Format.clamp(value(sample), 0, maximum))
         return out
+    }
+    function overallLabel(index) {
+        if (index === 0) return "POURS"
+        if (index === 1) return "TOTAL TIME"
+        if (index === 2) return session && session.recipe.targetWaterG !== null
+                                      && session.recipe.targetWaterG !== undefined ? "TARGET" : "DOSE"
+        return "WATER"
+    }
+    function overallValue(index) {
+        if (!session) return ""
+        if (index === 0) return String(session.pours.length)
+        if (index === 1) return Format.formatBrewTime(durationMs)
+        if (index === 2) {
+            const target = session.recipe.targetWaterG
+            return Format.roundTo(target !== null && target !== undefined ? target : session.recipe.doseG) + "g"
+        }
+        return Math.round(session.measurements.waterPouredG) + "g"
+    }
+    function goHome(source) {
+        Log.logFreePour("history_closed", { source: source })
+        Nav.closeBubble()
+        Nav.setScreen("profileHome")
+    }
+    function markActivity() {
+        if (exitTimeout.running) exitTimeout.restart()
     }
 
     Component.onCompleted: {
@@ -66,17 +106,29 @@ Item {
     }
     Component.onDestruction: _alive = false
 
+    Timer {
+        id: exitTimeout
+        interval: history.exitTimeoutMs
+        running: !Nav.bubbleInterceptsGesture
+        repeat: false
+        onTriggered: history.goHome("timeout")
+    }
+
     GestureHandler {
         enabled: !Nav.bubbleInterceptsGesture
-        onTurnLeft: history.selectedTimeMs = Math.max(0, history.selectedTimeMs - history.scrollStepMs)
-        onTurnRight: history.selectedTimeMs = Math.min(history.durationMs, history.selectedTimeMs + history.scrollStepMs)
+        onTurnLeft: {
+            history.markActivity()
+            history.selectedTimeMs = Math.max(0, history.selectedTimeMs - history.scrollStepMs)
+        }
+        onTurnRight: {
+            history.markActivity()
+            history.selectedTimeMs = Math.min(history.durationMs, history.selectedTimeMs + history.scrollStepMs)
+        }
         onClick: {
-            Log.logFreePour("history_closed", { source: "click" })
-            Nav.setScreen("profileHome")
+            history.goHome("click")
         }
         onDoubleClick: {
-            Log.logFreePour("history_closed", { source: "double_press" })
-            Nav.setScreen("profileHome")
+            history.goHome("double_press")
         }
     }
 
@@ -111,14 +163,22 @@ Item {
         visible: history.hasChart
 
         FpText {
-            y: 35
+            id: historyTitle
+            x: Layout.HISTORY_TITLE_LEFT
+            y: Layout.HISTORY_TITLE_TOP
+            width: Layout.HISTORY_TITLE_WIDTH
+            lineHeightPx: Layout.HISTORY_TITLE_LINE_HEIGHT
             cssWeight: 650
-            font.pixelSize: 22
+            font.pixelSize: Layout.HISTORY_TITLE_MAX_PIXEL_SIZE
+            minimumPixelSize: Layout.HISTORY_TITLE_MIN_PIXEL_SIZE
+            fontSizeMode: Text.HorizontalFit
+            maximumLineCount: 1
+            elide: Text.ElideRight
             letterSpacingPx: 2
             text: history.session ? String(history.session.recipe.profileName).toUpperCase() : ""
         }
         FpText {
-            y: 67
+            y: Layout.HISTORY_METADATA_TOP
             mono: true
             font.pixelSize: 12
             letterSpacingPx: 1.5
@@ -197,6 +257,7 @@ Item {
             lineWidth: 2.5
         }
         Rectangle {
+            visible: !history.atOverallSummary
             x: history.cursorX - 1
             y: history.chartTop - 5
             width: 2
@@ -217,7 +278,8 @@ Item {
                     font.pixelSize: 11
                     letterSpacingPx: 1.5
                     color: "#8d9694"
-                    text: ["POUR", "TIME", "WATER", "FLOW"][parent.index]
+                    text: history.atOverallSummary ? history.overallLabel(parent.index)
+                                                   : ["POUR", "TIME", "WATER", "FLOW"][parent.index]
                 }
                 FpText {
                     y: 11 * Css.DIATYPE_NORMAL + 5
@@ -225,6 +287,7 @@ Item {
                     font.pixelSize: 20
                     lineHeightPx: 20
                     text: {
+                        if (history.atOverallSummary) return history.overallValue(parent.index)
                         const s = history.selected
                         if (!s) return ""
                         switch (parent.index) {
@@ -242,7 +305,7 @@ Item {
             cssWeight: 650
             font.pixelSize: 15
             letterSpacingPx: 2
-            text: "TURN DIAL · 5 SEC"
+            text: history.atOverallSummary ? "TURN DIAL TO EXPLORE" : "TURN DIAL · 5 SEC"
         }
         // .free-pour-history-legend: centered, 24 px between the two, a 16 x 3 swatch 7 px before each label
         Row {

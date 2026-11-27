@@ -1,7 +1,11 @@
 import { strict as assert } from 'node:assert';
 
 import {
+  canRecordBeanDose,
   canRecordSetupWeight,
+  canTareDosingCup,
+  dosingCupWasRemoved,
+  isTargetBeanDose,
   isValidSetupWeight,
   nextStageAfterTare,
   normalizeBrewerWeight
@@ -9,6 +13,20 @@ import {
 import { formatBrewTime } from '../src/features/freePour/format.ts';
 
 assert.equal(formatBrewTime(195_000), '3:15');
+
+assert.equal(canTareDosingCup({ weight: 20, stable: true, status: 'idle' }), true);
+assert.equal(canTareDosingCup({ weight: 0, stable: true, status: 'idle' }), false);
+assert.equal(canTareDosingCup({ weight: 20, stable: false, status: 'idle' }), false);
+assert.equal(isTargetBeanDose(15, 15), true);
+assert.equal(isTargetBeanDose(14.5, 15), true);
+assert.equal(isTargetBeanDose(15.5, 15), true);
+assert.equal(isTargetBeanDose(14.49, 15), false);
+assert.equal(isTargetBeanDose(15, Number.NaN), false);
+assert.equal(canRecordBeanDose({ weight: 18, targetDose: 18, stable: true, status: 'idle' }), true);
+assert.equal(canRecordBeanDose({ weight: 15, targetDose: 18, stable: true, status: 'idle' }), false);
+assert.equal(canRecordBeanDose({ weight: 18, targetDose: 18, stable: false, status: 'idle' }), false);
+assert.equal(dosingCupWasRemoved(-20), true);
+assert.equal(dosingCupWasRemoved(-1), false);
 
 assert.equal(
   canRecordSetupWeight({

@@ -93,18 +93,46 @@ def record_setup(screen, scale, step, added, expect_text=None):
     screen.wait_for_text(step)
     scale.place(scale.mass + added)
     screen.wait_for_text(expect_text or f"{added:.0f}g")
-    screen.wait_for_text("Weight stable" if "brewer" not in step.lower() or added else "0g brewer")
+    screen.wait_for_text("Press dial")
     screen.controls.push()
     wait_probe(screen, "freePourSetupStatus", "taring")
     scale.tare()
 
 
 def setup_free_pour(screen, scale):
-    screen.wait_for_text("Water temperature")
+    screen.wait_for_text("Set water temperature")
     screen.controls.push()
-    for step, added in (("Weigh empty server", SERVER_G), ("Add brewer", BREWER_G), ("Add coffee", COFFEE_G)):
+    for step, added in (("Place brewing container", SERVER_G), ("Place brewer", BREWER_G), ("Add ground coffee", COFFEE_G)):
         record_setup(screen, scale, step, added)
     screen.wait_for_text("Start pouring")
+
+
+def complete_pregrind_dose(screen, scale, target_g):
+    """Tare a dosing cup, weigh the profile target, remove it, then capture the empty brewing container."""
+    screen.wait_for_text("Weigh empty dosing cup")
+    scale.place(20)
+    screen.wait_for_text("Press dial")
+    screen.controls.push()
+    wait_probe(screen, "freePourSetupStatus", "taring")
+    scale.tare()
+
+    screen.wait_for_text("Add coffee beans")
+    scale.place(scale.mass + target_g)
+    screen.wait_for_text(f"Target {target_g:.0f}g")
+    screen.wait_for_text("Press dial")
+    screen.controls.push()
+    screen.wait_for_text("Remove cup + grind coffee")
+    assert screen.probe("freePourPreGrindDoseG") == target_g
+    scale.place(0)
+    wait_probe(screen, "freePourSetupStatus", "taring")
+    scale.tare()
+    screen.wait_for_text("Place brewing container")
+    scale.place(SERVER_G)
+    screen.wait_for_text("Press dial")
+    screen.controls.push()
+    wait_probe(screen, "freePourSetupStatus", "taring")
+    scale.tare()
+    screen.wait_for_text("Set water temperature")
 
 
 def open_free_pour(screen):
@@ -114,6 +142,9 @@ def open_free_pour(screen):
     screen.wait_for_route("freePour")
     scale = Scale(screen)
     scale.send()
+    screen.wait_for_text("Weigh empty dosing cup")
+    screen.controls.long_push()
+    screen.wait_for_text("Set water temperature")
     return scale
 
 
@@ -218,6 +249,26 @@ def test_the_manual_setup_rules_pass_their_cases_in_the_dials_engine(screen):
 
 # ---- Free Pour
 
+def test_the_pregrind_bean_dose_uses_the_profile_target_but_is_not_saved(screen):
+    """Protects: the combined first step shows the selected profile's bean dose, guides the dosing-cup
+    tare/removal and empty brewing-container capture, then reaches temperature without saving the bean weight.
+
+    The expected 18 g comes from FreePourScreen.profile.doseG. Existing setup tests began at temperature,
+    so they could not catch a hard-coded target, a broken cup-removal tare, or accidental persistence.
+    """
+    screen.c.call({"cmd": "screen", "name": "freePour"})
+    screen.wait_for_route("freePour")
+    scale = Scale(screen)
+    scale.send()
+    assert ev(screen, "(function(){ router.current.item.profile = ({ doseG: 18, temperatureC: 93,"
+                      " pourTargets: [] }); return 'set' })()") == "set"
+    assert screen.probe("freePourTargetDoseG") == 18
+    complete_pregrind_dose(screen, scale, 18)
+    assert screen.probe("freePourResult") is None
+    screen.controls.double_push()
+    screen.wait_for_home()
+
+
 def test_a_free_pour_is_guided_by_the_scale_and_saved_to_the_pour_over_history(screen, backend):
     """Protects: a hand-poured brew guided by the machine's scale, from setup to history (the integration
     journey "pour-over-brew").
@@ -248,8 +299,19 @@ def test_a_free_pour_is_guided_by_the_scale_and_saved_to_the_pour_over_history(s
     screen.wait_for_text(f"{COFFEE_G:.0f}g")
     screen.wait_for_text(f"{WATER_G:.0f}g water")
     assert screen.probe("historyState") == "chart"
+    assert screen.probe("historySummarySelected") is True
+    summary = screen.probe("historySummaryValues")
+    assert int(summary[0]) >= 1, summary
+    assert summary[2:] == [f"{COFFEE_G:.0f}g", f"{WATER_G:.0f}g"], summary
+    screen.wait_for_text("Total time")
+    screen.wait_for_text("Turn dial to explore")
     screen.controls.right(2)
+    assert screen.probe("historySummarySelected") is False
     assert screen.probe("historySelectedMs") == 10000
+    screen.controls.left(2)
+    assert screen.probe("historySelectedMs") == 0
+    assert screen.probe("historySummarySelected") is True
+    assert screen.probe("historySummaryValues") == summary
     screen.controls.push()
     screen.wait_for_home()
 
@@ -271,7 +333,7 @@ def test_a_free_pour_is_guided_by_the_scale_and_saved_to_the_pour_over_history(s
 def test_the_temperature_step_turns_between_70_and_100(screen):
     """Protects: setting the water temperature with the knob (92 °C by default, 70-100 °C)."""
     open_free_pour(screen)
-    screen.wait_for_text("Water temperature")
+    screen.wait_for_text("Set water temperature")
     screen.wait_for_text("92")
     screen.controls.right(3)
     screen.wait_for_text("95")
@@ -286,32 +348,31 @@ def test_a_tare_the_scale_does_not_confirm_can_be_retried(screen):
     """Protects: the setup waiting for the scale to read zero after its tare; 5 s without it says so and a
     push asks for the tare again."""
     scale = open_free_pour(screen)
-    screen.wait_for_text("Water temperature")
+    screen.wait_for_text("Set water temperature")
     screen.controls.push()
-    screen.wait_for_text("Weigh empty server")
+    screen.wait_for_text("Place brewing container")
     scale.place(SERVER_G)
-    screen.wait_for_text("Weight stable")
+    screen.wait_for_text("Press dial")
     screen.controls.push()
     wait_probe(screen, "freePourSetupStatus", "taring")
-    screen.wait_for_text("Waiting for zero")
-    screen.wait_for_text("Tare not confirmed", timeout_s=8)
+    screen.wait_for_text("Keep scale still")
     screen.wait_for_text("Press dial to retry")
     screen.controls.push()
     wait_probe(screen, "freePourSetupStatus", "taring")
     scale.tare()
-    screen.wait_for_text("Add brewer")
-    screen.wait_for_text("0g brewer")
+    screen.wait_for_text("Place brewer")
+    screen.wait_for_text("Press dial")
 
 
 def test_reviewing_a_recorded_weight_restarts_the_setup_from_the_server(screen):
     """Protects: correcting a setup weight: turning the knob reviews the recorded weights, and re-entering
     one restarts from the empty server so every tare stays right."""
     scale = open_free_pour(screen)
-    screen.wait_for_text("Water temperature")
+    screen.wait_for_text("Set water temperature")
     screen.controls.push()
-    record_setup(screen, scale, "Weigh empty server", SERVER_G)
-    record_setup(screen, scale, "Add brewer", BREWER_G)
-    screen.wait_for_text("Add coffee")
+    record_setup(screen, scale, "Place brewing container", SERVER_G)
+    record_setup(screen, scale, "Place brewer", BREWER_G)
+    screen.wait_for_text("Add ground coffee")
     screen.controls.left()
     wait_probe(screen, "freePourStage", "setup-review")
     screen.wait_for_text("Brewer weight")
@@ -326,7 +387,7 @@ def test_reviewing_a_recorded_weight_restarts_the_setup_from_the_server(screen):
     screen.wait_for_text("Server weight")
     screen.controls.push()
     wait_probe(screen, "freePourStage", "server")
-    screen.wait_for_text("Weigh empty server")
+    screen.wait_for_text("Place brewing container")
 
 
 def test_lifting_the_server_too_asks_for_it_back_and_a_push_skips_the_measure(screen, backend):
@@ -348,10 +409,10 @@ def test_lifting_the_server_too_asks_for_it_back_and_a_push_skips_the_measure(sc
 def test_a_double_press_aborts_the_free_pour(screen):
     """Protects: leaving Free Pour at any step with a double press."""
     scale = open_free_pour(screen)
-    screen.wait_for_text("Water temperature")
+    screen.wait_for_text("Set water temperature")
     screen.controls.push()
     scale.place(SERVER_G)
-    screen.wait_for_text("Weigh empty server")
+    screen.wait_for_text("Place brewing container")
     screen.controls.double_push()
     screen.wait_for_home()
 
@@ -450,6 +511,75 @@ def test_the_history_shows_the_backends_newest_brew(screen, backend):
     screen.wait_for_home()
 
 
+def test_completed_pour_over_screens_return_home_after_two_idle_minutes(screen):
+    """Protects: an unattended completed brew no longer strands the Dial on its summary or history chart.
+
+    The production expectation is HistoryLayout.POST_BREW_EXIT_TIMEOUT_MS (120 seconds); the writable screen
+    interval is shortened here so the journey is fast. The existing suite only left these screens by pushing,
+    so it would not catch a missing timeout. Turning the history chart proves active inspection restarts it.
+    """
+    screen.c.call({"cmd": "screen", "name": "freePour"})
+    screen.wait_for_route("freePour")
+    assert screen.probe("freePourExitTimeoutMs") == 120_000
+    assert ev(screen, "(function(){ router.current.item.postBrewExitTimeoutMs = 100;"
+                      " router.current.item.updateStage('result'); return 'set' })()") == "set"
+    screen.wait_for_home(timeout_s=3)
+
+    screen.c.call({"cmd": "screen", "name": "freePourHistory"})
+    screen.wait_for_route("freePourHistory")
+    assert screen.probe("historyExitTimeoutMs") == 120_000
+    assert ev(screen, "(function(){ router.current.item.exitTimeoutMs = 700; return 'set' })()") == "set"
+    time.sleep(0.3)
+    screen.controls.right()
+    assert screen.route() == "freePourHistory"
+    screen.wait_for_home(timeout_s=3)
+
+
+def test_a_long_history_title_fits_the_measured_circular_safe_chord(screen):
+    """Protects: a long guided-pour title remains fully visible and horizontally centered on the round Dial.
+
+    The expected bounds come from HistoryLayout.safeCircleChordWidth for the 480 px display and its 8 px
+    inset. Earlier tests asserted title text only, so they stayed green when the painted title crossed the
+    circular edge as in the machine photo.
+    """
+    profile_name = "FILTER FOR HIGH-DENSITY"
+    session = a_session()
+    now = datetime.now(timezone.utc)
+    session.update({
+        "mode": "profile",
+        "name": profile_name,
+        "startedAt": (now - timedelta(seconds=90)).isoformat().replace("+00:00", "Z"),
+        "completedAt": now.isoformat().replace("+00:00", "Z"),
+    })
+    session["recipe"].update({"profileName": profile_name, "targetWaterG": 360})
+    session["measurements"].update({"durationMs": 195_000, "waterPouredG": 355})
+    session["samples"][-1].update({"t": 195_000, "w": 355})
+    screen.c.call({"cmd": "screen", "name": "freePourHistory"})
+    screen.wait_for_route("freePourHistory")
+    # Inject the completed brew directly: this is a layout test, and tying it to a particular backend's
+    # history endpoint would make a geometry regression look like a storage failure.
+    encoded_session = json.dumps(session)
+    assert ev(screen, "(function(){ const item = router.current.item; item._alive = false;"
+                      " item.session = %s; return 'set' })()" % encoded_session) == "set"
+    screen.wait_for_text(profile_name)
+    geometry = screen.probe("historyTitleGeometry")
+    assert geometry["truncated"] is False, geometry
+    assert geometry["paintedWidth"] <= geometry["width"] + 0.5, geometry
+    assert abs(geometry["x"] + geometry["width"] / 2 - 240) <= 0.5, geometry
+    assert 14 <= geometry["pixelSize"] <= 22, geometry
+    assert screen.probe("historySummarySelected") is True
+    assert screen.probe("historySummaryValues") == ["1", "3:15", "360g", "355g"]
+    screen.controls.right(2)
+    assert screen.probe("historySelectedMs") == 10_000
+    assert screen.probe("historySummarySelected") is False
+    screen.controls.left(2)
+    assert screen.probe("historySelectedMs") == 0
+    assert screen.probe("historySummarySelected") is True
+    screen.snapshot("circular-safe-title")
+    screen.controls.double_push()
+    screen.wait_for_home()
+
+
 # ---- the guided pour-over
 
 def test_a_guided_pour_over_follows_the_installed_profile(screen, backend):
@@ -466,12 +596,12 @@ def test_a_guided_pour_over_follows_the_installed_profile(screen, backend):
         wait_probe(screen, "guidedProfileId", POUR_OVER_ID)
         scale = Scale(screen)
         scale.send()
-        screen.wait_for_text("Water temperature")
+        assert screen.probe("freePourTargetDoseG") == 15
+        complete_pregrind_dose(screen, scale, 15)
         screen.wait_for_text("93")
         screen.controls.push()
-        record_setup(screen, scale, "Weigh empty server", SERVER_G)
-        record_setup(screen, scale, "Add brewer", BREWER_G)
-        screen.wait_for_text("Add coffee")
+        record_setup(screen, scale, "Place brewer", BREWER_G)
+        screen.wait_for_text("Add ground coffee")
         scale.place(scale.mass + COFFEE_G)
         screen.wait_for_text("Target 15g")
         screen.controls.push()
